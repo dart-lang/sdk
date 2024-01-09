@@ -12,7 +12,10 @@ import 'package:testing/src/suite.dart' as testing show Suite;
 import 'testing/suite.dart';
 
 Future<void> internalMain(CreateContext createContext,
-    {List<String> arguments = const [], int shards = 1, int shard = 0}) async {
+    {List<String> arguments = const [],
+    int shards = 1,
+    int shard = 0,
+    String? configurationPath}) async {
   Logger logger = const StdoutLogger();
   if (arguments.contains("--traceStepTiming")) {
     logger = new TracingLogger();
@@ -21,7 +24,7 @@ Future<void> internalMain(CreateContext createContext,
   await runMe(
     arguments,
     createContext,
-    configurationPath: "../../testing.json",
+    configurationPath: configurationPath ?? "../../testing.json",
     shards: shards,
     shard: shard,
     logger: logger,

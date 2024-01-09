@@ -853,6 +853,11 @@ class OperationsCfe
     return new InterfaceType(typeEnvironment.coreTypes.streamClass,
         Nullability.nonNullable, <DartType>[elementType]);
   }
+
+  @override
+  DartType extensionTypeErasure(DartType type) {
+    return type.extensionTypeErasure;
+  }
 }
 
 /// Type inference results used for testing.

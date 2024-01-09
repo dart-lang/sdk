@@ -55,6 +55,15 @@ class TestRoot {
 
   List<RegExp> get excludedFromAnalysis => analyze.exclude;
 
+  Chain? getChain(String name) {
+    for (Suite suite in suites) {
+      if (suite is Chain && suite.name == name) {
+        return suite;
+      }
+    }
+    return null;
+  }
+
   Iterable<Dart> get dartSuites {
     return List<Dart>.from(suites.whereType<Dart>());
   }

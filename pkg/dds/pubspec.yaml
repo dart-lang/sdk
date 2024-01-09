@@ -37,7 +37,6 @@ dependencies:
 # best practice for packages is to specify their compatible version ranges.
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
-  http: any
   lints: any
   test: any
   webdriver: any

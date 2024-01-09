@@ -1549,6 +1549,11 @@ class Assembler : public MicroAssembler {
   // See also above for the pc-relative call.
   void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
 
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale);
+
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,

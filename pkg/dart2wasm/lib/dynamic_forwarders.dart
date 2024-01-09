@@ -412,7 +412,7 @@ class Forwarder {
               ++nameIdx) {
             final String name = targetMemberParamInfo.names[nameIdx];
             final Constant? paramInfoDefaultValue =
-                targetMemberParamInfo.named[name]!;
+                targetMemberParamInfo.named[name];
             final Expression? functionNodeDefaultValue =
                 initializerForNamedParamInMember(name);
 

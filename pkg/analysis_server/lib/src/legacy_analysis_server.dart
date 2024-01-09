@@ -503,7 +503,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
 
     var driver = getAnalysisDriver(path);
-    return driver?.getCachedResult(path);
+    return driver?.getCachedResolvedUnit(path);
   }
 
   /// Gets the current version number of a document.

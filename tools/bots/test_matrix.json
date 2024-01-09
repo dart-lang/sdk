@@ -1112,6 +1112,7 @@
         "vm-aot-linux-debug-x64c",
         "vm-aot-linux-product-x64",
         "vm-aot-linux-release-simarm64",
+        "vm-aot-win-debug-x64",
         "vm-aot-win-debug-x64c",
         "vm-aot-win-product-x64"
       ],

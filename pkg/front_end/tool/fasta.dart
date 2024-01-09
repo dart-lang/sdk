@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import "package:testing/src/run_tests.dart" as run_tests;
 import 'package:kernel/src/tool/dump.dart' as dump;
 import '../test/utils/io_utils.dart' show computeRepoDir;
 import '_fasta/abcompile.dart' as abcompile;
@@ -17,6 +16,7 @@ import '_fasta/log_collector.dart' as log_collector;
 import '_fasta/outline.dart' as outline;
 import '_fasta/parser.dart' as parser;
 import '_fasta/scanner.dart' as scanner;
+import 'all_suites.dart' as all_suites;
 
 final String repoDir = computeRepoDir();
 
@@ -90,8 +90,8 @@ Future<void> main(List<String> args) async {
       }
       break;
     case 'testing':
-      mainFunction = run_tests.main;
-      script = '${repoDir}/pkg/testing/bin/testing.dart';
+      mainFunction = all_suites.main;
+      script = '${repoDir}/all_suites.dart';
       scriptArguments.add('--config=${repoDir}/pkg/front_end/testing.json');
       break;
     case 'generate-messages':

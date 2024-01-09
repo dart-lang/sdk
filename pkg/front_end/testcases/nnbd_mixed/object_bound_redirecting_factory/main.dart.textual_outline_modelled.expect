@@ -8,10 +8,7 @@ class XToken extends Token {
   const XToken();
 }
 
-const list = [
-  CP(Class),
-  VP.forToken(XToken(), 'Hello World'),
-];
+const list = [ CP(Class), VP.forToken(XToken(), 'Hello World'), ];
 
 const m = M(list: list);
 

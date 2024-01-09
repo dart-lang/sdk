@@ -2942,6 +2942,11 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
   }
 
   @override
+  Type extensionTypeErasure(Type type) {
+    return type;
+  }
+
+  @override
   Type streamType(Type elementType) {
     return PrimaryType('Stream', args: [elementType]);
   }

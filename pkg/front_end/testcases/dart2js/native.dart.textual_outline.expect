@@ -52,6 +52,7 @@ class Class {
 }
 
 @Native('d')
+
 class NativeClass {
   NativeClass.generative();
   factory NativeClass.fact() => null;

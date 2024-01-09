@@ -10,7 +10,7 @@ part of dart.async;
 /// When the timer reaches 0, the timer invokes the specified callback function.
 /// Use a periodic timer to repeatedly count down the same interval.
 ///
-/// A negative duration is treated the same as a duration of 0.
+/// A negative duration is treated the same as [Duration.zero].
 /// If the duration is statically known to be 0, consider using [run].
 ///
 /// ```dart
@@ -64,7 +64,7 @@ abstract interface class Timer {
   /// when the previous callback started, or when the previous callback was
   /// scheduled for - even if the actual callback was delayed.
   ///
-  /// [duration] must a non-negative [Duration].
+  /// A negative [duration] is treated the same as [Duration.zero].
   ///
   /// Example:
   /// ```dart

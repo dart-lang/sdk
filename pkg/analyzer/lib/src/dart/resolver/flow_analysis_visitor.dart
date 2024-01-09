@@ -436,6 +436,11 @@ class TypeSystemOperations
   }
 
   @override
+  DartType extensionTypeErasure(DartType type) {
+    return type.extensionTypeErasure;
+  }
+
+  @override
   DartType factor(DartType from, DartType what) {
     return typeSystem.factor(from, what);
   }

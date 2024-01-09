@@ -88,6 +88,20 @@ void f(A x) {
     ]);
   }
 
+  test_eqEq_externalType_right() async {
+    await assertNoErrorsInCode(r'''
+extension type const A(bool it) {}
+const True = A(true);
+
+void f(bool x) {
+  switch (x) {
+    case == True:
+    default:
+  }
+}
+''');
+  }
+
   test_eqEq_matchedValueNullable() async {
     await assertNoErrorsInCode(r'''
 class A {}

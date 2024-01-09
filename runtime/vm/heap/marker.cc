@@ -405,10 +405,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   static bool TryAcquireMarkBit(ObjectPtr raw_obj) {
-    if (FLAG_write_protect_code && raw_obj->IsInstructions()) {
-      // A non-writable alias mapping may exist for instruction pages.
-      raw_obj = Page::ToWritable(raw_obj);
-    }
     if (!sync) {
       raw_obj->untag()->SetMarkBitUnsynchronized();
       return true;

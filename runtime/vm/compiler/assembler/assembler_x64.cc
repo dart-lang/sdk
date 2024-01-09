@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // NOLINT
+#include "vm/pointer_tagging.h"
 #if defined(TARGET_ARCH_X64)
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
@@ -2759,6 +2760,18 @@ void Assembler::EnsureHasClassIdInDEBUG(intptr_t cid,
 
 Address Assembler::VMTagAddress() {
   return Address(THR, target::Thread::vm_tag_offset());
+}
+
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t disp =
+      index * index_scale +
+      (is_external ? 0 : target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  return Utils::IsInt(32, disp);
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

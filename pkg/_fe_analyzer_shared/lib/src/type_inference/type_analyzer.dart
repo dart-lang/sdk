@@ -1630,8 +1630,10 @@ mixin TypeAnalyzer<
     Error? argumentTypeNotAssignableError;
     Error? operatorReturnTypeNotAssignableToBoolError;
     if (operator != null) {
-      Type argumentType =
-          isEquality ? operations.promoteToNonNull(operandType) : operandType;
+      Type extensionTypeErasure = operations.extensionTypeErasure(operandType);
+      Type argumentType = isEquality
+          ? operations.promoteToNonNull(extensionTypeErasure)
+          : extensionTypeErasure;
       if (!operations.isAssignableTo(argumentType, operator.parameterType)) {
         argumentTypeNotAssignableError =
             errors.relationalPatternOperandTypeNotAssignable(

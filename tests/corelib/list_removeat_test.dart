@@ -25,10 +25,14 @@ void testModifiableList(l1) {
   // Index must be integer and in range.
   Expect.throwsRangeError(() => l1.removeAt(-1), "negative");
   Expect.throwsRangeError(() => l1.removeAt(5), "too large");
-  Expect.throws(() => l1.removeAt(null),
-      // With sound null safety a TypeError is thrown.
-      // Without sound null safety an ArgumentError is thrown.
-      (e) => e is TypeError || e is ArgumentError, "is null");
+  if (!dart2jsProductionMode) {
+    Expect.throws(
+        () => l1.removeAt(null),
+        // With sound null safety a TypeError is thrown.
+        // Without sound null safety an ArgumentError is thrown.
+        (e) => e is TypeError || e is ArgumentError,
+        "is null");
+  }
 
   Expect.equals(2, l1.removeAt(2), "l1-remove2");
   Expect.equals(1, l1[1], "l1-1[1]");

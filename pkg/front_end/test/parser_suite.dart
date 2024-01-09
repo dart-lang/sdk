@@ -59,8 +59,7 @@ const String EXPECTATIONS = '''
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {
     UPDATE_EXPECTATIONS,
     "trace",
@@ -72,7 +71,8 @@ Future<Context> createContext(
   bool trace = environment["trace"] == "true";
   bool annotateLines = environment["annotateLines"] == "true";
 
-  return new Context(suite.name, updateExpectations, trace, annotateLines);
+  return new Future.value(
+      new Context(suite.name, updateExpectations, trace, annotateLines));
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(

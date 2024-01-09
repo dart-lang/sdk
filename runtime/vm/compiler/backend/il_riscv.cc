@@ -2038,23 +2038,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
-  ConstantInstr* constant = value->definition()->AsConstant();
-  if ((constant == nullptr) || !constant->value().IsSmi()) {
-    return false;
-  }
-  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
-  const intptr_t scale = Instance::ElementSizeFor(cid);
-  const int64_t offset =
-      index * scale +
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
-  if (IsITypeImm(offset)) {
-    ASSERT(IsSTypeImm(offset));
-    return true;
-  }
-  return false;
-}
-
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -2062,11 +2045,13 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    locs->set_in(1, Location::RequiresRegister());
-  }
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
+  locs->set_in(1, can_be_constant
+                      ? Location::Constant(index()->definition()->AsConstant())
+                      : Location::RequiresRegister());
   if ((representation() == kUnboxedFloat) ||
       (representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
@@ -2307,11 +2292,13 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    locs->set_in(1, Location::RequiresRegister());
-  }
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
+  locs->set_in(1, can_be_constant
+                      ? Location::Constant(index()->definition()->AsConstant())
+                      : Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
 
   switch (class_id()) {

@@ -28,7 +28,16 @@ import '../kernel/utils.dart';
 import '../loader.dart' show Loader;
 import '../uris.dart' show missingUri;
 
-class TypeBuilderComputer
+class TypeBuilderComputer {
+  final _TypeBuilderComputerHelper _typeBuilderComputerHelper;
+
+  TypeBuilderComputer(Loader loader)
+      : _typeBuilderComputerHelper = new _TypeBuilderComputerHelper(loader);
+
+  TypeBuilder visit(DartType type) => _typeBuilderComputerHelper.visit(type);
+}
+
+class _TypeBuilderComputerHelper
     implements
         DartTypeVisitor1<TypeBuilder,
             Map<TypeParameter, NominalVariableBuilder>> {
@@ -54,7 +63,7 @@ class TypeBuilderComputer
           loader.coreLibrary,
           -1);
 
-  TypeBuilderComputer(this.loader);
+  _TypeBuilderComputerHelper(this.loader);
 
   final Map<StructuralParameter, StructuralVariableBuilder>
       structuralTypeParameters =
@@ -64,7 +73,11 @@ class TypeBuilderComputer
       computedNominalTypeParameters = <TypeParameter, NominalVariableBuilder>{};
 
   TypeBuilder visit(DartType type) {
-    return type.accept1(this, <TypeParameter, NominalVariableBuilder>{});
+    TypeBuilder typeBuilder =
+        type.accept1(this, <TypeParameter, NominalVariableBuilder>{});
+    structuralTypeParameters.clear();
+    computedNominalTypeParameters.clear();
+    return typeBuilder;
   }
 
   @override

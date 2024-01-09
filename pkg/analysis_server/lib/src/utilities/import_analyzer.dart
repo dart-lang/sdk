@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// A utility class used to analyze a library from which some set of
 /// declarations are being moved in order to compute the set of changes needed
@@ -298,8 +299,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     // Extensions can be used without a prefix, so we can use any import that
     // brings in the extension.
     if (import == null && prefix == null && element is ExtensionElement) {
-      import = _importsByPrefix.values
-          .expand((imports) => imports)
+      import = _importsByPrefix.values.flattenedToList
           .where((import) =>
               // Because we don't know what prefix we're looking for (any is
               // allowed), use the imports own prefix when checking for the

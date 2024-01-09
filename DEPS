@@ -50,8 +50,7 @@ vars = {
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution
   # in a cipd package used to run Dart scripts in the build and test
   # infrastructure, which is automatically built on the release commits.
-  # Use a published dev version to support unstable platforms.
-  "sdk_tag": "version:3.2.0-150.0.dev",
+  "sdk_tag": "version:3.2.4",
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
@@ -154,14 +153,14 @@ vars = {
   "http_parser_rev": "224c1a9d24b46c7a9da1f09147e0e1fbda78089d",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "ac1fabddd51fc90aa6fa4e1248f1a7141899eb4a",
-  "leak_tracker_rev": "8644f8b1c78009e9149e08e0c349d06c304110a9",
+  "leak_tracker_rev": "3d4c0d6db7d56af5fe52d6729ef373a3ec4de65b",
   "lints_rev": "3810f8b3dc3205cfaa4ccc0054b021e68046d851",
   "logging_rev": "4d35a4e02b9237bd794378413e7ce3deb52ffcaf",
   "markdown_rev": "d2e790305d136b4eb39d329c884bb49d5a5f1411",
-  "matcher_rev": "fcbd3616c1dbe636d22d2b164aee3f1c32c52a42",
+  "matcher_rev": "d9cf4f69e3f557718ab5be042dd5503afcacac51",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "ca9f059d2334bb2657683e0a7f5949817cb4b0e6",
-  "mockito_rev": "57a7c820ffae61e3df0dbc279ad98b92751175f0",
+  "mockito_rev": "e15e00086ed20f3175b2e677fd11611be4fa8e8e",
   "native_rev": "0605d9ae6d2497737077539273992f8e1411286b",
   "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
   "path_rev": "57a049cff2e2be7a302dd9683b2b194c6d06e2d4",
@@ -180,7 +179,7 @@ vars = {
   "sync_http_rev": "f96db9543e5a9f62833ca9a24269b12fcf63d45b",
   "tar_rev": "0fc831c6e93be5342d4863d9e464428e73007cce",
   "term_glyph_rev": "4c5a49664ee78b62c35de528cec5a9469bb84936",
-  "test_rev": "43ff5bf9e25330aec1144bf14ef2a22fc95cda57",
+  "test_rev": "846d73ee40a9cbd86348bc3cfc97f9c765872f2d",
   "test_descriptor_rev": "59ce97fae49709fa1f479efa808c031a576e617e",
   "test_process_rev": "d68de5bc53bf33a12334d06748af9db4844d66f0",
   "test_reflective_loader_rev": "6edf5358b53bfda487840bad1a03d089326fa08c",

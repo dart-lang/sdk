@@ -36,6 +36,10 @@ mixin ResourceProviderMixin {
     resourceProvider.deleteFile(convertedPath);
   }
 
+  void deleteFile2(File file) {
+    deleteFile(file.path);
+  }
+
   void deleteFolder(String path) {
     String convertedPath = convertPath(path);
     resourceProvider.deleteFolder(convertedPath);

@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, WarningCode;
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -491,7 +492,7 @@ class GenericInferrer {
         .values
         .where((l) =>
             l.every((c) => c.isSatisfiedBy(_typeSystem, inferred)) == expected)
-        .expand((i) => i);
+        .flattenedToList;
 
     String unsatisfied = _formatConstraints(isSatisfied(false));
     String satisfied = _formatConstraints(isSatisfied(true));

@@ -2102,45 +2102,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ StoreFieldToOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
 }
 
-static bool CanBeImmediateIndex(Value* value,
-                                intptr_t cid,
-                                bool is_external,
-                                bool is_load,
-                                bool* needs_base) {
-  if ((cid == kTypedDataInt32x4ArrayCid) ||
-      (cid == kTypedDataFloat32x4ArrayCid) ||
-      (cid == kTypedDataFloat64x2ArrayCid)) {
-    // We are using vldmd/vstmd which do not support offset.
-    return false;
-  }
-
-  ConstantInstr* constant = value->definition()->AsConstant();
-  if ((constant == nullptr) ||
-      !compiler::Assembler::IsSafeSmi(constant->value())) {
-    return false;
-  }
-  const int64_t index = compiler::target::SmiValue(constant->value());
-  const intptr_t scale = compiler::target::Instance::ElementSizeFor(cid);
-  const intptr_t base_offset =
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
-  const int64_t offset = index * scale + base_offset;
-  if (!Utils::MagnitudeIsUint(12, offset)) {
-    return false;
-  }
-  if (compiler::Address::CanHoldImmediateOffset(is_load, cid, offset)) {
-    *needs_base = false;
-    return true;
-  }
-
-  if (compiler::Address::CanHoldImmediateOffset(is_load, cid,
-                                                offset - base_offset)) {
-    *needs_base = true;
-    return true;
-  }
-
-  return false;
-}
-
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const bool directly_addressable =
@@ -2158,15 +2119,13 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  bool needs_base = false;
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
-                          true,  // Load.
-                          &needs_base)) {
-    // CanBeImmediateIndex must return false for unsafe smis.
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    locs->set_in(1, Location::RequiresRegister());
-  }
+  const bool can_be_constant = index()->BindsToConstant() &&
+                               compiler::Assembler::AddressCanHoldConstantIndex(
+                                   index()->BoundConstant(), /*load=*/true,
+                                   IsExternal(), class_id(), index_scale());
+  locs->set_in(1, can_be_constant
+                      ? Location::Constant(index()->definition()->AsConstant())
+                      : Location::RequiresRegister());
   if ((representation() == kUnboxedFloat) ||
       (representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
@@ -2382,11 +2341,14 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 3;
   LocationSummary* locs;
 
-  bool needs_base = false;
   intptr_t kNumTemps = 0;
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
-                          false,  // Store.
-                          &needs_base)) {
+  bool needs_base = false;
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), /*load=*/false, IsExternal(), class_id(),
+          index_scale(), &needs_base);
+  if (can_be_constant) {
     if (!directly_addressable) {
       kNumTemps += 2;
     } else if (needs_base) {
@@ -2396,7 +2358,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
-    // CanBeImmediateIndex must return false for unsafe smis.
     locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
   } else {
     if (!directly_addressable) {

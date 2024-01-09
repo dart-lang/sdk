@@ -3129,6 +3129,18 @@ void Assembler::EnsureHasClassIdInDEBUG(intptr_t cid,
 #endif
 }
 
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t offset =
+      is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  const int64_t disp = index * index_scale + offset;
+  return Utils::IsInt(32, disp);
+}
+
 Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,

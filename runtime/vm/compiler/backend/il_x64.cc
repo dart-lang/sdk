@@ -1597,17 +1597,6 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LeaveCFrame();
 }
 
-static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
-  if (!index->definition()->IsConstant()) return false;
-  const Object& constant = index->definition()->AsConstant()->value();
-  if (!constant.IsSmi()) return false;
-  const Smi& smi_const = Smi::Cast(constant);
-  const intptr_t scale = Instance::ElementSizeFor(cid);
-  const intptr_t data_offset = Instance::DataOffsetFor(cid);
-  const int64_t disp = smi_const.AsInt64Value() * scale + data_offset;
-  return Utils::IsInt(32, disp);
-}
-
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -1827,8 +1816,12 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   const bool need_writable_index_register =
       (index_scale() == 1 && !index_unboxed_) ||
       (index_scale() == 16 && index_unboxed_);
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
   locs->set_in(
-      1, CanBeImmediateIndex(index(), class_id())
+      1, can_be_constant
              ? Location::Constant(index()->definition()->AsConstant())
              : (need_writable_index_register ? Location::WritableRegister()
                                              : Location::RequiresRegister()));
@@ -2029,8 +2022,12 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   const bool need_writable_index_register =
       (index_scale() == 1 && !index_unboxed_) ||
       (index_scale() == 16 && index_unboxed_);
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
   locs->set_in(
-      1, CanBeImmediateIndex(index(), class_id())
+      1, can_be_constant
              ? Location::Constant(index()->definition()->AsConstant())
              : (need_writable_index_register ? Location::WritableRegister()
                                              : Location::RequiresRegister()));

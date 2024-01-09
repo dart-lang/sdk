@@ -39,7 +39,6 @@ namespace dart {
 
 #define Z (thread->zone())
 
-DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
 static ClassPtr CreateDummyClass(const String& class_name,
@@ -2818,44 +2817,6 @@ class CodeTestHelper {
     code.set_instructions(instructions);
   }
 };
-
-// Test for executability of generated instructions. The test crashes with a
-// segmentation fault when executing the writeable view.
-ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
-  extern void GenerateIncrement(compiler::Assembler * assembler);
-  compiler::ObjectPoolBuilder object_pool_builder;
-  compiler::Assembler _assembler_(&object_pool_builder);
-  GenerateIncrement(&_assembler_);
-  const Function& function = Function::Handle(CreateFunction("Test_Code"));
-  SafepointWriteRwLocker locker(thread,
-                                thread->isolate_group()->program_lock());
-  Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
-      function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
-  function.AttachCode(code);
-  Instructions& instructions = Instructions::Handle(code.instructions());
-  uword payload_start = code.PayloadStart();
-  const uword unchecked_offset = code.UncheckedEntryPoint() - code.EntryPoint();
-  EXPECT_EQ(instructions.ptr(), Instructions::FromPayloadStart(payload_start));
-  // Execute the executable view of the instructions (default).
-  Object& result =
-      Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
-  EXPECT_EQ(1, Smi::Cast(result).Value());
-  // Switch to the writeable but non-executable view of the instructions.
-  instructions ^= Page::ToWritable(instructions.ptr());
-  payload_start = instructions.PayloadStart();
-  EXPECT_EQ(instructions.ptr(), Instructions::FromPayloadStart(payload_start));
-  // Hook up Code and Instructions objects.
-  CodeTestHelper::SetInstructions(code, instructions, unchecked_offset);
-  function.AttachCode(code);
-  // Try executing the generated code, expected to crash.
-  result = DartEntry::InvokeFunction(function, Array::empty_array());
-  EXPECT_EQ(1, Smi::Cast(result).Value());
-  if (!FLAG_dual_map_code) {
-    // Since this test is expected to crash, crash if dual mapping of code
-    // is switched off.
-    FATAL("Test requires --dual-map-code; skip by forcing expected crash");
-  }
-}
 
 // Test for Embedded String object in the instructions.
 ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {

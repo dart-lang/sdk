@@ -23,7 +23,10 @@ application_snapshot("generate_dartdev_snapshot") {
   main_dart = "../../pkg/dartdev/bin/dartdev.dart"
   training_args = [ "--help" ]
 
-  deps = [ "../dds:dds" ]
+  deps = [
+    "../dds:dds",
+    "../dtd:dtd"
+  ]
 
   # DDS should be run from AOT snapshot on all architectures except IA32/X86.
   # TODO(https://dartbug.com/54434): Fix simriscv32 AOT.

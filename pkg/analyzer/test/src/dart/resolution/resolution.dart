@@ -281,17 +281,32 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResult(const []);
   }
 
-  void assertParsedNodeText(
-    AstNode node,
-    String expected, {
-    bool skipArgumentList = false,
-  }) {
-    var actual = _parsedNodeText(
-      node,
-      skipArgumentList: skipArgumentList,
+  void assertParsedNodeText(AstNode node, String expected) {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
     );
+
+    final elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+      selfUriStr: null,
+    );
+
+    node.accept(
+      ResolvedAstPrinter(
+        sink: sink,
+        elementPrinter: elementPrinter,
+        configuration: ResolvedNodeTextConfiguration(),
+        withResolution: false,
+      ),
+    );
+
+    final actual = buffer.toString();
     if (actual != expected) {
-      print(actual);
+      print('-------- Actual --------');
+      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
@@ -541,32 +556,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  String _parsedNodeText(
-    AstNode node, {
-    bool skipArgumentList = false,
-  }) {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
-    final elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-      selfUriStr: '${result.libraryElement.source.uri}',
-    );
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: ResolvedNodeTextConfiguration()
-          ..skipArgumentList = skipArgumentList,
-        withResolution: false,
-      ),
-    );
-    return buffer.toString();
-  }
-
   String _resolvedNodeText(AstNode node) {
     final buffer = StringBuffer();
     final sink = TreeStringSink(
@@ -651,6 +640,10 @@ class _MultiplyDefinedElementMatcher extends Matcher {
 }
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
+  FindElement get findElement {
+    return FindElement(unit);
+  }
+
   FindNode get findNode {
     return FindNode(content, unit);
   }

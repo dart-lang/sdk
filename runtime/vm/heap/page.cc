@@ -284,7 +284,7 @@ void Page::WriteProtect(bool read_only) {
 
   VirtualMemory::Protection prot;
   if (read_only) {
-    if (is_executable() && (memory_->AliasOffset() == 0)) {
+    if (is_executable()) {
       prot = VirtualMemory::kReadExecute;
     } else {
       prot = VirtualMemory::kReadOnly;

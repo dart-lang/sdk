@@ -57,9 +57,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
-    @Deprecated('Use updateAnalysisOptions2, which must be a function that '
-        'accepts a second parameter')
-    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
@@ -72,12 +69,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
 
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
-
-    if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
-      throw ArgumentError(
-          'Either updateAnalysisOptions or updateAnalysisOptions2 must be '
-          'given, but not both.');
-    }
 
     this.macroSupport = macroSupport ??= KernelMacroSupport();
 
@@ -106,8 +97,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        // ignore: deprecated_member_use_from_same_package
-        updateAnalysisOptions: updateAnalysisOptions,
         updateAnalysisOptions2: updateAnalysisOptions2,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),

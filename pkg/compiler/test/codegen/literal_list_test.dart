@@ -18,12 +18,18 @@ foo() {
 main() {
   runTest() async {
     await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains('print([1, 2]);'),
-          "Code pattern 'print([1, 2]);' not found in\n$generated");
-      Expect.isTrue(generated.contains('print([3]);'),
-          "Code pattern 'print([3]);' not found in\n$generated");
-      Expect.isTrue(generated.contains('print([4, 5]);'),
-          "Code pattern 'print([4, 5]);' not found in\n$generated");
+      Expect.isTrue(
+          generated.contains('A.print(A._setArrayType([1, 2], t1));'),
+          "Code pattern 'A.print(A._setArrayType([1, 2], t1));' "
+          "not found in\n$generated");
+      Expect.isTrue(
+          generated.contains('A.print(A._setArrayType([3], t1));'),
+          "Code pattern 'A.print(A._setArrayType([3], t1));' "
+          "not found in\n$generated");
+      Expect.isTrue(
+          generated.contains('A.print(A._setArrayType([4, 5], t1));'),
+          "Code pattern 'A.print(A._setArrayType([4, 5], t1));' "
+          "not found in\n$generated");
     });
   }
 

@@ -12,7 +12,7 @@
   return t1;
 }*/
 /*prod.member: test1:function() {
-  var t1 = [];
+  var t1 = A._setArrayType([], type$.JSArray_int);
   t1.push(1);
   return t1;
 }*/

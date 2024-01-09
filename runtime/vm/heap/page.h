@@ -89,7 +89,6 @@ class Page {
   uword start() const { return memory_->start(); }
   uword end() const { return memory_->end(); }
   bool Contains(uword addr) const { return memory_->Contains(addr); }
-  intptr_t AliasOffset() const { return memory_->AliasOffset(); }
 
   uword object_start() const {
     return is_new() ? new_object_start() : old_object_start();
@@ -139,40 +138,6 @@ class Page {
   // Warning: This does not work for addresses on image pages or on large pages.
   static Page* Of(uword addr) {
     return reinterpret_cast<Page*>(addr & kPageMask);
-  }
-
-  // Warning: This does not work for objects on image pages.
-  static ObjectPtr ToExecutable(ObjectPtr obj) {
-    Page* page = Of(obj);
-    VirtualMemory* memory = page->memory_;
-    const intptr_t alias_offset = memory->AliasOffset();
-    if (alias_offset == 0) {
-      return obj;  // Not aliased.
-    }
-    uword addr = UntaggedObject::ToAddr(obj);
-    if (memory->Contains(addr)) {
-      return UntaggedObject::FromAddr(addr + alias_offset);
-    }
-    // obj is executable.
-    ASSERT(memory->ContainsAlias(addr));
-    return obj;
-  }
-
-  // Warning: This does not work for objects on image pages.
-  static ObjectPtr ToWritable(ObjectPtr obj) {
-    Page* page = Of(obj);
-    VirtualMemory* memory = page->memory_;
-    const intptr_t alias_offset = memory->AliasOffset();
-    if (alias_offset == 0) {
-      return obj;  // Not aliased.
-    }
-    uword addr = UntaggedObject::ToAddr(obj);
-    if (memory->ContainsAlias(addr)) {
-      return UntaggedObject::FromAddr(addr - alias_offset);
-    }
-    // obj is writable.
-    ASSERT(memory->Contains(addr));
-    return obj;
   }
 
   // 1 card = 32 slots.
