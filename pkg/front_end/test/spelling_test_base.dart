@@ -85,7 +85,7 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
 
   @override
   Future<Result<TestDescription>> run(
-      TestDescription description, SpellContext context) async {
+      TestDescription description, SpellContext context) {
     File f = new File.fromUri(description.uri);
     List<int> rawBytes = f.readAsBytesSync();
 
@@ -136,7 +136,7 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
     while (token != null) {
       if (token is ErrorToken) {
         // For now just accept that.
-        return pass(description);
+        return new Future.value(pass(description));
       }
       if (token.precedingComments != null) {
         Token? comment = token.precedingComments;
@@ -187,9 +187,9 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
     }
 
     if (errors == null) {
-      return pass(description);
+      return new Future.value(pass(description));
     } else {
-      return fail(description, errors!.join("\n\n"));
+      return new Future.value(fail(description, errors!.join("\n\n")));
     }
   }
 }

@@ -353,77 +353,77 @@ class Suite {
   });
 }
 
-const List<Suite> suites = [
-  const Suite(
+const Map<String, Suite> suites = {
+  'dartdoctest': const Suite(
     "dartdoctest",
     dartdoctest.createContext,
     "../testing.json",
     shardCount: 1,
   ),
-  const Suite(
+  'expression': const Suite(
     "fasta/expression",
     expression.createContext,
     "../../testing.json",
     shardCount: 1,
   ),
-  const Suite(
+  'outline': const Suite(
     "fasta/outline",
     outline.createContext,
     "../../testing.json",
     shardCount: 2,
   ),
-  const Suite(
+  'incremental_dartino': const Suite(
     "fasta/incremental_dartino",
     incremental_dartino.createContext,
     "../../testing.json",
     shardCount: 1,
   ),
-  const Suite(
+  'messages': const Suite(
     "fasta/messages",
     messages.createContext,
     "../../testing.json",
     shardCount: 1,
     requiresGit: true,
   ),
-  const Suite(
+  'strong': const Suite(
     "fasta/strong",
     strong.createContext,
     "../../testing.json",
     path: "fasta/strong_suite.dart",
     shardCount: 2,
   ),
-  const Suite(
+  'incremental_bulk_compiler_smoke': const Suite(
     "incremental_bulk_compiler_smoke",
     incremental_bulk_compiler.createContext,
     "../testing.json",
     shardCount: 1,
   ),
-  const Suite(
+  'incremental': const Suite(
     "incremental",
     incremental.createContext,
     "../testing.json",
     shardCount: 2,
   ),
-  const Suite(
+  'lint': const Suite(
     "lint",
     lint.createContext,
     "../testing.json",
     shardCount: 1,
     requiresGit: true,
   ),
-  const Suite(
+  'parser': const Suite(
     "parser",
     parser.createContext,
     "../testing.json",
     shardCount: 1,
   ),
-  const Suite(
+  'parser_equivalence': const Suite(
     "parser_equivalence",
     parserEquivalence.createContext,
     "../testing.json",
     shardCount: 1,
   ),
-  const Suite(
+  'parser_all': const Suite(
     "parser_all",
     parserAll.createContext,
     "../testing.json",
@@ -433,47 +433,47 @@ const List<Suite> suites = [
          than in test_matrix.json file set */
     ,
   ),
-  const Suite(
+  'spelling_test_not_src': const Suite(
     "spelling_test_not_src",
     spelling_not_src.createContext,
     "../testing.json",
     shardCount: 1,
     requiresGit: true,
   ),
-  const Suite(
+  'spelling_test_src': const Suite(
     "spelling_test_src",
     spelling_src.createContext,
     "../testing.json",
     shardCount: 1,
     requiresGit: true,
   ),
-  const Suite(
+  'modular': const Suite(
     "fasta/modular",
     modular.createContext,
     "../../testing.json",
     path: "fasta/modular_suite.dart",
     shardCount: 4,
   ),
-  const Suite(
+  'weak': const Suite(
     "fasta/weak",
     weak.createContext,
     "../../testing.json",
     path: "fasta/weak_suite.dart",
     shardCount: 10,
   ),
-  const Suite(
+  'textual_outline': const Suite(
     "fasta/textual_outline",
     textual_outline.createContext,
     "../../testing.json",
     shardCount: 1,
   ),
-  const Suite(
+  'outline_extractor': const Suite(
     "outline_extractor",
     outline_extractor.createContext,
     "../testing.json",
     shardCount: 1,
   ),
-];
+};
 
 const Duration timeoutDuration = Duration(minutes: 30);
 
@@ -557,7 +557,7 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
   int numberOfFreeWorkers = options.numberOfWorkers;
   // Run test suites and record the results and possible failure logs.
   int chunkNum = 0;
-  for (Suite suite in suites) {
+  for (Suite suite in suites.values) {
     if (options.onlyTestsThatRequireGit && !suite.requiresGit) continue;
     if (options.skipTestsThatRequireGit && suite.requiresGit) continue;
     String prefix = suite.prefix;

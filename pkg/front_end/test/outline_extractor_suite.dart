@@ -43,8 +43,7 @@ const String EXPECTATIONS = '''
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {
     UPDATE_EXPECTATIONS,
   };
@@ -52,7 +51,7 @@ Future<Context> createContext(
 
   bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
 
-  return new Context(suite.name, updateExpectations);
+  return new Future.value(new Context(suite.name, updateExpectations));
 }
 
 class Context extends ChainContext with MatchContext {
