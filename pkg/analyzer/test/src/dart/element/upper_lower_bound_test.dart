@@ -114,7 +114,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     T = typeParameter('T', bound: objectQuestion);
 
     isBottom(promotedTypeParameterTypeNone(T, neverNone));
-    isBottom(promotedTypeParameterTypeQuestion(T, neverNone));
+    isNotBottom(promotedTypeParameterTypeQuestion(T, neverNone));
     isBottom(promotedTypeParameterTypeStar(T, neverNone));
 
     isNotBottom(promotedTypeParameterTypeNone(T, neverQuestion));
@@ -124,7 +124,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     // BOTTOM(X extends T) is true iff BOTTOM(T)
     T = typeParameter('T', bound: neverNone);
     isBottom(typeParameterTypeNone(T));
-    isBottom(typeParameterTypeQuestion(T));
+    isNotBottom(typeParameterTypeQuestion(T));
     isBottom(typeParameterTypeStar(T));
 
     T = typeParameter('T', bound: neverQuestion);
