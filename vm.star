@@ -230,6 +230,11 @@ _vm_builder(
     dimensions = [mac, {"cores": "8"}],
     properties = slow_shards,
 )
+_nightly_builder(
+    "vm-aot-win-debug-x64",
+    category = "vm|aot|wd",
+    dimensions = windows,
+)
 _vm_builder(
     "vm-aot-win-release-x64",
     category = "vm|aot|wr",
