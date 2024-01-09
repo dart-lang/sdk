@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 
 @pragma('dart2js:noInline')
 method<T>() {
-  /*spec.fields=[T],free=[T]*/
+  /*fields=[T],free=[T]*/
   dynamic local() => <T, int>{};
   return local;
 }

@@ -1320,7 +1320,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // Check if the calculated operandType is a subtype of the type specified
     // in the `as` expression.
     final isCalculatedTypeSubtype = typeEnvironment.isSubtypeOf(
-        operandType, node.type, ir.SubtypeCheckMode.ignoringNullabilities);
+        operandType, node.type, ir.SubtypeCheckMode.withNullabilities);
     if (!isCalculatedTypeSubtype &&
         operand is ir.VariableGet &&
         !_invalidatedVariables.contains(operand.variable)) {
