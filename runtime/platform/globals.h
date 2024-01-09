@@ -403,14 +403,6 @@ struct simd128_value_t {
 #endif
 #endif
 
-// Determine whether dual mapping of code pages is supported.
-// We test dual mapping on linux x64 and deploy it on fuchsia.
-#if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
-    (defined(DART_TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||              \
-     defined(DART_TARGET_OS_FUCHSIA))
-#define DUAL_MAPPING_SUPPORTED 1
-#endif
-
 // Short form printf format specifiers
 #define Pd PRIdPTR
 #define Pu PRIuPTR

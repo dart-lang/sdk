@@ -34,7 +34,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
 uword VirtualMemory::page_size_ = 0;
@@ -126,10 +125,6 @@ static void Unmap(zx_handle_t vmar, uword start, uword end) {
   }
 }
 
-bool VirtualMemory::DualMappingEnabled() {
-  return FLAG_dual_map_code;
-}
-
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
@@ -139,14 +134,6 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   // is_executable = true) is allocated as non-executable and later
   // changed to executable via VirtualMemory::Protect, which requires
   // ZX_RIGHT_EXECUTE on the underlying VMO.
-  //
-  // If FLAG_dual_map_code is active, the executable mapping will be mapped RX
-  // immediately and never changes protection until it is eventually unmapped.
-  //
-  // In addition, dual mapping of the same underlying code memory is provided.
-  const bool dual_mapping =
-      is_executable && FLAG_write_protect_code && FLAG_dual_map_code;
-
   ASSERT(Utils::IsAligned(size, page_size_));
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, page_size_));
@@ -210,30 +197,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   }
   void* region_ptr = reinterpret_cast<void*>(base);
   MemoryRegion region(region_ptr, size);
-
-  VirtualMemory* result;
-
-  if (dual_mapping) {
-    // The mapping will be RX and stays that way until it will eventually be
-    // unmapped.
-    const zx_vm_option_t alias_options =
-        ZX_VM_PERM_READ | ZX_VM_PERM_EXECUTE | align_flag;
-    status = zx_vmar_map(vmar, alias_options, 0, vmo, 0u, size, &base);
-    LOG_INFO("zx_vmar_map(%u, 0x%lx, 0x%lx)\n", alias_options, base, size);
-    if (status != ZX_OK) {
-      LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", alias_options, base,
-              size, zx_status_get_string(status));
-      const uword region_base = reinterpret_cast<uword>(region_ptr);
-      Unmap(vmar, region_base, region_base + size);
-      return nullptr;
-    }
-    void* alias_ptr = reinterpret_cast<void*>(base);
-    ASSERT(region_ptr != alias_ptr);
-    MemoryRegion alias(alias_ptr, size);
-    result = new VirtualMemory(region, alias, region);
-  } else {
-    result = new VirtualMemory(region, region, region);
-  }
+  VirtualMemory* result = new VirtualMemory(region, region);
   zx_handle_close(vmo);
 
 #if defined(DART_COMPRESSED_POINTERS)
@@ -253,14 +217,6 @@ VirtualMemory::~VirtualMemory() {
           reserved_.end());
     LOG_INFO("zx_vmar_unmap(0x%lx, 0x%lx) success\n", reserved_.start(),
              reserved_.size());
-
-    const intptr_t alias_offset = AliasOffset();
-    if (alias_offset != 0) {
-      Unmap(getVmarForAddress(reserved_.start()),
-            reserved_.start() + alias_offset, reserved_.end() + alias_offset);
-      LOG_INFO("zx_vmar_unmap(0x%lx, 0x%lx) success\n",
-               reserved_.start() + alias_offset, reserved_.size());
-    }
   }
 }
 

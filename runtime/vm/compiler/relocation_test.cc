@@ -18,7 +18,6 @@ namespace dart {
 
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
-DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(int, lower_pc_relative_call_distance);
 DECLARE_FLAG(int, upper_pc_relative_call_distance);
 
@@ -134,11 +133,6 @@ struct RelocatorTestHelper {
             reinterpret_cast<void*>(assembler.CodeAddress(0)),
             assembler.CodeSize());
 
-    if (FLAG_write_protect_code && FLAG_dual_map_code) {
-      auto& instructions = Instructions::Handle(code.instructions());
-      instructions ^= Page::ToExecutable(instructions.ptr());
-      code.set_instructions(instructions);
-    }
     if (FLAG_disassemble) {
       OS::PrintErr("Disassemble:\n");
       code.Disassemble();
@@ -259,12 +253,8 @@ struct RelocatorTestHelper {
       if (FLAG_write_protect_code) {
         const uword address = UntaggedObject::ToAddr(instructions.ptr());
         const auto size = instructions.ptr()->untag()->HeapSize();
-        instructions =
-            Instructions::RawCast(Page::ToExecutable(instructions.ptr()));
-
-        const auto prot = FLAG_dual_map_code ? VirtualMemory::kReadOnly
-                                             : VirtualMemory::kReadExecute;
-        VirtualMemory::Protect(reinterpret_cast<void*>(address), size, prot);
+        VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
+                               VirtualMemory::kReadExecute);
       }
       CPU::FlushICache(instructions.PayloadStart(), instructions.Size());
     }

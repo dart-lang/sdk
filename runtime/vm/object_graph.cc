@@ -941,11 +941,6 @@ intptr_t HeapSnapshotWriter::GetObjectId(ObjectPtr obj) const {
     return id;
   }
 
-  if (FLAG_write_protect_code && obj->IsInstructions() && !OnImagePage(obj)) {
-    // A non-writable alias mapping may exist for instruction pages.
-    obj = Page::ToWritable(obj);
-  }
-
   CountingPage* counting_page = FindCountingPage(obj);
   intptr_t id;
   if (counting_page != nullptr) {

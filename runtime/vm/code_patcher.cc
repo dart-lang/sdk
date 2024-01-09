@@ -12,12 +12,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, write_protect_code, true, "Write protect jitted code");
 
-#if defined(DUAL_MAPPING_SUPPORTED)
-DEFINE_FLAG(bool, dual_map_code, true, "Dual map jitted code, RW and RX");
-#else
-DEFINE_FLAG(bool, dual_map_code, false, "Dual map jitted code, RW and RX");
-#endif  // defined(DUAL_MAPPING_SUPPORTED)
-
 #if defined(TARGET_ARCH_IA32)
 WritableInstructionsScope::WritableInstructionsScope(uword address,
                                                      intptr_t size)
