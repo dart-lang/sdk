@@ -126,7 +126,6 @@ _vm_builder(
     category = "vm|jit|m1r",
     dimensions = [mac, arm64],
     properties = no_android,
-    on_cq = True,
 )
 _vm_builder(
     "vm-checked-mac-release-arm64",
@@ -153,6 +152,7 @@ _vm_builder(
     "vm-win-release-x64",
     category = "vm|jit|wr",
     dimensions = windows,
+    on_cq = True,
 )
 _nightly_builder(
     "vm-win-debug-arm64",

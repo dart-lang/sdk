@@ -118,7 +118,6 @@ dart.try_builder(
     dimensions = windows,
     properties = {"archs": ["ia32", "x64"], "disable_bcid": True},
     recipe = "release/sdk",
-    on_cq = True,
 )
 
 dart.try_builder(
