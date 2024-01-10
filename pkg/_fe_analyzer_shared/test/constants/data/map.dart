@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: illegal_language_version_override
-// @dart = 2.9
-
 const map0 = /*cfe.Map<dynamic,dynamic>()*/ {};
 
 // TODO(johnniwinther): This seems like an odd offset for the constant. It
@@ -20,13 +17,11 @@ const map4 = /*cfe.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/
 
 main() {
   print(
-      /*analyzer.Map<dynamic, dynamic>*()*/ /*cfe|dart2js.Map<dynamic,dynamic>()*/ map0);
+      /*analyzer.Map<dynamic, dynamic>()*/ /*cfe|dart2js.Map<dynamic,dynamic>()*/ map0);
+  print(/*analyzer.Map<String, int>()*/ /*cfe|dart2js.Map<String,int>()*/ map1);
+  print(/*analyzer.Map<String, int>()*/ /*cfe|dart2js.Map<String,int>()*/ map2);
   print(
-      /*analyzer.Map<String*, int*>*()*/ /*cfe.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map1);
+      /*analyzer.Map<String, int>(String(foo):Int(42))*/ /*cfe|dart2js.Map<String,int>(String(foo):Int(42))*/ map3);
   print(
-      /*analyzer.Map<String*, int*>*()*/ /*cfe.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map2);
-  print(
-      /*analyzer.Map<String*, int*>*(String(foo):Int(42))*/ /*cfe.Map<String,int>(String(foo):Int(42))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42))*/ map3);
-  print(
-      /*analyzer.Map<String*, int*>*(String(foo):Int(42),String(bar):Int(87))*/ /*cfe.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42),String(bar):Int(87))*/ map4);
+      /*analyzer.Map<String, int>(String(foo):Int(42),String(bar):Int(87))*/ /*cfe|dart2js.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/ map4);
 }

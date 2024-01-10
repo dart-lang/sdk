@@ -556,6 +556,11 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
   static DartScope findScopeFromOffsetAndClass(
       Library library, Uri scriptUri, Class? cls, int offset) {
     List<DartScope2> scopes = _raw(library, scriptUri, cls, offset);
+    return _findScopePick(scopes, library, cls, offset);
+  }
+
+  static DartScope _findScopePick(
+      List<DartScope2> scopes, Library library, Class? cls, int offset) {
     DartScope2 scope;
     if (scopes.length == 0) {
       // This shouldn't happen.
@@ -584,6 +589,12 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
     }
     return new DartScope(scope.library, scope.cls, scope.member, definitions,
         scope.typeParameters);
+  }
+
+  static DartScope findScopeFromOffset(
+      Library library, Uri scriptUri, int offset) {
+    List<DartScope2> scopes = _rawNoClass(library, scriptUri, offset);
+    return _findScopePick(scopes, library, null, offset);
   }
 
   static List<DartScope2> _filterAll(
@@ -1152,6 +1163,13 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       builder.visitLibrary(library);
     }
 
+    return builder.findScopes;
+  }
+
+  static List<DartScope2> _rawNoClass(
+      Library library, Uri scriptUri, int offset) {
+    DartScopeBuilder2 builder = DartScopeBuilder2._(library, scriptUri, offset);
+    builder.visitLibrary(library);
     return builder.findScopes;
   }
 
