@@ -391,7 +391,7 @@ class FileState {
   /// It might be `null` if the file is outside of the workspace.
   final WorkspacePackage? workspacePackage;
 
-  /// The [FeatureSet] for all files in the analysis context.
+  /// The [FeatureSet] for this file.
   ///
   /// Usually it is the feature set of the latest language version, plus
   /// possibly additional enabled experiments (from the analysis options file,
@@ -399,7 +399,7 @@ class FileState {
   ///
   /// This feature set is then restricted, with the [packageLanguageVersion],
   /// or with a `@dart` language override token in the file header.
-  final FeatureSet _contextFeatureSet;
+  final FeatureSet _featureSet;
 
   /// The language version for the package that contains this file.
   final Version packageLanguageVersion;
@@ -435,7 +435,7 @@ class FileState {
     this.uri,
     this.source,
     this.workspacePackage,
-    this._contextFeatureSet,
+    this._featureSet,
     this.packageLanguageVersion,
   ) : uriProperties = FileUriProperties(uri);
 
@@ -536,7 +536,7 @@ class FileState {
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
-      signature.addFeatureSet(_contextFeatureSet);
+      signature.addFeatureSet(_featureSet);
       signature.addLanguageVersion(packageLanguageVersion);
       signature.addString(contentHash);
       signature.addBool(exists);
@@ -732,8 +732,8 @@ class FileState {
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(
-        featureSetForOverriding: _contextFeatureSet,
-        featureSet: _contextFeatureSet.restrictToVersion(
+        featureSetForOverriding: _featureSet,
+        featureSet: _featureSet.restrictToVersion(
           packageLanguageVersion,
         ),
       );
@@ -1247,34 +1247,6 @@ class FileSystemState {
     }
   }
 
-  FeatureSet contextFeatureSet(
-    String path,
-    Uri uri,
-    WorkspacePackage? workspacePackage,
-  ) {
-    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
-    if (workspacePackageExperiments != null) {
-      return featureSetProvider.featureSetForExperiments(
-        workspacePackageExperiments,
-      );
-    }
-
-    return featureSetProvider.getFeatureSet(path, uri);
-  }
-
-  Version contextLanguageVersion(
-    String path,
-    Uri uri,
-    WorkspacePackage? workspacePackage,
-  ) {
-    var workspaceLanguageVersion = workspacePackage?.languageVersion;
-    if (workspaceLanguageVersion != null) {
-      return workspaceLanguageVersion;
-    }
-
-    return featureSetProvider.getLanguageVersion(path, uri);
-  }
-
   /// Notifies this object that it is about to be discarded.
   ///
   /// Returns the keys of the artifacts that are no longer used.
@@ -1478,12 +1450,40 @@ class FileSystemState {
     unlinkedUnitStore.clear();
   }
 
+  FeatureSet _getFeatureSet(
+    String path,
+    Uri uri,
+    WorkspacePackage? workspacePackage,
+  ) {
+    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
+    if (workspacePackageExperiments != null) {
+      return featureSetProvider.featureSetForExperiments(
+        workspacePackageExperiments,
+      );
+    }
+
+    return featureSetProvider.getFeatureSet(path, uri);
+  }
+
+  Version _getLanguageVersion(
+    String path,
+    Uri uri,
+    WorkspacePackage? workspacePackage,
+  ) {
+    var workspaceLanguageVersion = workspacePackage?.languageVersion;
+    if (workspaceLanguageVersion != null) {
+      return workspaceLanguageVersion;
+    }
+
+    return featureSetProvider.getLanguageVersion(path, uri);
+  }
+
   FileState _newFile(File resource, String path, Uri uri) {
     FileSource uriSource = FileSource(resource, uri);
     WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
-    FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
+    FeatureSet featureSet = _getFeatureSet(path, uri, workspacePackage);
     Version packageLanguageVersion =
-        contextLanguageVersion(path, uri, workspacePackage);
+        _getLanguageVersion(path, uri, workspacePackage);
     var file = FileState._(this, path, uri, uriSource, workspacePackage,
         featureSet, packageLanguageVersion);
     _pathToFile[path] = file;
