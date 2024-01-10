@@ -136,6 +136,7 @@ class LibraryAnalyzer {
           featureSet: _libraryElement.featureSet,
           nameScope: _libraryElement.scope,
           strictInference: _analysisOptions.strictInference,
+          strictCasts: _analysisOptions.strictCasts,
           elementWalker: ElementWalker.forCompilationUnit(
             unitElement,
             libraryFilePath: _library.file.path,
@@ -796,6 +797,7 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet,
         nameScope: unitElement.enclosingElement.scope,
         strictInference: _analysisOptions.strictInference,
+        strictCasts: _analysisOptions.strictCasts,
         elementWalker: ElementWalker.forCompilationUnit(
           unitElement,
           libraryFilePath: _library.file.path,

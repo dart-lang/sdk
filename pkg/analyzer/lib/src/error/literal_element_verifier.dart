@@ -219,6 +219,7 @@ class LiteralElementVerifier {
             errorNode: expression,
             genericMetadataIsEnabled: true,
             strictInference: _errorVerifier.options.strictInference,
+            strictCasts: _errorVerifier.options.strictCasts,
           );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);

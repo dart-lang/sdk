@@ -2843,6 +2843,9 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
   bool isTypeParameterType(Type type) => type is PromotedTypeVariableType;
 
   @override
+  bool isUnknownType(Type type) => type is UnknownType;
+
+  @override
   bool isVariableFinal(Var node) {
     return node.isFinal;
   }

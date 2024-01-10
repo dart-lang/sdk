@@ -724,6 +724,9 @@ class OperationsCfe
   bool isError(DartType type) => type is InvalidType;
 
   @override
+  bool isUnknownType(DartType type) => type is UnknownType;
+
+  @override
   bool isVariableFinal(VariableDeclaration node) {
     return node.isFinal;
   }

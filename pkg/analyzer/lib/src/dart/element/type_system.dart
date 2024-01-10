@@ -689,6 +689,7 @@ class TypeSystemImpl implements TypeSystem {
     AstNode? errorNode,
     required bool genericMetadataIsEnabled,
     required bool strictInference,
+    required bool strictCasts,
   }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
       return const <DartType>[];
@@ -702,7 +703,8 @@ class TypeSystemImpl implements TypeSystem {
         errorReporter: errorReporter,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
-        strictInference: strictInference);
+        strictInference: strictInference,
+        strictCasts: strictCasts);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
@@ -1585,10 +1587,12 @@ class TypeSystemImpl implements TypeSystem {
     List<DartType> destTypes, {
     required bool genericMetadataIsEnabled,
     required bool strictInference,
+    required bool strictCasts,
   }) {
     var inferrer = GenericInferrer(this, typeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
-        strictInference: strictInference);
+        strictInference: strictInference,
+        strictCasts: strictCasts);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
       inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
@@ -1869,6 +1873,7 @@ class TypeSystemImpl implements TypeSystem {
     required bool genericMetadataIsEnabled,
     bool isConst = false,
     required bool strictInference,
+    required bool strictCasts,
   }) {
     // Create a GenericInferrer that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
@@ -1878,7 +1883,8 @@ class TypeSystemImpl implements TypeSystem {
         errorReporter: errorReporter,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
-        strictInference: strictInference);
+        strictInference: strictInference,
+        strictCasts: strictCasts);
 
     if (contextReturnType != null) {
       if (isConst) {

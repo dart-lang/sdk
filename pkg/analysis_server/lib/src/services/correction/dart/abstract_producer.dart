@@ -568,6 +568,15 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
 
+  bool get strictCasts {
+    var file = _context.dartFixContext?.resolveResult.file;
+    // TODO(pq): can this ever happen?
+    if (file == null) return false;
+    var analysisOptions = _context.session.analysisContext
+        .getAnalysisOptionsForFile(file) as AnalysisOptionsImpl;
+    return analysisOptions.strictCasts;
+  }
+
   Token get token => _context.token;
 
   CompilationUnit get unit => _context.unit;

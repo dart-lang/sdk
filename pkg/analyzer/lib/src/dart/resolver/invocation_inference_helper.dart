@@ -129,6 +129,7 @@ class InvocationInferenceHelper {
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
+        strictCasts: _resolver.analysisOptions.strictCasts,
       );
       identifier.tearOffTypeArgumentTypes = typeArguments;
       if (typeArguments.isNotEmpty) {

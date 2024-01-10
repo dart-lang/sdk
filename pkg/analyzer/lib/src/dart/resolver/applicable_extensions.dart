@@ -107,10 +107,12 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   List<InstantiatedExtensionWithoutMember> applicableTo({
     required LibraryElement targetLibrary,
     required DartType targetType,
+    required bool strictCasts,
   }) {
     return map((e) => _NotInstantiatedExtensionWithoutMember(e)).applicableTo(
       targetLibrary: targetLibrary,
       targetType: targetType,
+      strictCasts: strictCasts,
     );
   }
 
@@ -174,6 +176,7 @@ extension NotInstantiatedExtensionsExtensions<R>
   List<R> applicableTo({
     required LibraryElement targetLibrary,
     required DartType targetType,
+    required bool strictCasts,
   }) {
     if (identical(targetType, NeverTypeImpl.instance)) {
       return <R>[];
@@ -199,6 +202,7 @@ extension NotInstantiatedExtensionsExtensions<R>
         freshTypeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: false,
+        strictCasts: strictCasts,
       );
       inferrer.constrainArgument(
         targetType,

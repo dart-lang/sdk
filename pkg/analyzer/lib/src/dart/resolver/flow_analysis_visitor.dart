@@ -494,6 +494,11 @@ class TypeSystemOperations
   bool isTypeParameterType(DartType type) => type is TypeParameterType;
 
   @override
+  bool isUnknownType(DartType type) {
+    return identical(type, UnknownInferredType.instance);
+  }
+
+  @override
   bool isVariableFinal(PromotableElement element) {
     return element.isFinal;
   }
