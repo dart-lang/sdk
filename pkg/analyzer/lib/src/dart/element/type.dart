@@ -1436,6 +1436,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     Set<TypeParameterElement> seenTypes = {};
     TypeParameterType type = this;
     while (seenTypes.add(type.element)) {
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        return false;
+      }
       var bound = type.bound;
       if (bound is TypeParameterType) {
         type = bound;

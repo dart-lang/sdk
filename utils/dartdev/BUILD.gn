@@ -25,13 +25,11 @@ application_snapshot("generate_dartdev_snapshot") {
 
   deps = [
     "../dds:dds",
-    "../dtd:dtd"
+    "../dtd:dtd",
   ]
 
   # DDS should be run from AOT snapshot on all architectures except IA32/X86.
-  # TODO(https://dartbug.com/54434): Fix simriscv32 AOT.
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
-      dart_target_arch != "riscv32") {
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     deps += [ "../dds:dds_aot" ]
   }
 

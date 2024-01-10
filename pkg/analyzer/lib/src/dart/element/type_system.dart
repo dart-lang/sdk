@@ -982,11 +982,15 @@ class TypeSystemImpl implements TypeSystem {
 
   /// Return `true`  for things in the equivalence class of `Never`.
   bool isBottom(DartType type) {
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      assert(!type.isBottom);
+      return false;
+    }
+
     // BOTTOM(Never) is true
     if (type is NeverType) {
-      var result = type.nullabilitySuffix != NullabilitySuffix.question;
-      assert(type.isBottom == result);
-      return result;
+      assert(type.isBottom);
+      return true;
     }
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
