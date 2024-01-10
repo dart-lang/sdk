@@ -4,9 +4,12 @@
 
 import 'dart:io';
 
-import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
+import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:linter/src/rules.dart';
@@ -60,7 +63,7 @@ String? verifyErrorFixStatus() {
       errorData.codesWithNoEntry.add(name);
     } else if (info is YamlMap) {
       var markedAsHavingFix = info['status'] == 'hasFix';
-      if (hasFix(code)) {
+      if (code.hasFix) {
         if (!markedAsHavingFix) {
           errorData.codesWithFixes.add(name);
         }
@@ -78,7 +81,7 @@ String? verifyErrorFixStatus() {
       errorData.codesWithNoEntry.add(name);
     } else if (info is YamlMap) {
       var markedAsHavingFix = info['status'] == 'hasFix';
-      if (hasFix(lintCode)) {
+      if (lintCode.hasFix) {
         if (!markedAsHavingFix) {
           errorData.codesWithFixes.add(name);
         }
@@ -178,4 +181,21 @@ class ErrorData {
       codesWithNoEntry.isNotEmpty ||
       codesWithoutFixes.isNotEmpty ||
       entriesWithNoCode.isNotEmpty;
+}
+
+extension on ErrorCode {
+  /// Whether this [errorCode] is likely to have a fix associated with
+  /// it.
+  bool get hasFix {
+    final self = this;
+    if (self is LintCode) {
+      var lintName = self.name;
+      return FixProcessor.lintProducerMap.containsKey(lintName) ||
+          FixProcessor.lintMultiProducerMap.containsKey(lintName);
+    }
+    return FixProcessor.nonLintProducerMap.containsKey(self) ||
+        FixProcessor.nonLintMultiProducerMap.containsKey(self) ||
+        AnalysisOptionsFixGenerator.codesWithFixes.contains(self) ||
+        PubspecFixGenerator.codesWithFixes.contains(self);
+  }
 }
