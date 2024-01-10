@@ -54,7 +54,7 @@ const expected = <String>[
   '$FILE:${LINE_A + 4}:38', // on '<'
   '$FILE:${LINE_A + 4}:42', // on '=>'
   '$FILE:${LINE_A + 0}:38', // on 'switch'
-  '$FILE:43:1', // on closing '}' of [testMain]
+  '$FILE:41:1', // on closing '}' of [testMain]
 ];
 
 final tests = <IsolateTest>[
