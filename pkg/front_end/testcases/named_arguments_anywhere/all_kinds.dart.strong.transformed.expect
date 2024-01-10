@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 typedef B = self::A;
 class A extends core::Object {
-  constructor •(core::int x, core::int y, {required core::int z = #C1}) → self::A
+  constructor •(core::int x, core::int y, {required core::int z}) → self::A
     : super core::Object::•()
     ;
-  static factory foo(core::int x, core::int y, {required core::int z = #C1}) → self::A
+  static factory foo(core::int x, core::int y, {required core::int z}) → self::A
     return new self::A::•(x, y, z: z);
   get property() → (core::int, core::int, {required z: core::int}) → void
     return throw 42;
-  method bar(core::int x, core::int y, {required core::int z = #C1}) → void {}
+  method bar(core::int x, core::int y, {required core::int z}) → void {}
 }
 class Test extends self::A {
   constructor •() → self::Test
@@ -30,7 +30,7 @@ extension E on self::A {
   method tearoff method2 = self::E|get#method2;
   static method staticMethod2 = self::E|staticMethod2;
 }
-static method foo(core::int x, core::int y, {required core::int z = #C1}) → dynamic {}
+static method foo(core::int x, core::int y, {required core::int z}) → dynamic {}
 static extension-member method E|method1(lowered final self::A #this) → dynamic {
   let final self::A #t4 = #this in let final core::int #t5 = 1 in self::E|method2(#t4, 2, foo: #t5);
   let final core::int #t6 = 1 in self::E|staticMethod2(2, foo: #t6);
@@ -42,7 +42,7 @@ static extension-member method E|get#method2(lowered final self::A #this) → (c
   return (core::int bar, {core::int? foo = #C1}) → dynamic => self::E|method2(#this, bar, foo: foo);
 static extension-member method E|staticMethod2(core::int bar, {core::int? foo = #C1}) → dynamic {}
 static method test(dynamic d, core::Function f, self::A a) → dynamic {
-  function local(core::int x, core::int y, {required core::int z = #C1}) → void {}
+  function local(core::int x, core::int y, {required core::int z}) → void {}
   self::foo(1, 2, z: 3);
   let final core::int #t7 = 1 in let final core::int #t8 = 2 in self::foo(#t7, 3, z: #t8);
   let final core::int #t9 = 1 in self::foo(2, 3, z: #t9);

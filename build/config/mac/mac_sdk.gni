@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import("//build/toolchain/goma.gni")
+import("//build/toolchain/rbe.gni")
 
 declare_args() {
   # Minimum supported version of the Mac SDK.
@@ -17,7 +18,7 @@ declare_args() {
   # mac_sdk_min is used.
   mac_sdk_path = ""
 
-  mac_enable_relative_sdk_path = mac_use_goma_rbe
+  mac_enable_relative_sdk_path = use_rbe || use_goma
 }
 
 find_sdk_args = [
@@ -25,7 +26,7 @@ find_sdk_args = [
   mac_sdk_min,
 ]
 
-if (mac_use_goma_rbe) {
+if (use_rbe || use_goma) {
   find_sdk_args += [
     "--create_symlink_at",
 

@@ -2772,6 +2772,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             errorNode: node.iterable,
             genericMetadataIsEnabled: true,
             strictInference: options.strictInference,
+            strictCasts: options.strictCasts,
           );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);

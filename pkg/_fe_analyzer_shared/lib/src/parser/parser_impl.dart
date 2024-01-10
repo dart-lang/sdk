@@ -65,8 +65,7 @@ import 'declaration_kind.dart' show DeclarationHeaderKind, DeclarationKind;
 
 import 'directive_context.dart';
 
-import 'formal_parameter_kind.dart'
-    show FormalParameterKind, FormalParameterKindExtension;
+import 'formal_parameter_kind.dart' show FormalParameterKind;
 
 import 'forwarding_listener.dart' show ForwardingListener, NullListener;
 

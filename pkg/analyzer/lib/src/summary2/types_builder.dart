@@ -652,6 +652,7 @@ class _MixinInference {
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
       strictInference: false,
+      strictCasts: false,
     );
     if (inferredTypeArguments == null) {
       return mixinType;

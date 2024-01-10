@@ -656,6 +656,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       ),
       genericMetadataIsEnabled: true,
       strictInference: false,
+      strictCasts: false,
     );
     inferrer.constrainArguments(
         parameters: ft.parameters, argumentTypes: arguments);

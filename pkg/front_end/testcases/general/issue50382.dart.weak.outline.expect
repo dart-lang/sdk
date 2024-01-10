@@ -8,7 +8,7 @@ class A extends self::B {
 }
 class B extends core::Object {
   final field core::int field;
-  constructor named({required core::int field = null}) → self::B
+  constructor named({required core::int field}) → self::B
     ;
 }
 class C extends self::D {
@@ -17,6 +17,6 @@ class C extends self::D {
 }
 class D extends core::Object {
   final field core::int field;
-  constructor named({required core::int field = null}) → self::D
+  constructor named({required core::int field}) → self::D
     ;
 }

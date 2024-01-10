@@ -27,7 +27,7 @@ static field core::List<core::String?> l = core::_GrowableList::•<core::String
 static field core::String? s = null;
 static field core::String t = self::s!;
 late static field core::int field = 42;
-static method method(() →? void f, {required core::int a = #C1}) → void {}
+static method method(() →? void f, {required core::int a}) → void {}
 static method main() → dynamic {}
 static method noErrors() → dynamic {
   late core::int local = 42;

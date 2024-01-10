@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1330,6 +1331,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var gatherer = TypeConstraintGatherer(
       typeSystem: typeSystem,
       typeParameters: typeParameters,
+      typeSystemOperations:
+          TypeSystemOperations(typeSystem, strictCasts: false),
     );
 
     var isMatch = gatherer.trySubtypeMatch(P, Q, leftSchema);
@@ -1354,6 +1357,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var gatherer = TypeConstraintGatherer(
       typeSystem: typeSystem,
       typeParameters: typeParameters,
+      typeSystemOperations:
+          TypeSystemOperations(typeSystem, strictCasts: false),
     );
 
     var isMatch = gatherer.trySubtypeMatch(P, Q, leftSchema);

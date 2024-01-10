@@ -70,27 +70,6 @@ Future<void> runMe(List<String> arguments, CreateContext f,
   }, logger: logger);
 }
 
-Future<void> runSuites(
-    CommandLine cl, TestRoot testRoot, Map<String, CreateContext> suites,
-    {int shards = 1,
-    int shard = 0,
-    Logger logger = const StdoutLogger()}) async {
-  return withErrorHandling(() async {
-    if (cl.verbose) enableVerboseOutput();
-    Set<String> selectedSuites = cl.selectedSuites;
-    for (MapEntry<String, CreateContext> entry in suites.entries) {
-      String suiteName = entry.key;
-      if (selectedSuites.contains(entry.key)) {
-        Chain suite = testRoot.getChain(suiteName)!;
-        CreateContext createContext = entry.value;
-        ChainContext context = await createContext(suite, {...cl.environment});
-        await context.run(suite, Set<String>.from(cl.selectors),
-            shards: shards, shard: shard, logger: logger);
-      }
-    }
-  }, logger: logger);
-}
-
 /// This is called from a `_test.dart` file, and helps integration in other
 /// test runner frameworks.
 ///

@@ -81,6 +81,9 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Returns `true` if [type] is the type `dynamic`.
   bool isDynamic(Type type);
 
+  /// Returns `true` if [type] is the unknown type context (`?`).
+  bool isUnknownType(Type type);
+
   /// Returns whether [node] is final.
   bool isVariableFinal(Variable node);
 

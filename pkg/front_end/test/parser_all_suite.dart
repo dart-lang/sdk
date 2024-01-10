@@ -10,6 +10,6 @@ void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<ChainContext> createContext(
-    Chain suite, Map<String, String> environment) {
-  return new Future.value(new ContextChecksOnly(suite.name));
+    Chain suite, Map<String, String> environment) async {
+  return new ContextChecksOnly(suite.name);
 }

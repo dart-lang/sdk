@@ -79,7 +79,7 @@ vars = {
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:e4702d7409069c4f12d45ea7b7f0890717ca3f4b",
 
-  "reclient_version": "git_revision:f75cfb7bca0c04516330f27867a855e8d1186677",
+  "reclient_version": "git_revision:f3883c2237b0eb9cc9524cb571b5ab8378f257e4",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/core
   "fuchsia_sdk_version": "version:16.20231105.3.1",
@@ -530,7 +530,6 @@ Var("dart_root") + "/third_party/pkg/tar":
               "version": Var("clang_version"),
           },
       ],
-      "condition": "host_cpu == x64 and host_os == linux",
       "dep_type": "cipd",
   },
   Var("dart_root") + "/buildtools/mac-x64/clang": {
@@ -581,7 +580,8 @@ Var("dart_root") + "/third_party/pkg/tar":
         'version': Var('reclient_version'),
       }
     ],
-    'condition': 'host_os == "linux" and host_cpu == "x64"',
+    # Download reclient only on the platforms where it has packages available.
+    'condition': '(host_os == "linux" or host_os == "win" or host_os == "mac" ) and host_cpu == "x64" or host_os == "mac" and host_cpu == "arm64"',
     'dep_type': 'cipd',
   },
 

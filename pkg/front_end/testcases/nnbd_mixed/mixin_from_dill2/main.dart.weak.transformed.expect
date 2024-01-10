@@ -12,7 +12,7 @@ abstract class _RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin extends
     : super mai::RenderProxyBox::•()
     ;
   @#C1
-  method /* from org-dartlang-testcase:///main_lib.dart */ hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C2}) → core::bool {
+  method /* from org-dartlang-testcase:///main_lib.dart */ hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool {
     return let final core::bool? #t1 = let final mai::RenderBox? #t2 = this.{mai::RenderObjectWithChildMixin::child}{mai::RenderBox?} in #t2 == null ?{core::bool?} null : #t2{mai::RenderBox}.{mai::RenderBox::hitTest}(result, position: position){(mai::BoxHitTestResult, {required position: mai::Offset}) → core::bool} in #t1 == null ?{core::bool} false : #t1{core::bool};
   }
 }
@@ -75,9 +75,9 @@ abstract class RenderBox extends mai::RenderObject {
   synthetic constructor •() → mai::RenderBox
     : super mai::RenderObject::•()
     ;
-  method hitTest(mai::BoxHitTestResult result, {required mai::Offset position = #C2}) → core::bool
+  method hitTest(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
     return false;
-  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C2}) → core::bool
+  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
     return false;
 }
 abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
@@ -92,7 +92,7 @@ abstract class _RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<T exten
 }
 abstract class RenderProxyBoxMixin<T extends mai::RenderBox> extends mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<mai::RenderProxyBoxMixin::T> /*isMixinDeclaration*/  {
   @#C1
-  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C2}) → core::bool {
+  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool {
     return let final core::bool? #t3 = let final mai::RenderProxyBoxMixin::T? #t4 = this.{mai::RenderObjectWithChildMixin::child}{mai::RenderProxyBoxMixin::T?} in #t4 == null ?{core::bool?} null : #t4{mai::RenderProxyBoxMixin::T}.{mai::RenderBox::hitTest}(result, position: position){(mai::BoxHitTestResult, {required position: mai::Offset}) → core::bool} in #t3 == null ?{core::bool} false : #t3{core::bool};
   }
 }
@@ -109,7 +109,7 @@ abstract class _RenderProxyBox&RenderBox&RenderObjectWithChildMixin&RenderProxyB
     : super mai::_RenderProxyBox&RenderBox&RenderObjectWithChildMixin::•()
     ;
   @#C1
-  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C2}) → core::bool {
+  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool {
     return let final core::bool? #t5 = let final mai::RenderBox? #t6 = this.{mai::RenderObjectWithChildMixin::child}{mai::RenderBox?} in #t6 == null ?{core::bool?} null : #t6{mai::RenderBox}.{mai::RenderBox::hitTest}(result, position: position){(mai::BoxHitTestResult, {required position: mai::Offset}) → core::bool} in #t5 == null ?{core::bool} false : #t5{core::bool};
   }
 }
@@ -121,5 +121,4 @@ class RenderProxyBox extends mai::_RenderProxyBox&RenderBox&RenderObjectWithChil
 
 constants  {
   #C1 = core::_Override {}
-  #C2 = null
 }

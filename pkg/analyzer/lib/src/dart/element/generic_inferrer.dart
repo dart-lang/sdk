@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, WarningCode;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -99,12 +100,17 @@ class GenericInferrer {
   /// implicit runtime checks).
   final Map<TypeParameterElement, DartType> _typesInferredSoFar = {};
 
+  final TypeSystemOperations _typeSystemOperations;
+
   GenericInferrer(this._typeSystem, this._typeFormals,
       {this.errorReporter,
       this.errorNode,
       required this.genericMetadataIsEnabled,
-      required bool strictInference})
-      : _strictInference = strictInference {
+      required bool strictInference,
+      required bool strictCasts})
+      : _strictInference = strictInference,
+        _typeSystemOperations =
+            TypeSystemOperations(_typeSystem, strictCasts: strictCasts) {
     if (errorReporter != null) {
       assert(errorNode != null);
     }
@@ -646,7 +652,9 @@ class GenericInferrer {
       DartType t1, DartType t2, _TypeConstraintOrigin origin,
       {required bool covariant}) {
     var gatherer = TypeConstraintGatherer(
-        typeSystem: _typeSystem, typeParameters: _typeParameters);
+        typeSystem: _typeSystem,
+        typeParameters: _typeParameters,
+        typeSystemOperations: _typeSystemOperations);
     var success = gatherer.trySubtypeMatch(t1, t2, !covariant);
     if (success) {
       var constraints = gatherer.computeConstraints();

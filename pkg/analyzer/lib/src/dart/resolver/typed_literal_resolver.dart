@@ -453,6 +453,7 @@ class TypedLiteralResolver {
       errorNode: node,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
+      strictCasts: _resolver.analysisOptions.strictCasts,
     );
   }
 
@@ -501,6 +502,7 @@ class TypedLiteralResolver {
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
+      strictCasts: _resolver.analysisOptions.strictCasts,
     );
   }
 
@@ -589,6 +591,7 @@ class TypedLiteralResolver {
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
+      strictCasts: _resolver.analysisOptions.strictCasts,
     );
   }
 

@@ -9,7 +9,7 @@ import "package:macro/macro.dart";
 class DataClass extends core::Object {
   final field core::String string;
   final field core::int integer;
-  constructor •({required core::String string = #C2, required core::int integer = #C2}) → self::DataClass
+  constructor •({required core::String string, required core::int integer}) → self::DataClass
     : self::DataClass::string = string, self::DataClass::integer = integer, super core::Object::•()
     ;
   method /* from org-dartlang-augmentation:/a/b/c/data_class.dart-0 */ toString() → core::String {
@@ -19,5 +19,4 @@ class DataClass extends core::Object {
 
 constants  {
   #C1 = #lib1::ToStringMacro {}
-  #C2 = null
 }
