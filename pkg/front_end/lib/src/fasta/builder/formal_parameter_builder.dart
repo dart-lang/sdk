@@ -5,7 +5,7 @@
 library fasta.formal_parameter_builder;
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
-    show FormalParameterKind, FormalParameterKindExtension;
+    show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:front_end/src/fasta/source/constructor_declaration.dart';
 import 'package:kernel/ast.dart'
@@ -285,8 +285,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         bodyBuilder.performBacklogComputations(
             delayedActionPerformers: delayedActionPerformers,
             allowFurtherDelays: false);
-      } else if (kind != FormalParameterKind.requiredPositional &&
-          !isSuperInitializingFormal) {
+      } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;
       }

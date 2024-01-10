@@ -69,7 +69,7 @@ static extension-type-member method E2|constructor#(core::int foo) → self::E2 
 }
 static extension-type-member method E2|constructor#_#new#tearOff(core::int foo) → self::E2 /* = core::int */
   return self::E2|constructor#(foo);
-static extension-type-member method E2|constructor#named(core::int foo, {required invalid-type bar = #C1}) → self::E2 /* = core::int */ {
+static extension-type-member method E2|constructor#named(core::int foo, {required invalid-type bar}) → self::E2 /* = core::int */ {
   lowered final self::E2 /* = core::int */ #this = foo;
   return #this;
 }

@@ -60,11 +60,11 @@ static extension-type-member method ET1|constructor#c5(core::int a, {core::int b
 }
 static extension-type-member method ET1|constructor#_#c5#tearOff(core::int a, {core::int b = #C2}) → self::ET1 /* = core::int */
   return self::ET1|constructor#c5(a, b: b);
-static extension-type-member method ET1|constructor#c6(core::int a, {required core::int b = #C3}) → self::ET1 /* = core::int */ {
+static extension-type-member method ET1|constructor#c6(core::int a, {required core::int b}) → self::ET1 /* = core::int */ {
   lowered final self::ET1 /* = core::int */ #this = a.{core::num::+}(b){(core::num) → core::int};
   return #this;
 }
-static extension-type-member method ET1|constructor#_#c6#tearOff(core::int a, {required core::int b = #C3}) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#_#c6#tearOff(core::int a, {required core::int b}) → self::ET1 /* = core::int */
   return self::ET1|constructor#c6(a, b: b);
 static extension-type-member method ET1|constructor#f1() → self::ET1 /* = core::int */ /* redirection-target: self::ET1|constructor#c1 */
   return self::ET1|constructor#c1();
@@ -78,5 +78,4 @@ static extension-type-member method ET1|constructor#_#f2#tearOff(core::int v) �
 constants  {
   #C1 = 1
   #C2 = 2
-  #C3 = null
 }

@@ -3,23 +3,22 @@ import self as self;
 import "dart:core" as core;
 
 class Chk extends core::Object /*hasConstConstructor*/  {
-  const constructor •(core::Object? v, {required core::Object? id = #C1}) → self::Chk
+  const constructor •(core::Object? v, {required core::Object? id}) → self::Chk
     : assert(core::identical(v, id), "Not identical${(v, {id: id})}"), super core::Object::•()
     ;
 }
 static method main() → void {
-  #C2;
-  #C2;
-  #C2;
-  #C2;
-  #C2;
-  #C2;
-  #C2;
+  #C1;
+  #C1;
+  #C1;
+  #C1;
+  #C1;
+  #C1;
+  #C1;
 }
 
 constants  {
-  #C1 = null
-  #C2 = self::Chk {}
+  #C1 = self::Chk {}
 }
 
 

@@ -5441,7 +5441,7 @@ class BodyBuilder extends StackListenerImpl
           variable.initializer = initializer..parent = variable;
         }
       }
-    } else if (kind != FormalParameterKind.requiredPositional) {
+    } else if (kind.isOptional) {
       variable.initializer ??= forest.createNullLiteral(noLocation)
         ..parent = variable;
     }
