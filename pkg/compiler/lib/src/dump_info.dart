@@ -1552,8 +1552,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         encoder.startChunkedConversion(_BufferedStringOutputSink(outputSink));
     sink.add(AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
     reporter.reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
-      'text': "View the dumped .info.json file at "
-          "https://dart-lang.github.io/dump-info-visualizer"
+      'text': 'Learn how to process the dumped .info.json file at '
+          'https://dart.dev/go/dart2js-info'
     });
   }
 
@@ -1563,8 +1563,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         outputProvider.createBinarySink(options.outputUri!.resolve(name));
     dump_info.encode(data, sink);
     reporter.reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
-      'text': "Use `package:dart2js_info` to parse and process the dumped "
-          ".info.data file."
+      'text': 'Learn how to parse and process the dumped .info.data file at '
+          'https://dart.dev/go/dart2js-info'
     });
   }
 
