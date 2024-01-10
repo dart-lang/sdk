@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import "package:expect/expect.dart";
+
 /// Regression test for https://github.com/dart-lang/sdk/issues/54386.
 void testDriveLetterStat() {
   // "C:" not acceptable
