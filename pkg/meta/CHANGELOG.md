@@ -1,7 +1,9 @@
-## 1.12.0
+## 1.12.0-wip
 
-* Introduce the `@ResourceIdentifier` experimental annotation for static methods whose
-  constant literal arguments should be collected during compilation.
+* Introduce the `@ResourceIdentifier` experimental annotation for static methods
+  whose constant literal arguments should be collected during compilation.
+* Indicate that `@required` and `@Required` are set
+  to be deprecated for later removal.
 
 ## 1.11.0
 
