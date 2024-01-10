@@ -371,6 +371,7 @@ class ExpressionCompilerWorker {
 
     var compiledProcedure = await expressionCompiler.compileExpressionToJs(
         request.libraryUri,
+        request.scriptUri,
         request.line,
         request.column,
         request.jsScope,
@@ -708,6 +709,7 @@ class CompileExpressionRequest {
   final Map<String, String> jsModules;
   final Map<String, String> jsScope;
   final String libraryUri;
+  final String? scriptUri;
   final int line;
   final String moduleName;
 
@@ -717,6 +719,7 @@ class CompileExpressionRequest {
     required this.jsModules,
     required this.jsScope,
     required this.libraryUri,
+    required this.scriptUri,
     required this.line,
     required this.moduleName,
   });
@@ -729,6 +732,7 @@ class CompileExpressionRequest {
         jsModules: Map<String, String>.from(json['jsModules'] as Map),
         jsScope: Map<String, String>.from(json['jsScope'] as Map),
         libraryUri: json['libraryUri'] as String,
+        scriptUri: json['scriptUri'] as String?,
         moduleName: json['moduleName'] as String,
       );
 }

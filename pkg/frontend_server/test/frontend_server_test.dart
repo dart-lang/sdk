@@ -739,6 +739,107 @@ extension type Foo(int value) {
       frontendServer.close();
     });
 
+    // TODO(jensj): This is the javascript version of the above.
+    // It should share code.
+    test('compile expression extension types to JavaScript',
+        skip: !useJsonForCommunication, () async {
+      File file = new File('${tempDir.path}/foo.dart')..createSync();
+      String data = r"""
+//@dart=3.3
+void main() {
+  Foo f = new Foo(42);
+  print(f);
+  print(f.value);
+  f.printValue();
+  f.printThis();
+}
+extension type Foo(int value) {
+  void printValue() {
+    print("This foos value is '$value'");
+  }
+  void printThis() {
+    print("This foos this value is '$this'");
+  }
+}""";
+      file.writeAsStringSync(data);
+
+      File packageConfig =
+          new File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+      String library = 'package:hello/foo.dart';
+      String module = 'packages/hello/foo.dart';
+
+      File dillFile = new File('${tempDir.path}/foo.dart.dill');
+      File sourceFile = new File('${dillFile.path}.sources');
+      File manifestFile = new File('${dillFile.path}.json');
+      File sourceMapsFile = new File('${dillFile.path}.map');
+
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${packageConfig.path}',
+      ];
+
+      final FrontendServer frontendServer = new FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
+      int count = 0;
+      frontendServer.listen((Result compiledResult) {
+        CompilationResult result =
+            new CompilationResult.parse(compiledResult.status);
+        if (count == 0) {
+          // First request is to 'compile', which results in full JavaScript
+          expect(result.errorsCount, equals(0));
+          expect(sourceFile.existsSync(), equals(true));
+          expect(manifestFile.existsSync(), equals(true));
+          expect(sourceMapsFile.existsSync(), equals(true));
+          expect(result.filename, dillFile.path);
+          frontendServer.accept();
+
+          frontendServer.compileExpressionToJs('f.value', library, 5, 3, module,
+              scriptUri: file.uri, jsFrameValues: {"f": "42"});
+          count += 1;
+        } else if (count == 1) {
+          expect(result.errorsCount, equals(0));
+          File outputFile = new File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          frontendServer.compileExpressionToJs(
+              'this.value', library, 11, 5, module,
+              scriptUri: file.uri, jsFrameValues: {r"$this": "42"});
+          count += 1;
+        } else if (count == 2) {
+          expect(result.errorsCount, equals(0));
+          File outputFile = new File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          frontendServer.quit();
+        }
+      });
+
+      expect(await result, 0);
+      expect(count, 2);
+      frontendServer.close();
+    });
+
     test('mixed compile expression commands with non-web target', () async {
       File file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");
@@ -3323,7 +3424,9 @@ class FrontendServer {
   // TODO(johnniwinther): Use (required) named arguments.
   void compileExpressionToJs(String expression, String libraryUri, int line,
       int column, String moduleName,
-      {String boundaryKey = 'abc'}) {
+      {Uri? scriptUri,
+      Map<String, String>? jsFrameValues,
+      String boundaryKey = 'abc'}) {
     if (useJsonForCommunication) {
       outputParser.expectSources = false;
       inputStreamController.add('JSON_INPUT\n'.codeUnits);
@@ -3332,6 +3435,8 @@ class FrontendServer {
         "data": {
           "expression": expression,
           "libraryUri": libraryUri,
+          if (scriptUri != null) "scriptUri": scriptUri.toString(),
+          if (jsFrameValues != null) "jsFrameValues": jsFrameValues,
           "line": line,
           "column": column,
           "moduleName": moduleName,

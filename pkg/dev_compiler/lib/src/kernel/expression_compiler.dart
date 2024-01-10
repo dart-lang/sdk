@@ -54,8 +54,12 @@ class ExpressionCompiler {
   )   : onDiagnostic = _options.onDiagnostic!,
         _context = _compiler.context;
 
-  /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
-  /// in [moduleName].
+  /// Compiles [expression] in library [libraryUri] and file [scriptUri]
+  /// at [line]:[column] to JavaScript in [moduleName].
+  ///
+  /// [libraryUri] and [scriptUri] can be the same, but if for instance
+  /// evaluating expressions in a part file the [libraryUri] will be the uri of
+  /// the "part of" file whereas [scriptUri] will be the uri of the part.
   ///
   /// [line] and [column] are 1-based.
   ///
@@ -68,14 +72,20 @@ class ExpressionCompiler {
   /// [jsFrameValues] is a map from js variable name to its primitive value
   /// or another variable name, for example
   /// { 'x': '1', 'y': 'y', 'o': 'null' }
-  Future<String?> compileExpressionToJs(String libraryUri, int line, int column,
-      Map<String, String> jsScope, String expression) async {
+  Future<String?> compileExpressionToJs(
+      String libraryUri,
+      String? scriptUri,
+      int line,
+      int column,
+      Map<String, String> jsScope,
+      String expression) async {
     try {
       // 1. find dart scope where debugger is paused
 
       _log('Compiling expression \n$expression');
 
-      var dartScope = _findScopeAt(Uri.parse(libraryUri), line, column);
+      var dartScope = _findScopeAt(Uri.parse(libraryUri),
+          scriptUri == null ? null : Uri.parse(scriptUri), line, column);
       if (dartScope == null) {
         _log('Scope not found at $libraryUri:$line:$column');
         return null;
@@ -91,8 +101,8 @@ class ExpressionCompiler {
 
       // remove undefined js variables (this allows us to get a reference error
       // from chrome on evaluation)
-      dartScope.definitions
-          .removeWhere((variable, type) => !jsScope.containsKey(variable));
+      dartScope.definitions.removeWhere((variable, type) =>
+          !jsScope.containsKey(_dartNameToJsName(variable)));
 
       dartScope.typeParameters
           .removeWhere((parameter) => !jsScope.containsKey(parameter.name));
@@ -101,7 +111,8 @@ class ExpressionCompiler {
       // captured variables optimized away in chrome)
       var localJsScope = [
         ...dartScope.typeParameters.map((parameter) => jsScope[parameter.name]),
-        ...dartScope.definitions.keys.map((variable) => jsScope[variable])
+        ...dartScope.definitions.keys
+            .map((variable) => jsScope[_dartNameToJsName(variable)])
       ];
 
       _log('Performed scope substitutions for expression');
@@ -150,7 +161,14 @@ class ExpressionCompiler {
     }
   }
 
-  DartScope? _findScopeAt(Uri libraryUri, int line, int column) {
+  String? _dartNameToJsName(String? dartName) {
+    if (dartName == null) return dartName;
+    if (isExtensionThisName(dartName)) return r'$this';
+    return dartName;
+  }
+
+  DartScope? _findScopeAt(
+      Uri libraryUri, Uri? scriptFileUri, int line, int column) {
     if (line < 0) {
       onDiagnostic(_createInternalError(
           libraryUri, line, column, 'Invalid source location'));
@@ -162,6 +180,15 @@ class ExpressionCompiler {
       onDiagnostic(_createInternalError(
           libraryUri, line, column, 'Dart library not found for location'));
       return null;
+    }
+
+    // TODO(jensj): Eventually make the scriptUri required and always use this,
+    // but for now use the old mechanism when no script is provided.
+    if (scriptFileUri != null) {
+      final offset = _component.getOffset(library.fileUri, line, column);
+      final scope2 =
+          DartScopeBuilder2.findScopeFromOffset(library, scriptFileUri, offset);
+      return scope2;
     }
 
     var scope = DartScopeBuilder.findScope(_component, library, line, column);
@@ -184,12 +211,20 @@ class ExpressionCompiler {
   /// [scope] current dart scope information.
   /// [expression] expression to compile in given [scope].
   Future<String?> _compileExpression(DartScope scope, String expression) async {
+    var methodName = scope.member?.name.text;
+    var member = scope.member;
+    if (member != null) {
+      if (member.isExtensionMember || member.isExtensionTypeMember) {
+        methodName = extractQualifiedNameFromExtensionMethodName(methodName);
+      }
+    }
     var procedure = await _compiler.compileExpression(
         expression,
         scope.definitions,
         scope.typeParameters,
         debugProcedureName,
         scope.library.importUri,
+        methodName: methodName,
         className: scope.cls?.name,
         isStatic: scope.isStatic);
 

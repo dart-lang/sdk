@@ -123,6 +123,20 @@ class NameScheme {
     }
   }
 
+  static String createProcedureNameForTesting(
+      {required ContainerName? containerName,
+      required ContainerType containerType,
+      required bool isStatic,
+      required ProcedureKind kind,
+      required String name}) {
+    return _createProcedureName(
+        containerName: containerName,
+        containerType: containerType,
+        isStatic: isStatic,
+        kind: kind,
+        name: name);
+  }
+
   static String _createProcedureName(
       {required ContainerName? containerName,
       required ContainerType containerType,
