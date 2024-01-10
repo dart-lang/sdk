@@ -318,11 +318,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
         gn_args['use_goma'] = False
         gn_args['goma_dir'] = None
 
-    if gn_args['target_os'] == 'mac' and gn_args['use_goma']:
-        gn_args['mac_use_goma_rbe'] = True
-
     gn_args['use_rbe'] = args.rbe
-
 
     # Code coverage requires -O0 to be set.
     if enable_code_coverage:
