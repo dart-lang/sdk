@@ -1745,7 +1745,7 @@ class VmService {
     });
     _outstandingRequests.clear();
     if (_disposeHandler != null) {
-      await _disposeHandler!();
+      await _disposeHandler();
     }
     if (!_onDoneCompleter.isCompleted) {
       _onDoneCompleter.complete();
