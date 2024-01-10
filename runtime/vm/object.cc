@@ -1644,11 +1644,12 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-      raw->untag()->tags_ = new_tags;
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->untag()->set_length(Smi::New(leftover_len));
+      raw->untag()->set_length<std::memory_order_release>(
+          Smi::New(leftover_len));
+      raw->untag()->tags_ = new_tags;
       raw->untag()->RecomputeDataField();
     } else {
       // Update the leftover space as a basic object.
@@ -1667,6 +1668,16 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
+
+      // The array might have an uninitialized alignment gap since the visitors
+      // for Arrays are precise based on element count, but the visitors for
+      // Instance are based on the size rounded to the allocation unit, so we
+      // need to ensure the alignment gap is initialized.
+      for (intptr_t offset = Instance::UnroundedSize();
+           offset < Instance::InstanceSize(); offset += sizeof(uword)) {
+        reinterpret_cast<std::atomic<uword>*>(addr + offset)
+            ->store(0, std::memory_order_release);
+      }
       raw->untag()->tags_ = new_tags;
     }
   }

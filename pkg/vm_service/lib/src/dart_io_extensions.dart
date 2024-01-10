@@ -507,7 +507,7 @@ class HttpProfileRequestData {
   Map<String, dynamic>? get connectionInfo {
     return _connectionInfo == null
         ? null
-        : UnmodifiableMapView(_connectionInfo!);
+        : UnmodifiableMapView(_connectionInfo);
   }
 
   final Map<String, dynamic>? _connectionInfo;

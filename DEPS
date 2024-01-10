@@ -581,7 +581,7 @@ Var("dart_root") + "/third_party/pkg/tar":
       }
     ],
     # Download reclient only on the platforms where it has packages available.
-    'condition': '(host_os == "linux" or host_os == "win" or host_os == "mac" ) and host_cpu == "x64" or host_os == "mac" and host_cpu == "arm64"',
+    'condition': '((host_os == "linux" or host_os == "mac" ) and host_cpu == "x64") or (host_os == "mac" and host_cpu == "arm64")',
     'dep_type': 'cipd',
   },
 
