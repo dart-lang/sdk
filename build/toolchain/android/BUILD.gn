@@ -28,7 +28,9 @@ template("android_toolchain") {
     } else if (use_rbe) {
       compiler_args =
           rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
-      if (rbe_os != host_os || rbe_cpu != host_cpu) {
+
+      # TODO: Unfortunately I see no way to get build_arch reliably.
+      if (rbe_os != host_os) {
         compiler_args += [
           "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
           "--remote_wrapper=../../build/rbe/llvm.sh",
