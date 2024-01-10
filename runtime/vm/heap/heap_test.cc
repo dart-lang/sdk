@@ -751,6 +751,31 @@ ISOLATE_UNIT_TEST_CASE(ArrayTruncationRaces) {
   }
 }
 
+// See https://github.com/dart-lang/sdk/issues/54495
+ISOLATE_UNIT_TEST_CASE(ArrayTruncationPadding) {
+  GrowableObjectArray& retain =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  Array& array = Array::Handle();
+
+  for (intptr_t big = 0; big < 256; big++) {
+    for (intptr_t small = 0; small < big; small++) {
+      array = Array::New(big);
+
+      // Fill the alignment gap with invalid pointers.
+      uword addr = UntaggedObject::ToAddr(array.ptr());
+      for (intptr_t offset = Array::UnroundedSize(big);
+           offset < Array::InstanceSize(big); offset += sizeof(uword)) {
+        *reinterpret_cast<uword*>(addr + offset) = kHeapObjectTag;
+      }
+
+      array.Truncate(small);
+      retain.Add(array);
+    }
+  }
+
+  IsolateGroup::Current()->heap()->Verify("truncation padding");
+}
+
 class ConcurrentForceGrowthScopeTask : public ThreadPool::Task {
  public:
   ConcurrentForceGrowthScopeTask(IsolateGroup* isolate_group,

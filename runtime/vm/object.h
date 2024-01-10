@@ -8242,6 +8242,7 @@ class Instance : public Object {
   // Equivalent to invoking identityHashCode with this instance.
   IntegerPtr IdentityHashCode(Thread* thread) const;
 
+  static intptr_t UnroundedSize() { return sizeof(UntaggedInstance); }
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedInstance));
   }
@@ -11044,13 +11045,15 @@ class Array : public Instance {
     return 0;
   }
 
-  static constexpr intptr_t InstanceSize(intptr_t len) {
+  static constexpr intptr_t UnroundedSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(UntaggedArray) ==
            (sizeof(UntaggedInstance) + (2 * kBytesPerElement)));
     ASSERT(IsValidLength(len));
-    return RoundedAllocationSize(sizeof(UntaggedArray) +
-                                 (len * kBytesPerElement));
+    return sizeof(UntaggedArray) + (len * kBytesPerElement);
+  }
+  static constexpr intptr_t InstanceSize(intptr_t len) {
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;
