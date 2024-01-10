@@ -36,12 +36,13 @@ import 'testing_utils.dart' show checkEnvironment, getGitFiles;
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
-Future<Context> createContext(Chain suite, Map<String, String> environment) {
+Future<Context> createContext(
+    Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {"onlyInGit"};
   checkEnvironment(environment, knownEnvironmentKeys);
 
   bool onlyInGit = environment["onlyInGit"] != "false";
-  return new Future.value(new Context(onlyInGit: onlyInGit));
+  return new Context(onlyInGit: onlyInGit);
 }
 
 class LintTestDescription extends TestDescription {

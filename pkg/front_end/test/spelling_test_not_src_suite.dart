@@ -14,14 +14,13 @@ void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<SpellContext> createContext(
-    Chain suite, Map<String, String> environment) {
+    Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {"interactive", "onlyInGit"};
   checkEnvironment(environment, knownEnvironmentKeys);
 
   bool interactive = environment["interactive"] == "true";
   bool onlyInGit = environment["onlyInGit"] != "false";
-  return new Future.value(
-      new SpellContextTest(interactive: interactive, onlyInGit: onlyInGit));
+  return new SpellContextTest(interactive: interactive, onlyInGit: onlyInGit);
 }
 
 class SpellContextTest extends SpellContext {

@@ -9,6 +9,7 @@ import 'incremental_bulk_compiler_full.dart' show Context;
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
-Future<Context> createContext(Chain suite, Map<String, String> environment) {
-  return new Future.value(new Context());
+Future<Context> createContext(
+    Chain suite, Map<String, String> environment) async {
+  return new Context();
 }

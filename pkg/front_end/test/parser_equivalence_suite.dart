@@ -20,11 +20,12 @@ void main([List<String> arguments = const []]) => runMe(
       configurationPath: "../testing.json",
     );
 
-Future<Context> createContext(Chain suite, Map<String, String> environment) {
+Future<Context> createContext(
+    Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {};
   checkEnvironment(environment, knownEnvironmentKeys);
 
-  return new Future.value(new Context(suite.name));
+  return new Context(suite.name);
 }
 
 class Context extends ChainContext {
