@@ -56,9 +56,18 @@ class MacroApplication {
   final ClassBuilder classBuilder;
   final String constructorName;
   final macro.Arguments arguments;
+  final String? errorReason;
 
   MacroApplication(this.classBuilder, this.constructorName, this.arguments,
-      {required this.fileOffset});
+      {required this.fileOffset})
+      : errorReason = null;
+
+  MacroApplication.error(String this.errorReason, this.classBuilder,
+      {required this.fileOffset})
+      : constructorName = '',
+        arguments = new macro.Arguments(const [], const {});
+
+  bool get isErroneous => errorReason != null;
 
   late macro.MacroInstanceIdentifier instanceIdentifier;
 
@@ -218,12 +227,18 @@ void checkMacroApplications(
       // We cannot currently identify macro applications by offsets because
       // file offsets on annotations are not stable.
       // TODO(johnniwinther): Handle file uri + offset on annotations.
-      Map<Class, List<MacroApplication>> macroApplications = {};
+      Map<Class, Map<int, MacroApplication>> macroApplications = {};
       if (applicationData != null) {
         for (MacroApplication application
             in applicationData.macroApplications) {
-          (macroApplications[application.classBuilder.cls] ??= [])
-              .add(application);
+          Map<int, MacroApplication> applications =
+              macroApplications[application.classBuilder.cls] ??= {};
+          int fileOffset = application.fileOffset;
+          assert(
+              !applications.containsKey(fileOffset),
+              "Multiple annotations at offset $fileOffset: "
+              "${applications[fileOffset]} and ${application}.");
+          applications[fileOffset] = application;
         }
       }
       for (Expression annotation in annotations) {
@@ -231,13 +246,18 @@ void checkMacroApplications(
           Constant constant = annotation.constant;
           if (constant is InstanceConstant &&
               hierarchy.isSubInterfaceOf(constant.classNode, macroClass)) {
-            List<MacroApplication>? applications =
+            Map<int, MacroApplication>? applications =
                 macroApplications[constant.classNode];
-            if (applications != null) {
-              if (applications.length == 1) {
-                macroApplications.remove(constant.classNode);
-              } else {
-                applications.removeAt(0);
+            MacroApplication? macroApplication =
+                applications?.remove(annotation.fileOffset);
+            if (macroApplication != null) {
+              if (macroApplication.isErroneous) {
+                libraryBuilder.addProblem(
+                    templateUnhandledMacroApplication
+                        .withArguments(macroApplication.errorReason!),
+                    annotation.fileOffset,
+                    noLength,
+                    fileUri);
               }
             } else {
               // TODO(johnniwinther): Improve the diagnostics about why the
@@ -320,6 +340,9 @@ class MacroApplications {
         List<MacroApplication>? applications) async {
       if (applications != null) {
         for (MacroApplication application in applications) {
+          if (application.isErroneous) {
+            continue;
+          }
           Uri libraryUri = application.classBuilder.libraryBuilder.importUri;
           String macroClassName = application.classBuilder.name;
           try {
@@ -338,13 +361,15 @@ class MacroApplications {
                       application.constructorName,
                       application.arguments);
               benchmarker?.endSubdivide();
-            } catch (e) {
-              throw "Error instantiating macro `${application}`: $e";
+            } catch (e, s) {
+              throw "Error instantiating macro `${application}`: "
+                  "$e\n$s";
             }
-          } catch (e) {
+          } catch (e, s) {
             throw "Error loading macro class "
                 "'${application.classBuilder.name}' from "
-                "'${application.classBuilder.libraryBuilder.importUri}': $e";
+                "'${application.classBuilder.libraryBuilder.importUri}': "
+                "$e\n$s";
           }
         }
       }
@@ -501,6 +526,9 @@ class MacroApplications {
     List<macro.MacroExecutionResult> results = [];
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
+      if (macroApplication.isErroneous) {
+        continue;
+      }
       if (macroApplication.instanceIdentifier
           .shouldExecute(_declarationKind(declaration), macro.Phase.types)) {
         if (retainDataForTesting) {
@@ -594,6 +622,9 @@ class MacroApplications {
     macro.Declaration declaration = applicationData.declaration;
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
+      if (macroApplication.isErroneous) {
+        continue;
+      }
       if (macroApplication.instanceIdentifier.shouldExecute(
           _declarationKind(declaration), macro.Phase.declarations)) {
         if (retainDataForTesting) {
@@ -694,6 +725,9 @@ class MacroApplications {
     macro.Declaration declaration = applicationData.declaration;
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
+      if (macroApplication.isErroneous) {
+        continue;
+      }
       if (macroApplication.instanceIdentifier.shouldExecute(
           _declarationKind(declaration), macro.Phase.definitions)) {
         if (retainDataForTesting) {

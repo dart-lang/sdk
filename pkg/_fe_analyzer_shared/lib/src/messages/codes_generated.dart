@@ -14268,6 +14268,32 @@ const MessageCode messageUnexpectedTokens = const MessageCode(
 const Template<
     Message Function(
         String
+            name)> templateUnhandledMacroApplication = const Template<
+        Message Function(String name)>("UnhandledMacroApplication",
+    problemMessageTemplate:
+        r"""This macro application didn't apply correctly due to an unhandled #name.""",
+    withArguments: _withArgumentsUnhandledMacroApplication);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnhandledMacroApplication =
+    const Code<Message Function(String name)>(
+  "UnhandledMacroApplication",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnhandledMacroApplication(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnhandledMacroApplication,
+      problemMessage:
+          """This macro application didn't apply correctly due to an unhandled ${name}.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateUnmatchedAugmentationClass = const Template<
         Message Function(String name)>("UnmatchedAugmentationClass",
     problemMessageTemplate:
