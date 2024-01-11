@@ -23,7 +23,7 @@ class SnippetBuilderTest {
       ..appendChoice({r'a', r'b'})
       ..appendChoice({}, placeholderNumber: 6)
       ..appendChoice({r'aaa', r'bbb'}, placeholderNumber: 12)
-      ..appendChoice({r'aaa', r'bbb $ bbb | bbb } bbb'});
+      ..appendChoice({r'aaa', r'bbb \ bbb $ bbb | bbb , bbb } bbb'});
 
     expect(
       builder.value,
@@ -31,7 +31,10 @@ class SnippetBuilderTest {
       r'${2|a,b|}'
       r'$6'
       r'${12|aaa,bbb|}'
-      r'${13|aaa,bbb \$ bbb \| bbb \} bbb|}',
+      // Only pipes (delimiter), comma (separator) and backslashes (the escape
+      // character) are escaped in choices. Not dollars or braces.
+      // https://github.com/microsoft/vscode/issues/201059
+      r'${13|aaa,bbb \\ bbb $ bbb \| bbb \, bbb } bbb|}',
     );
   }
 
@@ -157,7 +160,7 @@ var a = 1;
     );
     // Choices are never 0th placeholders, so this is `$1`.
     expect(result, equals(r'''
-var ${1|a,aaa,bbb\${\}\,\|,ccc|} = 1;
+var ${1|a,aaa,bbb${}\,\|,ccc|} = 1;
 '''));
   }
 
