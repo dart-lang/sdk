@@ -284,8 +284,12 @@ class A1 {
 ''');
     assertResponse(r'''
 suggestions
+  f01
+    kind: field
   final
     kind: keyword
+  g01
+    kind: getter
   var
     kind: keyword
 ''');

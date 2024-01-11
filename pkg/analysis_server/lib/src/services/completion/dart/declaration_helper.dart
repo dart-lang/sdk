@@ -12,6 +12,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// A helper class that produces candidate suggestions for all of the
@@ -188,6 +190,54 @@ class DeclarationHelper {
     }
   }
 
+  /// Adds suggestions for the getters defined by the [type], except for those
+  /// whose names are in the set of [excludedGetters].
+  void addGetters(
+      {required DartType type, required Set<String> excludedGetters}) {
+    if (type is InterfaceType) {
+      _addInstanceMembers(
+          type: type,
+          excludedGetters: excludedGetters,
+          includeMethods: false,
+          includeSetters: false);
+    } else if (type is RecordType) {
+      _addFieldsOfRecordType(
+        type: type,
+        excludedFields: excludedGetters,
+      );
+      _addMembersOfDartCoreObject();
+    }
+  }
+
+  /// Add any instance members defined for the given [type].
+  ///
+  /// If [onlySuper] is `true`, then only the members that are valid after a
+  /// `super` expression (those from superclasses) will be added.
+  void addInstanceMembersOfType(DartType type, {bool onlySuper = false}) {
+    if (type is TypeParameterType) {
+      type = type.bound;
+    }
+    if (type is InterfaceType) {
+      _addInstanceMembers(
+          type: type,
+          excludedGetters: const {},
+          includeMethods: !mustBeAssignable,
+          includeSetters: true,
+          onlySuper: onlySuper);
+    } else if (type is RecordType) {
+      _addFieldsOfRecordType(
+        type: type,
+        excludedFields: const {},
+      );
+      _addMembersOfDartCoreObject();
+    } else if (type is FunctionType) {
+      _suggestFunctionCall();
+      _addMembersOfDartCoreObject();
+    } else if (type is DynamicType) {
+      _addMembersOfDartCoreObject();
+    }
+  }
+
   /// Add any declarations that are visible at the completion location,
   /// given that the completion location is within the [node]. This includes
   /// local variables, local functions, parameters, members of the enclosing
@@ -223,10 +273,6 @@ class DeclarationHelper {
     if (topLevelMember != null && !mustBeStatic && !mustBeType) {
       _addInheritedMembers(topLevelMember);
     }
-  }
-
-  void addMembersOfType(DartType type) {
-    // TODO(brianwilkerson): Implement this.
   }
 
   /// Add any parameters from the super constructor of the constructor
@@ -306,7 +352,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any constructors that are declared within the
+  /// Adds suggestions for any constructors that are declared within the
   /// [library].
   void _addConstructors(LibraryElement library, String? prefix) {
     var importData = ImportData(
@@ -329,8 +375,8 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any constructors that are visible through type aliases
-  /// declared within the [library].
+  /// Adds suggestions for any constructors that are visible through type
+  /// aliases declared within the [library].
   void _addConstructorsForAliasedElement(
       TypeAliasElement alias, ImportData? importData) {
     var aliasedElement = alias.aliasedElement;
@@ -344,7 +390,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any constructors that are visible within the
+  /// Adds suggestions for any constructors that are visible within the
   /// [library].
   void _addConstructorsImportedFrom({
     required LibraryElement library,
@@ -366,7 +412,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any top-level declarations that are visible within the
+  /// Adds suggestions for any top-level declarations that are visible within the
   /// [library].
   void _addDeclarationsImportedFrom({
     required LibraryElement library,
@@ -399,7 +445,30 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any constructors that are imported into the [library].
+  /// Add suggestions for any of the fields defined by the record [type] except
+  /// for those whose names are in the set of [excludedFields].
+  void _addFieldsOfRecordType({
+    required RecordType type,
+    required Set<String> excludedFields,
+  }) {
+    for (final (index, field) in type.positionalFields.indexed) {
+      _suggestRecordField(
+        field: field,
+        name: '\$${index + 1}',
+      );
+    }
+
+    for (final field in type.namedFields) {
+      if (!excludedFields.contains(field.name)) {
+        _suggestRecordField(
+          field: field,
+          name: field.name,
+        );
+      }
+    }
+  }
+
+  /// Adds suggestions for any constructors that are imported into the [library].
   void _addImportedConstructors(LibraryElement library) {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
@@ -416,7 +485,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any top-level declarations that are imported into the
+  /// Adds suggestions for any top-level declarations that are imported into the
   /// [library].
   void _addImportedDeclarations(LibraryElement library) {
     // TODO(brianwilkerson): This will create suggestions for elements that
@@ -437,7 +506,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Use the [importData] to add a suggestion for the top-level [element].
+  /// Adds a suggestion for the top-level [element].
   void _addImportedElement(Element element) {
     var suggestion = switch (element) {
       ClassElement() => ClassSuggestion(null, element),
@@ -458,7 +527,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any instance members inherited by the
+  /// Adds suggestions for any instance members inherited by the
   /// [containingMember].
   void _addInheritedMembers(CompilationUnitMember containingMember) {
     var element = switch (containingMember) {
@@ -485,7 +554,62 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any local declarations that are visible at the
+  /// Adds completion suggestions for instance members of the given [type].
+  ///
+  /// Suggestions will not be added for any getters whose named are in the set
+  /// of [excludedGetters]. Suggestions for methods will only be added if
+  /// [includeMethods] is `true`. Suggestions for setters will only be added if
+  /// [includeSetters] is `true`.
+  ///
+  /// If [onlySuper] is `true`, only valid super members will be suggested.
+  void _addInstanceMembers(
+      {required InterfaceType type,
+      required Set<String> excludedGetters,
+      required bool includeMethods,
+      required bool includeSetters,
+      bool onlySuper = false}) {
+    var substitution = Substitution.fromInterfaceType(type);
+    var map = onlySuper
+        ? request.inheritanceManager.getInheritedConcreteMap2(type.element)
+        : request.inheritanceManager.getInterface(type.element).map;
+
+    var library = request.libraryElement;
+    var membersByName = <String, List<ExecutableElement>>{};
+    for (var rawMember in map.values) {
+      if (!rawMember.isStatic && rawMember.isAccessibleIn(library)) {
+        var name = rawMember.displayName;
+        membersByName
+            .putIfAbsent(name, () => <ExecutableElement>[])
+            .add(rawMember);
+      }
+    }
+    for (var entry in membersByName.entries) {
+      var members = entry.value;
+      var rawMember = members.bestMember;
+      if (rawMember is MethodElement) {
+        if (includeMethods) {
+          // Exclude static methods when completion on an instance.
+          var member = ExecutableMember.from2(rawMember, substitution);
+          _suggestMethod(member as MethodElement, member.enclosingElement,
+              ignoreVisibility: true);
+        }
+      } else if (rawMember is PropertyAccessorElement) {
+        if (rawMember.isGetter && !excludedGetters.contains(entry.key) ||
+            includeSetters && rawMember.isSetter) {
+          var member = ExecutableMember.from2(rawMember, substitution);
+          _suggestProperty(
+              member as PropertyAccessorElement, member.enclosingElement,
+              ignoreVisibility: true);
+        }
+      }
+    }
+    if ((type.isDartCoreFunction && !onlySuper) ||
+        type.allSupertypes.any((type) => type.isDartCoreFunction)) {
+      _suggestFunctionCall(); // from builder
+    }
+  }
+
+  /// Adds suggestions for any local declarations that are visible at the
   /// completion location, given that the completion location is within the
   /// [node].
   ///
@@ -568,7 +692,7 @@ class DeclarationHelper {
     return currentNode;
   }
 
-  /// Add suggestions for any local types that are visible at the completion
+  /// Adds suggestions for any local types that are visible at the completion
   /// location, given that the completion location is within the [node].
   ///
   /// This includes only type parameters.
@@ -610,7 +734,7 @@ class DeclarationHelper {
     return currentNode;
   }
 
-  /// Add suggestions for the [members] of the [containingElement].
+  /// Adds suggestions for the [members] of the [containingElement].
   void _addMembers(Element containingElement, NodeList<ClassMember> members) {
     for (var member in members) {
       switch (member) {
@@ -641,7 +765,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any members of the [parent].
+  /// Adds suggestions for any members of the [parent].
   ///
   /// The [containingMember] is the member within the [parent] in which
   /// completion was requested.
@@ -705,8 +829,17 @@ class DeclarationHelper {
     }
   }
 
-  /// Add suggestions for any top-level declarations that are visible within the
-  /// [library].
+  /// Adds suggestions for the instance members declared on `Object`.
+  void _addMembersOfDartCoreObject() {
+    _addInstanceMembers(
+        type: request.objectType,
+        excludedGetters: const {},
+        includeMethods: true,
+        includeSetters: true);
+  }
+
+  /// Adds suggestions for any top-level declarations that are visible within
+  /// the [library].
   void _addTopLevelDeclarations(LibraryElement library) {
     for (var unit in library.units) {
       for (var element in unit.classes) {
@@ -751,11 +884,11 @@ class DeclarationHelper {
     }
   }
 
-  /// Return `true` if the [identifier] is composed of one or more underscore
+  /// Returns `true` if the [identifier] is composed of one or more underscore
   /// characters and nothing else.
   bool _isUnused(String identifier) => UnusedIdentifier.hasMatch(identifier);
 
-  /// Add a suggestion for the class represented by the [element]. The [prefix]
+  /// Adds a suggestion for the class represented by the [element]. The [prefix]
   /// is the prefix by which the element is imported.
   void _suggestClass(ClassElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element)) {
@@ -778,7 +911,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the constructor represented by the [element]. The
+  /// Adds a suggestion for the constructor represented by the [element]. The
   /// [prefix] is the prefix by which the class is imported.
   void _suggestConstructor(ConstructorElement element,
       {required ImportData? importData, required bool hasClassName}) {
@@ -789,7 +922,7 @@ class DeclarationHelper {
     collector.addSuggestion(suggestion);
   }
 
-  /// Suggest each of the [constructors].
+  /// Adds a suggestion for each of the [constructors].
   void _suggestConstructors(
       List<ConstructorElement> constructors, ImportData? importData,
       {bool allowNonFactory = true}) {
@@ -805,7 +938,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the enum represented by the [element]. The [prefix]
+  /// Adds a suggestion for the enum represented by the [element]. The [prefix]
   /// is the prefix by which the element is imported.
   void _suggestEnum(EnumElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element)) {
@@ -822,7 +955,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the extension represented by the [element]. The
+  /// Adds a suggestion for the extension represented by the [element]. The
   /// [prefix] is the prefix by which the element is imported.
   void _suggestExtension(ExtensionElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element)) {
@@ -837,7 +970,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the extension type represented by the [element]. The
+  /// Adds a suggestion for the extension type represented by the [element]. The
   /// [prefix] is the prefix by which the element is imported.
   void _suggestExtensionType(
       ExtensionTypeElement element, ImportData? importData) {
@@ -854,7 +987,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the field represented by the [element] contained
+  /// Adds a suggestion for the field represented by the [element] contained
   /// in the [containingElement].
   void _suggestField(FieldElement element, Element containingElement) {
     if (visibilityTracker.isVisible(element)) {
@@ -868,7 +1001,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the local function represented by the [element].
+  /// Adds a suggestion for the local function represented by the [element].
   void _suggestFunction(ExecutableElement element) {
     if (element is FunctionElement && visibilityTracker.isVisible(element)) {
       if (mustBeAssignable ||
@@ -882,9 +1015,19 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the method represented by the [element] contained
+  /// Adds a suggestion for the method `call` defined on the class `Function`.
+  void _suggestFunctionCall() {
+    collector.addSuggestion(FunctionCall());
+  }
+
+  /// Adds a suggestion for the method represented by the [element] contained
   /// in the [containingElement].
-  void _suggestMethod(MethodElement element, Element containingElement) {
+  ///
+  /// If [ignoreVisibility] is `true` then the visibility tracker will not be
+  /// used to determine whether the element is shadowed. This should be used
+  /// when suggesting a member accessed through a target.
+  void _suggestMethod(MethodElement element, Element containingElement,
+      {bool ignoreVisibility = false}) {
     if (visibilityTracker.isVisible(element)) {
       if (mustBeAssignable ||
           mustBeConstant ||
@@ -897,7 +1040,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the mixin represented by the [element]. The [prefix]
+  /// Adds a suggestion for the mixin represented by the [element]. The [prefix]
   /// is the prefix by which the element is imported.
   void _suggestMixin(MixinElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element)) {
@@ -914,7 +1057,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the parameter represented by the [element].
+  /// Adds a suggestion for the parameter represented by the [element].
   void _suggestParameter(ParameterElement element) {
     if (visibilityTracker.isVisible(element)) {
       if (mustBeConstant || _isUnused(element.name)) {
@@ -925,11 +1068,16 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the getter or setter represented by the [element]
+  /// Adds a suggestion for the getter or setter represented by the [element]
   /// contained in the [containingElement].
+  ///
+  /// If [ignoreVisibility] is `true` then the visibility tracker will not be
+  /// used to determine whether the element is shadowed. This should be used
+  /// when suggesting a member accessed through a target.
   void _suggestProperty(
-      PropertyAccessorElement element, Element containingElement) {
-    if (visibilityTracker.isVisible(element)) {
+      PropertyAccessorElement element, Element containingElement,
+      {bool ignoreVisibility = false}) {
+    if (ignoreVisibility || visibilityTracker.isVisible(element)) {
       if ((mustBeAssignable &&
               element.isGetter &&
               element.correspondingSetter == null) ||
@@ -943,7 +1091,13 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the enum constant represented by the [element].
+  /// Adds a suggestion for the record type [field] with the given [name].
+  void _suggestRecordField(
+      {required RecordTypeField field, required String name}) {
+    collector.addSuggestion(RecordFieldSuggestion(field, name));
+  }
+
+  /// Adds a suggestion for the enum constant represented by the [element].
   /// The [prefix] is the prefix by which the element is imported.
   void _suggestStaticField(FieldElement element, ImportData? importData) {
     if (!element.isStatic ||
@@ -965,7 +1119,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Suggest each of the static fields in the list of [fields].
+  /// Adds a suggestion for each of the static fields in the list of [fields].
   void _suggestStaticFields(List<FieldElement> fields, ImportData? importData) {
     for (var field in fields) {
       if (field.isVisibleIn(request.libraryElement)) {
@@ -974,7 +1128,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the function represented by the [element]. The
+  /// Adds a suggestion for the function represented by the [element]. The
   /// [prefix] is the prefix by which the element is imported.
   void _suggestTopLevelFunction(
       FunctionElement element, ImportData? importData) {
@@ -991,7 +1145,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the getter or setter represented by the [element].
+  /// Adds a suggestion for the getter or setter represented by the [element].
   /// The [prefix] is the prefix by which the element is imported.
   void _suggestTopLevelProperty(
       PropertyAccessorElement element, ImportData? importData) {
@@ -1009,7 +1163,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the getter or setter represented by the [element].
+  /// Adds a suggestion for the getter or setter represented by the [element].
   /// The [prefix] is the prefix by which the element is imported.
   void _suggestTopLevelVariable(
       TopLevelVariableElement element, ImportData? importData) {
@@ -1024,7 +1178,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the type alias represented by the [element]. The
+  /// Adds a suggestion for the type alias represented by the [element]. The
   /// [prefix] is the prefix by which the element is imported.
   void _suggestTypeAlias(TypeAliasElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element)) {
@@ -1036,7 +1190,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Add a suggestion for the type parameter represented by the [element].
+  /// Adds a suggestion for the type parameter represented by the [element].
   void _suggestTypeParameter(TypeParameterElement element) {
     if (visibilityTracker.isVisible(element)) {
       var suggestion = TypeParameterSuggestion(element);
@@ -1044,14 +1198,14 @@ class DeclarationHelper {
     }
   }
 
-  /// Suggest each of the [typeParameters].
+  /// Adds a suggestion for each of the [typeParameters].
   void _suggestTypeParameters(List<TypeParameterElement> typeParameters) {
     for (var parameter in typeParameters) {
       _suggestTypeParameter(parameter);
     }
   }
 
-  /// Add a suggestion for the local variable represented by the [element].
+  /// Adds a suggestion for the local variable represented by the [element].
   void _suggestVariable(LocalVariableElement element) {
     if (visibilityTracker.isVisible(element)) {
       if (mustBeConstant && !element.isConst) {
@@ -1309,6 +1463,25 @@ extension on Element {
     return name == null ||
         library == referencingLibrary ||
         !Identifier.isPrivateName(name);
+  }
+}
+
+extension on List<ExecutableElement> {
+  /// Returns the element in this list that is the best element to suggest.
+  ///
+  /// Getters are preferred over setters, otherwise the first element in the
+  /// list is returned under the assumption that it's lower in the hierarchy.
+  ExecutableElement get bestMember {
+    ExecutableElement bestMember = this[0];
+    if (bestMember is PropertyAccessorElement && bestMember.isSetter) {
+      for (var i = 1; i < length; i++) {
+        var member = this[i];
+        if (member is PropertyAccessorElement && member.isGetter) {
+          return member;
+        }
+      }
+    }
+    return bestMember;
   }
 }
 

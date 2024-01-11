@@ -1035,6 +1035,8 @@ UndefinedExtensionSetter/analyzerCode: Fail
 UndefinedExtensionSetter/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
+UnhandledMacroApplication/analyzerCode: Fail
+UnhandledMacroApplication/example: Fail
 UnmatchedAugmentationClass/analyzerCode: Fail
 UnmatchedAugmentationClass/part_wrapped_script: Fail
 UnmatchedAugmentationClassMember/analyzerCode: Fail

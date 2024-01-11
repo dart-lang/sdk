@@ -2266,7 +2266,8 @@ class ConstantsTransformer extends RemovingTransformer {
           return makeConstantExpression(new UnevaluatedConstant(node), node);
         } else {
           Constant constant = constantEvaluator.canonicalize(
-              new RecordConstant(positional, named, node.recordType));
+              new RecordConstant.fromTypeContext(
+                  positional, named, staticTypeContext));
           return makeConstantExpression(constant, node);
         }
       }
@@ -3110,8 +3111,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               new NamedExpression(key, _wrap(named[key]!)),
           ], node.recordType, isConst: true));
     }
-    return canonicalize(new RecordConstant(
-        positional, named, env.substituteType(node.recordType) as RecordType));
+    return canonicalize(new RecordConstant.fromTypeContext(
+        positional, named, staticTypeContext));
   }
 
   @override

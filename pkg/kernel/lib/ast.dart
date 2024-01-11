@@ -11329,9 +11329,8 @@ class NeverType extends DartType {
 
   const NeverType.legacy() : this.internal(Nullability.legacy);
 
-  const NeverType.undetermined() : this.internal(Nullability.undetermined);
-
-  const NeverType.internal(this.declaredNullability);
+  const NeverType.internal(this.declaredNullability)
+      : assert(declaredNullability != Nullability.undetermined);
 
   static NeverType fromNullability(Nullability nullability) {
     switch (nullability) {
@@ -11342,7 +11341,8 @@ class NeverType extends DartType {
       case Nullability.legacy:
         return const NeverType.legacy();
       case Nullability.undetermined:
-        return const NeverType.undetermined();
+        throw new StateError("Unsupported nullability for 'NeverType': "
+            "'${nullability}'");
     }
   }
 
@@ -13969,7 +13969,24 @@ class RecordConstant extends Constant {
   /// Named field values, sorted by name.
   final Map<String, Constant> named;
 
-  /// The static type of the constant.
+  /// The runtime type of the constant.
+  ///
+  /// [recordType] is computed from the individual types of the record fields
+  /// and reflects runtime type of the record constant, as opposed to the
+  /// static type of the expression that defined the constant.
+  ///
+  /// The following program shows the distinction between the static and the
+  /// runtime types of the constant. The static type of the first record in the
+  /// invocation of `identical` is `(E, String)`, the static type of the second
+  /// — `(int, String)`. The runtime type of both constants is `(int, String)`,
+  /// and the assertion condition should be satisfied.
+  ///
+  ///   extension type const E(Object? it) {}
+  ///
+  ///   main() {
+  ///     const bool check = identical(const (E(1), "foo"), const (1, "foo"));
+  ///     assert(check);
+  ///   }
   final RecordType recordType;
 
   RecordConstant(this.positional, this.named, this.recordType)
@@ -13992,6 +14009,16 @@ class RecordConstant extends Constant {
         }(),
             "Named fields of a RecordConstant aren't sorted lexicographically: "
             "${named.keys.join(", ")}");
+
+  RecordConstant.fromTypeContext(
+      this.positional, this.named, StaticTypeContext staticTypeContext)
+      : recordType = new RecordType([
+          for (Constant constant in positional)
+            constant.getType(staticTypeContext)
+        ], [
+          for (var MapEntry(key: name, value: constant) in named.entries)
+            new NamedType(name, constant.getType(staticTypeContext))
+        ], staticTypeContext.nonNullable);
 
   @override
   void visitChildren(Visitor v) {
@@ -14048,14 +14075,13 @@ class RecordConstant extends Constant {
   String toString() => "RecordConstant(${toStringInternal()})";
 
   @override
-  late final int hashCode = _Hash.combineFinish(recordType.hashCode,
-      _Hash.combineMapHashUnordered(named, _Hash.combineListHash(positional)));
+  late final int hashCode =
+      _Hash.combineMapHashUnordered(named, _Hash.combineListHash(positional));
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is RecordConstant &&
-          other.recordType == recordType &&
           listEquals(other.positional, positional) &&
           mapEquals(other.named, named));
 

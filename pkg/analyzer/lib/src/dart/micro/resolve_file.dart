@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -13,11 +14,11 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
@@ -725,16 +726,15 @@ class FileResolver {
     }
 
     var analysisOptions = AnalysisOptionsImpl()
-      ..strictInference = fileAnalysisOptions.strictInference;
+      ..strictInference = fileAnalysisOptions.strictInference
+      ..contextFeatures = FeatureSet.latestLanguageVersion()
+      ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion();
 
     if (fsState == null) {
       var featureSetProvider = FeatureSetProvider.build(
         sourceFactory: sourceFactory,
         resourceProvider: resourceProvider,
         packages: Packages.empty,
-        packageDefaultFeatureSet: analysisOptions.contextFeatures,
-        nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
-        nonPackageDefaultFeatureSet: analysisOptions.nonPackageFeatureSet,
       );
 
       fsState = FileSystemState(
@@ -748,6 +748,7 @@ class FileResolver {
         Uint32List(0), // _saltForUnlinked
         Uint32List(0), // _saltForElements
         featureSetProvider,
+        AnalysisOptionsMap.forSharedOptions(analysisOptions),
         fileContentStrategy: CiderFileContentStrategy(
           resourceProvider: resourceProvider,
           getFileDigest: getFileDigest,

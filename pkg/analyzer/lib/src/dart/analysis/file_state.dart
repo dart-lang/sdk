@@ -14,6 +14,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
@@ -28,6 +29,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/exception/exception.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/source/source_resource.dart';
@@ -1118,6 +1120,11 @@ class FileStateTestView {
 
 /// Information about known file system state.
 class FileSystemState {
+  /// In case there is no options file mapped to a file in the [_analysisOptionsMap],
+  /// we default to a shared (empty) analysis options object.
+  static final AnalysisOptionsImpl _defaultAnalysisOptions =
+      AnalysisOptionsImpl();
+
   final PerformanceLog _logger;
   final ResourceProvider resourceProvider;
   final String contextName;
@@ -1176,6 +1183,9 @@ class FileSystemState {
   /// macro [FileState]. During the refresh, this will is reset back to `null`.
   FileContent? _macroFileContent;
 
+  /// Used for looking up options to associate with created file states.
+  final AnalysisOptionsMap _analysisOptionsMap;
+
   FileSystemState(
     this._logger,
     this._byteStore,
@@ -1186,14 +1196,15 @@ class FileSystemState {
     this._declaredVariables,
     this._saltForUnlinked,
     this._saltForElements,
-    this.featureSetProvider, {
+    this.featureSetProvider,
+    AnalysisOptionsMap analysisOptionsMap, {
     required this.fileContentStrategy,
     required this.unlinkedUnitStore,
     required this.prefetchFiles,
     required this.isGenerated,
     required this.onNewFile,
     required this.testData,
-  }) {
+  }) : _analysisOptionsMap = analysisOptionsMap {
     _testView = FileSystemStateTestView(this);
   }
 
@@ -1450,10 +1461,19 @@ class FileSystemState {
     unlinkedUnitStore.clear();
   }
 
+  AnalysisOptionsImpl _getAnalysisOptions(File file) {
+    var mappedOptions = _analysisOptionsMap.getOptions(file);
+    // TODO(pq): consider making the options map manage default options
+    return (mappedOptions is AnalysisOptionsImpl)
+        ? mappedOptions
+        : _defaultAnalysisOptions;
+  }
+
   FeatureSet _getFeatureSet(
     String path,
     Uri uri,
     WorkspacePackage? workspacePackage,
+    AnalysisOptionsImpl analysisOptions,
   ) {
     var workspacePackageExperiments = workspacePackage?.enabledExperiments;
     if (workspacePackageExperiments != null) {
@@ -1462,28 +1482,34 @@ class FileSystemState {
       );
     }
 
-    return featureSetProvider.getFeatureSet(path, uri);
+    return featureSetProvider.getFeatureSet(path, uri,
+        contextFeatures: analysisOptions.contextFeatures,
+        nonPackageFeatureSet: analysisOptions.nonPackageFeatureSet);
   }
 
   Version _getLanguageVersion(
     String path,
     Uri uri,
     WorkspacePackage? workspacePackage,
+    AnalysisOptionsImpl analysisOptions,
   ) {
     var workspaceLanguageVersion = workspacePackage?.languageVersion;
     if (workspaceLanguageVersion != null) {
       return workspaceLanguageVersion;
     }
 
-    return featureSetProvider.getLanguageVersion(path, uri);
+    return featureSetProvider.getLanguageVersion(path, uri,
+        nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion);
   }
 
   FileState _newFile(File resource, String path, Uri uri) {
     FileSource uriSource = FileSource(resource, uri);
     WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
-    FeatureSet featureSet = _getFeatureSet(path, uri, workspacePackage);
+    AnalysisOptionsImpl analysisOptions = _getAnalysisOptions(resource);
+    FeatureSet featureSet =
+        _getFeatureSet(path, uri, workspacePackage, analysisOptions);
     Version packageLanguageVersion =
-        _getLanguageVersion(path, uri, workspacePackage);
+        _getLanguageVersion(path, uri, workspacePackage, analysisOptions);
     var file = FileState._(this, path, uri, uriSource, workspacePackage,
         featureSet, packageLanguageVersion);
     _pathToFile[path] = file;

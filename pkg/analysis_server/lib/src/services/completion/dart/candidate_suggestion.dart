@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /// Information about a code completion suggestion that might or might not be
 /// sent to the client (that is, one that is a candidate for being sent).
@@ -145,6 +146,17 @@ final class FormalParameterSuggestion extends CandidateSuggestion {
 
   @override
   String get completion => element.name;
+}
+
+/// The information about a candidate suggestion based on the method `call`
+/// defined on the class `Function`.
+final class FunctionCall extends CandidateSuggestion {
+  /// Initialize a newly created candidate suggestion to suggest the method
+  /// `call` defined on the class `Function`.
+  FunctionCall();
+
+  @override
+  String get completion => 'call()';
 }
 
 /// The information about a candidate suggestion based on an identifier being
@@ -369,6 +381,23 @@ final class PropertyAccessSuggestion extends CandidateSuggestion {
   String get completion => element.name;
 }
 
+/// The information about a candidate suggestion based on a field in a record
+/// type.
+final class RecordFieldSuggestion extends CandidateSuggestion {
+  /// The field on which the suggestion is based.
+  final RecordTypeField field;
+
+  /// The name of the field.
+  final String name;
+
+  /// Initialize a newly created candidate suggestion to suggest the [field] by
+  /// inserting the [name].
+  RecordFieldSuggestion(this.field, this.name);
+
+  @override
+  String get completion => name;
+}
+
 /// The information about a candidate suggestion based on a static field in a
 /// location where the name of the field must be qualified by the name of the
 /// enclosing element.
@@ -512,6 +541,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         }
       case FormalParameterSuggestion():
         suggestParameter(suggestion.element);
+      case FunctionCall():
+        suggestFunctionCall();
       case IdentifierSuggestion():
         suggestName(suggestion.identifier);
       case KeywordSuggestion():
@@ -561,6 +592,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.element,
           inheritanceDistance: inheritanceDistance,
         );
+      case RecordFieldSuggestion():
+        suggestRecordField(field: suggestion.field, name: suggestion.name);
       case StaticFieldSuggestion():
         libraryUriStr = suggestion.libraryUriStr;
         suggestStaticField(suggestion.element, prefix: suggestion.prefix);

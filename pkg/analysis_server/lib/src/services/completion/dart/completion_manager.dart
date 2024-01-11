@@ -21,7 +21,6 @@ import 'package:analysis_server/src/services/completion/dart/record_literal_cont
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
@@ -138,7 +137,6 @@ class DartCompletionManager {
       if (enableOverrideContributor) OverrideContributor(request, builder),
       RecordLiteralContributor(request, builder),
       StaticMemberContributor(request, builder),
-      TypeMemberContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
       VariableNameContributor(request, builder),
     ];

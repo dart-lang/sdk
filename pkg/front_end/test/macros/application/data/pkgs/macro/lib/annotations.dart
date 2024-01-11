@@ -10,8 +10,9 @@ macro
 class AnnotationsMacro
     implements ClassDeclarationsMacro, FunctionDeclarationsMacro {
   final Object? object;
+  final Object? additional;
 
-  const AnnotationsMacro(this.object);
+  const AnnotationsMacro(this.object, [this.additional]);
 
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) {}
