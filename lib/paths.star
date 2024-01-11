@@ -37,6 +37,9 @@ _VM_PATHS = _CFE_PATHS + [
     "runtime/.+",
     "sdk/lib/_http/.+",
     "sdk/lib/_internal/vm.+",
+
+    # Tests that run on VM builders
+    "pkg/vm_service/.+",
 ]
 
 _WEB_PATHS = _CFE_PATHS + [
