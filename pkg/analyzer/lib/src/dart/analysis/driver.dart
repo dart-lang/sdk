@@ -1568,14 +1568,10 @@ class AnalysisDriver {
   void _createFileTracker() {
     _fillSalt();
 
-    var sharedOptions = analysisOptionsMap.sharedOptions;
     featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: _resourceProvider,
       packages: _packages,
-      packageDefaultFeatureSet: sharedOptions.contextFeatures,
-      nonPackageDefaultLanguageVersion: sharedOptions.nonPackageLanguageVersion,
-      nonPackageDefaultFeatureSet: sharedOptions.nonPackageFeatureSet,
     );
 
     _fsState = FileSystemState(
@@ -1589,6 +1585,7 @@ class AnalysisDriver {
       _saltForUnlinked,
       _saltForElements,
       featureSetProvider,
+      analysisOptionsMap,
       fileContentStrategy: _fileContentStrategy,
       unlinkedUnitStore: _unlinkedUnitStore,
       prefetchFiles: null,
