@@ -380,10 +380,7 @@ class FileResolver {
       });
 
       var file = performance.run('fileForPath', (performance) {
-        return fsState!.getFileForPath2(
-          path: path,
-          performance: performance,
-        );
+        return fsState!.getFileForPath(path);
       });
 
       return FileContext(analysisOptions, file);
@@ -433,16 +430,10 @@ class FileResolver {
     return libraryContext!.elementFactory.libraryOfUri2(uri);
   }
 
-  String getLibraryLinkedSignature({
-    required String path,
-    required OperationPerformanceImpl performance,
-  }) {
+  String getLibraryLinkedSignature(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var file = fsState!.getFileForPath2(
-      path: path,
-      performance: performance,
-    );
+    var file = fsState!.getFileForPath(path);
 
     // TODO(scheglov): Casts are unsafe.
     final kind = file.kind as LibraryFileKind;
