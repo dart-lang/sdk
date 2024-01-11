@@ -50,7 +50,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  web: ^0.4.0
+  web: ^0.4.1
 
 dev_dependencies:
   build_runner: ^2.4.0
@@ -103,7 +103,7 @@ final String _index = '''
 ''';
 
 final String _main = '''
-import 'package:web/helpers.dart';
+import 'package:web/web.dart';
 
 void main() {
   final now = DateTime.now();
