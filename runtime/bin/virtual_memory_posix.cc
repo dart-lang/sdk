@@ -57,6 +57,17 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
   // generated code near the VM binary to avoid this.
   void* hint = is_executable ? reinterpret_cast<void*>(&Allocate) : nullptr;
   void* address = mmap(hint, size, prot, map_flags, -1, 0);
+#if defined(DART_HOST_OS_LINUX)
+  // On WSL 1 trying to allocate memory close to the binary by supplying a hint
+  // fails with ENOMEM for unclear reason. Some reports suggest that this might
+  // be related to the alignment of the hint but aligning it by 64Kb does not
+  // make the issue go away in our experiments. Instead just retry without any
+  // hint.
+  if (address == MAP_FAILED && hint != nullptr &&
+      Utils::IsWindowsSubsystemForLinux()) {
+    address = mmap(nullptr, size, prot, map_flags, -1, 0);
+  }
+#endif
   if (address == MAP_FAILED) {
     return nullptr;
   }
