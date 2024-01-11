@@ -449,7 +449,7 @@ void f(MacroA a) {}
     var analysisDriver = driverFor(a);
 
     var userErrors = analysisDriver.results
-        .whereType<ErrorsResult>()
+        .whereType<ResolvedUnitResult>()
         .where((event) => event.path == user.path);
 
     // We get errors when the file is added.
@@ -507,7 +507,7 @@ void f(MacroA a) {}
     var analysisDriver = driverFor(a);
 
     var userErrors = analysisDriver.results
-        .whereType<ErrorsResult>()
+        .whereType<ResolvedUnitResult>()
         .where((event) => event.path == user.path);
 
     // We get errors when the file is added.
@@ -546,7 +546,7 @@ void f(MacroA a) {}
     var analysisDriver = driverFor(user);
 
     var userErrors = analysisDriver.results
-        .whereType<ErrorsResult>()
+        .whereType<ResolvedUnitResult>()
         .where((event) => event.path == user.path);
 
     // We get errors when the file is added.
