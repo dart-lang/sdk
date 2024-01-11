@@ -7,7 +7,7 @@
 import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: global#LinkedHashMap:deps=[Map],explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs,test*/
-/*prod.class: global#LinkedHashMap:deps=[Map],needsArgs*/
+/*prod.class: global#LinkedHashMap:deps=[Map],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
 
 @pragma('dart2js:noInline')
 /*spec.member: method:implicit=[method.T],needsArgs,test*/

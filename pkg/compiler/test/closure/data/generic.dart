@@ -56,12 +56,10 @@ class Class1<T> {
     }
 
     var local2 =
-        /*prod.hasThis*/
-        /*spec.fields=[S,this],free=[S,this],hasThis*/
+        /*fields=[S,this],free=[S,this],hasThis*/
         (o) {
       return
-          /*prod.hasThis*/
-          /*spec.fields=[S,this],free=[S,this],hasThis*/
+          /*fields=[S,this],free=[S,this],hasThis*/
           () => Map<T, S>();
     };
     return local2(local<double>());

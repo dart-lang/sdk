@@ -7,11 +7,10 @@
 import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
-/*prod.class: global#JSArray:deps=[List],needsArgs*/
+/*prod.class: global#JSArray:deps=[List],implicit=[JSArray.E],needsArgs,test*/
 
 @pragma('dart2js:noInline')
-/*spec.member: method:implicit=[method.T],needsArgs,test*/
-/*prod.member: method:needsArgs*/
+/*member: method:implicit=[method.T],needsArgs,test*/
 method<T>() {
   return /*spec.*/ () => <T>[];
 }
