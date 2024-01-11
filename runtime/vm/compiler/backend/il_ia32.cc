@@ -3957,12 +3957,17 @@ LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps =
-      (op_kind() == MethodRecognizer::kDouble_getIsInfinite) ? 1 : 0;
+      op_kind() == MethodRecognizer::kDouble_getIsNegative
+          ? 2
+          : (op_kind() == MethodRecognizer::kDouble_getIsInfinite ? 1 : 0);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+  if (kNumTemps > 0) {
     summary->set_temp(0, Location::RequiresRegister());
+    if (op_kind() == MethodRecognizer::kDouble_getIsNegative) {
+      summary->set_temp(1, Location::RequiresFpuRegister());
+    }
   }
   summary->set_out(0, Location::RequiresRegister());
   return summary;
@@ -3973,31 +3978,51 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   ASSERT(compiler->is_optimizing());
   const XmmRegister value = locs()->in(0).fpu_reg();
   const bool is_negated = kind() != Token::kEQ;
-  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
-    compiler::Label is_nan;
-    __ comisd(value, value);
-    return is_negated ? PARITY_ODD : PARITY_EVEN;
-  } else {
-    ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
-    const Register temp = locs()->temp(0).reg();
-    compiler::Label check_upper;
-    __ AddImmediate(ESP, compiler::Immediate(-kDoubleSize));
-    __ movsd(compiler::Address(ESP, 0), value);
-    __ movl(temp, compiler::Address(ESP, 0));
-    // If the low word isn't zero, then it isn't infinity.
-    __ cmpl(temp, compiler::Immediate(0));
-    __ j(EQUAL, &check_upper, compiler::Assembler::kNearJump);
-    __ AddImmediate(ESP, compiler::Immediate(kDoubleSize));
-    __ jmp(is_negated ? labels.true_label : labels.false_label);
-    __ Bind(&check_upper);
-    // Check the high word.
-    __ movl(temp, compiler::Address(ESP, kWordSize));
-    __ AddImmediate(ESP, compiler::Immediate(kDoubleSize));
-    // Mask off sign bit.
-    __ andl(temp, compiler::Immediate(0x7FFFFFFF));
-    // Compare with +infinity.
-    __ cmpl(temp, compiler::Immediate(0x7FF00000));
-    return is_negated ? NOT_EQUAL : EQUAL;
+
+  switch (op_kind()) {
+    case MethodRecognizer::kDouble_getIsNaN: {
+      __ comisd(value, value);
+      return is_negated ? PARITY_ODD : PARITY_EVEN;
+    }
+    case MethodRecognizer::kDouble_getIsInfinite: {
+      const Register temp = locs()->temp(0).reg();
+      compiler::Label check_upper;
+      __ AddImmediate(ESP, compiler::Immediate(-kDoubleSize));
+      __ movsd(compiler::Address(ESP, 0), value);
+      __ movl(temp, compiler::Address(ESP, 0));
+      // If the low word isn't zero, then it isn't infinity.
+      __ cmpl(temp, compiler::Immediate(0));
+      __ j(EQUAL, &check_upper, compiler::Assembler::kNearJump);
+      __ AddImmediate(ESP, compiler::Immediate(kDoubleSize));
+      __ jmp(is_negated ? labels.true_label : labels.false_label);
+      __ Bind(&check_upper);
+      // Check the high word.
+      __ movl(temp, compiler::Address(ESP, kWordSize));
+      __ AddImmediate(ESP, compiler::Immediate(kDoubleSize));
+      // Mask off sign bit.
+      __ andl(temp, compiler::Immediate(0x7FFFFFFF));
+      // Compare with +infinity.
+      __ cmpl(temp, compiler::Immediate(0x7FF00000));
+      return is_negated ? NOT_EQUAL : EQUAL;
+    }
+    case MethodRecognizer::kDouble_getIsNegative: {
+      const Register temp = locs()->temp(0).reg();
+      const FpuRegister temp_fpu = locs()->temp(1).fpu_reg();
+      compiler::Label not_zero;
+      __ xorpd(temp_fpu, temp_fpu);
+      __ comisd(value, temp_fpu);
+      // If it's NaN, it's not negative.
+      __ j(PARITY_EVEN, is_negated ? labels.true_label : labels.false_label);
+      __ j(NOT_EQUAL, &not_zero, compiler::Assembler::kNearJump);
+      // Check for negative zero by looking at the sign bit.
+      __ movmskpd(temp, value);
+      __ xorl(temp, compiler::Immediate(1));
+      __ cmpl(temp, compiler::Immediate(1));
+      __ Bind(&not_zero);
+      return is_negated ? ABOVE_EQUAL : BELOW;
+    }
+    default:
+      UNREACHABLE();
   }
 }
 

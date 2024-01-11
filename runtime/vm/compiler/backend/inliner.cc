@@ -4794,6 +4794,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                             graph_entry, entry, last, result);
     case MethodRecognizer::kDouble_getIsNaN:
     case MethodRecognizer::kDouble_getIsInfinite:
+    case MethodRecognizer::kDouble_getIsNegative:
       return InlineDoubleTestOp(flow_graph, call, receiver, kind, graph_entry,
                                 entry, last, result);
     case MethodRecognizer::kGrowableArraySetData:
