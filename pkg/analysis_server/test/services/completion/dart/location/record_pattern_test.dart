@@ -215,8 +215,14 @@ void f(({int f01, int f02, int g01}) x0) {
 ''');
     assertResponse(r'''
 suggestions
+  f01
+    kind: identifier
+  f02
+    kind: identifier
   final
     kind: keyword
+  g01
+    kind: identifier
   var
     kind: keyword
 ''');

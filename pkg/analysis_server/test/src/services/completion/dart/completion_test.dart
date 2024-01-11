@@ -566,7 +566,6 @@ class A {
 @reflectiveTest
 class RedirectingConstructorInvocationCompletionTest
     extends CompletionTestCase {
-  @failingTest
   Future<void> test_instanceMember() async {
     await getTestCodeSuggestions('''
 class C {
