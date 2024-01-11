@@ -1118,6 +1118,9 @@ void DoubleTestOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     case MethodRecognizer::kDouble_getIsInfinite:
       f->AddString("IsInfinite ");
       break;
+    case MethodRecognizer::kDouble_getIsNegative:
+      f->AddString("IsNegative ");
+      break;
     default:
       UNREACHABLE();
   }

@@ -1459,19 +1459,34 @@ void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {
   if (IsUnknown(value)) {
     return;
   }
-  const bool is_negated = instr->kind() != Token::kEQ;
+  bool result;
   if (value.IsInteger()) {
-    SetValue(instr, is_negated ? Bool::True() : Bool::False());
-  } else if (IsIntegerOrDouble(value)) {
+    switch (instr->op_kind()) {
+      case MethodRecognizer::kDouble_getIsNaN:
+        FALL_THROUGH;
+      case MethodRecognizer::kDouble_getIsInfinite:
+        result = false;
+        break;
+      case MethodRecognizer::kDouble_getIsNegative: {
+        result = Integer::Cast(value).IsNegative();
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  } else if (value.IsDouble()) {
+    const double double_value = ToDouble(value);
     switch (instr->op_kind()) {
       case MethodRecognizer::kDouble_getIsNaN: {
-        const bool is_nan = isnan(ToDouble(value));
-        SetValue(instr, Bool::Get(is_negated ? !is_nan : is_nan));
+        result = isnan(double_value);
         break;
       }
       case MethodRecognizer::kDouble_getIsInfinite: {
-        const bool is_inf = isinf(ToDouble(value));
-        SetValue(instr, Bool::Get(is_negated ? !is_inf : is_inf));
+        result = isinf(double_value);
+        break;
+      }
+      case MethodRecognizer::kDouble_getIsNegative: {
+        result = signbit(double_value) && !isnan(double_value);
         break;
       }
       default:
@@ -1479,7 +1494,10 @@ void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {
     }
   } else {
     SetValue(instr, non_constant_);
+    return;
   }
+  const bool is_negated = instr->kind() != Token::kEQ;
+  SetValue(instr, Bool::Get(is_negated ? !result : result));
 }
 
 void ConstantPropagator::VisitSimdOp(SimdOpInstr* instr) {

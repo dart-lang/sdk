@@ -3902,13 +3902,13 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
+  const bool needs_temp = op_kind() != MethodRecognizer::kDouble_getIsNaN;
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      op_kind() == MethodRecognizer::kDouble_getIsInfinite ? 1 : 0;
+  const intptr_t kNumTemps = needs_temp ? 1 : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+  if (needs_temp) {
     summary->set_temp(0, Location::RequiresRegister());
   }
   summary->set_out(0, Location::RequiresRegister());
@@ -3920,18 +3920,36 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   ASSERT(compiler->is_optimizing());
   const VRegister value = locs()->in(0).fpu_reg();
   const bool is_negated = kind() != Token::kEQ;
-  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
-    __ fcmpd(value, value);
-    return is_negated ? VC : VS;
-  } else {
-    ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
-    const Register temp = locs()->temp(0).reg();
-    __ vmovrd(temp, value, 0);
-    // Mask off the sign.
-    __ AndImmediate(temp, temp, 0x7FFFFFFFFFFFFFFFLL);
-    // Compare with +infinity.
-    __ CompareImmediate(temp, 0x7FF0000000000000LL);
-    return is_negated ? NE : EQ;
+
+  switch (op_kind()) {
+    case MethodRecognizer::kDouble_getIsNaN: {
+      __ fcmpd(value, value);
+      return is_negated ? VC : VS;
+    }
+    case MethodRecognizer::kDouble_getIsInfinite: {
+      const Register temp = locs()->temp(0).reg();
+      __ vmovrd(temp, value, 0);
+      // Mask off the sign.
+      __ AndImmediate(temp, temp, 0x7FFFFFFFFFFFFFFFLL);
+      // Compare with +infinity.
+      __ CompareImmediate(temp, 0x7FF0000000000000LL);
+      return is_negated ? NE : EQ;
+    }
+    case MethodRecognizer::kDouble_getIsNegative: {
+      const Register temp = locs()->temp(0).reg();
+      compiler::Label not_zero;
+      __ fcmpdz(value);
+      // If it's NaN, it's not negative.
+      __ b(is_negated ? labels.true_label : labels.false_label, VS);
+      __ b(&not_zero, NOT_EQUAL);
+      // Check for negative zero with a signed comparison.
+      __ fmovrd(temp, value);
+      __ CompareImmediate(temp, 0);
+      __ Bind(&not_zero);
+      return is_negated ? GE : LT;
+    }
+    default:
+      UNREACHABLE();
   }
 }
 

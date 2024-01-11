@@ -4407,6 +4407,9 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     __ TestImmediate(TMP, kFClassSignallingNan | kFClassQuietNan);
   } else if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
     __ TestImmediate(TMP, kFClassNegInfinity | kFClassPosInfinity);
+  } else if (op_kind() == MethodRecognizer::kDouble_getIsNegative) {
+    __ TestImmediate(TMP, kFClassNegInfinity | kFClassNegNormal |
+                              kFClassNegSubnormal | kFClassNegZero);
   } else {
     UNREACHABLE();
   }
