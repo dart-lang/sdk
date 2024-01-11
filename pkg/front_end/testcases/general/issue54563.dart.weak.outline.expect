@@ -1,0 +1,6 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>((self::test::X%) →? core::int? f1, (self::test::Y%) → core::int? f2) → dynamic
+  ;

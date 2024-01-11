@@ -11329,9 +11329,8 @@ class NeverType extends DartType {
 
   const NeverType.legacy() : this.internal(Nullability.legacy);
 
-  const NeverType.undetermined() : this.internal(Nullability.undetermined);
-
-  const NeverType.internal(this.declaredNullability);
+  const NeverType.internal(this.declaredNullability)
+      : assert(declaredNullability != Nullability.undetermined);
 
   static NeverType fromNullability(Nullability nullability) {
     switch (nullability) {
@@ -11342,7 +11341,8 @@ class NeverType extends DartType {
       case Nullability.legacy:
         return const NeverType.legacy();
       case Nullability.undetermined:
-        return const NeverType.undetermined();
+        throw new StateError("Unsupported nullability for 'NeverType': "
+            "'${nullability}'");
     }
   }
 
