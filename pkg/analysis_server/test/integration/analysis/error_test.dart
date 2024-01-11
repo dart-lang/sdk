@@ -28,14 +28,7 @@ void f() {
     await sendServerSetSubscriptions([ServerService.STATUS]);
     await sendAnalysisUpdateContent({filePath: AddContentOverlay(content)});
     await sendAnalysisSetAnalysisRoots([packagePath], []);
-
     await analysisFinished;
-
-    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/54577
-    // `await analysisFinished` should be enough, but was not promised.
-    while (currentAnalysisErrors[filePath] == null) {
-      await pumpEventQueue();
-    }
 
     expect(currentAnalysisErrors[filePath], isList);
     var errors = existingErrorsForFile(filePath);

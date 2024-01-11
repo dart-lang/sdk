@@ -8,22 +8,20 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 /// An event that happened inside the [AnalysisDriver].
 sealed class AnalysisDriverEvent {}
 
-final class AnalyzeFile extends AnalysisDriverEvent {
+final class ComputeAnalysis extends AnalysisDriverEvent {
   final FileState file;
   final LibraryFileKind library;
 
-  AnalyzeFile({
+  ComputeAnalysis({
     required this.file,
     required this.library,
   });
 }
 
-final class GetErrorsFromBytes extends AnalysisDriverEvent {
-  final FileState file;
+final class ComputeResolvedLibrary extends AnalysisDriverEvent {
   final LibraryFileKind library;
 
-  GetErrorsFromBytes({
-    required this.file,
+  ComputeResolvedLibrary({
     required this.library,
   });
 }
