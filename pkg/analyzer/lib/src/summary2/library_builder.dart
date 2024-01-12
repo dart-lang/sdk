@@ -823,8 +823,10 @@ class LibraryBuilder {
           ..end = unlinked.endOffset
           ..shownNames = unlinked.names;
       } else {
-        // TODO(scheglov): Why no offsets?
-        return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
+        return HideElementCombinatorImpl()
+          ..offset = unlinked.keywordOffset
+          ..end = unlinked.endOffset
+          ..hiddenNames = unlinked.names;
       }
     }).toFixedList();
   }

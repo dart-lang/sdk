@@ -304,6 +304,10 @@ class InformativeDataApplier {
           element.offset = info.offset;
           element.end = info.end;
         }
+        if (element is HideElementCombinatorImpl) {
+          element.offset = info.offset;
+          element.end = info.end;
+        }
       },
     );
   }

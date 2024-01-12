@@ -954,7 +954,6 @@ import 'package:test/a.dart';
 
 A? staying;
 >>>>>>>>>> lib/moving.dart
-import 'package:test/a.dart' hide A;
 import 'package:test/a.dart';
 
 A? moving;
@@ -993,8 +992,7 @@ import 'package:test/a.dart' show A;
 
 A? staying;
 >>>>>>>>>> lib/moving.dart
-import 'package:test/a.dart' hide A;
-import 'package:test/a.dart' show A;
+import 'package:test/a.dart';
 
 A? moving;
 ''';

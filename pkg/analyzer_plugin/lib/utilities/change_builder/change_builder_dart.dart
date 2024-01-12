@@ -355,14 +355,23 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// Arrange to have an import added for the library with the given [uri]. If a
   /// [prefix] is provided it will be used in the import directive.
   ///
-  /// If [showName] is provided, new imports will show only this name.
+  /// If [showName] is provided, imports will be modified to make sure this
+  /// symbol is shown.
+  ///
+  /// If [useShow] is `true`, new imports will show only the given [showName],
+  /// instead of importing the library without a show clause.
   ///
   /// Return the text of the URI that will be used in the import directive.
   /// It can be different than the given [uri].
   ///
   /// The [uri] may be converted from an absolute URI to a relative URI
   /// depending on user preferences/lints.
-  String importLibrary(Uri uri, {String? prefix, String? showName});
+  String importLibrary(
+    Uri uri, {
+    String? prefix,
+    String? showName,
+    bool useShow = false,
+  });
 
   /// Ensure that the library with the given [uri] is imported.
   ///
