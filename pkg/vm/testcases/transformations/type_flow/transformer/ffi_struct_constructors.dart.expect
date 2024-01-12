@@ -144,7 +144,7 @@ static method testNestedLoad() → void {
 }
 constants  {
   #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
+  #C2 = TypeLiteralConstant(ffi::Pointer<core::Object>)
   #C3 = <core::Type>[#C2]
   #C4 = null
   #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}

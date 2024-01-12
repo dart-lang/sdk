@@ -64,11 +64,10 @@ void main() {
   testEmptyStructFromFunctionArgument();
   testEmptyStructFromFunctionReturn();
   testAllocateGeneric();
-  testAllocateNativeType();
+  testAllocateInvalidType();
   testRefStruct();
   testSizeOfGeneric();
-  testSizeOfNativeType();
-  testSizeOfHandle();
+  testSizeOfInvalidType();
   testElementAtGeneric();
   testElementAtNativeType();
   testLookupFunctionIsLeafMustBeConst();
@@ -651,12 +650,16 @@ final class TestStruct6 extends Struct {
 
 // error on annotation not matching up
 final class TestStruct7 extends Struct {
-  /**/ @NativeType()
-  //   ^^^^^^^^^^^^^
+  /**/ @Int8()
+  //   ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD
-  //    ^
-  // [cfe] The class 'NativeType' is abstract and can't be instantiated.
+  external double y;
+  //              ^
+  // [cfe] Expected type 'double' to be 'int', which is the Dart type corresponding to 'Int8'.
+
   external double z;
+  //       ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MISSING_ANNOTATION_ON_STRUCT_FIELD
   //              ^
   // [cfe] Field 'z' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.
 
@@ -1021,7 +1024,7 @@ final class HasNestedEmptyStruct extends Struct {
 }
 
 void testAllocateGeneric() {
-  Pointer<T> generic<T extends NativeType>() {
+  Pointer<T> generic<T extends SizedNativeType>() {
     Pointer<T> pointer = nullptr;
     pointer = calloc();
     //        ^^^^^^^^
@@ -1034,12 +1037,30 @@ void testAllocateGeneric() {
   Pointer p = generic<Int64>();
 }
 
-void testAllocateNativeType() {
+void testAllocateInvalidType() {
   /**/ calloc();
   //   ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
   //         ^
-  // [cfe] Expected type 'NativeType' to be a valid and instantiated subtype of 'NativeType'.
+  // [cfe] Expected type 'SizedNativeType' to be a valid and instantiated subtype of 'NativeType'.
+
+  /**/ calloc<Struct>();
+  //   ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+  //         ^
+  // [cfe] Expected type 'Struct' to be a valid and instantiated subtype of 'NativeType'.
+
+  /**/ calloc<Union>();
+  //   ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+  //         ^
+  // [cfe] Expected type 'Union' to be a valid and instantiated subtype of 'NativeType'.
+
+  /**/ calloc<AbiSpecificInteger>();
+  //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+  //         ^
+  // [cfe] Expected type 'AbiSpecificInteger' to be a valid and instantiated subtype of 'NativeType'.
 }
 
 void testRefStruct() {
@@ -1090,17 +1111,25 @@ void testSizeOfGeneric() {
   int size = generic<Pointer<Int64>>();
 }
 
-void testSizeOfNativeType() {
+void testSizeOfInvalidType() {
   sizeOf();
 //^^^^^^^^
-  // [cfe] Expected type 'NativeType' to be a valid and instantiated subtype of 'NativeType'.
+  // [cfe] Expected type 'SizedNativeType' to be a valid and instantiated subtype of 'NativeType'.
   // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
-}
 
-void testSizeOfHandle() {
-  sizeOf<Handle>();
+  sizeOf<Struct>();
 //^^^^^^^^^^^^^^^^
-  // [cfe] Expected type 'Handle' to be a valid and instantiated subtype of 'NativeType'.
+  // [cfe] Expected type 'Struct' to be a valid and instantiated subtype of 'NativeType'.
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+
+  sizeOf<Union>();
+//^^^^^^^^^^^^^^^
+  // [cfe] Expected type 'Union' to be a valid and instantiated subtype of 'NativeType'.
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+
+  sizeOf<AbiSpecificInteger>();
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [cfe] Expected type 'AbiSpecificInteger' to be a valid and instantiated subtype of 'NativeType'.
   // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
 }
 

@@ -30,7 +30,7 @@ part 'union.dart';
 /// Includes padding and alignment of structs.
 ///
 /// This function must be invoked with a compile-time constant [T].
-external int sizeOf<T extends NativeType>();
+external int sizeOf<T extends SizedNativeType>();
 
 /// Represents a pointer into the native C memory corresponding to 'NULL', e.g.
 /// a pointer with address 0.
@@ -39,7 +39,7 @@ final Pointer<Never> nullptr = Pointer.fromAddress(0);
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma('vm:entry-point')
 @pragma("wasm:entry-point")
-final class Pointer<T extends NativeType> extends NativeType {
+final class Pointer<T extends NativeType> implements SizedNativeType {
   /// Construction from raw integer.
   external factory Pointer.fromAddress(int ptr);
 
@@ -87,7 +87,7 @@ final class Pointer<T extends NativeType> extends NativeType {
 
 /// A fixed-sized array of [T]s.
 @Since('2.13')
-final class Array<T extends NativeType> extends NativeType {
+final class Array<T extends NativeType> implements NativeType {
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
   /// ```dart

@@ -35,6 +35,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_sample.dart:
 - Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart)
-- _NativeDouble. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart)
-- NativeType. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

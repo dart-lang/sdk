@@ -114,7 +114,7 @@ constants  {
   #C9 = 8
   #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = TypeLiteralConstant(self::Vec2d)
-  #C12 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
+  #C12 = TypeLiteralConstant(ffi::Pointer<core::Object>)
   #C13 = <core::Type>[#C11, #C12]
   #C14 = ffi::_FfiStructLayout {fieldTypes:#C13, packing:#C4}
   #C15 = core::pragma {name:#C1, options:#C14}
