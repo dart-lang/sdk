@@ -346,7 +346,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   final bool isBackwardCompatible;
 
   final Map<Info, Id> ids = HashMap<Info, Id>();
-  final Set<String> usedIds = <String>{};
+  final Map<String, int> idCounter = <String, int>{};
 
   AllInfoToJsonConverter({this.isBackwardCompatible = false});
 
@@ -373,14 +373,10 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       name = longName(info, useLibraryUri: true, forId: true);
     }
 
-    Id id = Id(info.kind, name);
     // longName isn't guaranteed to create unique serializedIds for some info
     // constructs (such as closures), so we disambiguate here.
-    int count = 0;
-    while (!usedIds.add(id.serializedId)) {
-      id = Id(info.kind, '$name%${count++}');
-    }
-
+    final count = idCounter.update(name, (v) => v + 1, ifAbsent: () => 0);
+    final id = Id(info.kind, count == 0 ? name : '$name%$count');
     return ids[info] = id;
   }
 
