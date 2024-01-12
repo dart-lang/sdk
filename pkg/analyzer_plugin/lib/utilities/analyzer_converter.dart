@@ -177,7 +177,7 @@ class AnalyzerConverter {
         // Or should we return ElementKind.ENUM_CONSTANT here
         // in either or both of these cases?
         ) {
-      final type = element.type;
+      var type = element.type;
       if (type is InterfaceType && type.element == element.enclosingElement) {
         return plugin.ElementKind.ENUM_CONSTANT;
       }
