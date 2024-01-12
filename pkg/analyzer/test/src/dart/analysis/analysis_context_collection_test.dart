@@ -665,11 +665,9 @@ class _AnalysisContextCollectionPrinter {
       sink.writelnWithIndent('uri: ${fileState.uri}');
 
       final analysisOptions = fileState.analysisOptions;
-      if (analysisOptions != null) {
-        if (analysisOptions.file != null) {
-          final id = _idOfAnalysisOptions(analysisOptions);
-          sink.writelnWithIndent(id);
-        }
+      if (analysisOptions.file != null) {
+        final id = _idOfAnalysisOptions(analysisOptions);
+        sink.writelnWithIndent(id);
       }
 
       final workspacePackage = fileState.workspacePackage;

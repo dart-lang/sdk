@@ -8,26 +8,30 @@ import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 /// Instances of the class [AnalysisOptionsMap] map [File]s under analysis to
 /// their corresponding [AnalysisOptions].
 class AnalysisOptionsMap {
+  /// Default options, shared by files with no associated analysis options file
+  /// folder entry.
+  static final AnalysisOptionsImpl _defaultOptions = AnalysisOptionsImpl();
+
   final List<OptionsMapEntry> entries = [];
 
   /// Create an empty [AnalysisOptionsMap] instance.
   AnalysisOptionsMap();
 
   /// Map this [folder] to the given [options].
-  void add(Folder folder, AnalysisOptions options) {
+  void add(Folder folder, AnalysisOptionsImpl options) {
     entries.add(OptionsMapEntry(folder, options));
     // Sort entries by (reverse) containment (for now).
     entries.sort((e1, e2) => e1.folder.contains(e2.folder.path) ? 1 : -1);
   }
 
-  /// Get the [AnalysisOptions] instance for the given [file] (or `null` if none
-  /// has been set).
-  AnalysisOptions? getOptions(File file) {
+  /// Get the [AnalysisOptions] instance for the given [file] (or a shared empty
+  /// default options object if there is no entry in [entries] for a containing folder).
+  AnalysisOptionsImpl getOptions(File file) {
     for (var entry in entries) {
       if (entry.folder.contains(file.path)) return entry.options;
     }
 
-    return null;
+    return _defaultOptions;
   }
 
   /// Create an [AnalysisOptionsMap] that holds one set of [sharedOptions] for all
@@ -45,7 +49,7 @@ class OptionsMapEntry {
   final Folder folder;
 
   /// The corresponding options object.
-  final AnalysisOptions options;
+  final AnalysisOptionsImpl options;
 
   /// Create a new entry for the give [folder] and corresponding [options];
   OptionsMapEntry(this.folder, this.options);
@@ -58,5 +62,5 @@ class SharedOptionsOptionsMap extends AnalysisOptionsMap {
   final AnalysisOptionsImpl sharedOptions;
   SharedOptionsOptionsMap(this.sharedOptions);
   @override
-  AnalysisOptions getOptions(File file) => sharedOptions;
+  AnalysisOptionsImpl getOptions(File file) => sharedOptions;
 }

@@ -724,7 +724,7 @@ class AnalysisDriver {
     return completer.future;
   }
 
-  AnalysisOptions getAnalysisOptionsForFile(File file) =>
+  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
       analysisOptionsMap.getOptions(file);
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given

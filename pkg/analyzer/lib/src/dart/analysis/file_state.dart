@@ -376,7 +376,7 @@ class FileState {
   final FileSystemState _fsState;
 
   /// The [AnalysisOptions] associated with this file.
-  final AnalysisOptionsImpl? analysisOptions;
+  final AnalysisOptionsImpl analysisOptions;
 
   /// The absolute path of the file.
   final String path;
@@ -1123,11 +1123,6 @@ class FileStateTestView {
 
 /// Information about known file system state.
 class FileSystemState {
-  /// In case there is no options file mapped to a file in the [_analysisOptionsMap],
-  /// we default to a shared (empty) analysis options object.
-  static final AnalysisOptionsImpl _defaultAnalysisOptions =
-      AnalysisOptionsImpl();
-
   final PerformanceLog _logger;
   final ResourceProvider resourceProvider;
   final String contextName;
@@ -1451,13 +1446,8 @@ class FileSystemState {
     unlinkedUnitStore.clear();
   }
 
-  AnalysisOptionsImpl _getAnalysisOptions(File file) {
-    var mappedOptions = _analysisOptionsMap.getOptions(file);
-    // TODO(pq): consider making the options map manage default options
-    return (mappedOptions is AnalysisOptionsImpl)
-        ? mappedOptions
-        : _defaultAnalysisOptions;
-  }
+  AnalysisOptionsImpl _getAnalysisOptions(File file) =>
+      _analysisOptionsMap.getOptions(file);
 
   FeatureSet _getFeatureSet(
     String path,
