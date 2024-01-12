@@ -409,7 +409,7 @@ class SimpleMacro
       for (var constructor in constructors)
         "\n      print('constructor: ${constructor.identifier.name}');",
       '''
-\n      return augment super();
+\n      return augmented();
     }''',
     ]));
   }
@@ -448,7 +448,7 @@ class SimpleMacro
         '''print('isExternal: ${variable.hasExternal}');
           print('isFinal: ${variable.hasFinal}');
           print('isLate: ${variable.hasLate}');
-          return augment super;
+          return augmented;
         }''',
       ]),
       setter: DeclarationCode.fromParts([
@@ -456,10 +456,9 @@ class SimpleMacro
         variable.identifier.name,
         '(',
         variable.type.code,
-        ' value) { augment super = value; }'
+        ' value) { augmented = value; }'
       ]),
-      initializer:
-          ExpressionCode.fromString("'new initial value' + augment super"),
+      initializer: ExpressionCode.fromString("'new initial value' + augmented"),
     );
   }
 
@@ -759,7 +758,7 @@ Future<FunctionBodyCode> _buildFunctionAugmentation(
       if (param.bound != null) param.bound!.code,
       "');\n",
     ],
-    'return augment super',
+    'return augmented',
     if (function.isSetter) ...[
       ' = ',
       function.positionalParameters.first.identifier,

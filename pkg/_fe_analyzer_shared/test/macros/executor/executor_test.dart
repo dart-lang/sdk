@@ -649,7 +649,7 @@ class LibraryInfo {
                   print('isGetter: false');
                   print('isSetter: false');
                   print('returnType: String');
-                  return augment super();
+                  return augmented();
                 }'''));
               });
 
@@ -706,7 +706,7 @@ class LibraryInfo {
                   print('isGetter: true');
                   print('isSetter: false');
                   print('returnType: String');
-                  return augment super;
+                  return augmented;
                 }'''));
               });
 
@@ -728,7 +728,7 @@ class LibraryInfo {
                   print('isSetter: true');
                   print('returnType: void');
                   print('positionalParam: String value');
-                  return augment super = value;
+                  return augmented = value;
                 }'''));
               });
 
@@ -750,14 +750,14 @@ class LibraryInfo {
                   print('isExternal: false');
                   print('isFinal: true');
                   print('isLate: false');
-                  return augment super;
+                  return augmented;
                 }'''),
                       equalsIgnoringWhitespace('''
                 augment set _myVariable(/*inferred*/String value) {
-                  augment super = value;
+                  augmented = value;
                 }'''),
                       equalsIgnoringWhitespace('''
-                augment final /*inferred*/String _myVariable = 'new initial value' + augment super;
+                augment final /*inferred*/String _myVariable = 'new initial value' + augmented;
                 '''),
                     ]));
               });
@@ -830,7 +830,7 @@ class LibraryInfo {
                           print('isSetter: false');
                           print('returnType: MyEnum');
                           print('positionalParam: String myField');
-                          return augment super();
+                          return augmented();
                         }''')
                     ]));
               });
@@ -964,7 +964,7 @@ augment MyClass.myConstructor(/*inferred*/String myField, ) {
   print('isSetter: false');
   print('returnType: MyClass');
   print('positionalParam: String (inferred) myField');
-  return augment super();
+  return augmented();
 }''');
 
 final fieldDefinitionMatchers = [
@@ -975,14 +975,14 @@ final fieldDefinitionMatchers = [
       print('isExternal: false');
       print('isFinal: false');
       print('isLate: false');
-      return augment super;
+      return augmented;
     }'''),
   equalsIgnoringWhitespace('''
     augment set myField(String value) {
-      augment super = value;
+      augmented = value;
     }'''),
   equalsIgnoringWhitespace('''
-    augment String myField = \'new initial value\' + augment super;'''),
+    augment String myField = \'new initial value\' + augmented;'''),
 ];
 
 final methodDefinitionMatchers = [
@@ -993,7 +993,7 @@ final methodDefinitionMatchers = [
       print('isGetter: false');
       print('isSetter: false');
       print('returnType: (String, bool? hello, {String world})');
-      return augment super();
+      return augmented();
     }'''),
   equalsIgnoringWhitespace('''
     augment (String, bool? hello, {String world}) myMethod() {
@@ -1011,7 +1011,7 @@ final methodDefinitionMatchers = [
       print('field: myField');
       print('method: myMethod');
       print('constructor: myConstructor');
-      return augment super();
+      return augmented();
     }'''),
 ];
 
@@ -1023,7 +1023,7 @@ final mixinMethodDefinitionMatchers = [
       print('isGetter: false');
       print('isSetter: false');
       print('returnType: (String, bool? hello, {String world})');
-      return augment super();
+      return augmented();
     }'''),
   equalsIgnoringWhitespace('''
     augment (String, bool? hello, {String world}) myMixinMethod() {
@@ -1037,6 +1037,6 @@ final mixinMethodDefinitionMatchers = [
       print('parentClass: MyMixin');
       print('superClass: null');
       print('method: myMixinMethod');
-      return augment super();
+      return augmented();
     }'''),
 ];

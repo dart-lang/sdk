@@ -501,7 +501,7 @@ class Fixtures {
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myConstructor'),
       library: Fixtures.library,
       metadata: [],
-      hasBody: true,
+      hasBody: false, // we will augment with one
       hasExternal: false,
       namedParameters: [],
       positionalParameters: [
@@ -611,7 +611,7 @@ class Fixtures {
           id: RemoteInstance.uniqueId, name: 'myEnumConstructor'),
       library: Fixtures.library,
       metadata: [],
-      hasBody: true,
+      hasBody: false, // We will augment with one
       hasExternal: false,
       namedParameters: [],
       positionalParameters: [
