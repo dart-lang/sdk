@@ -29,10 +29,6 @@ library;
 // class ExtendsInterface extends Finalizable {} /* Error */
 //                                ^
 //
-// pkg/front_end/testcases/class_modifiers/ffi_exception.dart:11:22: Error: The class 'Double' can't be used as a mixin because it extends a class other than 'Object'.
-// class WithFinal with Double {} /* Error */
-//                      ^
-//
 import self as self;
 import "dart:core" as core;
 import "dart:ffi" as ffi;

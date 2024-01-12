@@ -49,7 +49,7 @@ library from "org-dartlang-test:///main.dart" as main {
 }
 constants  {
   #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(dart.ffi::Pointer<dart.ffi::NativeType>)
+  #C2 = TypeLiteralConstant(dart.ffi::Pointer<dart.core::Object>)
   #C3 = <dart.core::Type>[#C2]
   #C4 = null
   #C5 = dart.ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}

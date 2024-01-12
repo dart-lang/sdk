@@ -44,10 +44,6 @@ void main() {
   testTypeTest();
   testToString();
   testEquality();
-  testAllocateVoid();
-  testAllocateNativeFunction();
-  testSizeOfVoid();
-  testSizeOfNativeFunction();
   testDynamicInvocation();
   testMemoryAddressTruncation();
   testNullptrCast();
@@ -436,30 +432,6 @@ void testEquality() {
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
-
-void testAllocateVoid() {
-  Expect.throws(() {
-    Pointer<Void> p = calloc();
-  });
-}
-
-void testAllocateNativeFunction() {
-  Expect.throws(() {
-    Pointer<NativeFunction<Int8UnOp>> p = calloc();
-  });
-}
-
-void testSizeOfVoid() {
-  Expect.throws(() {
-    sizeOf<Void>();
-  });
-}
-
-void testSizeOfNativeFunction() {
-  Expect.throws(() {
-    sizeOf<NativeFunction<Int8UnOp>>();
-  });
-}
 
 void testDynamicInvocation() {
   dynamic p = calloc<Int8>();

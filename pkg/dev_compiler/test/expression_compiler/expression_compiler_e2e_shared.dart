@@ -806,6 +806,7 @@ void runAgnosticSharedTestsShard1(
           List<int> list = [];
           list.add(0);
           // Breakpoint: bp
+          print(list);
         }
         ''';
 
@@ -854,7 +855,7 @@ void runAgnosticSharedTestsShard1(
       await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'typo',
-          expectedError: "Error: Undefined name 'typo'");
+          expectedError: "Error: The getter 'typo' isn't defined");
     });
 
     test('local (trimmed scope)', () async {
@@ -863,13 +864,8 @@ void runAgnosticSharedTestsShard1(
     });
 
     test('this (full scope)', () async {
-      // Note: this currently fails due to
-      // - incremental compiler not mapping 'this' from user input to '#this'
-      // - incremental compiler not allowing #this as a parameter name
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'this',
-          expectedError: "Error: Expected identifier, but got 'this'");
+          breakpointId: 'bp', expression: 'this', expectedResult: '1234');
     });
 
     test('scope', () async {

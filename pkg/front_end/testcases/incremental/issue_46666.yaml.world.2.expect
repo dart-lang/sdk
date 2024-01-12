@@ -94,7 +94,7 @@ library from "org-dartlang-test:///b.dart" as b {
 }
 constants  {
   #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(dart.ffi::Pointer<dart.ffi::NativeType>)
+  #C2 = TypeLiteralConstant(dart.ffi::Pointer<dart.core::Object>)
   #C3 = TypeLiteralConstant(a::NestedStruct)
   #C4 = <dart.core::Type>[#C2, #C2, #C2, #C3]
   #C5 = null

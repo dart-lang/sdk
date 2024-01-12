@@ -63,9 +63,9 @@ abstract class Allocator {
   /// If [alignment] is provided, the allocated memory will be at least aligned
   /// to [alignment] bytes.
   ///
-  /// To allocate a multiple of `sizeOf<T>()` bytes, call the allocator
-  /// directly as a function: `allocator<T>(count)` (see [AllocatorAlloc.call]
-  /// for details).
+  /// To allocate a multiple of `sizeOf<T>()` bytes, call the allocator directly
+  /// as a function: `allocator<T>(count)` (see [AllocatorAlloc.call] for
+  /// details).
   ///
   /// ```dart
   /// // This allocates two bytes. If you intended two Int32's, this is an
@@ -109,5 +109,5 @@ extension AllocatorAlloc on Allocator {
   /// To allocate with a non constant [T], use [allocate].
   /// Prefer [call] for normal use, and use [allocate] for implementing an
   /// [Allocator] in terms of other allocators.
-  external Pointer<T> call<T extends NativeType>([int count = 1]);
+  external Pointer<T> call<T extends SizedNativeType>([int count = 1]);
 }
