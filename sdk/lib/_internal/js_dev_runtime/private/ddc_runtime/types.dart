@@ -192,8 +192,8 @@ class DynamicType extends DartType {
 @notNull
 bool _isJsObject(obj) => JS_GET_FLAG("NEW_RUNTIME_TYPES")
     ? obj is LegacyJavaScriptObject
-    : JS(
-        '!', '# === #', getReifiedType(obj), typeRep<LegacyJavaScriptObject>());
+    : JS('!', '# === #', getReifiedType(obj),
+        TYPE_REF<LegacyJavaScriptObject>());
 
 /// Asserts that [f] is a native JS function and returns it if so.
 ///
@@ -1499,22 +1499,6 @@ external bool _jsInstanceOf(obj, cls);
 @notNull
 external bool _equalType(type, cls);
 
-/// Extracts the type argument as an unwrapped type preserving all forms of
-/// nullability.
-///
-/// Acts as a way to bypass extra calls of [wrapType] and [unwrapType]. For
-/// example `typeRep<Object?>()` emits `dart.nullable(core.Object)` directly.
-@notNull
-external Type typeRep<T>();
-
-/// Extracts the type argument as an unwrapped type and performs a shallow
-/// replacement of the nullability to a legacy type.
-///
-/// Acts as a way to bypass extra calls of [wrapType] and [unwrapType]. For
-/// example `legacyTypeRep<Object>()` emits `dart.legacy(core.Object)` directly.
-@notNull
-external Type legacyTypeRep<T>();
-
 @notNull
 bool _isFutureOr(type) {
   var genericClass = getGenericClass(type);
@@ -1546,14 +1530,14 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
 
   // "Left Top".
   if (_equalType(t1, dynamic) || JS<bool>('!', '# === #', t1, void_)) {
-    return _isSubtype(typeRep<Object?>(), t2, strictMode);
+    return _isSubtype(TYPE_REF<Object?>(), t2, strictMode);
   }
 
   // "Right Object".
   if (_equalType(t2, Object)) {
     if (_isFutureOr(t1)) {
       var t1TypeArg = JS('', '#[0]', getGenericArgs(t1));
-      return _isSubtype(t1TypeArg, typeRep<Object>(), strictMode);
+      return _isSubtype(t1TypeArg, TYPE_REF<Object>(), strictMode);
     }
 
     if (_jsInstanceOf(t1, LegacyType)) {
@@ -1571,7 +1555,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
   if (_equalType(t1, Null)) {
     if (_isFutureOr(t2)) {
       var t2TypeArg = JS('', '#[0]', getGenericArgs(t2));
-      return _isSubtype(typeRep<Null>(), t2TypeArg, strictMode);
+      return _isSubtype(TYPE_REF<Null>(), t2TypeArg, strictMode);
     }
 
     return _equalType(t2, Null) ||
@@ -1612,7 +1596,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
   // "Left Nullable".
   if (_jsInstanceOf(t1, NullableType)) {
     return _isSubtype(JS<NullableType>('!', '#', t1).type, t2, strictMode) &&
-        _isSubtype(typeRep<Null>(), t2, strictMode);
+        _isSubtype(TYPE_REF<Null>(), t2, strictMode);
   }
 
   if (_isFutureOr(t2)) {
@@ -1627,7 +1611,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
   // "Right Nullable".
   if (_jsInstanceOf(t2, NullableType)) {
     return _isSubtype(t1, JS<NullableType>('!', '#', t2).type, strictMode) ||
-        _isSubtype(t1, typeRep<Null>(), strictMode);
+        _isSubtype(t1, TYPE_REF<Null>(), strictMode);
   }
 
   // Abstract Record.
@@ -1665,7 +1649,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
     // non-`@staticInterop` package:js types <: LegacyJavaScriptObject
 
     if (_isInterfaceSubtype(
-            t1, typeRep<LegacyJavaScriptObject>(), strictMode) &&
+            t1, TYPE_REF<LegacyJavaScriptObject>(), strictMode) &&
         // TODO(srujzs): We don't have a mechanism to determine if *some*
         // PackageJSType implements t2. This will possibly require keeping a map
         // of these relationships for this subtyping check. For now, this will
@@ -1676,7 +1660,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
 
     if (_isInterfaceSubtype(t1, _packageJSTypeForSubtyping, strictMode) &&
         _isInterfaceSubtype(
-            typeRep<LegacyJavaScriptObject>(), t2, strictMode)) {
+            TYPE_REF<LegacyJavaScriptObject>(), t2, strictMode)) {
       return true;
     }
 

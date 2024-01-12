@@ -6577,10 +6577,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (node.arguments.positional.isEmpty &&
           node.arguments.types.length == 1) {
         var type = node.arguments.types.single;
-        if (name == 'typeRep') return _emitType(type);
-        if (name == 'legacyTypeRep') {
-          return _emitType(type.withDeclaredNullability(Nullability.legacy));
-        }
         if (name == 'getGenericClassStatic') {
           if (type is InterfaceType) {
             return _emitTopLevelNameNoExternalInterop(type.classNode,

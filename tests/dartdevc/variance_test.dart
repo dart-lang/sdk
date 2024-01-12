@@ -6,8 +6,8 @@
 
 // Tests the emission of explicit variance modifiers.
 
-import 'dart:_runtime'
-    show getGenericArgVariances, Variance, typeRep;
+import 'dart:_foreign_helper' show TYPE_REF;
+import 'dart:_runtime' show getGenericArgVariances, Variance;
 
 import 'package:expect/expect.dart';
 
@@ -32,20 +32,20 @@ List? getVariances(Object type) {
 }
 
 main() {
-  Expect.listEquals([Variance.contravariant], getVariances(typeRep<A>())!);
+  Expect.listEquals([Variance.contravariant], getVariances(TYPE_REF<A>())!);
 
-  Expect.listEquals([Variance.covariant], getVariances(typeRep<B>())!);
+  Expect.listEquals([Variance.covariant], getVariances(TYPE_REF<B>())!);
 
-  Expect.listEquals([Variance.invariant], getVariances(typeRep<C>())!);
+  Expect.listEquals([Variance.invariant], getVariances(TYPE_REF<C>())!);
 
   // Implicit variance is not emitted into the generated code.
-  Expect.isNull(getVariances(typeRep<D>()));
+  Expect.isNull(getVariances(TYPE_REF<D>()));
 
   Expect.listEquals(
       [Variance.invariant, Variance.covariant, Variance.contravariant],
-      getVariances(typeRep<E>())!);
+      getVariances(TYPE_REF<E>())!);
 
-  Expect.listEquals([Variance.contravariant], getVariances(typeRep<F>())!);
+  Expect.listEquals([Variance.contravariant], getVariances(TYPE_REF<F>())!);
 
-  Expect.listEquals([Variance.invariant], getVariances(typeRep<G>())!);
+  Expect.listEquals([Variance.invariant], getVariances(TYPE_REF<G>())!);
 }
