@@ -5,10 +5,8 @@
 
 import os
 import platform
-import signal
 import subprocess
 import sys
-import time
 
 sys.path.insert(
     0,
@@ -50,6 +48,7 @@ def Main():
         except:
             # Use terminate / SIGTERM to allow the subprocess exiting cleanly.
             proc.terminate()
+        return proc.returncode
 
 
 if __name__ == '__main__':

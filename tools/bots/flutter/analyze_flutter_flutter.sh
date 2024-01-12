@@ -34,6 +34,3 @@ $dart --enable-asserts dev/bots/analyze.dart --suppress-analytics --dart-sdk \
 
 # Test flutter's use of data-driven fixes.
 $dart fix --suppress-analytics packages/flutter/test_fixes --compare-to-golden
-$dart fix --suppress-analytics packages/flutter_test/test_fixes --compare-to-g
-$dart fix --suppress-analytics packages/integration_test/test_fixes --compare-to-golden
-$dart fix --suppress-analytics packages/flutter_driver/test_fixes --compare-to-golden

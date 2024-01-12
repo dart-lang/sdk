@@ -32,7 +32,7 @@ def Main(argv):
     if revision is None:
         revision = 'main'
     output = '''dartdoc:
-  categoryOrder: ["Core", "VM", "Web"]
+  categoryOrder: ["Core", "VM", "Web", "Web (Legacy)"]
   linkToSource:
     root: '.'
     uriTemplate: 'https://github.com/dart-lang/sdk/blob/%s/sdk/%%f%%#L%%l%%'

@@ -102,9 +102,21 @@ MappedMemory* File::Map(MapType type,
     flags |= MAP_FIXED;
   }
   void* addr = mmap(hint, length, prot, flags, handle_->fd(), position);
+
+  // On WSL 1 trying to allocate memory close to the binary by supplying a hint
+  // fails with ENOMEM for unclear reason. Some reports suggest that this might
+  // be related to the alignment of the hint but aligning it by 64Kb does not
+  // make the issue go away in our experiments. Instead just retry without any
+  // hint.
+  if (addr == MAP_FAILED && hint != nullptr && start == nullptr &&
+      Utils::IsWindowsSubsystemForLinux()) {
+    addr = mmap(nullptr, length, prot, flags, handle_->fd(), position);
+  }
+
   if (addr == MAP_FAILED) {
     return nullptr;
   }
+
   return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
 

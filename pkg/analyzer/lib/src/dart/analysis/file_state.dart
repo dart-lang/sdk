@@ -37,7 +37,6 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
@@ -1286,20 +1285,7 @@ class FileSystemState {
 
   /// Return the [FileState] for the given absolute [path]. The returned file
   /// has the last known state since if was last refreshed.
-  // TODO(scheglov): Merge with [getFileForPath2].
   FileState getFileForPath(String path) {
-    return getFileForPath2(
-      path: path,
-      performance: OperationPerformanceImpl('<root>'),
-    );
-  }
-
-  /// Return the [FileState] for the given absolute [path]. The returned file
-  /// has the last known state since if was last refreshed.
-  FileState getFileForPath2({
-    required String path,
-    required OperationPerformanceImpl performance,
-  }) {
     var file = _pathToFile[path];
     if (file == null) {
       File resource = resourceProvider.getFile(path);
@@ -2351,10 +2337,7 @@ class PartOfNameFileKind extends PartFileKind {
 
       for (final sibling in siblings) {
         if (file_paths.isDart(pathContext, sibling.path)) {
-          file._fsState.getFileForPath2(
-            path: sibling.path,
-            performance: OperationPerformanceImpl('<root>'),
-          );
+          file._fsState.getFileForPath(sibling.path);
         }
       }
     }

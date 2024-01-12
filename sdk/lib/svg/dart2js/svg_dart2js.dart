@@ -5,7 +5,7 @@
 /// refer to the
 /// [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
 ///
-/// {@category Web}
+/// {@category Web (Legacy)}
 library dart.dom.svg;
 
 import 'dart:async';
