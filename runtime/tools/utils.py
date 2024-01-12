@@ -60,7 +60,7 @@ def GuessCpus():
     if os.path.exists("/usr/bin/hostinfo"):
         return int(
             getoutput(
-                '/usr/bin/hostinfo | GREP_OPTIONS= grep "processors are logically available." | awk "{ print \$1 }"'
+                '/usr/bin/hostinfo | GREP_OPTIONS= grep "processors are logically available." | awk "{ print \\$1 }"'
             ))
     win_cpu_count = os.getenv("NUMBER_OF_PROCESSORS")
     if win_cpu_count:
