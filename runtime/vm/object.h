@@ -3566,6 +3566,9 @@ class Function : public Object {
   // run.
   bool ForceOptimize() const;
 
+  // Whether this function should be inlined if at all possible.
+  bool IsPreferInline() const;
+
   // Whether this function is idempotent (i.e. calling it twice has the same
   // effect as calling it once - no visible side effects).
   //

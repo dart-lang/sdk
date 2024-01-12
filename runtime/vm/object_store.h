@@ -527,6 +527,7 @@ class ObjectStore {
 #undef DECLARE_LAZY_INIT_ASYNC_GETTER
 #undef DECLARE_LAZY_INIT_ISOLATE_GETTER
 #undef DECLARE_LAZY_INIT_INTERNAL_GETTER
+#undef DECLARE_LAZY_INIT_TYPED_DATA_GETTER
 
   LibraryPtr bootstrap_library(BootstrapLibraryId index) {
     switch (index) {
