@@ -6528,40 +6528,34 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (name == 'JS_GET_FLAG') {
           var flag = args.single as StringLiteral;
           var value = flag.value;
-          switch (value) {
-            case 'DEV_COMPILER':
-              return js.boolean(true);
-            case 'PRINT_LEGACY_STARS':
-              return js.boolean(_options.printLegacyStars);
-            case 'LEGACY':
-              return _options.soundNullSafety
-                  ? js.boolean(false)
-                  // When running the new runtime type system with weak null
-                  // safety this flag gets toggled when performing `is` and `as`
-                  // checks. This allows DDC to produce optional warnings or
-                  // errors when tests pass but would fail in sound null safety.
-                  : runtimeCall('legacyTypeChecks');
-            case 'EXTRA_NULL_SAFETY_CHECKS':
-              return _options.soundNullSafety
-                  ? js.boolean(false)
-                  // When running the new runtime type system with weak null
-                  // safety this flag gets toggled when performing `is` and `as`
-                  // checks. This allows DDC to produce optional warnings or
-                  // errors when tests pass but would fail in sound null safety.
-                  : runtimeCall('extraNullSafetyChecks');
-            case 'MINIFIED':
-              return js.boolean(false);
-            case 'NEW_RUNTIME_TYPES':
-              return js.boolean(_options.newRuntimeTypes);
-            case 'VARIANCE':
+          return switch (value) {
+            'DEV_COMPILER' => js.boolean(true),
+            'PRINT_LEGACY_STARS' => js.boolean(_options.printLegacyStars),
+            'LEGACY' => _options.soundNullSafety
+                ? js.boolean(false)
+                // When running the new runtime type system with weak null
+                // safety this flag gets toggled when performing `is` and `as`
+                // checks. This allows DDC to produce optional warnings or
+                // errors when tests pass but would fail in sound null safety.
+                : runtimeCall('legacyTypeChecks'),
+            'SOUND_NULL_SAFETY' => js.boolean(_options.soundNullSafety),
+            'EXTRA_NULL_SAFETY_CHECKS' => _options.soundNullSafety
+                ? js.boolean(false)
+                // When running the new runtime type system with weak null
+                // safety this flag gets toggled when performing `is` and `as`
+                // checks. This allows DDC to produce optional warnings or
+                // errors when tests pass but would fail in sound null safety.
+                : runtimeCall('extraNullSafetyChecks'),
+            'MINIFIED' => js.boolean(false),
+            'NEW_RUNTIME_TYPES' => js.boolean(_options.newRuntimeTypes),
+            'VARIANCE' =>
               // Variance is turned on by default, but only interfaces that have
               // at least one type parameter with non-legacy variance will have
               // extra information recorded.
-              return js.boolean(true);
-            default:
-              throw UnsupportedError(
-                  'Unknown JS_GET_FLAG "$value" at ${node.location}');
-          }
+              js.boolean(true),
+            _ => throw UnsupportedError(
+                'Unknown JS_GET_FLAG "$value" at ${node.location}')
+          };
         }
       } else if (args.length == 2) {
         if (name == 'JS_EMBEDDED_GLOBAL') return _emitEmbeddedGlobal(node);
@@ -6583,10 +6577,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (node.arguments.positional.isEmpty &&
           node.arguments.types.length == 1) {
         var type = node.arguments.types.single;
-        if (name == 'typeRep') return _emitType(type);
-        if (name == 'legacyTypeRep') {
-          return _emitType(type.withDeclaredNullability(Nullability.legacy));
-        }
         if (name == 'getGenericClassStatic') {
           if (type is InterfaceType) {
             return _emitTopLevelNameNoExternalInterop(type.classNode,
@@ -6608,17 +6598,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         }
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {
           return getSymbol(getExtensionSymbolInternal(firstArg.value));
-        }
-
-        if (name == 'compileTimeFlag' && firstArg is StringLiteral) {
-          var flagName = firstArg.value;
-          if (flagName == 'soundNullSafety') {
-            return js.boolean(_options.soundNullSafety);
-          }
-          if (flagName == 'newRuntimeTypes') {
-            return js.boolean(_options.newRuntimeTypes);
-          }
-          throw UnsupportedError('Invalid flag in call to $name: $flagName');
         }
       } else if (node.arguments.positional.length == 2) {
         var firstArg = node.arguments.positional[0];

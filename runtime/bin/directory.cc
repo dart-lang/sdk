@@ -34,24 +34,12 @@ void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  OSError os_error;
-  ASSERT(!Dart_IsError(path));
-  bool result;
-  {
-    TypedDataScope data(path);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    result = Directory::SetCurrent(namespc, name);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool result = Directory::SetCurrent(namespc, name);
   if (result) {
     Dart_SetBooleanReturnValue(args, true);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -59,48 +47,25 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   const int kExists = 1;
   const int kDoesNotExist = 0;
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  OSError os_error;
-  Directory::ExistsResult result;
-  {
-    TypedDataScope data(path);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    result = Directory::Exists(namespc, name);
-    if ((result != Directory::DOES_NOT_EXIST) &&
-        (result != Directory::EXISTS)) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  Directory::ExistsResult result = Directory::Exists(namespc, name);
   if (result == Directory::EXISTS) {
     Dart_SetIntegerReturnValue(args, kExists);
   } else if (result == Directory::DOES_NOT_EXIST) {
     Dart_SetIntegerReturnValue(args, kDoesNotExist);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  OSError os_error;
-  bool result;
-  {
-    TypedDataScope data(path);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    result = Directory::Create(namespc, name);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool result = Directory::Create(namespc, name);
   if (result) {
     Dart_SetBooleanReturnValue(args, true);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -113,70 +78,37 @@ void FUNCTION_NAME(Directory_SystemTemp)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  OSError os_error;
-  const char* result = nullptr;
-  {
-    TypedDataScope data(path);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    result = Directory::CreateTemp(namespc, name);
-    if (result == nullptr) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  const char* result = Directory::CreateTemp(namespc, name);
   if (result != nullptr) {
     Dart_Handle str = ThrowIfError(DartUtils::NewString(result));
     Dart_SetReturnValue(args, str);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  OSError os_error;
-  bool result;
-  {
-    TypedDataScope data(path);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    result = Directory::Delete(namespc, name,
-                               DartUtils::GetNativeBooleanArgument(args, 2));
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool result = Directory::Delete(namespc, name,
+                                  DartUtils::GetNativeBooleanArgument(args, 2));
   if (result) {
     Dart_SetBooleanReturnValue(args, true);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  OSError os_error;
-  bool result;
-  {
-    TypedDataScope data(path);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    result = Directory::Rename(namespc, name,
-                               DartUtils::GetNativeStringArgument(args, 2));
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool result = Directory::Rename(namespc, name,
+                                  DartUtils::GetNativeStringArgument(args, 2));
   if (result) {
     Dart_SetBooleanReturnValue(args, true);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 

@@ -17,7 +17,7 @@ argumentError(value) {
 /// that should never be executed in the active type system.
 // TODO(48585): Remove after switching to the new runtime type system.
 Never throwUnimplementedInCurrentRti() {
-  var systemVersion = compileTimeFlag('newRuntimeTypes') ? 'new' : 'old';
+  var systemVersion = JS_GET_FLAG('NEW_RUNTIME_TYPES') ? 'new' : 'old';
   throw UnimplementedError('This code path is not supported with the '
       '$systemVersion runtime type system.');
 }
@@ -43,8 +43,8 @@ assertFailed(String? message,
 /// The call to this method is inserted into every module at compile time when
 /// the compile time null safety mode for the module is known.
 void _checkModuleNullSafetyMode(@notNull bool isModuleSound) {
-  if (isModuleSound != compileTimeFlag('soundNullSafety')) {
-    var sdkMode = compileTimeFlag('soundNullSafety') ? 'sound' : 'unsound';
+  if (isModuleSound != JS_GET_FLAG('SOUND_NULL_SAFETY')) {
+    var sdkMode = JS_GET_FLAG('SOUND_NULL_SAFETY') ? 'sound' : 'unsound';
     var moduleMode = isModuleSound ? 'sound' : 'unsound';
 
     throw AssertionError('The null safety mode of the Dart SDK module '
@@ -58,8 +58,8 @@ void _checkModuleNullSafetyMode(@notNull bool isModuleSound) {
 ///
 /// The call to this method is inserted into every module at compile time.
 void _checkModuleRuntimeTypes(@notNull bool useNewTypes) {
-  if (useNewTypes != compileTimeFlag('newRuntimeTypes')) {
-    var sdkTypes = compileTimeFlag('newRuntimeTypes') ? 'new' : 'old';
+  if (useNewTypes != JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    var sdkTypes = JS_GET_FLAG('NEW_RUNTIME_TYPES') ? 'new' : 'old';
     var moduleTypes = useNewTypes ? 'new' : 'old';
 
     throw AssertionError('The Dart SDK module is using the $sdkTypes runtime '

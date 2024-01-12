@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_foreign_helper' show JS;
-import 'dart:_runtime' show gFnType, typeRep;
+import 'dart:_foreign_helper' show JS, TYPE_REF;
+import 'dart:_runtime' show gFnType;
 
 /// Returns an unwrapped generic function type with a bounded type argument in
 /// the form: <T extends [bound]> void -> void.
 Object genericFunction(Object bound) =>
-    gFnType((T) => [typeRep<void>(), []], (T) => [bound]);
+    gFnType((T) => [TYPE_REF<void>(), []], (T) => [bound]);
 
 /// Returns an unwrapped generic function type with a bounded type argument in
 /// the form: <T extends [bound]> [argumentType] -> T.

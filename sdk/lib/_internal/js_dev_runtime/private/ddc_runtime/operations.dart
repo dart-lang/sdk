@@ -255,7 +255,7 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
         var argNames = JS<String>('!', '#.join(", ")', missingRequired);
         var error = "Dynamic call with missing required named arguments: "
             "$argNames.";
-        if (!compileTimeFlag('soundNullSafety')) {
+        if (!JS_GET_FLAG('SOUND_NULL_SAFETY')) {
           _nullWarn(error);
         } else {
           return error;
@@ -328,7 +328,7 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
       if (missingRequired.isNotEmpty) {
         var error = "Dynamic call with missing required named arguments: "
             "${missingRequired.join(', ')}.";
-        if (!compileTimeFlag('soundNullSafety')) {
+        if (!JS_GET_FLAG('SOUND_NULL_SAFETY')) {
           _nullWarn(error);
         } else {
           return error;
@@ -719,7 +719,7 @@ cast(obj, type) {
   } else {
     // We hoist the common case where null is checked against another type here
     // for better performance.
-    if (obj == null && !compileTimeFlag('soundNullSafety')) {
+    if (obj == null && !JS_GET_FLAG('SOUND_NULL_SAFETY')) {
       // Check the null comparison cache to avoid emitting repeated warnings.
       _nullWarnOnType(type);
       return obj;
@@ -739,8 +739,7 @@ bool dtest(obj) {
   // Only throw an AssertionError in weak mode for compatibility. Strong mode
   // should throw a TypeError.
   if (obj is! bool)
-    booleanConversionFailed(
-        compileTimeFlag('soundNullSafety') ? obj : test(obj));
+    booleanConversionFailed(JS_GET_FLAG('SOUND_NULL_SAFETY') ? obj : test(obj));
   return obj;
 }
 
@@ -752,7 +751,7 @@ Never booleanConversionFailed(obj) {
 asInt(obj) {
   // Note: null (and undefined) will fail this test.
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    if (obj == null && !compileTimeFlag('soundNullSafety')) {
+    if (obj == null && !JS_GET_FLAG('SOUND_NULL_SAFETY')) {
       _nullWarnOnType(JS('', '#', int));
       return null;
     } else {
@@ -788,7 +787,7 @@ _notNull(x) {
 /// variants of the same type.
 nullCast(x, type) {
   if (x == null) {
-    if (!compileTimeFlag('soundNullSafety')) {
+    if (!JS_GET_FLAG('SOUND_NULL_SAFETY')) {
       _nullWarnOnType(type);
     } else {
       castError(x, type);
