@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
@@ -75,42 +74,6 @@ import 'a.dart' as a;
 void f() {}
 ''', [
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 26, 1),
-    ]);
-  }
-
-  test_constructor_legacy_argumentGiven() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  A({required int a});
-}
-''');
-    await assertNoErrorsInCode(r'''
-// @dart = 2.7
-import "a.dart";
-
-void f() {
-  A(a: 0);
-}
-''');
-  }
-
-  test_constructor_legacy_missingArgument() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  A({required int a});
-}
-''');
-    await assertErrorsInCode(r'''
-// @dart = 2.7
-import "a.dart";
-
-void f() {
-  A();
-}
-''', [
-      error(WarningCode.MISSING_REQUIRED_PARAM, 46, 1),
     ]);
   }
 
@@ -222,38 +185,6 @@ main() {
     ]);
   }
 
-  test_function_legacy_argumentGiven() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-void foo({required int a}) {}
-''');
-    await assertNoErrorsInCode(r'''
-// @dart = 2.7
-import "a.dart";
-
-void f() {
-  foo(a: 0);
-}
-''');
-  }
-
-  test_function_legacy_missingArgument() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-void foo({required int a}) {}
-''');
-    await assertErrorsInCode(r'''
-// @dart = 2.7
-import "a.dart";
-
-void f() {
-  foo();
-}
-''', [
-      error(WarningCode.MISSING_REQUIRED_PARAM, 46, 3),
-    ]);
-  }
-
   test_functionInvocation() async {
     await assertErrorsInCode(r'''
 void Function({required int a}) f() => throw '';
@@ -291,42 +222,6 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 37, 1),
-    ]);
-  }
-
-  test_method_legacy_argumentGiven() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  void foo({required int a}) {}
-}
-''');
-    await assertNoErrorsInCode(r'''
-// @dart = 2.7
-import "a.dart";
-
-void f(A a) {
-  a.foo(a: 0);
-}
-''');
-  }
-
-  test_method_legacy_missingArgument() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  void foo({required int a}) {}
-}
-''');
-    await assertErrorsInCode(r'''
-// @dart = 2.7
-import "a.dart";
-
-void f(A a) {
-  a.foo();
-}
-''', [
-      error(WarningCode.MISSING_REQUIRED_PARAM, 51, 3),
     ]);
   }
 

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
@@ -253,26 +252,6 @@ void f() {
     ]);
   }
 
-  test_instanceCreation_namedParameter_fromLegacy() async {
-    noSoundNullSafety = false;
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
-class A {
-  A({@deprecated int a}) {}
-}
-''');
-
-    await assertErrorsInCode(r'''
-// @dart = 2.9
-import 'package:aaa/a.dart';
-
-void f() {
-  A(a: 0);
-}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 60, 1),
-    ]);
-  }
-
   test_instanceCreation_undeprecatedClass_deprecatedConstructor() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
@@ -289,64 +268,6 @@ void f() {
 }
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-    ]);
-  }
-
-  test_methodInvocation_namedParameter_ofFunction_fromLegacy() async {
-    noSoundNullSafety = false;
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
-void foo({@deprecated int a}) {}
-''');
-
-    await assertErrorsInCode(r'''
-// @dart = 2.9
-import 'package:aaa/a.dart';
-
-void f() {
-  foo(a: 0);
-}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 62, 1),
-    ]);
-  }
-
-  test_methodInvocation_namedParameter_ofMethod_fromLegacy() async {
-    noSoundNullSafety = false;
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
-class A {
-  void foo({@deprecated int a}) {}
-}
-''');
-
-    await assertErrorsInCode(r'''
-// @dart = 2.9
-import 'package:aaa/a.dart';
-
-void f(A a) {
-  a.foo(a: 0);
-}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 67, 1),
-    ]);
-  }
-
-  test_superConstructorInvocation_namedParameter_fromLegacy() async {
-    noSoundNullSafety = false;
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
-class A {
-  A({@deprecated int a}) {}
-}
-''');
-
-    await assertErrorsInCode(r'''
-// @dart = 2.9
-import 'package:aaa/a.dart';
-
-class B extends A {
-  B() : super(a: 0);
-}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 79, 1),
     ]);
   }
 }

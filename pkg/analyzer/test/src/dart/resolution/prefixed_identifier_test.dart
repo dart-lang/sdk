@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,44 +17,6 @@ main() {
 @reflectiveTest
 class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
     with PrefixedIdentifierResolutionTestCases {
-  test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-
-    await assertErrorsInCode(r'''
-// @dart = 2.7
-import 'a.dart' deferred as a;
-
-main() {
-  a.loadLibrary;
-}
-''', [
-      error(WarningCode.UNUSED_IMPORT, 22, 8),
-    ]);
-
-    final node = findNode.singlePrefixedIdentifier;
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: a
-    staticElement: self::@prefix::a
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: loadLibrary
-    staticElement: FunctionMember
-      base: loadLibrary@-1
-      isLegacy: true
-    staticType: Future<dynamic>* Function()*
-  staticElement: FunctionMember
-    base: loadLibrary@-1
-    isLegacy: true
-  staticType: Future<dynamic>* Function()*
-''');
-  }
-
   test_enum_read() async {
     await assertNoErrorsInCode('''
 enum E {

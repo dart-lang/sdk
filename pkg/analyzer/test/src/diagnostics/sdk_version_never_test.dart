@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,16 +21,6 @@ class SdkVersionNeverTest extends SdkConstraintVerifierTest {
     await verifyVersion('>=2.7.0', r'''
 Never foo = (throw 42);
 ''');
-  }
-
-  test_experimentEnabled_libraryOptedOut() async {
-    noSoundNullSafety = false;
-    await verifyVersion('>=2.7.0', r'''
-// @dart = 2.7
-Never foo = (throw 42);
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_NEVER, 15, 5),
-    ]);
   }
 }
 
