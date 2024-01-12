@@ -375,8 +375,12 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
     // longName isn't guaranteed to create unique serializedIds for some info
     // constructs (such as closures), so we disambiguate here.
-    final count = idCounter.update(name, (v) => v + 1, ifAbsent: () => 0);
-    final id = Id(info.kind, count == 0 ? name : '$name%$count');
+    Id id = Id(info.kind, name);
+    final count =
+        idCounter.update(id.serializedId, (v) => v + 1, ifAbsent: () => 0);
+    if (count > 0) {
+      id = Id(info.kind, '$name%${count - 1}');
+    }
     return ids[info] = id;
   }
 
