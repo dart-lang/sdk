@@ -1619,6 +1619,8 @@ class GuardedPattern extends Node with PossiblyGuardedPattern {
 
 class Harness {
   static Map<String, Type> _coreMemberTypes = {
+    'int.<': Type('bool Function(num)'),
+    'int.<=': Type('bool Function(num)'),
     'int.>': Type('bool Function(num)'),
     'int.>=': Type('bool Function(num)'),
     'num.sign': Type('num'),
@@ -1682,6 +1684,12 @@ class Harness {
   /// invoked on type [type], [isExhaustive] will be returned.
   void addExhaustiveness(String type, bool isExhaustive) {
     operations.addExhaustiveness(type, isExhaustive);
+  }
+
+  /// Updates the harness so that when an extension type erasure query is
+  /// invoked on type [type], [representation] will be returned.
+  void addExtensionTypeErasure(String type, String representation) {
+    operations.addExtensionTypeErasure(type, representation);
   }
 
   /// Updates the harness so that when member [memberName] is looked up on type
@@ -2617,6 +2625,7 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
     'int, num': Type('num'),
     'Never, int': Type('int'),
     'Null, int': Type('int?'),
+    'Null, Object': Type('Object?'),
     '?, int': Type('int'),
     '?, List<?>': Type('List<?>'),
     '?, Null': Type('Null'),
@@ -2682,6 +2691,8 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
 
   final Map<String, bool> _exhaustiveness = Map.of(_coreExhaustiveness);
 
+  final Map<String, Type> _extensionTypeErasure = {};
+
   final Map<String, Type> _glbs = Map.of(_coreGlbs);
 
   final Map<String, Type> _lubs = Map.of(_coreLubs);
@@ -2724,6 +2735,12 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
   /// type [type], [isExhaustive] will be returned.
   void addExhaustiveness(String type, bool isExhaustive) {
     _exhaustiveness[type] = isExhaustive;
+  }
+
+  /// Updates the harness so that when an extension type erasure query is
+  /// invoked on type [type], [representation] will be returned.
+  void addExtensionTypeErasure(String type, String representation) {
+    _extensionTypeErasure[type] = Type(representation);
   }
 
   void addPromotionException(String from, String to, String result) {
@@ -2781,6 +2798,12 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
     var query = '$name <: $context';
     return _downwardInferenceResults[query] ??
         fail('Unknown downward inference query: $query');
+  }
+
+  @override
+  Type extensionTypeErasure(Type type) {
+    var query = '$type';
+    return _extensionTypeErasure[query] ?? type;
   }
 
   @override
@@ -2942,11 +2965,6 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
       positional: positional,
       named: {for (var e in named) e.name: e.type},
     );
-  }
-
-  @override
-  Type extensionTypeErasure(Type type) {
-    return type;
   }
 
   @override
