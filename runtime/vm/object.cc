@@ -9160,6 +9160,13 @@ bool Function::ForceOptimize() const {
   return InVmTests(*this);
 }
 
+bool Function::IsPreferInline() const {
+  if (!has_pragma()) return false;
+
+  return Library::FindPragma(Thread::Current(), /*only_core=*/false, *this,
+                             Symbols::vm_prefer_inline());
+}
+
 bool Function::IsIdempotent() const {
   if (!has_pragma()) return false;
 
@@ -9255,6 +9262,32 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kDouble_hashCode:
+    case MethodRecognizer::kTypedList_GetInt8:
+    case MethodRecognizer::kTypedList_SetInt8:
+    case MethodRecognizer::kTypedList_GetUint8:
+    case MethodRecognizer::kTypedList_SetUint8:
+    case MethodRecognizer::kTypedList_GetInt16:
+    case MethodRecognizer::kTypedList_SetInt16:
+    case MethodRecognizer::kTypedList_GetUint16:
+    case MethodRecognizer::kTypedList_SetUint16:
+    case MethodRecognizer::kTypedList_GetInt32:
+    case MethodRecognizer::kTypedList_SetInt32:
+    case MethodRecognizer::kTypedList_GetUint32:
+    case MethodRecognizer::kTypedList_SetUint32:
+    case MethodRecognizer::kTypedList_GetInt64:
+    case MethodRecognizer::kTypedList_SetInt64:
+    case MethodRecognizer::kTypedList_GetUint64:
+    case MethodRecognizer::kTypedList_SetUint64:
+    case MethodRecognizer::kTypedList_GetFloat32:
+    case MethodRecognizer::kTypedList_SetFloat32:
+    case MethodRecognizer::kTypedList_GetFloat64:
+    case MethodRecognizer::kTypedList_SetFloat64:
+    case MethodRecognizer::kTypedList_GetInt32x4:
+    case MethodRecognizer::kTypedList_SetInt32x4:
+    case MethodRecognizer::kTypedList_GetFloat32x4:
+    case MethodRecognizer::kTypedList_SetFloat32x4:
+    case MethodRecognizer::kTypedList_GetFloat64x2:
+    case MethodRecognizer::kTypedList_SetFloat64x2:
     case MethodRecognizer::kTypedData_memMove1:
     case MethodRecognizer::kTypedData_memMove2:
     case MethodRecognizer::kTypedData_memMove4:
@@ -9293,6 +9326,7 @@ bool Function::CanBeInlined() const {
     // idempotent becase if deoptimization is needed in inlined body, the
     // execution of the force-optimized will be restarted at the beginning of
     // the function.
+    ASSERT(!IsPreferInline() || IsIdempotent());
     return IsIdempotent();
   }
 

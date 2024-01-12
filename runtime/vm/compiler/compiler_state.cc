@@ -129,6 +129,54 @@ const Function& CompilerState::StringBaseInterpolate() {
   return *interpolate_;
 }
 
+const Class& CompilerState::TypedListClass() {
+  if (typed_list_class_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+
+    const Library& lib = Library::Handle(zone, Library::TypedDataLibrary());
+    const Class& cls = Class::ZoneHandle(
+        zone, lib.LookupClassAllowPrivate(Symbols::_TypedList()));
+    ASSERT(!cls.IsNull());
+    const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+    ASSERT(!error.IsNull());
+    typed_list_class_ = &cls;
+  }
+  return *typed_list_class_;
+}
+
+#define DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Upper, Lower)                 \
+  const Function& CompilerState::TypedListGet##Upper() {                       \
+    if (typed_list_get_##Lower##_ == nullptr) {                                \
+      Thread* thread = Thread::Current();                                      \
+      Zone* zone = thread->zone();                                             \
+      const auto& cls = CompilerState::TypedListClass();                       \
+      typed_list_get_##Lower##_ = &Function::ZoneHandle(                       \
+          zone, cls.LookupFunctionAllowPrivate(Symbols::_nativeGet##Upper())); \
+      ASSERT(!typed_list_get_##Lower##_->IsNull());                            \
+    }                                                                          \
+    return *typed_list_get_##Lower##_;                                         \
+  }                                                                            \
+  const Function& CompilerState::TypedListSet##Upper() {                       \
+    if (typed_list_set_##Lower##_ == nullptr) {                                \
+      Thread* thread = Thread::Current();                                      \
+      Zone* zone = thread->zone();                                             \
+      const auto& cls = CompilerState::TypedListClass();                       \
+      typed_list_set_##Lower##_ = &Function::ZoneHandle(                       \
+          zone, cls.LookupFunctionAllowPrivate(Symbols::_nativeSet##Upper())); \
+      ASSERT(!typed_list_set_##Lower##_->IsNull());                            \
+    }                                                                          \
+    return *typed_list_set_##Lower##_;                                         \
+  }
+
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float32, float32)
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64, float64)
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float32x4, float32x4)
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Int32x4, int32x4)
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64x2, float64x2)
+
+#undef DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER
+
 void CompilerState::ReportCrash() {
   OS::PrintErr("=== Crash occurred when compiling %s in %s mode in %s pass\n",
                function() != nullptr ? function()->ToFullyQualifiedCString()

@@ -23,32 +23,32 @@ namespace dart {
   V(_Record, get:_numFields, Record_numFields, 0x7bb37f73)                     \
   V(_Record, get:_shape, Record_shape, 0x70d29513)                             \
   V(_Record, _fieldAt, Record_fieldAt, 0xb48e2c93)                             \
-  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0x16155054)                    \
-  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 0x1771724a)                  \
-  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 0x2e320a6f)                  \
-  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 0x2fb36ad9)                \
-  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 0x1909a12a)                  \
-  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 0x194ee29b)                \
-  V(_TypedList, _getInt64, ByteArrayBaseGetInt64, 0xf652341f)                  \
-  V(_TypedList, _getUint64, ByteArrayBaseGetUint64, 0x2c4ced79)                \
-  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 0xe8e81527)              \
-  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 0xf81baa54)              \
-  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 0xaf1e8105)          \
-  V(_TypedList, _getFloat64x2, ByteArrayBaseGetFloat64x2, 0x544ea0e0)          \
-  V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 0x5564e82b)              \
-  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 0xe17ab7c2)                    \
-  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 0xaf4b2b68)                  \
-  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 0xbad7b447)                  \
-  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 0xce13bc6f)                \
-  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 0xbdcc1f60)                  \
-  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 0xb95817d2)                \
-  V(_TypedList, _setInt64, ByteArrayBaseSetInt64, 0xc8bec39a)                  \
-  V(_TypedList, _setUint64, ByteArrayBaseSetUint64, 0xda38a625)                \
-  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 0x2f27a200)              \
-  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x234b6cf2)              \
-  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x38b79d7a)          \
-  V(_TypedList, _setFloat64x2, ByteArrayBaseSetFloat64x2, 0xbadc4b5f)          \
-  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x5cda767b)              \
+  V(_TypedList, _getInt8, TypedList_GetInt8, 0x16155415)                    \
+  V(_TypedList, _getUint8, TypedList_GetUint8, 0x1771760b)                  \
+  V(_TypedList, _getInt16, TypedList_GetInt16, 0x2e320e30)                  \
+  V(_TypedList, _getUint16, TypedList_GetUint16, 0x2fb36e9a)                \
+  V(_TypedList, _getInt32, TypedList_GetInt32, 0x1909a4eb)                  \
+  V(_TypedList, _getUint32, TypedList_GetUint32, 0x194ee65c)                \
+  V(_TypedList, _getInt64, TypedList_GetInt64, 0xf65237e0)                  \
+  V(_TypedList, _getUint64, TypedList_GetUint64, 0x2c4cf13a)                \
+  V(_TypedList, _getFloat32, TypedList_GetFloat32, 0xe8e818e8)              \
+  V(_TypedList, _getFloat64, TypedList_GetFloat64, 0xf81bae15)              \
+  V(_TypedList, _getFloat32x4, TypedList_GetFloat32x4, 0xaf1e84c6)          \
+  V(_TypedList, _getFloat64x2, TypedList_GetFloat64x2, 0x544ea4a1)          \
+  V(_TypedList, _getInt32x4, TypedList_GetInt32x4, 0x5564ebec)              \
+  V(_TypedList, _setInt8, TypedList_SetInt8, 0xe17abb83)                    \
+  V(_TypedList, _setUint8, TypedList_SetUint8, 0xaf4b2f29)                  \
+  V(_TypedList, _setInt16, TypedList_SetInt16, 0xbad7b808)                  \
+  V(_TypedList, _setUint16, TypedList_SetUint16, 0xce13c030)                \
+  V(_TypedList, _setInt32, TypedList_SetInt32, 0xbdcc2321)                  \
+  V(_TypedList, _setUint32, TypedList_SetUint32, 0xb9581b93)                \
+  V(_TypedList, _setInt64, TypedList_SetInt64, 0xc8bec75b)                  \
+  V(_TypedList, _setUint64, TypedList_SetUint64, 0xda38a9e6)                \
+  V(_TypedList, _setFloat32, TypedList_SetFloat32, 0x2f27a5c1)              \
+  V(_TypedList, _setFloat64, TypedList_SetFloat64, 0x234b70b3)              \
+  V(_TypedList, _setFloat32x4, TypedList_SetFloat32x4, 0x38b7a13b)          \
+  V(_TypedList, _setFloat64x2, TypedList_SetFloat64x2, 0xbadc4f20)          \
+  V(_TypedList, _setInt32x4, TypedList_SetInt32x4, 0x5cda7a3c)              \
   V(ByteData, ., ByteDataFactory, 0x45e89423)                                  \
   V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x60c0664c)   \
   V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0xb9c2d41a)          \
@@ -505,30 +505,30 @@ namespace dart {
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
   V(_StringBase, [], StringBaseCharAt, 0xd0613adf)                             \
-  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0x16155054)                    \
-  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 0x1771724a)                  \
-  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 0x2e320a6f)                  \
-  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 0x2fb36ad9)                \
-  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 0x1909a12a)                  \
-  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 0x194ee29b)                \
-  V(_TypedList, _getInt64, ByteArrayBaseGetInt64, 0xf652341f)                  \
-  V(_TypedList, _getUint64, ByteArrayBaseGetUint64, 0x2c4ced79)                \
-  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 0xe8e81527)              \
-  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 0xf81baa54)              \
-  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 0xaf1e8105)          \
-  V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 0x5564e82b)              \
-  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 0xe17ab7c2)                    \
-  V(_TypedList, _setUint8, ByteArrayBaseSetInt8, 0xaf4b2b68)                   \
-  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 0xbad7b447)                  \
-  V(_TypedList, _setUint16, ByteArrayBaseSetInt16, 0xce13bc6f)                 \
-  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 0xbdcc1f60)                  \
-  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 0xb95817d2)                \
-  V(_TypedList, _setInt64, ByteArrayBaseSetInt64, 0xc8bec39a)                  \
-  V(_TypedList, _setUint64, ByteArrayBaseSetUint64, 0xda38a625)                \
-  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 0x2f27a200)              \
-  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x234b6cf2)              \
-  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x38b79d7a)          \
-  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x5cda767b)              \
+  V(_TypedList, _getInt8, TypedList_GetInt8, 0x16155415)                    \
+  V(_TypedList, _getUint8, TypedList_GetUint8, 0x1771760b)                  \
+  V(_TypedList, _getInt16, TypedList_GetInt16, 0x2e320e30)                  \
+  V(_TypedList, _getUint16, TypedList_GetUint16, 0x2fb36e9a)                \
+  V(_TypedList, _getInt32, TypedList_GetInt32, 0x1909a4eb)                  \
+  V(_TypedList, _getUint32, TypedList_GetUint32, 0x194ee65c)                \
+  V(_TypedList, _getInt64, TypedList_GetInt64, 0xf65237e0)                  \
+  V(_TypedList, _getUint64, TypedList_GetUint64, 0x2c4cf13a)                \
+  V(_TypedList, _getFloat32, TypedList_GetFloat32, 0xe8e818e8)              \
+  V(_TypedList, _getFloat64, TypedList_GetFloat64, 0xf81bae15)              \
+  V(_TypedList, _getFloat32x4, TypedList_GetFloat32x4, 0xaf1e84c6)          \
+  V(_TypedList, _getInt32x4, TypedList_GetInt32x4, 0x5564ebec)              \
+  V(_TypedList, _setInt8, TypedList_SetInt8, 0xe17abb83)                    \
+  V(_TypedList, _setUint8, TypedList_SetInt8, 0xaf4b2f29)                   \
+  V(_TypedList, _setInt16, TypedList_SetInt16, 0xbad7b808)                  \
+  V(_TypedList, _setUint16, TypedList_SetInt16, 0xce13c030)                 \
+  V(_TypedList, _setInt32, TypedList_SetInt32, 0xbdcc2321)                  \
+  V(_TypedList, _setUint32, TypedList_SetUint32, 0xb9581b93)                \
+  V(_TypedList, _setInt64, TypedList_SetInt64, 0xc8bec75b)                  \
+  V(_TypedList, _setUint64, TypedList_SetUint64, 0xda38a9e6)                \
+  V(_TypedList, _setFloat32, TypedList_SetFloat32, 0x2f27a5c1)              \
+  V(_TypedList, _setFloat64, TypedList_SetFloat64, 0x234b70b3)              \
+  V(_TypedList, _setFloat32x4, TypedList_SetFloat32x4, 0x38b7a13b)          \
+  V(_TypedList, _setInt32x4, TypedList_SetInt32x4, 0x5cda7a3c)              \
   V(Object, get:runtimeType, ObjectRuntimeType, 0x03733c71)
 
 // List of recognized list factories:

@@ -6777,6 +6777,16 @@ LoadIndexedInstr::LoadIndexedInstr(Value* array,
 
 Definition* LoadIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
   auto Z = flow_graph->zone();
+  if (auto* const untag_payload = array()->definition()->AsLoadField()) {
+    // If loading from an internal typed data object, remove the load of
+    // PointerBase.data, as LoadIndexed knows how to load from a tagged
+    // internal typed data object directly and the LoadField may interfere with
+    // possible allocation sinking.
+    if (untag_payload->slot().IsIdentical(Slot::PointerBase_data()) &&
+        IsTypedDataClassId(untag_payload->instance()->Type()->ToCid())) {
+      array()->BindTo(untag_payload->instance()->definition());
+    }
+  }
   if (auto box = index()->definition()->AsBoxInt64()) {
     // TODO(dartbug.com/39432): Make LoadIndexed fully suport unboxed indices.
     if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {
@@ -6832,6 +6842,16 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
 
 Instruction* StoreIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
   auto Z = flow_graph->zone();
+  if (auto* const untag_payload = array()->definition()->AsLoadField()) {
+    // If loading from an internal typed data object, remove the load of
+    // PointerBase.data, as LoadIndexed knows how to load from a tagged
+    // internal typed data object directly and the LoadField may interfere with
+    // possible allocation sinking.
+    if (untag_payload->slot().IsIdentical(Slot::PointerBase_data()) &&
+        IsTypedDataClassId(untag_payload->instance()->Type()->ToCid())) {
+      array()->BindTo(untag_payload->instance()->definition());
+    }
+  }
   if (auto box = index()->definition()->AsBoxInt64()) {
     // TODO(dartbug.com/39432): Make StoreIndexed fully suport unboxed indices.
     if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {

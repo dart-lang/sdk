@@ -386,6 +386,7 @@ class ObjectPointerVisitor;
   V(_Type, "_Type")                                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
+  V(_TypedList, "_TypedList")                                                  \
   V(_TypedListBase, "_TypedListBase")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
@@ -451,6 +452,16 @@ class ObjectPointerVisitor;
   V(_mapGet, "_mapGet")                                                        \
   V(_mapKeys, "_mapKeys")                                                      \
   V(_name, "_name")                                                            \
+  V(_nativeGetFloat32, "_nativeGetFloat32")                                    \
+  V(_nativeSetFloat32, "_nativeSetFloat32")                                    \
+  V(_nativeGetFloat64, "_nativeGetFloat64")                                    \
+  V(_nativeSetFloat64, "_nativeSetFloat64")                                    \
+  V(_nativeGetFloat32x4, "_nativeGetFloat32x4")                                \
+  V(_nativeSetFloat32x4, "_nativeSetFloat32x4")                                \
+  V(_nativeGetInt32x4, "_nativeGetInt32x4")                                    \
+  V(_nativeSetInt32x4, "_nativeSetInt32x4")                                    \
+  V(_nativeGetFloat64x2, "_nativeGetFloat64x2")                                \
+  V(_nativeSetFloat64x2, "_nativeSetFloat64x2")                                \
   V(_nativeSetRange, "_nativeSetRange")                                        \
   V(_objectEquals, "_objectEquals")                                            \
   V(_objectHashCode, "_objectHashCode")                                        \

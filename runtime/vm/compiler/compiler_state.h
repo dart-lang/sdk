@@ -107,6 +107,17 @@ class CompilerState : public ThreadStackResource {
   // Returns _StringBase._interpolateSingle
   const Function& StringBaseInterpolateSingle();
 
+  const Function& TypedListGetFloat32();
+  const Function& TypedListSetFloat32();
+  const Function& TypedListGetFloat64();
+  const Function& TypedListSetFloat64();
+  const Function& TypedListGetFloat32x4();
+  const Function& TypedListSetFloat32x4();
+  const Function& TypedListGetInt32x4();
+  const Function& TypedListSetInt32x4();
+  const Function& TypedListGetFloat64x2();
+  const Function& TypedListSetFloat64x2();
+
   const Function* function() const { return function_; }
 
   void set_function(const Function& function) { function_ = &function; }
@@ -122,6 +133,8 @@ class CompilerState : public ThreadStackResource {
   void ReportCrash();
 
  private:
+  const Class& TypedListClass();
+
   CHA cha_;
   intptr_t deopt_id_ = 0;
 
@@ -142,6 +155,17 @@ class CompilerState : public ThreadStackResource {
   const Class* comparable_class_ = nullptr;
   const Function* interpolate_ = nullptr;
   const Function* interpolate_single_ = nullptr;
+  const Class* typed_list_class_ = nullptr;
+  const Function* typed_list_get_float32_ = nullptr;
+  const Function* typed_list_set_float32_ = nullptr;
+  const Function* typed_list_get_float64_ = nullptr;
+  const Function* typed_list_set_float64_ = nullptr;
+  const Function* typed_list_get_float32x4_ = nullptr;
+  const Function* typed_list_set_float32x4_ = nullptr;
+  const Function* typed_list_get_int32x4_ = nullptr;
+  const Function* typed_list_set_int32x4_ = nullptr;
+  const Function* typed_list_get_float64x2_ = nullptr;
+  const Function* typed_list_set_float64x2_ = nullptr;
 
   const Function* function_ = nullptr;
   const CompilerPass* pass_ = nullptr;

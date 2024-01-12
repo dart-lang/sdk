@@ -942,6 +942,32 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kSuspendState_clone:
     case MethodRecognizer::kSuspendState_resume:
+    case MethodRecognizer::kTypedList_GetInt8:
+    case MethodRecognizer::kTypedList_SetInt8:
+    case MethodRecognizer::kTypedList_GetUint8:
+    case MethodRecognizer::kTypedList_SetUint8:
+    case MethodRecognizer::kTypedList_GetInt16:
+    case MethodRecognizer::kTypedList_SetInt16:
+    case MethodRecognizer::kTypedList_GetUint16:
+    case MethodRecognizer::kTypedList_SetUint16:
+    case MethodRecognizer::kTypedList_GetInt32:
+    case MethodRecognizer::kTypedList_SetInt32:
+    case MethodRecognizer::kTypedList_GetUint32:
+    case MethodRecognizer::kTypedList_SetUint32:
+    case MethodRecognizer::kTypedList_GetInt64:
+    case MethodRecognizer::kTypedList_SetInt64:
+    case MethodRecognizer::kTypedList_GetUint64:
+    case MethodRecognizer::kTypedList_SetUint64:
+    case MethodRecognizer::kTypedList_GetFloat32:
+    case MethodRecognizer::kTypedList_SetFloat32:
+    case MethodRecognizer::kTypedList_GetFloat64:
+    case MethodRecognizer::kTypedList_SetFloat64:
+    case MethodRecognizer::kTypedList_GetInt32x4:
+    case MethodRecognizer::kTypedList_SetInt32x4:
+    case MethodRecognizer::kTypedList_GetFloat32x4:
+    case MethodRecognizer::kTypedList_SetFloat32x4:
+    case MethodRecognizer::kTypedList_GetFloat64x2:
+    case MethodRecognizer::kTypedList_SetFloat64x2:
     case MethodRecognizer::kTypedData_memMove1:
     case MethodRecognizer::kTypedData_memMove2:
     case MethodRecognizer::kTypedData_memMove4:
@@ -1155,8 +1181,85 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += TailCall(resume_stub);
       break;
     }
+    case MethodRecognizer::kTypedList_GetInt8:
+      body += BuildTypedListGet(function, kTypedDataInt8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt8:
+      body += BuildTypedListSet(function, kTypedDataInt8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetUint8:
+      body += BuildTypedListGet(function, kTypedDataUint8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetUint8:
+      body += BuildTypedListSet(function, kTypedDataUint8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetInt16:
+      body += BuildTypedListGet(function, kTypedDataInt16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt16:
+      body += BuildTypedListSet(function, kTypedDataInt16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetUint16:
+      body += BuildTypedListGet(function, kTypedDataUint16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetUint16:
+      body += BuildTypedListSet(function, kTypedDataUint16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetInt32:
+      body += BuildTypedListGet(function, kTypedDataInt32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt32:
+      body += BuildTypedListSet(function, kTypedDataInt32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetUint32:
+      body += BuildTypedListGet(function, kTypedDataUint32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetUint32:
+      body += BuildTypedListSet(function, kTypedDataUint32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetInt64:
+      body += BuildTypedListGet(function, kTypedDataInt64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt64:
+      body += BuildTypedListSet(function, kTypedDataInt64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetUint64:
+      body += BuildTypedListGet(function, kTypedDataUint64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetUint64:
+      body += BuildTypedListSet(function, kTypedDataUint64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetFloat32:
+      body += BuildTypedListGet(function, kTypedDataFloat32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetFloat32:
+      body += BuildTypedListSet(function, kTypedDataFloat32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetFloat64:
+      body += BuildTypedListGet(function, kTypedDataFloat64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetFloat64:
+      body += BuildTypedListSet(function, kTypedDataFloat64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetInt32x4:
+      body += BuildTypedListGet(function, kTypedDataInt32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt32x4:
+      body += BuildTypedListSet(function, kTypedDataInt32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetFloat32x4:
+      body += BuildTypedListGet(function, kTypedDataFloat32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetFloat32x4:
+      body += BuildTypedListSet(function, kTypedDataFloat32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetFloat64x2:
+      body += BuildTypedListGet(function, kTypedDataFloat64x2ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetFloat64x2:
+      body += BuildTypedListSet(function, kTypedDataFloat64x2ArrayCid);
+      break;
     case MethodRecognizer::kTypedData_memMove1:
-      // Pick an appropriate typed data cid based on the element size.
       body += BuildTypedDataMemMove(function, 1);
       break;
     case MethodRecognizer::kTypedData_memMove2:
@@ -1812,6 +1915,127 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
                            InnerPointerAccess::kMayBeInnerPointer,
                            StoreFieldInstr::Kind::kInitializing);
 
+  return body;
+}
+
+static bool CanUnboxElements(intptr_t view_cid) {
+  switch (view_cid) {
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+      return FlowGraphCompiler::SupportsUnboxedDoubles();
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
+      return FlowGraphCompiler::SupportsUnboxedSimd128();
+    default:
+      return true;
+  }
+}
+
+static const Function& TypedListGetNativeFunction(Thread* thread,
+                                                  intptr_t view_cid) {
+  auto& state = thread->compiler_state();
+  switch (view_cid) {
+    case kTypedDataFloat32ArrayCid:
+      return state.TypedListGetFloat32();
+    case kTypedDataFloat64ArrayCid:
+      return state.TypedListGetFloat64();
+    case kTypedDataInt32x4ArrayCid:
+      return state.TypedListGetInt32x4();
+    case kTypedDataFloat32x4ArrayCid:
+      return state.TypedListGetFloat32x4();
+    case kTypedDataFloat64x2ArrayCid:
+      return state.TypedListGetFloat64x2();
+    default:
+      UNREACHABLE();
+      return Object::null_function();
+  }
+}
+
+Fragment FlowGraphBuilder::BuildTypedListGet(const Function& function,
+                                             intptr_t view_cid) {
+  const intptr_t kNumParameters = 2;
+  ASSERT_EQUAL(parsed_function_->function().NumParameters(), kNumParameters);
+  // Guaranteed to be non-null since it's only called internally from other
+  // instance methods.
+  LocalVariable* arg_receiver = parsed_function_->RawParameterVariable(0);
+  // Guaranteed to be a non-null Smi due to bounds checks prior to call.
+  LocalVariable* arg_offset_in_bytes =
+      parsed_function_->RawParameterVariable(1);
+
+  Fragment body;
+  if (CanUnboxElements(view_cid)) {
+    body += LoadLocal(arg_receiver);
+    body += LoadNativeField(Slot::PointerBase_data(),
+                            InnerPointerAccess::kMayBeInnerPointer);
+    body += LoadLocal(arg_offset_in_bytes);
+    body += LoadIndexed(view_cid, /*index_scale=*/1,
+                        /*index_unboxed=*/false, kUnalignedAccess);
+    body += Box(LoadIndexedInstr::RepresentationOfArrayElement(view_cid));
+  } else {
+    const auto& native_function = TypedListGetNativeFunction(thread_, view_cid);
+    body += LoadLocal(arg_receiver);
+    body += LoadLocal(arg_offset_in_bytes);
+    body += StaticCall(TokenPosition::kNoSource, native_function,
+                       kNumParameters, ICData::kNoRebind);
+  }
+  return body;
+}
+
+static const Function& TypedListSetNativeFunction(Thread* thread,
+                                                  intptr_t view_cid) {
+  auto& state = thread->compiler_state();
+  switch (view_cid) {
+    case kTypedDataFloat32ArrayCid:
+      return state.TypedListSetFloat32();
+    case kTypedDataFloat64ArrayCid:
+      return state.TypedListSetFloat64();
+    case kTypedDataInt32x4ArrayCid:
+      return state.TypedListSetInt32x4();
+    case kTypedDataFloat32x4ArrayCid:
+      return state.TypedListSetFloat32x4();
+    case kTypedDataFloat64x2ArrayCid:
+      return state.TypedListSetFloat64x2();
+    default:
+      UNREACHABLE();
+      return Object::null_function();
+  }
+}
+
+Fragment FlowGraphBuilder::BuildTypedListSet(const Function& function,
+                                             intptr_t view_cid) {
+  const intptr_t kNumParameters = 3;
+  ASSERT_EQUAL(parsed_function_->function().NumParameters(), kNumParameters);
+  // Guaranteed to be non-null since it's only called internally from other
+  // instance methods.
+  LocalVariable* arg_receiver = parsed_function_->RawParameterVariable(0);
+  // Guaranteed to be a non-null Smi due to bounds checks prior to call.
+  LocalVariable* arg_offset_in_bytes =
+      parsed_function_->RawParameterVariable(1);
+  LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
+
+  Fragment body;
+  if (CanUnboxElements(view_cid)) {
+    body += LoadLocal(arg_receiver);
+    body += LoadNativeField(Slot::PointerBase_data(),
+                            InnerPointerAccess::kMayBeInnerPointer);
+    body += LoadLocal(arg_offset_in_bytes);
+    body += LoadLocal(arg_value);
+    body +=
+        CheckNullOptimized(Symbols::Value(), CheckNullInstr::kArgumentError);
+    body += UnboxTruncate(
+        StoreIndexedInstr::RepresentationOfArrayElement(view_cid));
+    body += StoreIndexedTypedData(view_cid, /*index_scale=*/1,
+                                  /*index_unboxed=*/false, kUnalignedAccess);
+    body += NullConstant();
+  } else {
+    const auto& native_function = TypedListSetNativeFunction(thread_, view_cid);
+    body += LoadLocal(arg_receiver);
+    body += LoadLocal(arg_offset_in_bytes);
+    body += LoadLocal(arg_value);
+    body += StaticCall(TokenPosition::kNoSource, native_function,
+                       kNumParameters, ICData::kNoRebind);
+  }
   return body;
 }
 
