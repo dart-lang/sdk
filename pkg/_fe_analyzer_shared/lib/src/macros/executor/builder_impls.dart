@@ -407,9 +407,12 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
       {FunctionBodyCode? body,
       List<Code>? initializers,
       CommentCode? docComments}) {
-    body ??= new FunctionBodyCode.fromString('''{
-      augment super();
-    }''');
+    if (body != null && declaration.hasBody) {
+      // TODO: https://github.com/dart-lang/language/issues/3555
+      throw new UnsupportedError(
+          'Augmenting existing constructor bodies is not allowed.');
+    }
+    body ??= new FunctionBodyCode.fromString('{}');
     DeclarationCode augmentation = _buildFunctionAugmentation(body, declaration,
         initializers: initializers, docComments: docComments);
     _typeAugmentations.update(

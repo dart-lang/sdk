@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/rules/use_build_context_synchronously.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -16,7 +15,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AsyncStateTest);
     defineReflectiveTests(UseBuildContextSynchronouslyTest);
-    defineReflectiveTests(UseBuildContextSynchronouslyMixedModeTest);
   });
 }
 
@@ -1787,52 +1785,6 @@ void foo(BuildContext context) async {
     var reference = findNode.expressionStatement('context /* ref */');
     expect(block.asyncStateFor(reference, contextElement),
         AsyncState.asynchronous);
-  }
-}
-
-@reflectiveTest
-class UseBuildContextSynchronouslyMixedModeTest extends LintRuleTest {
-  @override
-  bool get addFlutterPackageDep => true;
-
-  @override
-  String get lintRule => 'use_build_context_synchronously';
-
-  /// Ensure we're not run in the test dir.
-  @override
-  String get testPackageRootPath => '$workspaceRootPath/lib';
-
-  @override
-  void setUp() {
-    super.setUp();
-    noSoundNullSafety = false;
-  }
-
-  void tearDown() {
-    noSoundNullSafety = true;
-  }
-
-  /// https://github.com/dart-lang/linter/issues/2572
-  test_mixedMode() async {
-    newFile('$testPackageLibPath/migrated.dart', '''
-import 'package:flutter/widgets.dart';
-
-BuildContext? get contextOrNull => null;
-
-void f(BuildContext? contextOrNull) {}
-''');
-
-    await assertNoDiagnostics(r'''
-// @dart=2.9
-
-import 'migrated.dart';
-
-void nullableContext() async {
-  f(contextOrNull);
-  await Future<void>.delayed(Duration());
-  f(contextOrNull);
-}
-''');
   }
 }
 

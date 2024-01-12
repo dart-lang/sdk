@@ -204,8 +204,9 @@ class ContextBuilderImpl implements ContextBuilder {
       map.add(contextRoot.root, options);
     } else {
       for (var entry in optionsMappings) {
-        var options = AnalysisOptionsImpl();
-        var optionsYaml = provider.getOptionsFromFile(entry.value);
+        var file = entry.value;
+        var options = AnalysisOptionsImpl(file: file);
+        var optionsYaml = provider.getOptionsFromFile(file);
         options.applyOptions(optionsYaml);
         updateOptions(options);
         map.add(entry.key, options);
@@ -294,9 +295,9 @@ class ContextBuilderImpl implements ContextBuilder {
     ContextRoot contextRoot,
     SourceFactory sourceFactory,
   ) {
-    var options = AnalysisOptionsImpl();
-
     var optionsFile = contextRoot.optionsFile;
+    var options = AnalysisOptionsImpl(file: optionsFile);
+
     if (optionsFile != null) {
       try {
         var provider = AnalysisOptionsProvider(sourceFactory);

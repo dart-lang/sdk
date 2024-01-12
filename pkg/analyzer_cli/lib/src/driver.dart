@@ -25,7 +25,6 @@ import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
@@ -93,7 +92,6 @@ class Driver implements CommandLineStarter {
     }
     _isStarted = true;
     var startTime = DateTime.now().millisecondsSinceEpoch;
-    noSoundNullSafety = false;
 
     linter.registerLintRules();
 

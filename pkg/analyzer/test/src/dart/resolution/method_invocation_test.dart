@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -453,45 +452,6 @@ MethodInvocation
     rightParenthesis: )
   staticInvokeType: void Function()
   staticType: void
-''');
-  }
-
-  test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-
-    await assertErrorsInCode(r'''
-// @dart = 2.7
-import 'a.dart' deferred as a;
-
-main() {
-  a.loadLibrary();
-}
-''', [
-      error(WarningCode.UNUSED_IMPORT, 22, 8),
-    ]);
-
-    var node = findNode.methodInvocation('loadLibrary()');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  target: SimpleIdentifier
-    token: a
-    staticElement: self::@prefix::a
-    staticType: null
-  operator: .
-  methodName: SimpleIdentifier
-    token: loadLibrary
-    staticElement: FunctionMember
-      base: loadLibrary@-1
-      isLegacy: true
-    staticType: Future<dynamic>* Function()*
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  staticInvokeType: Future<dynamic>* Function()*
-  staticType: Future<dynamic>*
 ''');
   }
 

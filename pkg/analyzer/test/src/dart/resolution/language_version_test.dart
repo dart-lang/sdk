@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -123,28 +122,6 @@ extension E on int {}
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 12, 2),
       error(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 3),
     ]);
-  }
-
-  test_jsonConfigDisablesExtensions_languageOverrideEnables() async {
-    noSoundNullSafety = false;
-    _configureTestWithJsonConfig('''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "test",
-      "rootUri": "../",
-      "packageUri": "lib/",
-      "languageVersion": "2.3"
-    }
-  ]
-}
-''');
-
-    await assertNoErrorsInCode('''
-// @dart = 2.6
-extension E on int {}
-''');
   }
 }
 

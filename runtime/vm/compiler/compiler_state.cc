@@ -139,7 +139,7 @@ const Class& CompilerState::TypedListClass() {
         zone, lib.LookupClassAllowPrivate(Symbols::_TypedList()));
     ASSERT(!cls.IsNull());
     const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
-    ASSERT(!error.IsNull());
+    ASSERT(error.IsNull());
     typed_list_class_ = &cls;
   }
   return *typed_list_class_;
