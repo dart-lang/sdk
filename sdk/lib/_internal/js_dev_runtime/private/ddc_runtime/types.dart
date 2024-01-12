@@ -5,14 +5,6 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
-/// Returns the state of [flag] that is determined at compile time.
-///
-/// The constant value itself is inlined by the compiler in place of the call
-/// to this method.
-// TODO(nshahan) Remove in favor of `JS_GET_FLAG()`.
-@notNull
-external bool compileTimeFlag(String flag);
-
 _throwInvalidFlagError(String message) =>
     throw UnsupportedError('Invalid flag combination.\n$message');
 
@@ -23,7 +15,7 @@ _throwInvalidFlagError(String message) =>
 /// This allows DDC to produce optional warnings or errors when tests pass but
 /// would fail in sound null safety.
 @notNull
-bool legacyTypeChecks = !compileTimeFlag("soundNullSafety");
+bool legacyTypeChecks = !JS_GET_FLAG('SOUND_NULL_SAFETY');
 
 /// Signals if the next type check should be considered to to be sound when
 /// running without sound null safety.
@@ -44,7 +36,7 @@ bool _weakNullSafetyWarnings = false;
 /// This option is not compatible with weak null safety errors or sound null
 /// safety (the warnings will be errors).
 void weakNullSafetyWarnings(bool showWarnings) {
-  if (showWarnings && compileTimeFlag('soundNullSafety')) {
+  if (showWarnings && JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     _throwInvalidFlagError(
         'Null safety violations cannot be shown as warnings when running with '
         'sound null safety.');
@@ -61,7 +53,7 @@ bool _weakNullSafetyErrors = false;
 /// This option is not compatible with weak null safety warnings (the warnings
 /// are now errors) or sound null safety (the errors are already errors).
 void weakNullSafetyErrors(bool showErrors) {
-  if (showErrors && compileTimeFlag('soundNullSafety')) {
+  if (showErrors && JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     _throwInvalidFlagError(
         'Null safety violations are already thrown as errors when running with '
         'sound null safety.');
@@ -90,7 +82,7 @@ void nonNullAsserts(bool enable) {
 }
 
 @notNull
-bool _nativeNonNullAsserts = compileTimeFlag('soundNullSafety');
+bool _nativeNonNullAsserts = JS_GET_FLAG('SOUND_NULL_SAFETY');
 
 /// Enables null assertions on native APIs to make sure values returned from the
 /// browser are sound.
@@ -98,7 +90,7 @@ bool _nativeNonNullAsserts = compileTimeFlag('soundNullSafety');
 /// These apply to dart:html and similar web libraries. Note that these only are
 /// added in sound null-safety only.
 void nativeNonNullAsserts(bool enable) {
-  if (enable && !compileTimeFlag('soundNullSafety')) {
+  if (enable && !JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     _warn('Enabling `native-null-assertions` is only supported when sound null '
         'safety is enabled.');
   }
@@ -986,7 +978,7 @@ class GenericFunctionTypeIdentifier extends AbstractFunctionType {
       var bound = typeBounds[i];
       if (_equalType(bound, dynamic) ||
           JS<bool>('!', '# === #', bound, nullable(unwrapType(Object))) ||
-          (!compileTimeFlag('soundNullSafety') && _equalType(bound, Object))) {
+          (!JS_GET_FLAG('SOUND_NULL_SAFETY') && _equalType(bound, Object))) {
         // Do not print the bound when it is a top type. In weak mode the bounds
         // of Object and Object* will also be elided.
         continue;
@@ -1086,7 +1078,7 @@ class GenericFunctionType extends AbstractFunctionType {
       // difference is rare.
       if (_equalType(type, dynamic)) return true;
       if (_jsInstanceOf(type, NullableType) ||
-          (!compileTimeFlag('soundNullSafety') &&
+          (!JS_GET_FLAG('SOUND_NULL_SAFETY') &&
               _jsInstanceOf(type, LegacyType))) {
         return _equalType(JS('!', '#.type', type), Object);
       }
@@ -1452,7 +1444,7 @@ bool isSubtypeOf(@notNull t1, @notNull t2) {
   // never trigger another subtype check but implicit downcasts from
   // dynamic do happen in the SDK code occasionally on accident.
   _typeVariableCount = currentTypeVariableCount;
-  if (!validSubtype && !compileTimeFlag('soundNullSafety')) {
+  if (!validSubtype && !JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     // Reset count before performing subtype check.
     currentTypeVariableCount = _typeVariableCount;
     _typeVariableCount = 0;
@@ -1995,7 +1987,7 @@ class _TypeInferrer {
     var supertypeRequiredNamed = supertype.getRequiredNamedParameters();
     var subtypeNamed = supertype.getNamedParameters();
     var subtypeRequiredNamed = supertype.getRequiredNamedParameters();
-    if (!compileTimeFlag('soundNullSafety')) {
+    if (!JS_GET_FLAG('SOUND_NULL_SAFETY')) {
       // In weak mode, treat required named params as optional named params.
       supertypeNamed = {...supertypeNamed, ...supertypeRequiredNamed};
       subtypeNamed = {...subtypeNamed, ...subtypeRequiredNamed};

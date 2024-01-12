@@ -7,12 +7,11 @@ import 'dart:core' as core show Symbol;
 import 'dart:_js_primitives' show printString;
 import 'dart:_internal' show patch;
 import 'dart:_interceptors' show JSArray;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 import 'dart:_runtime' as dart;
 
 @patch
-bool typeAcceptsNull<T>() =>
-    !dart.compileTimeFlag('soundNullSafety') || null is T;
+bool typeAcceptsNull<T>() => !JS_GET_FLAG('SOUND_NULL_SAFETY') || null is T;
 
 @patch
 class Symbol implements core.Symbol {

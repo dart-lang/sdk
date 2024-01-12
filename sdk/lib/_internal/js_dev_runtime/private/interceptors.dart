@@ -207,7 +207,7 @@ class JSFunction extends Interceptor {
       var typeArgs = JS('!', '#._typeArgs', this);
       var otherTypeArgs = JS('', '#._typeArgs', other);
       // Test if all instantiated type arguments are equal.
-      if (dart.compileTimeFlag('soundNullSafety')) {
+      if (JS_GET_FLAG('SOUND_NULL_SAFETY')) {
         // The list has been canonicalized on creation so reference equality
         // is sufficient.
         if (JS<bool>('!', '# !== #', typeArgs, otherTypeArgs)) return false;
@@ -223,7 +223,7 @@ class JSFunction extends Interceptor {
           if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
             var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
             var otherTypeArg = JS<rti.Rti>('!', '#[#]', otherTypeArgs, i);
-            if (dart.compileTimeFlag('soundNullSafety')) {
+            if (JS_GET_FLAG('SOUND_NULL_SAFETY')) {
               if (typeArg != otherTypeArg) return false;
             } else {
               if (rti.Rti.getLegacyErasedRecipe(typeArg) !=
