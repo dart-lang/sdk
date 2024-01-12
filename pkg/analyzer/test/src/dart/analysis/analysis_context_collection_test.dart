@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -275,21 +276,24 @@ name: test
     _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
   /home/test
-    optionsFile: /home/test/analysis_options.yaml
     packagesFile: /home/test/.dart_tool/package_config.json
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
         uri: package:test/a.dart
+        analysisOptions_0
         workspacePackage_0_0
   /home/test/lib/nested
-    optionsFile: /home/test/lib/nested/analysis_options.yaml
     packagesFile: /home/test/.dart_tool/package_config.json
     workspace: workspace_1
     analyzedFiles
       /home/test/lib/nested/b.dart
         uri: package:test/nested/b.dart
+        analysisOptions_1
         workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
 workspaces
   workspace_0: PubWorkspace
     root: /home/test
@@ -416,19 +420,85 @@ name: test
     _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
   /home/test
-    optionsFile: /home/test/analysis_options.yaml
     packagesFile: /home/test/.dart_tool/package_config.json
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
         uri: package:test/a.dart
+        analysisOptions_0
         workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
 workspaces
   workspace_0: PubWorkspace
     root: /home/test
     pubPackages
       workspacePackage_0_0: PubWorkspacePackage
         root: /home/test
+''');
+  }
+
+  test_pubWorkspace_singleAnalysisOptions_multipleContexts() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPackageRootPath = '$testPackageRootPath/nested';
+    newPubspecYamlFile(nestedPackageRootPath, r'''
+name: nested
+''');
+    newSinglePackageConfigJsonFile(
+      packagePath: nestedPackageRootPath,
+      name: 'nested',
+    );
+    newFile('$nestedPackageRootPath/lib/b.dart', '');
+
+    // TODO(pq): there should only be one shared options instance
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/nested
+    packagesFile: /home/test/nested/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/nested/lib/b.dart
+        uri: package:nested/b.dart
+        analysisOptions_1
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: PubWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubWorkspacePackage
+        root: /home/test
+  workspace_1: PubWorkspace
+    root: /home/test/nested
+    pubPackages
+      workspacePackage_1_0: PubWorkspacePackage
+        root: /home/test/nested
 ''');
   }
 
@@ -480,6 +550,7 @@ class _AnalysisContextCollectionPrinter {
   final ResourceProvider resourceProvider;
   final TreeStringSink sink;
 
+  final Map<AnalysisOptionsImpl, String> _analysisOptionsFiles = Map.identity();
   final Map<Workspace, (int, String)> _workspaces = Map.identity();
   final Map<Workspace, Map<WorkspacePackage, String>> _workspacePackages =
       Map.identity();
@@ -498,10 +569,23 @@ class _AnalysisContextCollectionPrinter {
     );
 
     sink.writeElements(
+      'analysisOptions',
+      contextCollection.contexts
+          .expand((c) => c.allAnalysisOptions
+              .where((o) => o is AnalysisOptionsImpl && o.file != null))
+          .toList(),
+      _writeAnalysisOptions,
+    );
+
+    sink.writeElements(
       'workspaces',
       _workspaces.keys.toList(),
       _writeWorkspace,
     );
+  }
+
+  String _idOfAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
+    return _indexIdOfAnalysisOptions(analysisOptions);
   }
 
   String _idOfWorkspace(Workspace workspace) {
@@ -518,6 +602,17 @@ class _AnalysisContextCollectionPrinter {
       final id = 'workspacePackage_${workspaceIndex}_${packages.length}';
       return packages[package] ??= id;
     }
+  }
+
+  String _indexIdOfAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
+    if (_analysisOptionsFiles[analysisOptions] case final existing?) {
+      return existing;
+    }
+
+    final index = _analysisOptionsFiles.length;
+    final id = 'analysisOptions_$index';
+    _analysisOptionsFiles[analysisOptions] = id;
+    return id;
   }
 
   (int, String) _indexIdOfWorkspace(Workspace workspace) {
@@ -545,7 +640,6 @@ class _AnalysisContextCollectionPrinter {
 
     sink.writelnWithIndent(contextRoot.root.posixPath);
     sink.withIndent(() {
-      _writeNamedFile('optionsFile', contextRoot.optionsFile);
       _writeNamedFile('packagesFile', contextRoot.packagesFile);
       sink.writelnWithIndent(
         'workspace: ${_idOfWorkspace(contextRoot.workspace)}',
@@ -559,11 +653,24 @@ class _AnalysisContextCollectionPrinter {
     });
   }
 
+  void _writeAnalysisOptions(AnalysisOptions analysisOptions) {
+    final file = (analysisOptions as AnalysisOptionsImpl).file!;
+    _writeNamedFile(_idOfAnalysisOptions(analysisOptions), file);
+  }
+
   void _writeDartFile(FileSystemState fsState, File file) {
     sink.writelnWithIndent(file.posixPath);
     sink.withIndent(() {
       final fileState = fsState.getFileForPath(file.path);
       sink.writelnWithIndent('uri: ${fileState.uri}');
+
+      final analysisOptions = fileState.analysisOptions;
+      if (analysisOptions != null) {
+        if (analysisOptions.file != null) {
+          final id = _idOfAnalysisOptions(analysisOptions);
+          sink.writelnWithIndent(id);
+        }
+      }
 
       final workspacePackage = fileState.workspacePackage;
       if (workspacePackage != null) {

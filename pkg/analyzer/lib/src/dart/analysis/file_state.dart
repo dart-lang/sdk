@@ -375,6 +375,9 @@ abstract class FileKind {
 class FileState {
   final FileSystemState _fsState;
 
+  /// The [AnalysisOptions] associated with this file.
+  final AnalysisOptionsImpl? analysisOptions;
+
   /// The absolute path of the file.
   final String path;
 
@@ -438,6 +441,7 @@ class FileState {
     this.workspacePackage,
     this._featureSet,
     this.packageLanguageVersion,
+    this.analysisOptions,
   ) : uriProperties = FileUriProperties(uri);
 
   /// The unlinked API signature of the file.
@@ -1497,7 +1501,7 @@ class FileSystemState {
     Version packageLanguageVersion =
         _getLanguageVersion(path, uri, workspacePackage, analysisOptions);
     var file = FileState._(this, path, uri, uriSource, workspacePackage,
-        featureSet, packageLanguageVersion);
+        featureSet, packageLanguageVersion, analysisOptions);
     _pathToFile[path] = file;
     _uriToFile[uri] = file;
     knownFilePaths.add(path);

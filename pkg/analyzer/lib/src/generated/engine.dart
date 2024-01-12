@@ -205,6 +205,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// A list of exclude patterns used to exclude some sources from analysis.
   List<String>? _excludePatterns;
 
+  /// The associated `analysis_options.yaml` file (or `null` if there is none).
+  File? file;
+
   @override
   bool lint = false;
 
@@ -246,7 +249,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// Initialize a newly created set of analysis options to have their default
   /// values.
-  AnalysisOptionsImpl() {
+  AnalysisOptionsImpl({this.file}) {
     codeStyleOptions = CodeStyleOptionsImpl(this, useFormatter: false);
   }
 
@@ -262,6 +265,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     warning = options.warning;
     lintRules = options.lintRules;
     if (options is AnalysisOptionsImpl) {
+      file = options.file;
       enableTiming = options.enableTiming;
       propagateLinterExceptions = options.propagateLinterExceptions;
       strictInference = options.strictInference;
