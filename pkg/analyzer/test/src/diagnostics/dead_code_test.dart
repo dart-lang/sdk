@@ -11,13 +11,12 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
     defineReflectiveTests(DeadCodeTest_Language219);
-    defineReflectiveTests(DeadCodeWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class DeadCodeTest extends PubPackageResolutionTest
-    with DeadCodeTestCases, DeadCodeTestCases_Language212 {
+    with DeadCodeTestCases_Language212 {
   test_deadPattern_ifCase_logicalOrPattern_leftAlwaysMatches() async {
     await assertErrorsInCode(r'''
 void f(int x) {
@@ -155,12 +154,9 @@ void f(Object x) {
 
 @reflectiveTest
 class DeadCodeTest_Language219 extends PubPackageResolutionTest
-    with
-        WithLanguage219Mixin,
-        DeadCodeTestCases,
-        DeadCodeTestCases_Language212 {}
+    with WithLanguage219Mixin, DeadCodeTestCases_Language212 {}
 
-mixin DeadCodeTestCases on PubPackageResolutionTest {
+mixin DeadCodeTestCases_Language212 on PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
@@ -222,6 +218,31 @@ void f() {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 23, 14),
+    ]);
+  }
+
+  test_assert_dead_message() async {
+    // We don't warn if an assert statement is live but its message is dead,
+    // because this results in nuisance warnings for desirable assertions (e.g.
+    // a `!= null` assertion that is redundant with strong checking but still
+    // useful with weak checking).
+    await assertErrorsInCode('''
+void f(Object waldo) {
+  assert(waldo != null, "Where's Waldo?");
+}
+''', [
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 38, 7),
+    ]);
+  }
+
+  test_assigned_methodInvocation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int? i = 1;
+  i?.truncate();
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 28, 2),
     ]);
   }
 
@@ -593,6 +614,313 @@ int f() => 0;
 ''');
   }
 
+  test_doWhile() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+}
+''', [
+      error(WarningCode.DEAD_CODE, 19, 4),
+      error(WarningCode.DEAD_CODE, 52, 12),
+    ]);
+  }
+
+  test_doWhile_break() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do {
+    if (c) {
+     break;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''', [
+      error(WarningCode.DEAD_CODE, 19, 4),
+      error(WarningCode.DEAD_CODE, 69, 12),
+    ]);
+  }
+
+  test_doWhile_break_doLabel() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  label:
+  do {
+    if (c) {
+      break label;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''', [
+      error(WarningCode.DEAD_CODE, 28, 4),
+      error(WarningCode.DEAD_CODE, 85, 12),
+    ]);
+  }
+
+  test_doWhile_break_inner() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do {
+    while (c) {
+      break;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''', [
+      error(WarningCode.DEAD_CODE, 19, 4),
+      error(WarningCode.DEAD_CODE, 73, 12),
+      error(WarningCode.DEAD_CODE, 88, 10),
+    ]);
+  }
+
+  Future<void> test_doWhile_break_outerDoLabel() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  label:
+  do {
+    do {
+      if (c) {
+        break label;
+      }
+      return;
+    } while (c);
+    print('');
+  } while (c);
+  print('');
+}
+''', [
+      error(WarningCode.DEAD_CODE, 37, 4),
+      error(WarningCode.DEAD_CODE, 104, 12),
+      error(WarningCode.DEAD_CODE, 121, 38),
+    ]);
+  }
+
+  Future<void> test_doWhile_break_outerLabel() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  label: {
+    do {
+      if (c) {
+       break label;
+      }
+      return;
+    } while (c);
+    print('');
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 32, 4),
+      error(WarningCode.DEAD_CODE, 98, 12),
+      error(WarningCode.DEAD_CODE, 115, 14),
+    ]);
+  }
+
+  test_doWhile_statements() async {
+    await assertErrorsInCode(r'''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+  print('2');
+}
+''', [
+      error(WarningCode.DEAD_CODE, 19, 4),
+      error(WarningCode.DEAD_CODE, 52, 12),
+      error(WarningCode.DEAD_CODE, 67, 11),
+    ]);
+  }
+
+  test_flowEnd_block_forStatement_updaters() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (;; 1) {
+    return;
+    2;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 21, 1),
+      error(WarningCode.DEAD_CODE, 42, 2),
+    ]);
+  }
+
+  test_flowEnd_block_forStatement_updaters_multiple() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (;; 1, 2) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 21, 4),
+    ]);
+  }
+
+  test_flowEnd_forParts_condition_exists() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (; throw 0; 1) {}
+}
+''', [
+      error(WarningCode.DEAD_CODE, 29, 1),
+      error(WarningCode.DEAD_CODE, 32, 2),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_assignmentExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i = i + 1) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 30, 9),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_binaryExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i + 1) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 30, 5),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_cascadeExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i..sign) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 30, 7),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_conditionalExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i > 1 ? i : i) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 30, 13),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_indexExpression() async {
+    await assertErrorsInCode(r'''
+void f(List<int> values) {
+  for (;; values[0]) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 37, 9),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_instanceCreationExpression() async {
+    await assertErrorsInCode(r'''
+class C {}
+void f() {
+  for (;; C()) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 32, 3),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_methodInvocation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i.toString()) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 30, 12),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_postfixExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; i++) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 30, 3),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_prefixedIdentifier() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as m;
+
+void f() {
+  for (;; m.Point) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 47, 7),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_prefixExpression() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; ++i) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 30, 3),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_propertyAccess() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var i = 0;; (i).sign) {
+    return;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 30, 8),
+    ]);
+  }
+
+  test_flowEnd_forParts_updaters_throw() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (;; 0, throw 1, 2) {}
+}
+''', [
+      error(WarningCode.DEAD_CODE, 33, 1),
+    ]);
+  }
+
   test_flowEnd_forStatement() async {
     await assertErrorsInCode(r'''
 main() {
@@ -619,6 +947,24 @@ void f(bool a) {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 44, 2),
+    ]);
+  }
+
+  test_flowEnd_tryStatement_body() async {
+    await assertErrorsInCode(r'''
+Never foo() => throw 0;
+
+main() {
+  try {
+    foo();
+    1;
+  } catch (_) {
+    2;
+  }
+  3;
+}
+''', [
+      error(WarningCode.DEAD_CODE, 57, 2),
     ]);
   }
 
@@ -703,21 +1049,88 @@ void f() {
     ]);
   }
 
-  test_statementAfterAlwaysThrowsFunction() async {
+  test_invokeNever_functionExpressionInvocation_getter_propertyAccess() async {
     await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-@alwaysThrows
-void a() {
-  throw 'msg';
+class A {
+  Never get f => throw 0;
 }
-
-f() {
+void g(A a) {
+  a.f(0);
   print(1);
-  a();
-  print(2);
-}''', [
-      error(WarningCode.DEAD_CODE, 104, 9),
+}
+''', [
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 54, 3),
+      error(WarningCode.DEAD_CODE, 57, 16),
+    ]);
+  }
+
+  test_invokeNever_functionExpressionInvocation_parenthesizedExpression() async {
+    await assertErrorsInCode(r'''
+void g(Never f) {
+  (f)(0);
+  print(1);
+}
+''', [
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 3),
+      error(WarningCode.DEAD_CODE, 23, 16),
+    ]);
+  }
+
+  test_invokeNever_functionExpressionInvocation_simpleIdentifier() async {
+    await assertErrorsInCode(r'''
+void g(Never f) {
+  f(0);
+  print(1);
+}
+''', [
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(WarningCode.DEAD_CODE, 21, 16),
+    ]);
+  }
+
+  test_notUnassigned_propertyAccess() async {
+    await assertNoErrorsInCode(r'''
+void f(int? i) {
+  (i)?.sign;
+}
+''');
+  }
+
+  test_potentiallyAssigned_propertyAccess() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  int? i;
+  if (b) {
+    i = 1;
+  }
+  (i)?.sign;
+}
+''');
+  }
+
+  test_returnTypeNever_function() async {
+    await assertErrorsInCode(r'''
+Never foo() => throw 0;
+
+main() {
+  foo();
+  1;
+}
+''', [
+      error(WarningCode.DEAD_CODE, 45, 2),
+    ]);
+  }
+
+  test_returnTypeNever_getter() async {
+    await assertErrorsInCode(r'''
+Never get foo => throw 0;
+
+main() {
+  foo;
+  2;
+}
+''', [
+      error(WarningCode.DEAD_CODE, 45, 2),
     ]);
   }
 
@@ -738,26 +1151,6 @@ f() {
   print(2);
 }''', [
       error(WarningCode.DEAD_CODE, 129, 9),
-    ]);
-  }
-
-  test_statementAfterAlwaysThrowsMethod() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-class C {
-  @alwaysThrows
-  void a() {
-    throw 'msg';
-  }
-}
-
-f() {
-  print(1);
-  new C().a();
-  print(2);
-}''', [
-      error(WarningCode.DEAD_CODE, 132, 9),
     ]);
   }
 
@@ -1090,480 +1483,6 @@ void f(int a) {
 ''', expectedErrors);
   }
 
-  test_topLevelVariable_initializer_listLiteral() async {
-    // Based on https://github.com/dart-lang/sdk/issues/49701
-    await assertErrorsInCode(
-      '''
-Never f() { throw ''; }
-
-var x = [1, 2, f(), 4];
-''',
-      isNullSafetyEnabled ? [error(WarningCode.DEAD_CODE, 45, 2)] : [],
-    );
-  }
-
-  test_yield() async {
-    await assertErrorsInCode(r'''
-Iterable<int> f() sync* {
-  return;
-  yield 1;
-}''', [
-      error(WarningCode.DEAD_CODE, 38, 8),
-    ]);
-  }
-}
-
-/// We require [DeadCodeTestCases] to force the test class to mix in
-/// [DeadCodeTestCases] before [DeadCodeTestCases_Language212], so that we
-/// don't miss these tests.
-mixin DeadCodeTestCases_Language212 on DeadCodeTestCases {
-  test_assert_dead_message() async {
-    // We don't warn if an assert statement is live but its message is dead,
-    // because this results in nuisance warnings for desirable assertions (e.g.
-    // a `!= null` assertion that is redundant with strong checking but still
-    // useful with weak checking).
-    await assertErrorsInCode('''
-void f(Object waldo) {
-  assert(waldo != null, "Where's Waldo?");
-}
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 38, 7),
-    ]);
-  }
-
-  test_assigned_methodInvocation() async {
-    await assertErrorsInCode(r'''
-void f() {
-  int? i = 1;
-  i?.truncate();
-}
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 28, 2),
-    ]);
-  }
-
-  test_doWhile() async {
-    await assertErrorsInCode(r'''
-void f(bool c) {
-  do {
-    print(c);
-    return;
-  } while (c);
-}
-''', [
-      error(WarningCode.DEAD_CODE, 19, 4),
-      error(WarningCode.DEAD_CODE, 52, 12),
-    ]);
-  }
-
-  test_doWhile_break() async {
-    await assertErrorsInCode(r'''
-void f(bool c) {
-  do {
-    if (c) {
-     break;
-    }
-    return;
-  } while (c);
-  print('');
-}
-''', [
-      error(WarningCode.DEAD_CODE, 19, 4),
-      error(WarningCode.DEAD_CODE, 69, 12),
-    ]);
-  }
-
-  test_doWhile_break_doLabel() async {
-    await assertErrorsInCode(r'''
-void f(bool c) {
-  label:
-  do {
-    if (c) {
-      break label;
-    }
-    return;
-  } while (c);
-  print('');
-}
-''', [
-      error(WarningCode.DEAD_CODE, 28, 4),
-      error(WarningCode.DEAD_CODE, 85, 12),
-    ]);
-  }
-
-  test_doWhile_break_inner() async {
-    await assertErrorsInCode(r'''
-void f(bool c) {
-  do {
-    while (c) {
-      break;
-    }
-    return;
-  } while (c);
-  print('');
-}
-''', [
-      error(WarningCode.DEAD_CODE, 19, 4),
-      error(WarningCode.DEAD_CODE, 73, 12),
-      error(WarningCode.DEAD_CODE, 88, 10),
-    ]);
-  }
-
-  Future<void> test_doWhile_break_outerDoLabel() async {
-    await assertErrorsInCode(r'''
-void f(bool c) {
-  label:
-  do {
-    do {
-      if (c) {
-        break label;
-      }
-      return;
-    } while (c);
-    print('');
-  } while (c);
-  print('');
-}
-''', [
-      error(WarningCode.DEAD_CODE, 37, 4),
-      error(WarningCode.DEAD_CODE, 104, 12),
-      error(WarningCode.DEAD_CODE, 121, 38),
-    ]);
-  }
-
-  Future<void> test_doWhile_break_outerLabel() async {
-    await assertErrorsInCode(r'''
-void f(bool c) {
-  label: {
-    do {
-      if (c) {
-       break label;
-      }
-      return;
-    } while (c);
-    print('');
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 32, 4),
-      error(WarningCode.DEAD_CODE, 98, 12),
-      error(WarningCode.DEAD_CODE, 115, 14),
-    ]);
-  }
-
-  test_doWhile_statements() async {
-    await assertErrorsInCode(r'''
-void f(bool c) {
-  do {
-    print(c);
-    return;
-  } while (c);
-  print('2');
-}
-''', [
-      error(WarningCode.DEAD_CODE, 19, 4),
-      error(WarningCode.DEAD_CODE, 52, 12),
-      error(WarningCode.DEAD_CODE, 67, 11),
-    ]);
-  }
-
-  test_flowEnd_block_forStatement_updaters() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (;; 1) {
-    return;
-    2;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 21, 1),
-      error(WarningCode.DEAD_CODE, 42, 2),
-    ]);
-  }
-
-  test_flowEnd_block_forStatement_updaters_multiple() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (;; 1, 2) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 21, 4),
-    ]);
-  }
-
-  test_flowEnd_forParts_condition_exists() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (; throw 0; 1) {}
-}
-''', [
-      error(WarningCode.DEAD_CODE, 29, 1),
-      error(WarningCode.DEAD_CODE, 32, 2),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_assignmentExpression() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (var i = 0;; i = i + 1) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 30, 9),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_binaryExpression() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (var i = 0;; i + 1) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 30, 5),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_cascadeExpression() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (var i = 0;; i..sign) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 30, 7),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_conditionalExpression() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (var i = 0;; i > 1 ? i : i) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 30, 13),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_indexExpression() async {
-    await assertErrorsInCode(r'''
-void f(List<int> values) {
-  for (;; values[0]) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 37, 9),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_instanceCreationExpression() async {
-    await assertErrorsInCode(r'''
-class C {}
-void f() {
-  for (;; C()) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 32, 3),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_methodInvocation() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (var i = 0;; i.toString()) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 30, 12),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_postfixExpression() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (var i = 0;; i++) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 30, 3),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_prefixedIdentifier() async {
-    await assertErrorsInCode(r'''
-import 'dart:math' as m;
-
-void f() {
-  for (;; m.Point) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 47, 7),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_prefixExpression() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (var i = 0;; ++i) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 30, 3),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_propertyAccess() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (var i = 0;; (i).sign) {
-    return;
-  }
-}
-''', [
-      error(WarningCode.DEAD_CODE, 30, 8),
-    ]);
-  }
-
-  test_flowEnd_forParts_updaters_throw() async {
-    await assertErrorsInCode(r'''
-void f() {
-  for (;; 0, throw 1, 2) {}
-}
-''', [
-      error(WarningCode.DEAD_CODE, 33, 1),
-    ]);
-  }
-
-  test_flowEnd_tryStatement_body() async {
-    await assertErrorsInCode(r'''
-Never foo() => throw 0;
-
-main() {
-  try {
-    foo();
-    1;
-  } catch (_) {
-    2;
-  }
-  3;
-}
-''', [
-      error(WarningCode.DEAD_CODE, 57, 2),
-    ]);
-  }
-
-  test_invokeNever_functionExpressionInvocation_getter_propertyAccess() async {
-    await assertErrorsInCode(r'''
-class A {
-  Never get f => throw 0;
-}
-void g(A a) {
-  a.f(0);
-  print(1);
-}
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 54, 3),
-      error(WarningCode.DEAD_CODE, 57, 16),
-    ]);
-  }
-
-  test_invokeNever_functionExpressionInvocation_parenthesizedExpression() async {
-    await assertErrorsInCode(r'''
-void g(Never f) {
-  (f)(0);
-  print(1);
-}
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 3),
-      error(WarningCode.DEAD_CODE, 23, 16),
-    ]);
-  }
-
-  test_invokeNever_functionExpressionInvocation_simpleIdentifier() async {
-    await assertErrorsInCode(r'''
-void g(Never f) {
-  f(0);
-  print(1);
-}
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 21, 16),
-    ]);
-  }
-
-  test_notUnassigned_propertyAccess() async {
-    await assertNoErrorsInCode(r'''
-void f(int? i) {
-  (i)?.sign;
-}
-''');
-  }
-
-  test_potentiallyAssigned_propertyAccess() async {
-    await assertNoErrorsInCode(r'''
-void f(bool b) {
-  int? i;
-  if (b) {
-    i = 1;
-  }
-  (i)?.sign;
-}
-''');
-  }
-
-  test_returnTypeNever_function() async {
-    await assertErrorsInCode(r'''
-Never foo() => throw 0;
-
-main() {
-  foo();
-  1;
-}
-''', [
-      error(WarningCode.DEAD_CODE, 45, 2),
-    ]);
-  }
-
-  test_returnTypeNever_getter() async {
-    await assertErrorsInCode(r'''
-Never get foo => throw 0;
-
-main() {
-  foo;
-  2;
-}
-''', [
-      error(WarningCode.DEAD_CODE, 45, 2),
-    ]);
-  }
-
-  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
-  @override
-  test_statementAfterAlwaysThrowsFunction() async {
-    return super.test_statementAfterAlwaysThrowsFunction();
-  }
-
-  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
-  @override
-  test_statementAfterAlwaysThrowsMethod() async {
-    return super.test_statementAfterAlwaysThrowsMethod();
-  }
-
   test_switchStatement_exhaustive() async {
     await assertErrorsInCode(r'''
 enum Foo { a, b }
@@ -1578,6 +1497,18 @@ int f(Foo foo) {
 ''', [
       error(WarningCode.DEAD_CODE, 111, 10),
     ]);
+  }
+
+  test_topLevelVariable_initializer_listLiteral() async {
+    // Based on https://github.com/dart-lang/sdk/issues/49701
+    await assertErrorsInCode(
+      '''
+Never f() { throw ''; }
+
+var x = [1, 2, f(), 4];
+''',
+      isNullSafetyEnabled ? [error(WarningCode.DEAD_CODE, 45, 2)] : [],
+    );
   }
 
   test_try_finally() async {
@@ -1707,8 +1638,14 @@ void f() {
       error(WarningCode.DEAD_CODE, 23, 14),
     ]);
   }
-}
 
-@reflectiveTest
-class DeadCodeWithoutNullSafetyTest extends PubPackageResolutionTest
-    with DeadCodeTestCases, WithoutNullSafetyMixin {}
+  test_yield() async {
+    await assertErrorsInCode(r'''
+Iterable<int> f() sync* {
+  return;
+  yield 1;
+}''', [
+      error(WarningCode.DEAD_CODE, 38, 8),
+    ]);
+  }
+}

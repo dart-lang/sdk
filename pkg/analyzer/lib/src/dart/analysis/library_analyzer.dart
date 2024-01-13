@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -317,8 +316,6 @@ class LibraryAnalyzer {
       }
     }
 
-    assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
-
     _checkForInconsistentLanguageVersionOverride(units);
 
     // This must happen after all other diagnostics have been computed but
@@ -432,15 +429,6 @@ class LibraryAnalyzer {
   }) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
-
-    if (!_libraryElement.isNonNullableByDefault) {
-      unit.accept(
-        LegacyDeadCodeVerifier(
-          errorReporter,
-          typeSystem: _typeSystem,
-        ),
-      );
-    }
 
     UnicodeTextVerifier(errorReporter).verify(unit, file.content);
 
