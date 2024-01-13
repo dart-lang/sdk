@@ -33,6 +33,9 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   /// The shared container into which drivers record files ownership.
   final OwnedFiles ownedFiles = OwnedFiles();
 
+  /// The scheduler used for all analysis contexts.
+  late final AnalysisDriverScheduler scheduler;
+
   /// The list of analysis contexts.
   @override
   final List<DriverBasedAnalysisContext> contexts = [];
@@ -66,6 +69,19 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
+
+    performanceLog ??= PerformanceLog(null);
+
+    if (scheduler == null) {
+      scheduler = AnalysisDriverScheduler(performanceLog);
+      if (drainStreams) {
+        scheduler.events.drain<void>();
+      }
+      scheduler.start();
+    }
+    // TODO(scheglov): https://github.com/dart-lang/linter/issues/3134
+    // ignore: prefer_initializing_formals
+    this.scheduler = scheduler;
 
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);

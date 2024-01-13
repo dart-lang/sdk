@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_event.dart' as driver_events;
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
@@ -21,6 +23,7 @@ import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -291,6 +294,8 @@ void f() {
 
     // No files to analyze.
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 ''');
   }
 
@@ -471,9 +476,11 @@ void f() {
     driver.priorityFiles2 = [a, b];
     collector.getResolvedUnit('A2', a);
     await assertEventsText(collector, r'''
+[status] analyzing
 [future] getResolvedUnit
   name: A2
   ResolvedUnitResult #0
+[status] idle
 ''');
 
     // Get the result for `b`, new.
@@ -600,9 +607,11 @@ part of 'a.dart';
 ''');
 
     // Ask for resolved library.
-    // Note, no status analyzing.
+    // Note, the units are cached.
     collector.getResolvedLibrary('L1', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getResolvedLibrary
   name: L1
   ResolvedLibraryResult #2
@@ -659,9 +668,11 @@ part of 'a.dart';
 ''');
 
     // Ask for resolved library.
-    // Note, no status analyzing.
+    // Note, the units are cached.
     collector.getResolvedLibrary('L1', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getResolvedLibrary
   name: L1
   ResolvedLibraryResult #2
@@ -718,9 +729,11 @@ part of 'a.dart';
 ''');
 
     // Ask for resolved library.
-    // Note, no status analyzing.
+    // Note, the units are cached.
     collector.getResolvedLibrary('L1', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getResolvedLibrary
   name: L1
   ResolvedLibraryResult #2
@@ -871,6 +884,8 @@ import 'a.dart';
 
     // Nothing depends on "b", so nothing is analyzed.
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 ''');
   }
 
@@ -1290,6 +1305,8 @@ var v = 0
 
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getErrors
   name: A1
   ErrorsResult #0
@@ -1544,6 +1561,10 @@ void f(A a) {}
 
     // ...and apply this change.
     await driver.applyPendingFileChanges();
+    await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
+''');
 
     // So, `class A {}` is declared now.
     expect(driver.getFileSyncValid(a).lineInfo.lineCount, 2);
@@ -1648,7 +1669,10 @@ class B {}
     );
 
     // No analysis.
-    await assertEventsText(collector, '');
+    await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
+''');
   }
 
   test_getLibraryByUri_cannotResolveUri() async {
@@ -1816,6 +1840,8 @@ class A {}
 
     collector.getResolvedLibrary('X', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getResolvedLibrary
   name: X
   ResolvedLibraryResult #0
@@ -1848,6 +1874,8 @@ part of 'a.dart';
 
     collector.getResolvedLibrary('A1', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getResolvedLibrary
   name: A1
   ResolvedLibraryResult #0
@@ -1864,9 +1892,11 @@ part of 'a.dart';
 ''');
 
     // Ask again, the same cached instance should be returned.
-    // Note, no status analyzing.
+    // Note, the result is cached.
     collector.getResolvedLibrary('A2', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getResolvedLibrary
   name: A2
   ResolvedLibraryResult #0
@@ -1941,6 +1971,8 @@ part of 'b.dart';
     collector.getResolvedLibraryByUri('A1', uri);
 
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getResolvedLibraryByUri
   name: A1
   ResolvedLibraryResult #0
@@ -2381,6 +2413,8 @@ void bar() {}
 
     collector.getUnitElement('A1', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getUnitElement
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
@@ -2402,6 +2436,8 @@ import 'package:test/b.dart';
 
     collector.getResolvedLibrary('A1', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getResolvedLibrary
   name: A1
   ResolvedLibraryResult #0
@@ -2417,6 +2453,8 @@ import 'package:test/b.dart';
 
     collector.getUnitElement('A2', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getUnitElement
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
@@ -2767,6 +2805,8 @@ final a = A();
     // Process `a` so that we know that it's a library for `b`.
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getErrors
   name: A1
   ErrorsResult #0
@@ -2778,6 +2818,8 @@ final a = A();
     // `b` does not have errors in the context of `a`.
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getErrors
   name: B1
   ErrorsResult #1
@@ -2858,6 +2900,8 @@ final a = new A();
     // So, no errors.
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [operation] computeAnalysisResult
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -2891,6 +2935,8 @@ final a = new A();
     // So, we treat it as its own library, has errors.
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [operation] computeAnalysisResult
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -3199,6 +3245,8 @@ final a = new A();
     // We know that `a` is the library for `b`.
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getUnitElement
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
@@ -3269,6 +3317,8 @@ final a = new A();
     // So, we treat it as its own library.
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 [future] getUnitElement
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
@@ -3603,6 +3653,8 @@ class A {}
     driver.removeFile2(a);
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
 ''');
   }
 
@@ -4022,11 +4074,12 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
   late final AnalysisDriverScheduler scheduler;
 
+  final ListQueue<Object> allEvents = ListQueue<Object>();
   final List<AnalysisResultWithErrors> allResults = [];
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  AnalysisDriver newDriver() {
+  AnalysisDriver newDriver(AnalysisDriverScheduler scheduler) {
     var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
     AnalysisDriver driver = AnalysisDriver(
       scheduler: scheduler,
@@ -4041,11 +4094,6 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
           AnalysisOptionsMap.forSharedOptions(AnalysisOptionsImpl()),
       packages: Packages.empty,
     );
-    driver.results.listen((result) {
-      if (result is AnalysisResultWithErrors) {
-        allResults.add(result);
-      }
-    });
     return driver;
   }
 
@@ -4060,8 +4108,9 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 
   test_priorities_allChangedFirst() async {
-    AnalysisDriver driver1 = newDriver();
-    AnalysisDriver driver2 = newDriver();
+    final scheduler = _newScheduler();
+    AnalysisDriver driver1 = newDriver(scheduler);
+    AnalysisDriver driver2 = newDriver(scheduler);
 
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
@@ -4093,8 +4142,9 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 
   test_priorities_firstChanged_thenImporting() async {
-    AnalysisDriver driver1 = newDriver();
-    AnalysisDriver driver2 = newDriver();
+    final scheduler = _newScheduler();
+    AnalysisDriver driver1 = newDriver(scheduler);
+    AnalysisDriver driver2 = newDriver(scheduler);
 
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
@@ -4120,8 +4170,9 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 
   test_priorities_firstChanged_thenWithErrors() async {
-    AnalysisDriver driver1 = newDriver();
-    AnalysisDriver driver2 = newDriver();
+    final scheduler = _newScheduler();
+    AnalysisDriver driver1 = newDriver(scheduler);
+    AnalysisDriver driver2 = newDriver(scheduler);
 
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
@@ -4150,8 +4201,9 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 
   test_priorities_getResolvedUnit_beforePriority() async {
-    AnalysisDriver driver1 = newDriver();
-    AnalysisDriver driver2 = newDriver();
+    final scheduler = _newScheduler();
+    AnalysisDriver driver1 = newDriver(scheduler);
+    AnalysisDriver driver2 = newDriver(scheduler);
 
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
@@ -4168,7 +4220,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     var result = await driver2.getResolvedUnit(b) as ResolvedUnitResult;
     expect(result.path, b);
 
-    await scheduler.status.firstWhere((status) => status.isIdle);
+    await _waitForAnalysisStatusIdle();
 
     expect(allResults, hasLength(3));
     expect(allResults[0].path, b);
@@ -4177,8 +4229,9 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 
   test_priorities_priorityBeforeGeneral1() async {
-    AnalysisDriver driver1 = newDriver();
-    AnalysisDriver driver2 = newDriver();
+    final scheduler = _newScheduler();
+    AnalysisDriver driver1 = newDriver(scheduler);
+    AnalysisDriver driver2 = newDriver(scheduler);
 
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
@@ -4189,7 +4242,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     driver1.priorityFiles = [a];
     driver2.priorityFiles = [a];
 
-    await scheduler.status.firstWhere((status) => status.isIdle);
+    await _waitForAnalysisStatusIdle();
 
     expect(allResults, hasLength(2));
     expect(allResults[0].path, a);
@@ -4197,8 +4250,9 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 
   test_priorities_priorityBeforeGeneral2() async {
-    AnalysisDriver driver1 = newDriver();
-    AnalysisDriver driver2 = newDriver();
+    final scheduler = _newScheduler();
+    AnalysisDriver driver1 = newDriver(scheduler);
+    AnalysisDriver driver2 = newDriver(scheduler);
 
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
@@ -4209,7 +4263,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     driver1.priorityFiles = [b];
     driver2.priorityFiles = [b];
 
-    await scheduler.status.firstWhere((status) => status.isIdle);
+    await _waitForAnalysisStatusIdle();
 
     expect(allResults, hasLength(2));
     expect(allResults[0].path, b);
@@ -4217,8 +4271,9 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 
   test_priorities_priorityBeforeGeneral3() async {
-    AnalysisDriver driver1 = newDriver();
-    AnalysisDriver driver2 = newDriver();
+    final scheduler = _newScheduler();
+    AnalysisDriver driver1 = newDriver(scheduler);
+    AnalysisDriver driver2 = newDriver(scheduler);
 
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
@@ -4232,7 +4287,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     driver1.priorityFiles = [a, c];
     driver2.priorityFiles = [a, c];
 
-    await scheduler.status.firstWhere((status) => status.isIdle);
+    await _waitForAnalysisStatusIdle();
 
     expect(allResults, hasLength(3));
     expect(allResults[0].path, a);
@@ -4241,8 +4296,9 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 
   test_status() async {
-    AnalysisDriver driver1 = newDriver();
-    AnalysisDriver driver2 = newDriver();
+    final scheduler = _newScheduler();
+    AnalysisDriver driver1 = newDriver(scheduler);
+    AnalysisDriver driver2 = newDriver(scheduler);
 
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
@@ -4254,19 +4310,22 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     driver2.addFile(b);
     driver2.addFile(c);
 
-    Monitor idleStatusMonitor = Monitor();
-    List<AnalysisStatus> allStatuses = [];
-    // awaiting times out.
-    // ignore: unawaited_futures
-    scheduler.status.forEach((status) {
-      allStatuses.add(status);
-      if (status.isIdle) {
-        idleStatusMonitor.notify();
+    // TODO(scheglov): use text expectations
+    final idleStatusCompleter = Completer<void>();
+    final allStatuses = <AnalysisStatus>[];
+    while (true) {
+      final status = allEvents.removeFirstOrNull();
+      if (status is AnalysisStatus) {
+        allStatuses.add(status);
+        if (status.isIdle) {
+          idleStatusCompleter.complete();
+          break;
+        }
       }
-    });
+      await pumpEventQueue();
+    }
 
-    await idleStatusMonitor.signal;
-
+    await idleStatusCompleter.future;
     expect(allStatuses, hasLength(2));
     expect(allStatuses[0].isAnalyzing, isTrue);
     expect(allStatuses[1].isAnalyzing, isFalse);
@@ -4274,9 +4333,10 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     expect(allResults, hasLength(3));
   }
 
-  test_status_analyzingOnlyWhenHasFilesToAnalyze() async {
-    AnalysisDriver driver1 = newDriver();
-    AnalysisDriver driver2 = newDriver();
+  test_status_anyWorkTransitionsToAnalyzing() async {
+    final scheduler = _newScheduler();
+    AnalysisDriver driver1 = newDriver(scheduler);
+    AnalysisDriver driver2 = newDriver(scheduler);
 
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
@@ -4285,27 +4345,70 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     driver1.addFile(a);
     driver2.addFile(b);
 
-    Monitor idleStatusMonitor = Monitor();
-    List<AnalysisStatus> allStatuses = [];
-    // awaiting times out.
-    // ignore: unawaited_futures
-    scheduler.status.forEach((status) {
-      allStatuses.add(status);
-      if (status.isIdle) {
-        idleStatusMonitor.notify();
+    // TODO(scheglov): use text expectations
+    // The two added files were analyzed, and the schedule is idle.
+    {
+      final idleStatusCompleter = Completer<void>();
+      final allStatuses = <AnalysisStatus>[];
+      while (true) {
+        final status = allEvents.removeFirstOrNull();
+        if (status is AnalysisStatus) {
+          allStatuses.add(status);
+          if (status.isIdle) {
+            idleStatusCompleter.complete();
+            break;
+          }
+        }
+        await pumpEventQueue();
+      }
+      expect(allStatuses, [AnalysisStatus.ANALYZING, AnalysisStatus.IDLE]);
+    }
+
+    // Any work transitions to analyzing, and back to idle.
+    {
+      await driver1.getFilesReferencingName('X');
+      final idleStatusCompleter = Completer<void>();
+      final allStatuses = <AnalysisStatus>[];
+      while (true) {
+        final status = allEvents.removeFirstOrNull();
+        if (status is AnalysisStatus) {
+          allStatuses.add(status);
+          if (status.isIdle) {
+            idleStatusCompleter.complete();
+            break;
+          }
+        }
+        await pumpEventQueue();
+      }
+      expect(allStatuses, [AnalysisStatus.ANALYZING, AnalysisStatus.IDLE]);
+    }
+  }
+
+  AnalysisDriverScheduler _newScheduler() {
+    final scheduler = AnalysisDriverScheduler(
+      PerformanceLog(null),
+    );
+
+    scheduler.events.listen((event) {
+      allEvents.add(event);
+      if (event is AnalysisResultWithErrors) {
+        allResults.add(event);
       }
     });
 
-    // The two added files were analyzed, and the schedule is idle.
-    await idleStatusMonitor.signal;
-    expect(allStatuses, hasLength(2));
-    expect(allStatuses[0].isAnalyzing, isTrue);
-    expect(allStatuses[1].isAnalyzing, isFalse);
-    allStatuses.clear();
+    scheduler.start();
+    return scheduler;
+  }
 
-    // We don't transition to analysis and back to idle.
-    await driver1.getFilesReferencingName('X');
-    expect(allStatuses, isEmpty);
+  // TODO(scheglov): use text expectations
+  Future<void> _waitForAnalysisStatusIdle() async {
+    while (true) {
+      final first = allEvents.removeFirstOrNull();
+      if (first is AnalysisStatus && first.isIdle) {
+        break;
+      }
+      await pumpEventQueue();
+    }
   }
 }
 
@@ -4318,18 +4421,22 @@ class DriverEventCollector {
   List<DriverEvent> events = [];
 
   DriverEventCollector(this.driver) {
-    driver.scheduler.status.listen((status) {
-      events.add(
-        SchedulerStatusEvent(status),
-      );
-    });
-
-    driver.results.listen((object) {
-      events.add(
-        ResultStreamEvent(
-          object: object,
-        ),
-      );
+    driver.scheduler.events.listen((event) {
+      switch (event) {
+        case AnalysisStatus():
+          events.add(
+            SchedulerStatusEvent(event),
+          );
+        case driver_events.ComputeAnalysis():
+        case driver_events.ComputeResolvedLibrary():
+        case ErrorsResult():
+        case ResolvedUnitResult():
+          events.add(
+            ResultStreamEvent(
+              object: event,
+            ),
+          );
+      }
     });
   }
 

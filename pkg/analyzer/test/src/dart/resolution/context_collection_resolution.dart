@@ -169,6 +169,7 @@ abstract class ContextResolutionTest
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions2: updateAnalysisOptions,
       macroSupport: macroSupport,
+      drainStreams: false,
     );
 
     _analysisContextCollection = collection;

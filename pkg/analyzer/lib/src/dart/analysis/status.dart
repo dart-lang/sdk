@@ -48,6 +48,8 @@ class Monitor {
 
 /// Helper for managing transitioning [AnalysisStatus].
 class StatusSupport {
+  final StreamController<Object> _eventsController;
+
   /// The controller for the [stream].
   final _statusController = StreamController<AnalysisStatus>();
 
@@ -58,39 +60,38 @@ class StatusSupport {
   /// to idle.
   Completer<void>? _idleCompleter;
 
+  StatusSupport({
+    required StreamController<Object> eventsController,
+  }) : _eventsController = eventsController;
+
   /// Return the last status sent to the [stream].
   AnalysisStatus get currentStatus => _currentStatus;
 
   /// Return the stream that produces [AnalysisStatus] events.
   Stream<AnalysisStatus> get stream => _statusController.stream;
 
-  /// Prepare for the scheduler to start analyzing, but do not notify the
-  /// [stream] yet.
-  ///
-  /// A call to [preTransitionToAnalyzing] has the same effect on [waitForIdle]
-  /// as a call to [transitionToAnalyzing], but it has no effect on the
-  /// [stream].
-  void preTransitionToAnalyzing() {
-    _idleCompleter ??= Completer<void>();
-  }
-
-  /// Send a notification to the [stream] that the scheduler started analyzing.
+  /// If the current status is not [AnalysisStatus.ANALYZING] yet, set the
+  /// current status to it, and send it to the stream.
   void transitionToAnalyzing() {
     if (_currentStatus != AnalysisStatus.ANALYZING) {
-      preTransitionToAnalyzing();
+      _idleCompleter = Completer<void>();
       _currentStatus = AnalysisStatus.ANALYZING;
+      _eventsController.add(AnalysisStatus.ANALYZING);
       _statusController.add(AnalysisStatus.ANALYZING);
     }
   }
 
-  /// Send a notification to the [stream] stream that the scheduler is idle.
+  /// If the current status is not [AnalysisStatus.IDLE] yet, set the
+  /// current status to it, and send it to the stream.
   void transitionToIdle() {
     if (_currentStatus != AnalysisStatus.IDLE) {
       _currentStatus = AnalysisStatus.IDLE;
+      _eventsController.add(AnalysisStatus.IDLE);
       _statusController.add(AnalysisStatus.IDLE);
+      // TODO(scheglov): Use separate status classes?
+      _idleCompleter!.complete();
+      _idleCompleter = null;
     }
-    _idleCompleter?.complete();
-    _idleCompleter = null;
   }
 
   /// Return a future that will be completed the next time the status is idle.

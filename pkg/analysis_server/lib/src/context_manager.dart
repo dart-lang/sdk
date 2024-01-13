@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -134,6 +135,9 @@ abstract class ContextManagerCallbacks {
 
   /// Sent the given watch [event] to any interested plugins.
   void broadcastWatchEvent(WatchEvent event);
+
+  /// Invoked on any [FileResult] in the analyzer events stream.
+  void handleFileResult(FileResult result);
 
   /// Add listeners to the [driver]. This must be the only listener.
   ///
@@ -916,6 +920,9 @@ class NoopContextManagerCallbacks implements ContextManagerCallbacks {
 
   @override
   void broadcastWatchEvent(WatchEvent event) {}
+
+  @override
+  void handleFileResult(FileResult result) {}
 
   @override
   void listenAnalysisDriver(AnalysisDriver driver) {}

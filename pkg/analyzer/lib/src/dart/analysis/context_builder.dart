@@ -152,7 +152,6 @@ class ContextBuilderImpl implements ContextBuilder {
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.
     if (drainStreams) {
-      driver.results.drain<void>();
       driver.exceptions.drain<void>();
     }
 
