@@ -208,6 +208,10 @@ abstract class AnalysisServer {
   late final refactoringWorkspace =
       RefactoringWorkspace(driverMap.values, searchEngine);
 
+  /// The paths of files for which [ResolvedUnitResult] was produced since
+  /// the last idle state.
+  final Set<String> filesResolvedSinceLastIdle = {};
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -656,6 +660,16 @@ abstract class AnalysisServer {
   }
 
   @mustCallSuper
+  void handleAnalysisEvent(Object event) {
+    switch (event) {
+      case FileResult():
+        contextManager.callbacks.handleFileResult(event);
+      case analysis.AnalysisStatus():
+        handleAnalysisStatusChange(event);
+    }
+  }
+
+  @mustCallSuper
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
     if (isFirstAnalysisSinceContextsBuilt && !status.isAnalyzing) {
       isFirstAnalysisSinceContextsBuilt = false;
@@ -690,7 +704,7 @@ abstract class AnalysisServer {
   /// changed - added, updated, or removed.  Schedule processing of the file.
   void notifyDeclarationsTracker(String path) {
     declarationsTracker?.changeFile(path);
-    analysisDriverScheduler.notify(null);
+    analysisDriverScheduler.notify();
   }
 
   /// Notify the flutter widget properties support that the file with the
@@ -913,6 +927,7 @@ abstract class CommonServerContextManagerCallbacks
 
   void flushResults(List<String> files);
 
+  @override
   @mustCallSuper
   void handleFileResult(FileResult result) {
     var path = result.path;
@@ -926,6 +941,7 @@ abstract class CommonServerContextManagerCallbacks
     }
 
     if (result is ResolvedUnitResult) {
+      analysisServer.filesResolvedSinceLastIdle.add(path);
       handleResolvedUnitResult(result);
     }
   }
@@ -935,11 +951,6 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void listenAnalysisDriver(analysis.AnalysisDriver driver) {
-    driver.results.listen((result) {
-      if (result is FileResult) {
-        handleFileResult(result);
-      }
-    });
     driver.exceptions.listen(analysisServer.logExceptionResult);
     driver.priorityFiles = analysisServer.priorityFiles.toList();
   }

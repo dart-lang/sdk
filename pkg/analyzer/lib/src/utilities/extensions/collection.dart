@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:collection/collection.dart';
 
 extension IterableExtension<E> on Iterable<E> {
@@ -99,6 +101,12 @@ extension ListExtension<E> on List<E> {
       ...where(predicate),
       ...whereNot(predicate),
     ];
+  }
+}
+
+extension ListQueueExtension<T> on ListQueue<T> {
+  T? removeFirstOrNull() {
+    return isNotEmpty ? removeFirst() : null;
   }
 }
 

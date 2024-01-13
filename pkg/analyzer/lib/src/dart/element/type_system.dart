@@ -153,6 +153,7 @@ class TypeSystemImpl implements TypeSystem {
   /// [left] is a subtype of [right], or [right] is a subtype of [left].
   bool canBeSubtypeOf(DartType left, DartType right) {
     left = left.extensionTypeErasure;
+    right = right.extensionTypeErasure;
 
     // If one is `Null`, then the other must be nullable.
     final leftIsNullable = isPotentiallyNullable(left);

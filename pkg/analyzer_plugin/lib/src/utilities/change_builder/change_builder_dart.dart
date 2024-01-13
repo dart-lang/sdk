@@ -1189,7 +1189,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   void _writeSuperMemberInvocation(ExecutableElement element, String memberName,
       List<ParameterElement> parameters) {
-    final isOperator = element.isOperator;
+    var isOperator = element.isOperator;
     write(isOperator ? ' ' : '.');
     write(memberName);
     write(isOperator ? ' ' : '(');

@@ -107,6 +107,16 @@ void f(double x) {
 ''');
   }
 
+  test_interfaceType2_matchedExtensionType_requiredExtensionType() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case A _) {}
+}
+
+extension type A(int _) {}
+''');
+  }
+
   test_interfaceType2_matchedExtensionType_requiredRepresentation() async {
     await assertNoErrorsInCode('''
 void f(A x) {
@@ -400,6 +410,16 @@ class A {}
 void f(Object? x) {
   if (x case int _) {}
 }
+''');
+  }
+
+  test_interfaceType2_matchedRepresentation_requiredExtensionType() async {
+    await assertNoErrorsInCode('''
+void f(int x) {
+  if (x case A _) {}
+}
+
+extension type A(int _) {}
 ''');
   }
 

@@ -316,7 +316,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   void _setSelectionRange(SourceRange range) {
     _selectionRange = range;
     // If we previously had a selection, update it to this new offset.
-    final selection = _selection;
+    var selection = _selection;
     if (selection != null) {
       _selection = Position(selection.file, range.offset);
     }

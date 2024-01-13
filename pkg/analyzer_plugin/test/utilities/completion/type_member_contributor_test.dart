@@ -3068,7 +3068,7 @@ void main() {C.^ print("something");}''');
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    final a = newFile('/home/test/lib/a.dart', '''
+    var a = newFile('/home/test/lib/a.dart', '''
         library libA;
         import 'b.dart';
         part 'test.dart';

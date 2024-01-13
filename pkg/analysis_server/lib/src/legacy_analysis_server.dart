@@ -406,7 +406,7 @@ class LegacyAnalysisServer extends AnalysisServer {
         ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.status.listen(handleAnalysisStatusChange);
+    analysisDriverScheduler.events.listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
     onAnalysisStarted.first.then((_) {
@@ -707,6 +707,7 @@ class LegacyAnalysisServer extends AnalysisServer {
         sendAnalysisNotificationAnalyzedFiles(this);
       }
       _scheduleAnalysisImplementedNotification();
+      filesResolvedSinceLastIdle.clear();
     }
     // Only send status when subscribed.
     if (!serverServices.contains(ServerService.STATUS)) {
@@ -952,10 +953,17 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   void _scheduleAnalysisImplementedNotification() {
-    var files = analysisServices[AnalysisService.IMPLEMENTED];
-    if (files != null) {
-      scheduleImplementedNotification(this, files);
+    final subscribed = analysisServices[AnalysisService.IMPLEMENTED];
+    if (subscribed == null) {
+      return;
     }
+
+    final toSend = subscribed.intersection(filesResolvedSinceLastIdle);
+    if (toSend.isEmpty) {
+      return;
+    }
+
+    scheduleImplementedNotification(this, toSend);
   }
 
   void _sendSubscriptions({bool analysis = false, bool flutter = false}) {

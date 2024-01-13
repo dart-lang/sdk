@@ -578,9 +578,8 @@ analyzer:
     await initialAnalysis;
     expect(diagnostics[mainFilePath], isNull);
 
-    final nextAnalysis = waitForAnalysisComplete();
     await updateConfig({'showTodos': true});
-    await nextAnalysis;
+    await waitForAnalysisComplete();
     expect(diagnostics[mainFilePath], hasLength(1));
   }
 

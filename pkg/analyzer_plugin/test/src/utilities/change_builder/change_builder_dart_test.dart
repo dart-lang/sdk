@@ -2409,7 +2409,7 @@ class C {}
     var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
     var unit = await resolveContent('/home/test/lib/test.dart', content);
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},
@@ -2433,13 +2433,13 @@ class C {}
     var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
     var unit = await resolveContent('/home/test/lib/test.dart', content);
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},
       useShow: true,
     );
-    final resultContent = SourceEdit.applySequence(content, edits);
+    var resultContent = SourceEdit.applySequence(content, edits);
     expect(
         resultContent,
         equals(
@@ -2464,7 +2464,7 @@ class C {}
     var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
     var unit = await resolveContent('/home/test/lib/test.dart', content);
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},
@@ -2488,13 +2488,13 @@ class C {}
     var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
     var unit = await resolveContent('/home/test/lib/test.dart', content);
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},
       useShow: true,
     );
-    final resultContent = SourceEdit.applySequence(content, edits);
+    var resultContent = SourceEdit.applySequence(content, edits);
     expect(
         resultContent,
         equals(
@@ -2518,7 +2518,7 @@ class B {}
       '',
     );
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},

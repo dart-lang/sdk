@@ -59,7 +59,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 /// Let the set of "explicitly analyzed files" denote the set of paths that have
 /// been passed to [addFile] but not subsequently passed to [removeFile]. Let
 /// the "current analysis results" denote the map from the set of explicitly
-/// analyzed files to the most recent [AnalysisResult] delivered to [results]
+/// analyzed files to the most recent [AnalysisResult] delivered to `events`
 /// for each file. Let the "current file state" represent a map from file path
 /// to the file contents most recently read from that file, or fetched from the
 /// content cache (considering all possible file paths, regardless of
@@ -214,12 +214,6 @@ class AnalysisDriver {
   /// We expect that at most one is added, at the very end of the life cycle.
   final List<Completer<void>> _disposeRequests = [];
 
-  /// The controller for the [results] stream.
-  final _resultController = StreamController<Object>();
-
-  /// The stream that will be written to when analysis results are produced.
-  late final Stream<Object> _onResults;
-
   /// Resolution signatures of the most recently produced results for files.
   final Map<String, String> _lastProducedSignatures = {};
 
@@ -312,7 +306,6 @@ class AnalysisDriver {
         testingData = retainDataForTesting ? TestingData() : null {
     analysisContext?.driver = this;
     testView?.driver = this;
-    _onResults = _resultController.stream.asBroadcastStream();
 
     // Setup the options map.
     // This extra work is temporary and will get simplified when the deprecated support for
@@ -406,7 +399,7 @@ class AnalysisDriver {
   ///
   /// Every path in the list must be absolute and normalized.
   ///
-  /// The driver will produce the results through the [results] stream. The
+  /// The driver will produce the results through the `events` stream. The
   /// exact order in which results are produced is not defined, neither
   /// between priority files, nor between priority and non-priority files.
   set priorityFiles(List<String> priorityPaths) {
@@ -416,7 +409,7 @@ class AnalysisDriver {
         .forEach(_priorityResults.remove);
     _priorityFiles.clear();
     _priorityFiles.addAll(priorityPaths);
-    _scheduler.notify(this);
+    _scheduler.notify();
   }
 
   /// See [priorityFiles].
@@ -427,34 +420,8 @@ class AnalysisDriver {
   /// Return the [ResourceProvider] that is used to access the file system.
   ResourceProvider get resourceProvider => _resourceProvider;
 
-  /// Return the [Stream] that produces [AnalysisResult]s for added files.
-  ///
-  /// Note that the stream supports only one single subscriber.
-  ///
-  /// Analysis starts when the [AnalysisDriverScheduler] is started and the
-  /// driver is added to it. The analysis state transitions to "analyzing" and
-  /// an analysis result is produced for every added file prior to the next time
-  /// the analysis state transitions to "idle".
-  ///
-  /// [ResolvedUnitResult]s are produced for:
-  /// 1. Files requested using [getResolvedUnit].
-  /// 2. Files passed to [addFile] which are also in [priorityFiles].
-  ///
-  /// [ErrorsResult]s are produced for:
-  /// 1. Files passed to [addFile] which are not in [priorityFiles].
-  ///
-  /// At least one analysis result is produced for every file passed to
-  /// [addFile] or [changeFile] prior to the next time the analysis state
-  /// transitions to "idle", unless the file is later removed from analysis
-  /// using [removeFile]. Analysis results for other files are produced only if
-  /// the changes affect analysis results of other files.
-  ///
-  /// More than one result might be produced for the same file, even if the
-  /// client does not change the state of the files.
-  ///
-  /// Results might be produced even for files that have never been added
-  /// using [addFile], for example when [getResolvedUnit] was called for a file.
-  Stream<Object> get results => _onResults;
+  @Deprecated('Use AnalysisDriverScheduler.events instead')
+  Stream<Object> get results => StreamController<Object>().stream;
 
   AnalysisDriverScheduler get scheduler => _scheduler;
 
@@ -540,7 +507,7 @@ class AnalysisDriver {
   ///
   /// The [path] must be absolute and normalized.
   ///
-  /// The results of analysis are eventually produced by the [results] stream.
+  /// The results of analysis are eventually produced by the `events` stream.
   void addFile(String path) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
@@ -552,7 +519,7 @@ class AnalysisDriver {
       _pendingFileChanges.add(
         _FileChange(path, _FileChangeKind.add),
       );
-      _scheduler.notify(this);
+      _scheduler.notify();
     }
   }
 
@@ -649,7 +616,7 @@ class AnalysisDriver {
       _pendingFileChanges.add(
         _FileChange(path, _FileChangeKind.change),
       );
-      _scheduler.notify(this);
+      _scheduler.notify();
     }
   }
 
@@ -676,7 +643,7 @@ class AnalysisDriver {
       return Future.value();
     }
     _discoverAvailableFiles();
-    _scheduler.notify(this);
+    _scheduler.notify();
     return _discoverAvailableFilesTask!.completer.future;
   }
 
@@ -720,11 +687,11 @@ class AnalysisDriver {
     }
     _pendingFileChangesCompleters.clear();
 
-    _scheduler.notify(this);
+    _scheduler.notify();
     return completer.future;
   }
 
-  AnalysisOptions getAnalysisOptionsForFile(File file) =>
+  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
       analysisOptionsMap.getOptions(file);
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
@@ -772,7 +739,7 @@ class AnalysisDriver {
 
     var completer = Completer<SomeErrorsResult>();
     _errorsRequestedFiles.putIfAbsent(path, () => []).add(completer);
-    _scheduler.notify(this);
+    _scheduler.notify();
     return completer.future;
   }
 
@@ -782,7 +749,7 @@ class AnalysisDriver {
     _discoverAvailableFiles();
     var task = _FilesDefiningClassMemberNameTask(this, name);
     _definingClassMemberNameTasks.add(task);
-    _scheduler.notify(this);
+    _scheduler.notify();
     return task.completer.future;
   }
 
@@ -798,7 +765,7 @@ class AnalysisDriver {
     _discoverAvailableFiles();
     var task = _FilesReferencingNameTask(this, name);
     _referencingNameTasks.add(task);
-    _scheduler.notify(this);
+    _scheduler.notify();
     return task.completer.future;
   }
 
@@ -841,7 +808,7 @@ class AnalysisDriver {
     }
     var completer = Completer<AnalysisDriverUnitIndex?>();
     _indexRequestedFiles.putIfAbsent(path, () => []).add(completer);
-    _scheduler.notify(this);
+    _scheduler.notify();
     return completer.future;
   }
 
@@ -994,7 +961,7 @@ class AnalysisDriver {
     if (kind is LibraryFileKind) {
       final completer = Completer<SomeResolvedLibraryResult>();
       _requestedLibraries.putIfAbsent(kind, () => []).add(completer);
-      _scheduler.notify(this);
+      _scheduler.notify();
       return completer.future;
     } else if (kind is AugmentationFileKind) {
       return NotLibraryButAugmentationResult();
@@ -1037,7 +1004,7 @@ class AnalysisDriver {
   ///
   /// If the driver has the cached analysis result for the file, it is returned.
   /// If [sendCachedToStream] is `true`, then the result is also reported into
-  /// the [results] stream, just as if it were freshly computed.
+  /// the `events` stream, just as if it were freshly computed.
   ///
   /// Otherwise causes the analysis state to transition to "analyzing" (if it is
   /// not in that state already), the driver will produce the analysis result for
@@ -1063,7 +1030,7 @@ class AnalysisDriver {
       ResolvedUnitResult? result = getCachedResolvedUnit(path);
       if (result != null) {
         if (sendCachedToStream) {
-          _resultController.add(result);
+          _scheduler.eventsController.add(result);
         }
         return Future.value(result);
       }
@@ -1078,7 +1045,7 @@ class AnalysisDriver {
     // Schedule analysis.
     var completer = Completer<SomeResolvedUnitResult>();
     _requestedFiles.putIfAbsent(path, () => []).add(completer);
-    _scheduler.notify(this);
+    _scheduler.notify();
     return completer.future;
   }
 
@@ -1114,7 +1081,7 @@ class AnalysisDriver {
 
     var completer = Completer<SomeUnitElementResult>();
     _unitElementRequestedFiles.putIfAbsent(path, () => []).add(completer);
-    _scheduler.notify(this);
+    _scheduler.notify();
     return completer.future;
   }
 
@@ -1130,7 +1097,7 @@ class AnalysisDriver {
   /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
   ///
   /// The parsing is performed in the method itself, and the result is not
-  /// produced through the [results] stream (just because it is not a fully
+  /// produced through the `events` stream (just because it is not a fully
   /// resolved unit).
   SomeParsedUnitResult parseFileSync(String path) {
     if (!_isAbsolutePath(path)) {
@@ -1153,7 +1120,7 @@ class AnalysisDriver {
     return parseFileSync(file.path);
   }
 
-  /// Perform a single chunk of work and produce [results].
+  /// Perform a single chunk of work and produce `events`.
   Future<void> performWork() async {
     _discoverDartCore();
     _discoverLibraries();
@@ -1182,7 +1149,7 @@ class AnalysisDriver {
         for (final completer in completers) {
           completer.complete(unitResult);
         }
-        _resultController.add(unitResult);
+        _scheduler.eventsController.add(unitResult);
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
         for (final completer in completers) {
@@ -1277,7 +1244,7 @@ class AnalysisDriver {
         if (_fileTracker.isFilePending(path)) {
           try {
             var result = await _computeAnalysisResult(path, withUnit: true);
-            _resultController.add(result.unitResult!);
+            _scheduler.eventsController.add(result.unitResult!);
           } catch (exception, stackTrace) {
             _reportException(path, exception, stackTrace);
             _clearLibraryContextAfterException();
@@ -1299,7 +1266,7 @@ class AnalysisDriver {
           // We found that the set of errors is the same as we produced the
           // last time, so we don't need to produce it again now.
         } else {
-          _resultController.add(result.errorsResult!);
+          _scheduler.eventsController.add(result.errorsResult!);
           _lastProducedSignatures[path] = result._signature;
         }
       } catch (exception, stackTrace) {
@@ -1317,7 +1284,7 @@ class AnalysisDriver {
   /// The [path] must be absolute and normalized.
   ///
   /// The results of analysis of the file might still be produced by the
-  /// [results] stream. The driver will try to stop producing these results,
+  /// `events` stream. The driver will try to stop producing these results,
   /// but does not guarantee this.
   void removeFile(String path) {
     _throwIfNotAbsolutePath(path);
@@ -1331,7 +1298,7 @@ class AnalysisDriver {
       _pendingFileChanges.add(
         _FileChange(path, _FileChangeKind.remove),
       );
-      _scheduler.notify(this);
+      _scheduler.notify();
     }
   }
 
@@ -1351,7 +1318,7 @@ class AnalysisDriver {
       performance: performance,
     );
     _resolveForCompletionRequests.add(request);
-    _scheduler.notify(this);
+    _scheduler.notify();
     return request.completer.future;
   }
 
@@ -1460,7 +1427,7 @@ class AnalysisDriver {
       _logger.writeln('Work in $name');
       try {
         testView?.numOfAnalyzedLibraries++;
-        _resultController.add(
+        _scheduler.eventsController.add(
           events.ComputeAnalysis(
             file: file,
             library: library,
@@ -1586,7 +1553,7 @@ class AnalysisDriver {
         performance: OperationPerformanceImpl('<root>'),
       );
 
-      _resultController.add(
+      _scheduler.eventsController.add(
         events.ComputeResolvedLibrary(
           library: library,
         ),
@@ -2147,9 +2114,18 @@ class AnalysisDriverScheduler {
   /// The object used to watch as analysis drivers are created and deleted.
   final DriverWatcher? driverWatcher;
 
+  /// The controller for [events] stream.
+  final StreamController<Object> eventsController = StreamController<Object>();
+
+  /// The cached instance of [events] stream.
+  late final Stream<Object> _events = eventsController.stream;
+
   final List<AnalysisDriver> _drivers = [];
   final Monitor _hasWork = Monitor();
-  final StatusSupport _statusSupport = StatusSupport();
+
+  late final StatusSupport _statusSupport = StatusSupport(
+    eventsController: eventsController,
+  );
 
   bool _started = false;
 
@@ -2161,10 +2137,42 @@ class AnalysisDriverScheduler {
 
   AnalysisDriverScheduler(this._logger, {this.driverWatcher});
 
+  /// The [Stream] that produces analysis results for all drivers, and status
+  /// events.
+  ///
+  /// Note that the stream supports only one single subscriber.
+  ///
+  /// Analysis starts when the [AnalysisDriverScheduler] is started and the
+  /// driver is added to it. The analysis state transitions to "analyzing" and
+  /// an analysis result is produced for every added file prior to the next time
+  /// the analysis state transitions to "idle".
+  ///
+  /// [AnalysisStatus.ANALYZING] is produced every time when there is any
+  /// work to do in any [AnalysisDriver]. This includes analysis of files
+  /// passed to [AnalysisDriver.addFile], and any asynchronous `getXyz()`
+  /// requests.
+  ///
+  /// [AnalysisStatus.IDLE] is produced every time when there is no more work
+  /// to do after [AnalysisStatus.ANALYZING].
+  ///
+  /// [ResolvedUnitResult]s are produced for:
+  /// 1. Files requested using [AnalysisDriver.getResolvedUnit].
+  // TODO(scheglov): Will include more files, all files of a library.
+  /// 2. Files passed to [AnalysisDriver.addFile] which are also in
+  ///    [AnalysisDriver.priorityFiles].
+  ///
+  /// [ErrorsResult]s are produced for:
+  /// 1. Files passed to [AnalysisDriver.addFile] which are not in
+  ///    [AnalysisDriver.priorityFiles].
+  Stream<Object> get events => _events;
+
   /// Return `true` if we are currently analyzing code.
   bool get isAnalyzing => _hasFilesToAnalyze;
 
+  bool get isStarted => _started;
+
   /// Return the stream that produces [AnalysisStatus] events.
+  @Deprecated('Use events instead')
   Stream<AnalysisStatus> get status => _statusSupport.stream;
 
   /// Return `true` if there is a driver with a file to analyze.
@@ -2186,13 +2194,10 @@ class AnalysisDriverScheduler {
     }
   }
 
-  /// Notify that there is a change to the [driver], it might need to
-  /// perform some work.
-  void notify(AnalysisDriver? driver) {
-    // TODO(brianwilkerson): Consider removing the parameter, given that it isn't
-    //  referenced in the body.
+  /// Notifies the scheduler that there might be work to do.
+  void notify() {
     _hasWork.notify();
-    _statusSupport.preTransitionToAnalyzing();
+    _statusSupport.transitionToAnalyzing();
   }
 
   /// Remove the given [driver] from the scheduler, so that it will not be
