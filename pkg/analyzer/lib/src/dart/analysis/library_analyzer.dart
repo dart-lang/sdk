@@ -430,15 +430,6 @@ class LibraryAnalyzer {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    if (!_libraryElement.isNonNullableByDefault) {
-      unit.accept(
-        LegacyDeadCodeVerifier(
-          errorReporter,
-          typeSystem: _typeSystem,
-        ),
-      );
-    }
-
     UnicodeTextVerifier(errorReporter).verify(unit, file.content);
 
     unit.accept(DeadCodeVerifier(errorReporter));
