@@ -180,16 +180,47 @@ final Object _jsError = JS('', 'Symbol("_jsError")');
 /// If the throw originated in Dart, the result will typically be an [Error]
 /// or [Exception], but it could be any Dart object.
 ///
-/// If the throw originated in JavaScript, then there is not a corresponding
-/// Dart value, so we just return the error object.
+/// If [error] looks like a stack overflow from JavaScript then a Dart
+/// [StackOverflowError] is returned.
+///
+/// Otherwise, if the throw originated in JavaScript, then there is not a
+/// corresponding Dart value, so we just return the [error] object.
 Object? getThrown(Object? error) {
   if (error != null) {
     // Get the Dart thrown value, if any.
     var value = JS('', '#[#]', error, _thrownValue);
     if (value != null) return value;
+    if (_isStackOverflowError(error)) {
+      var dartStackOverflowError = StackOverflowError();
+      JS('', '#[#] = #', error, _thrownValue, dartStackOverflowError);
+      return dartStackOverflowError;
+    }
   }
   // Otherwise return the original object.
   return error;
+}
+
+/// Returns `true` when [error] appears to be a stack overflow error from
+/// the browser.
+bool _isStackOverflowError(Object error) {
+  var message = JS('', '#.message', error);
+  if (message is! String) return false;
+  if (JS<bool>(
+          '!',
+          'typeof RangeError == "function" && # instanceof RangeError',
+          error) &&
+      message.contains('call stack')) {
+    return true;
+  }
+  // Firefox stack overflow identification.
+  if (JS<bool>(
+          '!',
+          'typeof InternalError == "function" && # instanceof InternalError',
+          error) &&
+      message.contains('too much recursion')) {
+    return true;
+  }
+  return false;
 }
 
 final _stackTrace = JS('', 'Symbol("_stackTrace")');
