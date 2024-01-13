@@ -4533,7 +4533,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // [s].
     // TODO(jmesserly): is the `is! Block` still necessary?
     if (!(s is Block || result is js_ast.DebuggerStatement)) {
-      result.sourceInformation = _nodeStart(s);
+      result.sourceInformation ??= _nodeStart(s);
     }
 
     // The statement might be the target of a break or continue with a label.
@@ -4914,12 +4914,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.For visitForStatement(ForStatement node) {
+  js_ast.Statement visitForStatement(ForStatement node) {
     return _translateLoop(node, () {
       js_ast.VariableInitialization emitForInitializer(VariableDeclaration v) =>
           js_ast.VariableInitialization(_emitVariableDef(v),
               _visitInitializer(v.initializer, v.annotations));
 
+      if (node.variables.any(containsFunctionExpression)) {
+        return _rewriteAsWhile(node);
+      }
       var init = node.variables.map(emitForInitializer).toList();
       var initList =
           init.isEmpty ? null : js_ast.VariableDeclarationList('let', init);
@@ -4936,6 +4939,119 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       return js_ast.For(initList, condition, update, body);
     });
+  }
+
+  /// Rewrites a `for(;;)` style loop as a while loop to produce the correct
+  /// semantics when loop variable initialziers contain function expressions
+  /// that close over other loop variables.
+  ///
+  /// The Dart semantics expect that every loop iteration gets fresh loop
+  /// variables that can be closed over. The initialization is only executed
+  /// for the first iteration. In later iterations, the fresh loop variables are
+  /// initalized to the values from the end of the previous iteration.
+  ///
+  /// These semantics differ from JavaScript when there are closures capturing
+  /// loop variables so the simple lowering doesn't work as expected.
+  ///
+  /// A for loop like:
+  ///
+  /// ```
+  /// for(var v1 = init1, v2 = init2; condition; updates) { body }
+  /// ```
+  ///
+  /// Produces a rewrite like:
+  ///
+  /// ```
+  /// var initFlag = true;
+  /// var prev_v1, prev_v2;
+  /// while (true) {
+  ///   var v1, v2;
+  ///   if (initFlag) {
+  ///     initFlag = false;
+  ///     v1 = inti1;
+  ///     v2 = init2;
+  ///   } else {
+  ///     v1 = prev_v1;
+  ///     v2 = prev_v2;
+  ///     updates;
+  ///   }
+  ///   if (!condition) break;
+  ///   body;
+  ///   prev_v1 = v1;
+  ///   prev_v2 = v2;
+  /// }
+  /// ```
+  js_ast.Statement _rewriteAsWhile(ForStatement node) {
+    var initFlagTempId = _emitTemporaryId('t#_init');
+    var loopVariableIds = {
+      for (var variable in node.variables) variable: _emitVariableDef(variable),
+    };
+    var prevVariableTempIds = {
+      for (var variable in node.variables)
+        variable: _emitTemporaryId('t#_prev_${variable.name!}'),
+    };
+    var inits = js_ast.Block([
+      // Set init flag to false so the initialization only happens on the first
+      // iteration of the while loop.
+      js.statement('# = false;', [initFlagTempId]),
+      // Initialize fresh loop variables to initial values.
+      for (var variable in node.variables)
+        js.statement('# = #;', [
+          loopVariableIds[variable]!,
+          _visitInitializer(variable.initializer, variable.annotations)
+        ]),
+    ]);
+    var prevInits = js_ast.Block([
+      // Intialize fresh loop variables with the value from the previous
+      // iteration.
+      for (var variable in node.variables)
+        js.statement('# = #;',
+            [loopVariableIds[variable], prevVariableTempIds[variable]]),
+      // Original update expressions.
+      for (var update in node.updates) _visitExpression(update).toStatement(),
+    ]);
+    return js_ast.Block([
+      // Create temporary variables for the intialization flag and previous
+      // loop variables.
+      js_ast.VariableDeclarationList('let', [
+        js_ast.VariableInitialization(initFlagTempId, js_ast.LiteralBool(true)),
+        for (var variable in node.variables)
+          js_ast.VariableInitialization(prevVariableTempIds[variable]!, null),
+      ]).toStatement(),
+      // The for loop transformed into a while loop.
+      js_ast.While(
+          js_ast.LiteralBool(true),
+          js_ast.Block([
+            // Create fresh loop variables every iteration.
+            if (node.variables.isNotEmpty)
+              js_ast.VariableDeclarationList('let', [
+                for (var variable in node.variables)
+                  js_ast.VariableInitialization(
+                      loopVariableIds[variable]!, null)
+              ]).toStatement(),
+            // Initialize loop variables.
+            js_ast.If(initFlagTempId, inits, prevInits),
+            // Loop condition guard.
+            if (node.condition != null)
+              js.statement('if (!#) break;', [_visitTest(node.condition!)])
+                ..sourceInformation = _nodeStart(node.condition!),
+            // Original loop body.
+            _visitScope(_effectiveBodyOf(node, node.body)),
+            // Save previous loop variables
+            for (var variable in node.variables)
+              js.statement('# = #;',
+                  [prevVariableTempIds[variable]!, _emitVariableRef(variable)])
+                // Map these locations to the variable declaration so stepping
+                // in the Dart debugger doesn't jump to the previous line when
+                // stepping.
+                ..sourceInformation = _nodeStart(variable),
+          ]))
+        // The while loop gets mapped to the orginal for loop location.
+        ..sourceInformation = _nodeStart(node),
+    ])
+      // Clear the source mapping on the outer block so it doesn't automatically
+      // get mapped to the for loop node in _visitStatement.
+      ..sourceInformation = continueSourceMap;
   }
 
   @override

@@ -30517,6 +30517,16 @@ library
 ''');
   }
 
+  test_import_hide_offsetEnd() async {
+    var library = await buildLibrary('''
+import "dart:math" hide e, pi;
+''');
+    var import = library.libraryImports[0];
+    var combinator = import.combinators[0] as HideElementCombinator;
+    expect(combinator.offset, 19);
+    expect(combinator.end, 29);
+  }
+
   test_import_invalidUri_metadata() async {
     var library = await buildLibrary('''
 @foo

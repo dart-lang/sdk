@@ -3285,6 +3285,12 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   List<String> hiddenNames = const [];
 
   @override
+  int offset = 0;
+
+  @override
+  int end = -1;
+
+  @override
   String toString() {
     StringBuffer buffer = StringBuffer();
     buffer.write("hide ");

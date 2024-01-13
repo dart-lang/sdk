@@ -301,6 +301,23 @@ class LabelContinueFinder extends RecursiveVisitor<void> {
       found = true;
 }
 
+/// Returns `true` if any of [n]s children are a [FunctionExpression] node.
+bool containsFunctionExpression(Node n) {
+  var visitor = _FunctionExpressionFinder.instance;
+  visitor.found = false;
+  n.accept(visitor);
+  return visitor.found;
+}
+
+class _FunctionExpressionFinder extends RecursiveVisitor<void> {
+  var found = false;
+
+  static final instance = _FunctionExpressionFinder();
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) => found = true;
+}
+
 /// Whether [member] is declared native, as in:
 ///
 ///    void foo() native;
