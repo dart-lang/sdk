@@ -14,6 +14,7 @@ import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -550,7 +551,7 @@ class _AnalysisContextCollectionPrinter {
   final ResourceProvider resourceProvider;
   final TreeStringSink sink;
 
-  final Map<AnalysisOptionsImpl, String> _analysisOptionsFiles = Map.identity();
+  final Map<AnalysisOptionsImpl, String> _analysisOptions = Map.identity();
   final Map<Workspace, (int, String)> _workspaces = Map.identity();
   final Map<Workspace, Map<WorkspacePackage, String>> _workspacePackages =
       Map.identity();
@@ -568,14 +569,7 @@ class _AnalysisContextCollectionPrinter {
       _writeAnalysisContext,
     );
 
-    sink.writeElements(
-      'analysisOptions',
-      contextCollection.contexts
-          .expand((c) => c.allAnalysisOptions
-              .where((o) => o is AnalysisOptionsImpl && o.file != null))
-          .toList(),
-      _writeAnalysisOptions,
-    );
+    _writeAnalysisOptions();
 
     sink.writeElements(
       'workspaces',
@@ -585,7 +579,8 @@ class _AnalysisContextCollectionPrinter {
   }
 
   String _idOfAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
-    return _indexIdOfAnalysisOptions(analysisOptions);
+    return _analysisOptions[analysisOptions] ??=
+        'analysisOptions_${_analysisOptions.length}';
   }
 
   String _idOfWorkspace(Workspace workspace) {
@@ -602,17 +597,6 @@ class _AnalysisContextCollectionPrinter {
       final id = 'workspacePackage_${workspaceIndex}_${packages.length}';
       return packages[package] ??= id;
     }
-  }
-
-  String _indexIdOfAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
-    if (_analysisOptionsFiles[analysisOptions] case final existing?) {
-      return existing;
-    }
-
-    final index = _analysisOptionsFiles.length;
-    final id = 'analysisOptions_$index';
-    _analysisOptionsFiles[analysisOptions] = id;
-    return id;
   }
 
   (int, String) _indexIdOfWorkspace(Workspace workspace) {
@@ -653,9 +637,20 @@ class _AnalysisContextCollectionPrinter {
     });
   }
 
-  void _writeAnalysisOptions(AnalysisOptions analysisOptions) {
-    final file = (analysisOptions as AnalysisOptionsImpl).file!;
-    _writeNamedFile(_idOfAnalysisOptions(analysisOptions), file);
+  void _writeAnalysisOptions() {
+    var withFile = _analysisOptions.keys
+        .map((analysisOption) {
+          var file = analysisOption.file;
+          return file != null ? (analysisOption, file) : null;
+        })
+        .whereNotNull()
+        .toList();
+
+    sink.writeElements('analysisOptions', withFile, (pair) {
+      var id = _idOfAnalysisOptions(pair.$1);
+      var file = pair.$2;
+      _writeNamedFile(id, file);
+    });
   }
 
   void _writeDartFile(FileSystemState fsState, File file) {
