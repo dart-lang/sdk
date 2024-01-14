@@ -10,29 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetElementTypeNotAssignableTest);
-    defineReflectiveTests(SetElementTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(SetElementTypeNotAssignableWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class SetElementTypeNotAssignableTest extends PubPackageResolutionTest
-    with SetElementTypeNotAssignableTestCases {
-  test_const_stringQuestion_null_dynamic() async {
-    await assertNoErrorsInCode('''
-const a = null;
-var v = const <String?>{a};
-''');
-  }
-
-  test_const_stringQuestion_null_value() async {
-    await assertNoErrorsInCode('''
-var v = const <String?>{null};
-''');
-  }
-}
-
-mixin SetElementTypeNotAssignableTestCases on PubPackageResolutionTest {
+class SetElementTypeNotAssignableTest extends PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;
@@ -137,6 +120,19 @@ var v = const <int>{...[0, 1]};
 ''');
   }
 
+  test_const_stringQuestion_null_dynamic() async {
+    await assertNoErrorsInCode('''
+const a = null;
+var v = const <String?>{a};
+''');
+  }
+
+  test_const_stringQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <String?>{null};
+''');
+  }
+
   test_nonConst_ifElement_thenElseFalse_intDynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 'a';
@@ -196,11 +192,6 @@ var v = <int>{'abc'};
     ]);
   }
 }
-
-@reflectiveTest
-class SetElementTypeNotAssignableWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, SetElementTypeNotAssignableTestCases {}
 
 @reflectiveTest
 class SetElementTypeNotAssignableWithStrictCastsTest

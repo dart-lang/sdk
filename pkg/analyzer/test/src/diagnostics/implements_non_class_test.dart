@@ -10,52 +10,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplementsNonClassTest);
-    defineReflectiveTests(ImplementsNonClassWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ImplementsNonClassTest extends PubPackageResolutionTest
-    with ImplementsNonClassTestCases {
-  test_inClass_extensionType() async {
-    await assertErrorsInCode(r'''
-extension type A(int it) {}
-class B implements A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1),
-    ]);
-  }
-
-  test_inEnum_topLevelVariable() async {
-    await assertErrorsInCode(r'''
-int A = 7;
-enum E implements A {
-  v
-}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 29, 1),
-    ]);
-  }
-
-  test_inMixin_extensionType() async {
-    await assertErrorsInCode(r'''
-extension type A(int it) {}
-mixin M implements A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1),
-    ]);
-  }
-
-  test_Never() async {
-    await assertErrorsInCode('''
-class A implements Never {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 5),
-    ]);
-  }
-}
-
-mixin ImplementsNonClassTestCases on PubPackageResolutionTest {
+class ImplementsNonClassTest extends PubPackageResolutionTest {
   test_inClass_dynamic() async {
     await assertErrorsInCode('''
 class A implements dynamic {}
@@ -70,6 +29,15 @@ enum E { ONE }
 class A implements E {}
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 34, 1),
+    ]);
+  }
+
+  test_inClass_extensionType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+class B implements A {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1),
     ]);
   }
 
@@ -93,6 +61,17 @@ class C = A with M implements B;
     ]);
   }
 
+  test_inEnum_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+int A = 7;
+enum E implements A {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 29, 1),
+    ]);
+  }
+
   test_inMixin_dynamic() async {
     await assertErrorsInCode(r'''
 mixin M implements dynamic {}
@@ -100,8 +79,21 @@ mixin M implements dynamic {}
       error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 7),
     ]);
   }
-}
 
-@reflectiveTest
-class ImplementsNonClassWithoutNullSafetyTest extends PubPackageResolutionTest
-    with ImplementsNonClassTestCases, WithoutNullSafetyMixin {}
+  test_inMixin_extensionType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+mixin M implements A {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1),
+    ]);
+  }
+
+  test_Never() async {
+    await assertErrorsInCode('''
+class A implements Never {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 5),
+    ]);
+  }
+}

@@ -1620,9 +1620,6 @@ class FixProcessor extends BaseProcessor {
     WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS: [
       AddMissingRequiredArgument.new,
     ],
-    WarningCode.MISSING_RETURN: [
-      AddAsync.missingReturn,
-    ],
     WarningCode.MUST_CALL_SUPER: [
       AddCallSuper.new,
     ],

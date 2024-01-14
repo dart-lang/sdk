@@ -1506,8 +1506,6 @@ CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST:
   status: hasFix
 CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY:
   status: hasFix
-CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE:
-  status: noFix
 CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS:
   status: noFix
   since: 2.15
@@ -3702,8 +3700,6 @@ WarningCode.MISSING_REQUIRED_PARAM:
   status: hasFix
 WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
   status: hasFix
-WarningCode.MISSING_RETURN:
-  status: hasFix
 WarningCode.MIXIN_ON_SEALED_CLASS:
   status: noFix
   notes: |-
@@ -3770,9 +3766,6 @@ WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS:
   since: 2.15
 WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR:
   status: hasFix
-WarningCode.SDK_VERSION_NEVER:
-  status: noFix
-  notes: Deprecated
 WarningCode.SDK_VERSION_SINCE:
   status: needsFix
   notes: |-

@@ -12,16 +12,12 @@ main() {
     defineReflectiveTests(
       NonAbstractClassInheritsAbstractMemberTest,
     );
-    defineReflectiveTests(
-      NonAbstractClassInheritsAbstractMemberWithoutNullSafetyTest,
-    );
   });
 }
 
 @reflectiveTest
 class NonAbstractClassInheritsAbstractMemberTest
-    extends PubPackageResolutionTest
-    with NonAbstractClassInheritsAbstractMemberTestCases {
+    extends PubPackageResolutionTest {
   test_abstract_field_final_implement_getter() async {
     await assertNoErrorsInCode('''
 abstract class A {
@@ -103,6 +99,79 @@ class B implements A {
           45,
           1),
     ]);
+  }
+
+  test_abstractsDontOverrideConcretes_getter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get g => 0;
+}
+abstract class B extends A {
+  int get g;
+}
+class C extends B {}
+''');
+  }
+
+  test_abstractsDontOverrideConcretes_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  m(p) {}
+}
+abstract class B extends A {
+  m(p);
+}
+class C extends B {}
+''');
+  }
+
+  test_abstractsDontOverrideConcretes_setter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set s(v) {}
+}
+abstract class B extends A {
+  set s(v);
+}
+class C extends B {}
+''');
+  }
+
+  test_classTypeAlias_interface() async {
+    // issue 15979
+    await assertNoErrorsInCode(r'''
+//@dart=2.19
+abstract class M {}
+abstract class A {}
+abstract class I {
+  m();
+}
+abstract class B = A with M implements I;
+''');
+  }
+
+  test_classTypeAlias_mixin() async {
+    // issue 15979
+    await assertNoErrorsInCode(r'''
+//@dart=2.19
+abstract class M {
+  m();
+}
+abstract class A {}
+abstract class B = A with M;
+''');
+  }
+
+  test_classTypeAlias_superclass() async {
+    // issue 15979
+    await assertNoErrorsInCode(r'''
+//@dart=2.19
+class M {}
+abstract class A {
+  m();
+}
+abstract class B = A with M;
+''');
   }
 
   test_enum_getter_fromInterface() async {
@@ -288,82 +357,6 @@ class B implements A {
           36,
           1),
     ]);
-  }
-}
-
-mixin NonAbstractClassInheritsAbstractMemberTestCases
-    on PubPackageResolutionTest {
-  test_abstractsDontOverrideConcretes_getter() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int get g => 0;
-}
-abstract class B extends A {
-  int get g;
-}
-class C extends B {}
-''');
-  }
-
-  test_abstractsDontOverrideConcretes_method() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  m(p) {}
-}
-abstract class B extends A {
-  m(p);
-}
-class C extends B {}
-''');
-  }
-
-  test_abstractsDontOverrideConcretes_setter() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  set s(v) {}
-}
-abstract class B extends A {
-  set s(v);
-}
-class C extends B {}
-''');
-  }
-
-  test_classTypeAlias_interface() async {
-    // issue 15979
-    await assertNoErrorsInCode(r'''
-//@dart=2.19
-abstract class M {}
-abstract class A {}
-abstract class I {
-  m();
-}
-abstract class B = A with M implements I;
-''');
-  }
-
-  test_classTypeAlias_mixin() async {
-    // issue 15979
-    await assertNoErrorsInCode(r'''
-//@dart=2.19
-abstract class M {
-  m();
-}
-abstract class A {}
-abstract class B = A with M;
-''');
-  }
-
-  test_classTypeAlias_superclass() async {
-    // issue 15979
-    await assertNoErrorsInCode(r'''
-//@dart=2.19
-class M {}
-abstract class A {
-  m();
-}
-abstract class B = A with M;
-''');
   }
 
   test_fivePlus() async {
@@ -897,10 +890,3 @@ class C implements I {
     ]);
   }
 }
-
-@reflectiveTest
-class NonAbstractClassInheritsAbstractMemberWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with
-        WithoutNullSafetyMixin,
-        NonAbstractClassInheritsAbstractMemberTestCases {}

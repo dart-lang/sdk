@@ -150,7 +150,7 @@ analyzer:
   errors:
     unused_local_variable: ignore
     invalid_assignment: warning
-    missing_return: error
+    assignment_of_do_not_store: error
     dead_code: info
 ''', []);
   }
