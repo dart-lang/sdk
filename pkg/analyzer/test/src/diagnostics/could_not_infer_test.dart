@@ -10,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CouldNotInferTest);
-    defineReflectiveTests(CouldNotInferWithoutNullSafetyTest);
   });
 }
 
@@ -18,84 +17,6 @@ main() {
 // https://github.com/dart-lang/sdk/issues/44078)
 @reflectiveTest
 class CouldNotInferTest extends PubPackageResolutionTest {
-  test_function_argument_invalidType() async {
-    await assertErrorsInCode(r'''
-void foo<T extends num>(T t) {}
-
-void f(X x) {
-  foo(x);
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 1),
-    ]);
-  }
-
-  test_functionType() async {
-    await assertNoErrorsInCode('''
-void f<X>() {}
-
-main() {
-  [f];
-}
-''');
-  }
-
-  test_functionType_optOutOfGenericMetadata() async {
-    newFile('$testPackageLibPath/a.dart', '''
-void f<X>() {}
-''');
-    await assertErrorsInCode('''
-// @dart=2.12
-import 'a.dart';
-main() {
-  [f];
-}
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 42, 3),
-    ]);
-  }
-
-  test_instanceCreation_viaTypeAlias_notWellBounded() async {
-    await assertErrorsInCode('''
-class C<X> {
-  C();
-  factory C.foo() => C();
-  factory C.bar() = C;
-}
-typedef G<X> = X Function(X);
-typedef A<X extends G<C<X>>> = C<X>;
-
-void f() {
-  A(); // Error.
-  A.foo(); // Error.
-  A.bar(); // Error.
-}
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 152, 1),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 169, 5),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 190, 5),
-    ]);
-  }
-
-  test_topLevel() async {
-    await assertErrorsInCode('''
-class C<P extends num> {
-  factory C(Iterable<P> p) => C._();
-  C._();
-}
-
-var c = C([]);
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 82, 1),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 82, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 82, 1)]),
-    ]);
-  }
-}
-
-@reflectiveTest
-class CouldNotInferWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
   test_constructors_inferenceFBounded() async {
     await assertErrorsInCode('''
 class C<T> {}
@@ -112,12 +33,22 @@ main() {
   P._();
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 154, 1)]),
+      error(
+          CompileTimeErrorCode
+              .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+          94,
+          1),
+      error(
+          CompileTimeErrorCode
+              .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+          94,
+          1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1,
           contextMessages: [message('/home/test/lib/test.dart', 154, 1)]),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 154, 1)]),
     ]);
   }
 
@@ -138,7 +69,8 @@ main() {
   var x = C(myF);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 120, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 98, 4),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 120, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 124, 1),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 124, 1,
           contextMessages: [message('/home/test/lib/test.dart', 124, 1)]),
@@ -159,12 +91,32 @@ main() {
   var d = max(x, y);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 93, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 117, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 142, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 93, 1),
+      error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          101,
+          1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 117, 1),
+      error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          125,
+          1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 142, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 146, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 163, 1),
+      error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          150,
+          1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 163, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 167, 3),
+      error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          171,
+          1),
     ]);
   }
 
@@ -173,17 +125,30 @@ main() {
 T f<T>(T t) => null;
 main() { f(<S>(S s) => s); }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 30, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 15, 4),
+    ]);
+  }
+
+  test_function_argument_invalidType() async {
+    await assertErrorsInCode(r'''
+void foo<T extends num>(T t) {}
+
+void f(X x) {
+  foo(x);
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 1),
     ]);
   }
 
   test_functionType() async {
-    await assertErrorsInCode('''
-T Function<T>(T) f;
-main() { f(<S>(S s) => s); }
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 29, 1),
-    ]);
+    await assertNoErrorsInCode('''
+void f<X>() {}
+
+main() {
+  [f];
+}
+''');
   }
 
   test_functionType_allSameSubtype() async {
@@ -210,6 +175,21 @@ void f() {
     ]);
   }
 
+  test_functionType_optOutOfGenericMetadata() async {
+    newFile('$testPackageLibPath/a.dart', '''
+void f<X>() {}
+''');
+    await assertErrorsInCode('''
+// @dart=2.12
+import 'a.dart';
+main() {
+  [f];
+}
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 42, 3),
+    ]);
+  }
+
   test_functionType_parameterIsBound_returnIsBound() async {
     await assertNoErrorsInCode(r'''
 external T f<T extends num>(T a, T b);
@@ -229,7 +209,7 @@ void main() {
 }
 ''', [
       error(CompileTimeErrorCode.COULD_NOT_INFER, 95, 1),
-      error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 95, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 1),
     ]);
   }
 
@@ -245,7 +225,7 @@ void main() {
 }
 ''', [
       error(CompileTimeErrorCode.COULD_NOT_INFER, 78, 3),
-      error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 78, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 78, 3),
     ]);
   }
 
@@ -258,7 +238,7 @@ void main() {
 }
 ''', [
       error(CompileTimeErrorCode.COULD_NOT_INFER, 95, 1),
-      error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 95, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 1),
     ]);
   }
 
@@ -275,6 +255,7 @@ void main() {
 }
 ''', [
       error(CompileTimeErrorCode.COULD_NOT_INFER, 124, 5),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 124, 5),
     ]);
   }
 
@@ -335,6 +316,28 @@ main() {
     ]);
   }
 
+  test_instanceCreation_viaTypeAlias_notWellBounded() async {
+    await assertErrorsInCode('''
+class C<X> {
+  C();
+  factory C.foo() => C();
+  factory C.bar() = C;
+}
+typedef G<X> = X Function(X);
+typedef A<X extends G<C<X>>> = C<X>;
+
+void f() {
+  A(); // Error.
+  A.foo(); // Error.
+  A.bar(); // Error.
+}
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 152, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 169, 5),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 190, 5),
+    ]);
+  }
+
   test_method() async {
     await assertErrorsInCode(r'''
 class C {
@@ -342,7 +345,22 @@ class C {
 }
 main() { new C().f(<S>(S s) => s); }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 52, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 27, 4),
+    ]);
+  }
+
+  test_topLevel() async {
+    await assertErrorsInCode('''
+class C<P extends num> {
+  factory C(Iterable<P> p) => C._();
+  C._();
+}
+
+var c = C([]);
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 82, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 82, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 82, 1)]),
     ]);
   }
 }

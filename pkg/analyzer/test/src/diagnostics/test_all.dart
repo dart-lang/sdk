@@ -339,8 +339,6 @@ import 'function_typed_parameter_var_test.dart' as function_typed_parameter_var;
 import 'generic_function_type_cannot_be_bound_test.dart'
     as generic_function_type_cannot_be_bound;
 import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
-import 'getter_not_assignable_setter_types_test.dart'
-    as getter_not_assignable_setter_types;
 import 'getter_not_subtype_setter_types_test.dart'
     as getter_not_subtype_setter_types;
 import 'if_element_condition_from_deferred_library_test.dart'
@@ -1137,7 +1135,6 @@ main() {
     function_typed_parameter_var.main();
     generic_function_type_cannot_be_bound.main();
     generic_struct_subclass.main();
-    getter_not_assignable_setter_types.main();
     getter_not_subtype_setter_types.main();
     if_element_condition_from_deferred_library.main();
     illegal_async_generator_return_type.main();

@@ -11,14 +11,44 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentTypeNotAssignableTest);
-    defineReflectiveTests(ArgumentTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(ArgumentTypeNotAssignableWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest
-    with ArgumentTypeNotAssignableTestCases {
+class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest {
+  test_ambiguousClassName() async {
+    // See dartbug.com/19624
+    newFile('$testPackageLibPath/lib2.dart', '''
+class _A {}
+g(h(_A a)) {}''');
+    await assertErrorsInCode('''
+import 'lib2.dart';
+class _A {}
+f() {
+  g((_A a) {});
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 9),
+    ]);
+    // The name _A is private to the library it's defined in, so this is a type
+    // mismatch. Furthermore, the error message should mention both _A and the
+    // filenames so the user can figure out what's going on.
+    String message = result.errors[0].message;
+    expect(message.contains("_A"), isTrue);
+  }
+
+  test_annotation_namedConstructor() async {
+    await assertErrorsInCode('''
+class A {
+  const A.fromInt(int p);
+}
+@A.fromInt('0')
+main() {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 3),
+    ]);
+  }
+
   test_annotation_namedConstructor_generic() async {
     await assertErrorsInCode('''
 class A<T> {
@@ -28,6 +58,41 @@ class A<T> {
 main() {
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 55, 3),
+    ]);
+  }
+
+  test_annotation_type_arguments_inferred() async {
+    await assertNoErrorsInCode('''
+@C([])
+int i = 0;
+
+class C<T> {
+  const C(List<List<T>> arg);
+}
+''');
+  }
+
+  test_annotation_unnamedConstructor() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int p);
+}
+@A('0')
+main() {
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 33, 3),
+    ]);
+  }
+
+  test_binary() async {
+    await assertErrorsInCode('''
+class A {
+  operator +(int p) {}
+}
+f(A a) {
+  a + '0';
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 3),
     ]);
   }
 
@@ -49,6 +114,37 @@ void f(A a, A? aq) {
     ]);
   }
 
+  test_call() async {
+    await assertErrorsInCode('''
+typedef bool Predicate<T>(T object);
+
+Predicate<String> f() => (String s) => false;
+
+void main() {
+  f().call(3);
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 110, 1),
+    ]);
+  }
+
+  test_cascadeSecond() async {
+    await assertErrorsInCode('''
+// filler filler filler filler filler filler filler filler filler filler
+class A {
+  B ma() { return new B(); }
+}
+class B {
+  mb(String p) {}
+}
+
+main() {
+  A a = new A();
+  a..  ma().mb(0);
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 186, 1),
+    ]);
+  }
+
   test_const() async {
     await assertErrorsInCode('''
 class A {
@@ -59,6 +155,18 @@ main() {
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2),
       error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 52, 2),
+    ]);
+  }
+
+  test_const_super() async {
+    await assertErrorsInCode('''
+class A {
+  const A(String p);
+}
+class B extends A {
+  const B() : super(42);
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 73, 2),
     ]);
   }
 
@@ -181,235 +289,6 @@ var x = g('Hello');
     ]);
   }
 
-  test_implicitCallReference_namedAndRequired() async {
-    await assertNoErrorsInCode('''
-class A {
-  void call(int p) {}
-}
-void f({required void Function(int) a}) {}
-void g(A a) {
-  f(a: a);
-}
-''');
-  }
-
-  test_invocation_functionTypes_optional() async {
-    await assertErrorsInCode('''
-void acceptFunOptBool(void funNumOptBool([bool b])) {}
-void funBool(bool b) {}
-main() {
-  acceptFunOptBool(funBool);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 7),
-    ]);
-  }
-
-  test_invocation_functionTypes_optional_method() async {
-    await assertErrorsInCode('''
-void acceptFunOptBool(void funOptBool([bool b])) {}
-class C {
-  static void funBool(bool b) {}
-}
-main() {
-  acceptFunOptBool(C.funBool);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9),
-    ]);
-  }
-
-  void test_recordType() async {
-    await assertErrorsInCode('''
-void f((int a, int b) r) {}
-
-void g() {
-  f((a: 1, b: 2));
-}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 44, 12,
-          messageContains: [
-            'Expected 2 positional arguments, but got 0 instead.'
-          ]),
-    ]);
-  }
-
-  void test_recordType_namedArguments() async {
-    await assertErrorsInCode('''
-typedef A = ({
-  int b,
-  int c,
-});
-
-void f(A a){print(a);}
-
-main() {
- f((bb:2, c:3));
-}
-''', [
-      error(
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        74,
-        11,
-        messageContains: ['Unexpected named argument `bb` with type `int`.'],
-      ),
-    ]);
-  }
-
-  void test_recordType_namedArguments_missing() async {
-    await assertErrorsInCode('''
-typedef A = ({
-  int b,
-  int c,
-});
-
-void f(A a){print(a);}
-
-main() {
- f((b:2));
-}
-''', [
-      error(
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        74,
-        5,
-        messageContains: [
-          'Expected 2 named arguments, but got 1 instead.',
-        ],
-      ),
-    ]);
-  }
-
-  void test_recordType_positionalArguments() async {
-    await assertErrorsInCode('''
-typedef A = (
-  int b,
-  int c,
-);
-
-void f(A a){print(a);}
-
-main() {
- f((3, 2, 1));
-}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 72, 9,
-          messageContains: [
-            'Expected 2 positional arguments, but got 3 instead.'
-          ]),
-    ]);
-  }
-}
-
-mixin ArgumentTypeNotAssignableTestCases on PubPackageResolutionTest {
-  test_ambiguousClassName() async {
-    // See dartbug.com/19624
-    newFile('$testPackageLibPath/lib2.dart', '''
-class _A {}
-g(h(_A a)) {}''');
-    await assertErrorsInCode('''
-import 'lib2.dart';
-class _A {}
-f() {
-  g((_A a) {});
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 9),
-    ]);
-    // The name _A is private to the library it's defined in, so this is a type
-    // mismatch. Furthermore, the error message should mention both _A and the
-    // filenames so the user can figure out what's going on.
-    String message = result.errors[0].message;
-    expect(message.contains("_A"), isTrue);
-  }
-
-  test_annotation_namedConstructor() async {
-    await assertErrorsInCode('''
-class A {
-  const A.fromInt(int p);
-}
-@A.fromInt('0')
-main() {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 3),
-    ]);
-  }
-
-  test_annotation_type_arguments_inferred() async {
-    await assertNoErrorsInCode('''
-@C([])
-int i = 0;
-
-class C<T> {
-  const C(List<List<T>> arg);
-}
-''');
-  }
-
-  test_annotation_unnamedConstructor() async {
-    await assertErrorsInCode('''
-class A {
-  const A(int p);
-}
-@A('0')
-main() {
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 33, 3),
-    ]);
-  }
-
-  test_binary() async {
-    await assertErrorsInCode('''
-class A {
-  operator +(int p) {}
-}
-f(A a) {
-  a + '0';
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 3),
-    ]);
-  }
-
-  test_call() async {
-    await assertErrorsInCode('''
-typedef bool Predicate<T>(T object);
-
-Predicate<String> f() => (String s) => false;
-
-void main() {
-  f().call(3);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 110, 1),
-    ]);
-  }
-
-  test_cascadeSecond() async {
-    await assertErrorsInCode('''
-// filler filler filler filler filler filler filler filler filler filler
-class A {
-  B ma() { return new B(); }
-}
-class B {
-  mb(String p) {}
-}
-
-main() {
-  A a = new A();
-  a..  ma().mb(0);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 186, 1),
-    ]);
-  }
-
-  test_const_super() async {
-    await assertErrorsInCode('''
-class A {
-  const A(String p);
-}
-class B extends A {
-  const B() : super(42);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 73, 2),
-    ]);
-  }
-
   test_for_element_type_inferred_from_rewritten_node() async {
     // See https://github.com/dart-lang/sdk/issues/39171
     await assertNoErrorsInCode('''
@@ -474,6 +353,18 @@ class A {
 }
 void defaultFunc(int p) {}
 void f({void Function(int) a = defaultFunc}) {}
+void g(A a) {
+  f(a: a);
+}
+''');
+  }
+
+  test_implicitCallReference_namedAndRequired() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call(int p) {}
+}
+void f({required void Function(int) a}) {}
 void g(A a) {
   f(a: a);
 }
@@ -605,6 +496,30 @@ class A<K, V> {
   }
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 41, 1),
+    ]);
+  }
+
+  test_invocation_functionTypes_optional() async {
+    await assertErrorsInCode('''
+void acceptFunOptBool(void funNumOptBool([bool b])) {}
+void funBool(bool b) {}
+main() {
+  acceptFunOptBool(funBool);
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 7),
+    ]);
+  }
+
+  test_invocation_functionTypes_optional_method() async {
+    await assertErrorsInCode('''
+void acceptFunOptBool(void funOptBool([bool b])) {}
+class C {
+  static void funBool(bool b) {}
+}
+main() {
+  acceptFunOptBool(C.funBool);
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9),
     ]);
   }
 
@@ -752,6 +667,87 @@ main() {
     ]);
   }
 
+  void test_recordType() async {
+    await assertErrorsInCode('''
+void f((int a, int b) r) {}
+
+void g() {
+  f((a: 1, b: 2));
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 44, 12,
+          messageContains: [
+            'Expected 2 positional arguments, but got 0 instead.'
+          ]),
+    ]);
+  }
+
+  void test_recordType_namedArguments() async {
+    await assertErrorsInCode('''
+typedef A = ({
+  int b,
+  int c,
+});
+
+void f(A a){print(a);}
+
+main() {
+ f((bb:2, c:3));
+}
+''', [
+      error(
+        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        74,
+        11,
+        messageContains: ['Unexpected named argument `bb` with type `int`.'],
+      ),
+    ]);
+  }
+
+  void test_recordType_namedArguments_missing() async {
+    await assertErrorsInCode('''
+typedef A = ({
+  int b,
+  int c,
+});
+
+void f(A a){print(a);}
+
+main() {
+ f((b:2));
+}
+''', [
+      error(
+        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        74,
+        5,
+        messageContains: [
+          'Expected 2 named arguments, but got 1 instead.',
+        ],
+      ),
+    ]);
+  }
+
+  void test_recordType_positionalArguments() async {
+    await assertErrorsInCode('''
+typedef A = (
+  int b,
+  int c,
+);
+
+void f(A a){print(a);}
+
+main() {
+ f((3, 2, 1));
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 72, 9,
+          messageContains: [
+            'Expected 2 positional arguments, but got 3 instead.'
+          ]),
+    ]);
+  }
+
   @failingTest
   test_tearOff_required() async {
     await assertErrorsInCode('''
@@ -764,35 +760,6 @@ g(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class ArgumentTypeNotAssignableWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, ArgumentTypeNotAssignableTestCases {
-  test_invocation_functionTypes_optional() async {
-    await assertErrorsInCode('''
-void acceptFunOptBool(void funNumOptBool([bool b])) {}
-void funBool(bool b) {}
-main() {
-  acceptFunOptBool(funBool);
-}''', [
-      error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 107, 7),
-    ]);
-  }
-
-  test_invocation_functionTypes_optional_method() async {
-    await assertErrorsInCode('''
-void acceptFunOptBool(void funOptBool([bool b])) {}
-class C {
-  static void funBool(bool b) {}
-}
-main() {
-  acceptFunOptBool(C.funBool);
-}''', [
-      error(CompileTimeErrorCode.INVALID_CAST_METHOD, 125, 9),
     ]);
   }
 }
