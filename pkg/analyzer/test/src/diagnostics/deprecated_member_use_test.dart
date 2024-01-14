@@ -12,9 +12,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedMemberUse_BasicWorkspaceTest);
-    defineReflectiveTests(
-      DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest,
-    );
     defineReflectiveTests(DeprecatedMemberUse_BlazeWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_GnWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_PackageBuildWorkspaceTest);
@@ -22,257 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, DeprecatedMemberUse_BasicWorkspaceTestCases {}
-
-@reflectiveTest
-class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
-    with DeprecatedMemberUse_BasicWorkspaceTestCases {
-  test_deprecatedField_inObjectPattern_explicitName() async {
-    await assertErrorsInCode2(externalCode: r'''
-class C {
-  @Deprecated('')
-  final int foo = 0;
-}
-''', code: '''
-int g(Object s) =>
-  switch (s) {
-    C(foo: var f) => f,
-    _ => 7,
-  };
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 69, 3),
-    ]);
-  }
-
-  test_deprecatedField_inObjectPattern_inferredName() async {
-    await assertErrorsInCode2(externalCode: r'''
-class C {
-  @Deprecated('')
-  final int foo = 0;
-}
-''', code: '''
-int g(Object s) =>
-  switch (s) {
-    C(:var foo) => foo,
-    _ => 7,
-  };
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 74, 3),
-    ]);
-  }
-
-  test_inDeprecatedDefaultFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-@deprecated
-class C {
-  const C();
-}
-''',
-      code: r'''
-f({@deprecated C? c = const C()}) {}
-''',
-    );
-  }
-
-  test_inDeprecatedEnum() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-@deprecated
-void f() {}
-''',
-      code: r'''
-@deprecated
-enum E {
-  one, two;
-
-  void m() {
-    f();
-  }
-}
-''',
-    );
-  }
-
-  test_inDeprecatedExtensionType() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-@deprecated
-f() {}
-''',
-      code: '''
-@deprecated
-extension type E(int i) {
-  m() {
-    f();
-  }
-}
-''',
-    );
-  }
-
-  test_inDeprecatedFieldFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-@deprecated
-class C {}
-''',
-      code: r'''
-class A {
-  Object? o;
-  A({@deprecated C? this.o});
-}
-''',
-    );
-  }
-
-  test_inDeprecatedFunctionTypedFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-@deprecated
-class C {}
-''',
-      code: r'''
-f({@deprecated C? callback()?}) {}
-''',
-    );
-  }
-
-  test_inDeprecatedSimpleFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-@deprecated
-class C {}
-''',
-      code: r'''
-f({@deprecated C? c}) {}
-''',
-    );
-  }
-
-  test_inDeprecatedSuperFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-@deprecated
-class C {}
-''',
-      code: r'''
-class A {
-  A({Object? o});
-}
-class B extends A {
-  B({@deprecated C? super.o});
-}
-''',
-    );
-  }
-
-  test_inEnum() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
-@deprecated
-void f() {}
-''',
-      code: r'''
-enum E {
-  one, two;
-
-  void m() {
-    f();
-  }
-}
-''',
-      [
-        error(HintCode.DEPRECATED_MEMBER_USE, 68, 1),
-      ],
-    );
-  }
-
-  test_instanceCreation_deprecatedClass_deprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
-@deprecated
-class A {
-  @deprecated
-  A();
-}
-''');
-
-    await assertErrorsInCode(r'''
-import 'package:aaa/a.dart';
-
-void f() {
-  A();
-}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-      // TODO(pq): consider deduplicating.
-      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-    ]);
-  }
-
-  test_instanceCreation_deprecatedClass_undeprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
-@deprecated
-class A {
-  A();
-}
-''');
-
-    await assertErrorsInCode(r'''
-import 'package:aaa/a.dart';
-
-void f() {
-  A();
-}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-    ]);
-  }
-
-  test_instanceCreation_deprecatedClass_undeprecatedNamedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
-@deprecated
-class A {
-  A.a();
-}
-''');
-
-    await assertErrorsInCode(r'''
-import 'package:aaa/a.dart';
-
-void f() {
-  A.a();
-}
-''', [
-      // https://github.com/dart-lang/linter/issues/4752
-      // Highlights `A`.
-      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-    ]);
-  }
-
-  test_instanceCreation_undeprecatedClass_deprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
-class A {
-  @deprecated
-  A();
-}
-''');
-
-    await assertErrorsInCode(r'''
-import 'package:aaa/a.dart';
-
-void f() {
-  A();
-}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-    ]);
-  }
-}
-
-mixin DeprecatedMemberUse_BasicWorkspaceTestCases on PubPackageResolutionTest {
+class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest {
   String get externalLibPath => '$workspaceRootPath/aaa/lib/a.dart';
 
   String get externalLibUri => 'package:aaa/a.dart';
@@ -479,6 +226,40 @@ f(A a, A b) {
     );
   }
 
+  test_deprecatedField_inObjectPattern_explicitName() async {
+    await assertErrorsInCode2(externalCode: r'''
+class C {
+  @Deprecated('')
+  final int foo = 0;
+}
+''', code: '''
+int g(Object s) =>
+  switch (s) {
+    C(foo: var f) => f,
+    _ => 7,
+  };
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 69, 3),
+    ]);
+  }
+
+  test_deprecatedField_inObjectPattern_inferredName() async {
+    await assertErrorsInCode2(externalCode: r'''
+class C {
+  @Deprecated('')
+  final int foo = 0;
+}
+''', code: '''
+int g(Object s) =>
+  switch (s) {
+    C(:var foo) => foo,
+    _ => 7,
+  };
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 74, 3),
+    ]);
+  }
+
   test_export() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 @deprecated
@@ -626,6 +407,39 @@ class C {
     );
   }
 
+  test_inDeprecatedDefaultFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {
+  const C();
+}
+''',
+      code: r'''
+f({@deprecated C? c = const C()}) {}
+''',
+    );
+  }
+
+  test_inDeprecatedEnum() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+void f() {}
+''',
+      code: r'''
+@deprecated
+enum E {
+  one, two;
+
+  void m() {
+    f();
+  }
+}
+''',
+    );
+  }
+
   test_inDeprecatedExtension() async {
     await assertNoErrorsInCode2(
       externalCode: r'''
@@ -636,6 +450,23 @@ void f() {}
 @deprecated
 extension E on int {
   void m() {
+    f();
+  }
+}
+''',
+    );
+  }
+
+  test_inDeprecatedExtensionType() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+f() {}
+''',
+      code: '''
+@deprecated
+extension type E(int i) {
+  m() {
     f();
   }
 }
@@ -659,6 +490,21 @@ class X {
     );
   }
 
+  test_inDeprecatedFieldFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+class A {
+  Object? o;
+  A({@deprecated C? this.o});
+}
+''',
+    );
+  }
+
   test_inDeprecatedFunction() async {
     await assertNoErrorsInCode2(
       externalCode: r'''
@@ -670,6 +516,18 @@ f() {}
 g() {
   f();
 }
+''',
+    );
+  }
+
+  test_inDeprecatedFunctionTypedFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+f({@deprecated C? callback()?}) {}
 ''',
     );
   }
@@ -744,6 +602,35 @@ mixin M {
     );
   }
 
+  test_inDeprecatedSimpleFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+f({@deprecated C? c}) {}
+''',
+    );
+  }
+
+  test_inDeprecatedSuperFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+class A {
+  A({Object? o});
+}
+class B extends A {
+  B({@deprecated C? super.o});
+}
+''',
+    );
+  }
+
   test_inDeprecatedTopLevelVariable() async {
     await assertNoErrorsInCode2(
       externalCode: r'''
@@ -777,6 +664,27 @@ void f(A a) {
     );
   }
 
+  test_inEnum() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+@deprecated
+void f() {}
+''',
+      code: r'''
+enum E {
+  one, two;
+
+  void m() {
+    f();
+  }
+}
+''',
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE, 68, 1),
+      ],
+    );
+  }
+
   test_inExtension() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -794,6 +702,68 @@ extension E on int {
         error(HintCode.DEPRECATED_MEMBER_USE, 67, 1),
       ],
     );
+  }
+
+  test_instanceCreation_deprecatedClass_deprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {
+  @deprecated
+  A();
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+      // TODO(pq): consider deduplicating.
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+    ]);
+  }
+
+  test_instanceCreation_deprecatedClass_undeprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {
+  A();
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+    ]);
+  }
+
+  test_instanceCreation_deprecatedClass_undeprecatedNamedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {
+  A.a();
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A.a();
+}
+''', [
+      // https://github.com/dart-lang/linter/issues/4752
+      // Highlights `A`.
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+    ]);
   }
 
   test_instanceCreation_namedConstructor() async {
@@ -818,6 +788,25 @@ f() {
         ),
       ],
     );
+  }
+
+  test_instanceCreation_undeprecatedClass_deprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @deprecated
+  A();
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+    ]);
   }
 
   test_instanceCreation_unnamedConstructor() async {

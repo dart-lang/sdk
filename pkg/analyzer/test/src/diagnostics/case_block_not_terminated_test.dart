@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -11,7 +10,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseBlockNotTerminatedTest);
     defineReflectiveTests(CaseBlockNotTerminatedTest_Language219);
-    defineReflectiveTests(CaseBlockNotTerminatedWithoutNullSafetyTest);
   });
 }
 
@@ -101,24 +99,5 @@ void f(int a) {
   }
 }
 ''');
-  }
-}
-
-@reflectiveTest
-class CaseBlockNotTerminatedWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, CaseBlockNotTerminatedTestCases {
-  test_notTerminated() async {
-    await assertErrorsInCode('''
-void f(int a) {
-  switch (a) {
-    case 0:
-      print(0);
-    default:
-      return;
-  }
-}''', [
-      error(CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED, 35, 4),
-    ]);
   }
 }

@@ -14,47 +14,23 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantResolutionTest);
-    defineReflectiveTests(ConstantResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
 class ConstantResolutionTest extends PubPackageResolutionTest {
-  test_context_eliminateTypeVariables() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {
-  const A({List<T> a = const []});
-}
-''');
-    assertType(findNode.listLiteral('const []'), 'List<Never>');
-  }
-
-  test_context_eliminateTypeVariables_functionType() async {
-    await assertNoErrorsInCode(r'''
-class A<T, U> {
-  const A({List<T Function(U)> a = const []});
-}
-''');
-    assertType(
-      findNode.listLiteral('const []'),
-      'List<Never Function(Object?)>',
-    );
-  }
-}
-
-@reflectiveTest
-class ConstantResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A({int p});
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 const a = const A();
-''');
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 27, 9),
+    ]);
 
     var aLib = findElement.import('package:test/a.dart').importedLibrary!;
     var aConstructor = aLib.getClass('A')!.constructors.single;
@@ -112,7 +88,7 @@ class A<T> {
   const A({List<T> a = const []});
 }
 ''');
-    assertType(findNode.listLiteral('const []'), 'List<Null>');
+    assertType(findNode.listLiteral('const []'), 'List<Never>');
   }
 
   test_context_eliminateTypeVariables_functionType() async {
@@ -123,7 +99,7 @@ class A<T, U> {
 ''');
     assertType(
       findNode.listLiteral('const []'),
-      'List<Null Function(Object)>',
+      'List<Never Function(Object?)>',
     );
   }
 
@@ -148,12 +124,12 @@ const v = a;
     dartObjectPrinterConfiguration.withTypeArguments = true;
 
     assertDartObjectText(value, r'''
-C<double* Function(int*)*>*
+C<double Function(int)>
   typeArguments
-    double* Function(int*)*
+    double Function(int)
       alias: package:test/a.dart::@typeAlias::F
         typeArguments
-          double*
+          double
   variable: self::@variable::v
 ''');
   }

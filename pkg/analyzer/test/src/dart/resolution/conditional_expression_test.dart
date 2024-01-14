@@ -11,14 +11,11 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConditionalExpressionResolutionTest);
-    defineReflectiveTests(
-        ConditionalExpressionResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
-class ConditionalExpressionResolutionTest extends PubPackageResolutionTest
-    with ConditionalExpressionTestCases {
+class ConditionalExpressionResolutionTest extends PubPackageResolutionTest {
   test_condition_super() async {
     await assertErrorsInCode('''
 class A {
@@ -275,14 +272,7 @@ ConditionalExpression
   staticType: int?
 ''');
   }
-}
 
-@reflectiveTest
-class ConditionalExpressionResolutionTest_WithoutNullSafety
-    extends PubPackageResolutionTest
-    with ConditionalExpressionTestCases, WithoutNullSafetyMixin {}
-
-mixin ConditionalExpressionTestCases on PubPackageResolutionTest {
   test_upward() async {
     await resolveTestCode('''
 void f(bool a, int b, int c) {

@@ -10,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FinalNotInitializedTest);
-    defineReflectiveTests(FinalNotInitializedWithoutNullSafetyTest);
   });
 }
 
@@ -120,6 +119,17 @@ class C {
 ''');
   }
 
+  test_class_instanceField_final_factoryConstructor_only() async {
+    await assertErrorsInCode('''
+class A {
+  final int x;
+
+  factory A() => throw 0;
+}''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1),
+    ]);
+  }
+
   test_enum_field_constructorFieldInitializer() async {
     await assertNoErrorsInCode('''
 enum E {
@@ -158,53 +168,6 @@ enum E {
 ''', [
       error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 26, 1),
     ]);
-  }
-
-  test_localVariable_initializer() async {
-    await assertErrorsInCode('''
-f() {
-  late final x = 1;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
-  }
-
-  test_localVariable_noInitializer() async {
-    await assertErrorsInCode('''
-f() {
-  late final x;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
-  }
-
-  test_topLevel_external() async {
-    await assertNoErrorsInCode('''
-external final int x;
-''');
-  }
-
-  test_topLevel_final() async {
-    await assertErrorsInCode('''
-final int x;
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 10, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class FinalNotInitializedWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_class_instanceField_final_factoryConstructor_only() async {
-    await assertNoErrorsInCode('''
-class A {
-  final int x;
-
-  factory A() => throw 0;
-}''');
   }
 
   test_extension_static() async {
@@ -248,7 +211,26 @@ f() {
   final int x;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
+    ]);
+  }
+
+  test_localVariable_initializer() async {
+    await assertErrorsInCode('''
+f() {
+  late final x = 1;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+    ]);
+  }
+
+  test_localVariable_noInitializer() async {
+    await assertErrorsInCode('''
+f() {
+  late final x;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
   }
 
@@ -268,5 +250,19 @@ mixin M {
   final int f = 0;
 }
 ''');
+  }
+
+  test_topLevel_external() async {
+    await assertNoErrorsInCode('''
+external final int x;
+''');
+  }
+
+  test_topLevel_final() async {
+    await assertErrorsInCode('''
+final int x;
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 10, 1),
+    ]);
   }
 }
