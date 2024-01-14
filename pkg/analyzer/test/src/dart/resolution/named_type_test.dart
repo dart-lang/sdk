@@ -11,15 +11,153 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedTypeResolutionTest);
-    defineReflectiveTests(NamedTypeResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
-class NamedTypeResolutionTest extends PubPackageResolutionTest
-    with NamedTypeResolutionTestCases {
+class NamedTypeResolutionTest extends PubPackageResolutionTest {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
+  }
+
+  test_class() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+f(A a) {}
+''');
+
+    final node = findNode.namedType('A a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@class::A
+  type: A
+''');
+  }
+
+  test_class_generic_toBounds() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends num> {}
+
+f(A a) {}
+''');
+
+    final node = findNode.namedType('A a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@class::A
+  type: A<num>
+''');
+  }
+
+  test_class_generic_toBounds_dynamic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+
+f(A a) {}
+''');
+
+    final node = findNode.namedType('A a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@class::A
+  type: A<dynamic>
+''');
+  }
+
+  test_class_generic_typeArguments() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+
+f(A<int> a) {}
+''');
+
+    final node = findNode.namedType('A<int> a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: self::@class::A
+  type: A<int>
+''');
+  }
+
+  test_dynamic_explicitCore() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core';
+
+dynamic a;
+''');
+
+    final node = findNode.namedType('dynamic a;');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: dynamic
+  element: dynamic@-1
+  type: dynamic
+''');
+  }
+
+  test_dynamic_explicitCore_withPrefix() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core' as myCore;
+
+myCore.dynamic a;
+''');
+
+    final node = findNode.namedType('myCore.dynamic a;');
+    assertResolvedNodeText(node, r'''
+NamedType
+  importPrefix: ImportPrefixReference
+    name: myCore
+    period: .
+    element: self::@prefix::myCore
+  name: dynamic
+  element: dynamic@-1
+  type: dynamic
+''');
+  }
+
+  test_dynamic_explicitCore_withPrefix_referenceWithout() async {
+    await assertErrorsInCode(r'''
+import 'dart:core' as myCore;
+
+dynamic a;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 31, 7),
+    ]);
+
+    final node = findNode.namedType('dynamic a;');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: dynamic
+  element: <null>
+  type: InvalidType
+''');
+  }
+
+  test_dynamic_implicitCore() async {
+    await assertNoErrorsInCode(r'''
+dynamic a;
+''');
+
+    final node = findNode.namedType('dynamic a;');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: dynamic
+  element: dynamic@-1
+  type: dynamic
+''');
   }
 
   test_extendsClause_genericClass() async {
@@ -180,6 +318,88 @@ NamedType
 ''');
   }
 
+  test_functionTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef F = int Function();
+
+f(F a) {}
+''');
+
+    final node = findNode.namedType('F a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: F
+  element: self::@typeAlias::F
+  type: int Function()
+    alias: self::@typeAlias::F
+''');
+  }
+
+  test_functionTypeAlias_generic_toBounds() async {
+    await assertNoErrorsInCode(r'''
+typedef F<T extends num> = T Function();
+
+f(F a) {}
+''');
+
+    final node = findNode.namedType('F a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: F
+  element: self::@typeAlias::F
+  type: num Function()
+    alias: self::@typeAlias::F
+      typeArguments
+        num
+''');
+  }
+
+  test_functionTypeAlias_generic_toBounds_dynamic() async {
+    await assertNoErrorsInCode(r'''
+typedef F<T> = T Function();
+
+f(F a) {}
+''');
+
+    final node = findNode.namedType('F a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: F
+  element: self::@typeAlias::F
+  type: dynamic Function()
+    alias: self::@typeAlias::F
+      typeArguments
+        dynamic
+''');
+  }
+
+  test_functionTypeAlias_generic_typeArguments() async {
+    await assertNoErrorsInCode(r'''
+typedef F<T> = T Function();
+
+f(F<int> a) {}
+''');
+
+    final node = findNode.namedType('F<int> a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: F
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: self::@typeAlias::F
+  type: int Function()
+    alias: self::@typeAlias::F
+      typeArguments
+        int
+''');
+  }
+
   test_importPrefix_genericClass() async {
     await assertNoErrorsInCode(r'''
 import 'dart:async' as async;
@@ -233,6 +453,66 @@ NamedType
         element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: <null>
+  type: InvalidType
+''');
+  }
+
+  test_instanceCreation_explicitNew_prefix_unresolvedClass() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as math;
+
+main() {
+  new math.A();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
+    ]);
+
+    final node = findNode.namedType('A();');
+    assertResolvedNodeText(node, r'''
+NamedType
+  importPrefix: ImportPrefixReference
+    name: math
+    period: .
+    element: self::@prefix::math
+  name: A
+  element: <null>
+  type: InvalidType
+''');
+  }
+
+  test_instanceCreation_explicitNew_resolvedClass() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+main() {
+  new A();
+}
+''');
+
+    final node = findNode.namedType('A();');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@class::A
+  type: A
+''');
+  }
+
+  test_instanceCreation_explicitNew_unresolvedClass() async {
+    await assertErrorsInCode(r'''
+main() {
+  new A();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1),
+    ]);
+
+    final node = findNode.namedType('A();');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
   element: <null>
   type: InvalidType
 ''');
@@ -315,6 +595,50 @@ NamedType
 ''');
   }
 
+  test_invalid_prefixedIdentifier_instanceCreation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  new int.double.other();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
+    ]);
+
+    final node = findNode.namedType('int.double');
+    assertResolvedNodeText(node, r'''
+NamedType
+  importPrefix: ImportPrefixReference
+    name: int
+    period: .
+    element: dart:core::@class::int
+  name: double
+  element: <null>
+  type: InvalidType
+''');
+  }
+
+  test_invalid_prefixedIdentifier_literal() async {
+    await assertErrorsInCode(r'''
+void f() {
+  0 as int.double;
+}
+''', [
+      error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10),
+    ]);
+
+    final node = findNode.namedType('int.double');
+    assertResolvedNodeText(node, r'''
+NamedType
+  importPrefix: ImportPrefixReference
+    name: int
+    period: .
+    element: dart:core::@class::int
+  name: double
+  element: <null>
+  type: InvalidType
+''');
+  }
+
   test_invalid_topLevelFunction() async {
     await assertErrorsInCode(r'''
 void f(T a) {}
@@ -384,6 +708,47 @@ NamedType
     rightBracket: >
   element: <null>
   type: InvalidType
+''');
+  }
+
+  test_multiplyDefined() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+import 'b.dart';
+
+void f(A a) {}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 42, 1),
+    ]);
+
+    final node = findNode.namedType('A a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: <null>
+  type: InvalidType
+''');
+  }
+
+  test_never() async {
+    await assertNoErrorsInCode(r'''
+f(Never a) {}
+''');
+
+    final node = findNode.namedType('Never a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: Never
+  element: Never@-1
+  type: Never
 ''');
   }
 
@@ -720,494 +1085,5 @@ NamedType
   element: <null>
   type: InvalidType
 ''');
-  }
-}
-
-@reflectiveTest
-class NamedTypeResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
-    with NamedTypeResolutionTestCases, WithoutNullSafetyMixin {}
-
-mixin NamedTypeResolutionTestCases on PubPackageResolutionTest {
-  test_class() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-
-f(A a) {}
-''');
-
-    final node = findNode.namedType('A a');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: self::@class::A
-  type: A
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: self::@class::A
-  type: A*
-''');
-    }
-  }
-
-  test_class_generic_toBounds() async {
-    await assertNoErrorsInCode(r'''
-class A<T extends num> {}
-
-f(A a) {}
-''');
-
-    final node = findNode.namedType('A a');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: self::@class::A
-  type: A<num>
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: self::@class::A
-  type: A<num*>*
-''');
-    }
-  }
-
-  test_class_generic_toBounds_dynamic() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {}
-
-f(A a) {}
-''');
-
-    final node = findNode.namedType('A a');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: self::@class::A
-  type: A<dynamic>
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: self::@class::A
-  type: A<dynamic>*
-''');
-    }
-  }
-
-  test_class_generic_typeArguments() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {}
-
-f(A<int> a) {}
-''');
-
-    final node = findNode.namedType('A<int> a');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
-  element: self::@class::A
-  type: A<int>
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int*
-    rightBracket: >
-  element: self::@class::A
-  type: A<int*>*
-''');
-    }
-  }
-
-  test_dynamic_explicitCore() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:core';
-
-dynamic a;
-''');
-
-    final node = findNode.namedType('dynamic a;');
-    assertResolvedNodeText(node, r'''
-NamedType
-  name: dynamic
-  element: dynamic@-1
-  type: dynamic
-''');
-  }
-
-  test_dynamic_explicitCore_withPrefix() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:core' as myCore;
-
-myCore.dynamic a;
-''');
-
-    final node = findNode.namedType('myCore.dynamic a;');
-    assertResolvedNodeText(node, r'''
-NamedType
-  importPrefix: ImportPrefixReference
-    name: myCore
-    period: .
-    element: self::@prefix::myCore
-  name: dynamic
-  element: dynamic@-1
-  type: dynamic
-''');
-  }
-
-  test_dynamic_explicitCore_withPrefix_referenceWithout() async {
-    await assertErrorsInCode(r'''
-import 'dart:core' as myCore;
-
-dynamic a;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 31, 7),
-    ]);
-
-    final node = findNode.namedType('dynamic a;');
-    assertResolvedNodeText(node, r'''
-NamedType
-  name: dynamic
-  element: <null>
-  type: InvalidType
-''');
-  }
-
-  test_dynamic_implicitCore() async {
-    await assertNoErrorsInCode(r'''
-dynamic a;
-''');
-
-    final node = findNode.namedType('dynamic a;');
-    assertResolvedNodeText(node, r'''
-NamedType
-  name: dynamic
-  element: dynamic@-1
-  type: dynamic
-''');
-  }
-
-  test_functionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
-typedef F = int Function();
-
-f(F a) {}
-''');
-
-    final node = findNode.namedType('F a');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: F
-  element: self::@typeAlias::F
-  type: int Function()
-    alias: self::@typeAlias::F
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: F
-  element: self::@typeAlias::F
-  type: int* Function()*
-    alias: self::@typeAlias::F
-''');
-    }
-  }
-
-  test_functionTypeAlias_generic_toBounds() async {
-    await assertNoErrorsInCode(r'''
-typedef F<T extends num> = T Function();
-
-f(F a) {}
-''');
-
-    final node = findNode.namedType('F a');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: F
-  element: self::@typeAlias::F
-  type: num Function()
-    alias: self::@typeAlias::F
-      typeArguments
-        num
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: F
-  element: self::@typeAlias::F
-  type: num* Function()*
-    alias: self::@typeAlias::F
-      typeArguments
-        num*
-''');
-    }
-  }
-
-  test_functionTypeAlias_generic_toBounds_dynamic() async {
-    await assertNoErrorsInCode(r'''
-typedef F<T> = T Function();
-
-f(F a) {}
-''');
-
-    final node = findNode.namedType('F a');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: F
-  element: self::@typeAlias::F
-  type: dynamic Function()
-    alias: self::@typeAlias::F
-      typeArguments
-        dynamic
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: F
-  element: self::@typeAlias::F
-  type: dynamic Function()*
-    alias: self::@typeAlias::F
-      typeArguments
-        dynamic
-''');
-    }
-  }
-
-  test_functionTypeAlias_generic_typeArguments() async {
-    await assertNoErrorsInCode(r'''
-typedef F<T> = T Function();
-
-f(F<int> a) {}
-''');
-
-    final node = findNode.namedType('F<int> a');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: F
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
-  element: self::@typeAlias::F
-  type: int Function()
-    alias: self::@typeAlias::F
-      typeArguments
-        int
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: F
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int*
-    rightBracket: >
-  element: self::@typeAlias::F
-  type: int* Function()*
-    alias: self::@typeAlias::F
-      typeArguments
-        int*
-''');
-    }
-  }
-
-  test_instanceCreation_explicitNew_prefix_unresolvedClass() async {
-    await assertErrorsInCode(r'''
-import 'dart:math' as math;
-
-main() {
-  new math.A();
-}
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
-    ]);
-
-    final node = findNode.namedType('A();');
-    assertResolvedNodeText(node, r'''
-NamedType
-  importPrefix: ImportPrefixReference
-    name: math
-    period: .
-    element: self::@prefix::math
-  name: A
-  element: <null>
-  type: InvalidType
-''');
-  }
-
-  test_instanceCreation_explicitNew_resolvedClass() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-
-main() {
-  new A();
-}
-''');
-
-    final node = findNode.namedType('A();');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: self::@class::A
-  type: A
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: self::@class::A
-  type: A*
-''');
-    }
-  }
-
-  test_instanceCreation_explicitNew_unresolvedClass() async {
-    await assertErrorsInCode(r'''
-main() {
-  new A();
-}
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1),
-    ]);
-
-    final node = findNode.namedType('A();');
-    assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: <null>
-  type: InvalidType
-''');
-  }
-
-  test_invalid_prefixedIdentifier_instanceCreation() async {
-    await assertErrorsInCode(r'''
-void f() {
-  new int.double.other();
-}
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
-    ]);
-
-    final node = findNode.namedType('int.double');
-    assertResolvedNodeText(node, r'''
-NamedType
-  importPrefix: ImportPrefixReference
-    name: int
-    period: .
-    element: dart:core::@class::int
-  name: double
-  element: <null>
-  type: InvalidType
-''');
-  }
-
-  test_invalid_prefixedIdentifier_literal() async {
-    await assertErrorsInCode(r'''
-void f() {
-  0 as int.double;
-}
-''', [
-      error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10),
-    ]);
-
-    final node = findNode.namedType('int.double');
-    assertResolvedNodeText(node, r'''
-NamedType
-  importPrefix: ImportPrefixReference
-    name: int
-    period: .
-    element: dart:core::@class::int
-  name: double
-  element: <null>
-  type: InvalidType
-''');
-  }
-
-  test_multiplyDefined() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-class A {}
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart';
-import 'b.dart';
-
-void f(A a) {}
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 42, 1),
-    ]);
-
-    final node = findNode.namedType('A a');
-    assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: <null>
-  type: InvalidType
-''');
-  }
-
-  test_never() async {
-    await assertNoErrorsInCode(r'''
-f(Never a) {}
-''');
-
-    final node = findNode.namedType('Never a');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: Never
-  element: Never@-1
-  type: Never
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-NamedType
-  name: Never
-  element: Never@-1
-  type: Null*
-''');
-    }
   }
 }

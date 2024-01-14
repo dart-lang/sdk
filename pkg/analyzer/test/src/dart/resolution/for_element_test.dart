@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class ForElementResolutionTest_ForEachPartsWithDeclaration
-    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_withDeclaration_scope() async {
     await assertNoErrorsInCode(r'''
 main() {

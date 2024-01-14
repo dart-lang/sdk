@@ -10,13 +10,11 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionTest);
-    defineReflectiveTests(FunctionExpressionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class FunctionExpressionTest extends PubPackageResolutionTest
-    with FunctionExpressionTestCases {
+class FunctionExpressionTest extends PubPackageResolutionTest {
   test_contextFunctionType_nonNullify() async {
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
@@ -77,6 +75,50 @@ void test(dynamic a) {
     _assertReturnType('() => a', 'int');
   }
 
+  test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
+      ],
+      legacy: [],
+    );
+    await assertErrorsInCode('''
+import 'dart:async';
+
+FutureOr<void> Function() v = () async {
+  return 0;
+};
+''', expectedErrors);
+    _assertReturnType(
+      '() async {',
+      typeStringByNullability(
+        nullable: 'Future<void>',
+        legacy: 'Future<int>',
+      ),
+    );
+  }
+
+  test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
+      ],
+      legacy: [],
+    );
+    await assertErrorsInCode('''
+Future<void> Function() v = () async {
+  return 0;
+};
+''', expectedErrors);
+    _assertReturnType(
+      '() async {',
+      typeStringByNullability(
+        nullable: 'Future<void>',
+        legacy: 'Future<int>',
+      ),
+    );
+  }
+
   test_contextFunctionType_returnType_async_blockBody_objectQ() async {
     await assertNoErrorsInCode('''
 T foo<T>() => throw 0;
@@ -130,6 +172,88 @@ Object? Function() v = () async {
     _assertReturnType('() async', 'Future<Null>');
   }
 
+  test_contextFunctionType_returnType_async_expressionBody() async {
+    await assertNoErrorsInCode('''
+Future<num> Function() v = () async => 0;
+''');
+    _assertReturnType('() async =>', 'Future<int>');
+  }
+
+  test_contextFunctionType_returnType_async_expressionBody2() async {
+    await assertNoErrorsInCode('''
+T foo<T>() => throw 0;
+
+Future<int> Function() v = () async => foo();
+''');
+
+    final node = findNode.functionExpression('() async');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    keyword: async
+    functionDefinition: =>
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: foo
+        staticElement: self::@function::foo
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: FutureOr<int> Function()
+      staticType: FutureOr<int>
+      typeArgumentTypes
+        FutureOr<int>
+  declaredElement: @51
+    type: Future<int> Function()
+  staticType: Future<int> Function()
+''');
+  }
+
+  test_contextFunctionType_returnType_async_expressionBody3() async {
+    await assertNoErrorsInCode('''
+Future<int> Function() v = () async => Future.value(0);
+''');
+    _assertReturnType('() async =>', 'Future<int>');
+  }
+
+  test_contextFunctionType_returnType_async_expressionBody_object() async {
+    await assertNoErrorsInCode('''
+T foo<T>() => throw 0;
+
+Object Function() v = () async => foo();
+''');
+
+    final node = findNode.functionExpression('() async');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    keyword: async
+    functionDefinition: =>
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: foo
+        staticElement: self::@function::foo
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: FutureOr<Object?> Function()
+      staticType: FutureOr<Object?>
+      typeArgumentTypes
+        FutureOr<Object?>
+  declaredElement: @46
+    type: Future<Object?> Function()
+  staticType: Future<Object?> Function()
+''');
+  }
+
   test_contextFunctionType_returnType_async_expressionBody_objectQ() async {
     await assertNoErrorsInCode('''
 T foo<T>() => throw 0;
@@ -161,6 +285,315 @@ FunctionExpression
   declaredElement: @47
     type: Future<Object?> Function()
   staticType: Future<Object?> Function()
+''');
+  }
+
+  test_contextFunctionType_returnType_asyncStar_blockBody() async {
+    await assertNoErrorsInCode('''
+Stream<num> Function() v = () async* {
+  yield 0;
+};
+''');
+    _assertReturnType('() async*', 'Stream<int>');
+  }
+
+  test_contextFunctionType_returnType_asyncStar_blockBody2() async {
+    await assertNoErrorsInCode('''
+T foo<T>() => throw 0;
+
+Stream<int> Function() v = () async* {
+  yield foo();
+};
+''');
+
+    final node = findNode.functionExpression('() async');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    keyword: async
+    star: *
+    block: Block
+      leftBracket: {
+      statements
+        YieldStatement
+          yieldKeyword: yield
+          expression: MethodInvocation
+            methodName: SimpleIdentifier
+              token: foo
+              staticElement: self::@function::foo
+              staticType: T Function<T>()
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticInvokeType: int Function()
+            staticType: int
+            typeArgumentTypes
+              int
+          semicolon: ;
+      rightBracket: }
+  declaredElement: @51
+    type: Stream<int> Function()
+  staticType: Stream<int> Function()
+''');
+  }
+
+  test_contextFunctionType_returnType_sync_blockBody() async {
+    await assertNoErrorsInCode('''
+num Function() v = () {
+  return 0;
+};
+''');
+    _assertReturnType('() {', 'int');
+  }
+
+  test_contextFunctionType_returnType_sync_blockBody2() async {
+    await assertNoErrorsInCode('''
+T foo<T>() => throw 0;
+
+int Function() v = () {
+  return foo();
+};
+''');
+
+    final node = findNode.functionExpression('() {');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ReturnStatement
+          returnKeyword: return
+          expression: MethodInvocation
+            methodName: SimpleIdentifier
+              token: foo
+              staticElement: self::@function::foo
+              staticType: T Function<T>()
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticInvokeType: int Function()
+            staticType: int
+            typeArgumentTypes
+              int
+          semicolon: ;
+      rightBracket: }
+  declaredElement: @43
+    type: int Function()
+  staticType: int Function()
+''');
+  }
+
+  test_contextFunctionType_returnType_sync_blockBody_void() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
+    ], legacy: []);
+    await assertErrorsInCode('''
+void Function() v = () {
+  return 0;
+};
+''', expectedErrors);
+    _assertReturnType(
+      '() {',
+      typeStringByNullability(
+        nullable: 'void',
+        legacy: 'int',
+      ),
+    );
+  }
+
+  test_contextFunctionType_returnType_sync_expressionBody() async {
+    await assertNoErrorsInCode('''
+num Function() v = () => 0;
+''');
+    _assertReturnType('() =>', 'int');
+  }
+
+  test_contextFunctionType_returnType_sync_expressionBody2() async {
+    await assertNoErrorsInCode('''
+T foo<T>() => throw 0;
+
+int Function() v = () => foo();
+''');
+
+    final node = findNode.functionExpression('() => foo()');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: foo
+        staticElement: self::@function::foo
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: int Function()
+      staticType: int
+      typeArgumentTypes
+        int
+  declaredElement: @43
+    type: int Function()
+  staticType: int Function()
+''');
+  }
+
+  test_contextFunctionType_returnType_syncStar_blockBody() async {
+    await assertNoErrorsInCode('''
+Iterable<num> Function() v = () sync* {
+  yield 0;
+};
+''');
+    _assertReturnType('() sync*', 'Iterable<int>');
+  }
+
+  test_contextFunctionType_returnType_syncStar_blockBody2() async {
+    await assertNoErrorsInCode('''
+T foo<T>() => throw 0;
+
+Iterable<int> Function() v = () sync* {
+  yield foo();
+};
+''');
+
+    final node = findNode.functionExpression('() sync*');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    keyword: sync
+    star: *
+    block: Block
+      leftBracket: {
+      statements
+        YieldStatement
+          yieldKeyword: yield
+          expression: MethodInvocation
+            methodName: SimpleIdentifier
+              token: foo
+              staticElement: self::@function::foo
+              staticType: T Function<T>()
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticInvokeType: int Function()
+            staticType: int
+            typeArgumentTypes
+              int
+          semicolon: ;
+      rightBracket: }
+  declaredElement: @53
+    type: Iterable<int> Function()
+  staticType: Iterable<int> Function()
+''');
+  }
+
+  test_downward_argumentType() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> items) {
+  items.forEach((item) {
+    item;
+  });
+}
+''');
+
+    final node = findNode.functionExpression('(item)');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: item
+      declaredElement: @42::@parameter::item
+        type: int
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: item
+            staticElement: @42::@parameter::item
+            staticType: int
+          semicolon: ;
+      rightBracket: }
+  declaredElement: @42
+    type: void Function(int)
+  parameter: root::@parameter::f
+  staticType: void Function(int)
+''');
+  }
+
+  test_downward_argumentType_Never() async {
+    await assertNoErrorsInCode(r'''
+void foo(void Function(Never) a) {}
+
+main() {
+  foo((x) {});
+}
+''');
+
+    final node = findNode.functionExpression('(x) {}');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: x
+      declaredElement: @52::@parameter::x
+        type: Object?
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: @52
+    type: void Function(Object?)
+  parameter: self::@function::foo::@parameter::a
+  staticType: void Function(Object?)
+''');
+  }
+
+  test_downward_argumentType_Null() async {
+    await resolveTestCode(r'''
+void foo(void Function(Null) a) {}
+
+main() {
+  foo((x) {});
+}
+''');
+
+    final node = findNode.functionExpression('(x) {}');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: x
+      declaredElement: @51::@parameter::x
+        type: Object?
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: @51
+    type: void Function(Object?)
+  parameter: self::@function::foo::@parameter::a
+  staticType: void Function(Object?)
 ''');
   }
 
@@ -263,708 +696,6 @@ FunctionExpression
     type: int Function()
   staticType: int Function()
 ''');
-  }
-
-  test_optOut_downward_returnType_expressionBody_Null() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-void foo(Map<String, String> Function() f) {}
-''');
-    await resolveTestCode('''
-// @dart = 2.5
-import 'a.dart';
-
-void main() {
-  foo(() => null);
-}
-''');
-    _assertReturnType('() =>', 'Null*');
-  }
-}
-
-mixin FunctionExpressionTestCases on PubPackageResolutionTest {
-  test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
-      ],
-      legacy: [],
-    );
-    await assertErrorsInCode('''
-import 'dart:async';
-
-FutureOr<void> Function() v = () async {
-  return 0;
-};
-''', expectedErrors);
-    _assertReturnType(
-      '() async {',
-      typeStringByNullability(
-        nullable: 'Future<void>',
-        legacy: 'Future<int>',
-      ),
-    );
-  }
-
-  test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
-      ],
-      legacy: [],
-    );
-    await assertErrorsInCode('''
-Future<void> Function() v = () async {
-  return 0;
-};
-''', expectedErrors);
-    _assertReturnType(
-      '() async {',
-      typeStringByNullability(
-        nullable: 'Future<void>',
-        legacy: 'Future<int>',
-      ),
-    );
-  }
-
-  test_contextFunctionType_returnType_async_expressionBody() async {
-    await assertNoErrorsInCode('''
-Future<num> Function() v = () async => 0;
-''');
-    _assertReturnType('() async =>', 'Future<int>');
-  }
-
-  test_contextFunctionType_returnType_async_expressionBody2() async {
-    await assertNoErrorsInCode('''
-T foo<T>() => throw 0;
-
-Future<int> Function() v = () async => foo();
-''');
-
-    final node = findNode.functionExpression('() async');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: ExpressionFunctionBody
-    keyword: async
-    functionDefinition: =>
-    expression: MethodInvocation
-      methodName: SimpleIdentifier
-        token: foo
-        staticElement: self::@function::foo
-        staticType: T Function<T>()
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticInvokeType: FutureOr<int> Function()
-      staticType: FutureOr<int>
-      typeArgumentTypes
-        FutureOr<int>
-  declaredElement: @51
-    type: Future<int> Function()
-  staticType: Future<int> Function()
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: ExpressionFunctionBody
-    keyword: async
-    functionDefinition: =>
-    expression: MethodInvocation
-      methodName: SimpleIdentifier
-        token: foo
-        staticElement: self::@function::foo
-        staticType: T* Function<T>()*
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticInvokeType: FutureOr<int*>* Function()*
-      staticType: FutureOr<int*>*
-      typeArgumentTypes
-        FutureOr<int*>*
-  declaredElement: @51
-    type: Future<int*>* Function()*
-  staticType: Future<int*>* Function()*
-''');
-    }
-  }
-
-  test_contextFunctionType_returnType_async_expressionBody3() async {
-    await assertNoErrorsInCode('''
-Future<int> Function() v = () async => Future.value(0);
-''');
-    _assertReturnType('() async =>', 'Future<int>');
-  }
-
-  test_contextFunctionType_returnType_async_expressionBody_object() async {
-    await assertNoErrorsInCode('''
-T foo<T>() => throw 0;
-
-Object Function() v = () async => foo();
-''');
-
-    final node = findNode.functionExpression('() async');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: ExpressionFunctionBody
-    keyword: async
-    functionDefinition: =>
-    expression: MethodInvocation
-      methodName: SimpleIdentifier
-        token: foo
-        staticElement: self::@function::foo
-        staticType: T Function<T>()
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticInvokeType: FutureOr<Object?> Function()
-      staticType: FutureOr<Object?>
-      typeArgumentTypes
-        FutureOr<Object?>
-  declaredElement: @46
-    type: Future<Object?> Function()
-  staticType: Future<Object?> Function()
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: ExpressionFunctionBody
-    keyword: async
-    functionDefinition: =>
-    expression: MethodInvocation
-      methodName: SimpleIdentifier
-        token: foo
-        staticElement: self::@function::foo
-        staticType: T* Function<T>()*
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticInvokeType: FutureOr<Object*>* Function()*
-      staticType: FutureOr<Object*>*
-      typeArgumentTypes
-        FutureOr<Object*>*
-  declaredElement: @46
-    type: Future<Object*>* Function()*
-  staticType: Future<Object*>* Function()*
-''');
-    }
-  }
-
-  test_contextFunctionType_returnType_asyncStar_blockBody() async {
-    await assertNoErrorsInCode('''
-Stream<num> Function() v = () async* {
-  yield 0;
-};
-''');
-    _assertReturnType('() async*', 'Stream<int>');
-  }
-
-  test_contextFunctionType_returnType_asyncStar_blockBody2() async {
-    await assertNoErrorsInCode('''
-T foo<T>() => throw 0;
-
-Stream<int> Function() v = () async* {
-  yield foo();
-};
-''');
-
-    final node = findNode.functionExpression('() async');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    keyword: async
-    star: *
-    block: Block
-      leftBracket: {
-      statements
-        YieldStatement
-          yieldKeyword: yield
-          expression: MethodInvocation
-            methodName: SimpleIdentifier
-              token: foo
-              staticElement: self::@function::foo
-              staticType: T Function<T>()
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-            staticInvokeType: int Function()
-            staticType: int
-            typeArgumentTypes
-              int
-          semicolon: ;
-      rightBracket: }
-  declaredElement: @51
-    type: Stream<int> Function()
-  staticType: Stream<int> Function()
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    keyword: async
-    star: *
-    block: Block
-      leftBracket: {
-      statements
-        YieldStatement
-          yieldKeyword: yield
-          expression: MethodInvocation
-            methodName: SimpleIdentifier
-              token: foo
-              staticElement: self::@function::foo
-              staticType: T* Function<T>()*
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-            staticInvokeType: int* Function()*
-            staticType: int*
-            typeArgumentTypes
-              int*
-          semicolon: ;
-      rightBracket: }
-  declaredElement: @51
-    type: Stream<int*>* Function()*
-  staticType: Stream<int*>* Function()*
-''');
-    }
-  }
-
-  test_contextFunctionType_returnType_sync_blockBody() async {
-    await assertNoErrorsInCode('''
-num Function() v = () {
-  return 0;
-};
-''');
-    _assertReturnType('() {', 'int');
-  }
-
-  test_contextFunctionType_returnType_sync_blockBody2() async {
-    await assertNoErrorsInCode('''
-T foo<T>() => throw 0;
-
-int Function() v = () {
-  return foo();
-};
-''');
-
-    final node = findNode.functionExpression('() {');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      statements
-        ReturnStatement
-          returnKeyword: return
-          expression: MethodInvocation
-            methodName: SimpleIdentifier
-              token: foo
-              staticElement: self::@function::foo
-              staticType: T Function<T>()
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-            staticInvokeType: int Function()
-            staticType: int
-            typeArgumentTypes
-              int
-          semicolon: ;
-      rightBracket: }
-  declaredElement: @43
-    type: int Function()
-  staticType: int Function()
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      statements
-        ReturnStatement
-          returnKeyword: return
-          expression: MethodInvocation
-            methodName: SimpleIdentifier
-              token: foo
-              staticElement: self::@function::foo
-              staticType: T* Function<T>()*
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-            staticInvokeType: int* Function()*
-            staticType: int*
-            typeArgumentTypes
-              int*
-          semicolon: ;
-      rightBracket: }
-  declaredElement: @43
-    type: int* Function()*
-  staticType: int* Function()*
-''');
-    }
-  }
-
-  test_contextFunctionType_returnType_sync_blockBody_void() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
-    ], legacy: []);
-    await assertErrorsInCode('''
-void Function() v = () {
-  return 0;
-};
-''', expectedErrors);
-    _assertReturnType(
-      '() {',
-      typeStringByNullability(
-        nullable: 'void',
-        legacy: 'int',
-      ),
-    );
-  }
-
-  test_contextFunctionType_returnType_sync_expressionBody() async {
-    await assertNoErrorsInCode('''
-num Function() v = () => 0;
-''');
-    _assertReturnType('() =>', 'int');
-  }
-
-  test_contextFunctionType_returnType_sync_expressionBody2() async {
-    await assertNoErrorsInCode('''
-T foo<T>() => throw 0;
-
-int Function() v = () => foo();
-''');
-
-    final node = findNode.functionExpression('() => foo()');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: ExpressionFunctionBody
-    functionDefinition: =>
-    expression: MethodInvocation
-      methodName: SimpleIdentifier
-        token: foo
-        staticElement: self::@function::foo
-        staticType: T Function<T>()
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticInvokeType: int Function()
-      staticType: int
-      typeArgumentTypes
-        int
-  declaredElement: @43
-    type: int Function()
-  staticType: int Function()
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: ExpressionFunctionBody
-    functionDefinition: =>
-    expression: MethodInvocation
-      methodName: SimpleIdentifier
-        token: foo
-        staticElement: self::@function::foo
-        staticType: T* Function<T>()*
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticInvokeType: int* Function()*
-      staticType: int*
-      typeArgumentTypes
-        int*
-  declaredElement: @43
-    type: int* Function()*
-  staticType: int* Function()*
-''');
-    }
-  }
-
-  test_contextFunctionType_returnType_syncStar_blockBody() async {
-    await assertNoErrorsInCode('''
-Iterable<num> Function() v = () sync* {
-  yield 0;
-};
-''');
-    _assertReturnType('() sync*', 'Iterable<int>');
-  }
-
-  test_contextFunctionType_returnType_syncStar_blockBody2() async {
-    await assertNoErrorsInCode('''
-T foo<T>() => throw 0;
-
-Iterable<int> Function() v = () sync* {
-  yield foo();
-};
-''');
-
-    final node = findNode.functionExpression('() sync*');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    keyword: sync
-    star: *
-    block: Block
-      leftBracket: {
-      statements
-        YieldStatement
-          yieldKeyword: yield
-          expression: MethodInvocation
-            methodName: SimpleIdentifier
-              token: foo
-              staticElement: self::@function::foo
-              staticType: T Function<T>()
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-            staticInvokeType: int Function()
-            staticType: int
-            typeArgumentTypes
-              int
-          semicolon: ;
-      rightBracket: }
-  declaredElement: @53
-    type: Iterable<int> Function()
-  staticType: Iterable<int> Function()
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    keyword: sync
-    star: *
-    block: Block
-      leftBracket: {
-      statements
-        YieldStatement
-          yieldKeyword: yield
-          expression: MethodInvocation
-            methodName: SimpleIdentifier
-              token: foo
-              staticElement: self::@function::foo
-              staticType: T* Function<T>()*
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-            staticInvokeType: int* Function()*
-            staticType: int*
-            typeArgumentTypes
-              int*
-          semicolon: ;
-      rightBracket: }
-  declaredElement: @53
-    type: Iterable<int*>* Function()*
-  staticType: Iterable<int*>* Function()*
-''');
-    }
-  }
-
-  test_downward_argumentType() async {
-    await assertNoErrorsInCode(r'''
-void f(List<int> items) {
-  items.forEach((item) {
-    item;
-  });
-}
-''');
-
-    final node = findNode.functionExpression('(item)');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    parameter: SimpleFormalParameter
-      name: item
-      declaredElement: @42::@parameter::item
-        type: int
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      statements
-        ExpressionStatement
-          expression: SimpleIdentifier
-            token: item
-            staticElement: @42::@parameter::item
-            staticType: int
-          semicolon: ;
-      rightBracket: }
-  declaredElement: @42
-    type: void Function(int)
-  parameter: root::@parameter::f
-  staticType: void Function(int)
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    parameter: SimpleFormalParameter
-      name: item
-      declaredElement: @42::@parameter::item
-        type: int*
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      statements
-        ExpressionStatement
-          expression: SimpleIdentifier
-            token: item
-            staticElement: @42::@parameter::item
-            staticType: int*
-          semicolon: ;
-      rightBracket: }
-  declaredElement: @42
-    type: Null* Function(int*)*
-  parameter: root::@parameter::f
-  staticType: Null* Function(int*)*
-''');
-    }
-  }
-
-  test_downward_argumentType_Never() async {
-    await assertNoErrorsInCode(r'''
-void foo(void Function(Never) a) {}
-
-main() {
-  foo((x) {});
-}
-''');
-
-    final node = findNode.functionExpression('(x) {}');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    parameter: SimpleFormalParameter
-      name: x
-      declaredElement: @52::@parameter::x
-        type: Object?
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-  declaredElement: @52
-    type: void Function(Object?)
-  parameter: self::@function::foo::@parameter::a
-  staticType: void Function(Object?)
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    parameter: SimpleFormalParameter
-      name: x
-      declaredElement: @52::@parameter::x
-        type: Object*
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-  declaredElement: @52
-    type: Null* Function(Object*)*
-  parameter: self::@function::foo::@parameter::a
-  staticType: Null* Function(Object*)*
-''');
-    }
-  }
-
-  test_downward_argumentType_Null() async {
-    await resolveTestCode(r'''
-void foo(void Function(Null) a) {}
-
-main() {
-  foo((x) {});
-}
-''');
-
-    final node = findNode.functionExpression('(x) {}');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    parameter: SimpleFormalParameter
-      name: x
-      declaredElement: @51::@parameter::x
-        type: Object?
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-  declaredElement: @51
-    type: void Function(Object?)
-  parameter: self::@function::foo::@parameter::a
-  staticType: void Function(Object?)
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-FunctionExpression
-  parameters: FormalParameterList
-    leftParenthesis: (
-    parameter: SimpleFormalParameter
-      name: x
-      declaredElement: @51::@parameter::x
-        type: Object*
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-  declaredElement: @51
-    type: Null* Function(Object*)*
-  parameter: self::@function::foo::@parameter::a
-  staticType: Null* Function(Object*)*
-''');
-    }
   }
 
   test_noContext_returnType_async_blockBody() async {
@@ -1221,12 +952,23 @@ var v = () sync* {
     _assertReturnType('() sync* {', 'Iterable<int>');
   }
 
+  test_optOut_downward_returnType_expressionBody_Null() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(Map<String, String> Function() f) {}
+''');
+    await resolveTestCode('''
+// @dart = 2.5
+import 'a.dart';
+
+void main() {
+  foo(() => null);
+}
+''');
+    _assertReturnType('() =>', 'Null*');
+  }
+
   void _assertReturnType(String search, String expected) {
     var element = findNode.functionExpression(search).declaredElement!;
     assertType(element.returnType, expected);
   }
 }
-
-@reflectiveTest
-class FunctionExpressionWithoutNullSafetyTest extends PubPackageResolutionTest
-    with FunctionExpressionTestCases, WithoutNullSafetyMixin {}
