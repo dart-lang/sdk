@@ -59,9 +59,8 @@ class Stdin extends _StdStream implements Stream<List<int>> {
     const LF = 10;
     final List<int> line = <int>[];
     // On Windows, if lineMode is disabled, only CR is received.
-    bool crIsNewline = Platform.isWindows &&
-        (stdioType(stdin) == StdioType.terminal) &&
-        !lineMode;
+    bool crIsNewline =
+        Platform.isWindows && (stdioType(stdin) == StdioType.terminal);
     if (retainNewlines) {
       int byte;
       do {
