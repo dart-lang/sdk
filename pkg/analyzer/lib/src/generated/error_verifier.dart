@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
@@ -241,10 +242,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   late final TypeArgumentsVerifier _typeArgumentsVerifier;
   late final ConstructorFieldsVerifier _constructorFieldsVerifier;
   late final ReturnTypeVerifier _returnTypeVerifier;
+  final TypeSystemOperations typeSystemOperations;
 
   /// Initialize a newly created error verifier.
   ErrorVerifier(this.errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.libraryVerificationContext, this.options)
+      this._inheritanceManager, this.libraryVerificationContext, this.options,
+      {required this.typeSystemOperations})
       : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
@@ -2773,6 +2776,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             genericMetadataIsEnabled: true,
             strictInference: options.strictInference,
             strictCasts: options.strictCasts,
+            typeSystemOperations: typeSystemOperations,
           );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);

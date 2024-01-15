@@ -1210,6 +1210,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       genericMetadataIsEnabled: true,
       strictInference: analysisOptions.strictInference,
       strictCasts: analysisOptions.strictCasts,
+      typeSystemOperations: flowAnalysis.typeOperations,
     );
     if (typeArgumentTypes.isNotEmpty) {
       staticType = staticType.instantiate(typeArgumentTypes);
@@ -3670,7 +3671,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorNode: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       strictInference: analysisOptions.strictInference,
-      strictCasts: analysisOptions.strictCasts,
+      typeSystemOperations: flowAnalysis.typeOperations,
     );
     inferrer.constrainReturnType(declaredType, contextType);
     return inferrer.chooseFinalTypes();
@@ -3716,6 +3717,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         genericMetadataIsEnabled: true,
         strictInference: analysisOptions.strictInference,
         strictCasts: analysisOptions.strictCasts,
+        typeSystemOperations: flowAnalysis.typeOperations,
       );
       if (typeArgumentTypes.isNotEmpty) {
         callMethodType = callMethodType.instantiate(typeArgumentTypes);

@@ -107,10 +107,9 @@ class GenericInferrer {
       this.errorNode,
       required this.genericMetadataIsEnabled,
       required bool strictInference,
-      required bool strictCasts})
+      required TypeSystemOperations typeSystemOperations})
       : _strictInference = strictInference,
-        _typeSystemOperations =
-            TypeSystemOperations(_typeSystem, strictCasts: strictCasts) {
+        _typeSystemOperations = typeSystemOperations {
     if (errorReporter != null) {
       assert(errorNode != null);
     }

@@ -198,6 +198,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
         strictInference: resolver.analysisOptions.strictInference,
         strictCasts: resolver.analysisOptions.strictCasts,
+        typeSystemOperations: resolver.flowAnalysis.typeOperations,
       );
 
       substitution = Substitution.fromPairs(

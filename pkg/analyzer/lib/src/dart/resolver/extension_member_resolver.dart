@@ -93,7 +93,6 @@ class ExtensionMemberResolver {
         .applicableTo(
           targetLibrary: _resolver.definingLibrary,
           targetType: type,
-          strictCasts: _resolver.analysisOptions.strictCasts,
         );
 
     if (extensions.isEmpty) {
@@ -351,7 +350,7 @@ class ExtensionMemberResolver {
         errorNode: SimpleIdentifierImpl(node.name),
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
-        strictCasts: _resolver.analysisOptions.strictCasts,
+        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
       );
       inferrer.constrainArgument(
         receiverType,
