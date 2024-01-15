@@ -1,5 +1,13 @@
 ## 3.4.0
 
+### Tools
+
+#### Pub
+- Dependency resolution will now show if a dependency is affected by a security
+  advisory, unless the advisory is listed under a `ignored_advisories` section
+  in the `pubspec.yaml`. See https://dart.dev/go/pub-security-advisories for
+  more information about security advisories.
+
 ## 3.3.0
 
 ### Language
