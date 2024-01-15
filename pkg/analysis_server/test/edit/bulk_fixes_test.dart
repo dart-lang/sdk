@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -407,6 +408,7 @@ abstract class BulkFixesTest extends PubPackageAnalysisServerTest {
   Future<void> setUp() async {
     super.setUp();
     registerLintRules();
+    registerBuiltInProducers();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 

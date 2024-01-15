@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -200,6 +201,7 @@ class AbstractContextTest with ResourceProviderMixin {
       registerLintRules();
       _lintRulesAreRegistered = true;
     }
+    registerBuiltInProducers();
 
     setupResourceProvider();
 
