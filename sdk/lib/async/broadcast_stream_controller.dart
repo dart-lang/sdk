@@ -257,14 +257,14 @@ abstract class _BroadcastStreamController<T>
     _sendError(error, stackTrace);
   }
 
-  Future close() {
+  Future<void> close() {
     if (isClosed) {
       assert(_doneFuture != null);
       return _doneFuture!;
     }
     if (!_mayAddEvent) throw _addEventError();
     _state |= _STATE_CLOSED;
-    Future doneFuture = _ensureDoneFuture();
+    var doneFuture = _ensureDoneFuture();
     _sendDone();
     return doneFuture;
   }
@@ -496,13 +496,13 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
     }
   }
 
-  Future close() {
+  Future<void> close() {
     if (!isClosed && _isFiring) {
       _addPendingEvent(const _DelayedDone());
       _state |= _BroadcastStreamController._STATE_CLOSED;
       return super.done;
     }
-    Future result = super.close();
+    var result = super.close();
     assert(!_hasPending);
     return result;
   }
