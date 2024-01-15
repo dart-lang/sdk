@@ -89,9 +89,9 @@ class FlowAnalysisHelper {
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
       flow;
 
-  FlowAnalysisHelper(TypeSystemImpl typeSystem, bool retainDataForTesting,
-      FeatureSet featureSet, {required bool strictCasts})
-      : this._(TypeSystemOperations(typeSystem, strictCasts: strictCasts),
+  FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
+      {required TypeSystemOperations typeSystemOperations})
+      : this._(typeSystemOperations,
             retainDataForTesting ? FlowAnalysisDataForTesting() : null,
             isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
             respectImplicitlyTypedVarInitializers:

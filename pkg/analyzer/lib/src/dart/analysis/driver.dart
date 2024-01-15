@@ -34,6 +34,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/exception/exception.dart';
@@ -1449,15 +1450,21 @@ class AnalysisDriver {
 
         var options = libraryContext.analysisContext
             .getAnalysisOptionsForFile(file.resource);
+        var libraryElement =
+            libraryContext.elementFactory.libraryOfUri2(library.file.uri);
+        var typeSystemOperations = TypeSystemOperations(
+            libraryElement.typeSystem,
+            strictCasts: options.strictCasts);
 
         var results = LibraryAnalyzer(
           options,
           declaredVariables,
-          libraryContext.elementFactory.libraryOfUri2(library.file.uri),
+          libraryElement,
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
           resourceProvider.pathContext,
           testingData: testingData,
+          typeSystemOperations: typeSystemOperations,
         ).analyze();
 
         final isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
@@ -1561,15 +1568,20 @@ class AnalysisDriver {
 
       var analysisOptions = libraryContext.analysisContext
           .getAnalysisOptionsForFile(library.file.resource);
+      var libraryElement =
+          libraryContext.elementFactory.libraryOfUri2(library.file.uri);
+      var typeSystemOperations = TypeSystemOperations(libraryElement.typeSystem,
+          strictCasts: analysisOptions.strictCasts);
 
       var unitResults = LibraryAnalyzer(
               analysisOptions,
               declaredVariables,
-              libraryContext.elementFactory.libraryOfUri2(library.file.uri),
+              libraryElement,
               libraryContext.elementFactory.analysisSession.inheritanceManager,
               library,
               resourceProvider.pathContext,
-              testingData: testingData)
+              testingData: testingData,
+              typeSystemOperations: typeSystemOperations)
           .analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
 
@@ -1973,15 +1985,20 @@ class AnalysisDriver {
       var unitElement = libraryContext.computeUnitElement(library, file);
       var analysisOptions = libraryContext.analysisContext
           .getAnalysisOptionsForFile(file.resource);
+      var libraryElement =
+          libraryContext.elementFactory.libraryOfUri2(library.file.uri);
+      var typeSystemOperations = TypeSystemOperations(libraryElement.typeSystem,
+          strictCasts: analysisOptions.strictCasts);
 
       var analysisResult = LibraryAnalyzer(
         analysisOptions,
         declaredVariables,
-        libraryContext.elementFactory.libraryOfUri2(library.file.uri),
+        libraryElement,
         libraryContext.elementFactory.analysisSession.inheritanceManager,
         library,
         resourceProvider.pathContext,
         testingData: testingData,
+        typeSystemOperations: typeSystemOperations,
       ).analyzeForCompletion(
         file: file,
         offset: request.offset,

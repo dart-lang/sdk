@@ -125,22 +125,23 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       isNonNullableByDefault: isNonNullableByDefault,
     );
 
+    final typeSystemOperations = TypeSystemOperations(
+      unitElement.library.typeSystem,
+      strictCasts: strictCasts,
+    );
+
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
       isNonNullableByDefault,
       errorReporter,
       strictInference: strictInference,
       strictCasts: strictCasts,
+      typeSystemOperations: typeSystemOperations,
     );
 
     final recordTypeResolver = RecordTypeAnnotationResolver(
       typeProvider: typeProvider,
       errorReporter: errorReporter,
-    );
-
-    final typeSystemOperations = TypeSystemOperations(
-      unitElement.library.typeSystem,
-      strictCasts: strictCasts,
     );
 
     return ResolutionVisitor._(

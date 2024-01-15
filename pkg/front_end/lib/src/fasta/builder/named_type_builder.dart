@@ -313,15 +313,17 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(typeName.fullName);
-    if (typeArguments?.isEmpty ?? true) return buffer;
-    buffer.write("<");
-    bool first = true;
-    for (TypeBuilder t in typeArguments!) {
-      if (!first) buffer.write(", ");
-      first = false;
-      t.printOn(buffer);
+    List<TypeBuilder>? typeArguments = this.typeArguments;
+    if (typeArguments != null && typeArguments.isNotEmpty) {
+      buffer.write("<");
+      bool first = true;
+      for (TypeBuilder t in typeArguments) {
+        if (!first) buffer.write(", ");
+        first = false;
+        t.printOn(buffer);
+      }
+      buffer.write(">");
     }
-    buffer.write(">");
     nullabilityBuilder.writeNullabilityOn(buffer);
     return buffer;
   }

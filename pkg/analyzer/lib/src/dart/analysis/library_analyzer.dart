@@ -80,11 +80,14 @@ class LibraryAnalyzer {
   final LibraryVerificationContext _libraryVerificationContext =
       LibraryVerificationContext();
   final TestingData? _testingData;
+  final TypeSystemOperations _typeSystemOperations;
 
   LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
       this._libraryElement, this._inheritance, this._library, this._pathContext,
-      {TestingData? testingData})
-      : _testingData = testingData;
+      {TestingData? testingData,
+      required TypeSystemOperations typeSystemOperations})
+      : _testingData = testingData,
+        _typeSystemOperations = typeSystemOperations;
 
   TypeProviderImpl get _typeProvider => _libraryElement.typeProvider;
 
@@ -152,8 +155,8 @@ class LibraryAnalyzer {
           .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
 
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-          _typeSystem, _testingData != null, _libraryElement.featureSet,
-          strictCasts: analysisOptions.strictCasts);
+          _testingData != null, _libraryElement.featureSet,
+          typeSystemOperations: _typeSystemOperations);
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting!);
 
@@ -400,7 +403,8 @@ class LibraryAnalyzer {
         _typeProvider,
         _inheritance,
         _libraryVerificationContext,
-        _analysisOptions);
+        _analysisOptions,
+        typeSystemOperations: _typeSystemOperations);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
@@ -794,8 +798,8 @@ class LibraryAnalyzer {
         .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
 
     FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-        _typeSystem, _testingData != null, unit.featureSet,
-        strictCasts: analysisOptions.strictCasts);
+        _testingData != null, unit.featureSet,
+        typeSystemOperations: _typeSystemOperations);
     _testingData?.recordFlowAnalysisDataForTesting(
         file.uri, flowAnalysisHelper.dataForTesting!);
 

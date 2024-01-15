@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -594,13 +595,20 @@ class FileResolver {
         final elementFactory = libraryContext!.elementFactory;
         final analysisSession = elementFactory.analysisSession;
 
+        var libraryElement = elementFactory.libraryOfUri2(libraryKind.file.uri);
+
+        var typeSystemOperations = TypeSystemOperations(
+            libraryElement.typeSystem,
+            strictCasts: fileContext.analysisOptions.strictCasts);
+
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
           contextObjects!.declaredVariables,
-          elementFactory.libraryOfUri2(libraryKind.file.uri),
+          libraryElement,
           analysisSession.inheritanceManager,
           libraryKind,
           resourceProvider.pathContext,
+          typeSystemOperations: typeSystemOperations,
         );
 
         final analysisResult = performance!.run('analyze', (performance) {
@@ -660,13 +668,21 @@ class FileResolver {
       late List<UnitAnalysisResult> results;
 
       logger.run('Compute analysis results', () {
+        var libraryElement =
+            libraryContext!.elementFactory.libraryOfUri2(libraryKind.file.uri);
+
+        var typeSystemOperations = TypeSystemOperations(
+            libraryElement.typeSystem,
+            strictCasts: fileContext.analysisOptions.strictCasts);
+
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
           contextObjects!.declaredVariables,
-          libraryContext!.elementFactory.libraryOfUri2(libraryKind.file.uri),
+          libraryElement,
           libraryContext!.elementFactory.analysisSession.inheritanceManager,
           libraryKind,
           resourceProvider.pathContext,
+          typeSystemOperations: typeSystemOperations,
         );
 
         results = performance!.run('analyze', (performance) {
