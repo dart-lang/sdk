@@ -2623,7 +2623,6 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
     'double, int': Type('num'),
     'double?, int?': Type('num?'),
     'int, num': Type('num'),
-    'Never, int': Type('int'),
     'Null, int': Type('int?'),
     'Null, Object': Type('Object?'),
     '?, int': Type('int'),
@@ -2883,11 +2882,30 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
 
   @override
   Type lub(Type type1, Type type2) {
-    if (type1.type == type2.type) return type1;
-    var typeNames = [type1.type, type2.type];
-    typeNames.sort();
-    var query = typeNames.join(', ');
-    return _lubs[query] ?? fail('Unknown lub query: $query');
+    if (isSameType(type1, type2)) {
+      return type1;
+    } else if (isSameType(promoteToNonNull(type1), type2)) {
+      return type1;
+    } else if (isSameType(promoteToNonNull(type2), type1)) {
+      return type2;
+    } else if (type1.type == 'Null' &&
+        !isSameType(promoteToNonNull(type2), type2)) {
+      // type2 is already nullable
+      return type2;
+    } else if (type2.type == 'Null' &&
+        !isSameType(promoteToNonNull(type1), type1)) {
+      // type1 is already nullable
+      return type1;
+    } else if (type1.type == 'Never') {
+      return type2;
+    } else if (type2.type == 'Never') {
+      return type1;
+    } else {
+      var typeNames = [type1.type, type2.type];
+      typeNames.sort();
+      var query = typeNames.join(', ');
+      return _lubs[query] ?? fail('Unknown lub query: $query');
+    }
   }
 
   @override
@@ -2948,8 +2966,8 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
 
   @override
   Type promoteToNonNull(Type type) {
-    if (type.type.endsWith('?')) {
-      return Type(type.type.substring(0, type.type.length - 1));
+    if (type is QuestionType) {
+      return type.innerType;
     } else if (type.type == 'Null') {
       return Type('Never');
     } else {
@@ -2994,31 +3012,6 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
           covariant _PropertyElement property) =>
       property.whyNotPromotable;
-
-  Type _lub(Type type1, Type type2) {
-    if (isSameType(type1, type2)) {
-      return type1;
-    } else if (isSameType(promoteToNonNull(type1), type2)) {
-      return type1;
-    } else if (isSameType(promoteToNonNull(type2), type1)) {
-      return type2;
-    } else if (type1.type == 'Null' &&
-        !isSameType(promoteToNonNull(type2), type2)) {
-      // type2 is already nullable
-      return type2;
-    } else if (type2.type == 'Null' &&
-        !isSameType(promoteToNonNull(type1), type1)) {
-      // type1 is already nullable
-      return type1;
-    } else if (type1.type == 'Never') {
-      return type2;
-    } else if (type2.type == 'Never') {
-      return type1;
-    } else {
-      throw UnimplementedError(
-          'TODO(paulberry): least upper bound of $type1 and $type2');
-    }
-  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -3123,7 +3116,7 @@ class NullAwareAccess extends Expression {
     var rhsType =
         h.typeAnalyzer.analyzeExpression(rhs, h.operations.unknownType);
     h.flow.nullAwareAccess_end();
-    var type = h.operations._lub(rhsType, Type('Null'));
+    var type = h.operations.lub(rhsType, Type('Null'));
     h.irBuilder.apply(
         _fakeMethodName, [Kind.expression, Kind.expression], Kind.expression,
         location: location);
@@ -5262,7 +5255,7 @@ class _MiniAstTypeAnalyzer
     var ifTrueType = analyzeExpression(ifTrue, operations.unknownType);
     flow.conditional_elseBegin(ifTrue, ifTrueType);
     var ifFalseType = analyzeExpression(ifFalse, operations.unknownType);
-    var lubType = leastUpperBound(ifTrueType, ifFalseType);
+    var lubType = operations.lub(ifTrueType, ifFalseType);
     flow.conditional_end(node, lubType, ifFalse, ifFalseType);
     return new SimpleTypeAnalysisResult<Type>(type: lubType);
   }
@@ -5290,7 +5283,7 @@ class _MiniAstTypeAnalyzer
     var rightType = analyzeExpression(rhs, operations.unknownType);
     flow.ifNullExpression_end();
     return new SimpleTypeAnalysisResult<Type>(
-        type: leastUpperBound(
+        type: operations.lub(
             flow.operations.promoteToNonNull(leftType), rightType));
   }
 
@@ -5771,8 +5764,6 @@ class _MiniAstTypeAnalyzer
 
   @override
   bool isVariablePattern(Node pattern) => pattern is VariablePattern;
-
-  Type leastUpperBound(Type t1, Type t2) => _harness.operations._lub(t1, t2);
 
   _PropertyElement? lookupInterfaceMember(
       Type receiverType, String memberName) {
