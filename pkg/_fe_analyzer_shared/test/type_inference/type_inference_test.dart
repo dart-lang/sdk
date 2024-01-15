@@ -3571,7 +3571,7 @@ main() {
           h.run([
             ifCase(
               expr('Object').checkContext('?'),
-              relationalPattern('==', expr('int?').checkContext('Object')),
+              relationalPattern('==', expr('int?').checkContext('Object?')),
               [],
             ).checkIR('ifCase(expr(Object), ==(expr(int?), '
                 'matchedType: Object), variables(), true, block(), noop)')
@@ -3581,7 +3581,7 @@ main() {
           h.run([
             ifCase(
               expr('Object').checkContext('?'),
-              relationalPattern('!=', expr('int?').checkContext('Object')),
+              relationalPattern('!=', expr('int?').checkContext('Object?')),
               [],
             ).checkIR('ifCase(expr(Object), !=(expr(int?), '
                 'matchedType: Object), variables(), true, block(), noop)')
