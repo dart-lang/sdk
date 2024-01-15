@@ -1608,33 +1608,26 @@ mixin TypeAnalyzer<
     RelationalOperatorResolution<Type>? operator =
         resolveRelationalPatternOperator(node, matchedValueType);
     Type operandContext = operator?.parameterType ?? operations.unknownType;
+    bool isEquality = switch (operator?.kind) {
+      RelationalOperatorKind.equals => true,
+      RelationalOperatorKind.notEquals => true,
+      _ => false
+    };
+    if (isEquality) {
+      operandContext = operations.makeNullable(operandContext);
+    }
     Type operandType = analyzeExpression(operand, operandContext);
-    bool isEquality;
-    switch (operator?.kind) {
-      case RelationalOperatorKind.equals:
-        isEquality = true;
-        flow.equalityRelationalPattern_end(operand, operandType,
-            notEqual: false);
-        break;
-      case RelationalOperatorKind.notEquals:
-        isEquality = true;
-        flow.equalityRelationalPattern_end(operand, operandType,
-            notEqual: true);
-        break;
-      default:
-        isEquality = false;
-        flow.nonEqualityRelationalPattern_end();
-        break;
+    if (isEquality) {
+      flow.equalityRelationalPattern_end(operand, operandType,
+          notEqual: operator?.kind == RelationalOperatorKind.notEquals);
+    } else {
+      flow.nonEqualityRelationalPattern_end();
     }
     // Stack: (Expression)
     Error? argumentTypeNotAssignableError;
     Error? operatorReturnTypeNotAssignableToBoolError;
     if (operator != null) {
-      Type parameterType = operator.parameterType;
-      if (isEquality) {
-        parameterType = operations.makeNullable(parameterType);
-      }
-      if (!operations.isAssignableTo(operandType, parameterType)) {
+      if (!operations.isAssignableTo(operandType, operandContext)) {
         argumentTypeNotAssignableError =
             errors.relationalPatternOperandTypeNotAssignable(
           pattern: node,
