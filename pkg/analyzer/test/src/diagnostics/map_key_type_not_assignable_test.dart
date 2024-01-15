@@ -10,29 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapKeyTypeNotAssignableTest);
-    defineReflectiveTests(MapKeyTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(MapKeyTypeNotAssignableWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class MapKeyTypeNotAssignableTest extends PubPackageResolutionTest
-    with MapKeyTypeNotAssignableTestCases {
-  test_const_intQuestion_null_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic a = null;
-var v = const <int?, bool>{a : true};
-''');
-  }
-
-  test_const_intQuestion_null_value() async {
-    await assertNoErrorsInCode('''
-var v = const <int?, bool>{null : true};
-''');
-  }
-}
-
-mixin MapKeyTypeNotAssignableTestCases on PubPackageResolutionTest {
+class MapKeyTypeNotAssignableTest extends PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt_dynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;
@@ -115,6 +98,19 @@ var v = const <int, bool>{a : true};
     await assertErrorsInCode('''
 var v = const <int, bool>{null : true};
 ''', errors);
+  }
+
+  test_const_intQuestion_null_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = null;
+var v = const <int?, bool>{a : true};
+''');
+  }
+
+  test_const_intQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <int?, bool>{null : true};
+''');
   }
 
   test_const_intString_dynamic() async {
@@ -233,17 +229,6 @@ var v = <int, String>{...{'a': 'a'}};
     await assertNoErrorsInCode('''
 dynamic a = 'a';
 var v = <int, String>{...{a: 'a'}};
-''');
-  }
-}
-
-@reflectiveTest
-class MapKeyTypeNotAssignableWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MapKeyTypeNotAssignableTestCases {
-  test_nonConst_spread_intNum() async {
-    await assertNoErrorsInCode('''
-var v = <int, int>{...<num, num>{1: 1}};
 ''');
   }
 }

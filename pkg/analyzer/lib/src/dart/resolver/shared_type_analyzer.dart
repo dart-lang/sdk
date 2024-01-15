@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:collection/collection.dart';
 
 typedef SharedPatternField
     = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
@@ -36,28 +35,11 @@ class SharedTypeAnalyzerErrors
       required DartType scrutineeType,
       required DartType caseExpressionType,
       required bool nullSafetyEnabled}) {
-    if (nullSafetyEnabled) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-          caseExpression,
-          [caseExpressionType, scrutineeType]);
-    } else {
-      // We only report the error if it occurs on the first case; otherwise
-      // separate logic will report that different cases have different types.
-      var switchStatement = scrutinee.parent as SwitchStatement;
-      if (identical(
-          switchStatement.members
-              .whereType<SwitchCase>()
-              .firstOrNull
-              ?.expression,
-          caseExpression)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
-            scrutinee,
-            [scrutineeType, caseExpressionType]);
-      }
-    }
+    _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode
+            .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+        caseExpression,
+        [caseExpressionType, scrutineeType]);
   }
 
   @override

@@ -10,15 +10,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeArgumentNotMatchingBoundsTest);
-    defineReflectiveTests(
-      TypeArgumentNotMatchingBoundsWithoutNullSafetyTest,
-    );
   });
 }
 
 @reflectiveTest
-class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest
-    with TypeArgumentNotMatchingBoundsTestCases {
+class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest {
   test_classTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -29,6 +25,30 @@ class D = G<B> with C;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1),
     ]);
+  }
+
+  test_const() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<E extends A> {
+  const G();
+}
+f() { return const G<B>(); }
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1),
+    ]);
+  }
+
+  test_const_matching() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+class G<E extends A> {
+  const G();
+}
+f() { return const G<B>(); }
+''');
   }
 
   test_enum_inferred() async {
@@ -60,6 +80,55 @@ enum E<T extends int> {
     ]);
   }
 
+  test_extends() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<E extends A> {}
+class C extends G<B>{}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1),
+    ]);
+  }
+
+  test_extends_regressionInIssue18468Fix() async {
+    // https://code.google.com/p/dart/issues/detail?id=18628
+    await assertErrorsInCode(r'''
+class X<T extends Type> {}
+class Y<U> extends X<U> {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
+    ]);
+  }
+
+  test_extensionOverride_hasTypeArguments() async {
+    await assertErrorsInCode(r'''
+extension E<T extends num> on int {
+  void foo() {}
+}
+
+void f() {
+  E<String>(0).foo();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 70, 6),
+    ]);
+  }
+
+  test_extensionOverride_hasTypeArguments_call() async {
+    await assertErrorsInCode(r'''
+extension E<T extends num> on int {
+  void call() {}
+}
+
+void f() {
+  E<String>(0)();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 6),
+    ]);
+  }
+
   test_extensionType_superBounded() async {
     await assertErrorsInCode('''
 extension type A<T extends A<T>>(int it) {}
@@ -78,6 +147,21 @@ extension type A<T extends num>(int it) {}
 void f(A<String> a) {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 53, 6),
+    ]);
+  }
+
+  test_fieldFormalParameter() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<E extends A> {}
+class C {
+  var f;
+  C(G<B> this.f) {}
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 69, 4)]),
     ]);
   }
 
@@ -110,6 +194,42 @@ void bar() {
 ''');
   }
 
+  test_functionReturnType() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<E extends A> {}
+G<B> f() => throw 0;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 46, 4)]),
+    ]);
+  }
+
+  test_functionTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<E extends A> {}
+typedef G<B> f();
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 54, 4)]),
+    ]);
+  }
+
+  test_functionTypedFormalParameter() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<E extends A> {}
+f(G<B> h()) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 48, 4)]),
+    ]);
+  }
+
   test_genericFunctionTypeArgument_invariant() async {
     await assertErrorsInCode(r'''
 typedef F = T Function<T>(T);
@@ -129,6 +249,29 @@ typedef F2 = S Function<S>(S);
 class CB<T extends F1> {}
 void f(CB<F2> a) {}
 ''');
+  }
+
+  test_implements() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<E extends A> {}
+class C implements G<B>{}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 67, 1),
+    ]);
+  }
+
+  test_is() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<E extends A> {}
+var b = 1 is G<B>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 61, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 59, 4)]),
+    ]);
   }
 
   test_metadata_matching() async {
@@ -191,348 +334,6 @@ void g() {
 }
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 131, 1),
-    ]);
-  }
-
-  test_nonFunctionTypeAlias_body_typeArgument_mismatch() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<T extends A> {}
-typedef X = G<B>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
-    ]);
-  }
-
-  test_nonFunctionTypeAlias_body_typeArgument_regularBounded() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {}
-class G<T extends A> {}
-typedef X = G<B>;
-''');
-  }
-
-  test_nonFunctionTypeAlias_body_typeArgument_superBounded() async {
-    await assertNoErrorsInCode(r'''
-class A<T extends A<T>> {}
-typedef X = List<A>;
-''');
-  }
-
-  test_nonFunctionTypeAlias_interfaceType_body_mismatch() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<T extends A> {}
-typedef X = G<B>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
-    ]);
-  }
-
-  test_nonFunctionTypeAlias_interfaceType_body_regularBounded() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {}
-typedef X<T> = A;
-''');
-  }
-
-  test_nonFunctionTypeAlias_interfaceType_body_superBounded() async {
-    await assertErrorsInCode(r'''
-class A<T extends A<T>> {}
-typedef X<T> = A;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
-    ]);
-  }
-
-  test_nonFunctionTypeAlias_interfaceType_parameter() async {
-    await assertErrorsInCode(r'''
-class A {}
-typedef X<T extends A> = Map<int, T>;
-void f(X<String> a) {}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 56, 9)]),
-    ]);
-  }
-
-  test_nonFunctionTypeAlias_interfaceType_parameter_regularBounded() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {}
-typedef X<T extends A> = Map<int, T>;
-void f(X<B> a) {}
-''');
-  }
-
-  Future<void> test_nonFunctionTypeAlias_parameter() async {
-    await assertErrorsInCode('''
-class A {}
-class B extends A {}
-class D<T> {}
-typedef Alias<T extends B> = D<T>;
-main() {
-  D d = Alias<A>();
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 1),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 104, 1),
-    ]);
-  }
-
-  test_notRegularBounded_notSuperBounded_parameter_invariant() async {
-    await assertErrorsInCode(r'''
-typedef A<X> = X Function(X);
-typedef G<X extends A<X>> = void Function<Y extends X>();
-foo(G g) {}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 92, 1,
-          contextMessages: [
-            message('/home/test/lib/test.dart', 92, 1),
-            message('/home/test/lib/test.dart', 92, 1)
-          ]),
-    ]);
-  }
-
-  test_regression_42196() async {
-    await assertNoErrorsInCode(r'''
-typedef G<X> = Function(X);
-class A<X extends G<A<X,Y>>, Y extends X> {}
-
-test<X>() { print("OK"); }
-
-main() {
-  test<A<G<A<Never, Never>>, dynamic>>();
-}
-''');
-  }
-
-  test_regression_42196_object() async {
-    await assertNoErrorsInCode(r'''
-typedef G<X> = Function(X);
-class A<X extends G<A<X, Y>>, Y extends Never> {}
-
-test<X>() { print("OK"); }
-
-main() {
-  test<A<G<A<Never, Never>>, Object?>>();
-}
-''');
-  }
-
-  test_regression_42196_void() async {
-    await assertNoErrorsInCode(r'''
-typedef G<X> = Function(X);
-class A<X extends G<A<X, Y>>, Y extends Never> {}
-
-test<X>() { print("OK"); }
-
-main() {
-  test<A<G<A<Never, Never>>, void>>();
-}
-''');
-  }
-
-  test_superBounded() async {
-    await assertNoErrorsInCode(r'''
-class A<X extends A<X>> {}
-
-A get foo => throw 0;
-''');
-  }
-
-  test_typeLiteral_class() async {
-    await assertErrorsInCode('''
-class C<T extends int> {}
-var t = C<String>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 34, 9)]),
-    ]);
-  }
-
-  test_typeLiteral_functionTypeAlias() async {
-    await assertErrorsInCode('''
-typedef Cb<T extends int> = void Function();
-var t = Cb<String>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 53, 10)]),
-    ]);
-  }
-
-  test_typeLiteral_typeAlias() async {
-    await assertErrorsInCode('''
-class C {}
-typedef D<T extends int> = C;
-var t = D<String>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 51, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 49, 9)]),
-    ]);
-  }
-
-  test_with() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-mixin G<E extends A> {}
-class C extends Object with G<B>{}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 76, 1),
-    ]);
-  }
-}
-
-mixin TypeArgumentNotMatchingBoundsTestCases on PubPackageResolutionTest {
-  test_const() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {
-  const G();
-}
-f() { return const G<B>(); }
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1),
-    ]);
-  }
-
-  test_const_matching() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {}
-class G<E extends A> {
-  const G();
-}
-f() { return const G<B>(); }
-''');
-  }
-
-  test_extends() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {}
-class C extends G<B>{}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1),
-    ]);
-  }
-
-  test_extends_regressionInIssue18468Fix() async {
-    // https://code.google.com/p/dart/issues/detail?id=18628
-    await assertErrorsInCode(r'''
-class X<T extends Type> {}
-class Y<U> extends X<U> {}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
-    ]);
-  }
-
-  test_extensionOverride_hasTypeArguments() async {
-    await assertErrorsInCode(r'''
-extension E<T extends num> on int {
-  void foo() {}
-}
-
-void f() {
-  E<String>(0).foo();
-}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 70, 6),
-    ]);
-  }
-
-  test_extensionOverride_hasTypeArguments_call() async {
-    await assertErrorsInCode(r'''
-extension E<T extends num> on int {
-  void call() {}
-}
-
-void f() {
-  E<String>(0)();
-}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 6),
-    ]);
-  }
-
-  test_fieldFormalParameter() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {}
-class C {
-  var f;
-  C(G<B> this.f) {}
-}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 69, 4)]),
-    ]);
-  }
-
-  test_functionReturnType() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {}
-G<B> f() => throw 0;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 46, 4)]),
-    ]);
-  }
-
-  test_functionTypeAlias() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {}
-typedef G<B> f();
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 54, 4)]),
-    ]);
-  }
-
-  test_functionTypedFormalParameter() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {}
-f(G<B> h()) {}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 48, 4)]),
-    ]);
-  }
-
-  test_implements() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {}
-class C implements G<B>{}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 67, 1),
-    ]);
-  }
-
-  test_is() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {}
-var b = 1 is G<B>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 61, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 59, 4)]),
     ]);
   }
 
@@ -637,6 +438,96 @@ f() { return new G<A>(); }
     ]);
   }
 
+  test_nonFunctionTypeAlias_body_typeArgument_mismatch() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<T extends A> {}
+typedef X = G<B>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_body_typeArgument_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+class G<T extends A> {}
+typedef X = G<B>;
+''');
+  }
+
+  test_nonFunctionTypeAlias_body_typeArgument_superBounded() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends A<T>> {}
+typedef X = List<A>;
+''');
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_body_mismatch() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<T extends A> {}
+typedef X = G<B>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_body_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+typedef X<T> = A;
+''');
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_body_superBounded() async {
+    await assertErrorsInCode(r'''
+class A<T extends A<T>> {}
+typedef X<T> = A;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_parameter() async {
+    await assertErrorsInCode(r'''
+class A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<String> a) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 9)]),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_parameter_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<B> a) {}
+''');
+  }
+
+  Future<void> test_nonFunctionTypeAlias_parameter() async {
+    await assertErrorsInCode('''
+class A {}
+class B extends A {}
+class D<T> {}
+typedef Alias<T extends B> = D<T>;
+main() {
+  D d = Alias<A>();
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 104, 1),
+    ]);
+  }
+
   test_not_matching_bounds() async {
     // There should be an error, because Bar's type argument T is Foo, which
     // doesn't extends Foo<T>.
@@ -652,6 +543,20 @@ void main() {}
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
     assertType(result.unit.declaredElement!.getClass('Baz')!.supertype,
         'Bar<Foo<dynamic>>');
+  }
+
+  test_notRegularBounded_notSuperBounded_parameter_invariant() async {
+    await assertErrorsInCode(r'''
+typedef A<X> = X Function(X);
+typedef G<X extends A<X>> = void Function<Y extends X>();
+foo(G g) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 92, 1,
+          contextMessages: [
+            message('/home/test/lib/test.dart', 92, 1),
+            message('/home/test/lib/test.dart', 92, 1)
+          ]),
+    ]);
   }
 
   test_ofFunctionTypeAlias() async {
@@ -720,6 +625,53 @@ class X<T extends A> {
     ]);
   }
 
+  test_regression_42196() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X,Y>>, Y extends X> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Never, Never>>, dynamic>>();
+}
+''');
+  }
+
+  test_regression_42196_object() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X, Y>>, Y extends Never> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Never, Never>>, Object?>>();
+}
+''');
+  }
+
+  test_regression_42196_void() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X, Y>>, Y extends Never> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Never, Never>>, void>>();
+}
+''');
+  }
+
+  test_superBounded() async {
+    await assertNoErrorsInCode(r'''
+class A<X extends A<X>> {}
+
+A get foo => throw 0;
+''');
+  }
+
   test_typeArgumentList() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -730,6 +682,37 @@ C<D<B>> c = (throw 0);
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1,
           contextMessages: [message('/home/test/lib/test.dart', 62, 4)]),
+    ]);
+  }
+
+  test_typeLiteral_class() async {
+    await assertErrorsInCode('''
+class C<T extends int> {}
+var t = C<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 34, 9)]),
+    ]);
+  }
+
+  test_typeLiteral_functionTypeAlias() async {
+    await assertErrorsInCode('''
+typedef Cb<T extends int> = void Function();
+var t = Cb<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 53, 10)]),
+    ]);
+  }
+
+  test_typeLiteral_typeAlias() async {
+    await assertErrorsInCode('''
+class C {}
+typedef D<T extends int> = C;
+var t = D<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 51, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 49, 9)]),
     ]);
   }
 
@@ -757,42 +740,12 @@ G<B> g = (throw 0);
           contextMessages: [message('/home/test/lib/test.dart', 46, 4)]),
     ]);
   }
-}
-
-@reflectiveTest
-class TypeArgumentNotMatchingBoundsWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, TypeArgumentNotMatchingBoundsTestCases {
-  test_classTypeAlias() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class C {}
-class G<E extends A> {}
-class D = G<B> with C;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1),
-    ]);
-  }
-
-  test_regression_42196_Null() async {
-    await assertNoErrorsInCode(r'''
-typedef G<X> = Function(X);
-class A<X extends G<A<X,Y>>, Y extends X> {}
-
-test<X>() { print("OK"); }
-
-main() {
-  test<A<G<A<Null, Null>>, dynamic>>();
-}
-''');
-  }
 
   test_with() async {
     await assertErrorsInCode(r'''
 class A {}
 class B {}
-class G<E extends A> {}
+mixin G<E extends A> {}
 class C extends Object with G<B>{}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 76, 1),

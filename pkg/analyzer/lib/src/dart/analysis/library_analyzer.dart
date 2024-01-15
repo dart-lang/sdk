@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -47,7 +46,6 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -380,16 +378,6 @@ class LibraryAnalyzer {
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    if (!unit.featureSet.isEnabled(Feature.non_nullable)) {
-      CodeChecker checker = CodeChecker(
-        _typeProvider,
-        _typeSystem,
-        errorReporter,
-        strictCasts: _analysisOptions.strictCasts,
-      );
-      checker.visitCompilationUnit(unit);
-    }
-
     //
     // Use the ConstantVerifier to compute errors.
     //
@@ -497,7 +485,6 @@ class LibraryAnalyzer {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
         errorReporter,
         _libraryElement,
-        _typeProvider,
         sdkVersionConstraint.withoutPreRelease,
       );
       unit.accept(verifier);

@@ -12,32 +12,12 @@ main() {
     defineReflectiveTests(
       MainHasTooManyRequiredPositionalParametersTest,
     );
-    defineReflectiveTests(
-      MainHasTooManyRequiredPositionalParametersWithoutNullSafetyTest,
-    );
   });
 }
 
 @reflectiveTest
 class MainHasTooManyRequiredPositionalParametersTest
-    extends PubPackageResolutionTest
-    with MainHasTooManyRequiredPositionalParametersTestCases {
-  test_positionalRequired_3_namedRequired_1() async {
-    await resolveTestCode('''
-void main(args, int a, int b, {required int c}) {}
-''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
-      error(
-          CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
-          5,
-          4),
-    ], legacy: []));
-  }
-}
-
-mixin MainHasTooManyRequiredPositionalParametersTestCases
-    on PubPackageResolutionTest {
+    extends PubPackageResolutionTest {
   test_namedOptional_1() async {
     await resolveTestCode('''
 void main({int a = 0}) {}
@@ -103,11 +83,17 @@ void main(args, int a, int b, {int c = 0}) {}
           4),
     ], legacy: []));
   }
-}
 
-@reflectiveTest
-class MainHasTooManyRequiredPositionalParametersWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with
-        WithoutNullSafetyMixin,
-        MainHasTooManyRequiredPositionalParametersTestCases {}
+  test_positionalRequired_3_namedRequired_1() async {
+    await resolveTestCode('''
+void main(args, int a, int b, {required int c}) {}
+''');
+    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
+      error(
+          CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+          5,
+          4),
+    ], legacy: []));
+  }
+}

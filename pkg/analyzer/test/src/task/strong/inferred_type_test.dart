@@ -14,41 +14,11 @@ import '../../dart/resolution/context_collection_resolution.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InferredTypeTest);
-    defineReflectiveTests(InferredTypeWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InferredTypeTest extends PubPackageResolutionTest
-    with InferredTypeTestCases {
-  // Failing without null safety.
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
-    // Note: (f<dynamic>) is not a valid syntax.
-    await assertNoErrorsInCode('''
-List<T> f<T>(T g()) => <T>[g()];
-var v = (f<dynamic>)(() { return 1; });
-''');
-    var v = _resultUnitElement.topLevelVariables[0];
-    expect(v.name, 'v');
-    _assertTypeStr(v.type, 'List<dynamic>');
-  }
-
-  // @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
-  // Test passes because of timeout.
-  // Failing without null safety.
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
-    // Note: (f<int>) is not a valid syntax.
-    await assertNoErrorsInCode('''
-List<T> f<T>(T g()) => <T>[g()];
-var v = (f<int>)(() { return 1; });
-''');
-    var v = _resultUnitElement.topLevelVariables[0];
-    expect(v.name, 'v');
-    _assertTypeStr(v.type, 'List<int>');
-  }
-}
-
-mixin InferredTypeTestCases on PubPackageResolutionTest {
+class InferredTypeTest extends PubPackageResolutionTest {
   CompilationUnitElement get _resultUnitElement {
     return result.unit.declaredElement!;
   }
@@ -5657,6 +5627,18 @@ var v = f<dynamic>(() { return 1; });
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
+  // Failing without null safety.
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
+    // Note: (f<dynamic>) is not a valid syntax.
+    await assertNoErrorsInCode('''
+List<T> f<T>(T g()) => <T>[g()];
+var v = (f<dynamic>)(() { return 1; });
+''');
+    var v = _resultUnitElement.topLevelVariables[0];
+    expect(v.name, 'v');
+    _assertTypeStr(v.type, 'List<dynamic>');
+  }
+
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
     await assertNoErrorsInCode('''
 List<T> f<T>(T g()) => <T>[g()];
@@ -5671,6 +5653,20 @@ var v = (f)<dynamic>(() { return 1; });
     await assertNoErrorsInCode('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = f<int>(() { return 1; });
+''');
+    var v = _resultUnitElement.topLevelVariables[0];
+    expect(v.name, 'v');
+    _assertTypeStr(v.type, 'List<int>');
+  }
+
+  // @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
+  // Test passes because of timeout.
+  // Failing without null safety.
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
+    // Note: (f<int>) is not a valid syntax.
+    await assertNoErrorsInCode('''
+List<T> f<T>(T g()) => <T>[g()];
+var v = (f<int>)(() { return 1; });
 ''');
     var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
@@ -5947,35 +5943,5 @@ main() {
   void _assertTypeStr(DartType type, String expected) {
     var typeStr = type.getDisplayString(withNullability: false);
     expect(typeStr, expected);
-  }
-}
-
-@reflectiveTest
-class InferredTypeWithoutNullSafetyTest extends PubPackageResolutionTest
-    with InferredTypeTestCases, WithoutNullSafetyMixin {
-  // Successful with null safety.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
-    // Note: (f<dynamic>) is not a valid syntax.
-    await assertNoErrorsInCode('''
-List<T> f<T>(T g()) => <T>[g()];
-var v = (f<dynamic>)(() { return 1; });
-''');
-    var v = _resultUnitElement.topLevelVariables[0];
-    expect(v.name, 'v');
-    _assertTypeStr(v.type, 'List<dynamic>');
-  }
-
-  // Timeout with null safety.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
-    // Note: (f<int>) is not a valid syntax.
-    await assertNoErrorsInCode('''
-List<T> f<T>(T g()) => <T>[g()];
-var v = (f<int>)(() { return 1; });
-''');
-    var v = _resultUnitElement.topLevelVariables[0];
-    expect(v.name, 'v');
-    _assertTypeStr(v.type, 'List<int>');
   }
 }
