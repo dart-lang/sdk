@@ -12,6 +12,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -75,6 +76,8 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   path.Context get pathContext => server.resourceProvider.pathContext;
 
   S get server;
+
+  ClientUriConverter get uriConverter => server.uriConverter;
 
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
       ServerErrorCodes.FileAnalysisFailed, 'Analysis failed for file', path);

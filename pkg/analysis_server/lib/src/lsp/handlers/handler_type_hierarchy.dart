@@ -81,7 +81,7 @@ class TypeHierarchyRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => TypeHierarchyRegistrationOptions(
-        documentSelector: [dartFiles],
+        documentSelector: dartFiles,
       );
 
   @override
@@ -198,7 +198,7 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
     return TypeHierarchyItem(
       name: item.displayName,
       kind: SymbolKind.Class,
-      uri: pathContext.toUri(item.file),
+      uri: uriConverter.toClientUri(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
       data: TypeHierarchyItemInfo(

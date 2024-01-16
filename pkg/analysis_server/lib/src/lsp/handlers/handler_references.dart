@@ -54,7 +54,7 @@ class ReferencesHandler
 
     return convert(collector.targets, (NavigationTarget target) {
       final targetFilePath = collector.files[target.fileIndex];
-      final targetFileUri = pathContext.toUri(targetFilePath);
+      final targetFileUri = uriConverter.toClientUri(targetFilePath);
       final lineInfo = server.getLineInfo(targetFilePath);
       return lineInfo != null
           ? navigationTargetToLocation(targetFileUri, target, lineInfo)
@@ -88,7 +88,7 @@ class ReferencesHandler
         return null;
       }
       return Location(
-        uri: pathContext.toUri(result.file),
+        uri: uriConverter.toClientUri(result.file),
         range: toRange(
           file.lineInfo,
           result.sourceRange.offset,

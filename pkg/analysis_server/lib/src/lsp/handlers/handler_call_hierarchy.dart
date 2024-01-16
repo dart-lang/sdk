@@ -27,7 +27,7 @@ class CallHierarchyRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options =>
-      CallHierarchyRegistrationOptions(documentSelector: [dartFiles]);
+      CallHierarchyRegistrationOptions(documentSelector: dartFiles);
 
   @override
   Method get registrationMethod => Method.textDocument_prepareCallHierarchy;
@@ -393,7 +393,7 @@ mixin _CallHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
       name: item.displayName,
       detail: item.containerName,
       kind: toSymbolKind(supportedSymbolKinds, item.kind),
-      uri: pathContext.toUri(item.file),
+      uri: uriConverter.toClientUri(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
     );
@@ -419,7 +419,7 @@ mixin _CallHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
       displayName: item.name,
       containerName: item.detail,
       kind: fromSymbolKind(item.kind),
-      file: pathContext.fromUri(item.uri),
+      file: uriConverter.fromClientUri(item.uri),
       nameRange: nameRange.result,
       codeRange: codeRange.result,
     );

@@ -36,6 +36,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
@@ -90,6 +91,16 @@ typedef UserPromptSender = Future<String?> Function(
 abstract class AnalysisServer {
   /// A flag indicating whether plugins are supported in this build.
   static final bool supportsPlugins = true;
+
+  /// The full set of URI schemes that the server can support.
+  ///
+  /// Which schemes are valid for a given server invocation may depend on the
+  /// clients capabilities so being present in this set does not necessarily
+  /// mean the scheme is valid to send to the client.
+  ///
+  /// The [uriConverter] handles mapping of internal analyzer file
+  /// paths/references to URIs and back.
+  static const supportedUriSchemes = {'file'};
 
   /// The options of this server instance.
   AnalysisServerOptions options;
@@ -212,6 +223,10 @@ abstract class AnalysisServer {
   /// the last idle state.
   final Set<String> filesResolvedSinceLastIdle = {};
 
+  /// A converter to change incoming client URIs into analyzer file references
+  /// (and back).
+  ClientUriConverter uriConverter;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -227,6 +242,8 @@ abstract class AnalysisServer {
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
+        uriConverter =
+            ClientUriConverter.noop(baseResourceProvider.pathContext),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']) {
     // We can only spawn processes (eg. to run pub commands) when backed by

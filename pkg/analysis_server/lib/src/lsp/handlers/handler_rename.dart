@@ -251,7 +251,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
             if (shouldRename) {
               final newPath = pathContext.join(folder, newFilename);
               final renameEdit =
-                  createRenameEdit(pathContext, declaringFile, newPath);
+                  createRenameEdit(uriConverter, declaringFile, newPath);
               workspaceEdit = mergeWorkspaceEdits([workspaceEdit, renameEdit]);
             }
           }

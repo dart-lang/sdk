@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 
 /// The characters that will cause the editor to automatically commit the selected
@@ -53,8 +54,10 @@ final analysisOptionsFile = TextDocumentFilterWithScheme(
 final analyzingProgressToken = ProgressToken.t2('ANALYZING');
 
 /// A [TextDocumentFilterWithScheme] for Dart file.
-final dartFiles =
-    TextDocumentFilterWithScheme(language: 'dart', scheme: 'file');
+final dartFiles = [
+  for (final scheme in AnalysisServer.supportedUriSchemes)
+    TextDocumentFilterWithScheme(language: 'dart', scheme: scheme)
+];
 
 final emptyWorkspaceEdit = WorkspaceEdit();
 

@@ -80,7 +80,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   Iterable<CodeActionWithPriority> _convertFixes(
       plugin.AnalysisErrorFixes fixes) {
     final diagnostic = pluginToDiagnostic(
-      server.pathContext,
+      server.uriConverter,
       (_) => lineInfo,
       fixes.error,
       supportedTags: supportedDiagnosticTags,

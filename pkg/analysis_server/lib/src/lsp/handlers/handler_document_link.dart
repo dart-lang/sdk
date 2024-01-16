@@ -59,7 +59,7 @@ class DocumentLinkRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => DocumentLinkRegistrationOptions(
-        documentSelector: [dartFiles],
+        documentSelector: dartFiles,
         resolveProvider: false,
       );
 

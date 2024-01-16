@@ -64,7 +64,7 @@ class InlayHintRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => InlayHintRegistrationOptions(
-        documentSelector: [dartFiles],
+        documentSelector: dartFiles,
         resolveProvider: false,
       );
 

@@ -172,7 +172,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         final fixes = await fixContributor.computeFixes(context);
         if (fixes.isNotEmpty) {
           final diagnostic = toDiagnostic(
-            server.pathContext,
+            server.uriConverter,
             unit,
             error,
             supportedTags: supportedDiagnosticTags,

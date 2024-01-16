@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'client_uri_converter_test.dart' as client_uri_converter;
 import 'extensions/test_all.dart' as extensions;
 import 'flutter_test.dart' as flutter;
 import 'import_analyzer_test.dart' as import_analyzer;
@@ -15,6 +16,7 @@ import 'strings_test.dart' as strings;
 
 void main() {
   defineReflectiveSuite(() {
+    client_uri_converter.main();
     extensions.main();
     flutter.main();
     import_analyzer.main();

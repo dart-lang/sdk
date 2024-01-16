@@ -84,7 +84,7 @@ class SelectionRangeRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options =>
-      SelectionRangeRegistrationOptions(documentSelector: [dartFiles]);
+      SelectionRangeRegistrationOptions(documentSelector: dartFiles);
 
   @override
   Method get registrationMethod => Method.textDocument_selectionRange;
