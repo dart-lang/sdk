@@ -3284,6 +3284,67 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   UserTag
   string label [optional];
+
+  // The callback for a Finalizer instance.
+  //
+  // Provided for instance kinds:
+  //   Finalizer
+  @Instance callback [optional];
+
+  // The callback for a NativeFinalizer instance.
+  //
+  // Provided for instance kinds:
+  //   NativeFinalizer
+  @Instance callbackAddress [optional];
+
+  // The entries for a (Native)Finalizer instance.
+  //
+  // A set.
+  //
+  // Provided for instance kinds:
+  //   Finalizer
+  //   NativeFinalizer
+  @Instance allEntries [optional];
+
+  // The entries for a (Native)Finalizer instance.
+  //
+  // A linked list of entries through FinalizerEntry.next.
+  //
+  // Provided for instance kinds:
+  //   Finalizer
+  //   NativeFinalizer
+  @Instance collectedEntries [optional];
+
+  // The value being watched for finalization for a FinalizerEntry instance.
+  //
+  // Provided for instance kinds:
+  //   FinalizerEntry
+  @Instance value [optional];
+
+  // The token passed to the finalizer callback for a FinalizerEntry instance.
+  //
+  // Provided for instance kinds:
+  //   FinalizerEntry
+  @Instance token [optional];
+
+  // The detach key for a FinalizerEntry instance.
+  //
+  // Provided for instance kinds:
+  //   FinalizerEntry
+  @Instance detach [optional];
+
+  // The finalizer for a FinalizerEntry instance.
+  //
+  // Provided for instance kinds:
+  //   FinalizerEntry
+  @Instance finalizer [optional];
+
+  // The next item in the collectedEntries linked list for a FinalizerEntry
+  // instance.
+  //
+  // Provided for instance kinds:
+  //   FinalizerEntry
+  @Instance next [optional];
 }
 ```
 
@@ -3391,6 +3452,15 @@ enum InstanceKind {
 
   // An instance of the Dart class UserTag.
   UserTag,
+
+  // An instance of the Dart class Finalizer.
+  Finalizer,
+
+  // An instance of the Dart class NativeFinalizer.
+  NativeFinalizer,
+
+  // An instance of the Dart class FinalizerEntry.
+  FinalizerEntry,
 }
 ```
 

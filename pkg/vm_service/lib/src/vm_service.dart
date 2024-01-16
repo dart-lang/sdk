@@ -2352,6 +2352,15 @@ abstract class InstanceKind {
 
   /// An instance of the Dart class UserTag.
   static const String kUserTag = 'UserTag';
+
+  /// An instance of the Dart class Finalizer.
+  static const String kFinalizer = 'Finalizer';
+
+  /// An instance of the Dart class NativeFinalizer.
+  static const String kNativeFinalizer = 'NativeFinalizer';
+
+  /// An instance of the Dart class FinalizerEntry.
+  static const String kFinalizerEntry = 'FinalizerEntry';
 }
 
 /// A `SentinelKind` is used to distinguish different kinds of `Sentinel`
@@ -5202,6 +5211,76 @@ class Instance extends Obj implements InstanceRef {
   @override
   String? label;
 
+  /// The callback for a Finalizer instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - Finalizer
+  @optional
+  InstanceRef? callback;
+
+  /// The callback for a NativeFinalizer instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - NativeFinalizer
+  @optional
+  InstanceRef? callbackAddress;
+
+  /// The entries for a (Native)Finalizer instance.
+  ///
+  /// A set.
+  ///
+  /// Provided for instance kinds:
+  ///  - Finalizer
+  ///  - NativeFinalizer
+  @optional
+  InstanceRef? allEntries;
+
+  /// The entries for a (Native)Finalizer instance.
+  ///
+  /// A linked list of entries through FinalizerEntry.next.
+  ///
+  /// Provided for instance kinds:
+  ///  - Finalizer
+  ///  - NativeFinalizer
+  @optional
+  InstanceRef? collectedEntries;
+
+  /// The value being watched for finalization for a FinalizerEntry instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - FinalizerEntry
+  @optional
+  InstanceRef? value;
+
+  /// The token passed to the finalizer callback for a FinalizerEntry instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - FinalizerEntry
+  @optional
+  InstanceRef? token;
+
+  /// The detach key for a FinalizerEntry instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - FinalizerEntry
+  @optional
+  InstanceRef? detach;
+
+  /// The finalizer for a FinalizerEntry instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - FinalizerEntry
+  @optional
+  InstanceRef? finalizer;
+
+  /// The next item in the collectedEntries linked list for a FinalizerEntry
+  /// instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - FinalizerEntry
+  @optional
+  InstanceRef? next;
+
   Instance({
     this.kind,
     this.identityHashCode,
@@ -5239,6 +5318,15 @@ class Instance extends Obj implements InstanceRef {
     this.allocationLocation,
     this.debugName,
     this.label,
+    this.callback,
+    this.callbackAddress,
+    this.allEntries,
+    this.collectedEntries,
+    this.value,
+    this.token,
+    this.detach,
+    this.finalizer,
+    this.next,
   }) : super(
           id: id,
           classRef: classRef,
@@ -5317,6 +5405,26 @@ class Instance extends Obj implements InstanceRef {
             as InstanceRef?;
     debugName = json['debugName'];
     label = json['label'];
+    callback = createServiceObject(json['callback'], const ['InstanceRef'])
+        as InstanceRef?;
+    callbackAddress =
+        createServiceObject(json['callbackAddress'], const ['InstanceRef'])
+            as InstanceRef?;
+    allEntries = createServiceObject(json['allEntries'], const ['InstanceRef'])
+        as InstanceRef?;
+    collectedEntries =
+        createServiceObject(json['collectedEntries'], const ['InstanceRef'])
+            as InstanceRef?;
+    value = createServiceObject(json['value'], const ['InstanceRef'])
+        as InstanceRef?;
+    token = createServiceObject(json['token'], const ['InstanceRef'])
+        as InstanceRef?;
+    detach = createServiceObject(json['detach'], const ['InstanceRef'])
+        as InstanceRef?;
+    finalizer = createServiceObject(json['finalizer'], const ['InstanceRef'])
+        as InstanceRef?;
+    next = createServiceObject(json['next'], const ['InstanceRef'])
+        as InstanceRef?;
   }
 
   @override
@@ -5366,6 +5474,15 @@ class Instance extends Obj implements InstanceRef {
     _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
     _setIfNotNull(json, 'debugName', debugName);
     _setIfNotNull(json, 'label', label);
+    _setIfNotNull(json, 'callback', callback?.toJson());
+    _setIfNotNull(json, 'callbackAddress', callbackAddress?.toJson());
+    _setIfNotNull(json, 'allEntries', allEntries?.toJson());
+    _setIfNotNull(json, 'collectedEntries', collectedEntries?.toJson());
+    _setIfNotNull(json, 'value', value?.toJson());
+    _setIfNotNull(json, 'token', token?.toJson());
+    _setIfNotNull(json, 'detach', detach?.toJson());
+    _setIfNotNull(json, 'finalizer', finalizer?.toJson());
+    _setIfNotNull(json, 'next', next?.toJson());
     return json;
   }
 

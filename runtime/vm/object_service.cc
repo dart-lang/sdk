@@ -2039,10 +2039,13 @@ void Finalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
-  const Object& finalizer_callback = Object::Handle(callback());
-  jsobj.AddProperty("callback", finalizer_callback);
-
-  // Not exposing entries.
+  Object& object = Object::Handle();
+  object = callback();
+  jsobj.AddProperty("callback", object);
+  object = all_entries();
+  jsobj.AddProperty("allEntries", object);
+  object = entries_collected();
+  jsobj.AddProperty("entriesCollected", object);
 }
 
 void Finalizer::PrintImplementationFieldsImpl(
@@ -2056,23 +2059,41 @@ void NativeFinalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
-  const Object& finalizer_callback = Object::Handle(callback());
-  jsobj.AddProperty("callback_address", finalizer_callback);
-
-  // Not exposing entries.
+  Object& object = Object::Handle();
+  object = callback();
+  jsobj.AddProperty("callbackAddress", object);
+  object = all_entries();
+  jsobj.AddProperty("allEntries", object);
+  object = entries_collected();
+  jsobj.AddProperty("entriesCollected", object);
 }
 
 void NativeFinalizer::PrintImplementationFieldsImpl(
     const JSONArray& jsarr_fields) const {}
 
 void FinalizerEntry::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  UNREACHABLE();
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "FinalizerEntry");
+  if (ref) {
+    return;
+  }
+
+  Object& object = Object::Handle();
+  object = value();
+  jsobj.AddProperty("value", object);
+  object = detach();
+  jsobj.AddProperty("detach", object);
+  object = token();
+  jsobj.AddProperty("token", object);
+  object = finalizer();
+  jsobj.AddProperty("finalizer", object);
+  object = next();
+  jsobj.AddProperty("next", object);
 }
 
 void FinalizerEntry::PrintImplementationFieldsImpl(
-    const JSONArray& jsarr_fields) const {
-  UNREACHABLE();
-}
+    const JSONArray& jsarr_fields) const {}
 
 void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
