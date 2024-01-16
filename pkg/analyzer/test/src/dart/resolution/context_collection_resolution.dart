@@ -555,14 +555,6 @@ mixin WithoutEnhancedEnumsMixin on PubPackageResolutionTest {
   String? get testPackageLanguageVersion => '2.16';
 }
 
-mixin WithoutNullSafetyMixin on PubPackageResolutionTest {
-  @override
-  bool get isNullSafetyEnabled => false;
-
-  @override
-  String? get testPackageLanguageVersion => '2.9';
-}
-
 mixin WithStrictCastsMixin on PubPackageResolutionTest {
   /// Asserts that no errors are reported in [code] when implicit casts are
   /// allowed, and that [expectedErrors] are reported for the same [code] when

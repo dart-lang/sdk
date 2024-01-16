@@ -19209,6 +19209,7 @@ FfiCode:
     correctionMessage: "Try removing the extra annotation."
     comment: No parameters
   FIELD_INITIALIZER_IN_STRUCT:
+    removedIn: "3.0"
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.
     comment: No parameters.
@@ -19254,6 +19255,7 @@ FfiCode:
       }
       ```
   FIELD_IN_STRUCT_WITH_INITIALIZER:
+    removedIn: "3.0"
     problemMessage: "Fields in subclasses of 'Struct' and 'Union' can't have initializers."
     correctionMessage: Try removing the initializer and marking the field as external.
     comment: No parameters.

@@ -1759,14 +1759,6 @@ FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
   status: needsEvaluation
 FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
   status: needsEvaluation
-FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER:
-  status: needsFix
-  notes: |-
-    The fix is to remove the initializer and add the `external` modifier.
-FfiCode.FIELD_INITIALIZER_IN_STRUCT:
-  status: needsFix
-  notes: |-
-    The fix is to remove the initializer and add the `external` modifier.
 FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
   status: needsFix
   since: ~2.15
