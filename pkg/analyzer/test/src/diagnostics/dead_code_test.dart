@@ -985,15 +985,6 @@ main() {
   }
 
   test_flowEnd_tryStatement_finally() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(WarningCode.DEAD_CODE, 61, 11),
-      ],
-      legacy: [
-        error(WarningCode.DEAD_CODE, 61, 2),
-        error(WarningCode.DEAD_CODE, 70, 2),
-      ],
-    );
     await assertErrorsInCode(r'''
 main() {
   try {
@@ -1005,7 +996,9 @@ main() {
   }
   4;
 }
-''', expectedErrors);
+''', [
+      error(WarningCode.DEAD_CODE, 61, 11),
+    ]);
   }
 
   test_forStatement() async {
@@ -1393,9 +1386,6 @@ f() {
   }
 
   test_switchCase_final_break() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(WarningCode.DEAD_CODE, 96, 6),
-    ], legacy: []);
     await assertErrorsInCode(r'''
 void f(int a) {
   switch (a) {
@@ -1406,13 +1396,12 @@ void f(int a) {
       break;
   }
 }
-''', expectedErrors);
+''', [
+      error(WarningCode.DEAD_CODE, 96, 6),
+    ]);
   }
 
   test_switchCase_final_continue() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(WarningCode.DEAD_CODE, 140, 9),
-    ], legacy: []);
     await assertErrorsInCode(r'''
 void f(int a) {
   for (var i = 0; i < 2; i++) {
@@ -1425,13 +1414,12 @@ void f(int a) {
     }
   }
 }
-''', expectedErrors);
+''', [
+      error(WarningCode.DEAD_CODE, 140, 9),
+    ]);
   }
 
   test_switchCase_final_rethrow() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(WarningCode.DEAD_CODE, 142, 8),
-    ], legacy: []);
     await assertErrorsInCode(r'''
 void f(int a) {
   try {
@@ -1446,13 +1434,12 @@ void f(int a) {
     }
   }
 }
-''', expectedErrors);
+''', [
+      error(WarningCode.DEAD_CODE, 142, 8),
+    ]);
   }
 
   test_switchCase_final_return() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(WarningCode.DEAD_CODE, 96, 7),
-    ], legacy: []);
     await assertErrorsInCode(r'''
 void f(int a) {
   switch (a) {
@@ -1463,13 +1450,12 @@ void f(int a) {
       return;
   }
 }
-''', expectedErrors);
+''', [
+      error(WarningCode.DEAD_CODE, 96, 7),
+    ]);
   }
 
   test_switchCase_final_throw() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(WarningCode.DEAD_CODE, 96, 8),
-    ], legacy: []);
     await assertErrorsInCode(r'''
 void f(int a) {
   switch (a) {
@@ -1480,7 +1466,9 @@ void f(int a) {
       throw 0;
   }
 }
-''', expectedErrors);
+''', [
+      error(WarningCode.DEAD_CODE, 96, 8),
+    ]);
   }
 
   test_switchStatement_exhaustive() async {

@@ -82,22 +82,20 @@ var v = const <bool, int>{true: a};
   }
 
   test_const_intNull_dynamic() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 56, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 const dynamic a = null;
 var v = const <bool, int>{true: a};
-''', errors);
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 56, 1),
+    ]);
   }
 
   test_const_intNull_value() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 32, 4),
-    ], legacy: []);
     await assertErrorsInCode('''
 var v = const <bool, int>{true: null};
-''', errors);
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 32, 4),
+    ]);
   }
 
   test_const_intQuestion_null_dynamic() async {

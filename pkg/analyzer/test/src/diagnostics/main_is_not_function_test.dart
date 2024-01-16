@@ -19,9 +19,9 @@ class MainIsNotFunctionTest extends PubPackageResolutionTest {
     await resolveTestCode('''
 class main {}
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 6, 4),
-    ], legacy: []));
+    ]);
   }
 
   test_classAlias() async {
@@ -30,9 +30,9 @@ class A {}
 mixin M {}
 class main = A with M;
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 28, 4),
-    ], legacy: []));
+    ]);
   }
 
   test_enum() async {
@@ -41,9 +41,9 @@ enum main {
   v
 }
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 5, 4),
-    ], legacy: []));
+    ]);
   }
 
   test_function() async {
@@ -56,9 +56,9 @@ void main() {}
     await resolveTestCode('''
 int get main => 0;
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 8, 4),
-    ], legacy: []));
+    ]);
   }
 
   test_mixin() async {
@@ -66,35 +66,35 @@ int get main => 0;
 class A {}
 mixin main on A {}
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 17, 4),
-    ], legacy: []));
+    ]);
   }
 
   test_typedef() async {
     await resolveTestCode('''
 typedef main = void Function();
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 8, 4),
-    ], legacy: []));
+    ]);
   }
 
   test_typedef_legacy() async {
     await resolveTestCode('''
 typedef void main();
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 13, 4),
-    ], legacy: []));
+    ]);
   }
 
   test_variable() async {
     await resolveTestCode('''
 var main = 0;
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 4, 4),
-    ], legacy: []));
+    ]);
   }
 }

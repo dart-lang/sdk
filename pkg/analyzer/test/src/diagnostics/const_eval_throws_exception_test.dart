@@ -67,7 +67,7 @@ var v = const A('foo');
   }
 
   test_notGeneric_int_null() async {
-    var errors = expectedErrorsByNullability(nullable: [
+    var errors = [
       error(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
         57,
@@ -78,7 +78,7 @@ var v = const A('foo');
                   "The exception is 'In a const constructor, a value of type 'Null' can't be assigned to the field 'y', which has type 'int'.' and occurs here."),
         ],
       ),
-    ], legacy: []);
+    ];
     await assertErrorsInCode(r'''
 class A {
   const A(x) : y = x;
@@ -345,15 +345,9 @@ main() {
     ]);
     var otherFileResult =
         await resolveFile(convertPath('$testPackageLibPath/other.dart'));
-    assertErrorsInList(
-      otherFileResult.errors,
-      expectedErrorsByNullability(
-        nullable: [
-          error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 97, 7),
-        ],
-        legacy: [],
-      ),
-    );
+    assertErrorsInList(otherFileResult.errors, [
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 97, 7),
+    ]);
   }
 
   test_enum_constructor_initializer_asExpression() async {
@@ -593,21 +587,15 @@ var s2 = const Symbol(3);
   }
 
   test_symbolConstructor_string_digit() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [], legacy: [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 17),
-    ]);
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 var s = const Symbol('3');
-''', expectedErrors);
+''');
   }
 
   test_symbolConstructor_string_underscore() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [], legacy: [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 17),
-    ]);
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 var s = const Symbol('_');
-''', expectedErrors);
+''');
   }
 
   test_unaryBitNot_null() async {

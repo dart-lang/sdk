@@ -296,14 +296,13 @@ void f() {
   }
 
   test_function_sync_block_num__to_int() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1),
-    ], legacy: []);
     await assertErrorsInCode(r'''
 int f(num a) {
   return a;
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1),
+    ]);
   }
 
   test_function_sync_block_String__to_int() async {
@@ -353,14 +352,13 @@ int f(void a) {
   }
 
   test_function_sync_block_void__to_Null() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 Null f(void a) {
   return a;
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
+    ]);
   }
 
   test_function_sync_block_void__to_void() async {

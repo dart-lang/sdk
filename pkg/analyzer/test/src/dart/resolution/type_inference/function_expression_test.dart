@@ -76,19 +76,15 @@ void test(dynamic a) {
   }
 
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
-      ],
-      legacy: [],
-    );
     await assertErrorsInCode('''
 import 'dart:async';
 
 FutureOr<void> Function() v = () async {
   return 0;
 };
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
+    ]);
     _assertReturnType(
       '() async {',
       typeStringByNullability(
@@ -99,17 +95,13 @@ FutureOr<void> Function() v = () async {
   }
 
   test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
-      ],
-      legacy: [],
-    );
     await assertErrorsInCode('''
 Future<void> Function() v = () async {
   return 0;
 };
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
+    ]);
     _assertReturnType(
       '() async {',
       typeStringByNullability(
@@ -391,14 +383,13 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_sync_blockBody_void() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 void Function() v = () {
   return 0;
 };
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
+    ]);
     _assertReturnType(
       '() {',
       typeStringByNullability(

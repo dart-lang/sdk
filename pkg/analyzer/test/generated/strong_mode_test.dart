@@ -4107,8 +4107,7 @@ MethodInvocation
   }
 
   test_genericMethod_nestedCaptureBounds() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class C<T> {
   T f<S extends T>(S x) {
     new C<S>().f<int>(3);
@@ -4116,14 +4115,10 @@ class C<T> {
     return null;
   }
 }
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 3),
-          error(
-              CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 106, 4),
-        ], legacy: [
-          error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 3),
-        ]));
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 106, 4),
+    ]);
 
     final node1 = findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
