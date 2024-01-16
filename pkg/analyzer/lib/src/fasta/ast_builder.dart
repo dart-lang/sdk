@@ -1656,6 +1656,14 @@ class AstBuilder extends StackListener {
           rightParenthesis: rightParenthesis,
         );
       }
+      // Check for extension type name conflict.
+      var representationName = representation.fieldName;
+      if (representationName.lexeme == builder.name.lexeme) {
+        errorReporter.errorReporter?.reportErrorForToken(
+          ParserErrorCode.MEMBER_WITH_CLASS_NAME,
+          representationName,
+        );
+      }
       declarations.add(
         builder.build(
           typeKeyword: typeKeyword,
