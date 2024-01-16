@@ -37,13 +37,6 @@ class Context extends ChainContext {
     const RunTest(),
   ];
 
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
-
   IncrementalKernelGenerator? compiler;
 }
 

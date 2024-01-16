@@ -23,8 +23,6 @@ import 'error_handling.dart' show withErrorHandling;
 
 import 'log.dart' show Logger, StdoutLogger, splitLines;
 
-import 'multitest.dart' show MultitestTransformer, isError;
-
 import 'expectation.dart' show Expectation, ExpectationGroup, ExpectationSet;
 
 typedef CreateContext = Future<ChainContext> Function(
@@ -40,10 +38,8 @@ class Chain extends Suite {
 
   final List<RegExp> exclude;
 
-  final bool processMultitests;
-
   Chain(String name, String kind, this.source, this.uri, Uri statusFile,
-      this.pattern, this.exclude, this.processMultitests)
+      this.pattern, this.exclude)
       : super(name, kind, statusFile);
 
   factory Chain.fromJsonMap(Uri base, Map json, String name, String kind) {
@@ -56,9 +52,7 @@ class Chain extends Suite {
     Uri statusFile = base.resolve(json["status"]);
     List<RegExp> pattern = [for (final p in json['pattern']) RegExp(p)];
     List<RegExp> exclude = [for (final e in json['exclude']) RegExp(e)];
-    bool processMultitests = json["process-multitests"] ?? false;
-    return Chain(name, kind, source, uri, statusFile, pattern, exclude,
-        processMultitests);
+    return Chain(name, kind, source, uri, statusFile, pattern, exclude);
   }
 
   void writeImportOn(StringSink sink) {
@@ -87,7 +81,6 @@ class Chain extends Suite {
       "source": "$source",
       "path": "$uri",
       "status": "$statusFile",
-      "process-multitests": processMultitests,
       "pattern": [for (final r in pattern) r.pattern],
       "exclude": [for (final r in exclude) r.pattern],
     };
@@ -115,9 +108,6 @@ abstract class ChainContext {
     TestExpectations expectations = await readTestExpectations(
         <String>[suite.statusFile!.toFilePath()], {}, expectationSet);
     Stream<TestDescription> stream = list(suite);
-    if (suite.processMultitests) {
-      stream = stream.transform(MultitestTransformer());
-    }
     List<TestDescription> descriptions = await stream.toList();
     descriptions.sort();
     if (shards > 1) {
@@ -155,7 +145,6 @@ abstract class ChainContext {
       }
       if (shouldSkip) continue;
       final StringBuffer sb = StringBuffer();
-      final Step? lastStep = steps.isNotEmpty ? steps.last : null;
       final Iterator<Step> iterator = steps.iterator;
 
       Result? result;
@@ -210,8 +199,6 @@ abstract class ChainContext {
             }
           }
           await cleanUp(description, result!);
-          result =
-              processTestResult(description, result!, lastStep == lastStepRun);
           if (!expectedOutcomes.contains(result!.outcome) &&
               !expectedOutcomes.contains(result!.outcome.canonical)) {
             result!.addLog("$sb");
@@ -277,44 +264,6 @@ abstract class ChainContext {
   Set<Expectation> processExpectedOutcomes(
       Set<Expectation> outcomes, TestDescription description) {
     return outcomes;
-  }
-
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    if (description is FileBasedTestDescription &&
-        description.multitestExpectations != null) {
-      if (isError(description.multitestExpectations!)) {
-        result =
-            toNegativeTestResult(result, description.multitestExpectations);
-      }
-    } else if (last && description.shortName.endsWith("negative_test")) {
-      if (result.outcome == Expectation.pass) {
-        result.addLog("Negative test didn't report an error.\n");
-      } else if (result.outcome == Expectation.fail) {
-        result.addLog("Negative test reported an error as expected.\n");
-      }
-      result = toNegativeTestResult(result);
-    }
-    return result;
-  }
-
-  Result toNegativeTestResult(Result result, [Set<String>? expectations]) {
-    Expectation outcome = result.outcome;
-    if (outcome == Expectation.pass) {
-      if (expectations == null) {
-        outcome = Expectation.fail;
-      } else if (expectations.contains("compile-time error")) {
-        outcome = expectationSet["MissingCompileTimeError"];
-      } else if (expectations.contains("runtime error") ||
-          expectations.contains("dynamic type error")) {
-        outcome = expectationSet["MissingRuntimeError"];
-      } else {
-        outcome = Expectation.fail;
-      }
-    } else if (outcome == Expectation.fail) {
-      outcome = Expectation.pass;
-    }
-    return result.copyWithOutcome(outcome);
   }
 
   Future<void> cleanUp(TestDescription description, Result result) async {}

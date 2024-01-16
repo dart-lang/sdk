@@ -37,13 +37,6 @@ abstract class SpellContext extends ChainContext {
 
   SpellContext({required this.interactive, required this.onlyInGit});
 
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
-
   List<spell.Dictionaries> get dictionaries;
 
   bool get onlyDenylisted;
