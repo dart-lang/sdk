@@ -1331,8 +1331,7 @@ class AnalysisDriver {
           performance: OperationPerformanceImpl('<root>'),
         );
 
-        var analysisOptions = libraryContext.analysisContext
-            .getAnalysisOptionsForFile(file.resource);
+        var analysisOptions = file.analysisOptions;
         var libraryElement =
             libraryContext.elementFactory.libraryOfUri2(library.file.uri);
         var typeSystemOperations = TypeSystemOperations(

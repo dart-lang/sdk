@@ -150,10 +150,6 @@ class LibraryAnalyzer {
           _libraryElement, file.source, _typeProvider, errorListener,
           nameScope: _libraryElement.scope));
 
-      // TODO(pq): precache options in file state and fetch them from there
-      var analysisOptions = _libraryElement.context
-          .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
-
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
           _testingData != null, _libraryElement.featureSet,
           typeSystemOperations: _typeSystemOperations);
@@ -163,7 +159,7 @@ class LibraryAnalyzer {
       var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
           file.source, _typeProvider, errorListener,
           featureSet: _libraryElement.featureSet,
-          analysisOptions: analysisOptions,
+          analysisOptions: _library.file.analysisOptions,
           flowAnalysisHelper: flowAnalysisHelper);
 
       var nodeToResolve = node?.thisOrAncestorMatching((e) {
@@ -793,10 +789,6 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    // TODO(pq): precache options in file state and fetch them from there
-    var analysisOptions = _libraryElement.context
-        .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
-
     FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
         _testingData != null, unit.featureSet,
         typeSystemOperations: _typeSystemOperations);
@@ -805,7 +797,7 @@ class LibraryAnalyzer {
 
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
-        analysisOptions: analysisOptions,
+        analysisOptions: _library.file.analysisOptions,
         featureSet: unit.featureSet,
         flowAnalysisHelper: flowAnalysisHelper));
   }
