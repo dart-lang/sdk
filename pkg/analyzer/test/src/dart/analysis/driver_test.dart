@@ -21,6 +21,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory;
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -166,19 +167,25 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     driver.addFile2(b);
     driver.addFile2(a);
 
-    // The results are reported in the order of adding.
+    // The files are analyzed in the order of adding.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
   }
@@ -199,16 +206,22 @@ import 'a.dart';
     // Initial analysis, `b` does not use `a`, so there is a hint.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
     errors
       7 +8 UNUSED_IMPORT
 [status] idle
@@ -229,11 +242,14 @@ void f() {
     // `b` was analyzed, no more hints.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #2
+  ResolvedUnitResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
   }
@@ -259,25 +275,33 @@ void f() {
     driver.priorityFiles2 = [b];
 
     // 1. The priority file is produced first.
-    // 2. We get full `ResolvedUnitResult`.
-    // 3. For other files we get only `ErrorsResult`.
+    // 2. Each analyzed file produces `ResolvedUnitResult`.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
 [stream]
-  ErrorsResult #2
+  ResolvedUnitResult #2
     path: /home/test/lib/c.dart
     uri: package:test/c.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
   }
@@ -316,11 +340,14 @@ void f() {
     // So, only `b` was analyzed.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
   }
@@ -337,6 +364,9 @@ void f() {
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -379,6 +409,9 @@ void f() {
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -396,6 +429,9 @@ void f() {
     collector.getResolvedUnit('A2', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A2
   ResolvedUnitResult #1
@@ -413,6 +449,9 @@ void f() {
     collector.getResolvedUnit('A3', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A3
   ResolvedUnitResult #2
@@ -421,11 +460,14 @@ void f() {
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #2
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #3
+  ResolvedUnitResult #3
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
 
@@ -435,6 +477,9 @@ void f() {
     collector.getResolvedUnit('A4', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A4
   ResolvedUnitResult #4
@@ -460,6 +505,9 @@ void f() {
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -487,6 +535,9 @@ void f() {
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [future] getResolvedUnit
   name: B1
   ResolvedUnitResult #1
@@ -512,6 +563,9 @@ void f() {
     collector.getResolvedUnit('A3', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A3
   ResolvedUnitResult #2
@@ -534,6 +588,9 @@ void f() {
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -549,6 +606,9 @@ void f() {
     collector.getResolvedUnit('A2', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A2
   ResolvedUnitResult #1
@@ -579,6 +639,9 @@ part of 'a.dart';
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -587,11 +650,16 @@ part of 'a.dart';
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #0
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
 ''');
 
     // Verify that the results for `a` and `b` are cached.
-    // Note, no status analyzing.
+    // Note, no analysis.
     collector.getResolvedUnit('A2', a);
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
@@ -601,17 +669,13 @@ part of 'a.dart';
 [future] getResolvedUnit
   name: B1
   ResolvedUnitResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isPart
 ''');
 
     // Ask for resolved library.
+    // Note, no analysis.
     // Note, the units are cached.
     collector.getResolvedLibrary('L1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
-[status] idle
 [future] getResolvedLibrary
   name: L1
   ResolvedLibraryResult #2
@@ -640,46 +704,50 @@ part of 'a.dart';
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [future] getResolvedUnit
   name: B1
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
 [status] idle
 ''');
 
     // Verify that the results for `a` and `b` are cached.
-    // Note, no status analyzing.
+    // Note, no analysis.
     collector.getResolvedUnit('A1', a);
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit
   name: A1
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
+  ResolvedUnitResult #0
 [future] getResolvedUnit
   name: B2
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
 ''');
 
     // Ask for resolved library.
+    // Note, no analysis.
     // Note, the units are cached.
     collector.getResolvedLibrary('L1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
-[status] idle
 [future] getResolvedLibrary
   name: L1
   ResolvedLibraryResult #2
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
       ResolvedUnitResult #0
+      ResolvedUnitResult #1
 ''');
   }
 
@@ -701,46 +769,50 @@ part of 'a.dart';
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [future] getResolvedUnit
   name: B1
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
 [status] idle
 ''');
 
     // Verify that the results for `a` and `b` are cached.
-    // Note, no status analyzing.
+    // Note, no analysis.
     collector.getResolvedUnit('A1', a);
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit
   name: A1
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
+  ResolvedUnitResult #0
 [future] getResolvedUnit
   name: B2
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
 ''');
 
     // Ask for resolved library.
+    // Note, no analysis.
     // Note, the units are cached.
     collector.getResolvedLibrary('L1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
-[status] idle
 [future] getResolvedLibrary
   name: L1
   ResolvedLibraryResult #2
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
       ResolvedUnitResult #0
+      ResolvedUnitResult #1
 ''');
   }
 
@@ -769,6 +841,9 @@ var B = 0;
     // The type of `B` is `int`.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
@@ -792,6 +867,9 @@ var B = 1.2;
     // The type of `B` is now `double`.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/a.dart
@@ -826,11 +904,14 @@ import 'a.dart';
     // `b` is analyzed, has an error.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
     errors
       31 +8 URI_DOES_NOT_EXIST
 [status] idle
@@ -844,16 +925,22 @@ import 'a.dart';
     // No errors anymore.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #2
+  ResolvedUnitResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
   }
@@ -870,11 +957,14 @@ import 'a.dart';
     // Nothing interesting, "a" is analyzed.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
 
@@ -1079,6 +1169,9 @@ final B1 = A1;
     // We have results for both "a" and "b".
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
@@ -1087,6 +1180,9 @@ final B1 = A1;
     selectedVariableTypes
       A1: int
       A2: int
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
@@ -1109,6 +1205,9 @@ final A2 = B1;
     // The results are consistent.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/a.dart
@@ -1117,6 +1216,9 @@ final A2 = B1;
     selectedVariableTypes
       A1: double
       A2: double
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
   ResolvedUnitResult #3
     path: /home/test/lib/b.dart
@@ -1152,6 +1254,9 @@ final A2 = B1;
     // Initial analysis.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
@@ -1173,6 +1278,9 @@ final A2 = B1;
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/a.dart
@@ -1262,7 +1370,7 @@ final v = 2;
     final collector = DriverEventCollector(driver);
 
     // Not cached.
-    // Note, no status analyzing.
+    // Note, no analysis.
     collector.getCachedResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [future] getCachedResolvedUnit
@@ -1274,6 +1382,9 @@ final v = 2;
     collector.getResolvedUnit('A2', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A2
   ResolvedUnitResult #0
@@ -1286,7 +1397,7 @@ final v = 2;
 ''');
 
     // Has cached.
-    // Note, no status analyzing.
+    // Note, no analysis.
     collector.getCachedResolvedUnit('A3', a);
     await assertEventsText(collector, r'''
 [future] getCachedResolvedUnit
@@ -1306,7 +1417,9 @@ var v = 0
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getErrors
   name: A1
   ErrorsResult #0
@@ -1315,6 +1428,79 @@ var v = 0
     flags: isLibrary
     errors
       8 +1 EXPECTED_TOKEN
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+    errors
+      8 +1 EXPECTED_TOKEN
+[status] idle
+''');
+
+    // The result is produced from bytes.
+    collector.getErrors('A2', a);
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] GetErrorsFromBytes
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getErrors
+  name: A2
+  ErrorsResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+    errors
+      8 +1 EXPECTED_TOKEN
+[status] idle
+''');
+  }
+
+  test_getErrors_library_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getErrors('A1', a);
+    collector.getErrors('B1', b);
+
+    // Note, both `getErrors()` returned during the library analysis.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getErrors
+  name: A1
+  ErrorsResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getErrors
+  name: B1
+  ErrorsResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[status] idle
 ''');
   }
 
@@ -1516,6 +1702,9 @@ void f(A a) {}
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -1542,6 +1731,9 @@ void f(A a) {}
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [future] getResolvedUnit
   name: B1
   ResolvedUnitResult #1
@@ -1573,6 +1765,9 @@ void f(A a) {}
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [future] getResolvedUnit
   name: B2
   ResolvedUnitResult #2
@@ -1610,7 +1805,7 @@ void f(A a) {}
   }
 
   test_getIndex() async {
-    newFile(testFile.path, r'''
+    final a = newFile('$testPackageLibPath/a.dart', r'''
 void foo() {}
 
 void f() {
@@ -1619,16 +1814,32 @@ void f() {
 ''');
 
     final driver = driverFor(testFile);
-    driver.addFile2(testFile);
+    final collector = DriverEventCollector(driver);
 
-    final index = await driver.getIndex2(testFile);
-    index!;
+    unawaited(collector.getIndex('A1', a).then((index) {
+      index!;
 
-    final unitId = index.strings.indexOf('package:test/test.dart');
-    expect(unitId, isNonNegative);
+      final unitId = index.strings.indexOf('package:test/a.dart');
+      expect(unitId, isNonNegative);
 
-    final fooId = index.strings.indexOf('foo');
-    expect(fooId, isNonNegative);
+      final fooId = index.strings.indexOf('foo');
+      expect(fooId, isNonNegative);
+    }));
+
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getIndex
+  name: A1
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[status] idle
+''');
   }
 
   test_getIndex_notAbsolutePath() async {
@@ -1835,26 +2046,24 @@ class A {}
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    configuration.libraryConfiguration.unitConfiguration.withContentPredicate =
-        (_) => true;
-
-    collector.getResolvedLibrary('X', a);
+    collector.getResolvedLibrary('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [future] getResolvedLibrary
-  name: X
-  ResolvedLibraryResult #0
+  name: A1
+  ResolvedLibraryResult #1
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
-        content
----
-class A {}
----
+      ResolvedUnitResult #0
+[status] idle
 ''');
   }
 
@@ -1875,44 +2084,50 @@ part of 'a.dart';
     collector.getResolvedLibrary('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [future] getResolvedLibrary
   name: A1
-  ResolvedLibraryResult #0
+  ResolvedLibraryResult #1
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
+      ResolvedUnitResult #0
       ResolvedUnitResult #2
         path: /home/test/lib/b.dart
         uri: package:test/b.dart
         flags: exists isPart
+[stream]
+  ResolvedUnitResult #2
+[status] idle
 ''');
 
     // Ask again, the same cached instance should be returned.
+    // Note, no analysis.
     // Note, the result is cached.
     collector.getResolvedLibrary('A2', a);
     await assertEventsText(collector, r'''
-[status] analyzing
-[status] idle
 [future] getResolvedLibrary
   name: A2
-  ResolvedLibraryResult #0
+  ResolvedLibraryResult #1
 ''');
 
     // Ask `a`, returns cached.
-    // Note, no status analyzing.
+    // Note, no analysis.
     collector.getResolvedUnit('A3', a);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit
   name: A3
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
 ''');
 
     // Ask `b`, returns cached.
-    // Note, no status analyzing.
+    // Note, no analysis.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit
@@ -1972,16 +2187,21 @@ part of 'b.dart';
 
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [future] getResolvedLibraryByUri
   name: A1
-  ResolvedLibraryResult #0
+  ResolvedLibraryResult #1
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
+      ResolvedUnitResult #0
+[status] idle
 ''');
   }
 
@@ -2012,24 +2232,15 @@ part of 'a.dart';
 
     final collector = DriverEventCollector(driver);
     collector.getResolvedUnit('A1', a);
-    collector.getResolvedUnit('B2', b);
+    collector.getResolvedUnit('B1', b);
 
     final uri = Uri.parse('package:test/a.dart');
     collector.getResolvedLibraryByUri('A2', uri);
 
-    configuration.withOperations = true;
-
-    // Note, that the `get` events are reported before `stream` events.
-    // TODO(scheglov): The current state is not optimal.
-    // We resolve `a.dart` separately as `analysisId: 0`.
-    // And then again `b.dart` as `analysisId: 1`.
-    // But actually we always resolve the whole library `a.dart`.
-    // So, we resolved it twice.
-    // Even worse, for `getResolvedLibraryByUri` we resolve it again.
-    // Theoretically we could have just one resolution overall.
+    // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
 [future] getResolvedUnit
@@ -2040,33 +2251,22 @@ part of 'a.dart';
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #0
-[operation] computeAnalysisResult
-  file: /home/test/lib/b.dart
-  library: /home/test/lib/a.dart
 [future] getResolvedUnit
-  name: B2
+  name: B1
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
-[stream]
-  ResolvedUnitResult #1
-[status] idle
-[operation] computeResolvedLibrary
-  library: /home/test/lib/a.dart
 [future] getResolvedLibraryByUri
   name: A2
   ResolvedLibraryResult #2
     element: package:test/a.dart
     units
-      ResolvedUnitResult #3
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
-      ResolvedUnitResult #4
-        path: /home/test/lib/b.dart
-        uri: package:test/b.dart
-        flags: exists isPart
+      ResolvedUnitResult #0
+      ResolvedUnitResult #1
+[stream]
+  ResolvedUnitResult #1
+[status] idle
 ''');
   }
 
@@ -2145,6 +2345,9 @@ part of 'b.dart';
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -2153,6 +2356,74 @@ part of 'b.dart';
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #0
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_added() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+    collector.getResolvedUnit('A1', a);
+
+    // Note, no separate `ErrorsResult`.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_augmentation_library() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getResolvedUnit('B1', b);
+    collector.getResolvedUnit('A1', a);
+
+    // Note, the library is resolved only once.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
+[future] getResolvedUnit
+  name: B1
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isAugmentation
+[stream]
+  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -2176,6 +2447,9 @@ class B extends A {}
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [future] getResolvedUnit
   name: B1
   ResolvedUnitResult #0
@@ -2184,11 +2458,14 @@ class B extends A {}
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #0
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
 
@@ -2200,6 +2477,9 @@ class B extends A {}
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [future] getResolvedUnit
   name: B2
   ResolvedUnitResult #2
@@ -2222,6 +2502,9 @@ class B extends A {}
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [future] getResolvedUnit
   name: B2
   ResolvedUnitResult #3
@@ -2230,11 +2513,180 @@ class B extends A {}
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #3
+[operation] GetErrorsFromBytes
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ErrorsResult #4
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: isLibrary
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_library_added_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+    driver.addFile2(b);
+    collector.getResolvedUnit('A1', a);
+
+    // Note, the library is resolved only once.
+    // Note, no separate `ErrorsResult` for `a` or `b`.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_library_augmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getResolvedUnit('A1', a);
+    collector.getResolvedUnit('B1', b);
+
+    // Note, the library is resolved only once.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
+[future] getResolvedUnit
+  name: B1
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isAugmentation
+[stream]
+  ResolvedUnitResult #1
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_library_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getResolvedUnit('A1', a);
+    collector.getResolvedUnit('B1', b);
+
+    // Note, the library is resolved only once.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
+[future] getResolvedUnit
+  name: B1
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #1
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_library_pending_getErrors_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getErrors('B1', b);
+    collector.getResolvedUnit('A1', a);
+
+    // Note, the library is resolved only once.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
+[future] getErrors
+  name: B1
+  ErrorsResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
 ''');
   }
@@ -2259,6 +2711,9 @@ final foo = 0;
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.txt
+  library: /home/test/lib/a.txt
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -2343,6 +2798,186 @@ part 'a.dart';
     ]);
   }
 
+  test_getResolvedUnit_part_library() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getResolvedUnit('B1', b);
+    collector.getResolvedUnit('A1', a);
+
+    // Note, the library is resolved only once.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
+[future] getResolvedUnit
+  name: B1
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #1
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_part_pending_getErrors_library() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getErrors('A1', a);
+    collector.getResolvedUnit('B1', b);
+
+    // Note, the library is resolved only once.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
+[future] getErrors
+  name: A1
+  ErrorsResult #0
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getResolvedUnit
+  name: B1
+  ResolvedUnitResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #2
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_pending_getErrors() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getResolvedUnit('A1', a);
+    collector.getErrors('A2', a);
+
+    // Note, the library is resolved only once.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getErrors
+  name: A2
+  ErrorsResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[stream]
+  ResolvedUnitResult #0
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_pending_getErrors2() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getErrors('A1', a);
+    collector.getResolvedUnit('A2', a);
+
+    // Note, the library is resolved only once.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A2
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getErrors
+  name: A1
+  ErrorsResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[stream]
+  ResolvedUnitResult #0
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_pending_getIndex() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    unawaited(collector.getIndex('A1', a));
+    collector.getResolvedUnit('A2', a);
+
+    // Note, no separate `getIndex` result.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: A2
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getIndex
+  name: A1
+[stream]
+  ResolvedUnitResult #0
+[status] idle
+''');
+  }
+
   test_getResolvedUnit_thenRemove() async {
     final a = newFile('$testPackageLibPath/a.dart', '');
 
@@ -2358,6 +2993,9 @@ part 'a.dart';
     // The future with the result still completes.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -2383,6 +3021,9 @@ part 'a.dart';
     // Both futures complete.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -2414,7 +3055,6 @@ void bar() {}
     collector.getUnitElement('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
 [future] getUnitElement
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
@@ -2423,6 +3063,7 @@ void bar() {}
   selectedElements
     package:test/a.dart::@function::foo
     package:test/a.dart::@function::bar
+[status] idle
 ''');
   }
 
@@ -2437,29 +3078,34 @@ import 'package:test/b.dart';
     collector.getResolvedLibrary('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+    errors
+      7 +21 URI_DOES_NOT_EXIST
 [future] getResolvedLibrary
   name: A1
-  ResolvedLibraryResult #0
+  ResolvedLibraryResult #1
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
-        errors
-          7 +21 URI_DOES_NOT_EXIST
+      ResolvedUnitResult #0
+[status] idle
 ''');
 
     collector.getUnitElement('A2', a);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
 [future] getUnitElement
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   flags: isLibrary
   enclosing: package:test/a.dart
+[status] idle
 ''');
   }
 
@@ -2483,7 +3129,6 @@ final B = A;
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    configuration.withOperations = true;
     configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
         (result) {
       switch (result.uriStr) {
@@ -2499,19 +3144,24 @@ final B = A;
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [future] getResolvedUnit
   name: B1
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     selectedVariableTypes
       B: int
 [stream]
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
 [status] idle
 ''');
 
@@ -2526,19 +3176,24 @@ final A = 1.2;
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [future] getResolvedUnit
   name: B2
-  ResolvedUnitResult #1
+  ResolvedUnitResult #3
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     selectedVariableTypes
       B: int
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #3
 [status] idle
 ''');
   }
@@ -2650,6 +3305,9 @@ void f(A a) {}
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -2681,6 +3339,9 @@ class A {}
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [future] getResolvedUnit
   name: B1
   ResolvedUnitResult #1
@@ -2710,6 +3371,9 @@ CompilationUnit
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [future] getResolvedUnit
   name: B2
   ResolvedUnitResult #2
@@ -2806,26 +3470,43 @@ final a = A();
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
+[operation] AnalyzeFile
+  file: /home/test/lib/hidden/a.dart
+  library: /home/test/lib/hidden/a.dart
 [future] getErrors
   name: A1
   ErrorsResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
     flags: isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/hidden/a.dart
+    uri: package:test/hidden/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[status] idle
 ''');
 
-    // `b` does not have errors in the context of `a`.
+    // We return cached errors.
+    // TODO(scheglov): don't switch to analysis?
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
+[operation] GetErrorsFromBytes
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/hidden/a.dart
 [future] getErrors
   name: B1
-  ErrorsResult #1
+  ErrorsResult #3
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[status] idle
 ''');
   }
 
@@ -2848,32 +3529,30 @@ final a = A();
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.withOperations = true;
-
     // Because `a` is added, we know how to analyze `b`.
     // So, it has no errors.
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
-[future] getErrors
-  name: B1
-  ErrorsResult #0
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: isPart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
-    flags: isLibrary
-[stream]
-  ErrorsResult #2
+    flags: exists isLibrary
+[future] getErrors
+  name: B1
+  ErrorsResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
 ''');
   }
@@ -2893,24 +3572,32 @@ final a = new A();
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    configuration.withOperations = true;
-
     // We discover sibling files as libraries.
     // So, we know that `a` is the library of `b`.
     // So, no errors.
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [future] getErrors
   name: B1
-  ErrorsResult #0
+  ErrorsResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[status] idle
 ''');
   }
 
@@ -2929,15 +3616,12 @@ final a = new A();
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    configuration.withOperations = true;
-
     // We don't know that `a` is the library of `b`.
     // So, we treat it as its own library, has errors.
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
 [future] getErrors
@@ -2948,6 +3632,14 @@ final a = new A();
     flags: isPart
     errors
       25 +1 CREATION_WITH_NON_TYPE
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+    errors
+      25 +1 CREATION_WITH_NON_TYPE
+[status] idle
 ''');
   }
 
@@ -2970,6 +3662,9 @@ final a = new A();
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/hidden/a.dart
+  library: /home/test/lib/hidden/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -2978,26 +3673,34 @@ final a = new A();
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #0
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
 ''');
-
-    configuration.withOperations = true;
 
     // We know that `b` is analyzed as part of `a`.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/hidden/a.dart
+    uri: package:test/hidden/a.dart
+    flags: exists isLibrary
 [future] getResolvedUnit
   name: B1
-  ResolvedUnitResult #1
+  ResolvedUnitResult #3
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #3
 [status] idle
 ''');
   }
@@ -3021,28 +3724,26 @@ final a = new A();
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.withOperations = true;
-
     // Because `a` is added, we know how to analyze `b`.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/hidden/a.dart
+    uri: package:test/hidden/a.dart
+    flags: exists isLibrary
 [future] getResolvedUnit
   name: B1
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
-  ResolvedUnitResult #0
-[stream]
-  ErrorsResult #1
-    path: /home/test/lib/hidden/a.dart
-    uri: package:test/hidden/a.dart
-    flags: isLibrary
+  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -3062,14 +3763,12 @@ final a = new A();
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    configuration.withOperations = true;
-
     // We don't know that `a` is the library of `b`.
     // So, we treat it as its own library.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
 [future] getResolvedUnit
@@ -3100,11 +3799,14 @@ part 'b.dart';
     // Analyze the library without the part.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
     errors
       26 +8 URI_DOES_NOT_EXIST
       7 +12 UNUSED_IMPORT
@@ -3124,19 +3826,22 @@ Future<int>? f;
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [future] getResolvedUnit
   name: B1
-  ResolvedUnitResult #1
+  ResolvedUnitResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
-  ResolvedUnitResult #1
-[stream]
-  ErrorsResult #2
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: isLibrary
+  ResolvedUnitResult #2
 [status] idle
 ''');
   }
@@ -3157,13 +3862,11 @@ final a = new A();
     // Discover the library.
     driver.getFileSync2(a);
 
-    configuration.withOperations = true;
-
     // There is no library which `b` is a part of, so `A` is unresolved.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
 [future] getResolvedUnit
@@ -3189,13 +3892,11 @@ var a = new A();
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    configuration.withOperations = true;
-
     // There is no library which `b` is a part of, so `A` is unresolved.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
 [future] getResolvedUnit
@@ -3231,6 +3932,9 @@ final a = new A();
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/hidden/a.dart
+  library: /home/test/lib/hidden/a.dart
 [future] getResolvedUnit
   name: A1
   ResolvedUnitResult #0
@@ -3239,6 +3943,11 @@ final a = new A();
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #0
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
 ''');
 
@@ -3246,12 +3955,12 @@ final a = new A();
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
 [future] getUnitElement
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
   enclosing: package:test/hidden/a.dart
+[status] idle
 ''');
   }
 
@@ -3274,8 +3983,6 @@ final a = new A();
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.withOperations = true;
-
     // Because `a` is added, we know how to analyze `b`.
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
@@ -3285,19 +3992,19 @@ final a = new A();
   uri: package:test/b.dart
   flags: isPart
   enclosing: package:test/hidden/a.dart
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isPart
+    flags: exists isPart
 [status] idle
 ''');
   }
@@ -3311,19 +4018,17 @@ final a = new A();
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    configuration.withOperations = true;
-
     // We don't know the library for `b`.
     // So, we treat it as its own library.
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
 [status] analyzing
-[status] idle
 [future] getUnitElement
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
   enclosing: package:test/b.dart
+[status] idle
 ''');
   }
 
@@ -3349,25 +4054,23 @@ final a = new A();
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.withOperations = true;
-
     // We discover all added libraries.
     // So, we know that `a` is the library of `b`.
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isPart
+    flags: exists isPart
 [status] idle
 ''');
   }
@@ -3394,25 +4097,23 @@ final a = new A();
     driver.addFile2(b);
     driver.addFile2(a);
 
-    configuration.withOperations = true;
-
     // We discover all added libraries.
     // So, we know that `a` is the library of `b`.
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
 [stream]
-  ErrorsResult #0
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: isPart
-[stream]
-  ErrorsResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
 ''');
   }
@@ -3440,25 +4141,23 @@ final a = new A();
     driver.addFile2(a);
     driver.priorityFiles2 = [b];
 
-    configuration.withOperations = true;
-
     // We discover all added libraries.
     // So, we know that `a` is the library of `b`.
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
 [stream]
   ResolvedUnitResult #0
+    path: /home/test/lib/hidden/a.dart
+    uri: package:test/hidden/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
-[stream]
-  ErrorsResult #1
-    path: /home/test/lib/hidden/a.dart
-    uri: package:test/hidden/a.dart
-    flags: isLibrary
 [status] idle
 ''');
   }
@@ -3474,20 +4173,18 @@ final a = new A();
 
     driver.addFile2(b);
 
-    configuration.withOperations = true;
-
     // There is no library for `b`.
     // So, we analyze `b` as its own library.
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isPart
+    flags: exists isPart
     errors
       25 +1 CREATION_WITH_NON_TYPE
 [status] idle
@@ -3506,13 +4203,11 @@ final a = new A();
     driver.addFile2(b);
     driver.priorityFiles2 = [b];
 
-    configuration.withOperations = true;
-
     // There is no library for `b`.
     // So, we analyze `b` as its own library.
     await assertEventsText(collector, r'''
 [status] analyzing
-[operation] computeAnalysisResult
+[operation] AnalyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
 [stream]
@@ -3537,20 +4232,27 @@ final a = new A();
     // Initial analysis.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
 
     driver.removeFile2(a);
     driver.addFile2(a);
 
-    // We analyze `a` again.
+    // The cache key for `a` errors is the same, return from bytes.
+    // Note, no analysis.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] GetErrorsFromBytes
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ErrorsResult #1
     path: /home/test/lib/a.dart
@@ -3596,6 +4298,9 @@ final B = 0;
     // We have results for both `a` and `b`.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
@@ -3603,6 +4308,9 @@ final B = 0;
     flags: exists isLibrary
     selectedVariableTypes
       A: int
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
@@ -3625,6 +4333,9 @@ final B = 1.2;
     // But the change causes `a` to be reanalyzed.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/a.dart
@@ -3677,16 +4388,22 @@ final a = new A();
     // No errors in `b`.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
 
@@ -3695,11 +4412,14 @@ final a = new A();
     driver.removeFile2(a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #2
+  ResolvedUnitResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
     errors
       7 +8 URI_DOES_NOT_EXIST
       31 +1 CREATION_WITH_NON_TYPE
@@ -3758,36 +4478,54 @@ class F extends X {}
     // Note, `f` has an error.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
 [stream]
-  ErrorsResult #2
+  ResolvedUnitResult #2
     path: /home/test/lib/c.dart
     uri: package:test/c.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/d.dart
+  library: /home/test/lib/d.dart
 [stream]
-  ErrorsResult #3
+  ResolvedUnitResult #3
     path: /home/test/lib/d.dart
     uri: package:test/d.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/e.dart
+  library: /home/test/lib/e.dart
 [stream]
-  ErrorsResult #4
+  ResolvedUnitResult #4
     path: /home/test/lib/e.dart
     uri: package:test/e.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/f.dart
+  library: /home/test/lib/f.dart
 [stream]
-  ErrorsResult #5
+  ResolvedUnitResult #5
     path: /home/test/lib/f.dart
     uri: package:test/f.dart
-    flags: isLibrary
+    flags: exists isLibrary
     errors
       57 +1 EXTENDS_NON_CLASS
 [status] idle
@@ -3805,38 +4543,56 @@ class B {}
     // 4. Then the rest, in order of adding.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #6
+  ResolvedUnitResult #6
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/d.dart
+  library: /home/test/lib/d.dart
 [stream]
-  ErrorsResult #7
+  ResolvedUnitResult #7
     path: /home/test/lib/d.dart
     uri: package:test/d.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/f.dart
+  library: /home/test/lib/f.dart
 [stream]
-  ErrorsResult #8
+  ResolvedUnitResult #8
     path: /home/test/lib/f.dart
     uri: package:test/f.dart
-    flags: isLibrary
+    flags: exists isLibrary
     errors
       57 +1 EXTENDS_NON_CLASS
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #9
+  ResolvedUnitResult #9
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
 [stream]
-  ErrorsResult #10
+  ResolvedUnitResult #10
     path: /home/test/lib/c.dart
     uri: package:test/c.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/e.dart
+  library: /home/test/lib/e.dart
 [stream]
-  ErrorsResult #11
+  ResolvedUnitResult #11
     path: /home/test/lib/e.dart
     uri: package:test/e.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
   }
@@ -3875,31 +4631,46 @@ import 'b.dart';
     // Initial analysis, all files analyzed in order of adding.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
 [stream]
-  ErrorsResult #2
+  ResolvedUnitResult #2
     path: /home/test/lib/c.dart
     uri: package:test/c.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/d.dart
+  library: /home/test/lib/d.dart
 [stream]
-  ErrorsResult #3
+  ResolvedUnitResult #3
     path: /home/test/lib/d.dart
     uri: package:test/d.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/e.dart
+  library: /home/test/lib/e.dart
 [stream]
-  ErrorsResult #4
+  ResolvedUnitResult #4
     path: /home/test/lib/e.dart
     uri: package:test/e.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
 
@@ -3917,26 +4688,38 @@ class B2 {}
     // Then `d` and `e` because they import `a` and `b`.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #5
+  ResolvedUnitResult #5
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #6
+  ResolvedUnitResult #6
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/d.dart
+  library: /home/test/lib/d.dart
 [stream]
-  ErrorsResult #7
+  ResolvedUnitResult #7
     path: /home/test/lib/d.dart
     uri: package:test/d.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/e.dart
+  library: /home/test/lib/e.dart
 [stream]
-  ErrorsResult #8
+  ResolvedUnitResult #8
     path: /home/test/lib/e.dart
     uri: package:test/e.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
   }
@@ -3956,11 +4739,14 @@ final v = 0;
     // Initial analysis.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
 
@@ -3975,11 +4761,14 @@ final v = 0
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
     errors
       10 +1 EXPECTED_TOKEN
 [status] idle
@@ -4004,16 +4793,22 @@ class B {}
     // Initial analysis.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
-  ErrorsResult #1
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
 
@@ -4026,11 +4821,14 @@ class A2 {}
     // Only `a` is analyzed, `b` is not affected.
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #2
+  ResolvedUnitResult #2
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
   }
@@ -4045,11 +4843,14 @@ class A2 {}
 
     await assertEventsText(collector, r'''
 [status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
-  ErrorsResult #0
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
-    flags: isLibrary
+    flags: exists isLibrary
 [status] idle
 ''');
   }
@@ -4427,8 +5228,8 @@ class DriverEventCollector {
           events.add(
             SchedulerStatusEvent(event),
           );
-        case driver_events.ComputeAnalysis():
-        case driver_events.ComputeResolvedLibrary():
+        case driver_events.AnalyzeFile():
+        case driver_events.GetErrorsFromBytes():
         case ErrorsResult():
         case ResolvedUnitResult():
           events.add(
@@ -4461,6 +5262,17 @@ class DriverEventCollector {
         ),
       );
     }));
+  }
+
+  Future<AnalysisDriverUnitIndex?> getIndex(String name, File file) async {
+    final value = await driver.getIndex(file.path);
+    events.add(
+      GetIndexEvent(
+        name: name,
+        result: value,
+      ),
+    );
+    return value;
   }
 
   void getLibraryByUri(String name, String uriStr) {
