@@ -1166,7 +1166,7 @@ List<lsp.DocumentHighlight> toHighlights(
       .map((occurrence) => occurrence.offsets.map((offset) =>
           lsp.DocumentHighlight(
               range: toRange(lineInfo, offset, occurrence.length))))
-      .flattenedToSet
+      .flattenedToSet2
       .toList();
 }
 

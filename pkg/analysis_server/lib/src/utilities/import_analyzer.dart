@@ -299,7 +299,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     // Extensions can be used without a prefix, so we can use any import that
     // brings in the extension.
     if (import == null && prefix == null && element is ExtensionElement) {
-      import = _importsByPrefix.values.flattenedToList
+      import = _importsByPrefix.values.flattenedToList2
           .where((import) =>
               // Because we don't know what prefix we're looking for (any is
               // allowed), use the imports own prefix when checking for the

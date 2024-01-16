@@ -2526,7 +2526,7 @@ class _DiscoverAvailableFilesTask {
       // Discover files in package/lib folders.
       var packageMap = driver._sourceFactory.packageMap;
       if (packageMap != null) {
-        folderIterator = packageMap.values.flattenedToList.iterator;
+        folderIterator = packageMap.values.flattenedToList2.iterator;
       } else {
         folderIterator = <Folder>[].iterator;
       }

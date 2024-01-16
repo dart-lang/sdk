@@ -61,7 +61,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
         .map((response) => plugin.EditGetFixesResult.fromResponse(response))
         .expand((response) => response.fixes)
         .map(_convertFixes)
-        .flattenedToList;
+        .flattenedToList2;
   }
 
   @override

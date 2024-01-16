@@ -3080,7 +3080,7 @@ class AstBuilder extends StackListener {
     debugEvent("SwitchBlock");
 
     var membersList = popTypedList2<List<SwitchMemberImpl>>(caseCount);
-    var members = membersList.flattenedToList;
+    var members = membersList.flattenedToList2;
 
     Set<String> labels = <String>{};
     for (var member in members) {

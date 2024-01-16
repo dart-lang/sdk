@@ -30,7 +30,7 @@ class IterableIterableExtensionTest {
         [0],
         [1, 2],
         [3, 3]
-      ].flattenedToList,
+      ].flattenedToList2,
       [0, 1, 2, 3, 3],
     );
   }
@@ -41,7 +41,7 @@ class IterableIterableExtensionTest {
         [0, 0],
         [1, 2, 1],
         [3, 3]
-      ].flattenedToSet,
+      ].flattenedToSet2,
       {0, 1, 2, 3},
     );
   }
