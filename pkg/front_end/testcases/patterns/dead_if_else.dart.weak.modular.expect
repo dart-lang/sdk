@@ -4,16 +4,18 @@ import "dart:core" as core;
 
 static method method(core::bool b1) → dynamic {
   {
-    hoisted core::bool b2;
     final synthesized core::bool #0#0 = b1;
-    if(true) {
-      b2 = #0#0;
-      {
-        core::print(b2);
+    {
+      hoisted core::bool b2;
+      if(true) {
+        b2 = #0#0;
+        {
+          core::print(b2);
+        }
       }
-    }
-    else {
-      core::print(b1);
+      else {
+        core::print(b1);
+      }
     }
   }
 }
