@@ -1506,7 +1506,6 @@ void Debugger::DeoptimizeWorld() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
   if (FLAG_trace_deoptimization) {
     THR_Print("Deopt for debugger\n");
   }
@@ -1528,8 +1527,6 @@ void Debugger::DeoptimizeWorld() {
 
   const intptr_t num_classes = class_table.NumCids();
   const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
-  // TODO(dartbug.com/36097): Need to stop other mutators running in same IG
-  // before deoptimizing the world.
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
     const intptr_t cid =
@@ -1589,8 +1586,32 @@ void Debugger::DeoptimizeWorld() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-void Debugger::NotifySingleStepping(bool value) const {
-  isolate_->set_single_step(value);
+void Debugger::RunWithStoppedDeoptimizedWorld(std::function<void()> fun) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // RELOAD_OPERATION_SCOPE is used here because is is guaranteed that
+  // isolates at reload safepoints hold no safepoint locks.
+  RELOAD_OPERATION_SCOPE(Thread::Current());
+  group_debugger()->isolate_group()->RunWithStoppedMutators([&]() {
+    DeoptimizeWorld();
+    fun();
+  });
+#endif
+}
+
+void Debugger::NotifySingleStepping(bool value) {
+  if (value) {
+    // Setting breakpoint requires unoptimized code, make sure we stop all
+    // isolates to prevent racing reoptimization.
+    RunWithStoppedDeoptimizedWorld([&] {
+      isolate_->set_single_step(value);
+      // Ensure other isolates in the isolate group keep
+      // unoptimized code unoptimized, won't attempt to optimize it.
+      group_debugger()->RegisterSingleSteppingDebugger(Thread::Current(), this);
+    });
+  } else {
+    isolate_->set_single_step(value);
+    group_debugger()->UnregisterSingleSteppingDebugger(Thread::Current(), this);
+  }
 }
 
 static ActivationFrame* CollectDartFrame(uword pc,
@@ -2576,10 +2597,15 @@ BreakpointLocation* Debugger::SetBreakpoint(
             FindExactTokenPosition(script, token_pos, requested_column);
       }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-      DeoptimizeWorld();
-      BreakpointLocation* loc =
-          SetCodeBreakpoints(scripts, token_pos, last_token_pos, requested_line,
-                             requested_column, exact_token_pos, code_functions);
+      BreakpointLocation* loc = nullptr;
+      // Ensure that code stays deoptimized (and background compiler disabled)
+      // until we have installed the breakpoint (at which point the compiler
+      // will not try to optimize it anymore).
+      RunWithStoppedDeoptimizedWorld([&] {
+        loc = SetCodeBreakpoints(scripts, token_pos, last_token_pos,
+                                 requested_line, requested_column,
+                                 exact_token_pos, code_functions);
+      });
       if (loc != nullptr) {
         return loc;
       }
@@ -3015,7 +3041,6 @@ void GroupDebugger::Pause() {
 
 void Debugger::EnterSingleStepMode() {
   ResetSteppingFramePointer();
-  DeoptimizeWorld();
   NotifySingleStepping(true);
 }
 
@@ -3039,14 +3064,12 @@ void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
     // the isolate has been interrupted, but can happen in other cases
     // as well.  We need to deoptimize the world in case we are about
     // to call an optimized function.
-    DeoptimizeWorld();
     NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest - kStepInto\n");
     }
   } else if (resume_action_ == kStepOver) {
-    DeoptimizeWorld();
     NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     SetSyncSteppingFramePointer(stack_trace_);
@@ -3071,7 +3094,6 @@ void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
     }
 
     // Fall through to synchronous stepping.
-    DeoptimizeWorld();
     NotifySingleStepping(true);
     // Find topmost caller that is debuggable.
     for (intptr_t i = 1; i < stack_trace_->Length(); i++) {
@@ -3352,13 +3374,13 @@ bool Debugger::IsDebuggable(const Function& func) {
 
 void GroupDebugger::RegisterSingleSteppingDebugger(Thread* thread,
                                                    const Debugger* debugger) {
-  ASSERT(single_stepping_set_lock()->IsCurrentThreadWriter());
+  WriteRwLocker sl(Thread::Current(), single_stepping_set_lock());
   single_stepping_set_.Insert(debugger);
 }
 
 void GroupDebugger::UnregisterSingleSteppingDebugger(Thread* thread,
                                                      const Debugger* debugger) {
-  ASSERT(single_stepping_set_lock()->IsCurrentThreadWriter());
+  WriteRwLocker sl(Thread::Current(), single_stepping_set_lock());
   single_stepping_set_.Remove(debugger);
 }
 
@@ -3400,7 +3422,6 @@ bool GroupDebugger::IsDebugging(Thread* thread, const Function& function) {
 
 void Debugger::set_resume_action(ResumeAction resume_action) {
   auto thread = Thread::Current();
-  WriteRwLocker sl(thread, group_debugger()->single_stepping_set_lock());
   if (resume_action == kContinue) {
     group_debugger()->UnregisterSingleSteppingDebugger(thread, this);
   } else {

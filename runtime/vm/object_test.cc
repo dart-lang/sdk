@@ -5777,6 +5777,99 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   }
 }
 
+void SetBreakpoint(Dart_NativeArguments args) {
+  // Refers to the DeoptimizeFramesWhenSettingBreakpoint function below.
+  const int kBreakpointLine = 8;
+
+  // This will force deoptimization of functions on stack.
+  // Function on stack has to be optimized, since we want to trigger debuggers
+  // on-stack deoptimization flow when we set a breakpoint.
+  Dart_Handle result =
+      Dart_SetBreakpoint(NewString(TestCase::url()), kBreakpointLine);
+  EXPECT_VALID(result);
+}
+
+static Dart_NativeFunction SetBreakpointResolver(Dart_Handle name,
+                                                 int argument_count,
+                                                 bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != nullptr);
+  *auto_setup_scope = true;
+  const char* cstr = nullptr;
+  Dart_Handle result = Dart_StringToCString(name, &cstr);
+  EXPECT_VALID(result);
+  EXPECT_STREQ(cstr, "setBreakpoint");
+  return &SetBreakpoint;
+}
+
+TEST_CASE(DeoptimizeFramesWhenSettingBreakpoint) {
+  const char* kOriginalScript = "test() {}";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kOriginalScript, nullptr);
+  EXPECT_VALID(lib);
+  Dart_SetNativeResolver(lib, &SetBreakpointResolver, nullptr);
+
+  // Get unoptimized code for functions so they can be optimized.
+  Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, nullptr);
+  EXPECT_VALID(result);
+
+  // Launch second isolate so that running with stopped mutators during
+  // deoptimizattion requests a safepoint.
+  Dart_Isolate parent = Dart_CurrentIsolate();
+  Dart_ExitIsolate();
+  char* error = nullptr;
+  Dart_Isolate child = Dart_CreateIsolateInGroup(parent, "child",
+                                                 /*shutdown_callback=*/nullptr,
+                                                 /*cleanup_callback=*/nullptr,
+                                                 /*peer=*/nullptr, &error);
+  EXPECT_NE(nullptr, child);
+  EXPECT_EQ(nullptr, error);
+  Dart_ExitIsolate();
+  Dart_EnterIsolate(parent);
+
+  const char* kReloadScript =
+      R"(
+      @pragma("vm:external-name", "setBreakpoint")
+      external setBreakpoint();
+      baz() {}
+      test() {
+        if (true) {
+          setBreakpoint();
+        } else {
+          baz();   // this line gets a breakpoint
+        }
+      }
+      )";
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+
+  {
+    TransitionNativeToVM transition(thread);
+    const String& name = String::Handle(String::New(TestCase::url()));
+    const Library& vmlib =
+        Library::Handle(Library::LookupLibrary(thread, name));
+    EXPECT(!vmlib.IsNull());
+    Function& func_test = Function::Handle(GetFunction(vmlib, "test"));
+    Compiler::EnsureUnoptimizedCode(thread, func_test);
+    Compiler::CompileOptimizedFunction(thread, func_test);
+    func_test.set_unoptimized_code(Code::Handle(Code::null()));
+  }
+
+  result = Dart_Invoke(lib, NewString("test"), 0, nullptr);
+  EXPECT_VALID(result);
+
+  // Make sure child isolate finishes.
+  Dart_ExitIsolate();
+  Dart_EnterIsolate(child);
+  {
+    bool result =
+        Dart_RunLoopAsync(/*errors_are_fatal=*/true,
+                          /*on_error_port=*/0, /*on_exit_port=*/0, &error);
+    EXPECT_EQ(true, result);
+  }
+  EXPECT_EQ(nullptr, error);
+  Dart_EnterIsolate(parent);
+}
+
 ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   ObjectStore* object_store = IsolateGroup::Current()->object_store();
   Class& cls = Class::Handle();
