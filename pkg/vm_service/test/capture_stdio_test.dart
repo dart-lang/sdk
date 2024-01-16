@@ -37,11 +37,11 @@ var tests = <IsolateTest>[
       // initial stream subscription. Wait for the initial sentinel before
       // executing test logic.
       if (!started) {
-        started = output == 'start';
+        started = output == 'start\n';
         return;
       }
       expect(event.kind, EventKind.kWriteEvent);
-      expect(output, 'stdout');
+      expect(output, 'stdout\n');
       await stdoutSub.cancel();
       await service.streamCancel(EventStreams.kStdout);
       completer.complete();
@@ -57,7 +57,7 @@ var tests = <IsolateTest>[
     stdoutSub = service.onStdoutEvent.listen((event) async {
       expect(event.kind, EventKind.kWriteEvent);
       final decoded = utf8.decode(base64Decode(event.bytes!));
-      expect(decoded, 'print');
+      expect(decoded, 'print\n');
       await service.streamCancel(EventStreams.kStdout);
       await stdoutSub.cancel();
       completer.complete();
