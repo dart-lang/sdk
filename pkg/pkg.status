@@ -56,7 +56,6 @@ dev_compiler/test/worker/*: Skip # test needs fixes
 front_end/test/fasta/analyze_git_test: Pass, Slow
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
-front_end/test/fasta/sdk_test: SkipByDesign # sdk_test would take too long to complete, and should be run in a different way.
 front_end/test/fasta/types/dart2js_benchmark_test: Pass, Slow
 front_end/test/fasta/types/large_app_benchmark_test: Pass, ExtraSlow
 front_end/test/incremental_compiler_leak_test: Pass, ExtraSlow

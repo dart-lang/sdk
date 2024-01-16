@@ -2145,10 +2145,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           // [#54602](https://github.com/dart-lang/sdk/issues/54602).
           switch (owner) {
             case ClassBuilder():
-              if (tv.name == owner.name) {
-                addProblem(messageTypeVariableSameNameAsEnclosing,
-                    tv.charOffset, tv.name.length, fileUri);
-              }
             case ExtensionBuilder():
             case ExtensionTypeDeclarationBuilder():
               if (tv.name == owner.name) {

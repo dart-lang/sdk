@@ -2119,10 +2119,14 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  const bool can_be_constant = index()->BindsToConstant() &&
-                               compiler::Assembler::AddressCanHoldConstantIndex(
-                                   index()->BoundConstant(), /*load=*/true,
-                                   IsExternal(), class_id(), index_scale());
+  bool needs_base;
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), /*load=*/true, IsExternal(), class_id(),
+          index_scale(), &needs_base);
+  // We don't need to check if [needs_base] is true, since we use TMP as the
+  // temp register in this case and so don't need to allocate a temp register.
   locs->set_in(1, can_be_constant
                       ? Location::Constant(index()->definition()->AsConstant())
                       : Location::RequiresRegister());

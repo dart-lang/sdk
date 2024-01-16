@@ -1494,6 +1494,9 @@ class Assembler : public AssemblerBase {
   // nearby the load of the table address.
   void LoadAllocationTracingStateAddress(Register dest, intptr_t cid);
 
+  // If true is returned, then the out parameter [need_base] signifies whether
+  // a register is needed for storing the array base (which should be passed
+  // as the [temp] parameter to ElementAddressForIntIndex).
   static bool AddressCanHoldConstantIndex(const Object& constant,
                                           bool is_load,
                                           bool is_external,

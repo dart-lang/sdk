@@ -23,6 +23,8 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_demotion.dart';
 
+import 'type_inference_engine.dart';
+
 import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
 
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
@@ -375,7 +377,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<StructuralParameter> typeParametersToInfer,
       DartType? returnContextType,
       {required bool isNonNullableByDefault,
-      bool isConst = false}) {
+      bool isConst = false,
+      required OperationsCfe typeOperations}) {
     assert(typeParametersToInfer.isNotEmpty);
 
     // Create a TypeConstraintGatherer that will allow certain type parameters
@@ -384,7 +387,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // are implied by this.
     TypeConstraintGatherer gatherer = new TypeConstraintGatherer(
         this, typeParametersToInfer,
-        isNonNullableByDefault: isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault,
+        typeOperations: typeOperations);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {

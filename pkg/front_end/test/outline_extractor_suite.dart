@@ -78,13 +78,6 @@ class Context extends ChainContext with MatchContext {
   @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
-
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
 }
 
 class OutlineExtractorStep
