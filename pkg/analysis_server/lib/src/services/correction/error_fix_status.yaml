@@ -358,6 +358,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
   status: noFix
   notes: |-
@@ -368,6 +372,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
