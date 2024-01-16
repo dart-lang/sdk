@@ -2045,7 +2045,7 @@ void Finalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
   object = all_entries();
   jsobj.AddProperty("allEntries", object);
   object = entries_collected();
-  jsobj.AddProperty("entriesCollected", object);
+  jsobj.AddProperty("_entriesCollected", object);
 }
 
 void Finalizer::PrintImplementationFieldsImpl(
@@ -2065,7 +2065,7 @@ void NativeFinalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
   object = all_entries();
   jsobj.AddProperty("allEntries", object);
   object = entries_collected();
-  jsobj.AddProperty("entriesCollected", object);
+  jsobj.AddProperty("_entriesCollected", object);
 }
 
 void NativeFinalizer::PrintImplementationFieldsImpl(
@@ -2087,9 +2087,9 @@ void FinalizerEntry::PrintJSONImpl(JSONStream* stream, bool ref) const {
   object = token();
   jsobj.AddProperty("token", object);
   object = finalizer();
-  jsobj.AddProperty("finalizer", object);
+  jsobj.AddProperty("_finalizer", object);
   object = next();
-  jsobj.AddProperty("next", object);
+  jsobj.AddProperty("_next", object);
 }
 
 void FinalizerEntry::PrintImplementationFieldsImpl(

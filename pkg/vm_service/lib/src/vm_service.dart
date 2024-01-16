@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.13.0';
+const String vmServiceVersion = '4.14.0';
 
 /// @optional
 const String optional = 'optional';
@@ -5235,16 +5235,6 @@ class Instance extends Obj implements InstanceRef {
   @optional
   InstanceRef? allEntries;
 
-  /// The entries for a (Native)Finalizer instance.
-  ///
-  /// A linked list of entries through FinalizerEntry.next.
-  ///
-  /// Provided for instance kinds:
-  ///  - Finalizer
-  ///  - NativeFinalizer
-  @optional
-  InstanceRef? collectedEntries;
-
   /// The value being watched for finalization for a FinalizerEntry instance.
   ///
   /// Provided for instance kinds:
@@ -5265,21 +5255,6 @@ class Instance extends Obj implements InstanceRef {
   ///  - FinalizerEntry
   @optional
   InstanceRef? detach;
-
-  /// The finalizer for a FinalizerEntry instance.
-  ///
-  /// Provided for instance kinds:
-  ///  - FinalizerEntry
-  @optional
-  InstanceRef? finalizer;
-
-  /// The next item in the collectedEntries linked list for a FinalizerEntry
-  /// instance.
-  ///
-  /// Provided for instance kinds:
-  ///  - FinalizerEntry
-  @optional
-  InstanceRef? next;
 
   Instance({
     this.kind,
@@ -5321,12 +5296,9 @@ class Instance extends Obj implements InstanceRef {
     this.callback,
     this.callbackAddress,
     this.allEntries,
-    this.collectedEntries,
     this.value,
     this.token,
     this.detach,
-    this.finalizer,
-    this.next,
   }) : super(
           id: id,
           classRef: classRef,
@@ -5412,18 +5384,11 @@ class Instance extends Obj implements InstanceRef {
             as InstanceRef?;
     allEntries = createServiceObject(json['allEntries'], const ['InstanceRef'])
         as InstanceRef?;
-    collectedEntries =
-        createServiceObject(json['collectedEntries'], const ['InstanceRef'])
-            as InstanceRef?;
     value = createServiceObject(json['value'], const ['InstanceRef'])
         as InstanceRef?;
     token = createServiceObject(json['token'], const ['InstanceRef'])
         as InstanceRef?;
     detach = createServiceObject(json['detach'], const ['InstanceRef'])
-        as InstanceRef?;
-    finalizer = createServiceObject(json['finalizer'], const ['InstanceRef'])
-        as InstanceRef?;
-    next = createServiceObject(json['next'], const ['InstanceRef'])
         as InstanceRef?;
   }
 
@@ -5477,12 +5442,9 @@ class Instance extends Obj implements InstanceRef {
     _setIfNotNull(json, 'callback', callback?.toJson());
     _setIfNotNull(json, 'callbackAddress', callbackAddress?.toJson());
     _setIfNotNull(json, 'allEntries', allEntries?.toJson());
-    _setIfNotNull(json, 'collectedEntries', collectedEntries?.toJson());
     _setIfNotNull(json, 'value', value?.toJson());
     _setIfNotNull(json, 'token', token?.toJson());
     _setIfNotNull(json, 'detach', detach?.toJson());
-    _setIfNotNull(json, 'finalizer', finalizer?.toJson());
-    _setIfNotNull(json, 'next', next?.toJson());
     return json;
   }
 
