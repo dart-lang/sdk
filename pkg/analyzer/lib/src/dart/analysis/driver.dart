@@ -1570,6 +1570,7 @@ class AnalysisDriver {
     return ErrorsResultImpl(
       session: currentSession,
       file: file.resource,
+      content: file.content,
       lineInfo: file.lineInfo,
       uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,
@@ -1622,7 +1623,6 @@ class AnalysisDriver {
     return ResolvedUnitResultImpl(
       session: currentSession,
       fileState: file,
-      content: file.content,
       unit: unitResult.unit,
       errors: unitResult.errors,
     );
@@ -1835,6 +1835,7 @@ class AnalysisDriver {
     return ErrorsResultImpl(
       session: currentSession,
       file: file.resource,
+      content: file.content,
       lineInfo: file.lineInfo,
       uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,

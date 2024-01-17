@@ -133,6 +133,7 @@ abstract class AbstractCodeActionsProducer
     return engine.ErrorsResultImpl(
         session: session,
         file: file,
+        content: file.readAsStringSync(),
         uri: server.uriConverter.toClientUri(path),
         lineInfo: lineInfo,
         isAugmentation: false,

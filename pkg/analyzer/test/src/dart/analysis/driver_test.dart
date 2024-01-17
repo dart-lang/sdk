@@ -1884,11 +1884,14 @@ void f(A a) {}
   }
 
   test_getFileSync_library() async {
-    final a = newFile('$testPackageLibPath/a.dart', '');
+    var content = 'class A {}';
+    final a = newFile('$testPackageLibPath/a.dart', content);
     final driver = driverFor(testFile);
     final result = driver.getFileSyncValid(a);
     expect(result.path, a.path);
     expect(result.uri.toString(), 'package:test/a.dart');
+    expect(result.content, content);
+    expect(result.isLibrary, isTrue);
     expect(result.isPart, isFalse);
   }
 
@@ -1899,11 +1902,14 @@ void f(A a) {}
   }
 
   test_getFileSync_part() async {
-    final a = newFile('$testPackageLibPath/a.dart', 'part of lib;');
+    var content = 'part of lib;';
+    final a = newFile('$testPackageLibPath/a.dart', content);
     final driver = driverFor(testFile);
     final result = driver.getFileSyncValid(a);
     expect(result.path, a.path);
     expect(result.uri.toString(), 'package:test/a.dart');
+    expect(result.content, content);
+    expect(result.isLibrary, isFalse);
     expect(result.isPart, isTrue);
   }
 

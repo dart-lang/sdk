@@ -262,6 +262,7 @@ class Driver implements CommandLineStarter {
             ErrorsResultImpl(
               session: analysisDriver.currentSession,
               file: file,
+              content: content,
               uri: pathContext.toUri(path),
               lineInfo: lineInfo,
               isAugmentation: false,
@@ -306,6 +307,7 @@ class Driver implements CommandLineStarter {
                 ErrorsResultImpl(
                   session: analysisDriver.currentSession,
                   file: file,
+                  content: content,
                   uri: pathContext.toUri(path),
                   lineInfo: lineInfo,
                   isAugmentation: false,
@@ -333,6 +335,7 @@ class Driver implements CommandLineStarter {
               ErrorsResultImpl(
                 session: analysisDriver.currentSession,
                 file: file,
+                content: content,
                 uri: pathContext.toUri(path),
                 lineInfo: lineInfo,
                 isAugmentation: false,
