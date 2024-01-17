@@ -318,7 +318,9 @@ class Call extends Statement {
 
   Call(this.selector, this.args, this.staticResultType,
       bool isInstanceCreation) {
-    if (selector is! InterfaceSelector) {
+    // TODO(sjindel/tfa): Support inferring unchecked entry-points for dynamic
+    // and direct calls as well.
+    if (selector is DynamicSelector || selector is DirectSelector) {
       setUseCheckedEntry();
     }
     if (isInstanceCreation) {
@@ -446,13 +448,11 @@ class Call extends Statement {
     if (receiver is NullableType) {
       _flags |= kNullableReceiver;
     }
-    if (!receiverMayBeInt) {
-      final receiverIntIntersect =
-          receiver.intersection(typeHierarchy.intType, typeHierarchy);
-      if (receiverIntIntersect != emptyType &&
-          receiverIntIntersect != nullableEmptyType) {
-        _flags |= kReceiverMayBeInt;
-      }
+    final receiverIntIntersect =
+        receiver.intersection(typeHierarchy.intType, typeHierarchy);
+    if (receiverIntIntersect != emptyType &&
+        receiverIntIntersect != nullableEmptyType) {
+      _flags |= kReceiverMayBeInt;
     }
   }
 
@@ -901,11 +901,8 @@ abstract class SharedVariable {
 }
 
 abstract class SharedVariableBuilder {
-  /// [SharedVariable] representing captured [variable].
+  /// Returns [SharedVariable] representing captured [variable].
   SharedVariable getSharedVariable(VariableDeclaration variable);
-
-  /// [SharedVariable] representing captured `this` in [member].
-  SharedVariable getSharedCapturedThis(Member member);
 }
 
 /// Reads value from [variable].

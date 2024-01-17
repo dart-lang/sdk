@@ -20,7 +20,7 @@ class Foo extends core::Object {
   method bar() → void {
     @#C16
     function bazz() → void {}
-    [@vm.inferred-type.metadata=!? (receiver not int)] bazz(){() → void};
+    bazz(){() → void};
   }
 }
 static method main() → dynamic {

@@ -440,19 +440,3 @@ bool isArtificialNode(TreeNode node) =>
 // Returns [node] or null, if node is artificial.
 T? filterArtificialNode<T extends TreeNode>(T? node) =>
     (node == null || isArtificialNode(node)) ? null : node;
-
-String localFunctionName(LocalFunction function) {
-  switch (function) {
-    case FunctionDeclaration():
-      return function.variable.name!;
-    case FunctionExpression():
-      final location = function.location;
-      return '<anonymous closure' +
-          (location != null
-              ? ' at ${location.file.pathSegments.last}:${location.line}'
-              : '') +
-          '>';
-    default:
-      throw 'Unexpected local function ${function.runtimeType} $function';
-  }
-}

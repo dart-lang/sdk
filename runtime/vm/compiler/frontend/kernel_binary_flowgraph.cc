@@ -2964,13 +2964,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
 Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     TokenPosition* p) {
-  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
   const TokenPosition position = ReadPosition();
   if (p != nullptr) *p = position;
-
-  const InferredTypeMetadata result_type =
-      inferred_type_metadata_helper_.GetInferredType(offset);
-
   // read variable kernel position.
   const intptr_t variable_kernel_position = ReadUInt();
   ReadUInt();  // read relative variable index.
@@ -3032,7 +3027,7 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     instructions += DebugStepCheck(position);
   }
   instructions += B->ClosureCall(target_function, position, type_args_len,
-                                 argument_count, argument_names, &result_type);
+                                 argument_count, argument_names);
   return instructions;
 }
 
@@ -3095,7 +3090,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
     }
     instructions +=
         B->ClosureCall(Function::null_function(), position, type_args_len,
-                       argument_count, argument_names, &result_type);
+                       argument_count, argument_names);
   } else {
     instructions += InstanceCall(
         position, Symbols::DynamicCall(), Token::kILLEGAL, type_args_len,

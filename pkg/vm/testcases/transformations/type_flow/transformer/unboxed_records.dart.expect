@@ -64,8 +64,8 @@ static method main() → dynamic {
   self::A obj = [@vm.inferred-type.metadata=dart.core::bool] self::condition ?{self::A} new self::B::•() : new self::C::•();
   core::print([@vm.inferred-type.metadata=dart.core::_Record] obj.{self::A::returnUnboxed1}(){() → dynamic});
   core::print([@vm.inferred-type.metadata=dart.core::_Record] obj.{self::A::returnUnboxed2}{dynamic});
-  core::print([@vm.inferred-type.metadata=dart.core::_Record] obj.{self::A::returnBoxed1}(){() → dynamic});
-  core::print([@vm.inferred-type.metadata=dart.core::_Record] obj.{self::A::returnBoxed2}{dynamic});
+  core::print([@vm.inferred-type.metadata=!] obj.{self::A::returnBoxed1}(){() → dynamic});
+  core::print([@vm.inferred-type.metadata=!] obj.{self::A::returnBoxed2}{dynamic});
 }
 constants  {
   #C1 = "vm:entry-point"

@@ -15,7 +15,7 @@ static method testVoidNoArg() → dynamic {
       return ffi::_ffiCall<void>(#ffiTarget0);
     }
   } =>#ffiClosure0;
-  [@vm.inferred-type.metadata=!? (receiver not int)] function(){() → void};
+  function(){() → void};
 }
 [@vm.unboxing-info.metadata=()->i]static method testIntInt() → dynamic {
   final ffi::Pointer<ffi::NativeFunction<(ffi::Int64) → ffi::Int32>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<(ffi::Int64) → ffi::Int32>>(3735928559);
@@ -24,10 +24,10 @@ static method testVoidNoArg() → dynamic {
     @#C6
     function #ffiClosure1(core::int arg1) → core::int {
       _in::_nativeEffect(arg1);
-      return [@vm.inferred-type.metadata=int] ffi::_ffiCall<core::int>(#ffiTarget1);
+      return ffi::_ffiCall<core::int>(#ffiTarget1);
     }
   } =>#ffiClosure1;
-  return [@vm.inferred-type.metadata=int (receiver not int)] function(42){(core::int) → core::int};
+  return function(42){(core::int) → core::int};
 }
 [@vm.unboxing-info.metadata=()->i]static method testLeaf5Args() → dynamic {
   final ffi::Pointer<ffi::NativeFunction<(ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32) → ffi::Int32>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<(ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32) → ffi::Int32>>(3735928559);
@@ -40,10 +40,10 @@ static method testVoidNoArg() → dynamic {
       _in::_nativeEffect(arg3);
       _in::_nativeEffect(arg4);
       _in::_nativeEffect(arg5);
-      return [@vm.inferred-type.metadata=int] ffi::_ffiCall<core::int>(#ffiTarget2);
+      return ffi::_ffiCall<core::int>(#ffiTarget2);
     }
   } =>#ffiClosure2;
-  return [@vm.inferred-type.metadata=int (receiver not int)] function(1, 2, 3, 4, 5){(core::int, core::int, core::int, core::int, core::int) → core::int};
+  return function(1, 2, 3, 4, 5){(core::int, core::int, core::int, core::int, core::int) → core::int};
 }
 static method main() → void {
   self::testVoidNoArg();
