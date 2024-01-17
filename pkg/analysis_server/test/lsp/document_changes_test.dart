@@ -268,7 +268,7 @@ class Bar {
     await pumpEventQueue(times: 5000);
     expect(diagnostics[mainFilePath], isNotEmpty);
 
-    // Finally, expect deleteing the file clears the diagnostics.
+    // Finally, expect deleting the file clears the diagnostics.
     deleteFile(mainFilePath);
     await pumpEventQueue(times: 5000);
     expect(diagnostics[mainFilePath], isEmpty);

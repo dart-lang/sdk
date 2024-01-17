@@ -69,7 +69,7 @@ class AnalysisOptionsFixGenerator {
 
     var errorCode = error.errorCode;
     // Check whether [errorCode] is within [codeWithFixes], which is (currently)
-    // the canonical list of analyis option error codes with fixes.
+    // the canonical list of analysis option error codes with fixes.
     // If we move analysis option fixes to the style of correction producers,
     // and a map from error codes to the correction producers that can fix
     // violations, we won't need this check.

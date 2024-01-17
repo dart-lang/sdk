@@ -97,7 +97,7 @@ class AnalyticsManager {
     }
   }
 
-  /// Record information about the number of files and the numer of lines of
+  /// Record information about the number of files and the number of lines of
   /// code in those files, for both immediate files, transitive files, and the
   /// number of unique transitive files.
   void analysisComplete({
@@ -469,7 +469,7 @@ class AnalyticsManager {
     requestData.responseTimes.addValue(responseTime);
   }
 
-  /// Send information about the number of files and the numer of lines of code
+  /// Send information about the number of files and the number of lines of code
   /// in those files.
   Future<void> _sendAnalysisData() async {
     var contextStructure = _contextStructure;

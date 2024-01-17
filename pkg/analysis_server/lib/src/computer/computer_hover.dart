@@ -232,7 +232,7 @@ class DartUnitHoverComputer {
     return node;
   }
 
-  /// Returns information abtout the static type of [node].
+  /// Returns information about the static type of [node].
   String? _typeDisplayString(AstNode node, Element? element) {
     var parent = node.parent;
     DartType? staticType;
