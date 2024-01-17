@@ -8,7 +8,6 @@
 
 #include "vm/compiler/backend/range_analysis.h"  // For Range.
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
-#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 #include "vm/compiler/runtime_api.h"
 #include "vm/growable_array.h"
@@ -1134,14 +1133,12 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   return call_hook;
 }
 
-Fragment BaseFlowGraphBuilder::ClosureCall(
-    const Function& target_function,
-    TokenPosition position,
-    intptr_t type_args_len,
-    intptr_t argument_count,
-    const Array& argument_names,
-    const InferredTypeMetadata* result_type) {
-  Fragment instructions = RecordCoverage(position);
+Fragment BaseFlowGraphBuilder::ClosureCall(const Function& target_function,
+                                           TokenPosition position,
+                                           intptr_t type_args_len,
+                                           intptr_t argument_count,
+                                           const Array& argument_names) {
+  Fragment result = RecordCoverage(position);
   const intptr_t total_count =
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
@@ -1150,12 +1147,8 @@ Fragment BaseFlowGraphBuilder::ClosureCall(
       target_function, std::move(arguments), type_args_len, argument_names,
       InstructionSource(position), GetNextDeoptId());
   Push(call);
-  instructions <<= call;
-  if (result_type != nullptr && result_type->IsConstant()) {
-    instructions += Drop();
-    instructions += Constant(result_type->constant_value);
-  }
-  return instructions;
+  result <<= call;
+  return result;
 }
 
 void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {

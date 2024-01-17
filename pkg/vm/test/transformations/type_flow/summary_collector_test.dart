@@ -21,7 +21,6 @@ import 'package:vm/transformations/type_flow/native_code.dart';
 import 'package:vm/transformations/type_flow/summary.dart';
 import 'package:vm/transformations/type_flow/summary_collector.dart';
 import 'package:vm/transformations/type_flow/types.dart';
-import 'package:vm/transformations/type_flow/utils.dart';
 
 import '../../common_test_utils.dart';
 
@@ -31,8 +30,8 @@ class FakeTypesBuilder extends TypesBuilder {
   final Map<Class, TFClass> _classes = <Class, TFClass>{};
   int _classIdCounter = 0;
 
-  FakeTypesBuilder(CoreTypes coreTypes, Target target)
-      : super(coreTypes, target, /*soundNullSafety=*/ true);
+  FakeTypesBuilder(CoreTypes coreTypes)
+      : super(coreTypes, /*soundNullSafety=*/ true);
 
   @override
   TFClass getTFClass(Class c) =>
@@ -71,14 +70,11 @@ class FakeEntryPointsListener implements EntryPointsListener {
 
   @override
   void recordTearOff(Member target) {}
-
-  @override
-  Procedure getClosureCallMethod(Closure closure) => closure.createCallMethod();
 }
 
 class FakeSharedVariable implements SharedVariable {
-  final String name;
-  FakeSharedVariable(this.name);
+  final VariableDeclaration decl;
+  FakeSharedVariable(this.decl);
 
   @override
   Type getValue(TypeHierarchy typeHierarchy, CallHandler callHandler) =>
@@ -90,31 +86,24 @@ class FakeSharedVariable implements SharedVariable {
       throw 'Not implemented';
 
   @override
-  String toString() => name;
+  String toString() => decl.name ?? '__tmp';
 }
 
 class FakeSharedVariableBuilder implements SharedVariableBuilder {
   final Map<VariableDeclaration, SharedVariable> _sharedVariables = {};
-  final Map<Member, SharedVariable> _sharedCapturedThisVariables = {};
 
   @override
   SharedVariable getSharedVariable(VariableDeclaration variable) =>
-      _sharedVariables[variable] ??=
-          FakeSharedVariable(variable.name ?? '__tmp');
-  @override
-  SharedVariable getSharedCapturedThis(Member member) =>
-      _sharedCapturedThisVariables[member] ??=
-          FakeSharedVariable('${nodeToText(member)}::this');
+      _sharedVariables[variable] ??= FakeSharedVariable(variable);
 }
 
 class PrintSummaries extends RecursiveVisitor {
   late SummaryCollector _summaryCollector;
   final StringBuffer _buf = new StringBuffer();
-  Member? _enclosingMember;
 
   PrintSummaries(Target target, TypeEnvironment environment,
       CoreTypes coreTypes, ClosedWorldClassHierarchy hierarchy) {
-    final typesBuilder = FakeTypesBuilder(coreTypes, target);
+    final typesBuilder = FakeTypesBuilder(coreTypes);
     final annotationParser = ConstantPragmaAnnotationParser(coreTypes, target);
     _summaryCollector = SummaryCollector(
         target,
@@ -133,38 +122,14 @@ class PrintSummaries extends RecursiveVisitor {
     return _buf.toString();
   }
 
-  void printSummary(Member member, LocalFunction? localFunction) {
-    String name;
-    if (localFunction != null) {
-      name = localFunctionName(localFunction);
-    } else {
-      name = qualifiedMemberNameToString(member);
-    }
-    _buf.writeln('------------ $name ------------');
-    _buf.writeln(_summaryCollector.createSummary(member, localFunction));
-  }
-
   @override
   defaultMember(Member member) {
     if (!member.isAbstract &&
         !((member is Field) && (member.initializer == null))) {
-      printSummary(member, null);
-      _enclosingMember = member;
-      super.defaultMember(member);
-      _enclosingMember = null;
+      _buf.writeln(
+          "------------ ${qualifiedMemberNameToString(member)} ------------");
+      _buf.writeln(_summaryCollector.createSummary(member));
     }
-  }
-
-  @override
-  visitFunctionExpression(FunctionExpression node) {
-    printSummary(_enclosingMember!, node);
-    super.visitFunctionExpression(node);
-  }
-
-  @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    printSummary(_enclosingMember!, node);
-    super.visitFunctionDeclaration(node);
   }
 }
 

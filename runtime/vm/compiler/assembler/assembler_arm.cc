@@ -3590,6 +3590,28 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   MaybeTraceAllocation(temp_reg, trace);
 }
 
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  LoadAllocationTracingStateAddress(temp_reg, cid);
+  MaybeTraceAllocation(temp_reg, trace);
+}
+
+void Assembler::LoadAllocationTracingStateAddress(Register dest, Register cid) {
+  ASSERT(dest != kNoRegister);
+  ASSERT(dest != TMP);
+
+  LoadIsolateGroup(dest);
+  ldr(dest, Address(dest, target::IsolateGroup::class_table_offset()));
+  ldr(dest,
+      Address(dest,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddScaled(cid, cid, TIMES_1,
+            target::ClassTable::AllocationTracingStateSlotOffsetFor(0));
+  AddRegisters(dest, cid);
+}
+
 void Assembler::LoadAllocationTracingStateAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);

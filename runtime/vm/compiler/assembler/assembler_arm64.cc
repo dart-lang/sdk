@@ -2050,6 +2050,23 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                  kUnsignedByte);
   cbnz(trace, temp_reg);
 }
+
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  ASSERT(temp_reg != cid);
+  LoadIsolateGroup(temp_reg);
+  ldr(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  ldr(temp_reg,
+      Address(temp_reg,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddRegisters(temp_reg, cid);
+  LoadFromOffset(temp_reg, temp_reg,
+                 target::ClassTable::AllocationTracingStateSlotOffsetFor(0),
+                 kUnsignedByte);
+  cbnz(trace, temp_reg);
+}
 #endif  // !PRODUCT
 
 void Assembler::TryAllocateObject(intptr_t cid,

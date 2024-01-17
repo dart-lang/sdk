@@ -22,7 +22,6 @@ class InlineExitCollector;
 namespace kernel {
 
 class BaseFlowGraphBuilder;
-struct InferredTypeMetadata;
 class TryCatchBlock;
 
 class Fragment {
@@ -456,8 +455,7 @@ class BaseFlowGraphBuilder {
                        TokenPosition position,
                        intptr_t type_args_len,
                        intptr_t argument_count,
-                       const Array& argument_names,
-                       const InferredTypeMetadata* result_type = nullptr);
+                       const Array& argument_names);
 
   // Pops function type arguments, instantiator type arguments, dst_type, and
   // value; and type checks value against the type arguments.

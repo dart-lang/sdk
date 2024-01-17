@@ -2057,15 +2057,13 @@ static CompileType ComputeArrayElementType(Value* array) {
 CompileType LoadIndexedInstr::ComputeType() const {
   switch (class_id_) {
     case kArrayCid:
-    case kImmutableArrayCid: {
-      CompileType elem_type = ComputeArrayElementType(array());
+    case kImmutableArrayCid:
       if (result_type_ != nullptr &&
           !CompileType::Dynamic().IsEqualTo(result_type_)) {
         // The original call knew something.
-        return *CompileType::ComputeRefinedType(&elem_type, result_type_);
+        return *result_type_;
       }
-      return elem_type;
-    }
+      return ComputeArrayElementType(array());
 
     case kTypeArgumentsCid:
       return CompileType::FromAbstractType(Object::dynamic_type(),

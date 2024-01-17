@@ -67,7 +67,6 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, instantiator_type_arguments, TypeArguments,      \
     FINAL)                                                                     \
   V(Closure, UntaggedClosure, delayed_type_arguments, TypeArguments, FINAL)    \
-  V(Closure, UntaggedClosure, default_type_arguments, TypeArguments, FINAL)    \
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
   V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
     FINAL)                                                                     \

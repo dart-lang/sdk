@@ -185,7 +185,6 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kArray_type_arguments:
     case Slot::Kind::kContext_parent:
     case Slot::Kind::kClosure_context:
-    case Slot::Kind::kClosure_default_type_arguments:
     case Slot::Kind::kClosure_delayed_type_arguments:
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:

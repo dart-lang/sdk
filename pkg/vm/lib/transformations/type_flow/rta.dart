@@ -18,7 +18,7 @@ import 'calls.dart' as calls
 import 'native_code.dart'
     show EntryPointsListener, NativeCodeOracle, PragmaEntryPointsVisitor;
 import 'protobuf_handler.dart' show ProtobufHandler;
-import 'types.dart' show Closure, ConcreteType, RecordShape, TFClass, Type;
+import 'types.dart' show TFClass, Type, ConcreteType, RecordShape;
 import 'utils.dart' show combineHashes;
 import '../pragma.dart' show ConstantPragmaAnnotationParser;
 
@@ -574,8 +574,4 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
 
   @override
   void recordTearOff(Member target) => throw 'Unsupported operation';
-
-  @override
-  Procedure getClosureCallMethod(Closure closure) =>
-      throw 'Unsupported operation';
 }

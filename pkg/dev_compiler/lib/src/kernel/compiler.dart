@@ -3388,9 +3388,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ///
     /// At runtime the expression will evaluate to an rti object that has been
     /// extended to include the provided [parameter].
-    js_ast.Expression emitRtiBind(js_ast.Expression environment,
-        /* TypeParameter | StructuralParameter */ Object parameter) {
-      assert(parameter is TypeParameter || parameter is StructuralParameter);
+    js_ast.Expression emitRtiBind(
+        js_ast.Expression environment, TypeParameter parameter) {
       return js.call('#.#(#)', [
         environment,
         _emitMemberName('_bind', memberClass: rtiClass),

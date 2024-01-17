@@ -2964,13 +2964,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
 Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     TokenPosition* p) {
-  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
   const TokenPosition position = ReadPosition();
   if (p != nullptr) *p = position;
-
-  const InferredTypeMetadata result_type =
-      inferred_type_metadata_helper_.GetInferredType(offset);
-
   // read variable kernel position.
   const intptr_t variable_kernel_position = ReadUInt();
   ReadUInt();  // read relative variable index.
@@ -3032,7 +3027,7 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     instructions += DebugStepCheck(position);
   }
   instructions += B->ClosureCall(target_function, position, type_args_len,
-                                 argument_count, argument_names, &result_type);
+                                 argument_count, argument_names);
   return instructions;
 }
 
@@ -3095,7 +3090,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
     }
     instructions +=
         B->ClosureCall(Function::null_function(), position, type_args_len,
-                       argument_count, argument_names, &result_type);
+                       argument_count, argument_names);
   } else {
     instructions += InstanceCall(
         position, Symbols::DynamicCall(), Token::kILLEGAL, type_args_len,
@@ -4450,15 +4445,6 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
       Slot::Closure_function_type_arguments());
   instructions += flow_graph_builder_->StoreNativeField(
       Slot::Closure_function_type_arguments(),
-      StoreFieldInstr::Kind::kInitializing);
-
-  // Copy over the cached default type arguments.
-  instructions += LoadLocal(new_closure);
-  instructions += LoadLocal(original_closure);
-  instructions += flow_graph_builder_->LoadNativeField(
-      Slot::Closure_default_type_arguments());
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_default_type_arguments(),
       StoreFieldInstr::Kind::kInitializing);
 
   instructions += DropTempsPreserveTop(1);  // Drop old closure.
@@ -6084,38 +6070,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     instructions += flow_graph_builder_->StoreNativeField(
         Slot::Closure_delayed_type_arguments(),
         StoreFieldInstr::Kind::kInitializing);
-
-    Function::DefaultTypeArgumentsKind kind;
-    const auto& default_types = TypeArguments::ZoneHandle(
-        Z, function.InstantiateToBounds(flow_graph_builder_->thread_, &kind));
-
-    if (!default_types.IsNull()) {
-      instructions += LoadLocal(closure);
-      switch (kind) {
-        case Function::DefaultTypeArgumentsKind::kInvalid:
-          UNREACHABLE();
-          break;
-        case Function::DefaultTypeArgumentsKind::kIsInstantiated:
-          instructions += Constant(default_types);
-          break;
-        case Function::DefaultTypeArgumentsKind::kNeedsInstantiation:
-          instructions += LoadInstantiatorTypeArguments();
-          instructions += LoadFunctionTypeArguments();
-          instructions +=
-              flow_graph_builder_->InstantiateTypeArguments(default_types);
-          break;
-        case Function::DefaultTypeArgumentsKind::
-            kSharesInstantiatorTypeArguments:
-          instructions += LoadInstantiatorTypeArguments();
-          break;
-        case Function::DefaultTypeArgumentsKind::kSharesFunctionTypeArguments:
-          instructions += LoadFunctionTypeArguments();
-          break;
-      }
-      instructions += flow_graph_builder_->StoreNativeField(
-          Slot::Closure_default_type_arguments(),
-          StoreFieldInstr::Kind::kInitializing);
-    }
   }
 
   return instructions;
