@@ -2541,6 +2541,59 @@ part of 'b.dart';
 ''');
   }
 
+  test_getResolvedLibraryByUri_withMacroGenerated() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    final uri = Uri.parse('package:test/a.dart');
+    collector.getResolvedLibraryByUri('A1', uri);
+    await collector.nextStatusIdle();
+
+    // We produced both the library, and its macro-generated file.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getResolvedLibraryByUri
+  name: A1
+  ResolvedLibraryResult #1
+    element: package:test/a.dart
+    units
+      ResolvedUnitResult #0
+      ResolvedUnitResult #2
+        path: /home/test/lib/a.macro.dart
+        uri: package:test/a.macro.dart
+        flags: exists isAugmentation isMacroAugmentation
+        content
+---
+library augment 'a.dart';
+
+class B {}
+---
+[stream]
+  ResolvedUnitResult #2
+[status] idle
+''');
+  }
+
   test_getResolvedUnit() async {
     final a = newFile('$testPackageLibPath/a.dart', '');
 
@@ -3409,6 +3462,44 @@ import 'package:test/b.dart';
     final driver = driverFor(testFile);
     final result = await driver.getUnitElement('not_absolute.dart');
     expect(result, isA<InvalidPathResult>());
+  }
+
+  test_getUnitElement_macroGenerated() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    final a_macro = getFile('$testPackageLibPath/a.macro.dart');
+    collector.getUnitElement('AM1', a_macro);
+    await collector.nextStatusIdle();
+
+    configuration.unitElementConfiguration.elementSelector = (unitElement) {
+      return unitElement.classes;
+    };
+
+    // The enclosing element is an augmentation library, in a library.
+    // The macro generated file has `class B`.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[future] getUnitElement
+  path: /home/test/lib/a.macro.dart
+  uri: package:test/a.macro.dart
+  flags: isAugmentation isMacroAugmentation
+  enclosing: package:test/a.dart::@augmentation::package:test/a.macro.dart
+  selectedElements
+    package:test/a.dart::@augmentation::package:test/a.macro.dart::@class::B
+[status] idle
+''');
   }
 
   test_hermetic_modifyLibraryFile_resolvePart() async {

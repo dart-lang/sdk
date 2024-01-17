@@ -818,9 +818,8 @@ class AnalysisDriver {
 
     // If a macro generated file, request its library instead.
     var file = resourceProvider.getFile(path);
-    if (file.path.removeSuffix('.macro.dart') case var noExtPath?) {
-      var libraryPath = '$noExtPath.dart';
-      _indexRequestedFiles.putIfAbsent(libraryPath, () => []);
+    if (file.libraryForMacro case var library?) {
+      _indexRequestedFiles.putIfAbsent(library.path, () => []);
     }
 
     // Schedule analysis.
@@ -1065,9 +1064,8 @@ class AnalysisDriver {
 
     // If a macro generated file, request its library instead.
     var file = resourceProvider.getFile(path);
-    if (file.path.removeSuffix('.macro.dart') case var noExtPath?) {
-      var libraryPath = '$noExtPath.dart';
-      _requestedFiles.putIfAbsent(libraryPath, () => []);
+    if (file.libraryForMacro case var library?) {
+      _requestedFiles.putIfAbsent(library.path, () => []);
     }
 
     // Schedule analysis.
@@ -1107,6 +1105,14 @@ class AnalysisDriver {
       );
     }
 
+    // If a macro generated file, request its library.
+    // Once the library is ready, we can return the requested result.
+    var file = resourceProvider.getFile(path);
+    if (file.libraryForMacro case var library?) {
+      _unitElementRequestedFiles.putIfAbsent(library.path, () => []);
+    }
+
+    // Schedule analysis.
     var completer = Completer<SomeUnitElementResult>();
     _unitElementRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify();
@@ -1198,7 +1204,7 @@ class AnalysisDriver {
     if (_unitElementRequestedFiles.isNotEmpty) {
       String path = _unitElementRequestedFiles.keys.first;
       var completers = _unitElementRequestedFiles.remove(path)!;
-      final result = (await _computeUnitElement(path))!;
+      final result = await _computeUnitElement(path);
       for (var completer in completers) {
         completer.complete(result);
       }
@@ -1514,7 +1520,7 @@ class AnalysisDriver {
     _resolvedLibraryCache.clear();
   }
 
-  Future<UnitElementResult?> _computeUnitElement(String path) async {
+  Future<UnitElementResult> _computeUnitElement(String path) async {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -2727,5 +2733,15 @@ class _ResolveForCompletionRequest {
 extension<K, V> on Map<K, List<Completer<V>>> {
   void completeAll(K key, V value) {
     remove(key)?.completeAll(value);
+  }
+}
+
+extension on File {
+  File? get libraryForMacro {
+    if (path.removeSuffix('.macro.dart') case var noExtPath?) {
+      var libraryPath = '$noExtPath.dart';
+      return provider.getFile(libraryPath);
+    }
+    return null;
   }
 }
