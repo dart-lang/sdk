@@ -496,6 +496,9 @@ abstract interface class File implements FileSystemEntity {
   /// is closed before signaling "done". If there are no writers attached
   /// to the pipe when it is opened, then [Stream.listen] will wait until
   /// a writer opens the pipe.
+  ///
+  /// Any errors opening or reading the file will appear as error events in
+  /// the returned [Stream].
   Stream<List<int>> openRead([int? start, int? end]);
 
   /// Creates a new independent [IOSink] for the file.
