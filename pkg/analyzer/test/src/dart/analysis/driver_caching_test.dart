@@ -451,7 +451,7 @@ void f(MacroA a) {}
     var analysisDriver = driverFor(a);
 
     // TODO(scheglov): use text expectations
-    final userErrors = _createErrorsQueueOfStream(user);
+    final userErrors = _createUnitQueueOfStream(user);
 
     // We get errors when the file is added.
     analysisDriver.addFile(user.path);
@@ -508,7 +508,7 @@ void f(MacroA a) {}
     var analysisDriver = driverFor(a);
 
     // TODO(scheglov): use text expectations
-    final userErrors = _createErrorsQueueOfStream(user);
+    final userErrors = _createUnitQueueOfStream(user);
 
     // We get errors when the file is added.
     analysisDriver.addFile(user.path);
@@ -546,7 +546,7 @@ void f(MacroA a) {}
     var analysisDriver = driverFor(user);
 
     // TODO(scheglov): use text expectations
-    final userErrors = _createErrorsQueueOfStream(user);
+    final userErrors = _createUnitQueueOfStream(user);
 
     // We get errors when the file is added.
     analysisDriver.addFile(user.path);
@@ -650,10 +650,10 @@ String getClassName() => 'MacroB';
     return errorsResult.errors;
   }
 
-  ListQueue<ErrorsResult> _createErrorsQueueOfStream(File file) {
-    final queue = ListQueue<ErrorsResult>();
+  ListQueue<ResolvedUnitResult> _createUnitQueueOfStream(File file) {
+    final queue = ListQueue<ResolvedUnitResult>();
     analysisContextCollection.scheduler.events
-        .whereType<ErrorsResult>()
+        .whereType<ResolvedUnitResult>()
         .where((event) => event.path == file.path)
         .listen(queue.add);
     return queue;
@@ -683,8 +683,8 @@ extension on AnalysisDriver {
   }
 }
 
-extension on ListQueue<ErrorsResult> {
-  Future<ErrorsResult> removeFirstAsync() async {
+extension<T> on ListQueue<T> {
+  Future<T> removeFirstAsync() async {
     while (true) {
       final result = removeFirstOrNull();
       if (result != null) {

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.13
+# Dart VM Service Protocol 4.14
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.13_ of the Dart VM Service Protocol. This
+This document describes of _version 4.14_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -3306,15 +3306,6 @@ class Instance extends Object {
   //   NativeFinalizer
   @Instance allEntries [optional];
 
-  // The entries for a (Native)Finalizer instance.
-  //
-  // A linked list of entries through FinalizerEntry.next.
-  //
-  // Provided for instance kinds:
-  //   Finalizer
-  //   NativeFinalizer
-  @Instance collectedEntries [optional];
-
   // The value being watched for finalization for a FinalizerEntry instance.
   //
   // Provided for instance kinds:
@@ -3332,19 +3323,6 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   FinalizerEntry
   @Instance detach [optional];
-
-  // The finalizer for a FinalizerEntry instance.
-  //
-  // Provided for instance kinds:
-  //   FinalizerEntry
-  @Instance finalizer [optional];
-
-  // The next item in the collectedEntries linked list for a FinalizerEntry
-  // instance.
-  //
-  // Provided for instance kinds:
-  //   FinalizerEntry
-  @Instance next [optional];
 }
 ```
 
@@ -4808,5 +4786,6 @@ version | comments
 4.11 | Added `isGetter` and `isSetter` properties to `@Function` and `Function`.
 4.12 | Added `@TypeParameters` and changed `TypeParameters` to extend `Object`.
 4.13 | Added `librariesAlreadyCompiled` to `getSourceReport`.
+4.14 | Added `Finalizer`, `NativeFinalizer`, and `FinalizerEntry`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

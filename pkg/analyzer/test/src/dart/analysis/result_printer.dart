@@ -10,6 +10,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test/test.dart';
 
@@ -82,6 +83,8 @@ class DriverEventsPrinter {
         _writeGetCachedResolvedUnit(event);
       case GetErrorsEvent():
         _writeErrorsEvent(event);
+      case GetIndexEvent():
+        _writeIndexEvent(event);
       case GetLibraryByUriEvent():
         _writeGetLibraryByUriEvent(event);
       case GetResolvedLibraryEvent():
@@ -158,6 +161,13 @@ class DriverEventsPrinter {
     });
   }
 
+  void _writeIndexEvent(GetIndexEvent event) {
+    sink.writelnWithIndent('[future] getIndex');
+    sink.withIndent(() {
+      sink.writelnWithIndent('name: ${event.name}');
+    });
+  }
+
   void _writeLibraryElementResult(SomeLibraryElementResult result) {
     switch (result) {
       case CannotResolveUriResult():
@@ -208,31 +218,26 @@ class DriverEventsPrinter {
   void _writeResultStreamEvent(ResultStreamEvent event) {
     final object = event.object;
     switch (object) {
-      case events.ComputeAnalysis():
-        if (!configuration.withOperations) {
-          return;
-        }
-        sink.writelnWithIndent('[operation] computeAnalysisResult');
+      case events.AnalyzeFile():
+        sink.writelnWithIndent('[operation] AnalyzeFile');
         sink.withIndent(() {
           final file = object.file.resource;
           sink.writelnWithIndent('file: ${file.posixPath}');
           final libraryFile = object.library.file.resource;
           sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
-      case events.ComputeResolvedLibrary():
-        if (!configuration.withOperations) {
-          return;
-        }
-        sink.writelnWithIndent('[operation] computeResolvedLibrary');
-        sink.withIndent(() {
-          final fileState = object.library.file;
-          final file = fileState.resource;
-          sink.writelnWithIndent('library: ${file.posixPath}');
-        });
       case ErrorsResult():
         sink.writelnWithIndent('[stream]');
         sink.withIndent(() {
           _writeErrorsResult(object);
+        });
+      case events.GetErrorsFromBytes():
+        sink.writelnWithIndent('[operation] GetErrorsFromBytes');
+        sink.withIndent(() {
+          final file = object.file.resource;
+          sink.writelnWithIndent('file: ${file.posixPath}');
+          final libraryFile = object.library.file.resource;
+          sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
       case ResolvedUnitResult():
         sink.writelnWithIndent('[stream]');
@@ -283,7 +288,6 @@ class DriverEventsPrinter {
 }
 
 class DriverEventsPrinterConfiguration {
-  var withOperations = false;
   var libraryConfiguration = ResolvedLibraryResultPrinterConfiguration();
   var unitElementConfiguration = UnitElementPrinterConfiguration();
 }
@@ -305,6 +309,17 @@ final class GetErrorsEvent extends DriverEvent {
   final SomeErrorsResult result;
 
   GetErrorsEvent({
+    required this.name,
+    required this.result,
+  });
+}
+
+/// The result of `getIndex`.
+final class GetIndexEvent extends DriverEvent {
+  final String name;
+  final AnalysisDriverUnitIndex? result;
+
+  GetIndexEvent({
     required this.name,
     required this.result,
   });

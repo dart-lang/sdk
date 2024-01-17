@@ -1954,10 +1954,7 @@ var tests = <IsolateTest>[
       expect(entry.value!.classRef!.name, '_DummyClass');
       expect(entry.token!.classRef!.name, '_DummyClass');
       expect(entry.detach!.classRef!.name, '_DummyClass');
-      expect(entry.finalizer!.kind, equals(InstanceKind.kFinalizer));
-      expect(entry.next!.kind, equals(InstanceKind.kNull));
     }
-    expect(result.collectedEntries, isNull);
   },
 
   // A native finalizer
@@ -1989,7 +1986,6 @@ var tests = <IsolateTest>[
     final allEntries =
         await service.getObject(isolateId, allEntriesRef!.id!) as Instance;
     expect(allEntries.elements, isEmpty);
-    expect(result.collectedEntries, isNull);
   },
 ];
 
