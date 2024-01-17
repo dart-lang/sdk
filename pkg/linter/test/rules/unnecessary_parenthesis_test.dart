@@ -9,12 +9,11 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryParenthesisTest);
-    defineReflectiveTests(UnnecessaryParenthesisPatternsTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryParenthesisPatternsTest extends LintRuleTest {
+class UnnecessaryParenthesisTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_parenthesis';
 
@@ -31,12 +30,6 @@ void f(int i) {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class UnnecessaryParenthesisTest extends LintRuleTest {
-  @override
-  String get lintRule => 'unnecessary_parenthesis';
 
   /// https://github.com/dart-lang/linter/issues/4041
   test_nullAware_cascadeAssignment() async {
@@ -84,5 +77,37 @@ void f(Object? x) {
 ''', [
       lint(32, 23),
     ]);
+  }
+
+  test_targetOfGetterInNullableExtension() async {
+    await assertNoDiagnostics(r'''
+void f(C? c) {
+  (c?.s).g;
+}
+
+class C {
+  String? get s => 'yay';
+}
+
+extension on String? {
+  bool get g => false;
+}
+''');
+  }
+
+  test_targetOfMethodInNullableExtension() async {
+    await assertNoDiagnostics(r'''
+void f(C? c) {
+  (c?.s).g();
+}
+
+class C {
+  String? get s => 'yay';
+}
+
+extension on String? {
+  bool g() => false;
+}
+''');
   }
 }
