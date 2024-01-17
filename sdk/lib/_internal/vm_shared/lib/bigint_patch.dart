@@ -1767,7 +1767,10 @@ class _BigIntImpl implements BigInt {
    * Returns 0 for zero, -1 for values less than zero and
    * +1 for values greater than zero.
    */
-  int get sign => (this >> 63) | (-this >>> 63);
+  int get sign {
+    if (_used == 0) return 0;
+    return _isNegative ? -1 : 1;
+  }
 
   /// Whether this big integer is even.
   bool get isEven => _used == 0 || (_digits[0] & 1) == 0;

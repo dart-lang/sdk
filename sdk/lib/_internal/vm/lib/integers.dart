@@ -188,6 +188,7 @@ abstract final class _IntegerImplementation implements int {
     return this < 0 ? -this : this;
   }
 
+  @pragma('vm:prefer-inline')
   int get sign => (this >> 63) | (-this >>> 63);
 
   bool get isEven => ((this & 1) == 0);
