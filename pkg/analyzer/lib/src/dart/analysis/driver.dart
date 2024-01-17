@@ -53,6 +53,7 @@ import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 
 /// This class computes analysis results for Dart files.
@@ -1050,6 +1051,13 @@ class AnalysisDriver {
       return Future.value(
         DisposedAnalysisContextResult(),
       );
+    }
+
+    // If a macro generated file, request its library instead.
+    var file = resourceProvider.getFile(path);
+    if (file.path.removeSuffix('.macro.dart') case var noExtPath?) {
+      var libraryPath = '$noExtPath.dart';
+      _requestedFiles.putIfAbsent(libraryPath, () => []);
     }
 
     // Schedule analysis.

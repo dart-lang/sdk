@@ -105,11 +105,19 @@ class A1 {}
 
 @DeclarationsIntrospectConstructors('A1')
 class A2 {}
+
+@DeclarationsIntrospectConstructors('A1')
+@DeclarationsIntrospectConstructors('A2')
+class A3 {}
 ''');
 
     configuration
       ..withConstructors = false
       ..withMetadata = false;
+
+    // Note, the errors are also reported when introspecting `A1` and `A2`
+    // during running macro applications on `A3`, because we know that
+    // `A1` and `A2` declarations are incomplete.
     checkElementText(library, r'''
 library
   imports
@@ -119,14 +127,57 @@ library
       class A1 @70
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
-          components
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A1
-              annotationIndex: 0
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A2
-              annotationIndex: 0
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
       class A2 @125
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+      class A3 @222
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 1
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
 ''');
   }
 
@@ -197,6 +248,10 @@ class A1 {}
 
 @DeclarationsIntrospectFields('A1')
 class A2 {}
+
+@DeclarationsIntrospectFields('A1')
+@DeclarationsIntrospectFields('A2')
+class A3 {}
 ''');
 
     configuration
@@ -211,14 +266,57 @@ library
       class A1 @64
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
-          components
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A1
-              annotationIndex: 0
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A2
-              annotationIndex: 0
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
       class A2 @113
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+      class A3 @198
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 1
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
 ''');
   }
 
@@ -288,6 +386,10 @@ class A1 {}
 
 @DeclarationsIntrospectMethods('A1')
 class A2 {}
+
+@DeclarationsIntrospectMethods('A1')
+@DeclarationsIntrospectMethods('A2')
+class A3 {}
 ''');
 
     configuration
@@ -302,14 +404,57 @@ library
       class A1 @65
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
-          components
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A1
-              annotationIndex: 0
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A2
-              annotationIndex: 0
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
       class A2 @115
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+      class A3 @202
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 1
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
 ''');
   }
 
@@ -337,17 +482,47 @@ library
   definingUnit
     classes
       class A1 @65
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A3
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A3
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
       class A2 @115
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
-          components
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A2
-              annotationIndex: 0
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A3
-              annotationIndex: 0
+            annotationIndex: 0
+            introspectedElement: self::@class::A3
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A3
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A3
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
       class A3 @165
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A3
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A3
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
 ''');
   }
 

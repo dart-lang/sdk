@@ -3042,6 +3042,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the introspected declaration
+  static const CompileTimeErrorCode
+      MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE = CompileTimeErrorCode(
+    'MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE',
+    "The declaration '{0}' can't be introspected because there is a cycle of "
+        "macro applications.",
+    correctionMessage:
+        "Try removing one or more macro applications to break the cycle.",
+  );
+
+  ///  Parameters:
   ///  0: the message
   static const CompileTimeErrorCode MACRO_ERROR = CompileTimeErrorCode(
     'MACRO_ERROR',

@@ -794,8 +794,7 @@ class ContextManagerImpl implements ContextManager {
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
         file_paths.isBlazeBuild(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
-        isPubspec ||
-        false) {
+        isPubspec) {
       _createAnalysisContexts().then((_) {
         if (isPubspec) {
           if (type == ChangeType.REMOVE) {

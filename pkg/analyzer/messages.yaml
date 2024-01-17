@@ -9542,6 +9542,12 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the message
+  MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
+    problemMessage: "The declaration '{0}' can't be introspected because there is a cycle of macro applications."
+    correctionMessage: Try removing one or more macro applications to break the cycle.
+    comment: |-
+      Parameters:
+      0: the name of the introspected declaration
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.
