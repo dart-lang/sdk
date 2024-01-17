@@ -188,13 +188,7 @@ abstract final class _IntegerImplementation implements int {
     return this < 0 ? -this : this;
   }
 
-  int get sign {
-    return (this > 0)
-        ? 1
-        : (this < 0)
-            ? -1
-            : 0;
-  }
+  int get sign => (this >> 63) | (-this >>> 63);
 
   bool get isEven => ((this & 1) == 0);
   bool get isOdd => !isEven;
