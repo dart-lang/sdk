@@ -4447,15 +4447,6 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
       Slot::Closure_function_type_arguments(),
       StoreFieldInstr::Kind::kInitializing);
 
-  // Copy over the cached default type arguments.
-  instructions += LoadLocal(new_closure);
-  instructions += LoadLocal(original_closure);
-  instructions += flow_graph_builder_->LoadNativeField(
-      Slot::Closure_default_type_arguments());
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_default_type_arguments(),
-      StoreFieldInstr::Kind::kInitializing);
-
   instructions += DropTempsPreserveTop(1);  // Drop old closure.
 
   return instructions;
@@ -6079,38 +6070,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     instructions += flow_graph_builder_->StoreNativeField(
         Slot::Closure_delayed_type_arguments(),
         StoreFieldInstr::Kind::kInitializing);
-
-    Function::DefaultTypeArgumentsKind kind;
-    const auto& default_types = TypeArguments::ZoneHandle(
-        Z, function.InstantiateToBounds(flow_graph_builder_->thread_, &kind));
-
-    if (!default_types.IsNull()) {
-      instructions += LoadLocal(closure);
-      switch (kind) {
-        case Function::DefaultTypeArgumentsKind::kInvalid:
-          UNREACHABLE();
-          break;
-        case Function::DefaultTypeArgumentsKind::kIsInstantiated:
-          instructions += Constant(default_types);
-          break;
-        case Function::DefaultTypeArgumentsKind::kNeedsInstantiation:
-          instructions += LoadInstantiatorTypeArguments();
-          instructions += LoadFunctionTypeArguments();
-          instructions +=
-              flow_graph_builder_->InstantiateTypeArguments(default_types);
-          break;
-        case Function::DefaultTypeArgumentsKind::
-            kSharesInstantiatorTypeArguments:
-          instructions += LoadInstantiatorTypeArguments();
-          break;
-        case Function::DefaultTypeArgumentsKind::kSharesFunctionTypeArguments:
-          instructions += LoadFunctionTypeArguments();
-          break;
-      }
-      instructions += flow_graph_builder_->StoreNativeField(
-          Slot::Closure_default_type_arguments(),
-          StoreFieldInstr::Kind::kInitializing);
-    }
   }
 
   return instructions;

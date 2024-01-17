@@ -1476,7 +1476,6 @@ class Context : public AllStatic {
 class Closure : public AllStatic {
  public:
   static word context_offset();
-  static word default_type_arguments_offset();
   static word delayed_type_arguments_offset();
   static word entry_point_offset();
   static word function_offset();
