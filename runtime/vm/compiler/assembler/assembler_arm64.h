@@ -2297,6 +2297,11 @@ class Assembler : public AssemblerBase {
                             Register temp_reg,
                             JumpDistance distance = JumpDistance::kFarJump);
 
+  void MaybeTraceAllocation(Register cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
                          Label* failure,

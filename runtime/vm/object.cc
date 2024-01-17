@@ -4515,7 +4515,9 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   if (changed) {
     auto class_table = isolate_group->class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
+#ifdef TARGET_ARCH_IA32
     DisableAllocationStub();
+#endif
   }
 #else
   UNREACHABLE();

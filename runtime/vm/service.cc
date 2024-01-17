@@ -522,15 +522,6 @@ static bool CheckDebuggerDisabled(Thread* thread, JSONStream* js) {
 #endif
 }
 
-static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
-  return true;
-#else
-  return false;
-#endif
-}
-
 static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {
   if (!FLAG_profiler) {
     js->PrintError(kFeatureDisabled, "Profiler is disabled.");
@@ -3740,10 +3731,6 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   js->PrintError(kFeatureDisabled, "disabled in AOT mode and PRODUCT.");
 #else
-  if (CheckCompilerDisabled(thread, js)) {
-    return;
-  }
-
   char* reports_str = Utils::StrDup(js->LookupParam("reports"));
   const EnumListParameter* reports_parameter =
       static_cast<const EnumListParameter*>(get_source_report_params[1]);
@@ -3854,10 +3841,6 @@ static void ReloadSources(Thread* thread, JSONStream* js) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
 #else
-  if (CheckCompilerDisabled(thread, js)) {
-    return;
-  }
-
   IsolateGroup* isolate_group = thread->isolate_group();
   if (isolate_group->library_tag_handler() == nullptr) {
     js->PrintError(kFeatureDisabled,
@@ -5762,10 +5745,6 @@ static const MethodParameter* const set_trace_class_allocation_params[] = {
 };
 
 static void SetTraceClassAllocation(Thread* thread, JSONStream* js) {
-  if (CheckCompilerDisabled(thread, js)) {
-    return;
-  }
-
   const char* class_id = js->LookupParam("classId");
   const bool enable = BoolParameter::Parse(js->LookupParam("enable"));
   intptr_t cid = -1;
