@@ -588,20 +588,15 @@ class ContextManagerImpl implements ContextManager {
           _watchBlazeFilesIfNeeded(rootFolder, driver);
 
           for (var file in analysisContext.contextRoot.analyzedFiles()) {
-            if (file_paths.isAndroidManifestXml(pathContext, file)) {
+            if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
+              var package =
+                  analysisContext.contextRoot.workspace.findPackageFor(file);
+              _analyzeAnalysisOptionsYaml(driver, package, file);
+            } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
               _analyzeAndroidManifestXml(driver, file);
             } else if (file_paths.isDart(pathContext, file)) {
               driver.addFile(file);
             }
-          }
-
-          var optionsFile = analysisContext.contextRoot.optionsFile;
-
-          if (optionsFile != null &&
-              analysisContext.contextRoot.isAnalyzed(optionsFile.path)) {
-            var package = analysisContext.contextRoot.workspace
-                .findPackageFor(optionsFile.path);
-            _analyzeAnalysisOptionsYaml(driver, package, optionsFile.path);
           }
 
           var packageName = rootFolder.shortName;

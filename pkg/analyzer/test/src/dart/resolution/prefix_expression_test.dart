@@ -851,16 +851,13 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_parameter_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await assertErrorsInCode(r'''
 void f<T extends num>(T x) {
   ++x;
 }
-''',
-      expectedErrorsByNullability(nullable: [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 31, 3),
-      ], legacy: []),
-    );
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 31, 3),
+    ]);
 
     var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''

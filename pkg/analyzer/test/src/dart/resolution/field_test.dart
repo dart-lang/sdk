@@ -237,13 +237,7 @@ class A {
   var f = throw 42;
 }
 ''');
-    assertType(
-      findElement.field('f').type,
-      typeStringByNullability(
-        nullable: 'Never',
-        legacy: 'dynamic',
-      ),
-    );
+    assertType(findElement.field('f').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {

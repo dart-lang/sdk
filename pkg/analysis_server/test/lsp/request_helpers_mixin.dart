@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
@@ -822,6 +823,8 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
 
   String get projectFolderPath;
 
+  ClientUriConverter get uriConverter;
+
   /// A function to get the current contents of a file to apply edits.
   String? getCurrentFileContent(Uri uri);
 
@@ -835,5 +838,5 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
   /// Formats a path relative to the project root always using forward slashes.
   ///
   /// This is used in the text format for comparing edits.
-  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
+  String relativeUri(Uri uri) => relativePath(uriConverter.fromClientUri(uri));
 }

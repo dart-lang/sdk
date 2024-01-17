@@ -1331,8 +1331,7 @@ class AnalysisDriver {
           performance: OperationPerformanceImpl('<root>'),
         );
 
-        var analysisOptions = libraryContext.analysisContext
-            .getAnalysisOptionsForFile(file.resource);
+        var analysisOptions = file.analysisOptions;
         var libraryElement =
             libraryContext.elementFactory.libraryOfUri2(library.file.uri);
         var typeSystemOperations = TypeSystemOperations(
@@ -2526,7 +2525,7 @@ class _DiscoverAvailableFilesTask {
       // Discover files in package/lib folders.
       var packageMap = driver._sourceFactory.packageMap;
       if (packageMap != null) {
-        folderIterator = packageMap.values.flattenedToList.iterator;
+        folderIterator = packageMap.values.flattenedToList2.iterator;
       } else {
         folderIterator = <Folder>[].iterator;
       }

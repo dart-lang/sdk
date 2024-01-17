@@ -166,6 +166,31 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_error_fieldName_asDeclaration() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(int A) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: A
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   test_error_formalParameterModifier_covariant_method_instance() {
     final parseResult = parseStringWithErrors(r'''
 extension type A(int it) {

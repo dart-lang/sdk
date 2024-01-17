@@ -79,22 +79,20 @@ var v = const <int>{42};
   }
 
   test_const_intNull_dynamic() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 const a = null;
 var v = const <int>{a};
-''', errors);
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+    ]);
   }
 
   test_const_intNull_value() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
-    ], legacy: []);
     await assertErrorsInCode('''
 var v = const <int>{null};
-''', errors);
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
+    ]);
   }
 
   test_const_intString_dynamic() async {

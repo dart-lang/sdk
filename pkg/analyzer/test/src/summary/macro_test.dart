@@ -5220,6 +5220,160 @@ extension type A
 ''');
   }
 
+  test_functionType_formalParameters_namedOptional_simpleFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, {int? b, int? c}) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, {int? b}, {int? c})
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_namedRequired_simpleFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, {required int b, required int c}) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, {required int b}, {required int c})
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_positionalOptional_simpleFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, [int b, int c]) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, [int b], [int c])
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_positionalOptional_simpleFormalParameter_noName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, [int, int]) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, [int ], [int ])
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_positionalRequired_simpleFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, double b) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, double b)
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_positionalRequired_simpleFormalParameter_noName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int, double) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int , double )
+  returnType: void
+''');
+  }
+
+  test_functionType_nullable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function()? t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function()?
+  returnType: void
+''');
+  }
+
+  test_functionType_returnType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function() t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function()
+  returnType: void
+''');
+  }
+
+  test_functionType_returnType_omitted() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(Function() t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: dynamic Function()
+  returnType: void
+''');
+  }
+
+  @SkippedTest(issue: 'https://github.com/dart-lang/language/issues/3559')
+  test_functionType_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function<T, U extends num>() t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+''');
+  }
+
   test_mixin_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 mixin A {

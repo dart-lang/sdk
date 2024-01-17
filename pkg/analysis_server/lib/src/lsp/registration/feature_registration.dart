@@ -67,7 +67,7 @@ abstract class FeatureRegistration {
   /// functionality in most handlers.
   List<TextDocumentFilterWithScheme> get fullySupportedTypes {
     return {
-      dartFiles,
+      ...dartFiles,
       ...pluginTypes,
     }.toList();
   }

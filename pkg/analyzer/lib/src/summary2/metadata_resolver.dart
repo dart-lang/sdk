@@ -29,10 +29,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitAnnotation(covariant AnnotationImpl node) {
     var annotationElement = node.elementAnnotation;
     if (annotationElement is ElementAnnotationImpl) {
-      var file = _libraryBuilder.kind.file.resource;
-      // TODO(pq): precache options in file state and fetch them from there
-      var analysisOptions =
-          _linker.analysisContext.getAnalysisOptionsForFile(file);
+      var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
       var astResolver =
           AstResolver(_linker, _unitElement, _scope, analysisOptions);
       astResolver.resolveAnnotation(node);

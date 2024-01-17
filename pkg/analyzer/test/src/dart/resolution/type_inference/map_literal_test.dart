@@ -87,36 +87,24 @@ class C<T extends Object?> {
   }
 
   test_context_noTypeArgs_noEntries_typeParameters() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 2),
-      ],
-      legacy: [
-        error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 46, 2),
-      ],
-    );
     await assertErrorsInCode('''
 class A<E extends Map<int, String>> {
   E a = {};
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 2),
+    ]);
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
   }
 
   test_context_noTypeArgs_noEntries_typeParameters_dynamic() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 51, 2),
-      ],
-      legacy: [
-        error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 51, 2),
-      ],
-    );
     await assertErrorsInCode('''
 class A<E extends Map<dynamic, dynamic>> {
   E a = {};
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 51, 2),
+    ]);
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
   }
 

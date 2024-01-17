@@ -834,7 +834,7 @@ class CompletionRegistrations extends FeatureRegistration
       (
         Method.textDocument_completion,
         CompletionRegistrationOptions(
-          documentSelector: [dartFiles],
+          documentSelector: dartFiles,
           triggerCharacters: dartCompletionTriggerCharacters,
           allCommitCharacters:
               previewCommitCharacters ? dartCompletionCommitCharacters : null,

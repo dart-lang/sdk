@@ -497,7 +497,7 @@ class GenericInferrer {
         .values
         .where((l) =>
             l.every((c) => c.isSatisfiedBy(_typeSystem, inferred)) == expected)
-        .flattenedToList;
+        .flattenedToList2;
 
     String unsatisfied = _formatConstraints(isSatisfied(false));
     String satisfied = _formatConstraints(isSatisfied(true));

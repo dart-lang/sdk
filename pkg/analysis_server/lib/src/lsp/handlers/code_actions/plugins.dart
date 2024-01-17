@@ -61,7 +61,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
         .map((response) => plugin.EditGetFixesResult.fromResponse(response))
         .expand((response) => response.fixes)
         .map(_convertFixes)
-        .flattenedToList;
+        .flattenedToList2;
   }
 
   @override
@@ -80,7 +80,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   Iterable<CodeActionWithPriority> _convertFixes(
       plugin.AnalysisErrorFixes fixes) {
     final diagnostic = pluginToDiagnostic(
-      server.pathContext,
+      server.uriConverter,
       (_) => lineInfo,
       fixes.error,
       supportedTags: supportedDiagnosticTags,

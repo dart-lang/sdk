@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -59,7 +60,7 @@ class UnnecessaryParenthesis extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.typeSystem);
     registry.addParenthesizedExpression(this, visitor);
   }
 }
@@ -82,8 +83,9 @@ class _ContainsFunctionExpressionVisitor extends UnifyingAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final TypeSystem typeSystem;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.typeSystem);
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -99,10 +101,28 @@ class _Visitor extends SimpleAstVisitor<void> {
           // Code like `(String).hashCode` is allowed.
           return;
         }
+
+        // Parentheses are required to stop null-aware shorting, which then
+        // allows an extension getter, which extends a nullable type, to be
+        // called on a `null` value.
+        var target = parent.propertyName.staticElement?.enclosingElement;
+        if (target is ExtensionElement &&
+            typeSystem.isNullable(target.extendedType)) {
+          return;
+        }
       } else if (parent is MethodInvocation) {
         var name = parent.methodName.name;
         if (name == 'noSuchMethod' || name == 'toString') {
           // Code like `(String).noSuchMethod()` is allowed.
+          return;
+        }
+
+        // Parentheses are required to stop null-aware shorting, which then
+        // allows an extension method, which extends a nullable type, to be
+        // called on a `null` value.
+        var target = parent.methodName.staticElement?.enclosingElement;
+        if (target is ExtensionElement &&
+            typeSystem.isNullable(target.extendedType)) {
           return;
         }
       } else if (parent is PostfixExpression &&

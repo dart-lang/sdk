@@ -420,17 +420,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
           messageContains: messageContains,
           expectedContextMessages: contextMessages);
 
-  List<ExpectedError> expectedErrorsByNullability({
-    required List<ExpectedError> nullable,
-    required List<ExpectedError> legacy,
-  }) {
-    if (isNullSafetyEnabled) {
-      return nullable;
-    } else {
-      return legacy;
-    }
-  }
-
   String getMacroCode(String relativePath) {
     final code = MacrosEnvironment.instance.packageAnalyzerFolder
         .getChildAssumingFile('test/src/summary/macro/$relativePath')
@@ -536,17 +525,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   /// tests.
   String typeString(DartType type) =>
       type.getDisplayString(withNullability: isNullSafetyEnabled);
-
-  String typeStringByNullability({
-    required String nullable,
-    required String legacy,
-  }) {
-    if (isNullSafetyEnabled) {
-      return nullable;
-    } else {
-      return legacy;
-    }
-  }
 
   Matcher _elementMatcher(Object? elementOrMatcher) {
     if (elementOrMatcher is Element) {

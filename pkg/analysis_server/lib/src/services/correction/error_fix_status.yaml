@@ -358,6 +358,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
   status: noFix
   notes: |-
@@ -368,6 +372,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
@@ -1751,14 +1759,6 @@ FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
   status: needsEvaluation
 FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
   status: needsEvaluation
-FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER:
-  status: needsFix
-  notes: |-
-    The fix is to remove the initializer and add the `external` modifier.
-FfiCode.FIELD_INITIALIZER_IN_STRUCT:
-  status: needsFix
-  notes: |-
-    The fix is to remove the initializer and add the `external` modifier.
 FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
   status: needsFix
   since: ~2.15

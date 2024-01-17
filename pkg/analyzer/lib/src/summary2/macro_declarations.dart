@@ -700,7 +700,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       interfaces: element.interfaces.map(_interfaceType).toList(),
       hasAbstract: element.isAbstract,
       hasBase: element.isBase,
@@ -731,7 +731,7 @@ class DeclarationBuilderFromElement {
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       definingType: identifier(enclosing),
     );
   }
@@ -744,6 +744,21 @@ class DeclarationBuilderFromElement {
           isNullable: false,
           identifier: identifier(DynamicElementImpl.instance),
           typeArguments: const [],
+        );
+      case FunctionType():
+        return macro.FunctionTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+          namedParameters: type.parameters
+              .where((e) => e.isNamed)
+              .map(_functionTypeFormalParameter)
+              .toList(),
+          positionalParameters: type.parameters
+              .where((e) => e.isPositional)
+              .map(_functionTypeFormalParameter)
+              .toList(),
+          returnType: _dartType(type.returnType),
+          typeParameters: _typeParameters(type.typeFormals),
         );
       case InterfaceType():
         return _interfaceType(type);
@@ -791,7 +806,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       interfaces: element.interfaces.map(_interfaceType).toList(),
       mixins: element.mixins.map(_interfaceType).toList(),
       element: element,
@@ -806,7 +821,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       onType: _dartType(element.extendedType),
       element: element,
     );
@@ -820,7 +835,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       representationType: _dartType(element.representation.type),
       element: element,
     );
@@ -871,7 +886,20 @@ class DeclarationBuilderFromElement {
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
+    );
+  }
+
+  macro.FunctionTypeParameterImpl _functionTypeFormalParameter(
+    ParameterElement element,
+  ) {
+    return macro.FunctionTypeParameterImpl(
+      id: macro.RemoteInstance.uniqueId,
+      isNamed: element.isNamed,
+      isRequired: element.isRequired,
+      metadata: _buildMetadata(element),
+      name: element.name,
+      type: _dartType(element.type),
     );
   }
 
@@ -901,7 +929,7 @@ class DeclarationBuilderFromElement {
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       definingType: identifier(enclosing),
     );
   }
@@ -914,7 +942,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       hasBase: element.isBase,
       interfaces: element.interfaces.map(_interfaceType).toList(),
       superclassConstraints:
@@ -967,6 +995,12 @@ class DeclarationBuilderFromElement {
       metadata: _buildMetadata(element),
       bound: element.bound.mapOrNull(_dartType),
     );
+  }
+
+  List<macro.TypeParameterDeclarationImpl> _typeParameters(
+    List<TypeParameterElement> elements,
+  ) {
+    return elements.map(typeParameter).toList();
   }
 }
 

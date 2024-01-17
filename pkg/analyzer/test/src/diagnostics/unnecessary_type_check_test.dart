@@ -115,17 +115,11 @@ void f<T>(T a) {
   }
 
   test_typeParameter_isNot_object() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 12),
-      ],
-    );
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T>(T a) {
   a is! Object;
 }
-''', expectedErrors);
+''');
   }
 
   test_typeParameter_isNot_objectQuestion() async {
@@ -270,17 +264,11 @@ void f<T>(T a) {
   }
 
   test_typeParameter_is_object() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 11),
-      ],
-    );
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T>(T a) {
   a is Object;
 }
-''', expectedErrors);
+''');
   }
 
   test_typeParameter_is_objectQuestion() async {

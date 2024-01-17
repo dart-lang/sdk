@@ -77,10 +77,7 @@ class ConstantInitializersResolver {
 
     if (declarationList.isConst ||
         declarationList.isFinal && _enclosingClassHasConstConstructor) {
-      var file = _libraryBuilder.kind.file.resource;
-      // TODO(pq): precache options in file state and fetch them from there
-      var analysisOptions =
-          linker.analysisContext.getAnalysisOptionsForFile(file);
+      var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
       var astResolver =
           AstResolver(linker, _unitElement, _scope, analysisOptions);
       astResolver.resolveExpression(() => variable.initializer!,
@@ -258,11 +255,7 @@ class _PropertyInducingElementTypeInference
         ?.augmented
         ?.declaration;
 
-    var file = _libraryBuilder.kind.file.resource;
-    // TODO(pq): precache options in file state and fetch them from there
-    var analysisOptions =
-        _linker.analysisContext.getAnalysisOptionsForFile(file);
-
+    var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
         _linker, _unitElement, _scope, analysisOptions,
         enclosingClassElement: enclosingInterfaceElement);

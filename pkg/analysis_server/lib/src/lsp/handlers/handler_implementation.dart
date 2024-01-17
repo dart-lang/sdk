@@ -91,7 +91,7 @@ class ImplementationHandler
                 return null;
               }
               return Location(
-                uri: pathContext.toUri(unitElement.source.fullName),
+                uri: uriConverter.toClientUri(unitElement.source.fullName),
                 range: toRange(
                   unitElement.lineInfo,
                   element.nameOffset,

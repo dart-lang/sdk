@@ -716,6 +716,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _checkForBuiltInIdentifierAsName(node.name,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME);
+      _checkForConflictingExtensionTypeTypeVariableErrorCodes(element);
 
       _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForRepeatedType(node.implementsClause?.interfaces,
@@ -2213,6 +2214,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           typeParameter,
           [name],
         );
+      }
+    }
+  }
+
+  void _checkForConflictingExtensionTypeTypeVariableErrorCodes(
+    ExtensionTypeElementImpl element,
+  ) {
+    for (var typeParameter in element.typeParameters) {
+      var name = typeParameter.name;
+      // name is same as the name of the enclosing class
+      if (element.name == name) {
+        errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
+            typeParameter,
+            [name]);
+      }
+      // check members
+      if (element.getNamedConstructor(name) != null ||
+          element.getMethod(name) != null ||
+          element.getGetter(name) != null ||
+          element.getSetter(name) != null) {
+        errorReporter.reportErrorForElement(
+            CompileTimeErrorCode
+                .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
+            typeParameter,
+            [name]);
       }
     }
   }

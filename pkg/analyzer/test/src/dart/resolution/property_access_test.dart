@@ -2283,22 +2283,16 @@ PropertyAccess
   }
 
   test_targetTypeParameter_noBound() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 class C<T> {
   void f(T t) {
     (t).foo;
   }
 }
-''');
-    assertErrorsInResult(expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-            37, 3),
-      ],
-      legacy: [
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 37, 3),
-      ],
-    ));
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          37, 3),
+    ]);
 
     final node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''

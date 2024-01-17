@@ -76,47 +76,27 @@ void test(dynamic a) {
   }
 
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
-      ],
-      legacy: [],
-    );
     await assertErrorsInCode('''
 import 'dart:async';
 
 FutureOr<void> Function() v = () async {
   return 0;
 };
-''', expectedErrors);
-    _assertReturnType(
-      '() async {',
-      typeStringByNullability(
-        nullable: 'Future<void>',
-        legacy: 'Future<int>',
-      ),
-    );
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
+    ]);
+    _assertReturnType('() async {', 'Future<void>');
   }
 
   test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
-      ],
-      legacy: [],
-    );
     await assertErrorsInCode('''
 Future<void> Function() v = () async {
   return 0;
 };
-''', expectedErrors);
-    _assertReturnType(
-      '() async {',
-      typeStringByNullability(
-        nullable: 'Future<void>',
-        legacy: 'Future<int>',
-      ),
-    );
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
+    ]);
+    _assertReturnType('() async {', 'Future<void>');
   }
 
   test_contextFunctionType_returnType_async_blockBody_objectQ() async {
@@ -391,21 +371,14 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_sync_blockBody_void() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 void Function() v = () {
   return 0;
 };
-''', expectedErrors);
-    _assertReturnType(
-      '() {',
-      typeStringByNullability(
-        nullable: 'void',
-        legacy: 'int',
-      ),
-    );
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
+    ]);
+    _assertReturnType('() {', 'void');
   }
 
   test_contextFunctionType_returnType_sync_expressionBody() async {
@@ -747,10 +720,7 @@ var v = () {
   throw 42;
 };
 ''');
-    _assertReturnType(
-      '() {',
-      typeStringByNullability(nullable: 'Never', legacy: 'Null'),
-    );
+    _assertReturnType('() {', 'Never');
   }
 
   test_noContext_returnType_sync_blockBody_notNullable() async {
@@ -868,10 +838,7 @@ var v = (bool b) {
   if (b) return 0;
 };
 ''');
-    _assertReturnType(
-      '(bool b) {',
-      typeStringByNullability(nullable: 'int?', legacy: 'int'),
-    );
+    _assertReturnType('(bool b) {', 'int?');
   }
 
   test_noContext_returnType_sync_blockBody_nullable_switch() async {
@@ -885,10 +852,7 @@ main() {
   };
 }
 ''');
-    _assertReturnType(
-      '(int a) {',
-      typeStringByNullability(nullable: 'int?', legacy: 'int'),
-    );
+    _assertReturnType('(int a) {', 'int?');
   }
 
   test_noContext_returnType_sync_blockBody_nullable_switch_language219() async {
@@ -903,10 +867,7 @@ main() {
   };
 }
 ''');
-    _assertReturnType(
-      '(int a) {',
-      typeStringByNullability(nullable: 'int?', legacy: 'int'),
-    );
+    _assertReturnType('(int a) {', 'int?');
   }
 
   test_noContext_returnType_sync_expressionBody_dynamic() async {
@@ -920,10 +881,7 @@ var v = (dynamic a) => a;
     await resolveTestCode('''
 var v = () => throw 42;
 ''');
-    _assertReturnType(
-      '() =>',
-      typeStringByNullability(nullable: 'Never', legacy: 'Null'),
-    );
+    _assertReturnType('() =>', 'Never');
   }
 
   test_noContext_returnType_sync_expressionBody_notNullable() async {

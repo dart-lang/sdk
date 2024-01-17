@@ -70,7 +70,7 @@ class DocumentColorRegistrations extends FeatureRegistration
 
   @override
   DocumentColorRegistrationOptions get options =>
-      DocumentColorRegistrationOptions(documentSelector: [dartFiles]);
+      DocumentColorRegistrationOptions(documentSelector: dartFiles);
 
   @override
   Method get registrationMethod => Method.textDocument_documentColor;

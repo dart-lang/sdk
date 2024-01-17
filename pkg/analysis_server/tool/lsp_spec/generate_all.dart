@@ -56,7 +56,7 @@ final argParser = ArgParser()
           'Download the latest version of the LSP spec before generating types');
 
 final String languageServerProtocolPackagePath =
-    '$sdkRootPath/third_party/pkg/language_server_protocol';
+    path.join(sdkRootPath, 'third_party', 'pkg', 'language_server_protocol');
 
 final String licenseComment = LineSplitter.split(
         File(localLicensePath).readAsStringSync())

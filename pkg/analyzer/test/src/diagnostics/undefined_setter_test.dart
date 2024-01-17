@@ -208,17 +208,14 @@ void f(int x) {
   }
 
   test_static_conditionalAccess_defined() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 class A {
   static var x;
 }
 f() { A?.x = 1; }
-''',
-      expectedErrorsByNullability(nullable: [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2),
-      ], legacy: []),
-    );
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2),
+    ]);
   }
 
   test_static_definedInSuperclass() async {
