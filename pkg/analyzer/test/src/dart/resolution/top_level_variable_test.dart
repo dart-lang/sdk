@@ -171,13 +171,7 @@ var v = 0;
     await resolveTestCode('''
 var v = throw 42;
 ''');
-    assertType(
-      findElement.topVar('v').type,
-      typeStringByNullability(
-        nullable: 'Never',
-        legacy: 'dynamic',
-      ),
-    );
+    assertType(findElement.topVar('v').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {

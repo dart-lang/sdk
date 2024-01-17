@@ -369,13 +369,7 @@ void f(Null a) {
   var v = [...?a];
 }
 ''');
-    assertType(
-      findNode.listLiteral('['),
-      typeStringByNullability(
-        nullable: 'List<Never>',
-        legacy: 'List<Null>',
-      ),
-    );
+    assertType(findNode.listLiteral('['), 'List<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_null2() async {
@@ -407,13 +401,7 @@ void f<T extends Null>(T a) async {
   var v = [...?a];
 }
 ''');
-    assertType(
-      findNode.listLiteral('['),
-      typeStringByNullability(
-        nullable: 'List<Never>',
-        legacy: 'List<dynamic>',
-      ),
-    );
+    assertType(findNode.listLiteral('['), 'List<Never>');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_implementsIterable() async {

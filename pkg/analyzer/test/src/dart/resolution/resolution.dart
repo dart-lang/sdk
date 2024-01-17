@@ -526,17 +526,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   String typeString(DartType type) =>
       type.getDisplayString(withNullability: isNullSafetyEnabled);
 
-  String typeStringByNullability({
-    required String nullable,
-    required String legacy,
-  }) {
-    if (isNullSafetyEnabled) {
-      return nullable;
-    } else {
-      return legacy;
-    }
-  }
-
   Matcher _elementMatcher(Object? elementOrMatcher) {
     if (elementOrMatcher is Element) {
       return _ElementMatcher(this, declaration: elementOrMatcher);
