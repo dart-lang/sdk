@@ -3587,19 +3587,129 @@ main() {
                 'matchedType: Object), variables(), true, block(), noop)')
           ]);
         });
-        test('argument type not assignable', () {
-          h.run([
-            ifCase(
-              expr('int').checkContext('?'),
-              relationalPattern('>', expr('String'))..errorId = 'PATTERN',
-              [],
-            ).checkIR('ifCase(expr(int), >(expr(String), '
-                'matchedType: int), variables(), true, block(), noop)')
-          ], expectedErrors: {
-            'relationalPatternOperandTypeNotAssignable(pattern: PATTERN, '
-                'operandType: String, parameterType: num)'
+
+        group('argument type not assignable:', () {
+          test('basic', () {
+            h.run([
+              ifCase(
+                expr('int').checkContext('?'),
+                relationalPattern('>', expr('String'))..errorId = 'PATTERN',
+                [],
+              ).checkIR('ifCase(expr(int), >(expr(String), '
+                  'matchedType: int), variables(), true, block(), noop)')
+            ], expectedErrors: {
+              'relationalPatternOperandTypeNotAssignable(pattern: PATTERN, '
+                  'operandType: String, parameterType: num)'
+            });
+          });
+
+          test('> nullable', () {
+            h.run([
+              ifCase(
+                expr('int'),
+                relationalPattern('>', expr('int?'))..errorId = 'PATTERN',
+                [],
+              )
+            ], expectedErrors: {
+              'relationalPatternOperandTypeNotAssignable(pattern: PATTERN, '
+                  'operandType: int?, parameterType: num)'
+            });
+          });
+
+          test('< nullable', () {
+            h.run([
+              ifCase(
+                expr('int'),
+                relationalPattern('<', expr('int?'))..errorId = 'PATTERN',
+                [],
+              )
+            ], expectedErrors: {
+              'relationalPatternOperandTypeNotAssignable(pattern: PATTERN, '
+                  'operandType: int?, parameterType: num)'
+            });
+          });
+
+          test('>= nullable', () {
+            h.run([
+              ifCase(
+                expr('int'),
+                relationalPattern('>=', expr('int?'))..errorId = 'PATTERN',
+                [],
+              )
+            ], expectedErrors: {
+              'relationalPatternOperandTypeNotAssignable(pattern: PATTERN, '
+                  'operandType: int?, parameterType: num)'
+            });
+          });
+
+          test('<= nullable', () {
+            h.run([
+              ifCase(
+                expr('int'),
+                relationalPattern('<=', expr('int?'))..errorId = 'PATTERN',
+                [],
+              )
+            ], expectedErrors: {
+              'relationalPatternOperandTypeNotAssignable(pattern: PATTERN, '
+                  'operandType: int?, parameterType: num)'
+            });
+          });
+
+          test('extension type to representation', () {
+            h.addSuperInterfaces('E', (_) => [Type('Object?')]);
+            h.addExtensionTypeErasure('E', 'int');
+            h.addMember('C', '>', 'bool Function(int)');
+            h.run([
+              ifCase(
+                expr('C'),
+                relationalPattern('>', expr('E'))..errorId = 'PATTERN',
+                [],
+              )
+            ], expectedErrors: {
+              'relationalPatternOperandTypeNotAssignable(pattern: PATTERN, '
+                  'operandType: E, parameterType: int)'
+            });
+          });
+
+          test('representation to extension type', () {
+            h.addSuperInterfaces('E', (_) => [Type('Object?')]);
+            h.addExtensionTypeErasure('E', 'int');
+            h.addMember('C', '>', 'bool Function(E)');
+            h.run([
+              ifCase(
+                expr('C'),
+                relationalPattern('>', expr('int'))..errorId = 'PATTERN',
+                [],
+              )
+            ], expectedErrors: {
+              'relationalPatternOperandTypeNotAssignable(pattern: PATTERN, '
+                  'operandType: int, parameterType: E)'
+            });
           });
         });
+
+        group('argument type assignable:', () {
+          test('== nullable', () {
+            h.run([
+              ifCase(
+                expr('int'),
+                relationalPattern('==', expr('int?')),
+                [],
+              )
+            ]);
+          });
+
+          test('!= nullable', () {
+            h.run([
+              ifCase(
+                expr('int'),
+                relationalPattern('!=', expr('int?')),
+                [],
+              )
+            ]);
+          });
+        });
+
         test('return type is not assignable to bool', () {
           h.addMember('A', '>', 'int Function(Object)');
           h.run([
