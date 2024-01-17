@@ -165,6 +165,11 @@ class DriverEventsPrinter {
     sink.writelnWithIndent('[future] getIndex');
     sink.withIndent(() {
       sink.writelnWithIndent('name: ${event.name}');
+      if (event.result case var result?) {
+        sink.writeElements('strings', result.strings, (str) {
+          sink.writelnWithIndent(str);
+        });
+      }
     });
   }
 

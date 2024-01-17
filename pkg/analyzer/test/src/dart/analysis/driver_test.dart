@@ -21,7 +21,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory;
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -1919,16 +1918,7 @@ void f() {
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    unawaited(collector.getIndex('A1', a).then((index) {
-      index!;
-
-      final unitId = index.strings.indexOf('package:test/a.dart');
-      expect(unitId, isNonNegative);
-
-      final fooId = index.strings.indexOf('foo');
-      expect(fooId, isNonNegative);
-    }));
-
+    collector.getIndex('A1', a);
     await assertEventsText(collector, r'''
 [status] analyzing
 [operation] AnalyzeFile
@@ -1936,11 +1926,70 @@ void f() {
   library: /home/test/lib/a.dart
 [future] getIndex
   name: A1
+  strings
+    --nullString--
+    foo
+    package:test/a.dart
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
+[status] idle
+''');
+  }
+
+  test_getIndex_macroGenerated() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('void f() { foo(); }')
+@DeclareInLibrary('void foo() {}')
+class A {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    final a_macro = getFile('$testPackageLibPath/a.macro.dart');
+    collector.getIndex('AM1', a_macro);
+    await collector.nextStatusIdle();
+
+    // The library, and the macro generated file were analyzed.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getIndex
+  name: AM1
+  strings
+    --nullString--
+    foo
+    package:test/a.dart
+    package:test/a.macro.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.macro.dart
+    uri: package:test/a.macro.dart
+    flags: exists isAugmentation isMacroAugmentation
+    content
+---
+library augment 'a.dart';
+
+void foo() {}
+void f() { foo(); }
+---
 [status] idle
 ''');
   }
@@ -3199,7 +3248,7 @@ part of 'a.dart';
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    unawaited(collector.getIndex('A1', a));
+    collector.getIndex('A1', a);
     collector.getResolvedUnit('A2', a);
 
     // Note, no separate `getIndex` result.
@@ -3216,6 +3265,8 @@ part of 'a.dart';
     flags: exists isLibrary
 [future] getIndex
   name: A1
+  strings
+    --nullString--
 [stream]
   ResolvedUnitResult #0
 [status] idle
@@ -5535,7 +5586,7 @@ class DriverEventCollector {
     }));
   }
 
-  Future<AnalysisDriverUnitIndex?> getIndex(String name, File file) async {
+  void getIndex(String name, File file) async {
     final value = await driver.getIndex(file.path);
     events.add(
       GetIndexEvent(
@@ -5543,7 +5594,6 @@ class DriverEventCollector {
         result: value,
       ),
     );
-    return value;
   }
 
   void getLibraryByUri(String name, String uriStr) {

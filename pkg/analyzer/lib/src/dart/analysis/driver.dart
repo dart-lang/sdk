@@ -814,6 +814,15 @@ class AnalysisDriver {
     if (!_fsState.hasUri(path)) {
       return Future.value();
     }
+
+    // If a macro generated file, request its library instead.
+    var file = resourceProvider.getFile(path);
+    if (file.path.removeSuffix('.macro.dart') case var noExtPath?) {
+      var libraryPath = '$noExtPath.dart';
+      _indexRequestedFiles.putIfAbsent(libraryPath, () => []);
+    }
+
+    // Schedule analysis.
     var completer = Completer<AnalysisDriverUnitIndex?>();
     _indexRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify();
