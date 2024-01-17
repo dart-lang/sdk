@@ -91,4 +91,12 @@ extension StringExtension on String {
   String ifNotEmptyOrElse(String orElse) {
     return isNotEmpty ? this : orElse;
   }
+
+  String? removeSuffix(String suffix) {
+    if (endsWith(suffix)) {
+      return substring(0, length - suffix.length);
+    } else {
+      return null;
+    }
+  }
 }

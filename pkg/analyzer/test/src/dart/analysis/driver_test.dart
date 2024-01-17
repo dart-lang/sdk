@@ -31,6 +31,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/element_printer.dart';
 import '../../../util/tree_string_sink.dart';
+import '../../summary/macros_environment.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 import '../resolution/resolution.dart';
@@ -250,6 +251,51 @@ void f() {
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isLibrary
+[status] idle
+''');
+  }
+
+  test_addFile_library_producesMacroGenerated() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+    await collector.nextStatusIdle();
+
+    // We produced both the library, and its macro-generated file.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.macro.dart
+    uri: package:test/a.macro.dart
+    flags: exists isAugmentation isMacroAugmentation
+    content
+---
+library augment 'a.dart';
+
+class B {}
+---
 [status] idle
 ''');
   }
@@ -879,6 +925,63 @@ var B = 1.2;
       token: B
       staticElement: package:test/b.dart::@getter::B
       staticType: double
+[status] idle
+''');
+  }
+
+  test_changeFile_library_producesMacroGenerated() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+
+    // Discard results so far.
+    await collector.nextStatusIdle();
+    collector.take();
+
+    modifyFile2(a, r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B2 {}')
+class A {}
+''');
+    driver.changeFile2(a);
+    await collector.nextStatusIdle();
+
+    // We produced both the library, and its macro-generated file.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.macro.dart
+    uri: package:test/a.macro.dart
+    flags: exists isAugmentation isMacroAugmentation
+    content
+---
+library augment 'a.dart';
+
+class B2 {}
+---
 [status] idle
 ''');
   }
@@ -2176,6 +2279,58 @@ part of 'b.dart';
 ''');
   }
 
+  test_getResolvedLibrary_withMacroGenerated() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    collector.getResolvedLibrary('A1', a);
+    await collector.nextStatusIdle();
+
+    // We produced both the library, and its macro-generated file.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getResolvedLibrary
+  name: A1
+  ResolvedLibraryResult #1
+    element: package:test/a.dart
+    units
+      ResolvedUnitResult #0
+      ResolvedUnitResult #2
+        path: /home/test/lib/a.macro.dart
+        uri: package:test/a.macro.dart
+        flags: exists isAugmentation isMacroAugmentation
+        content
+---
+library augment 'a.dart';
+
+class B {}
+---
+[stream]
+  ResolvedUnitResult #2
+[status] idle
+''');
+  }
+
   test_getResolvedLibraryByUri() async {
     newFile('$testPackageLibPath/a.dart', '');
 
@@ -2687,6 +2842,95 @@ part of 'a.dart';
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_macroGenerated_hasLibrary() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    final a_macro = getFile('$testPackageLibPath/a.macro.dart');
+    collector.getResolvedUnit('AM1', a_macro);
+    await collector.nextStatusIdle();
+
+    // Even though we asked the macro-generated file, the library was analyzed
+    // instead, and results for both produced.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getResolvedUnit
+  name: AM1
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.macro.dart
+    uri: package:test/a.macro.dart
+    flags: exists isAugmentation isMacroAugmentation
+    content
+---
+library augment 'a.dart';
+
+class B {}
+---
+[stream]
+  ResolvedUnitResult #1
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_macroGenerated_noLibrary() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    final a_macro = getFile('$testPackageLibPath/a.macro.dart');
+    collector.getResolvedUnit('AM1', a_macro);
+    await collector.nextStatusIdle();
+
+    // We try to analyze `a.dart`, but it does not exist.
+    // Then we separately analyze `a.macro.dart`, it also does not exist.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] AnalyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[operation] AnalyzeFile
+  file: /home/test/lib/a.macro.dart
+  library: /home/test/lib/a.macro.dart
+[future] getResolvedUnit
+  name: AM1
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.macro.dart
+    uri: package:test/a.macro.dart
+    flags: isLibrary
+[stream]
+  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -4863,6 +5107,25 @@ class A2 {}
     await assertEventsText(collector, r'''
 ''');
   }
+
+  bool _configureWithCommonMacros() {
+    try {
+      writeTestPackageConfig(
+        PackageConfigFileBuilder(),
+        macrosEnvironment: MacrosEnvironment.instance,
+      );
+
+      newFile(
+        '$testPackageLibPath/append.dart',
+        getMacroCode('append.dart'),
+      );
+
+      return true;
+    } catch (_) {
+      markTestSkipped('Cannot initialize macro environment.');
+      return false;
+    }
+  }
 }
 
 @reflectiveTest
@@ -5220,6 +5483,7 @@ class DriverEventCollector {
   final idProvider = IdProvider();
   final AnalysisDriver driver;
   List<DriverEvent> events = [];
+  final List<Completer<void>> statusIdleCompleters = [];
 
   DriverEventCollector(this.driver) {
     driver.scheduler.events.listen((event) {
@@ -5228,6 +5492,13 @@ class DriverEventCollector {
           events.add(
             SchedulerStatusEvent(event),
           );
+          if (event.isIdle) {
+            // TODO(scheglov): use completeAll()
+            for (var completer in statusIdleCompleters) {
+              completer.complete();
+            }
+            statusIdleCompleters.clear();
+          }
         case driver_events.AnalyzeFile():
         case driver_events.GetErrorsFromBytes():
         case ErrorsResult():
@@ -5343,6 +5614,12 @@ class DriverEventCollector {
     }));
   }
 
+  Future<void> nextStatusIdle() {
+    final completer = Completer<void>();
+    statusIdleCompleters.add(completer);
+    return completer.future;
+  }
+
   List<DriverEvent> take() {
     final result = events;
     events = [];
@@ -5372,5 +5649,13 @@ extension on AnalysisDriver {
 
   Future<LibraryElementResult> getLibraryByUriValid(String uriStr) async {
     return await getLibraryByUri(uriStr) as LibraryElementResult;
+  }
+}
+
+extension on DriverEventsPrinterConfiguration {
+  void withMacroFileContent() {
+    libraryConfiguration.unitConfiguration.withContentPredicate = (result) {
+      return result.isMacroAugmentation;
+    };
   }
 }
