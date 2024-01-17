@@ -1,12 +1,17 @@
 // Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// OtherResources=regress_54516_test.sh
 
 import 'dart:io';
 
 import 'package:expect/expect.dart';
 
 Future<void> main() async {
+  if (Platform.isAndroid || Platform.isIOS) {
+    return; // executable bit not setup for the shell script.
+  }
   // Create a shell script that prints the output.
   final origDir = Directory.current;
   final fileName = "tests/standalone/io/regress_54516_test.sh";
