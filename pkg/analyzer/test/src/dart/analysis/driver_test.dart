@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -5544,10 +5545,7 @@ class DriverEventCollector {
             SchedulerStatusEvent(event),
           );
           if (event.isIdle) {
-            // TODO(scheglov): use completeAll()
-            for (var completer in statusIdleCompleters) {
-              completer.complete();
-            }
+            statusIdleCompleters.completeAll();
             statusIdleCompleters.clear();
           }
         case driver_events.AnalyzeFile():

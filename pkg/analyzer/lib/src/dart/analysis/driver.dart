@@ -52,6 +52,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
@@ -1431,14 +1432,7 @@ class AnalysisDriver {
         }
 
         // getResolvedLibrary()
-        {
-          final completers = _requestedLibraries.remove(library);
-          if (completers != null) {
-            for (final completer in completers) {
-              completer.complete(libraryResult);
-            }
-          }
-        }
+        _requestedLibraries.completeAll(library, libraryResult);
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
@@ -2732,11 +2726,6 @@ class _ResolveForCompletionRequest {
 
 extension<K, V> on Map<K, List<Completer<V>>> {
   void completeAll(K key, V value) {
-    final completers = remove(key);
-    if (completers != null) {
-      for (final completer in completers) {
-        completer.complete(value);
-      }
-    }
+    remove(key)?.completeAll(value);
   }
 }
