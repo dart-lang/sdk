@@ -26,9 +26,9 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -682,17 +682,6 @@ class ContextsPage extends DiagnosticPageWithNav {
   @override
   String get navDetail => '${server.driverMap.length}';
 
-  String describe(AnalysisOptionsImpl options) {
-    var b = StringBuffer();
-
-    b.write(writeOption('Feature set', options.contextFeatures.toString()));
-    b.write('<br>');
-
-    b.write(writeOption('Generate hints', options.hint));
-
-    return b.toString();
-  }
-
   @override
   Future<void> generateContent(Map<String, String> params) async {
     var driverMap = server.driverMap;
@@ -732,23 +721,23 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     buf.writeln(writeOption('Context location', escape(contextPath)));
-    buf.writeln(writeOption(
-        'Analysis options path',
-        escape(
-            driver.analysisContext?.contextRoot.optionsFile?.path ?? 'none')));
     buf.writeln(
         writeOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)));
 
-    buf.writeln('<div class="columns">');
-
-    buf.writeln('<div class="column one-half">');
     h3('Analysis options');
-    // TODO(pq): migrate to *all* analysis options
-    // ignore: deprecated_member_use
-    p(describe(driver.analysisOptions as AnalysisOptionsImpl), raw: true);
+    ul(driver.analysisOptionsMap.entries, (OptionsMapEntry entry) {
+      var folder = entry.folder;
+      buf.write(escape(folder.path));
+      var optionsPath = path.join(folder.path, 'analysis_options.yaml');
+      var contentsPath =
+          '/contents?file=${Uri.encodeQueryComponent(optionsPath)}';
+      buf.writeln(' <a href="$contentsPath">analysis_options.yaml</a>');
+    }, classes: 'scroll-table');
 
     h3('Pub files');
     buf.writeln('<p>');
+
+    buf.writeln('<div class="column one-half">');
 
     var packageConfig = folder
         .getChildAssumingFolder(file_paths.dotDartTool)
@@ -760,22 +749,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</p>');
 
     buf.writeln('</div>');
-
-    buf.writeln('</div>');
-
-    h3('Lints');
-    // TODO(pq): migrate to *all* analysis options
-    // ignore: deprecated_member_use
-    var lints = driver.analysisOptions.lintRules.map((l) => l.name).toList()
-      ..sort();
-    ul(lints, (String lint) => buf.write(lint), classes: 'scroll-table');
-
-    h3('Error processors');
-    // TODO(pq): migrate to *all* analysis options
-    // ignore: deprecated_member_use
-    p(driver.analysisOptions.errorProcessors
-        .map((e) => e.description)
-        .join(', '));
 
     h3('Plugins');
     // TODO(pq): migrate to *all* analysis options
