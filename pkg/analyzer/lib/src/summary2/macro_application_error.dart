@@ -32,19 +32,25 @@ final class ArgumentMacroDiagnostic extends AnalyzerMacroDiagnostic {
 final class DeclarationsIntrospectionCycleComponent {
   final ElementImpl element;
   final int annotationIndex;
+  final ElementImpl introspectedElement;
 
   DeclarationsIntrospectionCycleComponent({
     required this.element,
     required this.annotationIndex,
+    required this.introspectedElement,
   });
 }
 
 /// A cycle during declarations phase introspection.
 final class DeclarationsIntrospectionCycleDiagnostic
     extends AnalyzerMacroDiagnostic {
+  final int annotationIndex;
+  final ElementImpl introspectedElement;
   final List<DeclarationsIntrospectionCycleComponent> components;
 
   DeclarationsIntrospectionCycleDiagnostic({
+    required this.annotationIndex,
+    required this.introspectedElement,
     required this.components,
   });
 }

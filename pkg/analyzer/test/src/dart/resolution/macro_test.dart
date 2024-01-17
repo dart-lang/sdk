@@ -42,6 +42,11 @@ class MacroResolutionTest extends PubPackageResolutionTest {
       '$testPackageLibPath/diagnostic.dart',
       getMacroCode('diagnostic.dart'),
     );
+
+    newFile(
+      '$testPackageLibPath/order.dart',
+      getMacroCode('order.dart'),
+    );
   }
 
   test_declareType_class() async {
@@ -83,6 +88,186 @@ class A {}
           'package:test/a.dart',
           'unresolved',
           'MyMacro',
+        ],
+      ),
+    ]);
+  }
+
+  test_diagnostic_cycle_class_constructorsOf() async {
+    // Note, the errors are also reported when introspecting `A1` and `A2`
+    // during running macro applications on `A3`, because we know that
+    // `A1` and `A2` declarations are incomplete.
+    await assertErrorsInCode('''
+import 'order.dart';
+
+@DeclarationsIntrospectConstructors('A2')
+class A1 {}
+
+@DeclarationsIntrospectConstructors('A1')
+class A2 {}
+
+@DeclarationsIntrospectConstructors('A1')
+@DeclarationsIntrospectConstructors('A2')
+class A3 {}
+''', [
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        23,
+        34,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 34),
+          message('/home/test/lib/test.dart', 78, 34)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        78,
+        34,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 34),
+          message('/home/test/lib/test.dart', 78, 34)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        133,
+        34,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 34),
+          message('/home/test/lib/test.dart', 78, 34)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        175,
+        34,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 34),
+          message('/home/test/lib/test.dart', 78, 34)
+        ],
+      ),
+    ]);
+  }
+
+  test_diagnostic_cycle_class_fieldsOf() async {
+    // Note, the errors are also reported when introspecting `A1` and `A2`
+    // during running macro applications on `A3`, because we know that
+    // `A1` and `A2` declarations are incomplete.
+    await assertErrorsInCode('''
+import 'order.dart';
+
+@DeclarationsIntrospectFields('A2')
+class A1 {}
+
+@DeclarationsIntrospectFields('A1')
+class A2 {}
+
+@DeclarationsIntrospectFields('A1')
+@DeclarationsIntrospectFields('A2')
+class A3 {}
+''', [
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        23,
+        28,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 28),
+          message('/home/test/lib/test.dart', 72, 28)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        72,
+        28,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 28),
+          message('/home/test/lib/test.dart', 72, 28)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        121,
+        28,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 28),
+          message('/home/test/lib/test.dart', 72, 28)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        157,
+        28,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 28),
+          message('/home/test/lib/test.dart', 72, 28)
+        ],
+      ),
+    ]);
+  }
+
+  test_diagnostic_cycle_class_methodsOf() async {
+    // Note, the errors are also reported when introspecting `A1` and `A2`
+    // during running macro applications on `A3`, because we know that
+    // `A1` and `A2` declarations are incomplete.
+    await assertErrorsInCode('''
+import 'order.dart';
+
+@DeclarationsIntrospectMethods('A2')
+class A1 {}
+
+@DeclarationsIntrospectMethods('A1')
+class A2 {}
+
+@DeclarationsIntrospectMethods('A1')
+@DeclarationsIntrospectMethods('A2')
+class A3 {}
+''', [
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        23,
+        29,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 29),
+          message('/home/test/lib/test.dart', 73, 29)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        73,
+        29,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 29),
+          message('/home/test/lib/test.dart', 73, 29)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        123,
+        29,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 29),
+          message('/home/test/lib/test.dart', 73, 29)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        160,
+        29,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 29),
+          message('/home/test/lib/test.dart', 73, 29)
         ],
       ),
     ]);

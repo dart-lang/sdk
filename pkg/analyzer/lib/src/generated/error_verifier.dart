@@ -5945,8 +5945,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // TODO(scheglov): implement
           throw UnimplementedError();
         case DeclarationsIntrospectionCycleDiagnostic():
-          // TODO(scheglov): implement
-          throw UnimplementedError();
+          var messages = diagnostic.components.map<DiagnosticMessage>(
+            (component) {
+              var target = _macroAnnotationNameIdentifier(
+                element: component.element,
+                annotationIndex: component.annotationIndex,
+              );
+              var introspectedName = component.introspectedElement.name;
+              return DiagnosticMessageImpl(
+                filePath: component.element.source!.fullName,
+                length: target.length,
+                message:
+                    "The macro application introspects '$introspectedName'.",
+                offset: target.offset,
+                url: null,
+              );
+            },
+          ).toList();
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+            _macroAnnotationNameIdentifier(
+              element: element,
+              annotationIndex: diagnostic.annotationIndex,
+            ),
+            [diagnostic.introspectedElement.name!],
+            messages,
+          );
         case ExceptionMacroDiagnostic():
           // TODO(scheglov): implement
           throw UnimplementedError();
@@ -6047,6 +6071,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     return fields.toList();
+  }
+
+  static SimpleIdentifier _macroAnnotationNameIdentifier({
+    required ElementImpl element,
+    required int annotationIndex,
+  }) {
+    var annotation = element.metadata[annotationIndex];
+    annotation as ElementAnnotationImpl;
+    var annotationNode = annotation.annotationAst;
+    var fullName = annotationNode.name;
+    if (fullName is PrefixedIdentifierImpl) {
+      return fullName.identifier;
+    } else {
+      return fullName as SimpleIdentifierImpl;
+    }
   }
 }
 

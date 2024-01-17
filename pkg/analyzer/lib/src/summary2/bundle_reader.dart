@@ -2312,10 +2312,13 @@ class ResolutionReader {
         );
       case 0x01:
         return DeclarationsIntrospectionCycleDiagnostic(
+          annotationIndex: readUInt30(),
+          introspectedElement: readElement() as ElementImpl,
           components: readTypedList(() {
             return DeclarationsIntrospectionCycleComponent(
               element: readElement() as ElementImpl,
               annotationIndex: readUInt30(),
+              introspectedElement: readElement() as ElementImpl,
             );
           }),
         );
