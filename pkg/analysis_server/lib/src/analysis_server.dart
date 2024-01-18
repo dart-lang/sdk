@@ -738,7 +738,6 @@ abstract class AnalysisServer {
   /// analyzed.
   void reportAnalysisAnalytics() {
     var packagesFileMap = <String, File?>{};
-    var optionsFileMap = <String, File?>{};
     var immediateFileCount = 0;
     var immediateFileLineCount = 0;
     var transitiveFileCount = 0;
@@ -752,7 +751,6 @@ abstract class AnalysisServer {
       var contextRoot = driver.analysisContext?.contextRoot;
       if (contextRoot != null) {
         packagesFileMap[rootPath] = contextRoot.packagesFile;
-        optionsFileMap[rootPath] = contextRoot.optionsFile;
       }
       var fileSystemState = driver.fsState;
       for (var fileState in fileSystemState.knownFiles) {
@@ -777,20 +775,15 @@ abstract class AnalysisServer {
     var styleCounts = [
       0, // neither
       0, // only packages
-      0, // only options
-      0, // both
+      0, // only options -- (No longer incremented. Options files do not imply unique contexts.)
+      0, // both -- (No longer incremented. Options files do not imply unique contexts.)
     ];
     var packagesFiles = <File>{};
-    var optionsFiles = <File>{};
     for (var rootPath in rootPaths) {
       var packagesFile = packagesFileMap[rootPath];
       var hasUniquePackageFile =
           packagesFile != null && packagesFiles.add(packagesFile);
-      var optionsFile = optionsFileMap[rootPath];
-      var hasUniqueOptionsFile =
-          optionsFile != null && optionsFiles.add(optionsFile);
-      var style =
-          (hasUniquePackageFile ? 1 : 0) + (hasUniqueOptionsFile ? 2 : 0);
+      var style = hasUniquePackageFile ? 1 : 0;
       styleCounts[style]++;
     }
 
