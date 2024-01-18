@@ -929,7 +929,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   /// Verifies a workspace that contains non-file workspace folders is handled.
   ///
-  /// Related tests for didChangeWorkspcaeFolders are in
+  /// Related tests for didChangeWorkspaceFolders are in
   /// [ChangeWorkspaceFoldersTest].
   Future<void> test_nonFileScheme_workspaceFolders() async {
     newPubspecYamlFile(projectFolderPath, '');

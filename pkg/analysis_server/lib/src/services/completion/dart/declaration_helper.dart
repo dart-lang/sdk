@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 /// declarations that are in scope at the completion location.
 class DeclarationHelper {
   /// The regular expression used to detect an unused identifier (a sequence of
-  /// one or more underscodes with no other characters).
+  /// one or more underscores with no other characters).
   static final RegExp UnusedIdentifier = RegExp(r'^_+$');
 
   /// The completion request being processed.

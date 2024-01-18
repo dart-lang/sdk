@@ -227,7 +227,7 @@ class ImportOrganizer {
     var comment = firstComment;
     var nextComment = comment?.next;
     // Don't connect comments that have a blank line between them if this is
-    // a psuedo-library directive.
+    // a pseudo-library directive.
     while (isPseudoLibraryDirective && comment != null && nextComment != null) {
       var currentLine = lineInfo.getLocation(comment.offset).lineNumber;
       var nextLine = lineInfo.getLocation(nextComment.offset).lineNumber;

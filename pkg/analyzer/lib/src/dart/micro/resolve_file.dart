@@ -353,6 +353,7 @@ class FileResolver {
       return ErrorsResultImpl(
         session: contextObjects!.analysisSession,
         file: file.resource,
+        content: file.content,
         uri: file.uri,
         lineInfo: file.lineInfo,
         isAugmentation: file.kind is AugmentationFileKind,
@@ -695,7 +696,6 @@ class FileResolver {
         return ResolvedUnitResultImpl(
           session: contextObjects!.analysisSession,
           fileState: file,
-          content: file.content,
           unit: fileResult.unit,
           errors: fileResult.errors,
         );

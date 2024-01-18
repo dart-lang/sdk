@@ -155,7 +155,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
 
   void _replaceLeftParenthesis(DartFileEditBuilder builder,
       SyntacticEntity left, SyntacticEntity right, String indent) {
-    // Keep any comments preceeding right.
+    // Keep any comments preceding right.
     if (right is AstNode) {
       right = right.beginToken.precedingComments ?? right;
     }

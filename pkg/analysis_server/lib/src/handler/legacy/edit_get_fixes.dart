@@ -131,6 +131,7 @@ class EditGetFixesHandler extends LegacyHandler
         var result = engine.ErrorsResultImpl(
           session: session,
           file: optionsFile,
+          content: content,
           uri: optionsFile.toUri(),
           lineInfo: lineInfo,
           isAugmentation: false,
@@ -248,6 +249,7 @@ error.errorCode: ${error.errorCode}
         var result = engine.ErrorsResultImpl(
           session: session,
           file: pubspecFile,
+          content: content,
           uri: pubspecFile.toUri(),
           lineInfo: lineInfo,
           isAugmentation: false,

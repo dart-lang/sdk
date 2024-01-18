@@ -112,7 +112,7 @@ class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
   ///
   /// A [Comment] can contain blank lines (even an end-of-line comment, and an
   /// end-of-line doc comment). But for the purpose of this fix, we interpret
-  /// only the first "block" or "paragraph" of text as what was intented to be
+  /// only the first "block" or "paragraph" of text as what was intended to be
   /// the library comment.
   SourceRange _rangeOfFirstBlock(Comment comment, LineInfo lineInfo) {
     for (var token in comment.tokens) {

@@ -52,6 +52,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
@@ -814,6 +815,14 @@ class AnalysisDriver {
     if (!_fsState.hasUri(path)) {
       return Future.value();
     }
+
+    // If a macro generated file, request its library instead.
+    var file = resourceProvider.getFile(path);
+    if (file.libraryForMacro case var library?) {
+      _indexRequestedFiles.putIfAbsent(library.path, () => []);
+    }
+
+    // Schedule analysis.
     var completer = Completer<AnalysisDriverUnitIndex?>();
     _indexRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify();
@@ -1055,9 +1064,8 @@ class AnalysisDriver {
 
     // If a macro generated file, request its library instead.
     var file = resourceProvider.getFile(path);
-    if (file.path.removeSuffix('.macro.dart') case var noExtPath?) {
-      var libraryPath = '$noExtPath.dart';
-      _requestedFiles.putIfAbsent(libraryPath, () => []);
+    if (file.libraryForMacro case var library?) {
+      _requestedFiles.putIfAbsent(library.path, () => []);
     }
 
     // Schedule analysis.
@@ -1097,6 +1105,14 @@ class AnalysisDriver {
       );
     }
 
+    // If a macro generated file, request its library.
+    // Once the library is ready, we can return the requested result.
+    var file = resourceProvider.getFile(path);
+    if (file.libraryForMacro case var library?) {
+      _unitElementRequestedFiles.putIfAbsent(library.path, () => []);
+    }
+
+    // Schedule analysis.
     var completer = Completer<SomeUnitElementResult>();
     _unitElementRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify();
@@ -1143,8 +1159,7 @@ class AnalysisDriver {
     _discoverDartCore();
     _discoverLibraries();
 
-    if (_resolveForCompletionRequests.isNotEmpty) {
-      final request = _resolveForCompletionRequests.removeLast();
+    if (_resolveForCompletionRequests.removeLastOrNull() case var request?) {
       try {
         final result = await _resolveForCompletion(request);
         request.completer.complete(result);
@@ -1157,55 +1172,45 @@ class AnalysisDriver {
     }
 
     // Analyze a requested file.
-    if (_requestedFiles.isNotEmpty) {
-      final path = _requestedFiles.keys.first;
+    if (_requestedFiles.firstKey case var path?) {
       await _analyzeFile(path);
       return;
     }
 
     // Analyze a requested library.
-    if (_requestedLibraries.isNotEmpty) {
-      final library = _requestedLibraries.keys.first;
+    if (_requestedLibraries.firstKey case var library?) {
       await _getResolvedLibrary(library);
       return;
     }
 
     // Process an error request.
-    if (_errorsRequestedFiles.isNotEmpty) {
-      final path = _errorsRequestedFiles.keys.first;
+    if (_errorsRequestedFiles.firstKey case var path?) {
       await _getErrors(path);
       return;
     }
 
     // Process an index request.
-    if (_indexRequestedFiles.isNotEmpty) {
-      final path = _indexRequestedFiles.keys.first;
+    if (_indexRequestedFiles.firstKey case var path?) {
       await _getIndex(path);
       return;
     }
 
     // Process a unit element request.
-    if (_unitElementRequestedFiles.isNotEmpty) {
-      String path = _unitElementRequestedFiles.keys.first;
-      var completers = _unitElementRequestedFiles.remove(path)!;
-      final result = (await _computeUnitElement(path))!;
-      for (var completer in completers) {
-        completer.complete(result);
-      }
+    if (_unitElementRequestedFiles.firstKey case var path?) {
+      await _getUnitElement(path);
       return;
     }
 
     // Discover available files.
-    if (_discoverAvailableFilesTask != null &&
-        !_discoverAvailableFilesTask!.isCompleted) {
-      _discoverAvailableFilesTask!.perform();
-      return;
+    if (_discoverAvailableFilesTask case var task?) {
+      if (!task.isCompleted) {
+        task.perform();
+        return;
+      }
     }
 
     // Compute files defining a name.
-    if (_definingClassMemberNameTasks.isNotEmpty) {
-      _FilesDefiningClassMemberNameTask task =
-          _definingClassMemberNameTasks.first;
+    if (_definingClassMemberNameTasks.firstOrNull case var task?) {
       bool isDone = task.perform();
       if (isDone) {
         _definingClassMemberNameTasks.remove(task);
@@ -1214,8 +1219,7 @@ class AnalysisDriver {
     }
 
     // Compute files referencing a name.
-    if (_referencingNameTasks.isNotEmpty) {
-      _FilesReferencingNameTask task = _referencingNameTasks.first;
+    if (_referencingNameTasks.firstOrNull case var task?) {
       bool isDone = task.perform();
       if (isDone) {
         _referencingNameTasks.remove(task);
@@ -1224,18 +1228,15 @@ class AnalysisDriver {
     }
 
     // Analyze a priority file.
-    if (_priorityFiles.isNotEmpty) {
-      for (String path in _priorityFiles) {
-        if (_fileTracker.isFilePending(path)) {
-          await _analyzeFile(path);
-          return;
-        }
+    for (var path in _priorityFiles) {
+      if (_fileTracker.isFilePending(path)) {
+        await _analyzeFile(path);
+        return;
       }
     }
 
     // Analyze a general file.
-    if (_fileTracker.hasPendingFiles) {
-      String path = _fileTracker.anyPendingFile;
+    if (_fileTracker.anyPendingFile case var path?) {
       await _produceErrors(path);
       return;
     }
@@ -1422,14 +1423,7 @@ class AnalysisDriver {
         }
 
         // getResolvedLibrary()
-        {
-          final completers = _requestedLibraries.remove(library);
-          if (completers != null) {
-            for (final completer in completers) {
-              completer.complete(libraryResult);
-            }
-          }
-        }
+        _requestedLibraries.completeAll(library, libraryResult);
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
@@ -1511,28 +1505,6 @@ class AnalysisDriver {
     _resolvedLibraryCache.clear();
   }
 
-  Future<UnitElementResult?> _computeUnitElement(String path) async {
-    FileState file = _fsState.getFileForPath(path);
-
-    // Prepare the library - the file itself, or the known library.
-    final kind = file.kind;
-    final library = kind.library ?? kind.asLibrary;
-
-    return _logger.runAsync('Compute unit element for $path', () async {
-      _logger.writeln('Work in $name');
-      await libraryContext.load(
-        targetLibrary: library,
-        performance: OperationPerformanceImpl('<root>'),
-      );
-      var element = libraryContext.computeUnitElement(library, file);
-      return UnitElementResultImpl(
-        session: currentSession,
-        fileState: file,
-        element: element,
-      );
-    });
-  }
-
   ErrorsResultImpl _createErrorsResultFromBytes(
     FileState file,
     LibraryFileKind library,
@@ -1561,6 +1533,7 @@ class AnalysisDriver {
     return ErrorsResultImpl(
       session: currentSession,
       file: file.resource,
+      content: file.content,
       lineInfo: file.lineInfo,
       uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,
@@ -1613,7 +1586,6 @@ class AnalysisDriver {
     return ResolvedUnitResultImpl(
       session: currentSession,
       fileState: file,
-      content: file.content,
       unit: unitResult.unit,
       errors: unitResult.errors,
     );
@@ -1784,6 +1756,28 @@ class AnalysisDriver {
     return signature.toHex();
   }
 
+  Future<void> _getUnitElement(String path) async {
+    FileState file = _fsState.getFileForPath(path);
+
+    // Prepare the library - the file itself, or the known library.
+    final kind = file.kind;
+    final library = kind.library ?? kind.asLibrary;
+
+    await libraryContext.load(
+      targetLibrary: library,
+      performance: OperationPerformanceImpl('<root>'),
+    );
+
+    var element = libraryContext.computeUnitElement(library, file);
+    var result = UnitElementResultImpl(
+      session: currentSession,
+      fileState: file,
+      element: element,
+    );
+
+    _unitElementRequestedFiles.completeAll(path, result);
+  }
+
   bool _hasLibraryByUri(String uriStr) {
     var uri = uriCache.parse(uriStr);
     var fileOr = _fsState.getFileForUri(uri);
@@ -1826,6 +1820,7 @@ class AnalysisDriver {
     return ErrorsResultImpl(
       session: currentSession,
       file: file.resource,
+      content: file.content,
       lineInfo: file.lineInfo,
       uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,
@@ -2723,11 +2718,16 @@ class _ResolveForCompletionRequest {
 
 extension<K, V> on Map<K, List<Completer<V>>> {
   void completeAll(K key, V value) {
-    final completers = remove(key);
-    if (completers != null) {
-      for (final completer in completers) {
-        completer.complete(value);
-      }
+    remove(key)?.completeAll(value);
+  }
+}
+
+extension on File {
+  File? get libraryForMacro {
+    if (path.removeSuffix('.macro.dart') case var noExtPath?) {
+      var libraryPath = '$noExtPath.dart';
+      return provider.getFile(libraryPath);
     }
+    return null;
   }
 }

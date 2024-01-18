@@ -2116,7 +2116,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Add the suggestions that are approriate at the beginning of an annotation.
+  /// Add the suggestions that are appropriate at the beginning of an annotation.
   void _forAnnotation(AstNode node) {
     declarationHelper(mustBeConstant: true).addLexicalDeclarations(node);
   }
@@ -2289,7 +2289,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         return false;
       }
       // Ideally we'd visit the preceding member in order to avoid duplicating
-      // code, but the offset will be past where the parser inserted sythetic
+      // code, but the offset will be past where the parser inserted synthetic
       // tokens, preventing that from working.
       switch (precedingMember) {
         // TODO(brianwilkerson): Add support for other kinds of declarations.
@@ -2320,7 +2320,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       // Ideally we'd visit the preceding member in order to avoid
       // duplicating code, but the offset will be past where the parser
-      // inserted sythetic tokens, preventing that from working.
+      // inserted synthetic tokens, preventing that from working.
       switch (precedingStatement) {
         // TODO(brianwilkerson): Add support for other kinds of declarations.
         case IfStatement declaration:
@@ -2387,7 +2387,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         .addLexicalDeclarations(node);
   }
 
-  /// Adds the suggestions that are approriate for the name of a pattern field.
+  /// Adds the suggestions that are appropriate for the name of a pattern field.
   void _forPatternFieldName(PatternFieldName node) {
     var pattern = node.parent?.parent;
     if (pattern is DartPattern) {
@@ -2395,7 +2395,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Adds the suggestions that are approriate for the name of a pattern field.
+  /// Adds the suggestions that are appropriate for the name of a pattern field.
   void _forPatternFieldNameInPattern(DartPattern? pattern) {
     if (pattern is ObjectPattern) {
       declarationHelper(mustBeNonVoid: true).addGetters(
@@ -2479,7 +2479,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       CompilationUnit unit, AstNode precedingMember) {
     // Ideally we'd visit the preceding member in order to avoid duplicating
     // code, but in some cases the offset will be past where the parser inserted
-    // sythetic tokens, preventing that from working.
+    // synthetic tokens, preventing that from working.
     switch (precedingMember) {
       // TODO(brianwilkerson): Add support for other kinds of declarations.
       case ClassDeclaration declaration:

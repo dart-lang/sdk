@@ -72,7 +72,7 @@ abstract class FeatureRegistration {
     }.toList();
   }
 
-  /// Types of documents that loaded plugins are interetsed in.
+  /// Types of documents that loaded plugins are interested in.
   List<TextDocumentFilterWithScheme> get pluginTypes => _context.pluginTypes;
 
   /// Whether both the client, and this feature, support dynamic registration.
@@ -179,7 +179,7 @@ class RegistrationContext {
   /// for. This information is derived from the [ClientCapabilities].
   final ClientDynamicRegistrations clientDynamic;
 
-  /// Types of documents that loaded plugins are interetsed in.
+  /// Types of documents that loaded plugins are interested in.
   final List<TextDocumentFilterWithScheme> pluginTypes;
 
   /// The capabilities of the client.

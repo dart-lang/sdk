@@ -192,6 +192,7 @@ vm_service/test/sigquit_starts_service_test: SkipByDesign # Spawns a secondary p
 vm_service/test/simple_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 vm_service/test/source_report_libraries_already_compiled_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/source_report_package_filters_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/stdio_newline_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/step_*: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/super_constructor_invocation_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/uri_mappings_lookup_test: SkipByDesign # Uses Platform.script for URI mappings.

@@ -84,6 +84,10 @@ abstract class ErrorsResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileResult implements SomeFileResult, AnalysisResult {
+  /// The latest read content of [file], the same that was used to compute
+  /// other properties of this result.
+  String get content;
+
   /// The file resource.
   File get file;
 
@@ -210,9 +214,6 @@ abstract class ParsedLibraryResult
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParsedUnitResult
     implements SomeParsedUnitResult, AnalysisResultWithErrors {
-  /// The content of the file that was scanned and parsed.
-  String get content;
-
   /// The parsed, unresolved compilation unit for the [content].
   CompilationUnit get unit;
 }

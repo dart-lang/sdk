@@ -27,6 +27,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -157,6 +158,17 @@ String get _sdkVersion {
 
 String writeOption(String name, dynamic value) {
   return '$name: <code>$value</code><br> ';
+}
+
+_CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
+  var collectedData = _CollectedOptionsData();
+  if (driver.analysisContext?.allAnalysisOptions case var allAnalysisOptions?) {
+    for (var analysisOptions in allAnalysisOptions) {
+      collectedData.lints.addAll(analysisOptions.lintRules.map((e) => e.name));
+      collectedData.plugins.addAll(analysisOptions.enabledPluginNames);
+    }
+  }
+  return collectedData;
 }
 
 class AnalyticsPage extends DiagnosticPageWithNav {
@@ -351,13 +363,9 @@ class CollectReportPage extends DiagnosticPage {
       contextData['knownFiles'] = data.knownFiles.length;
       uniqueKnownFiles.addAll(data.knownFiles);
 
-      contextData['lints'] =
-          // TODO(pq): migrate to *all* analysis options
-          // ignore: deprecated_member_use
-          data.analysisOptions.lintRules.map((e) => e.name).toList();
-      // TODO(pq): migrate to *all* analysis options
-      // ignore: deprecated_member_use
-      contextData['plugins'] = data.analysisOptions.enabledPluginNames.toList();
+      var collectedOptionsData = _collectOptionsData(data);
+      contextData['lints'] = collectedOptionsData.lints.toList();
+      contextData['plugins'] = collectedOptionsData.plugins.toList();
     }
     collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
 
@@ -751,9 +759,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     h3('Plugins');
-    // TODO(pq): migrate to *all* analysis options
-    // ignore: deprecated_member_use
-    p(driver.analysisOptions.enabledPluginNames.join(', '));
+    var optionsData = _collectOptionsData(driver);
+    p(optionsData.plugins.toList().join(', '));
 
     var priorityFiles = driver.priorityFiles;
     var addedFiles = driver.addedFiles.toList();
@@ -1657,6 +1664,11 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       _emitTable(itemsSlow);
     }
   }
+}
+
+class _CollectedOptionsData {
+  final Set<String> lints = <String>{};
+  final Set<String> plugins = <String>{};
 }
 
 extension on String {

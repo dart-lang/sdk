@@ -223,7 +223,7 @@ final class KeywordSuggestion extends CandidateSuggestion {
 
   /// Return a newly created candidate suggestion to suggest the [keyword]
   /// followed by the [annotatedText]. The annotated text is used in cases where
-  /// there is boilerplace that always follows the keyword that should also be
+  /// there is boilerplate that always follows the keyword that should also be
   /// suggested.
   ///
   /// If the annotated text contains a caret (`^`), then the completion will use

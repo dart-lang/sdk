@@ -115,6 +115,7 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
   return ErrorsResultImpl(
     session: _MockAnalysisSession(),
     file: file,
+    content: '<mock>',
     uri: uri,
     lineInfo: lineInfo,
     isAugmentation: false,

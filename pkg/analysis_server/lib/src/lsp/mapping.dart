@@ -1529,10 +1529,10 @@ typedef CompletionDetail = ({
   /// native deprecated tag.
   String detail,
 
-  /// Truncated parameters. Similate to [truncatedSignature] but does not
+  /// Truncated parameters. Similar to [truncatedSignature] but does not
   /// include return types. Used in clients that cannot format signatures
   /// differently and is appended immediately after the completion label. The
-  /// return type is ommitted to reduce noise because this text is not subtle.
+  /// return type is omitted to reduce noise because this text is not subtle.
   String truncatedParams,
 
   /// A signature with truncated params. Used for showing immediately after
