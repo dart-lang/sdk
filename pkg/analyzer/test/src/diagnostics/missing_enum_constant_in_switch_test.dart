@@ -11,12 +11,15 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingEnumConstantInSwitchTest);
     defineReflectiveTests(MissingEnumConstantInSwitchTest_Language219);
+    defineReflectiveTests(MissingEnumConstantInSwitchWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest
-    with MissingEnumConstantInSwitchTestCases {
+    with
+        MissingEnumConstantInSwitchTestCases,
+        MissingEnumConstantInSwitchTestCases_Language212 {
   @override
   bool get _arePatternsEnabled => true;
 }
@@ -24,32 +27,16 @@ class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest
 @reflectiveTest
 class MissingEnumConstantInSwitchTest_Language219
     extends PubPackageResolutionTest
-    with WithLanguage219Mixin, MissingEnumConstantInSwitchTestCases {
+    with
+        WithLanguage219Mixin,
+        MissingEnumConstantInSwitchTestCases,
+        MissingEnumConstantInSwitchTestCases_Language212 {
   @override
   bool get _arePatternsEnabled => false;
 }
 
 mixin MissingEnumConstantInSwitchTestCases on PubPackageResolutionTest {
   bool get _arePatternsEnabled;
-
-  test_all_enhanced() async {
-    await assertNoErrorsInCode('''
-enum E {
-  one, two;
-
-  static const x = 0;
-}
-
-void f(E e) {
-  switch (e) {
-    case E.one:
-      break;
-    case E.two:
-      break;
-  }
-}
-''');
-  }
 
   test_default() async {
     await assertNoErrorsInCode('''
@@ -123,6 +110,47 @@ void f(E e) {
     ]);
   }
 
+  test_parenthesized() async {
+    // TODO(johnniwinther): Re-enable this test for the patterns feature.
+    if (_arePatternsEnabled) return;
+    await assertNoErrorsInCode('''
+enum E { one, two, three }
+
+void f(E e) {
+  switch (e) {
+    case (E.one):
+      break;
+    case (E.two):
+      break;
+    case (E.three):
+      break;
+  }
+}
+''');
+  }
+}
+
+mixin MissingEnumConstantInSwitchTestCases_Language212
+    on PubPackageResolutionTest, MissingEnumConstantInSwitchTestCases {
+  test_all_enhanced() async {
+    await assertNoErrorsInCode('''
+enum E {
+  one, two;
+
+  static const x = 0;
+}
+
+void f(E e) {
+  switch (e) {
+    case E.one:
+      break;
+    case E.two:
+      break;
+  }
+}
+''');
+  }
+
   test_nullable() async {
     await assertErrorsInCode('''
 enum E { one, two }
@@ -173,23 +201,12 @@ void f(E? e) {
 }
 ''');
   }
-
-  test_parenthesized() async {
-    // TODO(johnniwinther): Re-enable this test for the patterns feature.
-    if (_arePatternsEnabled) return;
-    await assertNoErrorsInCode('''
-enum E { one, two, three }
-
-void f(E e) {
-  switch (e) {
-    case (E.one):
-      break;
-    case (E.two):
-      break;
-    case (E.three):
-      break;
-  }
 }
-''');
-  }
+
+@reflectiveTest
+class MissingEnumConstantInSwitchWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with MissingEnumConstantInSwitchTestCases, WithoutNullSafetyMixin {
+  @override
+  bool get _arePatternsEnabled => false;
 }

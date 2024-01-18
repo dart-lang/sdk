@@ -11,11 +11,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidConstantTest);
+    defineReflectiveTests(InvalidConstantWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InvalidConstantTest extends PubPackageResolutionTest {
+class InvalidConstantTest extends PubPackageResolutionTest
+    with InvalidConstantTestCases {
   test_conditionalExpression_unknownCondition() async {
     await assertNoErrorsInCode('''
 const bool kIsWeb = identical(0, 0.0);
@@ -47,6 +49,33 @@ class A {
     ]);
   }
 
+  test_in_initializer_field_as() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  final l;
+  const C.test(dynamic x) : l = x as List<T>;
+}
+''');
+  }
+
+  test_issue49389() async {
+    await assertErrorsInCode(r'''
+class Foo {
+  const Foo({required this.bar});
+  final Map<String, String> bar;
+}
+
+void main() {
+  final data = <String, String>{};
+  const Foo(bar: data);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
+    ]);
+  }
+}
+
+mixin InvalidConstantTestCases on PubPackageResolutionTest {
   test_in_initializer_assert_condition() async {
     await assertErrorsInCode('''
 class A {
@@ -77,15 +106,6 @@ class A {
 ''', [
       error(CompileTimeErrorCode.INVALID_CONSTANT, 63, 1),
     ]);
-  }
-
-  test_in_initializer_field_as() async {
-    await assertNoErrorsInCode('''
-class C<T> {
-  final l;
-  const C.test(dynamic x) : l = x as List<T>;
-}
-''');
   }
 
   test_in_initializer_from_deferred_library_field() async {
@@ -207,20 +227,8 @@ class B extends A {
       error(CompileTimeErrorCode.INVALID_CONSTANT, 82, 1),
     ]);
   }
-
-  test_issue49389() async {
-    await assertErrorsInCode(r'''
-class Foo {
-  const Foo({required this.bar});
-  final Map<String, String> bar;
 }
 
-void main() {
-  final data = <String, String>{};
-  const Foo(bar: data);
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
-    ]);
-  }
-}
+@reflectiveTest
+class InvalidConstantWithoutNullSafetyTest extends PubPackageResolutionTest
+    with InvalidConstantTestCases, WithoutNullSafetyMixin {}

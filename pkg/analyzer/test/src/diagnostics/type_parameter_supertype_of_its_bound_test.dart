@@ -10,11 +10,37 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeParameterSupertypeOfItsBoundTest);
+    defineReflectiveTests(
+        TypeParameterSupertypeOfItsBoundWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest {
+class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest
+    with TypeParameterSupertypeOfItsBoundTestCases {
+  test_1of1_viaExtensionType() async {
+    await assertErrorsInCode(r'''
+extension type A<T>(T it) {}
+
+class B<U extends A<U>> {}
+''', [
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 38, 1),
+    ]);
+  }
+
+  test_2of2_viaExtensionType() async {
+    await assertErrorsInCode(r'''
+extension type A<T>(T it) {}
+
+class B<T1 extends A<T2>, T2 extends T1> {}
+''', [
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 38, 2),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 56, 2),
+    ]);
+  }
+}
+
+mixin TypeParameterSupertypeOfItsBoundTestCases on PubPackageResolutionTest {
   test_1of1() async {
     await assertErrorsInCode(r'''
 class A<T extends T> {
@@ -36,27 +62,6 @@ class A<T extends T> {
     ]);
   }
 
-  test_1of1_viaExtensionType() async {
-    await assertErrorsInCode(r'''
-extension type A<T>(T it) {}
-
-class B<U extends A<U>> {}
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 38, 1),
-    ]);
-  }
-
-  test_2of2_viaExtensionType() async {
-    await assertErrorsInCode(r'''
-extension type A<T>(T it) {}
-
-class B<T1 extends A<T2>, T2 extends T1> {}
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 38, 2),
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 56, 2),
-    ]);
-  }
-
   test_2of3() async {
     await assertErrorsInCode(r'''
 class A<T1 extends T3, T2, T3 extends T1> {
@@ -67,3 +72,8 @@ class A<T1 extends T3, T2, T3 extends T1> {
     ]);
   }
 }
+
+@reflectiveTest
+class TypeParameterSupertypeOfItsBoundWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with TypeParameterSupertypeOfItsBoundTestCases, WithoutNullSafetyMixin {}

@@ -14,7 +14,10 @@ main() {
 }
 
 @reflectiveTest
-class MainIsNotFunctionTest extends PubPackageResolutionTest {
+class MainIsNotFunctionTest extends PubPackageResolutionTest
+    with MainIsNotFunctionTestCases {}
+
+mixin MainIsNotFunctionTestCases on PubPackageResolutionTest {
   test_class() async {
     await resolveTestCode('''
 class main {}

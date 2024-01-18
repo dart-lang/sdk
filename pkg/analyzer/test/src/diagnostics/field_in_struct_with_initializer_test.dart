@@ -2,28 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvocationOfExtensionWithoutCallTest);
+    defineReflectiveTests(FieldInStructWithInitializerTest);
   });
 }
 
 @reflectiveTest
-class InvocationOfExtensionWithoutCallTest extends PubPackageResolutionTest
+class FieldInStructWithInitializerTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
-  test_instance_differentKind() async {
-    await assertErrorsInCode('''
-extension E on Object {}
-f() {
-  E(null)();
+  test_instance_withoutInitializer() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+class C extends Struct {
+  Pointer p;
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL, 33, 7),
-    ]);
+''');
+  }
+
+  test_static_withInitializer() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+class C extends Struct {
+  static String str = '';
+  Pointer p;
+}
+''');
   }
 }

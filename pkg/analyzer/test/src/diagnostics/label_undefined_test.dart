@@ -10,11 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LabelUndefinedTest);
+    defineReflectiveTests(LabelUndefinedWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class LabelUndefinedTest extends PubPackageResolutionTest {
+class LabelUndefinedTest extends PubPackageResolutionTest
+    with LabelUndefinedTestCases {}
+
+mixin LabelUndefinedTestCases on PubPackageResolutionTest {
   test_break() async {
     await assertErrorsInCode(r'''
 f() {
@@ -65,3 +69,7 @@ f(int x) {
     ]);
   }
 }
+
+@reflectiveTest
+class LabelUndefinedWithoutNullSafetyTest extends PubPackageResolutionTest
+    with LabelUndefinedTestCases, WithoutNullSafetyMixin {}

@@ -14,7 +14,28 @@ main() {
 }
 
 @reflectiveTest
-class MainFirstPositionalParameterTest extends PubPackageResolutionTest {
+class MainFirstPositionalParameterTest extends PubPackageResolutionTest
+    with MainFirstPositionalParameterTestCases {
+  test_positionalRequired_listOfStringQuestion() async {
+    await assertNoErrorsInCode('''
+void main(List<String?> args) {}
+''');
+  }
+
+  test_positionalRequired_listQuestionOfString() async {
+    await assertNoErrorsInCode('''
+void main(List<String>? args) {}
+''');
+  }
+
+  test_positionalRequired_objectQuestion() async {
+    await assertNoErrorsInCode('''
+void main(Object? args) {}
+''');
+  }
+}
+
+mixin MainFirstPositionalParameterTestCases on PubPackageResolutionTest {
   test_positionalOptional_listOfInt() async {
     await resolveTestCode('''
 void main([List<int> args = const []]) {}
@@ -60,27 +81,9 @@ void main(List<String> args) {}
 ''');
   }
 
-  test_positionalRequired_listOfStringQuestion() async {
-    await assertNoErrorsInCode('''
-void main(List<String?> args) {}
-''');
-  }
-
-  test_positionalRequired_listQuestionOfString() async {
-    await assertNoErrorsInCode('''
-void main(List<String>? args) {}
-''');
-  }
-
   test_positionalRequired_object() async {
     await assertNoErrorsInCode('''
 void main(Object args) {}
-''');
-  }
-
-  test_positionalRequired_objectQuestion() async {
-    await assertNoErrorsInCode('''
-void main(Object? args) {}
 ''');
   }
 }

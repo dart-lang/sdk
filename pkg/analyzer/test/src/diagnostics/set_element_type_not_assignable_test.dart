@@ -15,7 +15,23 @@ main() {
 }
 
 @reflectiveTest
-class SetElementTypeNotAssignableTest extends PubPackageResolutionTest {
+class SetElementTypeNotAssignableTest extends PubPackageResolutionTest
+    with SetElementTypeNotAssignableTestCases {
+  test_const_stringQuestion_null_dynamic() async {
+    await assertNoErrorsInCode('''
+const a = null;
+var v = const <String?>{a};
+''');
+  }
+
+  test_const_stringQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <String?>{null};
+''');
+  }
+}
+
+mixin SetElementTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;
@@ -115,19 +131,6 @@ var v = const <int>{'abc'};
   test_const_spread_intInt() async {
     await assertNoErrorsInCode('''
 var v = const <int>{...[0, 1]};
-''');
-  }
-
-  test_const_stringQuestion_null_dynamic() async {
-    await assertNoErrorsInCode('''
-const a = null;
-var v = const <String?>{a};
-''');
-  }
-
-  test_const_stringQuestion_null_value() async {
-    await assertNoErrorsInCode('''
-var v = const <String?>{null};
 ''');
   }
 

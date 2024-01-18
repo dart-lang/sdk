@@ -11,12 +11,18 @@ main() {
     defineReflectiveTests(
       MixinInferenceNoPossibleSubstitutionTest,
     );
+    defineReflectiveTests(
+      MixinInferenceNoPossibleSubstitutionWithoutNullSafetyTest,
+    );
   });
 }
 
 @reflectiveTest
-class MixinInferenceNoPossibleSubstitutionTest
-    extends PubPackageResolutionTest {
+class MixinInferenceNoPossibleSubstitutionTest extends PubPackageResolutionTest
+    with MixinInferenceNoPossibleSubstitutionTestCases {}
+
+mixin MixinInferenceNoPossibleSubstitutionTestCases
+    on PubPackageResolutionTest {
   test_valid_single() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}
@@ -29,3 +35,10 @@ class X extends A<int> with M {}
     assertType(findNode.namedType('M {}'), 'M<int>');
   }
 }
+
+@reflectiveTest
+class MixinInferenceNoPossibleSubstitutionWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with
+        WithoutNullSafetyMixin,
+        MixinInferenceNoPossibleSubstitutionTestCases {}

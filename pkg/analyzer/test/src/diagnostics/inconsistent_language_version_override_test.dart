@@ -15,22 +15,26 @@ main() {
 }
 
 @reflectiveTest
-class InconsistentLanguageVersionOverrideTest extends PubPackageResolutionTest {
+class InconsistentLanguageVersionOverrideTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(srawlins): Use null safety in test cases.
+  // https://github.com/dart-lang/sdk/issues/44666
+
   CompileTimeErrorCode get _errorCode =>
       CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE;
 
   test_both_different() async {
     await _checkLibraryAndPart(
       libraryContent: r'''
-// @dart = 3.1
+// @dart = 2.12
 part 'b.dart';
 ''',
       partContent: r'''
-// @dart = 3.2
+// @dart = 2.13
 part of 'a.dart';
 ''',
       libraryErrors: [
-        error(_errorCode, 20, 8),
+        error(_errorCode, 21, 8),
       ],
     );
   }
@@ -38,11 +42,11 @@ part of 'a.dart';
   test_both_same() async {
     await _checkLibraryAndPart(
       libraryContent: r'''
-// @dart = 3.2
+// @dart = 2.12
 part 'b.dart';
 ''',
       partContent: r'''
-// @dart = 3.2
+// @dart = 2.12
 part of 'a.dart';
 ''',
       libraryErrors: [],
@@ -67,7 +71,7 @@ part of 'a.dart';
 part 'b.dart';
 ''',
       partContent: r'''
-// @dart = 3.1
+// @dart = 2.5
 part of 'a.dart';
 ''',
       libraryErrors: [

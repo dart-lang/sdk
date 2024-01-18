@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantCaseExpressionTest);
     defineReflectiveTests(NonConstantCaseExpressionTest_Language219);
+    defineReflectiveTests(NonConstantCaseExpressionWithoutNullSafetyTest);
   });
 }
 
@@ -70,3 +71,8 @@ void f(var e) {
 ''');
   }
 }
+
+@reflectiveTest
+class NonConstantCaseExpressionWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with NonConstantCaseExpressionTestCases, WithoutNullSafetyMixin {}
