@@ -124,6 +124,7 @@ caption
 captions
 carefully
 categorization
+categorize
 causal
 cb
 cc
@@ -442,6 +443,7 @@ kitty
 ko
 koo
 la
+lambdas
 lat
 launch
 launching
@@ -688,6 +690,7 @@ sigint
 signalled
 sigwinch
 silence
+simplistic
 slashes
 slight
 sliver

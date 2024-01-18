@@ -142,7 +142,7 @@ static method testArgs() → dynamic {
   self::expect(42, c3a.{self::Class3::field}{core::int});
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:98:8: Error: Too few positional arguments: 1 required, 0 given.
-    f3a(); // error
+    f3a(); // error 
        ^" in f3a{<inapplicable>}.();
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:99:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
