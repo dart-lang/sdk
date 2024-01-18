@@ -21,29 +21,14 @@ abstract class RpcErrorCodes {
   static const kMethodNotFound = -32601;
 
   static const kInvalidParams = -32602;
-  // static const kInternalError = -32603;
 
-  // static const kExtensionError = -32000;
-
-  static const kFeatureDisabled = 100;
-
-  // static const kCannotAddBreakpoint = 102;
   static const kStreamAlreadySubscribed = 103;
   static const kStreamNotSubscribed = 104;
 
-  // static const kIsolateMustBeRunnable = 105;
-  static const kIsolateMustBePaused = 106;
-  // static const kCannotResume = 107;
-  // static const kIsolateIsReloading = 108;
-  // static const kIsolateReloadBarred = 109;
-  // static const kIsolateMustHaveReloaded = 110;
   static const kServiceAlreadyRegistered = 111;
   static const kServiceDisappeared = 112;
-  static const kExpressionCompilationError = 113;
 
-  // static const kInvalidTimelineRequest = 114;
-  static const kCustomStreamDoesNotExist = 130;
-  static const kCoreStreamNotAllowed = 131;
+  static const kServiceMethodAlreadyRegistered = 132;
 
   // Experimental (used in private rpcs).
   // static const kFileSystemAlreadyExists = 1001;
@@ -51,13 +36,11 @@ abstract class RpcErrorCodes {
   // static const kFileDoesNotExist = 1003;
 
   static const errorMessages = {
-    kFeatureDisabled: 'Feature is disabled',
     kStreamAlreadySubscribed: 'Stream already subscribed',
     kStreamNotSubscribed: 'Stream not subscribed',
     kServiceAlreadyRegistered: 'Service already registered',
     kServiceDisappeared: 'Service has disappeared',
-    kExpressionCompilationError: 'Expression compilation error',
-    kCustomStreamDoesNotExist: 'Custom stream does not exist',
-    kCoreStreamNotAllowed: 'Core streams are not allowed',
+    kServiceMethodAlreadyRegistered:
+        'The service method has already been registered',
   };
 }

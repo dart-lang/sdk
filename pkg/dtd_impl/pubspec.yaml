@@ -24,3 +24,4 @@ dependencies:
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
   lints: any
+  test: any

@@ -117,6 +117,9 @@ any client calls [postEvent](#postevent) on the _streamId_ stream.
 
 If successful responds with [Success](#success).
 
+If the client is already subscribed to the stream, the _103_ (Stream already
+subscribed) [RPC error](#rpc-error) code is returned.
+
 #### Code Sample
 
 ```json
@@ -150,6 +153,9 @@ calls for events on the _streamId_ stream.
 #### Result
 
 If successful responds with [Success](#success).
+
+If the client is not subscribed to the stream, the _104_ (Stream not
+subscribed) [RPC error](#rpc-error) code is returned.
 
 #### Code Sample
 
@@ -229,6 +235,10 @@ removed.
 
 If successful responds with [Success](#success).
 
+If the _service_ has already been registered by another client , the _111_ (Service already registered) [RPC error](#rpc-error) code is returned.
+
+If the _method_ has already been registered on the _service_, the _132_ (Service method already registered) [RPC error](#rpc-error) code is returned.
+
 #### Code Sample
 
 ```json
@@ -268,6 +278,9 @@ the service method.
 
 The result is defined on a case by case basis based on the implementer of the
 service method.
+
+If service method does not exist, the -32601 (Method not found)
+[RPC error](#rpc-error) code is returned.
 
 #### Code Sample
 
@@ -388,3 +401,40 @@ Methods that respond with Success do so with the following RPC.
 ```json
 {"id": "2", "type": "Success"}
 ```
+
+## RPC Error
+
+When an RPC encounters an error, it is provided in the _error_
+property of the response object. JSON-RPC errors always provide
+_code_, _message_, and _data_ properties.
+
+Here is an example error response for our [streamListen](#streamlisten)
+request above. This error would be generated if we were attempting to
+subscribe to the _GC_ stream multiple times from the same client.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": 103,
+    "message": "Stream already subscribed",
+    "data": {
+      "details": "The stream 'GC' is already subscribed"
+    }
+  }
+  "id": "2"
+}
+```
+
+In addition to the
+[error codes](http://www.jsonrpc.org/specification#error_object) specified in
+the JSON-RPC spec, we use the following application specific error codes:
+code | message | meaning
+---- | ------- | -------
+-32601 | Method not found | The method does not exist / is not available.
+-32602 | Invalid params | Invalid params. Invalid method parameter(s).
+103 | Stream already subscribed | The client is already subscribed to the specified _streamId_.
+104 | Stream not subscribed | The client is not subscribed to the specified _streamId_.
+111 | Service already registered | Service with such name has already been registered by this client.
+112 | Service disappeared | Failed to fulfill service request, likely service handler is no longer available.
+132 | Service method already registered | Method for the given service has already been registered by this client.
