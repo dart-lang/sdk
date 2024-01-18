@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 testFor() {
+  // Error
   for (final int i = 0; i < 3; i = i + 1) {
-    print(i); // Error
+    print(i);
   }
+  // Error
   for (final (int i) = 0; i < 3; i = i + 1) {
-    print(i); // Error
+    print(i);
   }
   for (var (final int i, String s) = (0, ''); i < 3; i = i + 1) {
     print(i); // Error

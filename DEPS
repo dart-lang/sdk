@@ -161,7 +161,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "ca9f059d2334bb2657683e0a7f5949817cb4b0e6",
   "mockito_rev": "e15e00086ed20f3175b2e677fd11611be4fa8e8e",
-  "native_rev": "14f6da1d58d23bb0b726e703dd92827a5dafeceb",
+  "native_rev": "153811080d9020c894c4e820053d2ede79ca9012",
   "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
   "path_rev": "57a049cff2e2be7a302dd9683b2b194c6d06e2d4",
   "pool_rev": "4c490001446d8ba3d361b99d8befd6a4f61abc7a",
@@ -206,7 +206,7 @@ vars = {
   "download_chrome": False,
   "chrome_tag": "119.0.6045.9", # Beta version with WasmGC final encodings.
   "download_firefox": False,
-  "firefox_tag": "120.0",
+  "firefox_tag": "121.0.1",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,

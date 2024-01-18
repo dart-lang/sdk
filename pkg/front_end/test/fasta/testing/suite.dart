@@ -128,6 +128,7 @@ import '../../testing_utils.dart' show checkEnvironment;
 import '../../utils/kernel_chain.dart'
     show
         ComponentResult,
+        ErrorCommentChecker,
         MatchContext,
         MatchExpectation,
         Print,
@@ -190,6 +191,10 @@ const String EXPECTATIONS = '''
   {
     "name": "SemiFuzzCrash",
     "group": "Fail"
+  },
+  {
+    "name": "ErrorCommentCheckFailure",
+    "group": "Fail"
   }
 ]
 ''';
@@ -251,6 +256,7 @@ class FastaContext extends ChainContext with MatchContext {
       this.soundNullSafety)
       : steps = <Step>[
           new Outline(compileMode, updateComments: updateComments),
+          new ErrorCommentChecker(compileMode),
           const Print(),
           new Verify(compileMode == CompileMode.full
               ? VerificationStage.afterConstantEvaluation

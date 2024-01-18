@@ -15,7 +15,7 @@ class C {
   final A a2;
 
   external C(); // Ok
-  C.named(this.a1, this.as2); // Ok
+  C.named(this.a1, this.a2); // Ok
 }
 
 class D {
@@ -38,6 +38,6 @@ class F {
   final A a1;
   final A a2;
 
-  F(this.a1, this.as2); // Ok
+  F(this.a1, this.a2); // Ok
   external F.named(); // Ok
 }

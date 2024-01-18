@@ -12,7 +12,7 @@ import 'package:dartdev/src/sdk.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:native_assets_builder/native_assets_builder.dart';
-import 'package:native_assets_cli/native_assets_cli.dart';
+import 'package:native_assets_cli/native_assets_cli_internal.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
@@ -152,16 +152,16 @@ Use linkMode as dynamic library instead.""");
       stdout.writeln('Copying native assets.');
       Asset targetLocation(Asset asset) {
         final path = asset.path;
-        switch (path.runtimeType) {
-          case const (AssetSystemPath):
-          case const (AssetInExecutable):
-          case const (AssetInProcess):
+        switch (path) {
+          case AssetSystemPath _:
+          case AssetInExecutable _:
+          case AssetInProcess _:
             return asset;
-          case const (AssetAbsolutePath):
+          case AssetAbsolutePath _:
             return asset.copyWith(
               path: AssetRelativePath(
                 Uri(
-                  path: (path as AssetAbsolutePath).uri.pathSegments.last,
+                  path: path.uri.pathSegments.last,
                 ),
               ),
             );
