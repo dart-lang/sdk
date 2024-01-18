@@ -143,6 +143,15 @@ struct UNWIND_INFO {
   uint32_t CodeWords : 5;
 };
 
+#if !defined(DART_HOST_OS_WINDOWS)
+typedef uint32_t ULONG;
+typedef struct _RUNTIME_FUNCTION {
+  ULONG BeginAddress;
+  ULONG EndAddress;
+  ULONG UnwindData;
+} RUNTIME_FUNCTION, *PRUNTIME_FUNCTION;
+#endif
+
 /**
  * Base on below doc, unwind record has 18 bits (unsigned) to encode function
  * length, besides 2 LSB which are always 0.
