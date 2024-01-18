@@ -7,16 +7,10 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-#if defined(DART_HOST_OS_WINDOWS) &&                                           \
-    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
-
 namespace dart {
 
-static HMODULE ntdll_module;
-static decltype(&::RtlAddGrowableFunctionTable)
-    add_growable_function_table_func_ = nullptr;
-static decltype(&::RtlDeleteGrowableFunctionTable)
-    delete_growable_function_table_func_ = nullptr;
+#if defined(DART_TARGET_OS_WINDOWS) &&                                         \
+    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
 
 #if defined(TARGET_ARCH_X64)
 const intptr_t kReservedUnwindingRecordsSizeBytes = 64;
@@ -27,6 +21,17 @@ const intptr_t kReservedUnwindingRecordsSizeBytes = 4 * KB;
 intptr_t UnwindingRecordsPlatform::SizeInBytes() {
   return kReservedUnwindingRecordsSizeBytes;
 }
+
+#endif  // defined(DART_TARGET_OS_WINDOWS)
+
+#if defined(DART_HOST_OS_WINDOWS) &&                                           \
+    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
+
+static HMODULE ntdll_module;
+static decltype(&::RtlAddGrowableFunctionTable)
+    add_growable_function_table_func_ = nullptr;
+static decltype(&::RtlDeleteGrowableFunctionTable)
+    delete_growable_function_table_func_ = nullptr;
 
 void* UnwindingRecordsPlatform::GetAddGrowableFunctionTableFunc() {
   return add_growable_function_table_func_;
@@ -68,6 +73,7 @@ void UnwindingRecordsPlatform::RegisterExecutableMemory(
   uint8_t* record_ptr = static_cast<uint8_t*>(start) + unwinding_record_offset;
   CodeRangeUnwindingRecord* record =
       reinterpret_cast<CodeRangeUnwindingRecord*>(record_ptr);
+  RELEASE_ASSERT(record->magic == kUnwindingRecordMagic);
   uword start_num = reinterpret_cast<intptr_t>(start);
   uword end_num = start_num + size;
   DWORD status = func(pp_dynamic_table,
@@ -87,6 +93,6 @@ void UnwindingRecordsPlatform::UnregisterDynamicTable(void* p_dynamic_table) {
   func(p_dynamic_table);
 }
 
-}  // namespace dart
-
 #endif  // defined(DART_HOST_OS_WINDOWS)
+
+}  // namespace dart
