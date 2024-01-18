@@ -160,6 +160,17 @@ String writeOption(String name, dynamic value) {
   return '$name: <code>$value</code><br> ';
 }
 
+_CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
+  var collectedData = _CollectedOptionsData();
+  if (driver.analysisContext?.allAnalysisOptions case var allAnalysisOptions?) {
+    for (var analysisOptions in allAnalysisOptions) {
+      collectedData.lints.addAll(analysisOptions.lintRules.map((e) => e.name));
+      collectedData.plugins.addAll(analysisOptions.enabledPluginNames);
+    }
+  }
+  return collectedData;
+}
+
 class AnalyticsPage extends DiagnosticPageWithNav {
   AnalyticsPage(DiagnosticsSite site)
       : super(site, 'analytics', 'Analytics',
@@ -468,19 +479,6 @@ class CollectReportPage extends DiagnosticPage {
     const JsonEncoder encoder = JsonEncoder.withIndent('  ');
     return encoder.convert(collectedData);
   }
-
-  _CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
-    var collectedData = _CollectedOptionsData();
-    if (driver.analysisContext?.allAnalysisOptions
-        case var allAnalysisOptions?) {
-      for (var analysisOptions in allAnalysisOptions) {
-        collectedData.lints
-            .addAll(analysisOptions.lintRules.map((e) => e.name));
-        collectedData.plugins.addAll(analysisOptions.enabledPluginNames);
-      }
-    }
-    return collectedData;
-  }
 }
 
 class CommunicationsPage extends DiagnosticPageWithNav {
@@ -761,9 +759,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     h3('Plugins');
-    // TODO(pq): migrate to *all* analysis options
-    // ignore: deprecated_member_use
-    p(driver.analysisOptions.enabledPluginNames.join(', '));
+    var optionsData = _collectOptionsData(driver);
+    p(optionsData.plugins.toList().join(', '));
 
     var priorityFiles = driver.priorityFiles;
     var addedFiles = driver.addedFiles.toList();
