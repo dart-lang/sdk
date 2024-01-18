@@ -19,8 +19,10 @@ dependencies:
   dart_style: any
   dartdoc: any
   dds: any
+  dds_service_extensions: any
   dtd_impl: any
   front_end: any
+  http: any
   logging: any
   meta: any
   native_assets_builder: any
@@ -32,13 +34,13 @@ dependencies:
   unified_analytics: any
   usage: any
   vm: any
+  vm_service: any
   yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   expect: any
   file: any
-  http: any
   lints: any
   pub_semver: any
   test: any

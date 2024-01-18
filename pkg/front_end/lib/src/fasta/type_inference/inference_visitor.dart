@@ -97,7 +97,7 @@ abstract class InferenceVisitor {
 class InferenceVisitorImpl extends InferenceVisitorBase
     with
         TypeAnalyzer<TreeNode, Statement, Expression, VariableDeclaration,
-            DartType, Pattern, InvalidExpression>,
+            DartType, Pattern, InvalidExpression, DartType>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
@@ -2376,8 +2376,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       PatternVariableDeclaration patternVariableDeclaration =
           element.patternVariableDeclaration;
-      PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
-          analyzePatternVariableDeclaration(
+      PatternVariableDeclarationAnalysisResult<DartType, DartType>
+          analysisResult = analyzePatternVariableDeclaration(
               patternVariableDeclaration,
               patternVariableDeclaration.pattern,
               patternVariableDeclaration.initializer,
@@ -4263,8 +4263,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       PatternVariableDeclaration patternVariableDeclaration =
           entry.patternVariableDeclaration;
-      PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
-          analyzePatternVariableDeclaration(
+      PatternVariableDeclarationAnalysisResult<DartType, DartType>
+          analysisResult = analyzePatternVariableDeclaration(
               patternVariableDeclaration,
               patternVariableDeclaration.pattern,
               patternVariableDeclaration.initializer,
@@ -8854,8 +8854,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
-        analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
+    PatternVariableDeclarationAnalysisResult<DartType, DartType>
+        analysisResult = analyzePatternVariableDeclaration(
+            node, node.pattern, node.initializer,
             isFinal: node.isFinal);
     node.matchedValueType = analysisResult.initializerType;
 
@@ -10837,7 +10838,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    PatternAssignmentAnalysisResult<DartType> analysisResult =
+    PatternAssignmentAnalysisResult<DartType, DartType> analysisResult =
         analyzePatternAssignment(node, node.pattern, node.expression);
     node.matchedValueType = analysisResult.type;
 

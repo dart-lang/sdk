@@ -2,12 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dartdev/src/commands/devtools.dart';
+import 'package:dds/devtools_server.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
+
+final dartVMServiceRegExp = RegExp(
+  r'The Dart VM service is listening on (http://127.0.0.1:.*)',
+);
+final ddsStartedRegExp = RegExp(
+  r'Started the Dart Development Service \(DDS\) at (http://127.0.0.1:.*)',
+);
+final servingDevToolsRegExp = RegExp(
+  r'Serving DevTools at (http://127.0.0.1:.*)',
+);
 
 void main() {
   group('devtools', devtools, timeout: longTimeout);
@@ -90,5 +103,138 @@ void devtools() {
       process!.kill();
       process = null;
     });
+  });
+
+  group('spawns DDS integration', () {
+    late TestProject targetProject;
+    Process? targetProjectInstance;
+    Process? process;
+
+    setUp(() {
+      targetProject = project(
+        mainSrc: '''
+Future<void> main() async {
+  while (true) {
+    await Future.delayed(const Duration(seconds: 1));
+  }
+}
+''',
+      );
+      p = project();
+    });
+
+    tearDown(() {
+      targetProjectInstance?.kill();
+      process?.kill();
+      targetProjectInstance = null;
+      process = null;
+    });
+
+    Future<String> startTargetProject({
+      required bool disableServiceAuthCodes,
+    }) async {
+      targetProjectInstance = await targetProject.start(
+        [
+          '--disable-dart-dev',
+          '--observe=0',
+          if (disableServiceAuthCodes) '--disable-service-auth-codes',
+          targetProject.relativeFilePath,
+        ],
+      );
+
+      final serviceUriCompleter = Completer<String>();
+      late StreamSubscription sub;
+      sub = targetProjectInstance!.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((event) async {
+        if (event.contains(dartVMServiceRegExp)) {
+          await sub.cancel();
+          serviceUriCompleter.complete(
+            dartVMServiceRegExp.firstMatch(event)!.group(1),
+          );
+        }
+      });
+
+      return await serviceUriCompleter.future;
+    }
+
+    Future<void> startDevTools({
+      required String vmServiceUri,
+      required bool shouldStartDds,
+    }) async {
+      process = await p.start([
+        'devtools',
+        '--no-launch-browser',
+        vmServiceUri,
+      ]);
+      process!.stderr.transform(utf8.decoder).listen(print);
+
+      bool startedDds = false;
+      final devToolsServedCompleter = Completer<void>();
+      late StreamSubscription sub;
+      sub = process!.stdout
+          .transform<String>(utf8.decoder)
+          .transform<String>(const LineSplitter())
+          .listen((event) async {
+        if (event.contains(ddsStartedRegExp)) {
+          startedDds = true;
+        } else if (event.contains(servingDevToolsRegExp)) {
+          await sub.cancel();
+          devToolsServedCompleter.complete();
+        }
+      });
+
+      await devToolsServedCompleter.future;
+      expect(startedDds, shouldStartDds);
+
+      // kill the process
+      process!.kill();
+      process = null;
+    }
+
+    for (final disableAuthCodes in const [true, false]) {
+      final authCodesEnabledStr = disableAuthCodes ? 'disabled' : 'enabled';
+      test('with auth codes $authCodesEnabledStr', () async {
+        final vmServiceUri = await startTargetProject(
+          disableServiceAuthCodes: disableAuthCodes,
+        );
+
+        // The first run should cause DDS to be started.
+        await startDevTools(vmServiceUri: vmServiceUri, shouldStartDds: true);
+
+        // The second run should not since DDS is already running.
+        await startDevTools(vmServiceUri: vmServiceUri, shouldStartDds: false);
+      });
+
+      test('check for redirect with auth codes $authCodesEnabledStr', () async {
+        final vmServiceUri = Uri.parse(
+          await startTargetProject(
+            disableServiceAuthCodes: disableAuthCodes,
+          ),
+        );
+        var updatedUri =
+            await DevToolsCommand.checkForRedirectToExistingDDSInstance(
+          vmServiceUri,
+        );
+        // We should not have followed a redirect since DDS isn't running.
+        expect(vmServiceUri, updatedUri);
+
+        // Start DDS for this VM service instance.
+        final ddsUri = await DevToolsCommand.maybeStartDDS(
+          uri: vmServiceUri,
+          ddsHost: DevToolsServer.defaultDdsHost,
+          ddsPort: DevToolsServer.defaultDdsPort.toString(),
+        );
+
+        // Ensure that navigating to the VM service URI will redirect us to the
+        // DDS URI.
+        updatedUri =
+            await DevToolsCommand.checkForRedirectToExistingDDSInstance(
+          vmServiceUri,
+        );
+        expect(updatedUri, ddsUri);
+      });
+    }
   });
 }

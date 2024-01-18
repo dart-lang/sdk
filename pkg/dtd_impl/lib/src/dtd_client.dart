@@ -86,7 +86,9 @@ class DTDClient extends Client {
     _clientPeer.registerMethod('streamCancel', _streamCancel);
     _clientPeer.registerMethod('postEvent', _postEvent);
     _clientPeer.registerMethod('registerService', _registerService);
-    _clientPeer.registerMethod('getRegisteredStreams', _getRegisteredStreams);
+
+    // TODO(danchevalier) implement and document _getRegisteredStreams
+    // _clientPeer.registerMethod('getRegisteredStreams', _getRegisteredStreams);
 
     // Handle service extension invocations.
     _clientPeer.registerFallback(_fallback);
@@ -98,10 +100,19 @@ class DTDClient extends Client {
   /// 'streamId': the stream to be cancelled.
   _streamListen(parameters) async {
     final streamId = parameters['streamId'].asString;
-    await dtd.streamManager.streamListen(
-      this,
-      streamId,
-    );
+    try {
+      await dtd.streamManager.streamListen(
+        this,
+        streamId,
+      );
+    } on StreamAlreadyListeningException catch (_) {
+      throw RpcErrorCodes.buildRpcException(
+        RpcErrorCodes.kStreamAlreadySubscribed,
+        data: {
+          'details': "The stream '$streamId' is already subscribed",
+        },
+      );
+    }
     return RPCResponses.success;
   }
 
@@ -111,6 +122,15 @@ class DTDClient extends Client {
   /// 'streamId': the stream that the client would like to stop listening to.
   _streamCancel(parameters) async {
     final streamId = parameters['streamId'].asString;
+
+    if (!dtd.streamManager.isSubscribed(this, streamId)) {
+      throw RpcErrorCodes.buildRpcException(
+        RpcErrorCodes.kStreamNotSubscribed,
+        data: {
+          'details': "Client is not listening to '$streamId'",
+        },
+      );
+    }
     await dtd.streamManager.streamCancel(this, streamId);
     return RPCResponses.success;
   }
@@ -139,20 +159,31 @@ class DTDClient extends Client {
     final method = parameters['method'].asString;
     final combinedName = '$serviceName.$method';
 
-    // TODO(danchevalier): enforce only one client can register methods to a
-    // service.
-    if (services.containsKey(combinedName)) {
+    final existingServiceOwnerClient =
+        dtd.clientManager.findClientThatOwnsService(serviceName);
+    if (existingServiceOwnerClient != null &&
+        existingServiceOwnerClient != this) {
       throw RpcErrorCodes.buildRpcException(
         RpcErrorCodes.kServiceAlreadyRegistered,
+        data: {
+          'details':
+              "Service '$serviceName' is already registered by another client. "
+                  "Only 1 client at a time may register methods to a service.",
+        },
       );
     }
+
+    if (services.containsKey(combinedName)) {
+      throw RpcErrorCodes.buildRpcException(
+        RpcErrorCodes.kServiceMethodAlreadyRegistered,
+        data: {
+          'details': "$combinedName has already been registered by the client.",
+        },
+      );
+    }
+
     services[combinedName] = method;
     return RPCResponses.success;
-  }
-
-  _getRegisteredStreams(parameters) {
-    // TODO(danchevalier) implement this.
-    return [];
   }
 
   /// jrpc fallback handler.

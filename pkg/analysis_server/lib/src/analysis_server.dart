@@ -25,6 +25,8 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -91,16 +93,6 @@ typedef UserPromptSender = Future<String?> Function(
 abstract class AnalysisServer {
   /// A flag indicating whether plugins are supported in this build.
   static final bool supportsPlugins = true;
-
-  /// The full set of URI schemes that the server can support.
-  ///
-  /// Which schemes are valid for a given server invocation may depend on the
-  /// clients capabilities so being present in this set does not necessarily
-  /// mean the scheme is valid to send to the client.
-  ///
-  /// The [uriConverter] handles mapping of internal analyzer file
-  /// paths/references to URIs and back.
-  static const supportedUriSchemes = {'file'};
 
   /// The options of this server instance.
   AnalysisServerOptions options;
@@ -227,6 +219,10 @@ abstract class AnalysisServer {
   /// (and back).
   ClientUriConverter uriConverter;
 
+  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
+  /// are associated (can fix).
+  final Map<ProducerGenerator, Set<String>> producerGeneratorsForLintRules;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -245,7 +241,8 @@ abstract class AnalysisServer {
         uriConverter =
             ClientUriConverter.noop(baseResourceProvider.pathContext),
         pubApi = PubApi(instrumentationService, httpClient,
-            Platform.environment['PUB_HOSTED_URL']) {
+            Platform.environment['PUB_HOSTED_URL']),
+        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap() {
     // We can only spawn processes (eg. to run pub commands) when backed by
     // a real file system, otherwise we may try to run commands in folders that
     // don't really exist. If processRunner was supplied, it's likely a mock
@@ -864,6 +861,7 @@ abstract class AnalysisServer {
 
     pubPackageService.shutdown();
     surveyManager?.shutdown();
+    await contextManager.dispose();
     await analyticsManager.shutdown();
   }
 

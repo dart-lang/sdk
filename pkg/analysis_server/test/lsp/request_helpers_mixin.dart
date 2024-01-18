@@ -78,6 +78,13 @@ mixin LspEditHelpersMixin {
     indexedEdits.sort(TextEditWithIndex.compare);
     return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
   }
+
+  /// Returns the text for [range] in [content].
+  String getTextForRange(String content, Range range) {
+    var lineInfo = LineInfo.fromContent(content);
+    var sourceRange = toSourceRange(lineInfo, range).result;
+    return content.substring(sourceRange.offset, sourceRange.end);
+  }
 }
 
 /// Helpers to simplify building LSP requests for use in tests.
@@ -248,6 +255,15 @@ mixin LspRequestHelpersMixin {
         await expectSuccessfulResponseTo(request, CompletionList.fromJson);
     _assertMinimalCompletionListPayload(completions);
     return completions;
+  }
+
+  Future<DartTextDocumentContent?> getDartTextDocumentContent(Uri uri) {
+    final request = makeRequest(
+      CustomMethods.dartTextDocumentContent,
+      DartTextDocumentContentParams(uri: uri),
+    );
+    return expectSuccessfulResponseTo(
+        request, DartTextDocumentContent.fromJson);
   }
 
   Future<Either2<List<Location>, List<LocationLink>>> getDefinition(

@@ -73,6 +73,9 @@ abstract class ContextManager {
   /// Returns owners of files.
   OwnedFiles get ownedFiles;
 
+  /// Disposes and cleans up any analysis contexts.
+  Future<void> dispose();
+
   /// Return the existing analysis context that should be used to analyze the
   /// given [path], or `null` if the [path] is not analyzed in any of the
   /// created analysis contexts.
@@ -283,6 +286,11 @@ class ContextManagerImpl implements ContextManager {
   @override
   OwnedFiles get ownedFiles {
     return _collection?.ownedFiles ?? OwnedFiles();
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _destroyAnalysisContexts();
   }
 
   @override
@@ -727,6 +735,7 @@ class ContextManagerImpl implements ContextManager {
     watcherSubscriptions.clear();
 
     final collection = _collection;
+    _collection = null;
     if (collection != null) {
       for (final analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);

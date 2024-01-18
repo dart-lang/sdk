@@ -89,6 +89,7 @@ class EditGetAssistsHandler extends LegacyHandler
           await server.currentSessions,
         ),
         result,
+        server.producerGeneratorsForLintRules,
         offset,
         length,
       );

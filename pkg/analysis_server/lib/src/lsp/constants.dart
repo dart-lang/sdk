@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 
 /// The characters that will cause the editor to automatically commit the selected
@@ -52,12 +51,6 @@ final analysisOptionsFile = TextDocumentFilterWithScheme(
 
 /// A [ProgressToken] used for reporting progress while the server is analyzing.
 final analyzingProgressToken = ProgressToken.t2('ANALYZING');
-
-/// A [TextDocumentFilterWithScheme] for Dart file.
-final dartFiles = [
-  for (final scheme in AnalysisServer.supportedUriSchemes)
-    TextDocumentFilterWithScheme(language: 'dart', scheme: scheme)
-];
 
 final emptyWorkspaceEdit = WorkspaceEdit();
 
@@ -125,6 +118,9 @@ abstract class CustomMethods {
   static const publishFlutterOutline =
       Method('dart/textDocument/publishFlutterOutline');
   static const super_ = Method('dart/textDocument/super');
+  static const dartTextDocumentContent = Method('dart/textDocumentContent');
+  static const dartTextDocumentContentDidChange =
+      Method('dart/textDocumentContentDidChange');
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
   // should be relying on it as we now support proper $/progress events.

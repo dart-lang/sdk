@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -14,6 +15,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -24,6 +26,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
+import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 import 'package:path/path.dart' as path;
@@ -559,6 +562,18 @@ mixin ClientCapabilitiesHelperMixin {
         workspaceCapabilities, {'configuration': true});
   }
 
+  void setDartTextDocumentContentProviderSupport([bool supported = true]) {
+    // These are temporarily versioned with a suffix during dev so if we ship
+    // as an experiment (not LSP standard) without the suffix it will only be
+    // active for matching server/clients.
+    const key = dartExperimentalTextDocumentContentProviderKey;
+    if (supported) {
+      experimentalCapabilities[key] = true;
+    } else {
+      experimentalCapabilities.remove(key);
+    }
+  }
+
   void setDiagnosticCodeDescriptionSupport() {
     textDocumentCapabilities =
         extendTextDocumentCapabilities(textDocumentCapabilities, {
@@ -766,6 +781,9 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
     bool meta = false,
     bool pedantic = false,
     bool vector_math = false,
+    // TODO(dantup): Remove this flag when we no longer need to copy packages
+    //  for macro support.
+    bool temporaryMacroSupport = false,
   }) {
     if (config == null) {
       config = PackageConfigFileBuilder();
@@ -803,6 +821,32 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
     if (vector_math) {
       var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
       config.add(name: 'vector_math', rootPath: libFolder.parent.path);
+    }
+
+    if (temporaryMacroSupport) {
+      final testPackagesRootPath = resourceProvider.convertPath('/packages');
+
+      final physical = PhysicalResourceProvider.INSTANCE;
+      final packageRoot =
+          physical.pathContext.normalize(package_root.packageRoot);
+
+      // Copy _fe_analyzer_shared from local SDK into the memory FS.
+      final testSharedFolder =
+          getFolder('$testPackagesRootPath/_fe_analyzer_shared');
+      physical
+          .getFolder(packageRoot)
+          .getChildAssumingFolder('_fe_analyzer_shared/lib/src/macros')
+          .copyTo(testSharedFolder.getChildAssumingFolder('lib/src'));
+      config.add(name: '_fe_analyzer_shared', rootPath: testSharedFolder.path);
+
+      // Copy dart_internal from local SDK into the memory FS.
+      final testInternalFolder =
+          getFolder('$testPackagesRootPath/dart_internal');
+      physical
+          .getFolder(packageRoot)
+          .getChildAssumingFolder('dart_internal')
+          .copyTo(testInternalFolder);
+      config.add(name: 'dart_internal', rootPath: testInternalFolder.path);
     }
 
     var path = '$projectFolderPath/.dart_tool/package_config.json';
@@ -847,18 +891,35 @@ mixin LspAnalysisServerTestMixin
   /// A file that has never had diagnostics will not be in the map. A file that
   /// has ever had diagnostics will be in the map, even if the entry is an empty
   /// list.
-  final diagnostics = <String, List<Diagnostic>>{};
+  final diagnostics = <Uri, List<Diagnostic>>{};
+
+  /// A stream of [OpenUriParams] for any `dart/openUri` notifications.
+  Stream<DartTextDocumentContentDidChangeParams>
+      get dartTextDocumentContentDidChangeNotifications =>
+          notificationsFromServer
+              .where((notification) =>
+                  notification.method ==
+                  CustomMethods.dartTextDocumentContentDidChange)
+              .map((message) => DartTextDocumentContentDidChangeParams.fromJson(
+                  message.params as Map<String, Object?>));
 
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
   }
 
+  /// The experimental capabilities returned from the server during initialization.
+  Map<String, Object?> get experimentalServerCapabilities =>
+      serverCapabilities.experimental as Map<String, Object?>? ?? {};
+
   /// A [Future] that completes with the first analysis after initialization.
   Future<void> get initialAnalysis =>
       initialized ? Future.value() : waitForAnalysisComplete();
 
   bool get initialized => _clientCapabilities != null;
+
+  /// The URI for the macro-generated contents for [mainFileUri].
+  Uri get mainFileMacroUri => mainFileUri.replace(scheme: macroClientUriScheme);
 
   /// A stream of [NotificationMessage]s from the server.
   Stream<NotificationMessage> get notificationsFromServer {
@@ -890,6 +951,9 @@ mixin LspAnalysisServerTestMixin
         .where((m) => m is RequestMessage)
         .cast<RequestMessage>();
   }
+
+  /// The capabilities returned from the server during initialization.
+  ServerCapabilities get serverCapabilities => _serverCapabilities!;
 
   Stream<Message> get serverToClient;
 
@@ -1304,6 +1368,15 @@ mixin LspAnalysisServerTestMixin
   Range rangeOfString(TestCode code, String searchText) =>
       rangeOfPattern(code, searchText);
 
+  /// Returns the range of [searchText] in [content].
+  Range rangeOfStringInString(String content, String searchText) {
+    final match = searchText.allMatches(content).first;
+    return Range(
+      start: positionFromOffset(match.start, content),
+      end: positionFromOffset(match.end, content),
+    );
+  }
+
   /// Returns a [Range] that covers the entire of [content].
   Range rangeOfWholeContent(String content) {
     return Range(
@@ -1416,13 +1489,11 @@ mixin LspAnalysisServerTestMixin
 
   /// Records the latest diagnostics for each file in [latestDiagnostics].
   ///
-  /// [latestDiagnostics] maps from a file path to the set of current
-  /// diagnostics.
+  /// [latestDiagnostics] maps from a URI to the set of current diagnostics.
   StreamSubscription<PublishDiagnosticsParams> trackDiagnostics(
-      Map<String, List<Diagnostic>> latestDiagnostics) {
+      Map<Uri, List<Diagnostic>> latestDiagnostics) {
     return publishedDiagnostics.listen((diagnostics) {
-      latestDiagnostics[pathContext.fromUri(diagnostics.uri)] =
-          diagnostics.diagnostics;
+      latestDiagnostics[diagnostics.uri] = diagnostics.diagnostics;
     });
   }
 
