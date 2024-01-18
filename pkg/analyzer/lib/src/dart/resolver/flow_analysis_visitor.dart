@@ -376,7 +376,7 @@ class FlowAnalysisHelper {
 }
 
 class TypeSystemOperations
-    implements TypeAnalyzerOperations<PromotableElement, DartType> {
+    implements TypeAnalyzerOperations<PromotableElement, DartType, DartType> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -494,6 +494,11 @@ class TypeSystemOperations
   bool isTypeParameterType(DartType type) => type is TypeParameterType;
 
   @override
+  bool isTypeSchemaSatisfied(
+          {required DartType typeSchema, required DartType type}) =>
+      isSubtypeOf(type, typeSchema);
+
+  @override
   bool isUnknownType(DartType type) {
     return identical(type, UnknownInferredType.instance);
   }
@@ -504,13 +509,18 @@ class TypeSystemOperations
   }
 
   @override
-  DartType iterableType(DartType elementType) {
-    return typeSystem.typeProvider.iterableType(elementType);
+  DartType iterableTypeSchema(DartType elementTypeSchema) {
+    return typeSystem.typeProvider.iterableType(elementTypeSchema);
   }
 
   @override
   DartType listType(DartType elementType) {
     return typeSystem.typeProvider.listType(elementType);
+  }
+
+  @override
+  DartType listTypeSchema(DartType elementTypeSchema) {
+    return typeSystem.typeProvider.listType(elementTypeSchema);
   }
 
   @override
@@ -524,6 +534,11 @@ class TypeSystemOperations
   }
 
   @override
+  DartType makeTypeSchemaNullable(DartType typeSchema) {
+    return typeSystem.makeNullable(typeSchema);
+  }
+
+  @override
   DartType mapType({
     required DartType keyType,
     required DartType valueType,
@@ -532,9 +547,24 @@ class TypeSystemOperations
   }
 
   @override
+  DartType mapTypeSchema({
+    required DartType keyTypeSchema,
+    required DartType valueTypeSchema,
+  }) {
+    return typeSystem.typeProvider.mapType(keyTypeSchema, valueTypeSchema);
+  }
+
+  @override
   DartType? matchIterableType(DartType type) {
     var iterableElement = typeSystem.typeProvider.iterableElement;
     var listType = type.asInstanceOf(iterableElement);
+    return listType?.typeArguments[0];
+  }
+
+  @override
+  DartType? matchIterableTypeSchema(DartType typeSchema) {
+    var iterableElement = typeSystem.typeProvider.iterableElement;
+    var listType = typeSchema.asInstanceOf(iterableElement);
     return listType?.typeArguments[0];
   }
 
@@ -594,14 +624,31 @@ class TypeSystemOperations
   }
 
   @override
-  DartType streamType(DartType elementType) {
-    return typeSystem.typeProvider.streamType(elementType);
+  DartType recordTypeSchema(
+          {required List<DartType> positional,
+          required List<shared.NamedType<DartType>> named}) =>
+      recordType(positional: positional, named: named);
+
+  @override
+  DartType streamTypeSchema(DartType elementTypeSchema) {
+    return typeSystem.typeProvider.streamType(elementTypeSchema);
   }
 
   @override
   DartType? tryPromoteToType(DartType to, DartType from) {
     return typeSystem.tryPromoteToType(to, from);
   }
+
+  @override
+  DartType typeSchemaGlb(DartType typeSchema1, DartType typeSchema2) {
+    return typeSystem.greatestLowerBound(typeSchema1, typeSchema2);
+  }
+
+  @override
+  bool typeSchemaIsDynamic(DartType typeSchema) => typeSchema is DynamicType;
+
+  @override
+  DartType typeToSchema(DartType type) => type;
 
   @override
   DartType variableType(PromotableElement variable) {
