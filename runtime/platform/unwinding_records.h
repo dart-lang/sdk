@@ -145,6 +145,7 @@ struct UNWIND_INFO {
 
 #if !defined(DART_HOST_OS_WINDOWS)
 typedef uint32_t ULONG;
+typedef uint32_t DWORD;
 typedef struct _RUNTIME_FUNCTION {
   ULONG BeginAddress;
   ULONG EndAddress;
