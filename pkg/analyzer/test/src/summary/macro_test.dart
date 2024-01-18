@@ -4175,6 +4175,119 @@ class MacroExampleTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
+  test_jsonSerializable() async {
+    _addExampleMacro('json_serializable.dart');
+
+    final library = await buildLibrary(r'''
+import 'json_serializable.dart';
+
+@JsonSerializable()
+class A {
+  final int foo;
+  final int bar;
+}
+''');
+
+    configuration
+      ..withReferences = true
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/json_serializable.dart
+  definingUnit
+    reference: self
+    classes
+      class A @60
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        fields
+          final foo @76
+            reference: self::@class::A::@field::foo
+            type: int
+          final bar @93
+            reference: self::@class::A::@field::bar
+            type: int
+        accessors
+          synthetic get foo @-1
+            reference: self::@class::A::@getter::foo
+            returnType: int
+          synthetic get bar @-1
+            reference: self::@class::A::@getter::bar
+            returnType: int
+        augmented
+          fields
+            self::@class::A::@field::bar
+            self::@class::A::@field::foo
+          constructors
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+          accessors
+            self::@class::A::@getter::bar
+            self::@class::A::@getter::foo
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/json_serializable.dart' as prefix0;
+import 'dart:core' as prefix1;
+
+augment class A {
+  @prefix0.FromJson()
+  A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json);
+  @prefix0.ToJson()
+  prefix1.Map<prefix1.String, prefix1.Object?> toJson();
+  augment A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json, )  : this.foo = json["foo"] as prefix1.int,
+this.bar = json["bar"] as prefix1.int{}
+  augment prefix1.Map<prefix1.String, prefix1.Object?> toJson()  => {
+    'foo': this.foo,
+    'bar': this.bar,
+  };
+}
+---
+      imports
+        package:test/json_serializable.dart as prefix0 @78
+        dart:core as prefix1 @109
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @133
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            constructors
+              fromJson @163
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+                periodOffset: 162
+                nameEnd: 171
+                parameters
+                  requiredPositional json @217
+                    type: Map<String, Object?>
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+              augment fromJson @313
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+                periodOffset: 312
+                nameEnd: 321
+                parameters
+                  requiredPositional json @367
+                    type: Map<String, Object?>
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+            methods
+              abstract toJson @291
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+                returnType: Map<String, Object?>
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+              augment toJson @512
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+                returnType: Map<String, Object?>
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+''');
+  }
+
   test_observable() async {
     _addExampleMacro('observable.dart');
 

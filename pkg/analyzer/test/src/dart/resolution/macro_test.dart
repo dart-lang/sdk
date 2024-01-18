@@ -47,6 +47,11 @@ class MacroResolutionTest extends PubPackageResolutionTest {
       '$testPackageLibPath/order.dart',
       getMacroCode('order.dart'),
     );
+
+    newFile(
+      '$testPackageLibPath/json_serializable.dart',
+      getMacroCode('example/json_serializable.dart'),
+    );
   }
 
   test_declareType_class() async {
@@ -470,6 +475,27 @@ class A {}
         ],
       ),
     ]);
+  }
+
+  @FailingTest(reason: r'''
+CompileTimeErrorCode.UNDEFINED_METHOD [77, 8, "The method 'fromJson' isn't defined for the type 'User'.", "Try correcting the name to the name of an existing method, or defining a method named 'fromJson'."]
+CompileTimeErrorCode.FINAL_NOT_INITIALIZED [141, 3, "The final variable 'age' must be initialized.", "Try initializing the variable."]
+CompileTimeErrorCode.FINAL_NOT_INITIALIZED [161, 4, "The final variable 'name' must be initialized.", "Try initializing the variable."]
+''')
+  test_example_jsonSerializable() async {
+    await assertNoErrorsInCode(r'''
+import 'json_serializable.dart';
+
+void f(Map<String, Object?> json) {
+  User.fromJson(json);
+}
+
+@JsonSerializable()
+class User {
+  final int age;
+  final String name;
+}
+''');
   }
 
   test_getResolvedLibrary_macroAugmentation_hasErrors() async {
