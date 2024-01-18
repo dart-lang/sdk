@@ -9,7 +9,7 @@
 
 namespace dart {
 
-#if defined(DART_TARGET_OS_WINDOWS) &&                                         \
+#if (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&      \
     (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
 
 #if defined(TARGET_ARCH_X64)
@@ -22,7 +22,7 @@ intptr_t UnwindingRecordsPlatform::SizeInBytes() {
   return kReservedUnwindingRecordsSizeBytes;
 }
 
-#endif  // defined(DART_TARGET_OS_WINDOWS)
+#endif  // defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)
 
 #if defined(DART_HOST_OS_WINDOWS) &&                                           \
     (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
