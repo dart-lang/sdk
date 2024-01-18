@@ -457,8 +457,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _typeSystem.isAlwaysExhaustive(node.expression.typeOrThrow),
           isSwitchExpression: false,
         );
-      } else {
+      } else if (_currentLibrary.isNonNullableByDefault) {
         _validateSwitchStatement_nullSafety(node);
+      } else {
+        _validateSwitchStatement_legacy(node);
       }
     });
   }
@@ -965,6 +967,61 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         } else if (reportNonExhaustive) {
           exhaustivenessDataForTesting.errors[node] = error;
         }
+      }
+    }
+  }
+
+  void _validateSwitchStatement_legacy(SwitchStatement node) {
+    // TODO(paulberry): to minimize error messages, it would be nice to
+    // compare all types with the most popular type rather than the first
+    // type.
+    bool foundError = false;
+    DartObjectImpl? firstValue;
+    DartType? firstType;
+    for (var switchMember in node.members) {
+      if (switchMember is SwitchCase) {
+        Expression expression = switchMember.expression;
+
+        var expressionValue = _evaluateAndReportError(
+          expression,
+          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+        );
+        if (expressionValue is! DartObjectImpl) {
+          continue;
+        }
+        firstValue ??= expressionValue;
+
+        var expressionValueType = _typeSystem.toLegacyTypeIfOptOut(
+          expressionValue.type,
+        );
+
+        if (firstType == null) {
+          firstType = expressionValueType;
+        } else {
+          if (firstType != expressionValueType) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
+              expression,
+              [expression.toSource(), firstType],
+            );
+            foundError = true;
+          }
+        }
+      }
+    }
+
+    if (foundError) {
+      return;
+    }
+
+    if (firstValue != null) {
+      final featureSet = _currentLibrary.featureSet;
+      if (!firstValue.hasPrimitiveEquality(featureSet)) {
+        _errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          node.switchKeyword,
+          [firstValue.type],
+        );
       }
     }
   }

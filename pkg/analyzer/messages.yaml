@@ -15918,7 +15918,6 @@ CompileTimeErrorCode:
       - a `continue`, or
       - an invocation of a function or method whose return type is `Never`.
   SWITCH_EXPRESSION_NOT_ASSIGNABLE:
-    removedIn: "3.0"
     problemMessage: "Type '{0}' of the switch expression isn't assignable to the type '{1}' of case expressions."
     hasPublishedDocs: true
     comment: |-
@@ -19215,7 +19214,6 @@ FfiCode:
     correctionMessage: "Try removing the extra annotation."
     comment: No parameters
   FIELD_INITIALIZER_IN_STRUCT:
-    removedIn: "3.0"
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.
     comment: No parameters.
@@ -19261,7 +19259,6 @@ FfiCode:
       }
       ```
   FIELD_IN_STRUCT_WITH_INITIALIZER:
-    removedIn: "3.0"
     problemMessage: "Fields in subclasses of 'Struct' and 'Union' can't have initializers."
     correctionMessage: Try removing the initializer and marking the field as external.
     comment: No parameters.
@@ -24784,7 +24781,6 @@ WarningCode:
       0: the name of the parameter
       1: message details
   MISSING_RETURN:
-    removedIn: "3.0"
     problemMessage: "This function has a return type of '{0}', but doesn't end with a return statement."
     correctionMessage: "Try adding a return statement, or changing the return type to 'void'."
     hasPublishedDocs: true
@@ -25830,7 +25826,6 @@ WarningCode:
       var y = x is int ? 0 : 1;
       ```
   SDK_VERSION_NEVER:
-    removedIn: "3.0"
     problemMessage: "The type 'Never' wasn't supported until version 2.12.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true

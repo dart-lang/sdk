@@ -15,7 +15,23 @@ main() {
 }
 
 @reflectiveTest
-class MapValueTypeNotAssignableTest extends PubPackageResolutionTest {
+class MapValueTypeNotAssignableTest extends PubPackageResolutionTest
+    with MapValueTypeNotAssignableTestCases {
+  test_const_intQuestion_null_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = null;
+var v = const <bool, int?>{true: a};
+''');
+  }
+
+  test_const_intQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <bool, int?>{true: null};
+''');
+  }
+}
+
+mixin MapValueTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt_dynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;
@@ -96,19 +112,6 @@ var v = const <bool, int>{true: null};
 ''', [
       error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 32, 4),
     ]);
-  }
-
-  test_const_intQuestion_null_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic a = null;
-var v = const <bool, int?>{true: a};
-''');
-  }
-
-  test_const_intQuestion_null_value() async {
-    await assertNoErrorsInCode('''
-var v = const <bool, int?>{true: null};
-''');
   }
 
   test_const_intString_dynamic() async {

@@ -27,11 +27,11 @@ main() {
     ],
   );
 
-  AnalysisError assignment_of_do_not_store = AnalysisError.tmp(
+  AnalysisError missing_return = AnalysisError.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+    errorCode: WarningCode.MISSING_RETURN,
     arguments: [
       ['x'],
     ],
@@ -75,14 +75,13 @@ main() {
 analyzer:
   errors:
     invalid_assignment: error # severity ERROR
-    assignment_of_do_not_store: false # ignore
+    missing_return: false # ignore
     unused_local_variable: true # skipped
     use_of_void_result: unsupported_action # skipped
 ''');
       expect(context.getProcessor(invalid_assignment)!.severity,
           ErrorSeverity.ERROR);
-      expect(
-          context.getProcessor(assignment_of_do_not_store)!.severity, isNull);
+      expect(context.getProcessor(missing_return)!.severity, isNull);
       expect(context.getProcessor(unused_local_variable), isNull);
       expect(context.getProcessor(use_of_void_result), isNull);
     });
@@ -101,7 +100,7 @@ analyzer:
 analyzer:
   errors:
     invalid_assignment: unsupported_action # should be skipped
-    assignment_of_do_not_store: false
+    missing_return: false
     unused_local_variable: error
 ''';
 
@@ -114,7 +113,7 @@ analyzer:
 
         // ignore
         var missingReturnProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(assignment_of_do_not_store));
+            .firstWhere((p) => p.appliesTo(missing_return));
         expect(missingReturnProcessor.severity, isNull);
 
         // error
@@ -131,7 +130,7 @@ analyzer:
       test('string map', () {
         var options = wrap({
           'invalid_assignment': 'unsupported_action', // should be skipped
-          'assignment_of_do_not_store': 'false',
+          'missing_return': 'false',
           'unused_local_variable': 'error'
         });
         var errorConfig = ErrorConfig(options);
@@ -139,7 +138,7 @@ analyzer:
 
         // ignore
         var missingReturnProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(assignment_of_do_not_store));
+            .firstWhere((p) => p.appliesTo(missing_return));
         expect(missingReturnProcessor.severity, isNull);
 
         // error

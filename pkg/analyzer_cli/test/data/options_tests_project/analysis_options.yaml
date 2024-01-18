@@ -2,7 +2,7 @@ analyzer:
   strong-mode: true
   errors:
     unused_local_variable: ignore
-    assignment_of_do_not_store: error
+    missing_return: error
     undefined_function: warning
   language:
     enableSuperMixins: true

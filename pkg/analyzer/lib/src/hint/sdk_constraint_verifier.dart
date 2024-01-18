@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
@@ -22,6 +23,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// The element representing the library containing the unit to be verified.
   final LibraryElement _containingLibrary;
 
+  /// The typ provider used to access SDK types.
+  final TypeProvider _typeProvider;
+
   /// The version constraint for the SDK.
   final VersionConstraint _versionConstraint;
 
@@ -31,8 +35,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
-  SdkConstraintVerifier(
-      this._errorReporter, this._containingLibrary, this._versionConstraint);
+  SdkConstraintVerifier(this._errorReporter, this._containingLibrary,
+      this._typeProvider, this._versionConstraint);
 
   /// Return a range covering every version up to, but not including, 2.14.0.
   VersionRange get before_2_14_0 =>
@@ -140,6 +144,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    if (checkNnbd && node.element == _typeProvider.neverType.element) {
+      _errorReporter.reportErrorForNode(WarningCode.SDK_VERSION_NEVER, node);
+    }
+
     _checkSinceSdkVersion(node.element, node);
     super.visitNamedType(node);
   }

@@ -10,53 +10,19 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinOfNonClassTest);
+    defineReflectiveTests(MixinOfNonClassWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MixinOfNonClassTest extends PubPackageResolutionTest {
-  test_class_enum() async {
-    await assertErrorsInCode(r'''
-enum E { ONE }
-class A extends Object with E {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 43, 1),
-    ]);
-  }
-
+class MixinOfNonClassTest extends PubPackageResolutionTest
+    with MixinOfNonClassTestCases {
   test_class_extensionType() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {}
 class B with A {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 41, 1),
-    ]);
-  }
-
-  test_class_topLevelVariable() async {
-    await assertErrorsInCode(r'''
-int A = 7;
-class B extends Object with A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 1),
-    ]);
-  }
-
-  test_class_typeAlias() async {
-    await assertErrorsInCode(r'''
-class A {}
-int B = 7;
-class C = A with B;
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 1),
-    ]);
-  }
-
-  test_class_undefined() async {
-    await assertErrorsInCode(r'''
-class C with M {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 13, 1),
     ]);
   }
 
@@ -104,6 +70,44 @@ enum E with M {
 class A with Never {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 13, 5),
+    ]);
+  }
+}
+
+mixin MixinOfNonClassTestCases on PubPackageResolutionTest {
+  test_class_enum() async {
+    await assertErrorsInCode(r'''
+enum E { ONE }
+class A extends Object with E {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 43, 1),
+    ]);
+  }
+
+  test_class_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+int A = 7;
+class B extends Object with A {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 1),
+    ]);
+  }
+
+  test_class_typeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+int B = 7;
+class C = A with B;
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 1),
+    ]);
+  }
+
+  test_class_undefined() async {
+    await assertErrorsInCode(r'''
+class C with M {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 13, 1),
     ]);
   }
 
@@ -205,3 +209,7 @@ class C with p.M {}
     ]);
   }
 }
+
+@reflectiveTest
+class MixinOfNonClassWithoutNullSafetyTest extends PubPackageResolutionTest
+    with MixinOfNonClassTestCases, WithoutNullSafetyMixin {}

@@ -28,5 +28,5 @@ static method foo<T extends core::Object? = dynamic>([@vm.inferred-arg-type.meta
   self::foo<core::double>(new self::C::•(), new self::C::•());
   [@vm.inferred-type.metadata=#lib::B] self::A<core::num> a1 = new self::B::•();
   [@vm.inferred-type.metadata=#lib::C] self::A<core::num> a2 = new self::C::•();
-  exp::Expect::throws<core::TypeError>([@vm.closure-id=1]() → void => self::foo<core::num>(a1, a2));
+  exp::Expect::throws<core::TypeError>([@vm.closure-id=1]() → void => [@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::foo<core::num>(a1, a2));
 }

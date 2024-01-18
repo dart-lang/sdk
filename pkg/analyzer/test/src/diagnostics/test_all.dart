@@ -299,6 +299,8 @@ import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
 import 'ffi_native_test.dart' as ffi_native_test;
 import 'ffi_unwrap_typed_data_test.dart' as ffi_unwrap_typed_data_test;
+import 'field_in_struct_with_initializer_test.dart'
+    as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
     as field_initialized_by_multiple_initializers;
 import 'field_initialized_in_initializer_and_declaration_test.dart'
@@ -307,6 +309,7 @@ import 'field_initialized_in_parameter_and_initializer_test.dart'
     as field_initialized_in_parameter_and_initializer;
 import 'field_initializer_factory_constructor_test.dart'
     as field_initializer_factory_constructor;
+import 'field_initializer_in_struct_test.dart' as field_initializer_in_struct;
 import 'field_initializer_not_assignable_test.dart'
     as field_initializer_not_assignable;
 import 'field_initializer_outside_constructor_test.dart'
@@ -371,6 +374,8 @@ import 'import_of_legacy_library_into_null_safe_test.dart'
     as import_of_legacy_library_into_null_safe;
 import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'import_of_not_augmentation_test.dart' as import_of_not_augmentation;
+import 'inconsistent_case_expression_types_test.dart'
+    as inconsistent_case_expression_types;
 import 'inconsistent_inheritance_getter_and_method_test.dart'
     as inconsistent_inheritance_getter_and_method;
 import 'inconsistent_inheritance_test.dart' as inconsistent_inheritance;
@@ -415,6 +420,7 @@ import 'invalid_annotation_from_deferred_library_test.dart'
 import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
 import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
+import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_constant_test.dart' as invalid_constant;
 import 'invalid_constructor_name_test.dart' as invalid_constructor_name;
 import 'invalid_exception_value_test.dart' as invalid_exception_value;
@@ -521,6 +527,7 @@ import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_override_of_must_be_overridden_test.dart'
     as missing_override_of_must_be_overridden;
 import 'missing_required_param_test.dart' as missing_required_param;
+import 'missing_return_test.dart' as missing_return;
 import 'missing_size_annotation_carray_test.dart'
     as missing_size_annotation_carray;
 import 'missing_variable_pattern_test.dart' as missing_variable_pattern;
@@ -759,6 +766,7 @@ import 'return_type_invalid_for_catch_error_test.dart'
 import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_gt_gt_gt_operator_test.dart'
     as sdk_version_gt_gt_gt_operator;
+import 'sdk_version_never_test.dart' as sdk_version_never;
 import 'sdk_version_since_test.dart' as sdk_version_since;
 import 'sealed_class_subtype_outside_of_library_test.dart'
     as sealed_class_subtype_outside_of_library;
@@ -796,6 +804,8 @@ import 'super_initializer_in_object_test.dart' as super_initializer_in_object;
 import 'super_invocation_not_last_test.dart' as super_invocation_not_last;
 import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
+import 'switch_expression_not_assignable_test.dart'
+    as switch_expression_not_assignable;
 import 'tearoff_of_generative_constructor_of_abstract_class_test.dart'
     as tearoff_of_generative_constructor_of_abstract_class;
 import 'text_direction_code_point_test.dart' as text_direction_code_point;
@@ -1102,11 +1112,13 @@ main() {
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();
     ffi_unwrap_typed_data_test.main();
+    field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
     final_initialized_in_declaration_and_constructor.main();
     field_initialized_in_initializer_and_declaration.main();
     field_initialized_in_parameter_and_initializer.main();
     field_initializer_factory_constructor.main();
+    field_initializer_in_struct.main();
     field_initializer_not_assignable.main();
     field_initializer_outside_constructor.main();
     field_initializer_redirecting_constructor.main();
@@ -1145,6 +1157,7 @@ main() {
     import_of_legacy_library_into_null_safe.main();
     import_of_non_library.main();
     import_of_not_augmentation.main();
+    inconsistent_case_expression_types.main();
     inconsistent_inheritance_getter_and_method.main();
     inconsistent_inheritance.main();
     inconsistent_language_version_override.main();
@@ -1171,6 +1184,7 @@ main() {
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_target.main();
     invalid_assignment.main();
+    invalid_cast_new_expr.main();
     invalid_constant.main();
     invalid_constructor_name.main();
     invalid_exception_value.main();
@@ -1239,6 +1253,7 @@ main() {
     missing_field_type_in_struct.main();
     missing_override_of_must_be_overridden.main();
     missing_required_param.main();
+    missing_return.main();
     missing_size_annotation_carray.main();
     missing_variable_pattern.main();
     mixin_application_concrete_super_invoked_member_type.main();
@@ -1392,6 +1407,7 @@ main() {
     return_without_value.main();
     set_element_from_deferred_library.main();
     sdk_version_gt_gt_gt_operator.main();
+    sdk_version_never.main();
     sdk_version_since.main();
     sealed_class_subtype_outside_of_library.main();
     set_element_type_not_assignable.main();
@@ -1416,6 +1432,7 @@ main() {
     super_initializer_in_object.main();
     super_invocation_not_last.main();
     switch_case_completes_normally.main();
+    switch_expression_not_assignable.main();
     tearoff_of_generative_constructor_of_abstract_class.main();
     text_direction_code_point.main();
     throw_of_invalid_type.main();

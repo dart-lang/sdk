@@ -23,6 +23,8 @@ import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
+import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/annotation_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -279,6 +281,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredElement as ConstructorElementImpl;
+    if (!_isNonNullableByDefault && element.isFactory) {
+      if (node.body is BlockFunctionBody) {
+        // Check the block for a return statement.
+        if (!ExitDetector.exits(node.body)) {
+          _errorReporter.reportErrorForNode(
+              WarningCode.MISSING_RETURN, node, [node.returnType.name]);
+        }
+      }
+    }
     _checkStrictInferenceInParameters(node.parameters,
         body: node.body, initializers: node.initializers);
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
@@ -448,6 +459,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _inDoNotStoreMember = true;
     }
     try {
+      _checkForMissingReturn(node.functionExpression.body, node);
+
       // Return types are inferred only on non-recursive local functions.
       if (node.parent is CompilationUnit && !node.isSetter) {
         _checkStrictInferenceReturnType(
@@ -472,6 +485,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     var body = node.body;
+    if (node.parent is! FunctionDeclaration) {
+      _checkForMissingReturn(body, node);
+    }
     if (!(node as FunctionExpressionImpl).wasFunctionTypeSupplied) {
       _checkStrictInferenceInParameters(node.parameters, body: node.body);
     }
@@ -576,6 +592,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _inDoNotStoreMember = true;
     }
     try {
+      _checkForMissingReturn(node.body, node);
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
       _checkForNullableEqualsParameterType(node);
@@ -1193,6 +1210,59 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return true;
     }
     return false;
+  }
+
+  /// Generates a warning for functions that have a potentially non-nullable
+  /// return type, but do not have a return statement on all branches. At the
+  /// end of blocks with no return, Dart implicitly returns `null`. Avoiding
+  /// these implicit returns is considered a best practice.
+  ///
+  /// See [WarningCode.MISSING_RETURN].
+  void _checkForMissingReturn(FunctionBody body, AstNode functionNode) {
+    if (_isNonNullableByDefault) {
+      return;
+    }
+
+    // Generators always return.
+    if (body.isGenerator) {
+      return;
+    }
+
+    if (body is! BlockFunctionBody) {
+      return;
+    }
+
+    var bodyContext = BodyInferenceContext.of(body)!;
+    // TODO(scheglov): Update InferenceContext to record any type, dynamic.
+    var returnType = bodyContext.contextType ?? DynamicTypeImpl.instance;
+
+    if (_typeSystem.isNullable(returnType)) {
+      return;
+    }
+
+    if (ExitDetector.exits(body)) {
+      return;
+    }
+
+    if (functionNode is FunctionDeclaration) {
+      _errorReporter.reportErrorForToken(
+        WarningCode.MISSING_RETURN,
+        functionNode.name,
+        [returnType],
+      );
+    } else if (functionNode is MethodDeclaration) {
+      _errorReporter.reportErrorForToken(
+        WarningCode.MISSING_RETURN,
+        functionNode.name,
+        [returnType],
+      );
+    } else {
+      _errorReporter.reportErrorForNode(
+        WarningCode.MISSING_RETURN,
+        functionNode,
+        [returnType],
+      );
+    }
   }
 
   void _checkForNullableEqualsParameterType(MethodDeclaration node) {

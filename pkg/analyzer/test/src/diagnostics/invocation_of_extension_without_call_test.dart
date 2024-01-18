@@ -14,15 +14,16 @@ main() {
 }
 
 @reflectiveTest
-class InvocationOfExtensionWithoutCallTest extends PubPackageResolutionTest {
+class InvocationOfExtensionWithoutCallTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_instance_differentKind() async {
     await assertErrorsInCode('''
 extension E on Object {}
 f() {
-  E(0)();
+  E(null)();
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL, 33, 4),
+      error(CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL, 33, 7),
     ]);
   }
 }

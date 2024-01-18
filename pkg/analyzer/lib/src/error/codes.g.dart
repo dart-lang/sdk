@@ -4965,6 +4965,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the static type of the switch expression
+  ///  1: the static type of the case expressions
+  static const CompileTimeErrorCode SWITCH_EXPRESSION_NOT_ASSIGNABLE =
+      CompileTimeErrorCode(
+    'SWITCH_EXPRESSION_NOT_ASSIGNABLE',
+    "Type '{0}' of the switch expression isn't assignable to the type '{1}' of "
+        "case expressions.",
+    hasPublishedDocs: true,
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode
       TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS =
@@ -6843,6 +6854,17 @@ class WarningCode extends AnalyzerErrorCode {
     uniqueName: 'MISSING_REQUIRED_PARAM_WITH_DETAILS',
   );
 
+  ///  Parameters:
+  ///  0: the name of the declared return type
+  static const WarningCode MISSING_RETURN = WarningCode(
+    'MISSING_RETURN',
+    "This function has a return type of '{0}', but doesn't end with a return "
+        "statement.",
+    correctionMessage:
+        "Try adding a return statement, or changing the return type to 'void'.",
+    hasPublishedDocs: true,
+  );
+
   ///  This warning is generated anywhere where a `@sealed` class is used as a
   ///  a superclass constraint of a mixin.
   ///
@@ -7124,6 +7146,15 @@ class WarningCode extends AnalyzerErrorCode {
     'SDK_VERSION_GT_GT_GT_OPERATOR',
     "The operator '>>>' wasn't supported until version 2.14.0, but this code "
         "is required to be able to run on earlier versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_NEVER = WarningCode(
+    'SDK_VERSION_NEVER',
+    "The type 'Never' wasn't supported until version 2.12.0, but this code is "
+        "required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
