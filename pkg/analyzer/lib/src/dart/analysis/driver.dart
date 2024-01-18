@@ -746,6 +746,13 @@ class AnalysisDriver {
       );
     }
 
+    // If a macro generated file, request its library instead.
+    var file = resourceProvider.getFile(path);
+    if (file.libraryForMacro case var library?) {
+      _errorsRequestedFiles.putIfAbsent(library.path, () => []);
+    }
+
+    // Schedule analysis.
     var completer = Completer<SomeErrorsResult>();
     _errorsRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify();
@@ -1381,7 +1388,7 @@ class AnalysisDriver {
           _errorsRequestedFiles.completeAll(
             unitFile.path,
             _createErrorsResultImpl(
-              file: file,
+              file: unitFile,
               errors: unitResult.errors,
             ),
           );
@@ -1409,7 +1416,7 @@ class AnalysisDriver {
             _priorityResults[unitFile.path] = resolvedUnit;
           }
 
-          _updateHasErrorOrWarningFlag(file, resolvedUnit.errors);
+          _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.errors);
         }
 
         final libraryResult = ResolvedLibraryResultImpl(

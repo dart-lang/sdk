@@ -1562,14 +1562,66 @@ part of 'a.dart';
     flags: exists isLibrary
 [future] getErrors B1
   ErrorsResult #2
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: isLibrary
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
 [stream]
   ResolvedUnitResult #3
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
+[status] idle
+''');
+  }
+
+  test_getErrors_macroGenerated() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    final a_macro = getFile('$testPackageLibPath/a.macro.dart');
+    collector.getErrors('AM1', a_macro);
+    await collector.nextStatusIdle();
+
+    // The library was analyzed.
+    // The future for the macro generated file completed.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getErrors AM1
+  ErrorsResult #1
+    path: /home/test/lib/a.macro.dart
+    uri: package:test/a.macro.dart
+    flags: isAugmentation isMacroAugmentation
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/a.macro.dart
+    uri: package:test/a.macro.dart
+    flags: exists isAugmentation isMacroAugmentation
+    content
+---
+library augment 'a.dart';
+
+class B {}
+---
 [status] idle
 ''');
   }
@@ -2870,9 +2922,9 @@ part of 'a.dart';
   ResolvedUnitResult #0
 [future] getErrors B1
   ErrorsResult #1
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: isLibrary
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/b.dart
@@ -3137,9 +3189,9 @@ part of 'a.dart';
   library: /home/test/lib/a.dart
 [future] getErrors A1
   ErrorsResult #0
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: isPart
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/a.dart
