@@ -29,6 +29,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
@@ -380,6 +381,14 @@ class LspAnalysisServer extends AnalysisServer {
     _clientCapabilities = LspClientCapabilities(capabilities);
     _clientInfo = clientInfo;
     _initializationOptions = LspInitializationOptions(initializationOptions);
+
+    /// Enable virtual file support.
+    var supportsVirtualFiles = _clientCapabilities
+            ?.supportsDartExperimentalTextDocumentContentProvider ??
+        false;
+    if (supportsVirtualFiles) {
+      uriConverter = ClientUriConverter.withVirtualFileSupport(pathContext);
+    }
 
     performanceAfterStartup = ServerPerformance();
     performance = performanceAfterStartup!;
@@ -890,6 +899,7 @@ class LspAnalysisServer extends AnalysisServer {
       channel.close();
     }));
     unawaited(_pluginChangeSubscription?.cancel());
+    _pluginChangeSubscription = null;
   }
 
   /// There was an error related to the socket from which messages are being
@@ -1156,6 +1166,24 @@ class LspServerContextManagerCallbacks
     if (analysisServer.suppressAnalysisResults) {
       return;
     }
+
+    // If this is a virtual file, we need to notify the client that it's been
+    // updated.
+    var lspUri = analysisServer.uriConverter.toClientUri(result.path);
+    if (!lspUri.isScheme('file')) {
+      // TODO(dantup): Should we do any kind of tracking here to avoid sending
+      //  lots of notifications if there aren't actual changes?
+      // TODO(dantup): We may be able to skip sending this if the file is not
+      //  open (priority) depending on the response to
+      //  https://github.com/microsoft/vscode/issues/202017
+      var message = NotificationMessage(
+        method: CustomMethods.dartTextDocumentContentDidChange,
+        params: DartTextDocumentContentDidChangeParams(uri: lspUri),
+        jsonrpc: jsonRpcVersion,
+      );
+      analysisServer.sendNotification(message);
+    }
+
     super.handleFileResult(result);
   }
 

@@ -130,7 +130,7 @@ class Bar {
 
     // Expect diagnostics, because changing the content will have triggered
     // analysis.
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
   }
 
   Future<void> test_documentOpen_contentUnchanged_noAnalysis() async {
@@ -145,7 +145,7 @@ class Bar {
 
     // Expect no diagnostics because the file didn't actually change content
     // when the overlay was created, so it should not have triggered analysis.
-    expect(diagnostics[mainFilePath], isNull);
+    expect(diagnostics[mainFileUri], isNull);
   }
 
   Future<void> test_documentOpen_createsOverlay() async {
@@ -209,24 +209,24 @@ class Bar {
     // content.
     await initialize();
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics after opening the file with the same contents.
     await openFile(mainFileUri, content);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics after deleting the file because the overlay is still
     // active.
     deleteFile(mainFilePath);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics to be removed after we close the file (which removes
     // the overlay).
     await closeFile(mainFileUri);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isEmpty);
+    expect(diagnostics[mainFileUri], isEmpty);
   }
 
   /// Tests that deleting and re-creating a file while an overlay is active
@@ -243,35 +243,35 @@ class Bar {
     // content.
     await initialize();
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics after opening the file with the same contents.
     await openFile(mainFileUri, content);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics after deleting the file because the overlay is still
     // active.
     deleteFile(mainFilePath);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics remain after re-creating the file (the overlay is still
     // active).
     newFile(mainFilePath, content);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics remain after we close the file because the file still
     //exists on disk.
     await closeFile(mainFileUri);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Finally, expect deleting the file clears the diagnostics.
     deleteFile(mainFilePath);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isEmpty);
+    expect(diagnostics[mainFileUri], isEmpty);
   }
 
   Future<void> test_documentOpen_notifiesPlugins() async {
@@ -290,6 +290,7 @@ class Bar {
   Future<void> test_documentOpen_processesOverlay_dartSdk_issue51159() async {
     final binFolder = convertPath(join(projectFolderPath, 'bin'));
     final binMainFilePath = convertPath(join(binFolder, 'main.dart'));
+    final binMainFileUri = pathContext.toUri(binMainFilePath);
     final fooFilePath = convertPath(join(binFolder, 'foo.dart'));
     final fooUri = pathContext.toUri(fooFilePath);
 
@@ -309,7 +310,7 @@ class Foo {}
     await initialAnalysis;
 
     // Expect diagnostics because 'foo.dart' doesn't exist.
-    expect(diagnostics[binMainFilePath], isNotEmpty);
+    expect(diagnostics[binMainFileUri], isNotEmpty);
 
     // Create the file and _immediately_ open it, so the file exists when the
     // overlay is created, even though the watcher event has not been processed.
@@ -320,7 +321,7 @@ class Foo {}
     ]);
 
     // Expect the diagnostics have gone.
-    expect(diagnostics[binMainFilePath], isEmpty);
+    expect(diagnostics[binMainFileUri], isEmpty);
   }
 
   Future<void> test_documentOpen_setsPriorityFileIfEarly() async {

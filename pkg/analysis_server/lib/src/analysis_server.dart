@@ -94,16 +94,6 @@ abstract class AnalysisServer {
   /// A flag indicating whether plugins are supported in this build.
   static final bool supportsPlugins = true;
 
-  /// The full set of URI schemes that the server can support.
-  ///
-  /// Which schemes are valid for a given server invocation may depend on the
-  /// clients capabilities so being present in this set does not necessarily
-  /// mean the scheme is valid to send to the client.
-  ///
-  /// The [uriConverter] handles mapping of internal analyzer file
-  /// paths/references to URIs and back.
-  static const supportedUriSchemes = {'file'};
-
   /// The options of this server instance.
   AnalysisServerOptions options;
 
@@ -871,6 +861,7 @@ abstract class AnalysisServer {
 
     pubPackageService.shutdown();
     surveyManager?.shutdown();
+    await contextManager.dispose();
     await analyticsManager.shutdown();
   }
 

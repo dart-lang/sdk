@@ -5,11 +5,11 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_dart_text_document_content_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
@@ -54,6 +54,9 @@ abstract class FeatureRegistration {
   /// A helper to see which features the client supports dynamic registrations
   /// for. This information is derived from the [ClientCapabilities].
   ClientDynamicRegistrations get clientDynamic => _context.clientDynamic;
+
+  /// A set of filters for the currently supported Dart files.
+  List<TextDocumentFilterWithScheme> get dartFiles => _context.dartFilters;
 
   /// Gets all dynamic registrations for this feature.
   ///
@@ -110,6 +113,8 @@ class LspFeatures {
   final WorkspaceDidChangeConfigurationRegistrations
       workspaceDidChangeConfiguration;
   final WorkspaceSymbolRegistrations workspaceSymbol;
+  final DartTextDocumentContentProviderRegistrations
+      dartTextDocumentContentProvider;
 
   LspFeatures(RegistrationContext context)
       : callHierarchy = CallHierarchyRegistrations(context),
@@ -140,7 +145,9 @@ class LspFeatures {
         willRename = WillRenameFilesRegistrations(context),
         workspaceDidChangeConfiguration =
             WorkspaceDidChangeConfigurationRegistrations(context),
-        workspaceSymbol = WorkspaceSymbolRegistrations(context);
+        workspaceSymbol = WorkspaceSymbolRegistrations(context),
+        dartTextDocumentContentProvider =
+            DartTextDocumentContentProviderRegistrations(context);
 
   List<FeatureRegistration> get allFeatures => [
         callHierarchy,
@@ -188,9 +195,19 @@ class RegistrationContext {
   /// The configuration provided by the client.
   final LspClientConfiguration clientConfiguration;
 
+  /// Filters for all Dart files supported by the current server.
+  final List<TextDocumentFilterWithScheme> dartFilters;
+
+  /// Custom schemes supported for Dart files by the current server.
+  ///
+  /// 'file' is implied and not included.
+  final Set<String> customDartSchemes;
+
   RegistrationContext({
     required this.clientCapabilities,
     required this.clientConfiguration,
+    required this.customDartSchemes,
+    required this.dartFilters,
     required this.pluginTypes,
   }) : clientDynamic = ClientDynamicRegistrations(clientCapabilities.raw);
 }
