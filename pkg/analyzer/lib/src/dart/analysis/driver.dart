@@ -1878,6 +1878,7 @@ class AnalysisDriver {
     if (bytes != null) {
       var result = _createErrorsResultFromBytes(file, library, bytes);
       _fileTracker.fileWasAnalyzed(path);
+      _lastProducedSignatures[path] = signature;
       _scheduler.eventsController.add(result);
       return;
     }

@@ -1022,6 +1022,86 @@ import 'a.dart';
 ''');
   }
 
+  test_changeFile_notPriority_errorsFromBytes() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+
+    final driver = driverFor(a);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+
+    // Initial analysis, no errors.
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[status] idle
+''');
+
+    // Update the file, has an error.
+    // Note, we analyze the file.
+    modifyFile2(a, ';');
+    driver.changeFile2(a);
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+    errors
+      0 +1 UNEXPECTED_TOKEN
+[status] idle
+''');
+
+    // Update the file, no errors.
+    // Note, we return errors from bytes.
+    // We must update latest signatures, not reflected in the text.
+    // If we don't, the next assert will fail.
+    modifyFile2(a, '');
+    driver.changeFile2(a);
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] getErrorsFromBytes
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ErrorsResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[status] idle
+''');
+
+    // Update the file, has an error.
+    // Note, we return errors from bytes.
+    modifyFile2(a, ';');
+    driver.changeFile2(a);
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] getErrorsFromBytes
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ErrorsResult #3
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+    errors
+      0 +1 UNEXPECTED_TOKEN
+[status] idle
+''');
+  }
+
   test_changeFile_notUsed() async {
     final a = newFile('$testPackageLibPath/a.dart', '');
     final b = newFile('$testPackageLibPath/b.dart', 'class B1 {}');
