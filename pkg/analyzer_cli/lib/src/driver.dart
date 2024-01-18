@@ -5,6 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/context_root.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -241,8 +242,9 @@ class Driver implements CommandLineStarter {
       var pathContext = resourceProvider.pathContext;
       for (var path in filesToAnalyze) {
         if (file_paths.isAnalysisOptionsYaml(pathContext, path)) {
-          var file = resourceProvider.getFile(path);
-          var analysisOptions = analysisDriver.getAnalysisOptionsForFile(file);
+          var fileResult = analysisDriver.currentSession.getFile(path);
+          if (fileResult is! FileResult) continue;
+          var file = fileResult.file;
           var content = file.readAsStringSync();
           var lineInfo = LineInfo.fromContent(content);
           var contextRoot =
@@ -258,6 +260,7 @@ class Driver implements CommandLineStarter {
             contextRoot.root.path,
             sdkVersionConstraint,
           );
+          var analysisOptions = fileResult.analysisOptions;
           await formatter.formatErrors([
             ErrorsResultImpl(
               session: analysisDriver.currentSession,
@@ -270,6 +273,7 @@ class Driver implements CommandLineStarter {
               isMacroAugmentation: false,
               isPart: false,
               errors: errors,
+              analysisOptions: analysisOptions,
             )
           ]);
           for (var error in errors) {
@@ -315,6 +319,7 @@ class Driver implements CommandLineStarter {
                   isMacroAugmentation: false,
                   isPart: false,
                   errors: errors,
+                  analysisOptions: analysisOptions,
                 ),
               ]);
             }
@@ -343,6 +348,7 @@ class Driver implements CommandLineStarter {
                 isLibrary: true,
                 isPart: false,
                 errors: errors,
+                analysisOptions: analysisOptions,
               ),
             ]);
             for (var error in errors) {

@@ -1548,6 +1548,7 @@ class AnalysisDriver {
       isMacroAugmentation: file.isMacroAugmentation,
       isPart: file.kind is PartFileKind,
       errors: errors,
+      analysisOptions: file.analysisOptions,
     );
   }
 
@@ -1843,6 +1844,7 @@ class AnalysisDriver {
           arguments: [missingUri],
         ),
       ],
+      analysisOptions: file.analysisOptions,
     );
   }
 

@@ -24,6 +24,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.length,
     required super.shouldIncludeKind,
     required super.capabilities,
+    required super.analysisOptions,
   });
 
   @override

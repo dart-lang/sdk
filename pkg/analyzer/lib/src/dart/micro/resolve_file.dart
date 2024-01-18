@@ -361,6 +361,7 @@ class FileResolver {
         isMacroAugmentation: file.isMacroAugmentation,
         isPart: file.kind is PartFileKind,
         errors: errors,
+        analysisOptions: file.analysisOptions,
       );
     });
   }

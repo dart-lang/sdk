@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
 
 abstract class AnalysisResultImpl implements AnalysisResult {
   @override
@@ -72,6 +73,9 @@ class ErrorsResultImpl implements ErrorsResult {
   @override
   final String content;
 
+  @override
+  final AnalysisOptions analysisOptions;
+
   ErrorsResultImpl({
     required this.session,
     required this.file,
@@ -83,6 +87,7 @@ class ErrorsResultImpl implements ErrorsResult {
     required this.isMacroAugmentation,
     required this.isPart,
     required this.errors,
+    required this.analysisOptions,
   });
 
   @override
@@ -115,6 +120,9 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
         isAugmentation = fileState.kind is AugmentationFileKind,
         isLibrary = fileState.kind is LibraryFileKind,
         isPart = fileState.kind is PartFileKind;
+
+  @override
+  AnalysisOptions get analysisOptions => fileState.analysisOptions;
 
   @override
   File get file => fileState.resource;
