@@ -82,11 +82,6 @@ import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_except
 
 /// The computer for Dart assists.
 class AssistProcessor extends BaseProcessor {
-  /// A map that can be used to look up the names of the lints for which a given
-  /// [ResolvedCorrectionProducer] will be used.
-  static final Map<ProducerGenerator, Set<String>> lintRuleMap =
-      createLintRuleMap();
-
   /// A list of the generators used to produce assists.
   static const List<ProducerGenerator> generators = [
     AddDiagnosticPropertyReference.new,
@@ -223,8 +218,10 @@ class AssistProcessor extends BaseProcessor {
     }
 
     for (var generator in generators) {
-      var ruleNames = lintRuleMap[generator] ?? {};
-      if (!_containsErrorCode(ruleNames)) {
+      if (!_generatorAppliesToAnyLintRule(
+        generator,
+        assistContext.producerGeneratorsForLintRules[generator] ?? {},
+      )) {
         var producer = generator();
         await compute(producer);
       }
@@ -238,15 +235,20 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  bool _containsErrorCode(Set<String> errorCodes) {
-    final node = findSelectedNode();
+  /// Returns whether [generator] applies to any enabled lint rule, among
+  /// [errorCodes].
+  bool _generatorAppliesToAnyLintRule(
+    ProducerGenerator generator,
+    Set<String> errorCodes,
+  ) {
+    var node = findSelectedNode();
     if (node == null) {
       return false;
     }
 
-    final fileOffset = node.offset;
+    var fileOffset = node.offset;
     for (var error in assistContext.resolveResult.errors) {
-      final errorSource = error.source;
+      var errorSource = error.source;
       if (file == errorSource.fullName) {
         if (fileOffset >= error.offset &&
             fileOffset <= error.offset + error.length) {
@@ -259,18 +261,12 @@ class AssistProcessor extends BaseProcessor {
     return false;
   }
 
-  /// Create and return a map that can be used to look up the names of the lints
-  /// for which a given `CorrectionProducer` will be used. This allows us to
-  /// ensure that we do not also offer the change as an assist when it's already
-  /// being offered as a fix.
-  static Map<ProducerGenerator, Set<String>> createLintRuleMap() {
-    var map = <ProducerGenerator, Set<String>>{};
-    for (var entry in FixProcessor.lintProducerMap.entries) {
-      var lintName = entry.key;
-      for (var generator in entry.value) {
-        map.putIfAbsent(generator, () => <String>{}).add(lintName);
-      }
-    }
-    return map;
-  }
+  static Map<ProducerGenerator, Set<String>> computeLintRuleMap() => {
+        for (var generator in generators)
+          generator: {
+            for (var MapEntry(key: lintName, value: generators)
+                in FixProcessor.lintProducerMap.entries)
+              if (generators.contains(generator)) lintName,
+          },
+      };
 }

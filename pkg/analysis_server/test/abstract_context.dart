@@ -200,8 +200,8 @@ class AbstractContextTest with ResourceProviderMixin {
     if (!_lintRulesAreRegistered) {
       registerLintRules();
       _lintRulesAreRegistered = true;
+      registerBuiltInProducers();
     }
-    registerBuiltInProducers();
 
     setupResourceProvider();
 

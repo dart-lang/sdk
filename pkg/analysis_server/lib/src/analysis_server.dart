@@ -25,6 +25,8 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -227,6 +229,10 @@ abstract class AnalysisServer {
   /// (and back).
   ClientUriConverter uriConverter;
 
+  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
+  /// are associated (can fix).
+  final Map<ProducerGenerator, Set<String>> producerGeneratorsForLintRules;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -245,7 +251,8 @@ abstract class AnalysisServer {
         uriConverter =
             ClientUriConverter.noop(baseResourceProvider.pathContext),
         pubApi = PubApi(instrumentationService, httpClient,
-            Platform.environment['PUB_HOSTED_URL']) {
+            Platform.environment['PUB_HOSTED_URL']),
+        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap() {
     // We can only spawn processes (eg. to run pub commands) when backed by
     // a real file system, otherwise we may try to run commands in folders that
     // don't really exist. If processRunner was supplied, it's likely a mock

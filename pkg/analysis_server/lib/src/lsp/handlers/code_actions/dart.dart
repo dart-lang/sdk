@@ -123,6 +123,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         server.instrumentationService,
         workspace,
         unit,
+        server.producerGeneratorsForLintRules,
         offset,
         length,
       );
