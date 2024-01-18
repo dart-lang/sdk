@@ -248,14 +248,12 @@ class AnalysisServer {
     _requestCompleters[id] = completer;
     _process!.stdin.writeln(message);
 
-    print('==> $message');
     log.trace('==> $message');
 
     return completer.future;
   }
 
   void _handleServerResponse(String line) {
-    print('<== $line');
     log.trace('<== $line');
 
     final dynamic response = json.decode(line);
