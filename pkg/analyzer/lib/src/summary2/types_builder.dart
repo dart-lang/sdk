@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/extension_type.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
@@ -461,7 +462,13 @@ class TypesBuilder {
           if (toDeclaration.map.isEmpty) {
             return element;
           }
-          return ConstructorMember(typeProvider, element, toDeclaration, false);
+          return ConstructorMember(
+            typeProvider: typeProvider,
+            declaration: element,
+            augmentationSubstitution: toDeclaration,
+            substitution: Substitution.empty,
+            isLegacy: false,
+          );
         }),
       ];
     }
@@ -478,7 +485,8 @@ class TypesBuilder {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return FieldMember(typeProvider, element, toDeclaration, false);
+        return FieldMember(
+            typeProvider, element, toDeclaration, Substitution.empty, false);
       }),
     ];
 
@@ -489,7 +497,7 @@ class TypesBuilder {
           return element;
         }
         return PropertyAccessorMember(
-            typeProvider, element, toDeclaration, false);
+            typeProvider, element, toDeclaration, Substitution.empty, false);
       }),
     ];
 
@@ -499,7 +507,8 @@ class TypesBuilder {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return MethodMember(typeProvider, element, toDeclaration, false);
+        return MethodMember(
+            typeProvider, element, toDeclaration, Substitution.empty, false);
       }),
     ];
   }
@@ -803,15 +812,5 @@ extension<T extends ExecutableElement> on List<T> {
 extension<T extends PropertyInducingElement> on List<T> {
   Iterable<T> get notAugmented {
     return where((e) => e.augmentation == null);
-  }
-}
-
-extension on List<TypeParameterElement> {
-  List<TypeParameterType> instantiateNone() {
-    return map((e) {
-      return e.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }).toList();
   }
 }

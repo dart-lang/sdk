@@ -8,11 +8,80 @@
 
 set -e
 
+RUN_BINARYEN=1
 COMPILE_BENCHMARK_BASE_NAME=""
-if [[ "$1" == --compile-benchmark=* ]]; then
-  COMPILE_BENCHMARK_BASE_NAME=$(echo $1 | sed 's/--compile-benchmark=//g')
-  shift
+PLATFORM_FILENAME="dart2wasm_platform.dill"
+SNAPSHOT_NAME="dart2wasm"
+
+# All arguments will be passed along to dart2wasm except specially recognized
+# flags.
+VM_ARGS=()
+DART2WASM_ARGS=()
+DART_FILE=""
+WASM_FILE=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+      --compile-benchmark=*)
+      COMPILE_BENCHMARK_BASE_NAME=$(echo $1 | sed 's/--compile-benchmark=//g')
+      shift
+      ;;
+
+    --js-compatibility)
+      PLATFORM_FILENAME="dart2wasm_js_compatibility_platform.dill"
+      DART2WASM_ARGS+=("--js-compatibility")
+      shift
+      ;;
+
+    --compiler-asserts)
+      SNAPSHOT_NAME="dart2wasm_asserts"
+      VM_ARGS+=("--enable-asserts")
+      shift
+      ;;
+
+    --optimize)
+      RUN_BINARYEN=1
+      shift
+      ;;
+
+    --no-optimize)
+      RUN_BINARYEN=0
+      shift
+      ;;
+
+    --omit-checks)
+      # Golem uses --omit-checks but pkg/dart2wasm/bin/dart2wasm accepts
+      # --omit-type-checks.
+      DART2WASM_ARGS+=("--omit-type-checks")
+      shift
+      ;;
+
+    --* | -*)
+      DART2WASM_ARGS+=("$1")
+      shift
+      ;;
+
+    *)
+      if [ -z "$DART_FILE" ]; then
+        DART_FILE="$1"
+        shift
+      else
+        if [ -z "$WASM_FILE" ]; then
+          WASM_FILE="$1"
+          shift
+        else
+          echo "Unexpected argument $1"
+          exit 1
+        fi
+      fi
+      ;;
+  esac
+done
+
+if [ -z "$DART_FILE" -o -z "$WASM_FILE" ]; then
+  echo "Expected <file.dart> <file.wasm>"
+  exit 1
 fi
+
 
 function follow_links() {
   file="$1"
@@ -42,16 +111,23 @@ fi
 DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
-DART2WASM="$SDK_DIR/sdk/bin/dart2wasm"
 BINARYEN="$BIN_DIR/wasm-opt"
+DART_AOT_RUNTIME="$BIN_DIR/dart_precompiled_runtime"
+DART2WASM_AOT_SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
 
-COMPILE_FLAGS=""
-if [[ "$3" == "--omit-checks" ]]; then
-  COMPILE_FLAGS+=" --omit-type-checks"
-fi
+PLATFORM_ARG="--platform=$BIN_DIR/$PLATFORM_FILENAME"
+SDK_ARG="--dart-sdk=$SDK_DIR"
 
 function measure() {
+  set +e
   RESULT=$( { /usr/bin/time --format="\nMemory: %M KB, Time: %e s" $@; } 2>&1 )
+  EXIT=$?
+  if [ $EXIT -ne 0 ]; then
+    echo "Running $@ resulted in exit code $EXIT"
+    echo "$RESULT"
+    exit 1
+  fi
+  set -e
   MEMORY=$(echo "$RESULT" | tail -n1 | sed 's/Memory: \([0-9.]\+\) KB, Time: \([0-9.]\+\) s.*/\1/g')
   MEMORY=$(($MEMORY * 1024))
   TIME=$(echo "$RESULT" | tail -n1 | sed 's/Memory: \([0-9.]\+\) KB, Time: \([0-9.]\+\) s.*/\2/g')
@@ -62,53 +138,60 @@ function measure_size() {
   GZIP_SIZE=$(cat $1 | gzip -c6 | wc -c)
 }
 
-dart2wasm_command=("$DART2WASM" "$1" "$2" $COMPILE_FLAGS)
+function run_if_binaryen_enabled() {
+  if [ $RUN_BINARYEN -eq 1 ]; then
+    $@
+  fi
+}
 
-# Keep in sync with sdk/bin/dart2wasm.
-binaryen_command=("$BINARYEN" $BINARYEN_FLAGS "$2" -o "$2")
+dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$SDK_ARG" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+
+binaryen_command=("$BINARYEN" $BINARYEN_FLAGS "$WASM_FILE" -o "$WASM_FILE")
 
 if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
   measure ${dart2wasm_command[@]}
   COMPILER_TIME=$TIME
   COMPILER_MEMORY=$MEMORY
 
-  measure_size ${2%.wasm}.mjs
+  measure_size ${WASM_FILE%.wasm}.mjs
   MJS_SIZE=$SIZE
   MJS_GZIP_SIZE=$GZIP_SIZE
 
-  measure_size $2
+  measure_size $WASM_FILE
   COMPILER_SIZE=$SIZE
   COMPILER_GZIP_SIZE=$GZIP_SIZE
 
-  measure ${binaryen_command[@]}
-  BINARYEN_TIME=$TIME
-  BINARYEN_MEMORY=$MEMORY
+  if [ $RUN_BINARYEN -eq 1 ]; then
+    measure ${binaryen_command[@]}
+    BINARYEN_TIME=$TIME
+    BINARYEN_MEMORY=$MEMORY
 
-  measure_size $2
-  BINARYEN_SIZE=$SIZE
-  BINARYEN_GZIP_SIZE=$GZIP_SIZE
+    measure_size $WASM_FILE
+    BINARYEN_SIZE=$SIZE
+    BINARYEN_GZIP_SIZE=$GZIP_SIZE
 
-  TOTAL_TIME=$(echo "$COMPILER_TIME + $BINARYEN_TIME" | bc)
-  MAX_MEMORY=$(($COMPILER_MEMORY > $BINARYEN_MEMORY ? $COMPILER_MEMORY : $BINARYEN_MEMORY ))
+    TOTAL_TIME=$(echo "$COMPILER_TIME + $BINARYEN_TIME" | bc)
+    MAX_MEMORY=$(($COMPILER_MEMORY > $BINARYEN_MEMORY ? $COMPILER_MEMORY : $BINARYEN_MEMORY ))
+  fi
 
   # CompileTime
-  echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Total(CompileTime): $TOTAL_TIME s"
+  run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Total(CompileTime): $TOTAL_TIME s"
   echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Dart2Wasm(CompileTime): $COMPILER_TIME s"
-  echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Wasm2WasmOpt(CompileTime): $BINARYEN_TIME s"
+  run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Wasm2WasmOpt(CompileTime): $BINARYEN_TIME s"
 
   # CodeSize
   echo "$COMPILE_BENCHMARK_BASE_NAME.Size.mjs(CodeSize): $MJS_SIZE bytes"
   echo "$COMPILE_BENCHMARK_BASE_NAME.Size.mjs.gz(CodeSize): $MJS_GZIP_SIZE bytes"
   echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm(CodeSize): $COMPILER_SIZE bytes"
   echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm.gz(CodeSize): $COMPILER_GZIP_SIZE bytes"
-  echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm.opt(CodeSize): $BINARYEN_SIZE bytes"
-  echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm.opt.gz(CodeSize): $BINARYEN_GZIP_SIZE bytes"
+  run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm.opt(CodeSize): $BINARYEN_SIZE bytes"
+  run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm.opt.gz(CodeSize): $BINARYEN_GZIP_SIZE bytes"
 
   # MemoryUse
   echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Max(MemoryUse): $MAX_MEMORY bytes"
   echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Dart2Wasm(MemoryUse): $COMPILER_MEMORY bytes"
-  echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Wasm2WasmOpt(MemoryUse): $BINARYEN_MEMORY bytes"
+  run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Wasm2WasmOpt(MemoryUse): $BINARYEN_MEMORY bytes"
 else
   ${dart2wasm_command[@]}
-  ${binaryen_command[@]}
+  run_if_binaryen_enabled ${binaryen_command[@]}
 fi

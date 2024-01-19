@@ -296,7 +296,7 @@ library
           constructors
             ConstructorMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1129,7 +1129,7 @@ library
             self::@class::A::@field::foo1
             FieldMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
           constructors
             self::@class::A::@constructor::new
           accessors
@@ -1137,10 +1137,10 @@ library
             self::@class::A::@setter::foo1
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1379,14 +1379,14 @@ library
             self::@class::A::@field::foo1
             FieldMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
           constructors
             self::@class::A::@constructor::new
           accessors
             self::@class::A::@getter::foo1
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -2332,7 +2332,7 @@ library
           methods
             MethodMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
-              substitution: {T2: T}
+              augmentationSubstitution: {T2: T}
             self::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
@@ -2385,7 +2385,7 @@ library
           methods
             MethodMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              substitution: {T2: T}
+              augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -50858,16 +50858,16 @@ library
             self::@mixin::A::@field::foo1
             FieldMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
           accessors
             self::@mixin::A::@getter::foo1
             self::@mixin::A::@setter::foo1
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -51004,12 +51004,12 @@ library
             self::@mixin::A::@field::foo1
             FieldMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
           accessors
             self::@mixin::A::@getter::foo1
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -51643,7 +51643,7 @@ library
           methods
             MethodMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
-              substitution: {T2: T}
+              augmentationSubstitution: {T2: T}
             self::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
@@ -51696,7 +51696,7 @@ library
           methods
             MethodMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
-              substitution: {T2: T}
+              augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
       definingUnit

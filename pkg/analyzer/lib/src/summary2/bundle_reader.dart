@@ -33,6 +33,7 @@ import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -1962,14 +1963,39 @@ class ResolutionReader {
 
     if (memberFlags == Tag.MemberLegacyWithTypeArguments ||
         memberFlags == Tag.MemberWithTypeArguments) {
-      var enclosing = element.enclosingElement as TypeParameterizedElement;
-      var typeParameters = enclosing.typeParameters;
+      var enclosing = element.enclosingElement as InstanceElement;
+
+      var declaration = enclosing.augmented!.declaration;
+      var declarationTypeParameters = declaration.typeParameters;
+
+      var augmentationSubstitution = Substitution.empty;
+      if (enclosing != declaration) {
+        var elementTypeParameters = enclosing.typeParameters;
+        // We don't add augmentation members if numbers of type parameters
+        // don't match, so we can assume that they are the same here.
+        augmentationSubstitution = Substitution.fromPairs(
+          elementTypeParameters,
+          declarationTypeParameters.instantiateNone(),
+        );
+      }
+
+      var substitution = Substitution.empty;
       var typeArguments = _readTypeList();
-      var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+      if (typeArguments.isNotEmpty) {
+        substitution = Substitution.fromPairs(
+          declarationTypeParameters,
+          typeArguments,
+        );
+      }
+
       if (element is ExecutableElement) {
+        element = ExecutableMember.fromAugmentation(
+            element, augmentationSubstitution);
         element = ExecutableMember.from2(element, substitution);
       } else {
         element as FieldElement;
+        element =
+            FieldMember.fromAugmentation(element, augmentationSubstitution);
         element = FieldMember.from2(element, substitution);
       }
     }

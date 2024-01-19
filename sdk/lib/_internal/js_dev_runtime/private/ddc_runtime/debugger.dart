@@ -316,8 +316,8 @@ Object getObjectMetadata(@notNull Object object) {
     if (_isRecordType(object)) {
       var elements = _recordTypeElementTypes(object);
       var length = _get(elements, 'length');
-      _set(result, 'libraryId', 'dart:_runtime');
-      _set(result, 'className', 'RecordType');
+      _set(result, 'libraryId', 'dart:core');
+      _set(result, 'className', 'Type');
       _set(result, 'runtimeKind', RuntimeObjectKind.recordType);
       _set(result, 'length', length);
     } else {
