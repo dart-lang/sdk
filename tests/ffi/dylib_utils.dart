@@ -47,7 +47,7 @@ external Pointer<Void> dlopen(Pointer<Char> file, int mode);
 
 /// Returns dylib
 Object dlopenGlobalPlatformSpecific(String name, {String? path}) {
-  if (Platform.isLinux || Platform.isAndroid) {
+  if (Platform.isLinux || Platform.isAndroid || Platform.isFuchsia) {
     // TODO(https://dartbug.com/50105): enable dlopen global via package:ffi.
     return using((arena) {
       final dylibHandle = dlopen(

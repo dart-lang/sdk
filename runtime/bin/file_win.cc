@@ -10,9 +10,9 @@
 #include <string>
 
 #include <Shlwapi.h>  // NOLINT
-#include <WinIoCtl.h>  // NOLINT
 #include <fcntl.h>     // NOLINT
 #include <io.h>        // NOLINT
+#include <winioctl.h>  // NOLINT
 #undef StrDup          // defined in Shlwapi.h as StrDupW
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
@@ -328,8 +328,8 @@ class StringRAII {
     s_ = origin.release();
   }
 
-  explicit StringRAII(const char* s) : s_(s), own_(false) {}
-  explicit StringRAII(char* s) : s_(s), own_(true) {}
+  explicit StringRAII(const char* s) : own_(false), s_(s) {}
+  explicit StringRAII(char* s) : own_(true), s_(s) {}
   ~StringRAII() {
     if (own_) {
       free(const_cast<char*>(s_));
@@ -1130,7 +1130,12 @@ File::Type File::GetType(Namespace* namespc,
           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
           OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
       if (target_handle == INVALID_HANDLE_VALUE) {
-        result = File::kIsLink;
+        DWORD last_error = GetLastError();
+        if ((last_error == ERROR_FILE_NOT_FOUND) ||
+            (last_error == ERROR_PATH_NOT_FOUND)) {
+          return kDoesNotExist;
+        }
+        result = kIsLink;
       } else {
         BY_HANDLE_FILE_INFORMATION info;
         if (!GetFileInformationByHandle(target_handle, &info)) {
@@ -1139,8 +1144,8 @@ File::Type File::GetType(Namespace* namespc,
         }
         CloseHandle(target_handle);
         return ((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-                   ? File::kIsDirectory
-                   : File::kIsFile;
+                   ? kIsDirectory
+                   : kIsFile;
       }
     } else {
       result = kIsLink;

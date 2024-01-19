@@ -1,0 +1,15 @@
+extension type E1(int i) {
+  get m3 => 1;
+  set m1(_) {}
+  set m4(_) {}
+  void m2() {}
+}
+
+extension type E2(int i) implements E1 {
+  get m4 => 1;
+  set m2(_) {}
+  set m3(_) {}
+  void m1() {}
+}
+
+void test() {}

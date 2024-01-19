@@ -35,7 +35,7 @@ class CallbackSpecializer {
       if (_extensionIndex.isStaticInteropType(callbackParameterType) &&
           boxExternRef) {
         expression = _createJSValue(v);
-        if (callbackParameterType.isPotentiallyNonNullable) {
+        if (!callbackParameterType.isPotentiallyNullable) {
           expression = NullCheck(expression);
         }
       } else {
@@ -47,23 +47,24 @@ class CallbackSpecializer {
     return ReturnStatement(StaticInvocation(
         _util.jsifyTarget(function.returnType),
         Arguments([
-          FunctionInvocation(
-              FunctionAccessKind.FunctionType,
-              AsExpression(VariableGet(callbackVariable), function),
-              Arguments(callbackArguments),
-              functionType: function),
+          FunctionInvocation(FunctionAccessKind.FunctionType,
+              VariableGet(callbackVariable), Arguments(callbackArguments),
+              functionType: null),
         ])));
   }
 
-  /// Creates a callback trampoline for the given [function]. This callback
-  /// trampoline expects a Dart callback as its first argument, then an integer
-  /// value(double type) indicating the position of the last defined
-  /// argument(only for callbacks that take optional parameters), followed by
-  /// all of the arguments to the Dart callback as JS objects.  The trampoline
-  /// will `dartifyRaw` all incoming JS objects and then cast them to their
-  /// appropriate types, dispatch, and then `jsifyRaw` any returned value.
-  /// [_createFunctionTrampoline] Returns a [String] function name representing
-  /// the name of the wrapping function.
+  /// Creates a callback trampoline for the given [function].
+  ///
+  /// This callback trampoline expects a Dart callback as its first argument,
+  /// then an integer value(double type) indicating the position of the last
+  /// defined argument(only for callbacks that take optional parameters),
+  /// followed by all of the arguments to the Dart callback as JS objects. The
+  /// trampoline will `dartifyRaw` or box all incoming JS objects and then cast
+  /// them to their appropriate types, dispatch, and then `jsifyRaw` or box any
+  /// returned value.
+  ///
+  /// Returns a [String] function name representing the name of the wrapping
+  /// function.
   String _createFunctionTrampoline(Procedure node, FunctionType function,
       {required bool boxExternRef}) {
     // Create arguments for each positional parameter in the function. These

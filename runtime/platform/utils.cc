@@ -267,7 +267,24 @@ static void GetLastErrorAsString(char** error) {
   *error = status != nullptr ? strdup(status) : nullptr;
 #elif defined(DART_HOST_OS_WINDOWS)
   const int status = GetLastError();
-  *error = status != 0 ? Utils::SCreate("error code %i", status) : nullptr;
+  if (status != 0) {
+    char* description = nullptr;
+    int length = FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+            FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr, status, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+        reinterpret_cast<char*>(&description), 0, nullptr);
+    if (length == 0) {
+      // Seems like there is no message for this error code.
+      *error = Utils::SCreate("error code %i", status);
+    } else {
+      *error = Utils::SCreate("%s (error code: %i)", description, status);
+    }
+
+    LocalFree(description);
+  } else {
+    *error = nullptr;
+  }
 #else
   *error = Utils::StrDup("loading dynamic libraries is not supported");
 #endif

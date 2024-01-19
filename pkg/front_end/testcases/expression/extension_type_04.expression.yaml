@@ -1,0 +1,29 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+sources: |
+  //@dart=3.3
+  void foo() {
+    Foo x = new Foo(42);
+    x.printFoo();
+  }
+
+  extension type Foo(int value) {
+    void printFoo() {
+      print("This foos value is '$value'");
+    }
+  }
+
+definitions: ["#this"]
+# int
+definition_types: ["dart:core", "int", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "Foo.printFoo"
+static: true
+offset: 123 # At the start of the 'print("This foos value is '$value'");' line.
+scriptUri: main.dart
+expression: |
+  this.value

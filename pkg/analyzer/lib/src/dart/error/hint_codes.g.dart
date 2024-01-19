@@ -14,25 +14,15 @@
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
+//
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 import "package:analyzer/src/error/codes.g.dart";
 
 class HintCode extends AnalyzerErrorCode {
-  ///  When the target expression uses '?.' operator, it can be `null`, so all the
-  ///  subsequent invocations should also use '?.' operator.
-  ///
-  ///  Note: This diagnostic is only generated in pre-null safe code.
-  ///
-  ///  Note: Since this diagnostic is only produced in pre-null safe code, we do
-  ///  not plan to go through the exercise of converting it to a Warning.
-  static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = HintCode(
-    'CAN_BE_NULL_AFTER_NULL_AWARE',
-    "The receiver uses '?.', so its value can be null.",
-    correctionMessage: "Replace the '.' with a '?.' in the invocation.",
-  );
-
   ///  No parameters.
   ///
   ///  Note: Since this diagnostic is only produced in pre-3.0 code, we do not
@@ -126,6 +116,13 @@ class HintCode extends AnalyzerErrorCode {
         "library.",
     correctionMessage: "Try migrating the imported library.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the message
+  static const HintCode MACRO_INFO = HintCode(
+    'MACRO_INFO',
+    "{0}",
   );
 
   ///  No parameters.

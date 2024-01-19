@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
-import 'package:kernel/src/replacement_visitor.dart';
 
 import 'constants.dart';
 
@@ -17,14 +16,6 @@ Never throwUnsupportedInvalidType(InvalidType type) => throw UnsupportedError(
 Never throwUnsupportedAuxiliaryType(AuxiliaryType type) =>
     throw UnsupportedError(
         'Unsupported auxiliary type $type (${type.runtimeType}).');
-
-/// Returns [type] with the immediate type erasure applied.
-///
-/// When [type] is an [ExtensionType] this is equivalent to `type.typeErasure`.
-/// The immediately returned value will not be an [ExtensionType] but it could
-/// still contain other [ExtensionType]s embedded within.
-DartType shallowExtensionTypeErasure(DartType type) =>
-    type is ExtensionType ? type.extensionTypeErasure : type;
 
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
@@ -310,6 +301,23 @@ class LabelContinueFinder extends RecursiveVisitor<void> {
       found = true;
 }
 
+/// Returns `true` if any of [n]s children are a [FunctionExpression] node.
+bool containsFunctionExpression(Node n) {
+  var visitor = _FunctionExpressionFinder.instance;
+  visitor.found = false;
+  n.accept(visitor);
+  return visitor.found;
+}
+
+class _FunctionExpressionFinder extends RecursiveVisitor<void> {
+  var found = false;
+
+  static final instance = _FunctionExpressionFinder();
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) => found = true;
+}
+
 /// Whether [member] is declared native, as in:
 ///
 ///    void foo() native;
@@ -338,7 +346,7 @@ bool _isDartInternal(Uri uri) =>
 /// Collects all `TypeParameter`s from the `TypeParameterType`s present in the
 /// visited `DartType`.
 class TypeParameterFinder extends RecursiveVisitor<void> {
-  final _found = < /* TypeParameter | StructuralParameter */ Object>{};
+  final _found = <TypeParameter>{};
   static TypeParameterFinder? _instance;
 
   TypeParameterFinder._();
@@ -347,7 +355,7 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
     return TypeParameterFinder._();
   }
 
-  Set< /* TypeParameter | StructuralParameter */ Object> find(DartType type) {
+  Set<TypeParameter> find(DartType type) {
     _found.clear();
     type.accept(this);
     return _found;
@@ -355,10 +363,6 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
 
   @override
   void visitTypeParameterType(TypeParameterType node) =>
-      _found.add(node.parameter);
-
-  @override
-  void visitStructuralParameterType(StructuralParameterType node) =>
       _found.add(node.parameter);
 }
 
@@ -377,19 +381,6 @@ class InterfaceTypeExtractor extends RecursiveVisitor<DartType> {
     type.accept(this);
     return _found;
   }
-}
-
-class ExtensionTypeEraser extends ReplacementVisitor {
-  const ExtensionTypeEraser();
-
-  /// Erases all `ExtensionType` nodes found in [type].
-  DartType erase(DartType type) =>
-      type.accept1(this, Variance.unrelated) ?? type;
-
-  @override
-  DartType? visitExtensionType(ExtensionType node, int variance) =>
-      node.extensionTypeErasure.accept1(this, Variance.unrelated) ??
-      node.extensionTypeErasure;
 }
 
 /// Replaces [VariableGet] nodes with a different expression defined by a

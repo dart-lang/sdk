@@ -26,21 +26,21 @@ Future<void> main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const ClassHierarchyDataComputer(), [
-        const TestConfig(cfeWithNnbdMarker, 'cfe',
+        const CfeTestConfig(cfeWithNnbdMarker, 'cfe',
             explicitExperimentalFlags: const {
               ExperimentalFlag.inlineClass: true
             })
       ]));
 }
 
-class ClassHierarchyDataComputer extends DataComputer<Features> {
+class ClassHierarchyDataComputer extends CfeDataComputer<Features> {
   const ClassHierarchyDataComputer();
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new InheritanceDataExtractor(testResultData.compilerResult, actualMap)
@@ -48,7 +48,7 @@ class ClassHierarchyDataComputer extends DataComputer<Features> {
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(CfeTestResultData testResultData, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new InheritanceDataExtractor(testResultData.compilerResult, actualMap)
@@ -57,7 +57,7 @@ class ClassHierarchyDataComputer extends DataComputer<Features> {
 
   @override
   void computeExtensionTypeDeclarationData(
-      TestResultData testResultData,
+      CfeTestResultData testResultData,
       ExtensionTypeDeclaration extensionTypeDeclaration,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
@@ -70,7 +70,7 @@ class ClassHierarchyDataComputer extends DataComputer<Features> {
 
   @override
   Features? computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
     return null; //errorsToText(errors, useCodes: true);
   }
 
@@ -436,7 +436,7 @@ String memberName(Member member) {
 }
 
 String memberQualifiedName(Member member) {
-  return '${member.enclosingClass!.name}.${memberName(member)}';
+  return '${member.enclosingTypeDeclaration!.name}.${memberName(member)}';
 }
 
 String procedureType(Procedure procedure) {

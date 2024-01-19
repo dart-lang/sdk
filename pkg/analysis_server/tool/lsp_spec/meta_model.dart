@@ -44,6 +44,7 @@ class Constant extends Member with LiteralValueMixin {
   Constant({
     required super.name,
     super.comment,
+    super.isProposed,
     required this.type,
     required this.value,
   });
@@ -59,6 +60,7 @@ class Field extends Member {
   Field({
     required super.name,
     super.comment,
+    super.isProposed,
     required this.type,
     required this.allowsNull,
     required this.allowsUndefined,
@@ -86,6 +88,7 @@ class Interface extends LspEntity {
   Interface({
     required super.name,
     super.comment,
+    super.isProposed,
     this.baseTypes = const [],
     required this.members,
     this.abstract = false,
@@ -152,10 +155,12 @@ mixin LiteralValueMixin {
 abstract class LspEntity {
   final String name;
   final String? comment;
+  final bool isProposed;
   final bool isDeprecated;
   LspEntity({
     required this.name,
     required this.comment,
+    this.isProposed = false,
   }) : isDeprecated = comment?.contains('@deprecated') ?? false;
 }
 
@@ -166,6 +171,7 @@ class LspEnum extends LspEntity {
   LspEnum({
     required super.name,
     super.comment,
+    super.isProposed,
     required this.typeOfValues,
     required this.members,
   }) {
@@ -175,7 +181,7 @@ class LspEnum extends LspEntity {
 
 class LspMetaModel {
   final List<LspEntity> types;
-  final List<String> methods;
+  final List<Constant> methods;
 
   LspMetaModel({required this.types, required this.methods});
 }
@@ -201,6 +207,7 @@ abstract class Member extends LspEntity {
   Member({
     required super.name,
     super.comment,
+    super.isProposed,
   });
 }
 
@@ -232,6 +239,7 @@ class TypeAlias extends LspEntity {
   TypeAlias({
     required super.name,
     super.comment,
+    super.isProposed,
     required this.baseType,
     required this.isRename,
   });

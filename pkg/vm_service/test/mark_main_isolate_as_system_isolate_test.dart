@@ -11,9 +11,13 @@ import 'package:vm_service/vm_service.dart' as service;
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-testMain() async {
-  await Isolate.spawnUri(Platform.script, ['--selftest'], null,
-      debugName: 'foo');
+Future<void> testMain() async {
+  await Isolate.spawnUri(
+    Platform.script,
+    ['--selftest'],
+    null,
+    debugName: 'foo',
+  );
 }
 
 var tests = <IsolateTest>[
@@ -28,12 +32,12 @@ var tests = <IsolateTest>[
   resumeIsolate,
 ];
 
-main([args = const <String>[]]) {
+void main([args = const <String>[]]) {
   if (args.length > 0 && args[0] == '--selftest') {
     debugger();
     return;
   }
-  return runIsolateTests(
+  runIsolateTests(
     args,
     tests,
     'mark_main_isolate_as_system_isolate_test.dart',

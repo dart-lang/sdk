@@ -30,7 +30,7 @@ import augment 'c.dart';
 library augment 'b.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertNoErrorsInResult();
 
     final node = findNode.augmentationImportDirective('c.dart');
@@ -62,7 +62,7 @@ import augment 'c.dart' /*2*/;
 library augment 'b.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT, 66, 8),
     ]);
@@ -93,7 +93,7 @@ import augment 'c.dart';
 
     newFile('$testPackageLibPath/c.dart', '');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION, 41, 8),
     ]);
@@ -122,7 +122,7 @@ library augment 'a.dart';
 import augment ':net';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.INVALID_URI, 41, 6),
     ]);
@@ -151,7 +151,7 @@ library augment 'a.dart';
 import augment '${'foo'}.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 41, 15),
     ]);
@@ -190,7 +190,7 @@ library augment 'a.dart';
 import augment 'foo:bar';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 41, 9),
     ]);

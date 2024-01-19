@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/util/textual_outline.dart';
@@ -25,6 +26,9 @@ import 'package:testing/testing.dart'
 import '../utils/kernel_chain.dart' show MatchContext;
 import 'testing/folder_options.dart';
 import 'testing/suite.dart' show UPDATE_EXPECTATIONS;
+
+const int minSupportedMajorVersion = 2;
+const int minSupportedMinorVersion = 12;
 
 const List<Map<String, String>> EXPECTATIONS = [
   {
@@ -98,52 +102,58 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         context.suiteFolderOptions.computeFolderOptions(description);
     Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
         .computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
+    Map<ExperimentalFlag, bool> experimentalFlagsExplicit =
+        folderOptions.computeExplicitExperimentalFlags(const {});
 
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
+      TextualOutlineInfoForTesting info = new TextualOutlineInfoForTesting();
       String? result = textualOutline(
-          bytes,
-          new ScannerConfiguration(
-            enableExtensionMethods: isExperimentEnabled(
-                ExperimentalFlag.extensionMethods,
-                explicitExperimentalFlags: experimentalFlags),
-            enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
-                explicitExperimentalFlags: experimentalFlags),
-            enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
-                explicitExperimentalFlags: experimentalFlags),
-          ),
-          throwOnUnexpected: true,
-          performModelling: modelled,
-          addMarkerForUnknownForTest: modelled,
-          returnNullOnError: false,
-          enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
-              explicitExperimentalFlags: experimentalFlags));
+        bytes,
+        new ScannerConfiguration(
+          enableExtensionMethods: isExperimentEnabled(
+              ExperimentalFlag.extensionMethods,
+              explicitExperimentalFlags: experimentalFlags),
+          enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
+              explicitExperimentalFlags: experimentalFlags),
+          enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
+              explicitExperimentalFlags: experimentalFlags),
+        ),
+        throwOnUnexpected: true,
+        performModelling: modelled,
+        returnNullOnError: false,
+        enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
+            explicitExperimentalFlags: experimentalFlags),
+        infoForTesting: info,
+      );
       if (result == null) {
         return new Result(
             null, context.expectationSet["EmptyOutput"], description.uri);
       }
 
-      // In an attempt to make it less sensitive to formatting first remove
-      // excess new lines, then format.
-      List<String> lines = result.split("\n");
-      bool containsUnknownChunk = false;
-      StringBuffer sb = new StringBuffer();
-      for (String line in lines) {
-        if (line.trim() != "") {
-          if (line == "---- unknown chunk starts ----") {
-            containsUnknownChunk = true;
-          }
-          sb.writeln(line);
+      bool containsUnknownChunk = info.hasUnknownChunk;
+      bool tryFormat = !containsUnknownChunk;
+      for (LanguageVersionToken version in info.languageVersionTokens) {
+        if (version.major < minSupportedMajorVersion) {
+          tryFormat = false;
+        } else if (version.major == minSupportedMajorVersion &&
+            version.minor < minSupportedMinorVersion) {
+          tryFormat = false;
         }
       }
-      result = sb.toString().trim();
-
       dynamic formatterException;
       StackTrace? formatterExceptionSt;
-      if (!containsUnknownChunk) {
-        // Try to format only if it doesn't contain the unknown chunk marker.
+      if (tryFormat) {
         try {
-          result = new DartFormatter().format(result);
+          List<String> experimentFlags = [];
+          for (MapEntry<ExperimentalFlag, bool> entry
+              in experimentalFlags.entries) {
+            if (entry.value) {
+              experimentFlags.add(entry.key.name);
+            }
+          }
+          result = new DartFormatter(experimentFlags: experimentFlags)
+              .format(result);
         } catch (e, st) {
           formatterException = e;
           formatterExceptionSt = st;
@@ -165,11 +175,14 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
             null, context.expectationSet["UnknownChunk"], description.uri);
       }
 
-      if (formatterException != null) {
+      if (formatterException != null && !info.hasParserErrors) {
         bool hasUnreleasedExperiment = false;
         for (MapEntry<ExperimentalFlag, bool> entry
-            in experimentalFlags.entries) {
+            in experimentalFlagsExplicit.entries) {
           if (entry.value) {
+            // Don't treat "inline-class" as disabled by default as it's about
+            // to have the flag flipped.
+            if (entry.key.name == "inline-class") continue;
             if (!entry.key.isEnabledByDefault) {
               hasUnreleasedExperiment = true;
               break;

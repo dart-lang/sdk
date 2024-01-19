@@ -19,6 +19,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -40,10 +42,9 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart'
     show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
@@ -129,7 +130,7 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
 }
 
 class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedClassElement {
+    with MaybeAugmentedClassElementMixin {
   @override
   final ClassElementImpl declaration;
 
@@ -137,16 +138,31 @@ class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
 }
 
 class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedEnumElement {}
+    with MaybeAugmentedEnumElementMixin {
+  @override
+  final EnumElementImpl declaration;
+
+  AugmentedEnumElementImpl(this.declaration);
+}
 
 class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
-    implements AugmentedExtensionElement {}
+    with MaybeAugmentedExtensionElementMixin {
+  @override
+  final ExtensionElementImpl declaration;
+
+  AugmentedExtensionElementImpl(this.declaration);
+}
 
 class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedExtensionTypeElement {}
+    with MaybeAugmentedExtensionTypeElementMixin {
+  @override
+  final ExtensionTypeElementImpl declaration;
+
+  AugmentedExtensionTypeElementImpl(this.declaration);
+}
 
 abstract class AugmentedInstanceElementImpl
-    implements AugmentedInstanceElement {
+    with MaybeAugmentedInstanceElementMixin {
   @override
   List<FieldElement> fields = [];
 
@@ -157,70 +173,13 @@ abstract class AugmentedInstanceElementImpl
   List<MethodElement> methods = [];
 
   @override
-  // TODO: implement declaration
-  InstanceElement get declaration => throw UnimplementedError();
-
-  @override
-  // TODO: implement metadata
+  // TODO(scheglov): implement metadata
   List<ElementAnnotation> get metadata => throw UnimplementedError();
-
-  @override
-  FieldElement? getField(String name) {
-    final length = fields.length;
-    for (var i = 0; i < length; i++) {
-      final field = fields[i];
-      if (field.name == name) {
-        return field;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getGetter(String name) {
-    final length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
-      if (accessor.isGetter && accessor.name == name) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  @override
-  MethodElement? getMethod(String name) {
-    final length = methods.length;
-    for (var i = 0; i < length; i++) {
-      final method = methods[i];
-      if (method.name == name) {
-        return method;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getSetter(String name) {
-    final nameLength = name.length;
-    final length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
-      if (accessor.isSetter) {
-        final accessorName = accessor.name;
-        if (accessorName.length == nameLength + 1) {
-          if (accessorName.startsWith(name)) {
-            return accessor;
-          }
-        }
-      }
-    }
-    return null;
-  }
 }
 
 abstract class AugmentedInterfaceElementImpl
-    extends AugmentedInstanceElementImpl implements AugmentedInterfaceElement {
+    extends AugmentedInstanceElementImpl
+    with MaybeAugmentedInterfaceElementMixin {
   @override
   List<InterfaceType> interfaces = [];
 
@@ -229,24 +188,10 @@ abstract class AugmentedInterfaceElementImpl
 
   @override
   List<ConstructorElement> constructors = [];
-
-  @override
-  // TODO: implement declaration
-  InterfaceElement get declaration => throw UnimplementedError();
-
-  @override
-  // TODO: implement unnamedConstructor
-  ConstructorElement? get unnamedConstructor => throw UnimplementedError();
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) {
-    // TODO: implement getNamedConstructor
-    throw UnimplementedError();
-  }
 }
 
 class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedMixinElement {
+    with MaybeAugmentedMixinElementMixin {
   @override
   final MixinElementImpl declaration;
 
@@ -271,7 +216,7 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
 class ClassElementImpl extends ClassOrMixinElementImpl
     with AugmentableElement<ClassElementImpl>
     implements ClassElement {
-  late AugmentedClassElement augmentedInternal =
+  late MaybeAugmentedClassElementMixin augmentedInternal =
       NotAugmentedClassElementImpl(this);
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -336,7 +281,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  AugmentedClassElement? get augmented {
+  MaybeAugmentedClassElementMixin? get augmented {
     if (isAugmentation) {
       return augmentationTarget?.augmented;
     } else {
@@ -551,6 +496,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
+  ElementKind get kind => ElementKind.CLASS;
+
+  @override
   set methods(List<MethodElementImpl> methods) {
     assert(!isMixinApplication);
     super.methods = methods;
@@ -703,7 +651,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
         implicitConstructor.parameters = implicitParameters.toFixedList();
       }
       implicitConstructor.enclosingElement = this;
-      // TODO(scheglov) Why do we manually map parameters types above?
+      // TODO(scheglov): Why do we manually map parameters types above?
       implicitConstructor.superConstructor =
           ConstructorMember.from(superclassConstructor, superType);
 
@@ -742,15 +690,11 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
   set isBase(bool isBase) {
     setModifier(Modifier.BASE, isBase);
   }
-
-  /// TODO(scheglov) Do we need a separate kind for `MixinElement`?
-  @override
-  ElementKind get kind => ElementKind.CLASS;
 }
 
 /// A concrete implementation of a [CompilationUnitElement].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
-    implements CompilationUnitElement, MacroTargetElementContainer {
+    implements CompilationUnitElement {
   /// The source that corresponds to this compilation unit.
   @override
   final Source source;
@@ -1008,12 +952,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
 /// A [FieldElement] for a 'const' or 'final' field that has an initializer.
 ///
-/// TODO(paulberry): we should rename this class to reflect the fact that it's
-/// used for both const and final fields.  However, we shouldn't do so until
-/// we've created an API for reading the values of constants; until that API is
-/// available, clients are likely to read constant values by casting to
-/// ConstFieldElementImpl, so it would be a breaking change to rename this
-/// class.
+// TODO(paulberry): we should rename this class to reflect the fact that it's
+// used for both const and final fields.  However, we shouldn't do so until
+// we've created an API for reading the values of constants; until that API is
+// available, clients are likely to read constant values by casting to
+// ConstFieldElementImpl, so it would be a breaking change to rename this
+// class.
 class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /// Initialize a newly created synthetic field element to have the given
   /// [name] and [offset].
@@ -1043,8 +987,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// this constructor is not generative, or is redirecting, or the
   /// super-constructor is not resolved, or the enclosing class is `Object`.
   ///
-  /// TODO(scheglov) We cannot have both super and redirecting constructors.
-  /// So, ideally we should have some kind of "either" or "variant" here.
+  // TODO(scheglov): We cannot have both super and redirecting constructors.
+  // So, ideally we should have some kind of "either" or "variant" here.
   ConstructorElement? _superConstructor;
 
   /// The constructor to which this constructor is redirecting.
@@ -1159,26 +1103,21 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  InterfaceType get returnType =>
-      ElementTypeProvider.current.getExecutableReturnType(this)
-          as InterfaceType;
-
-  @override
-  set returnType(DartType returnType) {
-    assert(false);
-  }
-
-  @override
-  DartType get returnTypeInternal {
+  InterfaceType get returnType {
     var result = _returnType;
     if (result != null) {
-      return result;
+      return result as InterfaceType;
     }
 
     final augmentedDeclaration = enclosingElement.augmented?.declaration;
     result = augmentedDeclaration?.thisType;
     result ??= InvalidTypeImpl.instance;
-    return _returnType = result;
+    return _returnType = result as InterfaceType;
+  }
+
+  @override
+  set returnType(DartType returnType) {
+    assert(false);
   }
 
   @override
@@ -1192,22 +1131,19 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
-
-  @override
-  set type(FunctionType type) {
-    assert(false);
-  }
-
-  @override
-  FunctionType get typeInternal {
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
+  FunctionType get type {
+    // TODO(scheglov): Remove "element" in the breaking changes branch.
     return _type ??= FunctionTypeImpl(
       typeFormals: typeParameters,
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
     );
+  }
+
+  @override
+  set type(FunctionType type) {
+    assert(false);
   }
 
   @override
@@ -1309,7 +1245,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
       final library = this.library;
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/47915
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/47915
       if (library == null) {
         throw StateError(
           '[library: null][this: ($runtimeType) $this]'
@@ -1683,8 +1619,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// or `null` if the compilation unit containing the variable has
   /// not been resolved.
   ///
-  /// TODO(kallentu): Remove this field once we fix up g3's dependency on
-  /// annotations having a valid result as well as unresolved errors.
+  // TODO(kallentu): Remove this field once we fix up g3's dependency on
+  // annotations having a valid result as well as unresolved errors.
   List<AnalysisError>? additionalErrors;
 
   /// Initialize a newly created annotation. The given [compilationUnit] is the
@@ -2060,7 +1996,7 @@ abstract class ElementImpl implements Element {
 
   @override
   int get hashCode {
-    // TODO: We might want to re-visit this optimization in the future.
+    // TODO(scheglov): We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
     return _cachedHashCode ??= location.hashCode;
   }
@@ -2470,7 +2406,6 @@ abstract class ElementImpl implements Element {
     bool multiline = false,
   }) {
     var builder = ElementDisplayStringBuilder(
-      skipAllDynamicArguments: false,
       withNullability: withNullability,
       multiline: multiline,
     );
@@ -2571,22 +2506,6 @@ abstract class ElementImpl implements Element {
     result |= _metadataFlag_isReady;
     return _metadataFlags = result;
   }
-}
-
-/// Abstract base class for elements whose type is guaranteed to be a function
-/// type.
-abstract class ElementImplWithFunctionType implements Element {
-  /// Gets the element's return type, without going through the indirection of
-  /// [ElementTypeProvider].
-  ///
-  /// In most cases, the element's `returnType` getter should be used instead.
-  DartType get returnTypeInternal;
-
-  /// Gets the element's type, without going through the indirection of
-  /// [ElementTypeProvider].
-  ///
-  /// In most cases, the element's `type` getter should be used instead.
-  FunctionType get typeInternal;
 }
 
 /// A concrete implementation of an [ElementLocation].
@@ -2706,7 +2625,7 @@ class ElementLocationImpl implements ElementLocation {
 class EnumElementImpl extends InterfaceElementImpl
     with AugmentableElement<EnumElementImpl>
     implements EnumElement {
-  late AugmentedEnumElement augmentedInternal =
+  late MaybeAugmentedEnumElementMixin augmentedInternal =
       NotAugmentedEnumElementImpl(this);
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -2714,9 +2633,13 @@ class EnumElementImpl extends InterfaceElementImpl
   EnumElementImpl(super.name, super.offset);
 
   @override
-  AugmentedEnumElement? get augmented {
-    linkedData?.read(this);
-    return augmentedInternal;
+  MaybeAugmentedEnumElementMixin? get augmented {
+    if (isAugmentation) {
+      return augmentationTarget?.augmented;
+    } else {
+      linkedData?.read(this);
+      return augmentedInternal;
+    }
   }
 
   List<FieldElementImpl> get constants {
@@ -2750,8 +2673,8 @@ class EnumElementImpl extends InterfaceElementImpl
 
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
-    implements ExecutableElement, ElementImplWithFunctionType {
+    with TypeParameterizedElementMixin, MacroTargetElement
+    implements ExecutableElement {
   /// A list containing all of the parameters defined by this executable
   /// element.
   List<ParameterElement> _parameters = const [];
@@ -2813,6 +2736,15 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
+  bool get isExtensionTypeMember {
+    return hasModifier(Modifier.EXTENSION_TYPE_MEMBER);
+  }
+
+  set isExtensionTypeMember(bool value) {
+    setModifier(Modifier.EXTENSION_TYPE_MEMBER, value);
+  }
+
+  @override
   bool get isExternal {
     return hasModifier(Modifier.EXTERNAL);
   }
@@ -2859,8 +2791,10 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
-  List<ParameterElement> get parameters =>
-      ElementTypeProvider.current.getExecutableParameters(this);
+  List<ParameterElement> get parameters {
+    linkedData?.read(this);
+    return _parameters;
+  }
 
   /// Set the parameters defined by this executable element to the given
   /// [parameters].
@@ -2875,18 +2809,11 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     return _parameters;
   }
 
-  /// Gets the element's parameters, without going through the indirection of
-  /// [ElementTypeProvider].
-  ///
-  /// In most cases, the [parameters] getter should be used instead.
-  List<ParameterElement> get parametersInternal {
-    linkedData?.read(this);
-    return _parameters;
-  }
-
   @override
-  DartType get returnType =>
-      ElementTypeProvider.current.getExecutableReturnType(this);
+  DartType get returnType {
+    linkedData?.read(this);
+    return _returnType!;
+  }
 
   set returnType(DartType returnType) {
     _returnType = returnType;
@@ -2896,25 +2823,12 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     // It somewhere it between we access the type of this element, so it gets
     // cached in the element. When we are done static type analysis, we then
     // should clear this cached type to make it right.
-    // TODO(scheglov) Remove when type analysis is done in the single pass.
+    // TODO(scheglov): Remove when type analysis is done in the single pass.
     _type = null;
   }
 
   @override
-  DartType get returnTypeInternal {
-    linkedData?.read(this);
-    return _returnType!;
-  }
-
-  @override
-  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
-
-  set type(FunctionType type) {
-    _type = type;
-  }
-
-  @override
-  FunctionType get typeInternal {
+  FunctionType get type {
     if (_type != null) return _type!;
 
     return _type = FunctionTypeImpl(
@@ -2923,6 +2837,10 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
     );
+  }
+
+  set type(FunctionType type) {
+    _type = type;
   }
 
   @override
@@ -2942,6 +2860,9 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 class ExtensionElementImpl extends InstanceElementImpl
     with AugmentableElement<ExtensionElementImpl>
     implements ExtensionElement {
+  late MaybeAugmentedExtensionElementMixin augmentedInternal =
+      NotAugmentedExtensionElementImpl(this);
+
   /// The type being extended.
   DartType? _extendedType;
 
@@ -2951,9 +2872,13 @@ class ExtensionElementImpl extends InstanceElementImpl
   ExtensionElementImpl(super.name, super.nameOffset);
 
   @override
-  AugmentedExtensionElement? get augmented {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
+  MaybeAugmentedExtensionElementMixin? get augmented {
+    if (isAugmentation) {
+      return augmentationTarget?.augmented;
+    } else {
+      linkedData?.read(this);
+      return augmentedInternal;
+    }
   }
 
   @override
@@ -2969,16 +2894,13 @@ class ExtensionElementImpl extends InstanceElementImpl
   String get displayName => name ?? '';
 
   @override
-  DartType get extendedType =>
-      ElementTypeProvider.current.getExtendedType(this);
+  DartType get extendedType {
+    linkedData?.read(this);
+    return _extendedType!;
+  }
 
   set extendedType(DartType extendedType) {
     _extendedType = extendedType;
-  }
-
-  DartType get extendedTypeInternal {
-    linkedData?.read(this);
-    return _extendedType!;
   }
 
   @override
@@ -3057,7 +2979,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     with AugmentableElement<ExtensionTypeElementImpl>
     implements ExtensionTypeElement {
-  late AugmentedExtensionTypeElement augmentedInternal =
+  late MaybeAugmentedExtensionTypeElementMixin augmentedInternal =
       NotAugmentedExtensionTypeElementImpl(this);
 
   @override
@@ -3074,7 +2996,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ExtensionTypeElementImpl(super.name, super.nameOffset);
 
   @override
-  AugmentedExtensionTypeElement? get augmented {
+  MaybeAugmentedExtensionTypeElementMixin? get augmented {
     if (isAugmentation) {
       return augmentationTarget?.augmented;
     } else {
@@ -3267,10 +3189,7 @@ abstract class FunctionTypedElementImpl
 /// Clients may not extend, implement or mix-in this class.
 class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin
-    implements
-        GenericFunctionTypeElement,
-        FunctionTypedElementImpl,
-        ElementImplWithFunctionType {
+    implements GenericFunctionTypeElement, FunctionTypedElementImpl {
   /// The declared return type of the function.
   DartType? _returnType;
 
@@ -3319,8 +3238,9 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 
   @override
-  DartType get returnType =>
-      ElementTypeProvider.current.getExecutableReturnType(this);
+  DartType get returnType {
+    return _returnType!;
+  }
 
   /// Set the return type defined by this function type element to the given
   /// [returnType].
@@ -3330,21 +3250,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 
   @override
-  DartType get returnTypeInternal {
-    return _returnType!;
-  }
-
-  @override
-  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
-
-  /// Set the function type defined by this function type element to the given
-  /// [type].
-  set type(FunctionType type) {
-    _type = type;
-  }
-
-  @override
-  FunctionType get typeInternal {
+  FunctionType get type {
     if (_type != null) return _type!;
 
     return _type = FunctionTypeImpl(
@@ -3354,6 +3260,12 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
       nullabilitySuffix:
           isNullable ? NullabilitySuffix.question : _noneOrStarSuffix,
     );
+  }
+
+  /// Set the function type defined by this function type element to the given
+  /// [type].
+  set type(FunctionType type) {
+    _type = type;
   }
 
   @override
@@ -3371,6 +3283,12 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 class HideElementCombinatorImpl implements HideElementCombinator {
   @override
   List<String> hiddenNames = const [];
+
+  @override
+  int offset = 0;
+
+  @override
+  int end = -1;
 
   @override
   String toString() {
@@ -3397,7 +3315,7 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, MacroTargetElement
     implements InstanceElement {
   @override
   ElementLinkedData? linkedData;
@@ -3486,7 +3404,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    with MacroTargetElement
     implements InterfaceElement {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -3569,16 +3486,12 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   List<InterfaceType> get interfaces {
-    return ElementTypeProvider.current.getClassInterfaces(this);
+    linkedData?.read(this);
+    return _interfaces;
   }
 
   set interfaces(List<InterfaceType> interfaces) {
     _interfaces = interfaces;
-  }
-
-  List<InterfaceType> get interfacesInternal {
-    linkedData?.read(this);
-    return _interfaces;
   }
 
   /// Return `true` if this class represents the class '_Enum' defined in the
@@ -3941,7 +3854,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   static PropertyAccessorElement? getSetterFromAccessors(
       String setterName, List<PropertyAccessorElement> accessors) {
-    // TODO (jwren) revisit- should we append '=' here or require clients to
+    // TODO(jwren): revisit- should we append '=' here or require clients to
     // include it?
     // Do we need the check for isSetter below?
     if (!setterName.endsWith('=')) {
@@ -4006,7 +3919,7 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
 class LabelElementImpl extends ElementImpl implements LabelElement {
   /// A flag indicating whether this label is associated with a `switch` member
   /// (`case` or `default`).
-  // TODO(brianwilkerson) Make this a modifier.
+  // TODO(brianwilkerson): Make this a modifier.
   final bool _onSwitchMember;
 
   /// Initialize a newly created label element to have the given [name].
@@ -4050,7 +3963,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   }) : super(name: null);
 
   @override
-  // TODO: implement accessibleExtensions
+  // TODO(scheglov): implement accessibleExtensions
   List<ExtensionElement> get accessibleExtensions => throw UnimplementedError();
 
   @override
@@ -4112,7 +4025,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
 
 /// A concrete implementation of a [LibraryElement].
 class LibraryElementImpl extends LibraryOrAugmentationElementImpl
-    with _HasLibraryMixin
+    with _HasLibraryMixin, MacroTargetElement
     implements LibraryElement {
   /// The analysis context in which this library is defined.
   @override
@@ -4132,8 +4045,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   late TypeSystemImpl typeSystem;
 
-  late final List<ExportedReference> exportedReferences;
+  late List<ExportedReference> exportedReferences;
 
+  @override
   LibraryElementLinkedData? linkedData;
 
   /// The union of names for all searchable elements in this library.
@@ -4169,7 +4083,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   BundleMacroExecutor? bundleMacroExecutor;
 
   /// Information about why non-promotable private fields in the library are not
-  /// promotable, or `null` if field promotion is not enabled in this library.
+  /// promotable.
+  ///
   /// See [fieldNameNonPromotabilityInfo].
   Map<String, FieldNameNonPromotabilityInfo>? _fieldNameNonPromotabilityInfo;
 
@@ -4245,7 +4160,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   /// Information about why non-promotable private fields in the library are not
-  /// promotable, or `null` if field promotion is not enabled in this library.
+  /// promotable.
+  ///
+  /// If field promotion is not enabled in this library, this field is still
+  /// populated, so that the analyzer can figure out whether enabling field
+  /// promotion would cause a field to be promotable.
   ///
   /// There are two ways an access to a private property name might not be
   /// promotable: the property might be non-promotable for a reason inherent to
@@ -4262,10 +4181,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   ///
   /// If a field in the library has a private name and that name does not appear
   /// as a key in this map, the field is promotable.
-  Map<String, FieldNameNonPromotabilityInfo>?
-      get fieldNameNonPromotabilityInfo {
+  Map<String, FieldNameNonPromotabilityInfo> get fieldNameNonPromotabilityInfo {
     _readLinkedData();
-    return _fieldNameNonPromotabilityInfo;
+    return _fieldNameNonPromotabilityInfo!;
   }
 
   set fieldNameNonPromotabilityInfo(
@@ -4310,10 +4228,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
-  bool get isNonNullableByDefault =>
-      ElementTypeProvider.current.isLibraryNonNullableByDefault(this);
-
-  bool get isNonNullableByDefaultInternal {
+  bool get isNonNullableByDefault {
     return featureSet.isEnabled(Feature.non_nullable);
   }
 
@@ -4756,7 +4671,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
 /// A concrete implementation of a [LibraryOrAugmentationElement].
 abstract class LibraryOrAugmentationElementImpl extends ElementImpl
-    implements LibraryOrAugmentationElement, MacroTargetElementContainer {
+    implements LibraryOrAugmentationElement {
   /// The compilation unit that defines this library.
   late CompilationUnitElementImpl _definingCompilationUnit;
 
@@ -4882,6 +4797,10 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     return _definingCompilationUnit.source;
   }
 
+  void resetScope() {
+    _scope = null;
+  }
+
   void _readLinkedData();
 
   static List<PrefixElementImpl> buildPrefixesFromImports(
@@ -4936,17 +4855,142 @@ class MacroGeneratedAugmentationLibrary {
   });
 }
 
-mixin MacroTargetElement {
-  /// Errors registered while applying macros to this element.
-  List<MacroApplicationError> macroApplicationErrors = const [];
+mixin MacroTargetElement on ElementImpl {
+  /// Diagnostics registered while applying macros to this element.
+  List<AnalyzerMacroDiagnostic> _macroDiagnostics = const [];
 
-  void addMacroApplicationError(MacroApplicationError error) {
-    macroApplicationErrors = [...macroApplicationErrors, error];
+  ElementLinkedData? get linkedData;
+
+  /// Diagnostics registered while applying macros to this element.
+  List<AnalyzerMacroDiagnostic> get macroDiagnostics {
+    linkedData?.read(this);
+    return _macroDiagnostics;
+  }
+
+  set macroDiagnostics(List<AnalyzerMacroDiagnostic> value) {
+    _macroDiagnostics = value;
+  }
+
+  void addMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {
+    _macroDiagnostics = [..._macroDiagnostics, diagnostic];
   }
 }
 
-/// Marker interface for elements that may have [MacroTargetElement]s.
-class MacroTargetElementContainer {}
+mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
+    implements AugmentedClassElement {
+  @override
+  ClassElementImpl get declaration;
+}
+
+mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
+    implements AugmentedEnumElement {
+  @override
+  EnumElementImpl get declaration;
+}
+
+mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
+    implements AugmentedExtensionElement {
+  @override
+  ExtensionElementImpl get declaration;
+}
+
+mixin MaybeAugmentedExtensionTypeElementMixin
+    on MaybeAugmentedInterfaceElementMixin
+    implements AugmentedExtensionTypeElement {
+  @override
+  ExtensionTypeElementImpl get declaration;
+}
+
+mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
+  @override
+  List<PropertyAccessorElement> get accessors;
+
+  @override
+  InstanceElementImpl get declaration;
+
+  @override
+  List<FieldElement> get fields;
+
+  @override
+  List<MethodElement> get methods;
+
+  @override
+  FieldElement? getField(String name) {
+    final length = fields.length;
+    for (var i = 0; i < length; i++) {
+      final field = fields[i];
+      if (field.name == name) {
+        return field;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? getGetter(String name) {
+    final length = accessors.length;
+    for (var i = 0; i < length; i++) {
+      final accessor = accessors[i];
+      if (accessor.isGetter && accessor.name == name) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement? getMethod(String name) {
+    final length = methods.length;
+    for (var i = 0; i < length; i++) {
+      final method = methods[i];
+      if (method.name == name) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? getSetter(String name) {
+    final nameLength = name.length;
+    final length = accessors.length;
+    for (var i = 0; i < length; i++) {
+      final accessor = accessors[i];
+      if (accessor.isSetter) {
+        final accessorName = accessor.name;
+        if (accessorName.length == nameLength + 1) {
+          if (accessorName.startsWith(name)) {
+            return accessor;
+          }
+        }
+      }
+    }
+    return null;
+  }
+}
+
+mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
+    implements AugmentedInterfaceElement {
+  @override
+  InterfaceElementImpl get declaration;
+
+  @override
+  ConstructorElement? get unnamedConstructor {
+    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
+  }
+
+  @override
+  ConstructorElement? getNamedConstructor(String name) {
+    name = name.ifEqualThen('new', '');
+    return constructors.firstWhereOrNull((element) => element.name == name);
+  }
+}
+
+mixin MaybeAugmentedMixinElementMixin on MaybeAugmentedInterfaceElementMixin
+    implements AugmentedMixinElement {
+  @override
+  MixinElementImpl get declaration;
+}
 
 /// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl
@@ -5006,7 +5050,7 @@ class MethodElementImpl extends ExecutableElementImpl
   @override
   String get name {
     String name = super.name;
-    if (name == '-' && parametersInternal.isEmpty) {
+    if (name == '-' && parameters.isEmpty) {
       return 'unary-';
     }
     return name;
@@ -5035,7 +5079,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   /// The list will be empty if this class is not a mixin declaration.
   late List<String> superInvokedNames;
 
-  late AugmentedMixinElement augmentedInternal =
+  late MaybeAugmentedMixinElementMixin augmentedInternal =
       NotAugmentedMixinElementImpl(this);
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -5043,7 +5087,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   MixinElementImpl(super.name, super.offset);
 
   @override
-  AugmentedMixinElement? get augmented {
+  MaybeAugmentedMixinElementMixin? get augmented {
     if (isAugmentation) {
       return augmentationTarget?.augmented;
     } else {
@@ -5056,6 +5100,9 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   bool get isBase {
     return hasModifier(Modifier.BASE);
   }
+
+  @override
+  ElementKind get kind => ElementKind.MIXIN;
 
   @override
   List<InterfaceType> get mixins => const [];
@@ -5138,95 +5185,99 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that the element is an enum constant field.
   static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 9);
 
+  /// Indicates that the element is an extension type member.
+  static const Modifier EXTENSION_TYPE_MEMBER =
+      Modifier('EXTENSION_TYPE_MEMBER', 10);
+
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = Modifier('EXTERNAL', 10);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 11);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = Modifier('FACTORY', 11);
+  static const Modifier FACTORY = Modifier('FACTORY', 12);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = Modifier('FINAL', 12);
+  static const Modifier FINAL = Modifier('FINAL', 13);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = Modifier('GENERATOR', 13);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 14);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = Modifier('GETTER', 14);
+  static const Modifier GETTER = Modifier('GETTER', 15);
 
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
-  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 15);
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 16);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 16);
+      Modifier('HAS_PART_OF_DIRECTIVE', 17);
 
   /// Indicates that the value of [Element.sinceSdkVersion] was computed.
   static const Modifier HAS_SINCE_SDK_VERSION_COMPUTED =
-      Modifier('HAS_SINCE_SDK_VERSION_COMPUTED', 17);
+      Modifier('HAS_SINCE_SDK_VERSION_COMPUTED', 18);
 
   /// [HAS_SINCE_SDK_VERSION_COMPUTED] and the value was not `null`.
   static const Modifier HAS_SINCE_SDK_VERSION_VALUE =
-      Modifier('HAS_SINCE_SDK_VERSION_VALUE', 18);
+      Modifier('HAS_SINCE_SDK_VERSION_VALUE', 19);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 19);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 20);
 
   /// Indicates that the modifier 'inline' was applied to the element.
-  static const Modifier INLINE = Modifier('INLINE', 20);
+  static const Modifier INLINE = Modifier('INLINE', 21);
 
   /// Indicates that the modifier 'interface' was applied to the element.
-  static const Modifier INTERFACE = Modifier('INTERFACE', 21);
+  static const Modifier INTERFACE = Modifier('INTERFACE', 22);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 22);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 23);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 23);
+  static const Modifier LATE = Modifier('LATE', 24);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 24);
+  static const Modifier MACRO = Modifier('MACRO', 25);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 25);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 26);
 
   /// Indicates that a class is a mixin class.
-  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 26);
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 27);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 27);
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 28);
 
   /// Indicates whether the type of a [PropertyInducingElementImpl] should be
   /// used to infer the initializer. We set it to `false` if the type was
   /// inferred from the initializer itself.
   static const Modifier SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE =
-      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 28);
+      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 29);
 
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 29);
+  static const Modifier SEALED = Modifier('SEALED', 30);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 30);
+  static const Modifier SETTER = Modifier('SETTER', 31);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 31);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 32);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 32);
+  static const Modifier STATIC = Modifier('STATIC', 33);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 33);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 34);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 34);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 35);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5238,6 +5289,7 @@ class Modifier implements Comparable<Modifier> {
     DEFERRED,
     ENUM,
     ENUM_CONSTANT,
+    EXTENSION_TYPE_MEMBER,
     EXTERNAL,
     FACTORY,
     FINAL,
@@ -5574,7 +5626,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
 }
 
 class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
-    implements AugmentedClassElement {
+    with MaybeAugmentedClassElementMixin {
   @override
   final ClassElementImpl element;
 
@@ -5585,7 +5637,7 @@ class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
 }
 
 class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
-    implements AugmentedEnumElement {
+    with MaybeAugmentedEnumElementMixin {
   @override
   final EnumElementImpl element;
 
@@ -5595,16 +5647,20 @@ class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
   EnumElementImpl get declaration => element;
 }
 
-class NotAugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
-    implements AugmentedExtensionElement {
+class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
+    with MaybeAugmentedExtensionElementMixin {
+  @override
   final ExtensionElementImpl element;
 
   NotAugmentedExtensionElementImpl(this.element);
+
+  @override
+  ExtensionElementImpl get declaration => element;
 }
 
 class NotAugmentedExtensionTypeElementImpl
     extends NotAugmentedInterfaceElementImpl
-    implements AugmentedExtensionTypeElement {
+    with MaybeAugmentedExtensionTypeElementMixin {
   @override
   final ExtensionTypeElementImpl element;
 
@@ -5615,7 +5671,7 @@ class NotAugmentedExtensionTypeElementImpl
 }
 
 abstract class NotAugmentedInstanceElementImpl
-    implements AugmentedInstanceElement {
+    with MaybeAugmentedInstanceElementMixin {
   @override
   List<PropertyAccessorElement> get accessors {
     return element.accessors;
@@ -5637,69 +5693,18 @@ abstract class NotAugmentedInstanceElementImpl
   List<MethodElement> get methods {
     return element.methods;
   }
-
-  @override
-  FieldElement? getField(String name) {
-    final length = fields.length;
-    for (var i = 0; i < length; i++) {
-      final field = fields[i];
-      if (field.name == name) {
-        return field;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getGetter(String name) {
-    final length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
-      if (accessor.isGetter && accessor.name == name) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  @override
-  MethodElement? getMethod(String name) {
-    final length = methods.length;
-    for (var i = 0; i < length; i++) {
-      final method = methods[i];
-      if (method.name == name) {
-        return method;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getSetter(String name) {
-    final nameLength = name.length;
-    final length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
-      if (accessor.isSetter) {
-        final accessorName = accessor.name;
-        if (accessorName.length == nameLength + 1) {
-          if (accessorName.startsWith(name)) {
-            return accessor;
-          }
-        }
-      }
-    }
-    return null;
-  }
 }
 
 abstract class NotAugmentedInterfaceElementImpl
     extends NotAugmentedInstanceElementImpl
-    implements AugmentedInterfaceElement {
+    with MaybeAugmentedInterfaceElementMixin {
   @override
   List<ConstructorElement> get constructors {
     return element.constructors;
   }
+
+  @override
+  InterfaceElementImpl get declaration;
 
   @override
   InterfaceElementImpl get element;
@@ -5726,7 +5731,7 @@ abstract class NotAugmentedInterfaceElementImpl
 }
 
 class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
-    implements AugmentedMixinElement {
+    with MaybeAugmentedMixinElementMixin {
   @override
   final MixinElementImpl element;
 
@@ -5921,15 +5926,12 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   }
 
   @override
-  DartType get type => ElementTypeProvider.current.getVariableType(this);
+  DartType get type => setter.variable.type;
 
   @override
   set type(DartType type) {
     assert(false); // Should never be called.
   }
-
-  @override
-  DartType get typeInternal => setter.variable.type;
 }
 
 /// A mixin that provides a common implementation for methods defined in
@@ -6225,8 +6227,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  DartType get returnType =>
-      ElementTypeProvider.current.getExecutableReturnType(this);
+  DartType get returnType => variable.type;
 
   @override
   set returnType(DartType returnType) {
@@ -6234,27 +6235,21 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  DartType get returnTypeInternal => variable.type;
-
-  @override
   Version? get sinceSdkVersion => variable.sinceSdkVersion;
 
   @override
-  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
-
-  @override
-  set type(FunctionType type) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  FunctionType get typeInternal {
+  FunctionType get type {
     return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: const <ParameterElement>[],
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
     );
+  }
+
+  @override
+  set type(FunctionType type) {
+    assert(false); // Should never be called.
   }
 }
 
@@ -6279,11 +6274,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   Element get nonSynthetic => variable;
 
   @override
-  List<ParameterElement> get parameters =>
-      ElementTypeProvider.current.getExecutableParameters(this);
-
-  @override
-  List<ParameterElement> get parametersInternal {
+  List<ParameterElement> get parameters {
     if (_parameters.isNotEmpty) {
       return _parameters;
     }
@@ -6294,8 +6285,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   }
 
   @override
-  DartType get returnType =>
-      ElementTypeProvider.current.getExecutableReturnType(this);
+  DartType get returnType => VoidTypeImpl.instance;
 
   @override
   set returnType(DartType returnType) {
@@ -6303,21 +6293,10 @@ class PropertyAccessorElementImpl_ImplicitSetter
   }
 
   @override
-  DartType get returnTypeInternal => VoidTypeImpl.instance;
-
-  @override
   Version? get sinceSdkVersion => variable.sinceSdkVersion;
 
   @override
-  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
-
-  @override
-  set type(FunctionType type) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  FunctionType get typeInternal {
+  FunctionType get type {
     return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: parameters,
@@ -6325,11 +6304,18 @@ class PropertyAccessorElementImpl_ImplicitSetter
       nullabilitySuffix: _noneOrStarSuffix,
     );
   }
+
+  @override
+  set type(FunctionType type) {
+    assert(false); // Should never be called.
+  }
 }
 
 /// A concrete implementation of a [PropertyInducingElement].
 abstract class PropertyInducingElementImpl
-    extends NonParameterVariableElementImpl implements PropertyInducingElement {
+    extends NonParameterVariableElementImpl
+    with MacroTargetElement
+    implements PropertyInducingElement {
   /// The getter associated with this element.
   @override
   PropertyAccessorElementImpl? getter;
@@ -6348,6 +6334,7 @@ abstract class PropertyInducingElementImpl
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
 
+  @override
   ElementLinkedData? linkedData;
 
   /// Initialize a newly created synthetic element to have the given [name] and
@@ -6381,7 +6368,7 @@ abstract class PropertyInducingElementImpl
   Element get nonSynthetic {
     if (isSynthetic) {
       if (enclosingElement is EnumElementImpl) {
-        // TODO(scheglov) remove 'index'?
+        // TODO(scheglov): remove 'index'?
         if (name == 'index' || name == 'values') {
           return enclosingElement;
         }
@@ -6401,27 +6388,7 @@ abstract class PropertyInducingElementImpl
   }
 
   @override
-  DartType get type => ElementTypeProvider.current.getFieldType(this);
-
-  @override
-  set type(DartType type) {
-    super.type = type;
-    // Reset cached types of synthetic getters and setters.
-    // TODO(scheglov) Consider not caching these types.
-    if (!isSynthetic) {
-      var getter = this.getter;
-      if (getter is PropertyAccessorElementImpl_ImplicitGetter) {
-        getter._type = null;
-      }
-      var setter = this.setter;
-      if (setter is PropertyAccessorElementImpl_ImplicitSetter) {
-        setter._type = null;
-      }
-    }
-  }
-
-  @override
-  DartType get typeInternal {
+  DartType get type {
     linkedData?.read(this);
     if (_type != null) return _type!;
 
@@ -6442,6 +6409,23 @@ abstract class PropertyInducingElementImpl
     _type = typeInference!.perform();
     shouldUseTypeForInitializerInference = false;
     return _type!;
+  }
+
+  @override
+  set type(DartType type) {
+    super.type = type;
+    // Reset cached types of synthetic getters and setters.
+    // TODO(scheglov): Consider not caching these types.
+    if (!isSynthetic) {
+      var getter = this.getter;
+      if (getter is PropertyAccessorElementImpl_ImplicitGetter) {
+        getter._type = null;
+      }
+      var setter = this.setter;
+      if (setter is PropertyAccessorElementImpl_ImplicitSetter) {
+        setter._type = null;
+      }
+    }
   }
 
   void bindReference(Reference reference) {
@@ -6835,15 +6819,12 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
-  DartType? get bound =>
-      ElementTypeProvider.current.getTypeParameterBound(this);
+  DartType? get bound {
+    return _bound;
+  }
 
   set bound(DartType? bound) {
     _bound = bound;
-  }
-
-  DartType? get boundInternal {
-    return _bound;
   }
 
   @override
@@ -7076,17 +7057,11 @@ abstract class VariableElementImpl extends ElementImpl
   String get name => super.name!;
 
   @override
-  DartType get type => ElementTypeProvider.current.getVariableType(this);
+  DartType get type => _type!;
 
   set type(DartType type) {
     _type = type;
   }
-
-  /// Gets the element's type, without going through the indirection of
-  /// [ElementTypeProvider].
-  ///
-  /// In most cases, the element's `returnType` getter should be used instead.
-  DartType get typeInternal => _type!;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

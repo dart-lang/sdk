@@ -4,7 +4,8 @@
 
 library kernel.hierarchy_based_type_environment;
 
-import '../ast.dart' show Class, DartType, InterfaceType, Member, Name;
+import '../ast.dart'
+    show Class, DartType, Member, Name, TypeDeclaration, TypeDeclarationType;
 
 import '../class_hierarchy.dart' show ClassHierarchy;
 
@@ -20,18 +21,18 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
       : super.fromSubclass(coreTypes, hierarchy);
 
   @override
-  InterfaceType? getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, CoreTypes coreTypes,
+  TypeDeclarationType? getTypeAsInstanceOf(TypeDeclarationType type,
+      TypeDeclaration typeDeclaration, CoreTypes coreTypes,
       {required bool isNonNullableByDefault}) {
-    return hierarchy.getTypeAsInstanceOf(type, superclass,
+    return hierarchy.getTypeAsInstanceOf(type, typeDeclaration,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
-      InterfaceType type, Class superclass) {
-    if (type.classNode == superclass) return type.typeArguments;
-    return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
+      TypeDeclarationType type, TypeDeclaration typeDeclaration) {
+    if (type.typeDeclaration == typeDeclaration) return type.typeArguments;
+    return hierarchy.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
   }
 
   @override

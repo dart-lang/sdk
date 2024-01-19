@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
@@ -18,13 +19,14 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
   PluginCodeActionsProducer(
     super.server,
-    super.path,
+    super.file,
     super.lineInfo, {
     required super.offset,
     required super.length,
     required super.shouldIncludeKind,
     required super.capabilities,
-  }) : driver = server.getAnalysisDriver(path);
+    required super.analysisOptions,
+  }) : driver = server.getAnalysisDriver(file.path);
 
   @override
   String get name => 'PluginActionsComputer';
@@ -60,8 +62,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
         .map((response) => plugin.EditGetFixesResult.fromResponse(response))
         .expand((response) => response.fixes)
         .map(_convertFixes)
-        .expand((fix) => fix)
-        .toList();
+        .flattenedToList2;
   }
 
   @override
@@ -80,7 +81,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   Iterable<CodeActionWithPriority> _convertFixes(
       plugin.AnalysisErrorFixes fixes) {
     final diagnostic = pluginToDiagnostic(
-      server.pathContext,
+      server.uriConverter,
       (_) => lineInfo,
       fixes.error,
       supportedTags: supportedDiagnosticTags,

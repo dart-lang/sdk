@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -44,7 +45,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
     final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null ||
-        !flutter.isDiagnosticable(classDeclaration.declaredElement!.thisType)) {
+        !Flutter.isDiagnosticable(classDeclaration.declaredElement!.thisType)) {
       return;
     }
 
@@ -73,9 +74,9 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     } else if (_isIterable(type)) {
       constructorId = 'IterableProperty';
       typeArgs = (type as InterfaceType).typeArguments;
-    } else if (flutter.isColor(type)) {
+    } else if (Flutter.isColor(type)) {
       constructorId = 'ColorProperty';
-    } else if (flutter.isMatrix4(type)) {
+    } else if (Flutter.isMatrix4(type)) {
       constructorId = 'TransformProperty';
     } else {
       constructorId = 'DiagnosticsProperty';

@@ -46,22 +46,22 @@ static method test(self::Class1 nonNullableClass1, self::Class1? nullableClass1,
   const int set_instance_field = nonNullableClass1.field = 42;
                                                          ^";
   core::print("DynamicSet");
-  dyn{dynamic}.field = 42;
-  let final dynamic #t2 = dyn in #t2 == null ?{core::int?} null : #t2{dynamic}.field = 42;
+  dyn.{dynamic}field = 42;
+  let final dynamic #t2 = dyn in #t2 == null ?{core::int?} null : #t2.{dynamic}field = 42;
   const core::int set_dynamic_field = invalid-expression "pkg/front_end/testcases/none/property_set.dart:23:43: Error: Not a constant expression.
   const int set_dynamic_field = dyn.field = 42;
                                           ^";
   core::print("DynamicSet (Never)");
-  never{Never}.field = 42;
+  never.{Never}field = 42;
   core::print("DynamicSet (Invalid)");
   invalid-expression "pkg/front_end/testcases/none/property_set.dart:29:27: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass1.method().field = 42;
-                          ^" in nonNullableClass1.{self::Class1::method}{<inapplicable>}.(){() → invalid-type}{<invalid>}.field = 42;
+                          ^" in nonNullableClass1.{self::Class1::method}{<inapplicable>}.(){() → invalid-type}.{<invalid>}field = 42;
   core::print("DynamicSet (Unresolved)");
   invalid-expression "pkg/front_end/testcases/none/property_set.dart:32:21: Error: The setter 'unresolved' isn't defined for the class 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/none/property_set.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
   nonNullableClass1.unresolved = 42;
-                    ^^^^^^^^^^" in nonNullableClass1{<unresolved>}.unresolved = 42;
+                    ^^^^^^^^^^" in nonNullableClass1.{<unresolved>}unresolved = 42;
 }
 static method main() → dynamic {}

@@ -46,7 +46,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (target is ExtensionOverride) {
       var result = _extensionResolver.getOverrideMember(target, '[]');
 
-      // TODO(scheglov) Change ExtensionResolver to set `needsGetterError`.
+      // TODO(scheglov): Change ExtensionResolver to set `needsGetterError`.
       if (hasRead && result.getter == null && !result.isAmbiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
@@ -79,7 +79,7 @@ class PropertyElementResolver with ScopeHelpers {
     targetType = _typeSystem.resolveToBound(targetType);
 
     if (targetType is VoidType) {
-      // TODO(scheglov) Report directly in TypePropertyResolver?
+      // TODO(scheglov): Report directly in TypePropertyResolver?
       _reportUnresolvedIndex(
         node,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
@@ -88,7 +88,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (identical(targetType, NeverTypeImpl.instance)) {
-      // TODO(scheglov) Report directly in TypePropertyResolver?
+      // TODO(scheglov): Report directly in TypePropertyResolver?
       errorReporter.reportErrorForNode(
         WarningCode.RECEIVER_OF_TYPE_NEVER,
         target,
@@ -430,11 +430,12 @@ class PropertyElementResolver with ScopeHelpers {
 
     var targetType = target.typeOrThrow;
 
-    if (targetType is FunctionType &&
-        propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-      return PropertyElementResolverResult(
-        functionTypeCallType: targetType,
-      );
+    if (propertyName.name == FunctionElement.CALL_METHOD_NAME) {
+      if (targetType is FunctionType || targetType.isDartCoreFunction) {
+        return PropertyElementResolverResult(
+          functionTypeCallType: targetType,
+        );
+      }
     }
 
     if (targetType is VoidType) {

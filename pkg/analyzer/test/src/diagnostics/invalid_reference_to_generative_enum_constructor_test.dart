@@ -105,6 +105,8 @@ enum E {
   const E.named();
 }
 ''', [
+      error(CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR, 11,
+          1),
       error(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
           37,

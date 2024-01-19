@@ -4,9 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -75,6 +74,6 @@ class CompletionGetSuggestionDetails2Handler extends CompletionHandler {
     }
 
     // Timeout or abort, send the empty response.
-    sendResult(CompletionGetSuggestionDetailsResult(''));
+    sendResult(CompletionGetSuggestionDetails2Result('', SourceChange('')));
   }
 }

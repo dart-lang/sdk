@@ -15,60 +15,66 @@ const kResultTypeUsesPassedTypeArguments =
 const kVmRecognizedPragmaName = "vm:recognized";
 const kVmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
 const kVmKeepNamePragmaName = "vm:keep-name";
+const kVmPlatformConstPragmaName = "vm:platform-const";
+const kVmPlatformConstIfPragmaName = "vm:platform-const-if";
 
 // Pragmas recognized by dart2wasm
 const kWasmEntryPointPragmaName = "wasm:entry-point";
 const kWasmExportPragmaName = "wasm:export";
 
-abstract class ParsedPragma {
-  const ParsedPragma();
-}
+abstract class ParsedPragma {}
 
 enum PragmaEntryPointType { Default, GetterOnly, SetterOnly, CallOnly }
 
 enum PragmaRecognizedType { AsmIntrinsic, GraphIntrinsic, Other }
 
-class ParsedEntryPointPragma extends ParsedPragma {
+class ParsedEntryPointPragma implements ParsedPragma {
   final PragmaEntryPointType type;
   const ParsedEntryPointPragma(this.type);
 }
 
-class ParsedResultTypeByTypePragma extends ParsedPragma {
+class ParsedResultTypeByTypePragma implements ParsedPragma {
   final DartType type;
   final bool resultTypeUsesPassedTypeArguments;
   const ParsedResultTypeByTypePragma(
       this.type, this.resultTypeUsesPassedTypeArguments);
 }
 
-class ParsedResultTypeByPathPragma extends ParsedPragma {
+class ParsedResultTypeByPathPragma implements ParsedPragma {
   final String path;
   const ParsedResultTypeByPathPragma(this.path);
 }
 
-class ParsedNonNullableResultType extends ParsedPragma {
+class ParsedNonNullableResultType implements ParsedPragma {
   const ParsedNonNullableResultType();
 }
 
-class ParsedRecognized extends ParsedPragma {
+class ParsedRecognized implements ParsedPragma {
   final PragmaRecognizedType type;
   const ParsedRecognized(this.type);
 }
 
-class ParsedDisableUnboxedParameters extends ParsedPragma {
+class ParsedDisableUnboxedParameters implements ParsedPragma {
   const ParsedDisableUnboxedParameters();
 }
 
-class ParsedKeepNamePragma extends ParsedPragma {
+class ParsedKeepNamePragma implements ParsedPragma {
   const ParsedKeepNamePragma();
+}
+
+class ParsedPlatformConstPragma implements ParsedPragma {
+  const ParsedPlatformConstPragma();
 }
 
 abstract class PragmaAnnotationParser {
   /// May return 'null' if the annotation does not represent a recognized
   /// @pragma.
   ParsedPragma? parsePragma(Expression annotation);
+
+  Iterable<R> parsedPragmas<R extends ParsedPragma>(Iterable<Expression> node);
 }
 
-class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
+class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
   final CoreTypes coreTypes;
   final Target target;
 
@@ -166,6 +172,14 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
         return const ParsedDisableUnboxedParameters();
       case kVmKeepNamePragmaName:
         return ParsedKeepNamePragma();
+      case kVmPlatformConstPragmaName:
+        return ParsedPlatformConstPragma();
+      case kVmPlatformConstIfPragmaName:
+        if (options is! BoolConstant) {
+          throw "ERROR: Non-boolean option to '$kVmPlatformConstIfPragmaName' "
+              "pragma: $options";
+        }
+        return options.value ? ParsedPlatformConstPragma() : null;
       case kWasmEntryPointPragmaName:
         return ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kWasmExportPragmaName:
@@ -175,4 +189,8 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
         return null;
     }
   }
+
+  Iterable<R> parsedPragmas<R extends ParsedPragma>(
+          Iterable<Expression> annotations) =>
+      annotations.map(parsePragma).whereType<R>();
 }

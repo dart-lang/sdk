@@ -34,11 +34,8 @@ import 'package:analysis_server/src/handler/legacy/analytics_enable.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_is_enabled.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_event.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_timing.dart';
-import 'package:analysis_server/src/handler/legacy/completion_get_suggestion_details.dart';
 import 'package:analysis_server/src/handler/legacy/completion_get_suggestion_details2.dart';
-import 'package:analysis_server/src/handler/legacy/completion_get_suggestions.dart';
 import 'package:analysis_server/src/handler/legacy/completion_get_suggestions2.dart';
-import 'package:analysis_server/src/handler/legacy/completion_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_diagnostics.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_server_port.dart';
 import 'package:analysis_server/src/handler/legacy/edit_bulk_fixes.dart';
@@ -198,13 +195,9 @@ class LegacyAnalysisServer extends AnalysisServer {
     ANALYTICS_REQUEST_SEND_EVENT: AnalyticsSendEventHandler.new,
     ANALYTICS_REQUEST_SEND_TIMING: AnalyticsSendTimingHandler.new,
     //
-    COMPLETION_REQUEST_GET_SUGGESTION_DETAILS:
-        CompletionGetSuggestionDetailsHandler.new,
     COMPLETION_REQUEST_GET_SUGGESTION_DETAILS2:
         CompletionGetSuggestionDetails2Handler.new,
-    COMPLETION_REQUEST_GET_SUGGESTIONS: CompletionGetSuggestionsHandler.new,
     COMPLETION_REQUEST_GET_SUGGESTIONS2: CompletionGetSuggestions2Handler.new,
-    COMPLETION_REQUEST_SET_SUBSCRIPTIONS: CompletionSetSubscriptionsHandler.new,
     //
     DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS: DiagnosticGetDiagnosticsHandler.new,
     DIAGNOSTIC_REQUEST_GET_SERVER_PORT: DiagnosticGetServerPortHandler.new,
@@ -413,7 +406,7 @@ class LegacyAnalysisServer extends AnalysisServer {
         ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.status.listen(handleAnalysisStatusChange);
+    analysisDriverScheduler.events.listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
     onAnalysisStarted.first.then((_) {
@@ -510,7 +503,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
 
     var driver = getAnalysisDriver(path);
-    return driver?.getCachedResult(path);
+    return driver?.getCachedResolvedUnit(path);
   }
 
   /// Gets the current version number of a document.
@@ -714,6 +707,7 @@ class LegacyAnalysisServer extends AnalysisServer {
         sendAnalysisNotificationAnalyzedFiles(this);
       }
       _scheduleAnalysisImplementedNotification();
+      filesResolvedSinceLastIdle.clear();
     }
     // Only send status when subscribed.
     if (!serverServices.contains(ServerService.STATUS)) {
@@ -735,14 +729,14 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Implementation for `analysis.setAnalysisRoots`.
   ///
-  /// TODO(scheglov) implement complete projects/contexts semantics.
-  ///
-  /// The current implementation is intentionally simplified and expected
-  /// that only folders are given each given folder corresponds to the exactly
-  /// one context.
-  ///
-  /// So, we can start working in parallel on adding services and improving
-  /// projects/contexts support.
+  // TODO(scheglov): implement complete projects/contexts semantics.
+  //
+  // The current implementation is intentionally simplified and expected
+  // that only folders are given each given folder corresponds to the exactly
+  // one context.
+  //
+  // So, we can start working in parallel on adding services and improving
+  // projects/contexts support.
   Future<void> setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths) async {
     final completer = analysisContextRebuildCompleter = Completer();
@@ -834,7 +828,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
     pubApi.close();
 
-    // TODO(brianwilkerson) Remove the following 6 lines when the
+    // TODO(brianwilkerson): Remove the following 6 lines when the
     //  analyticsManager is being correctly initialized.
     var analytics = options.analytics;
     if (analytics != null) {
@@ -914,14 +908,14 @@ class LegacyAnalysisServer extends AnalysisServer {
       notifyDeclarationsTracker(file);
       notifyFlutterWidgetDescriptions(file);
 
-      // TODO(scheglov) implement other cases
+      // TODO(scheglov): implement other cases
     });
   }
 
   /// Use the given updaters to update the values of the options in every
   /// existing analysis context.
   void updateOptions(List<OptionUpdater> optionUpdaters) {
-    // TODO(scheglov) implement for the new analysis driver
+    // TODO(scheglov): implement for the new analysis driver
 //    //
 //    // Update existing contexts.
 //    //
@@ -932,7 +926,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 //        optionUpdater(options);
 //      });
 //      context.analysisOptions = options;
-//      // TODO(brianwilkerson) As far as I can tell, this doesn't cause analysis
+//      // `TODO`(brianwilkerson) As far as I can tell, this doesn't cause analysis
 //      // to be scheduled for this context.
 //    }
 //    //
@@ -959,10 +953,17 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   void _scheduleAnalysisImplementedNotification() {
-    var files = analysisServices[AnalysisService.IMPLEMENTED];
-    if (files != null) {
-      scheduleImplementedNotification(this, files);
+    final subscribed = analysisServices[AnalysisService.IMPLEMENTED];
+    if (subscribed == null) {
+      return;
     }
+
+    final toSend = subscribed.intersection(filesResolvedSinceLastIdle);
+    if (toSend.isEmpty) {
+      return;
+    }
+
+    scheduleImplementedNotification(this, toSend);
   }
 
   void _sendSubscriptions({bool analysis = false, bool flutter = false}) {
@@ -1035,7 +1036,7 @@ class ServerContextManagerCallbacks
         _notificationManager.recordNavigationParams(
             NotificationManager.serverId,
             path,
-            _computeNavigationParams(path, unit));
+            _computeNavigationParams(path, result));
       });
     }
     if (analysisServer._hasAnalysisServiceSubscription(
@@ -1048,7 +1049,7 @@ class ServerContextManagerCallbacks
     // if (analysisServer._hasAnalysisServiceSubscription(
     //     AnalysisService.OUTLINE, path)) {
     //   _runDelayed(() {
-    //     // TODO(brianwilkerson) Change NotificationManager to store params
+    //     // `TODO`(brianwilkerson) Change NotificationManager to store params
     //     // so that fileKind and libraryName can be recorded / passed along.
     //     notificationManager.recordOutlines(NotificationManager.serverId, path,
     //         _computeOutlineParams(path, unit, result.lineInfo));
@@ -1093,9 +1094,9 @@ class ServerContextManagerCallbacks
   }
 
   server.AnalysisNavigationParams _computeNavigationParams(
-      String path, CompilationUnit unit) {
+      String path, ParsedUnitResult result) {
     var collector = NavigationCollectorImpl();
-    computeDartNavigation(resourceProvider, collector, unit, null, null);
+    computeDartNavigation(resourceProvider, collector, result, null, null);
     collector.createRegions();
     return server.AnalysisNavigationParams(
         path, collector.regions, collector.targets, collector.files);
@@ -1113,13 +1114,13 @@ class ServerContextManagerCallbacks
   /// important consumer of an analysis results, specifically a code completion
   /// computer, we want it to run before spending time of sending notifications.
   ///
-  /// TODO(scheglov) Consider replacing this with full priority based scheduler.
-  ///
-  /// TODO(scheglov) Alternatively, if code completion work in a way that does
-  /// not produce (at first) fully resolved unit, but only part of it - a single
-  /// method, or a top-level declaration, we would not have this problem - the
-  /// completion computer would be the only consumer of the partial analysis
-  /// result.
+  // TODO(scheglov): Consider replacing this with full priority based scheduler.
+  //
+  // TODO(scheglov): Alternatively, if code completion work in a way that does
+  // not produce (at first) fully resolved unit, but only part of it - a single
+  // method, or a top-level declaration, we would not have this problem - the
+  // completion computer would be the only consumer of the partial analysis
+  // result.
   void _runDelayed(Function() f) {
     Future(f);
   }

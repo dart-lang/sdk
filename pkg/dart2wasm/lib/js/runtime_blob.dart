@@ -14,6 +14,10 @@ let buildArgsList;
 // This function returns a promise to the instantiated module.
 export const instantiate = async (modulePromise, importObjectPromise) => {
     let dartInstance;
+''';
+
+// Break to support system dependent conversion routines.
+const jsRuntimeBlobPart2Regular = r'''
     function stringFromDartString(string) {
         const totalLength = dartInstance.exports.$stringLength(string);
         let result = '';
@@ -49,7 +53,20 @@ export const instantiate = async (modulePromise, importObjectPromise) => {
             return dartString;
         }
     }
+''';
 
+// Conversion functions for JSCM.
+const jsRuntimeBlobPart2JSCM = r'''
+    function stringFromDartString(string) {
+      return dartInstance.exports.$jsStringFromJSStringImpl(string);
+    }
+
+    function stringToDartString(string) {
+      return dartInstance.exports.$jsStringToJSStringImpl(string);
+    }
+''';
+
+const jsRuntimeBlobPart3 = r'''
     // Converts a Dart List to a JS array. Any Dart objects will be converted, but
     // this will be cheap for JSValues.
     function arrayFromDartList(constructor, list) {
@@ -78,17 +95,38 @@ export const instantiate = async (modulePromise, importObjectPromise) => {
         return wrapped;
     }
 
+    if (WebAssembly.String === undefined) {
+        console.log("WebAssembly.String is undefined, adding polyfill");
+        WebAssembly.String = {
+            "charCodeAt": (s, i) => s.charCodeAt(i),
+            "compare": (s1, s2) => {
+                if (s1 < s2) return -1;
+                if (s1 > s2) return 1;
+                return 0;
+            },
+            "concat": (s1, s2) => s1 + s2,
+            "equals": (s1, s2) => s1 === s2,
+            "fromCharCode": (i) => String.fromCharCode(i),
+            "length": (s) => s.length,
+            "substring": (s, a, b) => s.substring(a, b),
+        };
+    }
+
     // Imports
     const dart2wasm = {
 ''';
 
 // We break inside the 'dart2wasm' object to enable injection of methods. We
 // could use interpolation, but then we'd have to escape characters.
-const jsRuntimeBlobPart2 = r'''
+const jsRuntimeBlobPart4 = r'''
     };
 
     const baseImports = {
         dart2wasm: dart2wasm,
+''';
+
+// We break inside of `baseImports` to inject internalized strings.
+const jsRuntimeBlobPart5 = r'''
         Math: Math,
         Date: Date,
         Object: Object,

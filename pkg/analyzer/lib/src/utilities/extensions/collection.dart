@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:collection/collection.dart';
 
 extension IterableExtension<E> on Iterable<E> {
@@ -13,6 +15,34 @@ extension IterableExtension<E> on Iterable<E> {
     }
     return result;
   }
+
+  Iterable<E> whereNotType<U>() {
+    return whereNot((element) => element is U);
+  }
+}
+
+extension IterableIterableExtension<T> on Iterable<Iterable<T>> {
+  /// Elements of each iterable in this iterable.
+  ///
+  /// At the moment of writing, this method is `2.75` times faster than
+  /// `expand((e) => e)`, and `3.5` faster than `flattened` from
+  /// `package:collection`.
+  List<T> get flattenedToList2 {
+    return [
+      for (final elements in this) ...elements,
+    ];
+  }
+
+  /// Elements of each iterable in this iterable.
+  Set<T> get flattenedToSet2 {
+    return {
+      for (final elements in this) ...elements,
+    };
+  }
+}
+
+extension IterableMapEntryExtension<K, V> on Iterable<MapEntry<K, V>> {
+  Map<K, V> get mapFromEntries => Map.fromEntries(this);
 }
 
 extension ListExtension<E> on List<E> {
@@ -38,6 +68,21 @@ extension ListExtension<E> on List<E> {
     }
   }
 
+  bool endsWith(List<E> expected) {
+    var thisIndex = length - expected.length;
+    if (thisIndex < 0) {
+      return false;
+    }
+
+    var expectedIndex = 0;
+    for (; expectedIndex < expected.length;) {
+      if (this[thisIndex++] != expected[expectedIndex++]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   E? nextOrNull(E element) {
     final index = indexOf(element);
     if (index >= 0 && index < length - 1) {
@@ -45,6 +90,13 @@ extension ListExtension<E> on List<E> {
     } else {
       return null;
     }
+  }
+
+  E? removeLastOrNull() {
+    if (isNotEmpty) {
+      return removeLast();
+    }
+    return null;
   }
 
   /// Returns a new list with all elements of the target, arranged such that
@@ -56,6 +108,24 @@ extension ListExtension<E> on List<E> {
       ...where(predicate),
       ...whereNot(predicate),
     ];
+  }
+}
+
+extension ListQueueExtension<T> on ListQueue<T> {
+  T? removeFirstOrNull() {
+    return isNotEmpty ? removeFirst() : null;
+  }
+}
+
+extension MapExtension<K, V> on Map<K, V> {
+  K? get firstKey {
+    return keys.firstOrNull;
+  }
+}
+
+extension MapOfListValuesExtension<K, V> on Map<K, List<V>> {
+  void add(K key, V value) {
+    (this[key] ??= []).add(value);
   }
 }
 

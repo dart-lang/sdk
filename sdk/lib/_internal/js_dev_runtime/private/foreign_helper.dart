@@ -326,11 +326,13 @@ external RAW_DART_FUNCTION_REF(Function function);
 /// Returns a reference to the internal value that represents [T].
 ///
 /// Static calls to this function are inserted directly by the compiler.
+@notNull
 external Rti TYPE_REF<T>();
 
 /// Returns a reference to the internal value that represents [T]*.
 ///
 /// Static calls to this function are inserted directly by the compiler.
+@notNull
 external Rti LEGACY_TYPE_REF<T>();
 
 /// JavaScript string concatenation. Inputs must be Strings.

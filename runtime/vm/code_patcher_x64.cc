@@ -16,6 +16,95 @@
 
 namespace dart {
 
+// callq [CODE_REG + entry_point_offset (disp8)]
+static const int16_t kCallPatternJIT[] = {
+    0x41, 0xff, 0x54, 0x24, -1,
+};
+
+// callq [TMP + entry_point_offset (disp8)]
+static const int16_t kCallPatternAOT[] = {
+    0x41,
+    0xff,
+    0x53,
+    -1,
+};
+
+static const intptr_t kLoadCodeFromPoolInstructionLength = 3;
+static const intptr_t kLoadCodeFromPoolDisp8PatternLength =
+    kLoadCodeFromPoolInstructionLength + 1;
+static const intptr_t kLoadCodeFromPoolDisp32PatternLength =
+    kLoadCodeFromPoolInstructionLength + 4;
+
+// movq CODE_REG, [PP + disp8]
+static const int16_t
+    kLoadCodeFromPoolDisp8JIT[kLoadCodeFromPoolDisp8PatternLength] = {
+        0x4d,
+        0x8b,
+        0x67,
+        -1,
+};
+
+// movq CODE_REG, [PP + disp32]
+static const int16_t
+    kLoadCodeFromPoolDisp32JIT[kLoadCodeFromPoolDisp32PatternLength] = {
+        0x4d, 0x8b, 0xa7, -1, -1, -1, -1,
+};
+
+// movq TMP, [PP + disp8]
+static const int16_t
+    kLoadCodeFromPoolDisp8AOT[kLoadCodeFromPoolDisp8PatternLength] = {
+        0x4d,
+        0x8b,
+        0x5f,
+        -1,
+};
+
+// movq TMP, [PP + disp32]
+static const int16_t
+    kLoadCodeFromPoolDisp32AOT[kLoadCodeFromPoolDisp32PatternLength] = {
+        0x4d, 0x8b, 0x9f, -1, -1, -1, -1,
+};
+
+static void MatchCallPattern(uword* pc) {
+  const int16_t* call_pattern =
+      FLAG_precompiled_mode ? kCallPatternAOT : kCallPatternJIT;
+  const intptr_t call_pattern_length = FLAG_precompiled_mode
+                                           ? ARRAY_SIZE(kCallPatternAOT)
+                                           : ARRAY_SIZE(kCallPatternJIT);
+
+  // callq [reg + entry_point_offset]
+  if (MatchesPattern(*pc, call_pattern, call_pattern_length)) {
+    *pc -= call_pattern_length;
+  } else {
+    FATAL("Expected `call [%s + offs]` at %" Px,
+          FLAG_precompiled_mode ? "TMP" : "CODE_REG", *pc);
+  }
+}
+
+static void MatchCodeLoadFromPool(uword* pc, intptr_t* code_index) {
+  const int16_t* load_code_disp8_pattern = FLAG_precompiled_mode
+                                               ? kLoadCodeFromPoolDisp8AOT
+                                               : kLoadCodeFromPoolDisp8JIT;
+  const int16_t* load_code_disp32_pattern = FLAG_precompiled_mode
+                                                ? kLoadCodeFromPoolDisp32AOT
+                                                : kLoadCodeFromPoolDisp32JIT;
+
+  if (MatchesPattern(*pc, load_code_disp8_pattern,
+                     kLoadCodeFromPoolDisp8PatternLength)) {
+    *pc -= kLoadCodeFromPoolDisp8PatternLength;
+    *code_index =
+        IndexFromPPLoadDisp8(*pc + kLoadCodeFromPoolInstructionLength);
+  } else if (MatchesPattern(*pc, load_code_disp32_pattern,
+                            kLoadCodeFromPoolDisp32PatternLength)) {
+    *pc -= kLoadCodeFromPoolDisp32PatternLength;
+    *code_index =
+        IndexFromPPLoadDisp32(*pc + kLoadCodeFromPoolInstructionLength);
+  } else {
+    FATAL("Expected `movq %s, [PP + imm8|imm32]` at %" Px,
+          FLAG_precompiled_mode ? "TMP" : "CODE_REG", *pc);
+  }
+}
+
 class UnoptimizedCall : public ValueObject {
  public:
   UnoptimizedCall(uword return_address, const Code& code)
@@ -24,33 +113,8 @@ class UnoptimizedCall : public ValueObject {
         argument_index_(-1) {
     uword pc = return_address;
 
-    // callq [CODE_REG + entry_point_offset]
-    static int16_t call_pattern[] = {
-        0x41, 0xff, 0x54, 0x24, -1,
-    };
-    if (MatchesPattern(pc, call_pattern, ARRAY_SIZE(call_pattern))) {
-      pc -= ARRAY_SIZE(call_pattern);
-    } else {
-      FATAL("Failed to decode at %" Px, pc);
-    }
-
-    // movq CODE_REG, [PP + offset]
-    static int16_t load_code_disp8[] = {
-        0x4d, 0x8b, 0x67, -1,  //
-    };
-    static int16_t load_code_disp32[] = {
-        0x4d, 0x8b, 0xa7, -1, -1, -1, -1,
-    };
-    if (MatchesPattern(pc, load_code_disp8, ARRAY_SIZE(load_code_disp8))) {
-      pc -= ARRAY_SIZE(load_code_disp8);
-      code_index_ = IndexFromPPLoadDisp8(pc + 3);
-    } else if (MatchesPattern(pc, load_code_disp32,
-                              ARRAY_SIZE(load_code_disp32))) {
-      pc -= ARRAY_SIZE(load_code_disp32);
-      code_index_ = IndexFromPPLoadDisp32(pc + 3);
-    } else {
-      FATAL("Failed to decode at %" Px, pc);
-    }
+    MatchCallPattern(&pc);
+    MatchCodeLoadFromPool(&pc, &code_index_);
     ASSERT(Object::Handle(object_pool_.ObjectAt(code_index_)).IsCode());
 
     // movq RBX, [PP + offset]
@@ -164,33 +228,8 @@ class PoolPointerCall : public ValueObject {
         code_index_(-1) {
     uword pc = return_address;
 
-    // callq [CODE_REG + entry_point_offset]
-    static int16_t call_pattern[] = {
-        0x41, 0xff, 0x54, 0x24, -1,
-    };
-    if (MatchesPattern(pc, call_pattern, ARRAY_SIZE(call_pattern))) {
-      pc -= ARRAY_SIZE(call_pattern);
-    } else {
-      FATAL("Failed to decode at %" Px, pc);
-    }
-
-    // movq CODE_REG, [PP + offset]
-    static int16_t load_code_disp8[] = {
-        0x4d, 0x8b, 0x67, -1,  //
-    };
-    static int16_t load_code_disp32[] = {
-        0x4d, 0x8b, 0xa7, -1, -1, -1, -1,
-    };
-    if (MatchesPattern(pc, load_code_disp8, ARRAY_SIZE(load_code_disp8))) {
-      pc -= ARRAY_SIZE(load_code_disp8);
-      code_index_ = IndexFromPPLoadDisp8(pc + 3);
-    } else if (MatchesPattern(pc, load_code_disp32,
-                              ARRAY_SIZE(load_code_disp32))) {
-      pc -= ARRAY_SIZE(load_code_disp32);
-      code_index_ = IndexFromPPLoadDisp32(pc + 3);
-    } else {
-      FATAL("Failed to decode at %" Px, pc);
-    }
+    MatchCallPattern(&pc);
+    MatchCodeLoadFromPool(&pc, &code_index_);
     ASSERT(Object::Handle(object_pool_.ObjectAt(code_index_)).IsCode());
   }
 

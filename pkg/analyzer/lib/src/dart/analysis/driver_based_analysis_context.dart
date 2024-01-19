@@ -28,10 +28,17 @@ class DriverBasedAnalysisContext implements AnalysisContext {
     this.resourceProvider,
     this.contextRoot, [
     @Deprecated('AnalysisDriver will set itself, remove this')
-        AnalysisDriver? analysisDriver,
+    AnalysisDriver? analysisDriver,
   ]);
 
+  /// Get all the analysis options objects associated with this context.
+  List<AnalysisOptions> get allAnalysisOptions => [
+        // ignore: deprecated_member_use_from_same_package
+        analysisOptions,
+      ];
+
   @override
+  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions => driver.analysisOptions;
 
   @override
@@ -55,4 +62,8 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   void changeFile(String path) {
     driver.changeFile(path);
   }
+
+  @override
+  AnalysisOptions getAnalysisOptionsForFile(File file) =>
+      driver.getAnalysisOptionsForFile(file);
 }

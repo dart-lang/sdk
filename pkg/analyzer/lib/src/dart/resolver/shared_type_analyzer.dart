@@ -264,7 +264,6 @@ class SharedTypeAnalyzerErrors
           WarningCode.UNNECESSARY_WILDCARD_PATTERN,
           pattern,
         );
-        break;
     }
   }
 }

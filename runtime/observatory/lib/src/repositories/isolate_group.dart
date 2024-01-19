@@ -5,9 +5,7 @@
 part of repositories;
 
 class IsolateGroupRepository extends M.IsolateGroupRepository {
-  final S.VM _vm;
-
-  IsolateGroupRepository(this._vm);
+  IsolateGroupRepository();
 
   Future<M.IsolateGroup> get(M.IsolateGroupRef i) async {
     S.IsolateGroup isolateGroup = i as S.IsolateGroup;

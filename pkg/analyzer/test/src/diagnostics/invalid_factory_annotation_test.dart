@@ -32,6 +32,17 @@ class X {
     ]);
   }
 
+  test_extensionType() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@factory
+extension type E(int i) {
+}
+''', [
+      error(WarningCode.INVALID_FACTORY_ANNOTATION, 33, 8),
+    ]);
+  }
+
   test_field() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

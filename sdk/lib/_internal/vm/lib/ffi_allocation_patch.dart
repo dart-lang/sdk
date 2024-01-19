@@ -11,7 +11,7 @@ import 'dart:typed_data';
 extension AllocatorAlloc on Allocator {
   // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
   @patch
-  Pointer<T> call<T extends NativeType>([int count = 1]) {
+  Pointer<T> call<T extends SizedNativeType>([int count = 1]) {
     // This case should have been rewritten in pre-processing.
     throw UnimplementedError("Pointer<$T>");
   }

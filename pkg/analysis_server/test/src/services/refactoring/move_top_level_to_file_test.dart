@@ -954,7 +954,6 @@ import 'package:test/a.dart';
 
 A? staying;
 >>>>>>>>>> lib/moving.dart
-import 'package:test/a.dart' hide A;
 import 'package:test/a.dart';
 
 A? moving;
@@ -993,8 +992,7 @@ import 'package:test/a.dart' show A;
 
 A? staying;
 >>>>>>>>>> lib/moving.dart
-import 'package:test/a.dart' hide A;
-import 'package:test/a.dart' show A;
+import 'package:test/a.dart';
 
 A? moving;
 ''';
@@ -1050,6 +1048,31 @@ class B {}
     var expected = '''
 >>>>>>>>>> lib/class_to_move.dart created
 class ClassToMove {}
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+''';
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+  }
+
+  Future<void> test_kind_extensionType() async {
+    var originalSource = '''
+class A {}
+
+extensionType ExtensionTypeToMove^(int i) {}
+
+class B {}
+''';
+    var declarationName = 'ExtensionTypeToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/extension_type_to_move.dart created
+extensionType ExtensionTypeToMove(int i) {}
 >>>>>>>>>> lib/main.dart
 class A {}
 

@@ -167,7 +167,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitInstanceCreation(
       InstanceCreationExpression expression, FunctionExpression node) {
-    if (expression.isConst) return;
+    if (expression.isConst || expression.constructorName.type.isDeferred) {
+      return;
+    }
 
     var arguments = expression.argumentList.arguments;
     var parameters = node.parameters?.parameters ?? <FormalParameter>[];
@@ -211,7 +213,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var parameters = nodeToLintParams.map((e) => e.declaredElement).toSet();
     if (node is FunctionExpressionInvocation) {
-      // todo (pq): consider checking for assignability
+      // TODO(pq): consider checking for assignability
       // see: https://github.com/dart-lang/linter/issues/1561
       var checker = _FinalExpressionChecker(parameters);
       if (checker.isFinalNode(node.function)) {

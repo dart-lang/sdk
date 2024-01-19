@@ -43,7 +43,6 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     class ^A {}
     ''');
 
-    final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
       initialize,
       {
@@ -73,7 +72,6 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     final code = TestCode.parse(content);
 
-    final initialAnalysis = waitForAnalysisComplete();
     await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
@@ -90,7 +88,6 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     setHoverContentFormat([MarkupKind.PlainText]);
     final code = TestCode.parse(content);
 
-    final initialAnalysis = waitForAnalysisComplete();
     await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
@@ -600,6 +597,121 @@ void f(([!dou^ble!], double) param) {
 (new) Foo Foo(String a, String b)
 ```'''),
       );
+
+  Future<void> test_staticType_field() async {
+    final content = '''
+class A<T> {
+  late final T? myField;
+}
+
+final data = A<String?>().[!myF^ield!];
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+T? myField
+```
+Type: `String?`
+
+*package:test/main.dart*
+'''
+        .trim();
+
+    await assertStringContents(content, equals(expectedHoverContent));
+  }
+
+  Future<void> test_staticType_getter() async {
+    final content = '''
+class A {
+  String get myGetter => '';
+}
+
+final data = A().[!myG^etter!];
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+String get myGetter
+```
+Type: `String`
+
+*package:test/main.dart*
+'''
+        .trim();
+
+    await assertStringContents(content, equals(expectedHoverContent));
+  }
+
+  Future<void> test_staticType_getter_generic() async {
+    final content = '''
+class A<T> {
+  late final T? myField;
+  T? get myGetter => myField;
+}
+
+final data = A<String?>().[!myG^etter!];
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+T? get myGetter
+```
+Type: `String?`
+
+*package:test/main.dart*
+'''
+        .trim();
+
+    await assertStringContents(content, equals(expectedHoverContent));
+  }
+
+  Future<void> test_staticType_setter() async {
+    final content = '''
+class A {
+  set mySetter(String value) {}
+}
+
+void f() {
+  A().[!myS^etter!] = '';
+}
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+set mySetter(String value)
+```
+Type: `String`
+
+*package:test/main.dart*
+'''
+        .trim();
+
+    await assertStringContents(content, equals(expectedHoverContent));
+  }
+
+  Future<void> test_staticType_setter_generic() async {
+    final content = '''
+class A<T> {
+  set mySetter(T value) {}
+}
+
+void f() {
+  A<String>().[!myS^etter!] = '';
+}
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+set mySetter(T value)
+```
+Type: `String`
+
+*package:test/main.dart*
+'''
+        .trim();
+
+    await assertStringContents(content, equals(expectedHoverContent));
+  }
 
   Future<void> test_string_noDocComment() async {
     final content = '''

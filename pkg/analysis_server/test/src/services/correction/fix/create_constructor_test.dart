@@ -202,7 +202,6 @@ enum E {
 ''', matchFixMessage: "Create constructor 'E'");
   }
 
-  @FailingTest(reason: 'parameter types should be inferred')
   Future<void> test_undefined_enum_constructor_unnamed_parameters() async {
     await resolveTestCode('''
 enum E {

@@ -10,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeTest);
-    defineReflectiveTests(ReturnOfInvalidTypeWithoutNullSafetyTest);
     defineReflectiveTests(ReturnOfInvalidTypeWithStrictCastsTest);
   });
 }
@@ -332,14 +331,13 @@ void f() {
   }
 
   test_function_sync_block_num__to_int() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1),
-    ], legacy: []);
     await assertErrorsInCode(r'''
 int f(num a) {
   return a;
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1),
+    ]);
   }
 
   test_function_sync_block_String__to_int() async {
@@ -389,14 +387,13 @@ int f(void a) {
   }
 
   test_function_sync_block_void__to_Null() async {
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 Null f(void a) {
   return a;
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
+    ]);
   }
 
   test_function_sync_block_void__to_void() async {
@@ -563,10 +560,6 @@ Map<int, int> f() => {...[1, 2, 3, 4]};
     ]);
   }
 }
-
-@reflectiveTest
-class ReturnOfInvalidTypeWithoutNullSafetyTest extends PubPackageResolutionTest
-    with ReturnOfInvalidTypeTestCases, WithoutNullSafetyMixin {}
 
 @reflectiveTest
 class ReturnOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest

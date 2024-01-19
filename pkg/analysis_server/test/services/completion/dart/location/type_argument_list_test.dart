@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TypeArgumentListTest1);
-    defineReflectiveTests(TypeArgumentListTest2);
+    defineReflectiveTests(TypeArgumentListTest);
   });
 }
 
 @reflectiveTest
-class TypeArgumentListTest1 extends AbstractCompletionDriverTest
-    with TypeArgumentListTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class TypeArgumentListTest2 extends AbstractCompletionDriverTest
-    with TypeArgumentListTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class TypeArgumentListTest extends AbstractCompletionDriverTest
+    with TypeArgumentListTestCases {}
 
 mixin TypeArgumentListTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterLess_beforeGreater_functionInvocation() async {
@@ -160,13 +149,9 @@ suggestions
     kind: class
   B01
     kind: class
-  false
+  dynamic
     kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
+  void
     kind: keyword
 ''');
   }

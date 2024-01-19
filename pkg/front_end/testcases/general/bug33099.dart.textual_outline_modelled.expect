@@ -5,6 +5,7 @@ bool _hasAnnotationInstance(DeclarationMirror declaration, instance) =>
       print('annotation: ${annotation.reflectee}');
       return identical(annotation.reflectee, instance);
     });
+
 bool _hasFailingTestAnnotation(MethodMirror method) {}
 
 class MyTest2 extends Object with MyTest {}
@@ -14,7 +15,9 @@ class _FailingTest {
 }
 
 const _FailingTest failingTest = const _FailingTest();
+
 main() {}
+
 mixin MyTest {
   @failingTest
   void foo() {}

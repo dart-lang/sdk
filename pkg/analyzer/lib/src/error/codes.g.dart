@@ -14,6 +14,9 @@
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
+//
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/dart/error/hint_codes.g.dart";
@@ -255,7 +258,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE',
     "The 'await' expression can't be used for an expression with an extension "
         "type that is not a subtype of 'Future'.",
-    correctionMessage: "Try updating the extension type to implement 'Future'.",
+    correctionMessage:
+        "Try removing the `await`, or updating the extension type to implement "
+        "'Future'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -309,6 +315,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try choosing a different name for the extension.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
+  );
+
+  ///  Parameters:
+  ///  0: the built-in identifier that is being used
+  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME =
+      CompileTimeErrorCode(
+    'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+    "The built-in identifier '{0}' can't be used as an extension type name.",
+    correctionMessage: "Try choosing a different name for the extension type.",
+    hasPublishedDocs: true,
+    uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
   );
 
   ///  Parameters:
@@ -552,6 +569,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+  ///  error if the interface of `C` has an instance method named `n` and an
+  ///  instance setter with basename `n`.
+  ///
+  ///  Parameters:
+  ///  0: the name of the enclosing element kind - class, extension type, etc
+  ///  1: the name of the enclosing element
+  ///  2: the name of the conflicting method / setter
+  static const CompileTimeErrorCode CONFLICTING_INHERITED_METHOD_AND_SETTER =
+      CompileTimeErrorCode(
+    'CONFLICTING_INHERITED_METHOD_AND_SETTER',
+    "The {0} '{1}' can't inherit both a method and a setter named '{2}'.",
+  );
+
+  ///  10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
   ///  error if `C` declares a method named `n`, and has a getter or a setter
   ///  with basename `n`.
   ///
@@ -625,6 +656,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the type variable
+  static const CompileTimeErrorCode
+      CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE = CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    "'{0}' can't be used to name both a type variable and the extension type "
+        "in which the type variable is defined.",
+    correctionMessage:
+        "Try renaming either the type variable or the extension.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the type variable
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
@@ -657,6 +701,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try renaming either the type variable or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the type variable
+  static const CompileTimeErrorCode
+      CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE =
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    "'{0}' can't be used to name both a type variable and a member in this "
+        "extension type.",
+    correctionMessage: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
   );
 
   ///  Parameters:
@@ -1345,19 +1402,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
+    "An enum constant can't invoke a factory constructor.",
+    correctionMessage: "Try using a generative constructor.",
+  );
+
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
     "The name of the enum constant can't be the same as the enum's name.",
     correctionMessage: "Try renaming the constant.",
-    hasPublishedDocs: true,
-  );
-
-  static const CompileTimeErrorCode ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR =
-      CompileTimeErrorCode(
-    'ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR',
-    "The invoked constructor isn't a 'const' constructor.",
-    correctionMessage: "Try invoking a 'const' generative constructor.",
     hasPublishedDocs: true,
   );
 
@@ -1639,14 +1695,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
     "Extension type constructors can't declare super formal parameters.",
     correctionMessage: "Try removing the super formal parameter declaration.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
   static const CompileTimeErrorCode
       EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION = CompileTimeErrorCode(
     'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
-    "Extension type constructors can't include superinitializers.",
-    correctionMessage: "Try removing the superconstructor invocation.",
+    "Extension type constructors can't include super initializers.",
+    correctionMessage: "Try removing the super constructor invocation.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1655,6 +1713,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
     "Extension types can't declare instance fields.",
     correctionMessage: "Try replacing the field with a getter.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1664,6 +1723,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Extension types can't declare members with the same name as a member "
         "declared by 'Object'.",
     correctionMessage: "Try specifying a different name for the member.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1674,6 +1734,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Extension types can't implement '{0}'.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1683,6 +1744,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The extension type can't implement itself.",
     correctionMessage:
         "Try removing the superinterface that references this extension type.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1694,6 +1756,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' is not a supertype of '{1}', the representation type.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1709,6 +1772,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "representation type of '{3}'.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1721,6 +1785,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "from implemented types.",
     correctionMessage:
         "Try redeclaring the corresponding member in this extension type.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1729,6 +1794,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
     "The extension type representation can't depend on itself.",
     correctionMessage: "Try specifying a different type.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1737,6 +1803,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
     "The representation type can't be a bottom type.",
     correctionMessage: "Try specifying a different type.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1747,6 +1814,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
     "'{0}' must have a method body because '{1}' is an extension type.",
     correctionMessage: "Try adding a body to '{0}'.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
@@ -2647,7 +2715,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The constructor returns type '{0}' that isn't of expected type '{1}'.",
   );
 
-  ///  TODO(brianwilkerson) Remove this when we have decided on how to report
+  ///  TODO(brianwilkerson): Remove this when we have decided on how to report
   ///  errors in compile-time constants. Until then, this acts as a placeholder
   ///  for more informative errors.
   ///
@@ -2974,13 +3042,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the message of the exception
-  ///  1: the stack trace
-  static const CompileTimeErrorCode MACRO_EXECUTION_EXCEPTION =
-      CompileTimeErrorCode(
-    'MACRO_EXECUTION_EXCEPTION',
-    "Exception during macro execution: {0}\n{1}",
-    correctionMessage: "Re-install the Dart or Flutter SDK.",
+  ///  0: the name of the introspected declaration
+  static const CompileTimeErrorCode
+      MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE = CompileTimeErrorCode(
+    'MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE',
+    "The declaration '{0}' can't be introspected because there is a cycle of "
+        "macro applications.",
+    correctionMessage:
+        "Try removing one or more macro applications to break the cycle.",
+  );
+
+  ///  Parameters:
+  ///  0: the message
+  static const CompileTimeErrorCode MACRO_ERROR = CompileTimeErrorCode(
+    'MACRO_ERROR',
+    "{0}",
   );
 
   ///  No parameters.
@@ -3714,6 +3790,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the type parameters from function parameter types and "
         "type parameter bounds.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -4349,7 +4426,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  No parameters.
   ///
-  ///  TODO(scheglov) review this later, there are no explicit "it is a
+  ///  TODO(scheglov): review this later, there are no explicit "it is a
   ///  compile-time error" in specification. But it was added to the co19 and
   ///  there is same error for factories.
   ///
@@ -4851,6 +4928,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'SUPER_IN_EXTENSION',
     "The 'super' keyword can't be used in an extension because an extension "
         "doesn't have a superclass.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode SUPER_IN_EXTENSION_TYPE =
+      CompileTimeErrorCode(
+    'SUPER_IN_EXTENSION_TYPE',
+    "The 'super' keyword can't be used in an extension type because an "
+        "extension type doesn't have a superclass.",
     hasPublishedDocs: true,
   );
 
@@ -6702,6 +6788,13 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the message
+  static const WarningCode MACRO_WARNING = WarningCode(
+    'MACRO_WARNING',
+    "{0}",
+  );
+
+  ///  Parameters:
   ///  0: the name of the member
   static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE =
       WarningCode(
@@ -6839,6 +6932,13 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const WarningCode NON_NULLABLE_EQUALS_PARAMETER = WarningCode(
+    'NON_NULLABLE_EQUALS_PARAMETER',
+    "The parameter type of '==' operators should be non-nullable.",
+    correctionMessage: "Try using a non-nullable type.",
+  );
+
+  ///  No parameters.
   static const WarningCode NULLABLE_TYPE_IN_CATCH_CLAUSE = WarningCode(
     'NULLABLE_TYPE_IN_CATCH_CLAUSE',
     "A potentially nullable type can't be used in an 'on' clause because it "
@@ -6856,32 +6956,6 @@ class WarningCode extends AnalyzerErrorCode {
         "argument '{1}'.",
     correctionMessage: "Try adding a non-null argument.",
     hasPublishedDocs: true,
-  );
-
-  ///  When the left operand of a binary expression uses '?.' operator, it can be
-  ///  `null`.
-  static const WarningCode NULL_AWARE_BEFORE_OPERATOR = WarningCode(
-    'NULL_AWARE_BEFORE_OPERATOR',
-    "The left operand uses '?.', so its value can be null.",
-  );
-
-  ///  A condition in a control flow statement could evaluate to `null` because it
-  ///  uses the null-aware '?.' operator.
-  static const WarningCode NULL_AWARE_IN_CONDITION = WarningCode(
-    'NULL_AWARE_IN_CONDITION',
-    "The value of the '?.' operator can be 'null', which isn't appropriate in "
-        "a condition.",
-    correctionMessage:
-        "Try replacing the '?.' with a '.', testing the left-hand side for "
-        "null if necessary.",
-  );
-
-  ///  A condition in operands of a logical operator could evaluate to `null`
-  ///  because it uses the null-aware '?.' operator.
-  static const WarningCode NULL_AWARE_IN_LOGICAL_OPERATOR = WarningCode(
-    'NULL_AWARE_IN_LOGICAL_OPERATOR',
-    "The value of the '?.' operator can be 'null', which isn't appropriate as "
-        "an operand of a logical operator.",
   );
 
   ///  No parameters.
@@ -6991,6 +7065,7 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try updating this member to match a declaration in a superinterface, "
         "or removing the redeclare annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  An error code indicating use of a removed lint rule.

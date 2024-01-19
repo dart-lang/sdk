@@ -15,8 +15,10 @@ import 'package:collection/collection.dart';
 /// Checks for missing arguments for required named parameters.
 class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   final ErrorReporter _errorReporter;
+  final bool _strictCasts;
 
-  RequiredParametersVerifier(this._errorReporter);
+  RequiredParametersVerifier(this._errorReporter, {required bool strictCasts})
+      : _strictCasts = strictCasts;
 
   @override
   void visitAnnotation(Annotation node) {
@@ -137,7 +139,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
           String parameterName = parameter.name;
           if (!_containsNamedExpression(
               enclosingConstructor, arguments, parameterName)) {
-            var reason = annotation.reason;
+            var reason = annotation.getReason(strictCasts: _strictCasts);
             if (reason != null) {
               _errorReporter.reportErrorForOffset(
                 WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
@@ -211,7 +213,7 @@ class _RequiredAnnotation {
 
   _RequiredAnnotation(this.annotation);
 
-  String? get reason {
+  String? getReason({required bool strictCasts}) {
     if (annotation == null) {
       return null;
     }
@@ -224,11 +226,11 @@ class _RequiredAnnotation {
 
 /// The annotation should be a constructor invocation.
 ///
-/// TODO(scheglov) This is not ideal.
-/// Ideally when resolving an annotation we should restructure it into
-/// specific components - an import prefix, top-level declaration, getter,
-/// constructor, etc. So that later in the analyzer, or in clients, we
-/// don't have to identify it again and again.
+// TODO(scheglov): This is not ideal.
+// Ideally when resolving an annotation we should restructure it into
+// specific components - an import prefix, top-level declaration, getter,
+// constructor, etc. So that later in the analyzer, or in clients, we
+// don't have to identify it again and again.
 extension _InstantiatedAnnotation on Annotation {
   SimpleIdentifier? get classIdentifier {
     assert(arguments != null);

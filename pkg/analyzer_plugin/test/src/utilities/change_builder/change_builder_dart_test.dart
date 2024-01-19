@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -16,7 +17,6 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl, DartLinkedEditBuilderImpl;
-import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,8 +26,7 @@ import 'mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DartEditBuilderImpl_WithNullSafetyTest);
-    defineReflectiveTests(DartEditBuilderImpl_WithoutNullSafetyTest);
+    defineReflectiveTests(DartEditBuilderImpl);
     defineReflectiveTests(DartFileEditBuilderImplTest);
     defineReflectiveTests(DartLinkedEditBuilderImplTest);
     defineReflectiveTests(ImportLibraryTest);
@@ -36,7 +35,59 @@ void main() {
 }
 
 @reflectiveTest
-class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
+class DartEditBuilderImpl extends DartEditBuilderImplTest {
+  Future<void> test_writeParameter_covariantAndRequired() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isCovariant: true, isRequiredNamed: true);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(
+        edits[0].replacement, equalsIgnoringWhitespace('covariant required a'));
+  }
+
+  Future<void> test_writeParameter_required_addImport() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('required a'));
+  }
+
+  Future<void> test_writeParameter_required_existingImport() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+import 'package:meta/meta.dart';
+
+class A {}
+''';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('required a'));
+  }
+
   Future<void> test_writeParameter_required_keyword() async {
     var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = 'class A {}';
@@ -78,66 +129,6 @@ class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
 
   Future<void> test_writeType_recordType_positional() async {
     await _assertWriteType('(int, int)');
-  }
-}
-
-@reflectiveTest
-class DartEditBuilderImpl_WithoutNullSafetyTest extends DartEditBuilderImplTest
-    with WithoutNullSafetyMixin {
-  Future<void> test_writeParameter_covariantAndRequired() async {
-    var path = convertPath('$testPackageRootPath/lib/test.dart');
-    var content = 'class A {}';
-    addSource(path, content);
-
-    var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameter('a', isCovariant: true, isRequiredNamed: true);
-      });
-    });
-    var edits = getEdits(builder);
-    expect(edits, hasLength(2));
-    expect(edits[0].replacement,
-        equalsIgnoringWhitespace('covariant @required a'));
-    expect(edits[1].replacement,
-        equalsIgnoringWhitespace("import 'package:meta/meta.dart';"));
-  }
-
-  Future<void> test_writeParameter_required_addImport() async {
-    var path = convertPath('$testPackageRootPath/lib/test.dart');
-    var content = 'class A {}';
-    addSource(path, content);
-
-    var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameter('a', isRequiredNamed: true);
-      });
-    });
-    var edits = getEdits(builder);
-    expect(edits, hasLength(2));
-    expect(edits[0].replacement, equalsIgnoringWhitespace('@required a'));
-    expect(edits[1].replacement,
-        equalsIgnoringWhitespace("import 'package:meta/meta.dart';"));
-  }
-
-  Future<void> test_writeParameter_required_existingImport() async {
-    var path = convertPath('$testPackageRootPath/lib/test.dart');
-    var content = '''
-import 'package:meta/meta.dart';
-
-class A {}
-''';
-    addSource(path, content);
-
-    var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameter('a', isRequiredNamed: true);
-      });
-    });
-    var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('@required a'));
   }
 }
 
@@ -1218,10 +1209,8 @@ f(int i, String s) {
       });
     });
     var edit = getEdit(builder);
-    var expectedReplacement = this is WithoutNullSafetyMixin
-        ? 'String s, {int index}'
-        : 'String s, {required int index}';
-    expect(edit.replacement, equalsIgnoringWhitespace(expectedReplacement));
+    expect(edit.replacement,
+        equalsIgnoringWhitespace('String s, {required int index}'));
   }
 
   Future<void> test_writeParametersMatchingArguments_required() async {
@@ -1645,6 +1634,90 @@ import 'package:test/b.dart' as _prefix1;
 _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
   }
 
+  Future<void> test_writeType_preserveHiddenTypesA() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class B {} class C {} class D {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' hide C, B, A;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeA = await _getType(aPath, 'A');
+    var typeD = await _getType(aPath, 'D');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeD);
+        builder.write('();');
+        builder.writeType(typeA);
+        builder.write('();');
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' hide C, B;D();A();"));
+  }
+
+  Future<void> test_writeType_preserveHiddenTypesB() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class B {} class C {} class D {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' hide C, B, A;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeB = await _getType(aPath, 'B');
+    var typeD = await _getType(aPath, 'D');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeD);
+        builder.write('();');
+        builder.writeType(typeB);
+        builder.write('();');
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' hide C, A;D();B();"));
+  }
+
+  Future<void> test_writeType_preserveHiddenTypesC() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class B {} class C {} class D {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' hide C, B, A;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeC = await _getType(aPath, 'C');
+    var typeD = await _getType(aPath, 'D');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeD);
+        builder.write('();');
+        builder.writeType(typeC);
+        builder.write('();');
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' hide B, A;D();C();"));
+  }
+
   Future<void> test_writeType_required_dynamic() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'class A {}';
@@ -1691,6 +1764,206 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     });
     var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('var'));
+  }
+
+  Future<void> test_writeType_shownImport() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class Other {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' show Other;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeA = await _getType(aPath, 'A');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeA);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' show A, Other;A"));
+  }
+
+  Future<void> test_writeType_shownImportUnsorted() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class B {} class C {} class D {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' show C, A;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeB = await _getType(aPath, 'B');
+    var typeD = await _getType(aPath, 'D');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeD);
+        builder.write('();');
+        builder.writeType(typeB);
+        builder.write('();');
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' show C, A, B, D;D();B();"));
+  }
+
+  Future<void> test_writeType_shownImportWithCombinatorsOrdering() async {
+    writeTestPackageAnalysisOptionsFile(lints: ['combinators_ordering']);
+    var aPath = convertPath('$testPackageRootPath/lib/test_a.dart');
+    var aContent = 'class A {} class C {} class Other {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('$testPackageRootPath/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' show C, A;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeA = await _getType(aPath, 'Other');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeA);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' show A, C, Other;Other"));
+  }
+
+  Future<void> test_writeType_shownImportWithConfiguration() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class Other {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' show Other if (a.b);";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeA = await _getType(aPath, 'A');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeA);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' show A, Other if (a.b);A"));
+  }
+
+  Future<void> test_writeType_shownImportWithHide() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class Other {} class OtherOne {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent =
+        "import 'package:test/test_a.dart' show OtherOne hide Other;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeA = await _getType(aPath, 'A');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeA);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' show A, OtherOne hide Other;A"));
+  }
+
+  Future<void> test_writeType_shownImportWithHideSplit() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class Other {} class OtherOne {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent =
+        "import 'package:test/test_a.dart' show OtherOne; import 'package:test/test_a.dart' hide Other;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeA = await _getType(aPath, 'A');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeA);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' show OtherOne; import 'package:test/test_a.dart' hide Other;A"));
+  }
+
+  Future<void> test_writeType_shownImportWithMultipleCombinators() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class B {} class C {} class D {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent =
+        "import 'package:test/test_a.dart' show B hide C show D hide A;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeA = await _getType(aPath, 'A');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeA);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(3));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' show B hide C show A, D;A"));
+  }
+
+  Future<void> test_writeType_shownImportWithPrefix() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class Other {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' as pack show Other;\n";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeA = await _getType(aPath, 'A');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeA);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' as pack show Other; import 'package:test/test_a.dart'; A"));
   }
 
   Future<void> test_writeType_simpleType() async {
@@ -2123,7 +2396,7 @@ void functionAfter() {
   }
 
   /// Test that importing elements where the library is already imported
-  /// (without a show/hide cmobinator) produces no additional edits.
+  /// (without a show/hide combinator) produces no additional edits.
   Future<void> test_importElementLibrary_useShow_existingImport() async {
     var content = '''
 import 'package:test/a.dart';
@@ -2136,7 +2409,7 @@ class C {}
     var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
     var unit = await resolveContent('/home/test/lib/test.dart', content);
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},
@@ -2160,21 +2433,18 @@ class C {}
     var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
     var unit = await resolveContent('/home/test/lib/test.dart', content);
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},
       useShow: true,
     );
-    final resultContent = SourceEdit.applySequence(content, edits);
-    // TODO(dantup): Currently we can only add new imports and not update
-    //  existing ones.
+    var resultContent = SourceEdit.applySequence(content, edits);
     expect(
         resultContent,
         equals(
           '''
-import 'package:test/a.dart' hide A;
-import 'package:test/a.dart' show A;
+import 'package:test/a.dart';
 ''',
         ));
   }
@@ -2194,7 +2464,7 @@ class C {}
     var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
     var unit = await resolveContent('/home/test/lib/test.dart', content);
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},
@@ -2218,23 +2488,18 @@ class C {}
     var otherUnit = await resolveContent('/home/test/lib/a.dart', otherContent);
     var unit = await resolveContent('/home/test/lib/test.dart', content);
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},
       useShow: true,
     );
-    final resultContent = SourceEdit.applySequence(content, edits);
-    // TODO(dantup): Currently we can only add new imports and not update
-    //  existing ones (such as to add to 'show' or remove 'hide'). Updating
-    //  existing imports requires some changes to how prefixes are currently
-    //  handles so we can separate prefixes from the shown elements.
+    var resultContent = SourceEdit.applySequence(content, edits);
     expect(
         resultContent,
         equals(
           '''
-import 'package:test/a.dart' show C;
-import 'package:test/a.dart' show A, B;
+import 'package:test/a.dart' show A, B, C;
 ''',
         ));
   }
@@ -2253,7 +2518,7 @@ class B {}
       '',
     );
 
-    final edits = await _getClassImportEdits(
+    var edits = await _getClassImportEdits(
       destinationUnit: unit,
       importedUnit: otherUnit,
       classNames: {'A', 'B'},
@@ -2953,7 +3218,6 @@ import 'foo.dart';
   }
 
   Future<void> test_prefer_double_quotes() async {
-    registerLintRules();
     writeTestPackageAnalysisOptionsFile(lints: ['prefer_double_quotes']);
     await _assertImportLibrary(
       initialCode: '''
@@ -2968,7 +3232,6 @@ import 'dart:bbb';
   }
 
   Future<void> test_prefer_single_quotes() async {
-    registerLintRules();
     writeTestPackageAnalysisOptionsFile(lints: ['prefer_single_quotes']);
     await _assertImportLibrary(
       initialCode: '''

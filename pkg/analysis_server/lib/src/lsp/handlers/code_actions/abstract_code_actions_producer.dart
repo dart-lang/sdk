@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/request_handler_mixin.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -29,27 +30,32 @@ typedef CodeActionWithPriorityAndIndex = ({
 /// A base for classes that produce [CodeAction]s for the LSP handler.
 abstract class AbstractCodeActionsProducer
     with RequestHandlerMixin<LspAnalysisServer> {
-  final String path;
+  final File file;
   final LineInfo lineInfo;
   final int offset;
   final int length;
   final bool Function(CodeActionKind?) shouldIncludeKind;
   final LspClientCapabilities capabilities;
 
+  final AnalysisOptions analysisOptions;
+
   @override
   final LspAnalysisServer server;
 
   AbstractCodeActionsProducer(
     this.server,
-    this.path,
+    this.file,
     this.lineInfo, {
     required this.offset,
     required this.length,
     required this.shouldIncludeKind,
     required this.capabilities,
+    required this.analysisOptions,
   });
 
   String get name;
+
+  String get path => file.path;
 
   Set<DiagnosticTag> get supportedDiagnosticTags => capabilities.diagnosticTags;
 
@@ -81,7 +87,7 @@ abstract class AbstractCodeActionsProducer
   Diagnostic createDiagnostic(
       LineInfo lineInfo, engine.ErrorsResultImpl result, AnalysisError error) {
     return pluginToDiagnostic(
-      server.pathContext,
+      server.uriConverter,
       (_) => lineInfo,
       protocol.newAnalysisError_fromEngine(result, error),
       supportedTags: supportedDiagnosticTags,
@@ -129,14 +135,18 @@ abstract class AbstractCodeActionsProducer
   engine.ErrorsResultImpl createResult(
       AnalysisSession session, LineInfo lineInfo, List<AnalysisError> errors) {
     return engine.ErrorsResultImpl(
-        session: session,
-        path: path,
-        uri: server.pathContext.toUri(path),
-        lineInfo: lineInfo,
-        isAugmentation: false,
-        isLibrary: true,
-        isPart: false,
-        errors: errors);
+      session: session,
+      file: file,
+      content: file.readAsStringSync(),
+      uri: server.uriConverter.toClientUri(path),
+      lineInfo: lineInfo,
+      isAugmentation: false,
+      isLibrary: true,
+      isMacroAugmentation: false,
+      isPart: false,
+      errors: errors,
+      analysisOptions: analysisOptions,
+    );
   }
 
   Future<List<CodeActionWithPriority>> getAssistActions();

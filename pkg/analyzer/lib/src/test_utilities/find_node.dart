@@ -119,6 +119,8 @@ class FindNode {
 
   MixinDeclaration get singleMixinDeclaration => _single();
 
+  NamedType get singleNamedType => _single();
+
   OnClause get singleOnClause => _single();
 
   ParenthesizedExpression get singleParenthesizedExpression => _single();
@@ -389,6 +391,10 @@ class FindNode {
 
   ExtensionOverride extensionOverride(String search) {
     return _node(search, (n) => n is ExtensionOverride);
+  }
+
+  ExtensionTypeDeclaration extensionTypeDeclaration(String search) {
+    return _node(search, (n) => n is ExtensionTypeDeclaration);
   }
 
   FieldDeclaration fieldDeclaration(String search) {

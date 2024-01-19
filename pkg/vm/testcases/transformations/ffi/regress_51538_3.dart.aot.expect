@@ -12,11 +12,11 @@ class Foo extends core::Object implements ffi::Finalizable {
     : super core::Object::•()
     ;
 }
-static method hasMore() → asy::Future<core::bool> async /* futureValueType= core::bool */ 
+static method hasMore() → asy::Future<core::bool> async /* emittedValueType= core::bool */ 
   return false;
 static method nextElement() → asy::Future<self::Foo>
   return [@vm.inferred-type.metadata=dart.async::_Future<#lib::Foo>] asy::Future::value<self::Foo>(new self::Foo::•());
-static method main() → void async /* futureValueType= void */ {
+static method main() → void async /* emittedValueType= void */ {
   for (self::Foo element = new self::Foo::•(); await block {
     final synthesized asy::Future<core::bool> :expressionValueWrappedFinalizable = self::hasMore();
     _in::reachabilityFence(element);

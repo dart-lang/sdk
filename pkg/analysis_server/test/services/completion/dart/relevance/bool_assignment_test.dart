@@ -5,29 +5,17 @@
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../client/completion_driver_test.dart';
 import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BoolAssignmentTest1);
-    defineReflectiveTests(BoolAssignmentTest2);
+    defineReflectiveTests(BoolAssignmentTest);
   });
 }
 
 @reflectiveTest
-class BoolAssignmentTest1 extends CompletionRelevanceTest
+class BoolAssignmentTest extends CompletionRelevanceTest
     with BoolAssignmentTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class BoolAssignmentTest2 extends CompletionRelevanceTest
-    with BoolAssignmentTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
   @FailingTest(reason: r'''
 The actual relevances are:
 [completion: bool.fromEnvironment][relevance: 591]
@@ -43,7 +31,7 @@ The actual relevances are:
 ''')
   @override
   Future<void> test_boolLiterals_imported() {
-    // TODO: implement test_boolLiterals_imported
+    // TODO(scheglov): implement test_boolLiterals_imported
     return super.test_boolLiterals_imported();
   }
 }

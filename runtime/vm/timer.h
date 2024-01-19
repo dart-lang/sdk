@@ -36,7 +36,6 @@ class TimerImpl : public ValueObject {
 
   // Stop timer.
   void Stop() {
-    ASSERT(start_ != 0);
     ASSERT(running());
     stop_ = Measure::Now();
     int64_t elapsed = ElapsedMicros();
@@ -90,8 +89,6 @@ class TimerImpl : public ValueObject {
       : total_(elapsed), max_contiguous_(elapsed) {}
 
   int64_t ElapsedMicros() const {
-    ASSERT(start_ != 0);
-    ASSERT(stop_ != 0);
     return stop_ - start_;
   }
 

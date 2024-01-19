@@ -58,7 +58,7 @@ class CompilerOutput {
 /// Returns `null` if an error occurred during compilation. The
 /// [handleDiagnosticMessage] callback will have received an error message
 /// describing the error.
-Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
+Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     void Function(DiagnosticMessage) handleDiagnosticMessage) async {
   var succeeded = true;
   void diagnosticMessageHandler(DiagnosticMessage message) {
@@ -69,9 +69,7 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
   }
 
   final wasm.Mode mode;
-  if (options.translatorOptions.useStringref) {
-    mode = wasm.Mode.stringref;
-  } else if (options.translatorOptions.jsCompatibility) {
+  if (options.translatorOptions.jsCompatibility) {
     mode = wasm.Mode.jsCompatibility;
   } else {
     mode = wasm.Mode.regular;
@@ -151,7 +149,9 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
   }
 
   final wasmModule = translator.translate();
-  String jsRuntime =
-      jsRuntimeFinalizer.generate(translator.functions.translatedProcedures);
+  String jsRuntime = jsRuntimeFinalizer.generate(
+      translator.functions.translatedProcedures,
+      translator.internalizedStringsForJSRuntime,
+      mode);
   return CompilerOutput(wasmModule, jsRuntime);
 }

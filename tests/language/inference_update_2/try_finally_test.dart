@@ -265,8 +265,8 @@ void notPromotableInTry_promotedInFinally(E e) {
   try {
     e._c._o1!;
     e._o3!;
-    e._c._o1.expectStaticType<Exactly<Object?>>();
-    e._o3.expectStaticType<Exactly<Object?>>();
+    e._c._o1.expectStaticType<Exactly<Object>>();
+    e._o3.expectStaticType<Exactly<Object>>();
   } finally {
     e as F;
     e._c._o1!;
@@ -283,8 +283,8 @@ void assignedButNotPromotableInTry_promotedInFinally(E e, E e2) {
     e = e2;
     e._c._o1!;
     e._o3!;
-    e._c._o1.expectStaticType<Exactly<Object?>>();
-    e._o3.expectStaticType<Exactly<Object?>>();
+    e._c._o1.expectStaticType<Exactly<Object>>();
+    e._o3.expectStaticType<Exactly<Object>>();
   } finally {
     e as F;
     e._c._o1!;

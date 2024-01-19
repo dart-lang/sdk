@@ -8,7 +8,6 @@ import '../common.dart';
 import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -41,7 +40,7 @@ abstract class JsToElementMap {
   /// Returns the [InterfaceType] corresponding to [type].
   InterfaceType getInterfaceType(ir.InterfaceType type);
 
-  Iterable<InterfaceType> getInterfaces(IndexedClass cls);
+  Iterable<InterfaceType> getInterfaces(ClassEntity cls);
 
   /// Returns the [TypeVariableType] corresponding to [type].
   TypeVariableType getTypeVariableType(ir.TypeParameterType type);
@@ -236,12 +235,19 @@ ir.FunctionNode? getFunctionNode(
     case MemberKind.constructorBody:
       ir.Member node = definition.node as ir.Member;
       return node.function;
+    case MemberKind.generatorBody:
+      final node = definition.node;
+      if (node is ir.LocalFunction) return node.function;
+      return (node as ir.Member).function;
     case MemberKind.closureCall:
       ir.LocalFunction node = definition.node as ir.LocalFunction;
       return node.function;
-    default:
+    case MemberKind.closureField:
+    case MemberKind.signature:
+    case MemberKind.recordGetter:
+    case MemberKind.parameterStub:
+      return null;
   }
-  return null;
 }
 
 /// Returns the initializer for [field].
@@ -265,8 +271,6 @@ ir.Node? getFieldInitializer(JsToElementMap elementMap, FieldEntity field) {
 abstract class KernelToLocalsMap {
   /// The member currently being built.
   MemberEntity get currentMember;
-
-  Local getLocalByIndex(int index);
 
   /// Returns the [Local] for [node].
   Local getLocalVariable(ir.VariableDeclaration node);
@@ -351,6 +355,9 @@ enum MemberKind {
 
   /// A dynamic getter for a field of a record.
   recordGetter,
+
+  /// A parameter stub for an invokable member.
+  parameterStub,
 }
 
 /// Definition information for a [MemberEntity].
@@ -378,6 +385,7 @@ abstract class MemberDefinition {
       case MemberKind.constructorBody:
       case MemberKind.signature:
       case MemberKind.generatorBody:
+      case MemberKind.parameterStub:
         return SpecialMemberDefinition.readFromDataSource(source, kind);
       case MemberKind.closureCall:
       case MemberKind.closureField:
@@ -634,7 +642,12 @@ void forEachOrderedParameter(JsToElementMap elementMap, FunctionEntity function,
       forEachOrderedParameterByFunctionNode(
           node.function, parameterStructure, handleParameter);
       return;
-    default:
+    case MemberKind.closureField:
+    case MemberKind.generatorBody:
+    case MemberKind.recordGetter:
+    case MemberKind.signature:
+    case MemberKind.parameterStub:
+      break;
   }
   failedAt(function, "Unexpected function definition $definition.");
 }

@@ -109,7 +109,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '3.3.0'
+current-version: '3.4.0'
 
 features:
   variance:
@@ -119,13 +119,17 @@ features:
     help: "Allow more of the Dart language to be executed in const expressions."
 
   macros:
+    experimentalReleaseVersion: '3.3.0'
     help: "Static meta-programming"
-
-  inline-class:
-    help: "Extension Types"
 
   native-assets:
     help: "Compile and bundle native assets."
+
+  resource-identifiers:
+    help: "Output arguments used by static functions."
+
+  inference-update-3: # See https://github.com/dart-lang/language/issues/3471
+    help: "Better handling of coercions, conditional expressions, and switch expressions."
 
 # Experiment flag only used for testing.
   test-experiment:
@@ -139,6 +143,17 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  inline-class:
+    enabledIn: '3.3.0'
+    validation: |
+      extension type E(String rep) {
+        String f() => '$rep enabled';
+      }
+      main() {
+        print(('feature' as E).f());
+      }
+    help: "Extension Types"
 
   inference-update-2:
     enabledIn: '3.2.0'
@@ -161,6 +176,7 @@ features:
       void main() {
         print('feature enabled');
       }
+    expired: true
 
   class-modifiers:
     help: "Class modifiers"
@@ -170,6 +186,7 @@ features:
       void main() {
         print('feature enabled');
       }
+    expired: true
 
   records:
     help: "Records"
@@ -179,6 +196,7 @@ features:
       void main() {
         print('${x.$1} ${x.a}');
       }
+    expired: true
 
   patterns:
     help: "Patterns"
@@ -188,14 +206,15 @@ features:
         final [a, b] = ['feature', 'enabled'];
         print('$a $b');
       }
+    expired: true
 
   unnamed-libraries:
     help: "Unnamed libraries"
     enabledIn: '2.19.0'
-    expired: true
     validation: |
       library;
       void main() => print('feature enabled');
+    expired: true
 
   alternative-invalidation-strategy:
     help: "Alternative invalidation strategy for incremental compilation."
@@ -206,7 +225,6 @@ features:
   inference-update-1:
     help: "Horizontal type inference for function expressions passed to generic invocations."
     enabledIn: '2.18.0'
-    expired: true
     validation: |
       void test(List<int> list) {
         var a = list.fold(0, (x, y) => x + y);
@@ -220,6 +238,7 @@ features:
       void main() {
         test([1, 2, 3]);
       }
+    expired: true
 
   enhanced-enums:
     help: "Enhanced Enums"

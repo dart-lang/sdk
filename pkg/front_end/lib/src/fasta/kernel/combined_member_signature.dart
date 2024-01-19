@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/reference_from_index.dart';
 
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -269,8 +270,8 @@ abstract class CombinedMemberSignatureBase {
     return _containsNnbdTypes;
   }
 
-  /// Returns the [declarationBuilder] as an instance of [cls].
-  InterfaceType _asInstanceOfClass(Class cls);
+  /// Returns the this type of the [declarationBuilder].
+  TypeDeclarationType get thisType;
 
   /// Returns `true` if the canonical member is declared in
   /// [declarationBuilder].
@@ -467,7 +468,8 @@ abstract class CombinedMemberSignatureBase {
 
   /// Create a member signature with the [combinedMemberSignatureType] using the
   /// [canonicalMember] as member signature origin.
-  Procedure? createMemberFromSignature(SourceClassBuilder classBuilder,
+  Procedure? createMemberFromSignature(
+      FileUriNode declarationNode, IndexedContainer? indexedContainer,
       {bool copyLocation = true}) {
     if (canonicalMemberIndex == null) {
       return null;
@@ -478,14 +480,20 @@ abstract class CombinedMemberSignatureBase {
       switch (member.kind) {
         case ProcedureKind.Getter:
           combinedMemberSignature = _createGetterMemberSignature(
-              classBuilder, member, combinedMemberSignatureType!,
+              declarationNode,
+              indexedContainer,
+              member,
+              combinedMemberSignatureType!,
               copyLocation: copyLocation);
           break;
         case ProcedureKind.Setter:
           VariableDeclaration parameter =
               member.function.positionalParameters.first;
           combinedMemberSignature = _createSetterMemberSignature(
-              classBuilder, member, combinedMemberSignatureType!,
+              declarationNode,
+              indexedContainer,
+              member,
+              combinedMemberSignatureType!,
               isCovariantByClass: parameter.isCovariantByClass,
               isCovariantByDeclaration: parameter.isCovariantByDeclaration,
               parameter: parameter,
@@ -494,7 +502,10 @@ abstract class CombinedMemberSignatureBase {
         case ProcedureKind.Method:
         case ProcedureKind.Operator:
           combinedMemberSignature = _createMethodSignature(
-              classBuilder, member, combinedMemberSignatureType as FunctionType,
+              declarationNode,
+              indexedContainer,
+              member,
+              combinedMemberSignatureType as FunctionType,
               copyLocation: copyLocation);
           break;
         case ProcedureKind.Factory:
@@ -504,14 +515,14 @@ abstract class CombinedMemberSignatureBase {
       }
     } else if (member is Field) {
       if (forSetter) {
-        combinedMemberSignature = _createSetterMemberSignature(
-            classBuilder, member, combinedMemberSignatureType!,
+        combinedMemberSignature = _createSetterMemberSignature(declarationNode,
+            indexedContainer, member, combinedMemberSignatureType!,
             isCovariantByClass: member.isCovariantByClass,
             isCovariantByDeclaration: member.isCovariantByDeclaration,
             copyLocation: copyLocation);
       } else {
-        combinedMemberSignature = _createGetterMemberSignature(
-            classBuilder, member, combinedMemberSignatureType!,
+        combinedMemberSignature = _createGetterMemberSignature(declarationNode,
+            indexedContainer, member, combinedMemberSignatureType!,
             copyLocation: copyLocation);
       }
     } else {
@@ -524,12 +535,10 @@ abstract class CombinedMemberSignatureBase {
 
   /// Creates a getter member signature for [member] with the given
   /// [type].
-  Procedure _createGetterMemberSignature(
-      SourceClassBuilder classBuilder, Member member, DartType type,
+  Procedure _createGetterMemberSignature(FileUriNode declarationNode,
+      IndexedContainer? indexedContainer, Member member, DartType type,
       {required bool copyLocation}) {
-    Class enclosingClass = classBuilder.cls;
-    Reference? reference =
-        classBuilder.referencesFromIndexed?.lookupGetterReference(member.name);
+    Reference? reference = indexedContainer?.lookupGetterReference(member.name);
 
     Uri fileUri;
     int startFileOffset;
@@ -540,8 +549,8 @@ abstract class CombinedMemberSignatureBase {
           member is Procedure ? member.fileStartOffset : member.fileOffset;
       fileOffset = member.fileOffset;
     } else {
-      fileUri = enclosingClass.fileUri;
-      fileOffset = startFileOffset = enclosingClass.fileOffset;
+      fileUri = declarationNode.fileUri;
+      fileOffset = startFileOffset = declarationNode.fileOffset;
     }
     return new Procedure(
       member.name,
@@ -557,22 +566,20 @@ abstract class CombinedMemberSignatureBase {
       ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = containsNnbdTypes
-      ..parent = enclosingClass;
+      ..parent = declarationNode;
   }
 
   /// Creates a setter member signature for [member] with the given
   /// [type]. The flags of parameter is set according to
   /// [isCovariantByDeclaration] and [isCovariantByClass] and the name of the
   /// [parameter] is used, if provided.
-  Procedure _createSetterMemberSignature(
-      SourceClassBuilder classBuilder, Member member, DartType type,
+  Procedure _createSetterMemberSignature(FileUriNode declarationNode,
+      IndexedContainer? indexedContainer, Member member, DartType type,
       {required bool isCovariantByDeclaration,
       required bool isCovariantByClass,
       VariableDeclaration? parameter,
       required bool copyLocation}) {
-    Class enclosingClass = classBuilder.cls;
-    Reference? reference =
-        classBuilder.referencesFromIndexed?.lookupSetterReference(member.name);
+    Reference? reference = indexedContainer?.lookupSetterReference(member.name);
     Uri fileUri;
     int startFileOffset;
     int fileOffset;
@@ -582,8 +589,8 @@ abstract class CombinedMemberSignatureBase {
           member is Procedure ? member.fileStartOffset : member.fileOffset;
       fileOffset = member.fileOffset;
     } else {
-      fileUri = enclosingClass.fileUri;
-      fileOffset = startFileOffset = enclosingClass.fileOffset;
+      fileUri = declarationNode.fileUri;
+      fileOffset = startFileOffset = declarationNode.fileOffset;
     }
     return new Procedure(
       member.name,
@@ -608,15 +615,17 @@ abstract class CombinedMemberSignatureBase {
       ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = containsNnbdTypes
-      ..parent = enclosingClass;
+      ..parent = declarationNode;
   }
 
-  Procedure _createMethodSignature(SourceClassBuilder classBuilder,
-      Procedure procedure, FunctionType functionType,
+  Procedure _createMethodSignature(
+      FileUriNode declarationNode,
+      IndexedContainer? indexedContainer,
+      Procedure procedure,
+      FunctionType functionType,
       {required bool copyLocation}) {
-    Class enclosingClass = classBuilder.cls;
-    Reference? reference = classBuilder.referencesFromIndexed
-        ?.lookupGetterReference(procedure.name);
+    Reference? reference =
+        indexedContainer?.lookupGetterReference(procedure.name);
     Uri fileUri;
     int startFileOffset;
     int fileOffset;
@@ -625,8 +634,8 @@ abstract class CombinedMemberSignatureBase {
       startFileOffset = procedure.fileStartOffset;
       fileOffset = procedure.fileOffset;
     } else {
-      fileUri = enclosingClass.fileUri;
-      fileOffset = startFileOffset = enclosingClass.fileOffset;
+      fileUri = declarationNode.fileUri;
+      fileOffset = startFileOffset = declarationNode.fileOffset;
     }
     FunctionNode function = procedure.function;
     List<VariableDeclaration> positionalParameters = [];
@@ -696,7 +705,7 @@ abstract class CombinedMemberSignatureBase {
       ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = containsNnbdTypes
-      ..parent = enclosingClass;
+      ..parent = declarationNode;
   }
 
   DartType _computeMemberType(Member member) {
@@ -717,11 +726,14 @@ abstract class CombinedMemberSignatureBase {
       unhandled("${member.runtimeType}", "$member",
           declarationBuilder.charOffset, declarationBuilder.fileUri);
     }
-    if (member.enclosingClass!.typeParameters.isEmpty) {
+    if (member.enclosingTypeDeclaration!.typeParameters.isEmpty) {
       return type;
     }
-    InterfaceType instance = _asInstanceOfClass(member.enclosingClass!);
-    return Substitution.fromInterfaceType(instance).substituteType(type);
+    TypeDeclarationType instance = hierarchy.getTypeAsInstanceOf(
+        thisType, member.enclosingTypeDeclaration!,
+        isNonNullableByDefault:
+            declarationBuilder.libraryBuilder.isNonNullableByDefault)!;
+    return Substitution.fromTypeDeclarationType(instance).substituteType(type);
   }
 
   bool _isMoreSpecific(DartType a, DartType b, bool forSetter) {
@@ -762,16 +774,10 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
   DeclarationBuilder get declarationBuilder => classBuilder;
 
   /// The this type of [classBuilder].
+  @override
   InterfaceType get thisType {
     return _thisType ??= _coreTypes.thisInterfaceType(
         classBuilder.cls, declarationBuilder.libraryBuilder.nonNullable);
-  }
-
-  @override
-  InterfaceType _asInstanceOfClass(Class cls) {
-    return hierarchy.getTypeAsInstanceOf(thisType, cls,
-        isNonNullableByDefault:
-            declarationBuilder.libraryBuilder.isNonNullableByDefault);
   }
 
   /// Returns `true` if the canonical member is declared in
@@ -815,17 +821,11 @@ class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
 
   /// The this type of [extensionTypeDeclarationBuilder].
+  @override
   ExtensionType get thisType {
     return _thisType ??= _coreTypes.thisExtensionType(
         extensionTypeDeclarationBuilder.extensionTypeDeclaration,
         declarationBuilder.libraryBuilder.nonNullable);
-  }
-
-  @override
-  InterfaceType _asInstanceOfClass(Class cls) {
-    return hierarchy.getExtensionTypeAsInstanceOfClass(thisType, cls,
-        isNonNullableByDefault:
-            declarationBuilder.libraryBuilder.isNonNullableByDefault)!;
   }
 
   @override

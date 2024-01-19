@@ -34,6 +34,9 @@ extension Extension on int {
 }
 
 main() {}
+
 test() {}
+
 throws(dynamic Function() f) {}
+
 var result;

@@ -8,6 +8,8 @@ const _desc =
     r'Conditions should not unconditionally evaluate to `true` or to `false`.';
 
 const _details = r'''
+NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
+
 **DON'T** test for conditions that can be inferred at compile time or test the
 same condition twice.
 
@@ -101,7 +103,7 @@ class InvariantBooleans extends LintRule {
             name: 'invariant_booleans',
             description: _desc,
             details: _details,
-            // todo(pq): remove `since` once analyzer 5.5.0 is published and can
+            // TODO(pq): remove `since` once analyzer 5.5.0 is published and can
             // be unspecified.
             state: State.removed(since: dart3),
             group: Group.errors);

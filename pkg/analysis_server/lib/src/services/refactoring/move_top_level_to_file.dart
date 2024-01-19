@@ -198,7 +198,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
         builder.importLibrary(
           library.source.uri,
           prefix: import.prefix?.element.name,
-          showName: hasShowCombinator ? element.name : null,
+          showName: element.name,
+          useShow: hasShowCombinator,
         );
       }
     }

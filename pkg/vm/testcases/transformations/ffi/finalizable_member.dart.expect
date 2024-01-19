@@ -28,7 +28,7 @@ class B extends core::Object implements ffi::Finalizable {
 }
 static final field ffi::Pointer<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Void>> free = ffi::DynamicLibrary::process().{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Void>>("free"){(core::String) → ffi::Pointer<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Void>>};
 static final field ffi::NativeFinalizer _nativeFinalizer = new ffi::_NativeFinalizer::•(self::free);
-static method main() → asy::Future<void> async /* futureValueType= void */ {
+static method main() → asy::Future<void> async /* emittedValueType= void */ {
   final self::B b = new self::B::•(new self::A::•());
   final core::List<core::int> l = core::_GrowableList::•<core::int>(0);
   asy::Future::doWhile(() → core::bool {

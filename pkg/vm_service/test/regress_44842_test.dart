@@ -13,7 +13,7 @@ const Map<String, dynamic> kNullInstance = {
     'type': '@Class',
     'id': 'object/0',
     'name': 'Null',
-  }
+  },
 };
 
 void main() {

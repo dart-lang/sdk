@@ -147,11 +147,37 @@ class WeakReference<T extends Object> {
 }
 
 class _WeakReferenceWrapper<T extends Object> implements WeakReference<T> {
+  /// A JavaScript `WeakRef` or the `LeakRef` polyfill below.
   final Object _weakRef;
 
-  _WeakReferenceWrapper(T object) : _weakRef = JS('', 'new WeakRef(#)', object);
+  _WeakReferenceWrapper(T object)
+      : _weakRef = JS('', 'new #(#)', _weakRefConstructor, object);
 
   T? get target => JS('', '#.deref()', _weakRef);
+
+  static final Object _weakRefConstructor = _findWeakRefConstructor();
+
+  static Object _findWeakRefConstructor() {
+    if (JS('', 'typeof WeakRef == "function"')) {
+      return JS('', 'WeakRef');
+    }
+    // `LeakRef` - a minimal polyfill for `WeakRef`. Since there is no guarantee
+    // that the target is collected, it is a legal implementation to retain the
+    // object indefinitely.
+    //
+    // Dart does not officially support older browsers before the introduction
+    // of WeakRef and FinalizationRegistry but there are users of Dart that have
+    // a few customers still using these browsers.  As a result, both ACX and
+    // Flutter have ad-hoc polyfills for these classes. Adding the polyfill here
+    // in js_runtime will allow the other polyfills to be removed. The polyfill
+    // is as small as possible (omitting checks, avoiding extra Dart classes,
+    // detecting as late as possible), so it should be a minor net code size
+    // improvement for ACX and Flutter.
+
+    final Object constructor = JS('', 'function LeakRef(o) { this._ = o;}');
+    JS('', '#.prototype = {deref() { return this._; }}', constructor);
+    return constructor;
+  }
 }
 
 // Patch for Finalizer implementation.
@@ -164,23 +190,37 @@ class Finalizer<T> {
 }
 
 class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
-  final Object _registry;
+  /// The JavaScript FinalizationRegistry, or `null` if not supported. Since
+  /// there is no guaranteed that the callback is ever called, the callback,
+  /// attach and detach methods are ignored.
+  final Object? _registry;
 
   _FinalizationRegistryWrapper(void Function(T) callback)
-      : _registry = JS('', 'new FinalizationRegistry(#)',
-            convertDartClosureToJS(wrapZoneUnaryCallback(callback), 1));
+      : _registry = _finalizationRegistryConstructor == null
+            ? null
+            : JS('', 'new #(#)', _finalizationRegistryConstructor,
+                convertDartClosureToJS(wrapZoneUnaryCallback(callback), 1));
 
   void attach(Object value, T token, {Object? detach}) {
-    if (detach != null) {
-      JS('', '#.register(#, #, #)', _registry, value, token, detach);
-    } else {
-      JS('', '#.register(#, #)', _registry, value, token);
+    if (_registry != null) {
+      if (detach != null) {
+        JS('', '#.register(#, #, #)', _registry, value, token, detach);
+      } else {
+        JS('', '#.register(#, #)', _registry, value, token);
+      }
     }
   }
 
   void detach(Object detachToken) {
-    JS('', '#.unregister(#)', _registry, detachToken);
+    if (_registry != null) {
+      JS('', '#.unregister(#)', _registry, detachToken);
+    }
   }
+
+  static final Object? _finalizationRegistryConstructor =
+      JS('', 'typeof FinalizationRegistry == "function"')
+          ? JS('', 'FinalizationRegistry')
+          : null;
 }
 
 @patch
@@ -516,6 +556,16 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]) {
+    RangeError.checkNotNegative(start, "start");
+    if (end != null) {
+      var maxLength = end - start;
+      if (maxLength < 0) {
+        throw RangeError.range(end, start, null, "end");
+      }
+      if (maxLength == 0) {
+        return "";
+      }
+    }
     if (charCodes is JSArray) {
       // Type promotion doesn't work unless the check is `is JSArray<int>`,
       // which is more expensive.
@@ -535,9 +585,14 @@ class String {
   }
 
   static String _stringFromJSArray(JSArray list, int start, int? endOrNull) {
+    // Caller guarantees: endOrNull == null || endOrNull > start
     int len = list.length;
-    int end = RangeError.checkValidRange(start, endOrNull, len);
+    int end = endOrNull ?? len;
     if (start > 0 || end < len) {
+      // JS `List.slice` allows positive indices greater than list length,
+      // and end before start (empty result).
+      // If `start >= len`, then the result will be empty, whether `endOrNull`
+      // is `null` or not.
       list = JS('JSArray', '#.slice(#, #)', list, start, end);
     }
     return Primitives.stringFromCharCodes(list);
@@ -546,34 +601,16 @@ class String {
   static String _stringFromUint8List(
       NativeUint8List charCodes, int start, int? endOrNull) {
     int len = charCodes.length;
-    int end = RangeError.checkValidRange(start, endOrNull, len);
+    if (start >= len) return "";
+    int end = (endOrNull == null || endOrNull > len) ? len : endOrNull;
     return Primitives.stringFromNativeUint8List(charCodes, start, end);
   }
 
   static String _stringFromIterable(
       Iterable<int> charCodes, int start, int? end) {
-    if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
-    if (end != null && end < start) {
-      throw new RangeError.range(end, start, charCodes.length);
-    }
-    var it = charCodes.iterator;
-    for (int i = 0; i < start; i++) {
-      if (!it.moveNext()) {
-        throw new RangeError.range(start, 0, i);
-      }
-    }
-    var list = [];
-    if (end == null) {
-      while (it.moveNext()) list.add(it.current);
-    } else {
-      for (int i = start; i < end; i++) {
-        if (!it.moveNext()) {
-          throw new RangeError.range(end, start, i);
-        }
-        list.add(it.current);
-      }
-    }
-    return Primitives.stringFromCharCodes(list);
+    if (end != null) charCodes = charCodes.take(end);
+    if (start > 0) charCodes = charCodes.skip(start);
+    return Primitives.stringFromCharCodes(List<int>.of(charCodes));
   }
 }
 
@@ -785,11 +822,16 @@ class _Uri {
   @patch
   static bool get _isWindows => _isWindowsCached;
 
-  static final bool _isWindowsCached = JS(
-      'bool',
-      'typeof process != "undefined" && '
-          'Object.prototype.toString.call(process) == "[object process]" && '
-          'process.platform == "win32"');
+  // Consider the possibility of using Windows behavior if app is
+  // compiled with `--server-mode` and running on Node or a similar platform.
+  static final bool _isWindowsCached =
+      !const bool.fromEnvironment('dart.library.html') &&
+          JS<bool>(
+            'bool',
+            'typeof process != "undefined" && '
+                'Object.prototype.toString.call(process) == "[object process]" && '
+                'process.platform == "win32"',
+          );
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that

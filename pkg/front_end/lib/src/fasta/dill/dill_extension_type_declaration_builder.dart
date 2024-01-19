@@ -2,19 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart';
+
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
-import 'package:kernel/ast.dart';
-
 import '../scope.dart';
+import 'dill_builder_mixins.dart';
 import 'dill_class_builder.dart';
 import 'dill_extension_type_member_builder.dart';
 import 'dill_library_builder.dart';
+import 'dill_member_builder.dart';
 
 class DillExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
-    with DillClassMemberAccessMixin {
+    with DillClassMemberAccessMixin, DillDeclarationBuilderMixin {
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
   List<NominalVariableBuilder>? _typeParameters;
@@ -42,6 +44,31 @@ class DillExtensionTypeDeclarationBuilder
                 isModifiable: false),
             new ConstructorScope(
                 _extensionTypeDeclaration.name, <String, MemberBuilder>{})) {
+    for (Procedure procedure in _extensionTypeDeclaration.procedures) {
+      String name = procedure.name.text;
+      switch (procedure.kind) {
+        case ProcedureKind.Factory:
+          throw new UnsupportedError(
+              "Unexpected procedure kind in extension type declaration: "
+              "$procedure (${procedure.kind}).");
+        case ProcedureKind.Setter:
+          scope.addLocalMember(name, new DillSetterBuilder(procedure, this),
+              setter: true);
+          break;
+        case ProcedureKind.Getter:
+          scope.addLocalMember(name, new DillGetterBuilder(procedure, this),
+              setter: false);
+          break;
+        case ProcedureKind.Operator:
+          scope.addLocalMember(name, new DillOperatorBuilder(procedure, this),
+              setter: false);
+          break;
+        case ProcedureKind.Method:
+          scope.addLocalMember(name, new DillMethodBuilder(procedure, this),
+              setter: false);
+          break;
+      }
+    }
     for (ExtensionTypeMemberDescriptor descriptor
         in _extensionTypeDeclaration.memberDescriptors) {
       Name name = descriptor.name;
@@ -131,8 +158,8 @@ class DillExtensionTypeDeclarationBuilder
     List<NominalVariableBuilder>? typeVariables = _typeParameters;
     if (typeVariables == null &&
         _extensionTypeDeclaration.typeParameters.isNotEmpty) {
-      typeVariables = _typeParameters =
-          computeTypeVariableBuilders(_extensionTypeDeclaration.typeParameters);
+      typeVariables = _typeParameters = computeTypeVariableBuilders(
+          _extensionTypeDeclaration.typeParameters, libraryBuilder.loader);
     }
     return typeVariables;
   }
@@ -150,4 +177,8 @@ class DillExtensionTypeDeclarationBuilder
     }
     return interfaceBuilders;
   }
+
+  @override
+  List<TypeParameter> get typeParameterNodes =>
+      _extensionTypeDeclaration.typeParameters;
 }

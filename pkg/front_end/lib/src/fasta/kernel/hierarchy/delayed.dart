@@ -6,8 +6,15 @@ library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
+import 'package:kernel/src/types.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
+import '../../builder/declaration_builders.dart';
+import '../../builder/library_builder.dart';
+import '../../messages.dart';
 import '../../source/source_class_builder.dart';
+import '../../source/source_extension_type_declaration_builder.dart';
 import 'class_member.dart';
 import 'members_builder.dart';
 import 'members_node.dart';
@@ -73,17 +80,258 @@ class DelayedOverrideCheck implements DelayedCheck {
   }
 }
 
-class DelayedGetterSetterCheck implements DelayedCheck {
-  final SourceClassBuilder classBuilder;
-  final ClassMember getter;
-  final ClassMember setter;
+abstract class DelayedGetterSetterCheck implements DelayedCheck {
+  DeclarationBuilder get declarationBuilder;
 
-  const DelayedGetterSetterCheck(this.classBuilder, this.getter, this.setter);
+  LibraryBuilder get libraryBuilder => declarationBuilder.libraryBuilder;
+
+  int get declarationOffset => declarationBuilder.charOffset;
+
+  Uri get declarationUri => declarationBuilder.fileUri;
+
+  Name get name;
+
+  void _checkGetterSetter({
+    required Types types,
+    required Name name,
+    required DartType getterType,
+    required String getterFullName,
+    required int getterOffset,
+    required Uri getterUri,
+    required bool getterIsDeclared,
+    required bool getterIsField,
+    required DartType setterType,
+    required String setterFullName,
+    required int setterOffset,
+    required Uri setterUri,
+    required bool setterIsDeclared,
+  }) {
+    if (getterType is InvalidType || setterType is InvalidType) {
+      // Don't report a problem as something else is wrong that has already
+      // been reported.
+    } else {
+      bool isValid = types.isSubtypeOf(
+          getterType,
+          setterType,
+          libraryBuilder.isNonNullableByDefault
+              ? SubtypeCheckMode.withNullabilities
+              : SubtypeCheckMode.ignoringNullabilities);
+      if (!isValid && !libraryBuilder.isNonNullableByDefault) {
+        // Allow assignability in legacy libraries.
+        isValid = types.isSubtypeOf(
+            setterType, getterType, SubtypeCheckMode.ignoringNullabilities);
+      }
+      if (!isValid) {
+        if (getterIsDeclared && setterIsDeclared) {
+          Template<Message Function(DartType, String, DartType, String, bool)>
+              template = libraryBuilder.isNonNullableByDefault
+                  ? templateInvalidGetterSetterType
+                  : templateInvalidGetterSetterTypeLegacy;
+          libraryBuilder.addProblem(
+              template.withArguments(getterType, getterFullName, setterType,
+                  setterFullName, libraryBuilder.isNonNullableByDefault),
+              getterOffset,
+              name.text.length,
+              getterUri,
+              context: [
+                templateInvalidGetterSetterTypeSetterContext
+                    .withArguments(setterFullName)
+                    .withLocation(setterUri, setterOffset, name.text.length)
+              ]);
+        } else if (getterIsDeclared) {
+          Template<Message Function(DartType, String, DartType, String, bool)>
+              template = libraryBuilder.isNonNullableByDefault
+                  ? templateInvalidGetterSetterTypeSetterInheritedGetter
+                  : templateInvalidGetterSetterTypeSetterInheritedGetterLegacy;
+          if (getterIsField) {
+            template = libraryBuilder.isNonNullableByDefault
+                ? templateInvalidGetterSetterTypeSetterInheritedField
+                : templateInvalidGetterSetterTypeSetterInheritedFieldLegacy;
+          }
+          libraryBuilder.addProblem(
+              template.withArguments(getterType, getterFullName, setterType,
+                  setterFullName, libraryBuilder.isNonNullableByDefault),
+              getterOffset,
+              name.text.length,
+              getterUri,
+              context: [
+                templateInvalidGetterSetterTypeSetterContext
+                    .withArguments(setterFullName)
+                    .withLocation(setterUri, setterOffset, name.text.length)
+              ]);
+        } else if (setterIsDeclared) {
+          Template<Message Function(DartType, String, DartType, String, bool)>
+              template = libraryBuilder.isNonNullableByDefault
+                  ? templateInvalidGetterSetterTypeGetterInherited
+                  : templateInvalidGetterSetterTypeGetterInheritedLegacy;
+          Template<Message Function(String)> context =
+              templateInvalidGetterSetterTypeGetterContext;
+          if (getterIsField) {
+            template = libraryBuilder.isNonNullableByDefault
+                ? templateInvalidGetterSetterTypeFieldInherited
+                : templateInvalidGetterSetterTypeFieldInheritedLegacy;
+            context = templateInvalidGetterSetterTypeFieldContext;
+          }
+          libraryBuilder.addProblem(
+              template.withArguments(getterType, getterFullName, setterType,
+                  setterFullName, libraryBuilder.isNonNullableByDefault),
+              setterOffset,
+              name.text.length,
+              setterUri,
+              context: [
+                context
+                    .withArguments(getterFullName)
+                    .withLocation(getterUri, getterOffset, name.text.length)
+              ]);
+        } else {
+          Template<Message Function(DartType, String, DartType, String, bool)>
+              template = libraryBuilder.isNonNullableByDefault
+                  ? templateInvalidGetterSetterTypeBothInheritedGetter
+                  : templateInvalidGetterSetterTypeBothInheritedGetterLegacy;
+          Template<Message Function(String)> context =
+              templateInvalidGetterSetterTypeGetterContext;
+          if (getterIsField) {
+            template = libraryBuilder.isNonNullableByDefault
+                ? templateInvalidGetterSetterTypeBothInheritedField
+                : templateInvalidGetterSetterTypeBothInheritedFieldLegacy;
+            context = templateInvalidGetterSetterTypeFieldContext;
+          }
+          libraryBuilder.addProblem(
+              template.withArguments(getterType, getterFullName, setterType,
+                  setterFullName, libraryBuilder.isNonNullableByDefault),
+              declarationOffset,
+              noLength,
+              declarationUri,
+              context: [
+                context
+                    .withArguments(getterFullName)
+                    .withLocation(getterUri, getterOffset, name.text.length),
+                templateInvalidGetterSetterTypeSetterContext
+                    .withArguments(setterFullName)
+                    .withLocation(setterUri, setterOffset, name.text.length)
+              ]);
+        }
+      }
+    }
+  }
+}
+
+class DelayedClassGetterSetterCheck extends DelayedGetterSetterCheck {
+  final SourceClassBuilder classBuilder;
+  @override
+  final Name name;
+  final ClassMember getable;
+  final ClassMember setable;
+
+  DelayedClassGetterSetterCheck(
+      this.classBuilder, this.name, this.getable, this.setable);
+
+  @override
+  DeclarationBuilder get declarationBuilder => classBuilder;
 
   @override
   void check(ClassMembersBuilder membersBuilder) {
-    classBuilder.checkGetterSetter(membersBuilder.hierarchyBuilder.types,
-        getter.getMember(membersBuilder), setter.getMember(membersBuilder));
+    Class cls = classBuilder.cls;
+    Member getter = getable.getMember(membersBuilder);
+    Member setter = setable.getMember(membersBuilder);
+    if (getter == setter) {
+      return;
+    }
+    if (cls != getter.enclosingClass &&
+        getter.enclosingClass == setter.enclosingClass) {
+      return;
+    }
+
+    Types types = membersBuilder.hierarchyBuilder.types;
+    InterfaceType thisType = classBuilder.thisType;
+    DartType getterType = getter.getterType;
+    if (getter.enclosingClass!.typeParameters.isNotEmpty) {
+      getterType = Substitution.fromPairs(
+              getter.enclosingClass!.typeParameters,
+              types.hierarchy.getTypeArgumentsAsInstanceOf(
+                  thisType, getter.enclosingClass!)!)
+          .substituteType(getterType);
+    }
+
+    DartType setterType = setter.setterType;
+    if (setter.enclosingClass!.typeParameters.isNotEmpty) {
+      setterType = Substitution.fromPairs(
+              setter.enclosingClass!.typeParameters,
+              types.hierarchy.getTypeArgumentsAsInstanceOf(
+                  thisType, setter.enclosingClass!)!)
+          .substituteType(setterType);
+    }
+    Member getterOrigin = getter.memberSignatureOrigin ?? getter;
+    Member setterOrigin = setter.memberSignatureOrigin ?? setter;
+    String getterMemberName = '${getterOrigin.enclosingClass!.name}'
+        '.${getterOrigin.name.text}';
+    String setterMemberName = '${setterOrigin.enclosingClass!.name}'
+        '.${setterOrigin.name.text}';
+
+    _checkGetterSetter(
+        types: types,
+        name: name,
+        getterType: getterType,
+        getterFullName: getterMemberName,
+        getterOffset: getterOrigin.fileOffset,
+        getterUri: getterOrigin.fileUri,
+        getterIsDeclared: getterOrigin.enclosingClass == cls,
+        getterIsField: getterOrigin is Field,
+        setterType: setterType,
+        setterFullName: setterMemberName,
+        setterOffset: setterOrigin.fileOffset,
+        setterUri: setterOrigin.fileUri,
+        setterIsDeclared: setterOrigin.enclosingClass == cls);
+  }
+}
+
+class DelayedExtensionTypeGetterSetterCheck extends DelayedGetterSetterCheck {
+  final SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder;
+  @override
+  final Name name;
+  final ClassMember getable;
+  final ClassMember setable;
+
+  DelayedExtensionTypeGetterSetterCheck(this.extensionTypeDeclarationBuilder,
+      this.name, this.getable, this.setable);
+
+  @override
+  DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
+
+  @override
+  void check(ClassMembersBuilder membersBuilder) {
+    if (getable.isSameDeclaration(setable)) {
+      return;
+    }
+
+    MemberResult getterResult = getable.getMemberResult(membersBuilder);
+    MemberResult setterResult = setable.getMemberResult(membersBuilder);
+
+    Types types = membersBuilder.hierarchyBuilder.types;
+    ExtensionType thisType = types.coreTypes.thisExtensionType(
+        extensionTypeDeclarationBuilder.extensionTypeDeclaration,
+        Nullability.nonNullable);
+
+    DartType getterType = getterResult.getMemberType(membersBuilder, thisType);
+
+    DartType setterType = setterResult.getMemberType(membersBuilder, thisType);
+
+    _checkGetterSetter(
+        types: types,
+        name: name,
+        getterType: getterType,
+        getterFullName: getterResult.fullName,
+        getterOffset: getterResult.fileOffset,
+        getterUri: getterResult.fileUri,
+        getterIsDeclared: getable.isSourceDeclaration &&
+            getable.declarationBuilder == declarationBuilder,
+        getterIsField: getterResult.isDeclaredAsField,
+        setterType: setterType,
+        setterFullName: setterResult.fullName,
+        setterOffset: setterResult.fileOffset,
+        setterUri: setterResult.fileUri,
+        setterIsDeclared: setable.isSourceDeclaration &&
+            setable.declarationBuilder == declarationBuilder);
   }
 }
 

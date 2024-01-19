@@ -145,6 +145,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         if (value.hasPrimitiveEquality(_currentLibrary.featureSet)) {
           var constantType = value.type;
           var matchedValueType = node.matchedValueType;
+          matchedValueType = matchedValueType?.extensionTypeErasure;
           if (matchedValueType != null) {
             if (!_canBeEqual(constantType, matchedValueType)) {
               _errorReporter.reportErrorForNode(
@@ -872,6 +873,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var hasDefault = false;
 
     final patternConverter = PatternConverter(
+      languageVersion: _currentLibrary.languageVersion.effective,
       featureSet: _currentLibrary.featureSet,
       cache: _exhaustivenessCache,
       mapPatternKeyValues: mapPatternKeyValues,
@@ -1332,7 +1334,7 @@ class _ConstLiteralVerifier {
     }
     var map = value.toMapValue();
     if (map != null) {
-      // TODO(brianwilkerson) Figure out how to improve the error messages. They
+      // TODO(brianwilkerson): Figure out how to improve the error messages. They
       //  currently point to the whole spread expression, but the key and/or
       //  value being referenced might not be located there (if it's referenced
       //  through a const variable).

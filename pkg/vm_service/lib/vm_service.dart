@@ -5,4 +5,5 @@
 library vm_service;
 
 export 'src/dart_io_extensions.dart';
+export 'src/snapshot_graph.dart';
 export 'src/vm_service.dart' hide addTypeFactory, extensionCallHelper;

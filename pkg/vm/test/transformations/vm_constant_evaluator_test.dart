@@ -21,25 +21,48 @@ import '../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
-runTestCase(Uri source, TargetOS os) async {
-  final target = new VmTarget(new TargetFlags());
+class TestCase {
+  final TargetOS os;
+  final bool debug;
+  final bool enableAsserts;
+
+  const TestCase(this.os, {required this.debug, required this.enableAsserts});
+
+  String postfix() {
+    String result = '.${os.name}';
+    if (debug) {
+      result += '.debug';
+    }
+    if (enableAsserts) {
+      result += '.withAsserts';
+    }
+    return result;
+  }
+}
+
+runTestCase(Uri source, TestCase testCase) async {
+  final soundNullSafety = true;
+  final nnbdMode = NnbdMode.Strong;
+  final target =
+      new VmTarget(new TargetFlags(soundNullSafety: soundNullSafety));
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       environmentDefines: {
-        'test.define.isTrue': 'true',
-        'test.define.isFalse': 'false'
+        'test.define.debug': testCase.debug ? 'true' : 'false',
+        'test.define.enableAsserts': testCase.enableAsserts ? 'true' : 'false',
       });
 
-  final evaluator =
-      VMConstantEvaluator.create(target, component, os, NnbdMode.Strong);
-  final enableAsserts = false;
-  component = transformComponent(component, enableAsserts, evaluator);
+  final evaluator = VMConstantEvaluator.create(
+      target, component, testCase.os, nnbdMode,
+      enableAsserts: testCase.enableAsserts);
+  component =
+      transformComponent(target, component, evaluator, testCase.enableAsserts);
   verifyComponent(
       target, VerificationStage.afterGlobalTransformations, component);
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
-  final postfix = '.${os.name}';
-  compareResultWithExpectationsFile(source, actual, expectFilePostfix: postfix);
+  compareResultWithExpectationsFile(source, actual,
+      expectFilePostfix: testCase.postfix());
 }
 
 main() {
@@ -52,7 +75,14 @@ main() {
         .reversed) {
       if (entry.path.endsWith(".dart")) {
         for (final os in TargetOS.values) {
-          test('${entry.path}.${os.name}', () => runTestCase(entry.uri, os));
+          for (final enableAsserts in [true, false]) {
+            for (final debug in [true, false]) {
+              final testCase =
+                  TestCase(os, debug: debug, enableAsserts: enableAsserts);
+              test('${entry.path}${testCase.postfix()}',
+                  () => runTestCase(entry.uri, testCase));
+            }
+          }
         }
       }
     }

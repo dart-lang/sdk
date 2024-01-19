@@ -1,4 +1,4 @@
 ------------ main ------------
-%args = _Parameter #0 [_T (dart.core::List)+?]
+%args = _Parameter #0 [_T (dart.core::List)+]
 t1 = _Call direct [dart.core::print] (_T (dart.core::_OneByteString, "Hello, world!"))
 RESULT: _T {}?

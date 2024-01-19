@@ -27,7 +27,7 @@ import 'c.dart';
 
     newFile('$testPackageLibPath/c.dart', '');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(WarningCode.UNUSED_IMPORT, 33, 8),
     ]);
@@ -55,7 +55,7 @@ library augment 'a.dart';
 import 'c.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 8),
     ]);
@@ -83,7 +83,7 @@ library augment 'a.dart';
 import ':net';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.INVALID_URI, 33, 6),
     ]);
@@ -111,7 +111,7 @@ library augment 'a.dart';
 import '${'foo'}.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 33, 15),
     ]);
@@ -149,7 +149,7 @@ library augment 'a.dart';
 import 'foo:bar';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 9),
     ]);
@@ -181,7 +181,7 @@ import 'c.dart';
 library augment 'b.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 33, 8),
     ]);
@@ -213,7 +213,7 @@ import 'c.dart';
 part of my.lib;
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 33, 8),
     ]);
@@ -245,7 +245,7 @@ import 'c.dart';
 part of 'b.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 33, 8),
     ]);

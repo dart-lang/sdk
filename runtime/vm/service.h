@@ -13,11 +13,12 @@
 #include "vm/object_id_ring.h"
 #include "vm/os_thread.h"
 #include "vm/tagged_pointer.h"
+#include "vm/thread.h"
 
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 4
-#define SERVICE_PROTOCOL_MINOR_VERSION 13
+#define SERVICE_PROTOCOL_MINOR_VERSION 14
 
 class Array;
 class EmbedderServiceHandler;
@@ -198,7 +199,7 @@ class Service : public AllStatic {
     return stream_cancel_callback_;
   }
 
-  static void PrintJSONForEmbedderInformation(JSONObject *jsobj);
+  static void PrintJSONForEmbedderInformation(JSONObject* jsobj);
   static void PrintJSONForVM(JSONStream* js, bool ref);
 
   static void CheckForPause(Isolate* isolate, JSONStream* stream);
@@ -268,6 +269,11 @@ class Service : public AllStatic {
   static const uint8_t* dart_library_kernel_;
   static intptr_t dart_library_kernel_len_;
 };
+
+// Visible for testing.
+intptr_t ParseJSONArray(Thread* thread,
+                        const char* str,
+                        const GrowableObjectArray& elements);
 
 }  // namespace dart
 

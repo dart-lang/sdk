@@ -162,13 +162,26 @@ abstract interface class Directory implements FileSystemEntity {
   /// operations and multiple isolates. Changing the working directory,
   /// while asynchronous operations are pending or when other isolates
   /// are working with the file system, can lead to unexpected results.
-  static void set current(path) {
+  static void set current(dynamic path) {
+    // Disallow implicit casts to avoid bugs like
+    // <https://github.com/dart-lang/sdk/issues/52140>.
+    //
+    // This can be removed if `strict-casts` is enabled.
+    path as Object?;
+
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       _Directory.current = path;
       return;
     }
-    overrides.setCurrentDirectory(path);
+
+    // IOOverrides.setCurrentDirectory accepts only a [String].
+    overrides.setCurrentDirectory(switch (path) {
+      String s => s,
+      Directory d => d.path,
+      _ => throw ArgumentError('${Error.safeToString(path)} is not a String or'
+          ' Directory'),
+    });
   }
 
   /// Creates the directory if it doesn't exist.
@@ -256,6 +269,52 @@ abstract interface class Directory implements FileSystemEntity {
   /// If [newPath] identifies an existing file or link the operation
   /// fails and a [FileSystemException] is thrown.
   Directory renameSync(String newPath);
+
+  /// Deletes this [Directory].
+  ///
+  /// If [recursive] is `false`:
+  ///
+  ///  * If [path] corresponds to an empty directory, then that directory is
+  ///    deleted. If [path] corresponds to a link, and that link resolves
+  ///    to a directory, then the link at [path] will be deleted. In all
+  ///    other cases, [delete] completes with a [FileSystemException].
+  ///
+  /// If [recursive] is `true`:
+  ///
+  ///  * The [FileSystemEntity] at [path] is deleted regardless of type. If
+  ///    [path] corresponds to a file or link, then that file or link is
+  ///    deleted. If [path] corresponds to a directory, then it and all
+  ///    sub-directories and files in those directories are deleted. Links
+  ///    are not followed when deleting recursively. Only the link is deleted,
+  ///    not its target. This behavior allows [delete] to be used to
+  ///    unconditionally delete any file system object.
+  ///
+  /// If this [Directory] cannot be deleted, then [delete] completes with a
+  /// [FileSystemException].
+  Future<FileSystemEntity> delete({bool recursive = false});
+
+  /// Synchronously deletes this [Directory].
+  ///
+  /// If [recursive] is `false`:
+  ///
+  ///  * If [path] corresponds to an empty directory, then that directory is
+  ///    deleted. If [path] corresponds to a link, and that link resolves
+  ///    to a directory, then the link at [path] will be deleted. In all
+  ///    other cases, [delete] throws a [FileSystemException].
+  ///
+  /// If [recursive] is `true`:
+  ///
+  ///  * The [FileSystemEntity] at [path] is deleted regardless of type. If
+  ///    [path] corresponds to a file or link, then that file or link is
+  ///    deleted. If [path] corresponds to a directory, then it and all
+  ///    sub-directories and files in those directories are deleted. Links
+  ///    are not followed when deleting recursively. Only the link is deleted,
+  ///    not its target. This behavior allows [delete] to be used to
+  ///    unconditionally delete any file system object.
+  ///
+  /// If this [Directory] cannot be deleted, then [delete] throws a
+  /// [FileSystemException].
+  void deleteSync({bool recursive = false});
 
   /// A [Directory] whose path is the absolute path of [this].
   ///

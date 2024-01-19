@@ -1191,6 +1191,32 @@ ImplicitCallReference
 ''');
   }
 
+  test_implicitCallTearoff_extensionType() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {
+  void call() {}
+}
+
+void g(Function f) {}
+
+void f(A a) {
+  g(a);
+}
+''');
+
+    final node = findNode.implicitCallReference('a);');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  parameter: self::@function::g::@parameter::f
+  staticElement: self::@extensionType::A::@method::call
+  staticType: void Function()
+''');
+  }
+
   test_implicitCallTearoff_prefix_class_staticGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class C {
@@ -3525,26 +3551,32 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.functionReference('foo<int>.call;'), r'''
-FunctionReference
-  function: SimpleIdentifier
-    token: foo
-    staticElement: self::@function::foo
-    staticType: void Function<T>(T)
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
+    final node = findNode.propertyAccess('.call');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: FunctionReference
+    function: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: void Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: void Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: void Function(int)
   staticType: void Function(int)
-  typeArgumentTypes
-    int
 ''');
-    assertSimpleIdentifier(findNode.simple('call;'),
-        element: null, type: 'void Function(int)');
   }
 
   test_topLevelFunction_targetOfFunctionCall() async {

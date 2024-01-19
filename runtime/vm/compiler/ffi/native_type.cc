@@ -69,8 +69,16 @@ bool NativePrimitiveType::IsInt() const {
     case kUint8:
     case kInt16:
     case kUint16:
+    case kInt24:
+    case kUint24:
     case kInt32:
     case kUint32:
+    case kInt40:
+    case kUint40:
+    case kInt48:
+    case kUint48:
+    case kInt56:
+    case kUint56:
     case kInt64:
     case kUint64:
       return true;
@@ -93,7 +101,11 @@ bool NativePrimitiveType::IsSigned() const {
   switch (representation_) {
     case kInt8:
     case kInt16:
+    case kInt24:
     case kInt32:
+    case kInt40:
+    case kInt48:
+    case kInt56:
     case kInt64:
     case kFloat:
     case kDouble:
@@ -101,7 +113,11 @@ bool NativePrimitiveType::IsSigned() const {
       return true;
     case kUint8:
     case kUint16:
+    case kUint24:
     case kUint32:
+    case kUint40:
+    case kUint48:
+    case kUint56:
     case kUint64:
     default:
       return false;
@@ -120,6 +136,14 @@ static const intptr_t fundamental_size_in_bytes[kVoid + 1] = {
     4,  // kFloat,
     8,  // kDouble,
     4,  // kHalfDouble
+    3,  // kInt24,
+    3,  // kUint24,
+    5,  // kInt40,
+    5,  // kUint40,
+    6,  // kInt48,
+    6,  // kUint48,
+    7,  // kInt56,
+    7,  // kUint56,
     0,  // kVoid,
 };
 
@@ -140,7 +164,7 @@ intptr_t NativePrimitiveType::AlignmentInBytesStack(bool is_vararg) const {
       // iOS on arm64 only aligns to size.
       return SizeInBytes();
     default:
-      UNREACHABLE();
+      UNREACHABLE_THIS();
   }
 }
 
@@ -158,7 +182,7 @@ intptr_t NativePrimitiveType::AlignmentInBytesField() const {
       return SizeInBytes();
     }
     default:
-      UNREACHABLE();
+      UNREACHABLE_THIS();
   }
 }
 
@@ -260,6 +284,14 @@ bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
     case kUint8:
     case kInt16:
     case kUint16:
+    case kInt24:
+    case kUint24:
+    case kInt40:
+    case kUint40:
+    case kInt48:
+    case kUint48:
+    case kInt56:
+    case kUint56:
     case kHalfDouble:
       return false;
     case kInt32:
@@ -272,7 +304,7 @@ bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
     case kVoid:
       return true;
     default:
-      UNREACHABLE();  // Make MSVC happy.
+      UNREACHABLE_THIS();  // Make MSVC happy.
   }
 }
 
@@ -293,7 +325,7 @@ Representation NativePrimitiveType::AsRepresentation() const {
     case kVoid:
       return kUnboxedFfiIntPtr;
     default:
-      UNREACHABLE();
+      UNREACHABLE_THIS();
   }
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
@@ -648,6 +680,22 @@ static const char* PrimitiveTypeToCString(PrimitiveType rep) {
       return "double";
     case kHalfDouble:
       return "half-double";
+    case kInt24:
+      return "int24";
+    case kUint24:
+      return "uint24";
+    case kInt40:
+      return "int40";
+    case kUint40:
+      return "uint40";
+    case kInt48:
+      return "int48";
+    case kUint48:
+      return "uint48";
+    case kInt56:
+      return "int56";
+    case kUint56:
+      return "uint56";
     case kVoid:
       return "void";
     default:
@@ -791,7 +839,7 @@ const NativePrimitiveType& NativeCompoundType::FirstPrimitiveMember() const {
       return members_[i]->FirstPrimitiveMember();
     }
   }
-  UNREACHABLE();
+  UNREACHABLE_THIS();
 }
 
 intptr_t NativePrimitiveType::PrimitivePairMembers(
@@ -1015,12 +1063,47 @@ bool NativeCompoundType::ContainsHomogeneousFloats() const {
   return ContainsHomogeneousFloatsInternal(this->members());
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
+Representation NativeType::AsRepresentationOverApprox(Zone* zone_) const {
+  if (IsPrimitive()) {
+    switch (AsPrimitive().representation()) {
+      case kInt24:
+        return kUnboxedInt32;
+      case kUint24:
+        return kUnboxedUint32;
+      case kInt40:
+      case kUint40:
+      case kInt48:
+      case kUint48:
+      case kInt56:
+      case kUint56:
+        return kUnboxedInt64;
+      default:
+        break;
+    }
+  }
+  const auto& widened = WidenTo4Bytes(zone_);
+  return widened.AsRepresentation();
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
+
 const NativeType& NativeType::WidenTo4Bytes(Zone* zone) const {
   if (IsInt() && SizeInBytes() <= 2) {
     if (IsSigned()) {
       return *new (zone) NativePrimitiveType(kInt32);
     } else {
       return *new (zone) NativePrimitiveType(kUint32);
+    }
+  }
+  return *this;
+}
+
+const NativeType& NativeType::WidenTo8Bytes(Zone* zone) const {
+  if (IsInt() && SizeInBytes() <= 4) {
+    if (IsSigned()) {
+      return *new (zone) NativePrimitiveType(kInt64);
+    } else {
+      return *new (zone) NativePrimitiveType(kUint64);
     }
   }
   return *this;

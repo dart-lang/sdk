@@ -8,11 +8,25 @@ See http://dev.chromium.org/developers/how-tos/depottools/presubmit-scripts
 for more details about the presubmit API built into gcl.
 """
 
-import imp
+import importlib.util
+import importlib.machinery
 import os.path
 import subprocess
 
 USE_PYTHON3 = True
+
+
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname,
+                                                  filename,
+                                                  loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    # The module is always executed and not cached in sys.modules.
+    # Uncomment the following line to cache the module.
+    # sys.modules[module.__name__] = module
+    loader.exec_module(module)
+    return module
 
 
 def runSmokeTest(input_api, output_api):
@@ -26,8 +40,8 @@ def runSmokeTest(input_api, output_api):
 
     if hasChangedFiles:
         local_root = input_api.change.RepositoryRoot()
-        utils = imp.load_source('utils',
-                                os.path.join(local_root, 'tools', 'utils.py'))
+        utils = load_source('utils',
+                            os.path.join(local_root, 'tools', 'utils.py'))
         dart = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
         yaml2json = os.path.join(local_root, 'tools', 'yaml2json.dart')
         libYaml = os.path.join(local_root, 'sdk', 'lib', 'libraries.yaml')

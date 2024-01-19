@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
@@ -18,8 +17,8 @@ main() {
 @reflectiveTest
 class InconsistentLanguageVersionOverrideTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+  // TODO(srawlins): Use null safety in test cases.
+  // https://github.com/dart-lang/sdk/issues/44666
 
   CompileTimeErrorCode get _errorCode =>
       CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE;
@@ -63,22 +62,6 @@ part 'b.dart';
 part of 'a.dart';
 ''',
       libraryErrors: [],
-    );
-  }
-
-  test_onlyLibrary() async {
-    noSoundNullSafety = false;
-    await _checkLibraryAndPart(
-      libraryContent: r'''
-// @dart = 2.5
-part 'b.dart';
-''',
-      partContent: r'''
-part of 'a.dart';
-''',
-      libraryErrors: [
-        error(_errorCode, 20, 8),
-      ],
     );
   }
 

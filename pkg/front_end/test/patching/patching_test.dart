@@ -49,7 +49,7 @@ Future<void> main(List<String> args) async {
       });
 }
 
-class TestConfigWithLanguageVersion extends TestConfig {
+class TestConfigWithLanguageVersion extends CfeTestConfig {
   TestConfigWithLanguageVersion(String marker, String name,
       {Uri? librariesSpecificationUri,
       Map<ExperimentalFlag, bool> experimentalFlags = const {},
@@ -65,11 +65,11 @@ class TestConfigWithLanguageVersion extends TestConfig {
   }
 }
 
-class PatchingDataComputer extends DataComputer<Features> {
+class PatchingDataComputer extends CfeDataComputer<Features> {
   const PatchingDataComputer();
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     member.accept(
@@ -77,7 +77,7 @@ class PatchingDataComputer extends DataComputer<Features> {
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(CfeTestResultData testResultData, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new PatchingDataExtractor(testResultData.compilerResult, actualMap)
@@ -85,7 +85,7 @@ class PatchingDataComputer extends DataComputer<Features> {
   }
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new PatchingDataExtractor(testResultData.compilerResult, actualMap)
@@ -97,7 +97,7 @@ class PatchingDataComputer extends DataComputer<Features> {
 
   @override
   Features computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     features[Tags.error] = errorsToText(errors);
     return features;

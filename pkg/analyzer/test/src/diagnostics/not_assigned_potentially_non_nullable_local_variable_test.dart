@@ -398,6 +398,34 @@ void f(bool b) {
 ''');
   }
 
+  test_extensionType_hasImplements() async {
+    // Extension types are always potentially non-nullable.
+    await assertErrorsInCode(r'''
+extension type E(int it) implements int {}
+
+void f() {
+  E v;
+  v;
+}
+''', [
+      _notAssignedError(64, 1),
+    ]);
+  }
+
+  test_extensionType_noImplements() async {
+    // Extension types are always potentially non-nullable.
+    await assertErrorsInCode(r'''
+extension type E(int it) {}
+
+void f() {
+  E v;
+  v;
+}
+''', [
+      _notAssignedError(49, 1),
+    ]);
+  }
+
   test_for_body() async {
     await assertErrorsInCode(r'''
 void f(bool b) {

@@ -37,7 +37,7 @@ class TableSchema<F extends self::Column, C extends self::TableContext> extends 
   constructor _() → self::TableSchema<self::TableSchema::F, self::TableSchema::C>
     : super core::Object::•()
     ;
-  static factory •<F extends self::Column, C extends self::TableContext>({required core::Iterable<self::TableSchema::•::F> fields = #C1, self::TableSchema::•::C? context = #C1}) → self::TableSchema<self::TableSchema::•::F, self::TableSchema::•::C>
+  static factory •<F extends self::Column, C extends self::TableContext>({required core::Iterable<self::TableSchema::•::F> fields, self::TableSchema::•::C? context = #C1}) → self::TableSchema<self::TableSchema::•::F, self::TableSchema::•::C>
     return new self::TableSchema::_<self::TableSchema::•::F, self::TableSchema::•::C>();
 }
 static field self::TableSchema<dynamic, self::TableContext> schema = self::TableSchema::•<self::Column, self::TableContext>(fields: <self::Column>[]);

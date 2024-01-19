@@ -291,7 +291,7 @@ class FunctionNodeHelper {
     kPositionalParameters,
     kNamedParameters,
     kReturnType,
-    kFutureValueType,
+    kEmittedValueType,
     kRedirectingFactoryTarget,
     kBody,
     kEnd,
@@ -594,10 +594,8 @@ class ProcedureHelper {
     kIsNonNullableByDefault = 1 << 5,
     kSyntheticProcedure = 1 << 6,
     kInternalImplementation = 1 << 7,
-    kIsAbstractFieldAccessor = 1 << 8,
-    kExtensionTypeMember = 1 << 9,
-    kHasWeakTearoffReferencePragma = 1 << 10,
-    kIsLoweredLateField = 1 << 11,
+    kExtensionTypeMember = 1 << 8,
+    kHasWeakTearoffReferencePragma = 1 << 9,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)

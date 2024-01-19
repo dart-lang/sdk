@@ -41,7 +41,7 @@ class Point {
 ```
 ''';
 
-// todo(pq): temporary; remove after renamed class is in the SDK
+// TODO(pq): temporary; remove after renamed class is in the SDK
 // ignore: non_constant_identifier_names
 LintRule PreferConstructorsInsteadOfStaticMethods() =>
     PreferConstructorsOverStaticMethods();

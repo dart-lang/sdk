@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -102,11 +103,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     typeProvider: _typeProvider,
   );
 
+  /// The set of required operations on types.
+  final TypeSystemOperations typeSystemOperations;
+
   factory ResolutionVisitor({
     required CompilationUnitElementImpl unitElement,
     required AnalysisErrorListener errorListener,
     required FeatureSet featureSet,
     required Scope nameScope,
+    required bool strictInference,
+    required bool strictCasts,
     ElementWalker? elementWalker,
   }) {
     var libraryElement = unitElement.library;
@@ -119,10 +125,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       isNonNullableByDefault: isNonNullableByDefault,
     );
 
+    final typeSystemOperations = TypeSystemOperations(
+      unitElement.library.typeSystem,
+      strictCasts: strictCasts,
+    );
+
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
       isNonNullableByDefault,
       errorReporter,
+      strictInference: strictInference,
+      strictCasts: strictCasts,
+      typeSystemOperations: typeSystemOperations,
     );
 
     final recordTypeResolver = RecordTypeAnnotationResolver(
@@ -142,6 +156,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       nameScope,
       elementWalker,
       ElementHolder(unitElement),
+      typeSystemOperations,
     );
   }
 
@@ -157,6 +172,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._nameScope,
     this._elementWalker,
     this._elementHolder,
+    this.typeSystemOperations,
   );
 
   DartType get _dynamicType => _typeProvider.dynamicType;
@@ -1785,11 +1801,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
+    final declaredRepresentation = declaredElement.representation.type;
+    if (typeSystem.isSubtypeOf(declaredRepresentation, type)) {
+      return;
+    }
+
     // When `type` is an extension type.
     if (type is InterfaceTypeImpl) {
       final implementedRepresentation = type.representationType;
       if (implementedRepresentation != null) {
-        final declaredRepresentation = declaredElement.representation.type;
         if (!typeSystem.isSubtypeOf(
           declaredRepresentation,
           implementedRepresentation,
@@ -1810,14 +1830,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    final declaredRepresentation = declaredElement.representation.type;
-    if (!typeSystem.isSubtypeOf(declaredRepresentation, type)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
-        node,
-        [type, declaredRepresentation],
-      );
-    }
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+      node,
+      [type, declaredRepresentation],
+    );
   }
 
   void _visitIf(IfElementOrStatementImpl node) {
@@ -1947,7 +1964,7 @@ class _VariableBinderErrors
 
   @override
   void assertInErrorRecovery() {
-    // TODO: implement assertInErrorRecovery
+    // TODO(scheglov): implement assertInErrorRecovery
     throw UnimplementedError();
   }
 

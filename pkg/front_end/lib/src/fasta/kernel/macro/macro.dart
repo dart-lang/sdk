@@ -36,14 +36,6 @@ import '../../source/source_procedure_builder.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
 
-bool enableMacros = false;
-
-/// Enables macros whether the Macro class actually exists in the transitive
-/// deps or not. This allows for easier experimentation.
-///
-/// TODO: Remove this once it is no longer necessary.
-bool forceEnableMacros = false;
-
 const String augmentationScheme = 'org-dartlang-augmentation';
 
 final Uri macroLibraryUri =
@@ -64,9 +56,18 @@ class MacroApplication {
   final ClassBuilder classBuilder;
   final String constructorName;
   final macro.Arguments arguments;
+  final String? errorReason;
 
   MacroApplication(this.classBuilder, this.constructorName, this.arguments,
-      {required this.fileOffset});
+      {required this.fileOffset})
+      : errorReason = null;
+
+  MacroApplication.error(String this.errorReason, this.classBuilder,
+      {required this.fileOffset})
+      : constructorName = '',
+        arguments = new macro.Arguments(const [], const {});
+
+  bool get isErroneous => errorReason != null;
 
   late macro.MacroInstanceIdentifier instanceIdentifier;
 
@@ -226,26 +227,37 @@ void checkMacroApplications(
       // We cannot currently identify macro applications by offsets because
       // file offsets on annotations are not stable.
       // TODO(johnniwinther): Handle file uri + offset on annotations.
-      Map<Class, List<MacroApplication>> macroApplications = {};
+      Map<Class, Map<int, MacroApplication>> macroApplications = {};
       if (applicationData != null) {
         for (MacroApplication application
             in applicationData.macroApplications) {
-          (macroApplications[application.classBuilder.cls] ??= [])
-              .add(application);
+          Map<int, MacroApplication> applications =
+              macroApplications[application.classBuilder.cls] ??= {};
+          int fileOffset = application.fileOffset;
+          assert(
+              !applications.containsKey(fileOffset),
+              "Multiple annotations at offset $fileOffset: "
+              "${applications[fileOffset]} and ${application}.");
+          applications[fileOffset] = application;
         }
       }
       for (Expression annotation in annotations) {
         if (annotation is ConstantExpression) {
           Constant constant = annotation.constant;
           if (constant is InstanceConstant &&
-              hierarchy.isSubtypeOf(constant.classNode, macroClass)) {
-            List<MacroApplication>? applications =
+              hierarchy.isSubInterfaceOf(constant.classNode, macroClass)) {
+            Map<int, MacroApplication>? applications =
                 macroApplications[constant.classNode];
-            if (applications != null) {
-              if (applications.length == 1) {
-                macroApplications.remove(constant.classNode);
-              } else {
-                applications.removeAt(0);
+            MacroApplication? macroApplication =
+                applications?.remove(annotation.fileOffset);
+            if (macroApplication != null) {
+              if (macroApplication.isErroneous) {
+                libraryBuilder.addProblem(
+                    templateUnhandledMacroApplication
+                        .withArguments(macroApplication.errorReason!),
+                    annotation.fileOffset,
+                    noLength,
+                    fileUri);
               }
             } else {
               // TODO(johnniwinther): Improve the diagnostics about why the
@@ -328,6 +340,9 @@ class MacroApplications {
         List<MacroApplication>? applications) async {
       if (applications != null) {
         for (MacroApplication application in applications) {
+          if (application.isErroneous) {
+            continue;
+          }
           Uri libraryUri = application.classBuilder.libraryBuilder.importUri;
           String macroClassName = application.classBuilder.name;
           try {
@@ -346,13 +361,15 @@ class MacroApplications {
                       application.constructorName,
                       application.arguments);
               benchmarker?.endSubdivide();
-            } catch (e) {
-              throw "Error instantiating macro `${application}`: $e";
+            } catch (e, s) {
+              throw "Error instantiating macro `${application}`: "
+                  "$e\n$s";
             }
-          } catch (e) {
+          } catch (e, s) {
             throw "Error loading macro class "
                 "'${application.classBuilder.name}' from "
-                "'${application.classBuilder.libraryBuilder.importUri}': $e";
+                "'${application.classBuilder.libraryBuilder.importUri}': "
+                "$e\n$s";
           }
         }
       }
@@ -509,6 +526,9 @@ class MacroApplications {
     List<macro.MacroExecutionResult> results = [];
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
+      if (macroApplication.isErroneous) {
+        continue;
+      }
       if (macroApplication.instanceIdentifier
           .shouldExecute(_declarationKind(declaration), macro.Phase.types)) {
         if (retainDataForTesting) {
@@ -602,6 +622,9 @@ class MacroApplications {
     macro.Declaration declaration = applicationData.declaration;
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
+      if (macroApplication.isErroneous) {
+        continue;
+      }
       if (macroApplication.instanceIdentifier.shouldExecute(
           _declarationKind(declaration), macro.Phase.declarations)) {
         if (retainDataForTesting) {
@@ -702,6 +725,9 @@ class MacroApplications {
     macro.Declaration declaration = applicationData.declaration;
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
+      if (macroApplication.isErroneous) {
+        continue;
+      }
       if (macroApplication.instanceIdentifier.shouldExecute(
           _declarationKind(declaration), macro.Phase.definitions)) {
         if (retainDataForTesting) {
@@ -839,10 +865,7 @@ class MacroApplications {
     final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
 
     macro.ParameterizedTypeDeclaration declaration = builder.isMixinDeclaration
-        // TODO: These shouldn't always be introspectable. In the declarations
-        // phase we need to limit the introspectable declarations to those that
-        // are part of the super chain of the directly macro annotated class.
-        ? new macro.IntrospectableMixinDeclarationImpl(
+        ? new macro.MixinDeclarationImpl(
                 id: macro.RemoteInstance.uniqueId,
                 identifier: identifier,
                 library: library,
@@ -856,7 +879,7 @@ class MacroApplications {
             // This cast is not necessary but LUB doesn't give the desired type
             // without it.
             as macro.ParameterizedTypeDeclaration
-        : new macro.IntrospectableClassDeclarationImpl(
+        : new macro.ClassDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
@@ -969,13 +992,9 @@ class MacroApplications {
       metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
-      hasAbstract: builder.isAbstract,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
       hasExternal: builder.isExternal,
-      isGetter: builder.isGetter,
-      isOperator: builder.isOperator,
-      isSetter: builder.isSetter,
       positionalParameters: parameters[0],
       namedParameters: parameters[1],
       // TODO(johnniwinther): Support constructor return type.
@@ -1004,13 +1023,9 @@ class MacroApplications {
       metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
-      hasAbstract: builder.isAbstract,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
       hasExternal: builder.isExternal,
-      isGetter: builder.isGetter,
-      isOperator: builder.isOperator,
-      isSetter: builder.isSetter,
       positionalParameters: parameters[0],
       namedParameters: parameters[1],
       // TODO(johnniwinther): Support constructor return type.
@@ -1044,7 +1059,6 @@ class MacroApplications {
           // TODO: Provide metadata annotations.
           metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
-          hasAbstract: builder.isAbstract,
           // TODO(johnniwinther): Real implementation of hasBody.
           hasBody: true,
           hasExternal: builder.isExternal,
@@ -1068,7 +1082,6 @@ class MacroApplications {
           library: library,
           // TODO(johnniwinther): Provide metadata annotations.
           metadata: const [],
-          hasAbstract: builder.isAbstract,
           // TODO(johnniwinther): Real implementation of hasBody.
           hasBody: true,
           hasExternal: builder.isExternal,
@@ -1105,6 +1118,7 @@ class MacroApplications {
           // TODO: Provide metadata annotations.
           metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
+          hasAbstract: builder.isAbstract,
           hasExternal: builder.isExternal,
           hasFinal: builder.isFinal,
           hasLate: builder.isLate,
@@ -1287,11 +1301,12 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
-      macro.IntrospectableType type) {
-    if (type is! macro.IntrospectableClassDeclaration) {
+      macro.TypeDeclaration type) {
+    if (type is! macro.ClassDeclaration) {
       throw new UnsupportedError('Only introspection on classes is supported');
     }
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
+    ClassBuilder classBuilder = macroApplications
+        ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
     List<macro.ConstructorDeclaration> result = [];
     Iterator<MemberBuilder> iterator = classBuilder.fullConstructorIterator();
     while (iterator.moveNext()) {
@@ -1310,14 +1325,14 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.EnumValueDeclaration>> valuesOf(
-      covariant macro.IntrospectableEnum enumType) {
+      covariant macro.EnumDeclaration enumType) {
     // TODO: implement valuesOf
     throw new UnimplementedError();
   }
 
   @override
-  Future<List<macro.FieldDeclaration>> fieldsOf(macro.IntrospectableType type) {
-    if (type is! macro.IntrospectableClassDeclaration) {
+  Future<List<macro.FieldDeclaration>> fieldsOf(macro.TypeDeclaration type) {
+    if (type is! macro.ClassDeclaration) {
       throw new UnsupportedError('Only introspection on classes is supported');
     }
     ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
@@ -1332,10 +1347,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   }
 
   @override
-  Future<List<macro.MethodDeclaration>> methodsOf(
-      macro.IntrospectableType type) {
-    if (type is! macro.IntrospectableClassDeclaration &&
-        type is! macro.IntrospectableMixinDeclaration) {
+  Future<List<macro.MethodDeclaration>> methodsOf(macro.TypeDeclaration type) {
+    if (type is! macro.ClassDeclaration && type is! macro.MixinDeclaration) {
       throw new UnsupportedError(
           'Only introspection on classes and mixins is supported');
     }
@@ -1370,9 +1383,9 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
       super.macroApplications, super.classHierarchy, super.sourceLoader);
 
   @override
-  Future<macro.IntrospectableType> typeDeclarationOf(
+  Future<macro.TypeDeclaration> typeDeclarationOf(
           macro.Identifier identifier) async =>
-      (await super.typeDeclarationOf(identifier)) as macro.IntrospectableType;
+      (await super.typeDeclarationOf(identifier));
 
   @override
   Future<macro.TypeAnnotation> inferType(

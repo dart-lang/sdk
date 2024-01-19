@@ -95,15 +95,18 @@ void _expectTypeArguments(String typeArguments, Object object) {
 
 void expectListOf<T>(Object object) {
   Expect.type<List>(object);
+  Expect.type<List<T>>(object);
   _expectTypeArguments(T.toString(), object);
 }
 
 void expectSetOf<T>(Object object) {
   Expect.type<Set>(object);
+  Expect.type<Set<T>>(object);
   _expectTypeArguments(T.toString(), object);
 }
 
 void expectMapOf<K, V>(Object object) {
   Expect.type<Map>(object);
+  Expect.type<Map<K, V>>(object);
   _expectTypeArguments("$K, $V", object);
 }

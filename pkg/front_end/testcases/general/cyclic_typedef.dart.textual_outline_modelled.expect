@@ -1,0 +1,11 @@
+typedef F1<X> = List<G1<X>>;
+
+typedef F2 = void Function<X extends F2>();
+
+typedef F3 = F3;
+
+typedef F4 = List<F4>;
+
+typedef F5<X extends F5<Never>> = Object;
+
+typedef G1<Y> = F1<Y>;

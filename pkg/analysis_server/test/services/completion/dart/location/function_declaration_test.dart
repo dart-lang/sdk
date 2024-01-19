@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FunctionDeclarationTest1);
-    defineReflectiveTests(FunctionDeclarationTest2);
+    defineReflectiveTests(FunctionDeclarationTest);
   });
 }
 
 @reflectiveTest
-class FunctionDeclarationTest1 extends AbstractCompletionDriverTest
-    with FunctionDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class FunctionDeclarationTest2 extends AbstractCompletionDriverTest
-    with FunctionDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class FunctionDeclarationTest extends AbstractCompletionDriverTest
+    with FunctionDeclarationTestCases {}
 
 mixin FunctionDeclarationTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterDocComment_beforeName_extraClosingBrace() async {
@@ -61,8 +50,7 @@ suggestions
     await computeSuggestions('''
 void f()a^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -73,51 +61,6 @@ suggestions
   async*
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  abstract
-    kind: keyword
-  async
-    kind: keyword
-  async*
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  extension
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  interface
-    kind: keyword
-  late
-    kind: keyword
-  mixin
-    kind: keyword
-  sealed
-    kind: keyword
-  sync*
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterRightParen_beforeLeftBrace() async {
@@ -156,8 +99,7 @@ suggestions
     await computeSuggestions('''
 void f()a^ Foo foo;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -166,26 +108,5 @@ suggestions
   async*
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  async
-    kind: keyword
-  async*
-    kind: keyword
-  const
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  late
-    kind: keyword
-  sync*
-    kind: keyword
-''');
-    }
   }
 }

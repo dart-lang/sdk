@@ -9,67 +9,67 @@ class D1 extends core::Object {
     ;
 }
 extension type A(core::int property) {
-  abstract inline-class-member representation-field get property() → core::int;
+  abstract extension-type-member representation-field get property() → core::int;
   set property = self::A|set#property;
   constructor • = self::A|constructor#;
   constructor tearoff • = self::A|constructor#_#new#tearOff;
 }
 extension type B1(core::int it) {
-  abstract inline-class-member representation-field get it() → core::int;
+  abstract extension-type-member representation-field get it() → core::int;
   set property = self::B1|set#property;
   constructor • = self::B1|constructor#;
   constructor tearoff • = self::B1|constructor#_#new#tearOff;
 }
 extension type B2(core::int property) implements self::B1 /* = core::int */ {
-  abstract inline-class-member representation-field get property() → core::int;
+  abstract extension-type-member representation-field get property() → core::int;
   constructor • = self::B2|constructor#;
   constructor tearoff • = self::B2|constructor#_#new#tearOff;
 }
 extension type C1(core::int property) {
-  abstract inline-class-member representation-field get property() → core::int;
+  abstract extension-type-member representation-field get property() → core::int;
   constructor • = self::C1|constructor#;
   constructor tearoff • = self::C1|constructor#_#new#tearOff;
 }
 extension type C2(core::int it) implements self::C1 /* = core::int */ {
-  abstract inline-class-member representation-field get it() → core::int;
+  abstract extension-type-member representation-field get it() → core::int;
   set property = self::C2|set#property;
   constructor • = self::C2|constructor#;
   constructor tearoff • = self::C2|constructor#_#new#tearOff;
 }
 extension type D2(self::D1 property) implements self::D1 {
-  abstract inline-class-member representation-field get property() → self::D1;
+  abstract extension-type-member representation-field get property() → self::D1;
   constructor • = self::D2|constructor#;
   constructor tearoff • = self::D2|constructor#_#new#tearOff;
 }
-static inline-class-member method A|constructor#(core::int property) → self::A /* = core::int */
+static extension-type-member method A|constructor#(core::int property) → self::A /* = core::int */
   ;
-static inline-class-member method A|constructor#_#new#tearOff(core::int property) → self::A /* = core::int */
+static extension-type-member method A|constructor#_#new#tearOff(core::int property) → self::A /* = core::int */
   return self::A|constructor#(property);
-static inline-class-member method A|set#property(lowered final self::A /* = core::int */ #this, core::int value) → void
+static extension-type-member method A|set#property(lowered final self::A /* = core::int */ #this, core::int value) → void
   ;
-static inline-class-member method B1|constructor#(core::int it) → self::B1 /* = core::int */
+static extension-type-member method B1|constructor#(core::int it) → self::B1 /* = core::int */
   ;
-static inline-class-member method B1|constructor#_#new#tearOff(core::int it) → self::B1 /* = core::int */
+static extension-type-member method B1|constructor#_#new#tearOff(core::int it) → self::B1 /* = core::int */
   return self::B1|constructor#(it);
-static inline-class-member method B1|set#property(lowered final self::B1 /* = core::int */ #this, core::int value) → void
+static extension-type-member method B1|set#property(lowered final self::B1 /* = core::int */ #this, core::int value) → void
   ;
-static inline-class-member method B2|constructor#(core::int property) → self::B2 /* = core::int */
+static extension-type-member method B2|constructor#(core::int property) → self::B2 /* = core::int */
   ;
-static inline-class-member method B2|constructor#_#new#tearOff(core::int property) → self::B2 /* = core::int */
+static extension-type-member method B2|constructor#_#new#tearOff(core::int property) → self::B2 /* = core::int */
   return self::B2|constructor#(property);
-static inline-class-member method C1|constructor#(core::int property) → self::C1 /* = core::int */
+static extension-type-member method C1|constructor#(core::int property) → self::C1 /* = core::int */
   ;
-static inline-class-member method C1|constructor#_#new#tearOff(core::int property) → self::C1 /* = core::int */
+static extension-type-member method C1|constructor#_#new#tearOff(core::int property) → self::C1 /* = core::int */
   return self::C1|constructor#(property);
-static inline-class-member method C2|constructor#(core::int it) → self::C2 /* = core::int */
+static extension-type-member method C2|constructor#(core::int it) → self::C2 /* = core::int */
   ;
-static inline-class-member method C2|constructor#_#new#tearOff(core::int it) → self::C2 /* = core::int */
+static extension-type-member method C2|constructor#_#new#tearOff(core::int it) → self::C2 /* = core::int */
   return self::C2|constructor#(it);
-static inline-class-member method C2|set#property(lowered final self::C2 /* = core::int */ #this, core::int value) → void
+static extension-type-member method C2|set#property(lowered final self::C2 /* = core::int */ #this, core::int value) → void
   ;
-static inline-class-member method D2|constructor#(self::D1 property) → self::D2 /* = self::D1 */
+static extension-type-member method D2|constructor#(self::D1 property) → self::D2 /* = self::D1 */
   ;
-static inline-class-member method D2|constructor#_#new#tearOff(self::D1 property) → self::D2 /* = self::D1 */
+static extension-type-member method D2|constructor#_#new#tearOff(self::D1 property) → self::D2 /* = self::D1 */
   return self::D2|constructor#(property);
 static method main() → dynamic
   ;

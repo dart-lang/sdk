@@ -74,6 +74,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   List<SourceProcedureBuilder>? _patches;
 
+  final MemberName _memberName;
+
   SourceProcedureBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -98,6 +100,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
             nameScheme.isInstanceMember && nameScheme.isExtensionMember,
         this.isExtensionTypeInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
+        _memberName = nameScheme.getDeclaredName(name),
         super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedure = new Procedure(
@@ -130,6 +133,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           .attachMember(_extensionTearOff!);
     }
   }
+
+  @override
+  Name get memberName => _memberName.name;
 
   List<SourceProcedureBuilder>? get patchesForTesting => _patches;
 
@@ -494,12 +500,17 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   List<ClassMember> get localMembers => _localMembers ??= isSetter
       ? const <ClassMember>[]
-      : <ClassMember>[new SourceProcedureMember(this)];
+      : <ClassMember>[
+          new SourceProcedureMember(
+              this, isGetter ? ClassMemberKind.Getter : ClassMemberKind.Method)
+        ];
 
   @override
   List<ClassMember> get localSetters =>
       _localSetters ??= isSetter && !isConflictingSetter
-          ? <ClassMember>[new SourceProcedureMember(this)]
+          ? <ClassMember>[
+              new SourceProcedureMember(this, ClassMemberKind.Setter)
+            ]
           : const <ClassMember>[];
 
   @override
@@ -664,9 +675,12 @@ class SourceProcedureMember extends BuilderClassMember {
   @override
   final SourceProcedureBuilder memberBuilder;
 
+  @override
+  final ClassMemberKind memberKind;
+
   Covariance? _covariance;
 
-  SourceProcedureMember(this.memberBuilder);
+  SourceProcedureMember(this.memberBuilder, this.memberKind);
 
   @override
   bool get isSourceDeclaration => true;
@@ -688,18 +702,18 @@ class SourceProcedureMember extends BuilderClassMember {
   }
 
   @override
+  Member? getTearOff(ClassMembersBuilder membersBuilder) {
+    // Ensure function type is computed.
+    getMember(membersBuilder);
+    Member? readTarget = memberBuilder.readTarget;
+    return readTarget != memberBuilder.invokeTarget ? readTarget : null;
+  }
+
+  @override
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??= new Covariance.fromMember(getMember(membersBuilder),
         forSetter: forSetter);
   }
-
-  @override
-  bool get forSetter => isSetter;
-
-  @override
-  bool get isProperty =>
-      memberBuilder.kind == ProcedureKind.Getter ||
-      memberBuilder.kind == ProcedureKind.Setter;
 
   @override
   bool isSameDeclaration(ClassMember other) {

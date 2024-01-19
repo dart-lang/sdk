@@ -1,4 +1,5 @@
 bool b = true;
+
 void f(Object o) {}
 
 class C<X extends void Function(X)?> {

@@ -99,7 +99,8 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
         return;
       }
     } else if (!typeSystem.isAssignableTo(
-        oldType, typeSystem.promoteToNonNull(newType))) {
+        oldType, typeSystem.promoteToNonNull(newType),
+        strictCasts: analysisOptions.strictCasts)) {
       return;
     }
 
@@ -220,7 +221,8 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
         return;
       }
     } else if (!typeSystem.isAssignableTo(
-        oldType, typeSystem.promoteToNonNull(newType))) {
+        oldType, typeSystem.promoteToNonNull(newType),
+        strictCasts: analysisOptions.strictCasts)) {
       return;
     }
 

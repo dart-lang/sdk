@@ -788,12 +788,6 @@ class Assembler : public AssemblerBase {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
-  void Branch(const Code& code,
-              ObjectPoolBuilderEntry::Patchability patchable =
-                  ObjectPoolBuilderEntry::kNotPatchable,
-              Register pp = PP,
-              Condition cond = AL);
-
   void Branch(const Address& address, Condition cond = AL);
 
   void BranchLink(const Code& code,
@@ -957,7 +951,10 @@ class Assembler : public AssemblerBase {
   void LoadPatchableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadDecodableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadImmediate(Register rd, Immediate value, Condition cond = AL);
-  void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
+  void LoadImmediate(Register rd, int32_t value, Condition cond);
+  void LoadImmediate(Register rd, int32_t value) override {
+    LoadImmediate(rd, value, AL);
+  }
   // These two may clobber IP.
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);
   void LoadDImmediate(DRegister dd,
@@ -983,9 +980,21 @@ class Assembler : public AssemblerBase {
                              intptr_t index,
                              Register pp = PP,
                              Condition cond = AL);
+  // Store word to pool at the given offset.
+  //
+  // Note: clobbers TMP.
+  void StoreWordToPoolIndex(Register value,
+                            intptr_t index,
+                            Register pp = PP,
+                            Condition cond = AL);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
-  void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
+  void LoadUniqueObject(
+      Register rd,
+      const Object& object,
+      Condition cond = AL,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable,
@@ -1484,6 +1493,17 @@ class Assembler : public AssemblerBase {
   // These are separate assembler macros so we can avoid a dependent load too
   // nearby the load of the table address.
   void LoadAllocationTracingStateAddress(Register dest, intptr_t cid);
+  void LoadAllocationTracingStateAddress(Register dest, Register cid);
+
+  // If true is returned, then the out parameter [need_base] signifies whether
+  // a register is needed for storing the array base (which should be passed
+  // as the [temp] parameter to ElementAddressForIntIndex).
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_load,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale,
+                                          bool* needs_base = nullptr);
 
   Address ElementAddressForIntIndex(bool is_load,
                                     bool is_external,
@@ -1552,6 +1572,11 @@ class Assembler : public AssemblerBase {
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
+  void MaybeTraceAllocation(Register cid,
                             Label* trace,
                             Register temp_reg,
                             JumpDistance distance = JumpDistance::kFarJump);
@@ -1666,12 +1691,16 @@ class Assembler : public AssemblerBase {
   void BindARMv7(Label* label);
 
   void BranchLink(const ExternalLabel* label);
+  void BranchLink(intptr_t target_code_pool_index, CodeEntryKind entry_kind);
 
-  void LoadObjectHelper(Register rd,
-                        const Object& object,
-                        Condition cond,
-                        bool is_unique,
-                        Register pp);
+  void LoadObjectHelper(
+      Register rd,
+      const Object& object,
+      Condition cond,
+      bool is_unique,
+      Register pp,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
 
   void EmitType01(Condition cond,
                   int type,

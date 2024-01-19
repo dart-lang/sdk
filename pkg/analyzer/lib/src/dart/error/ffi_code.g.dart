@@ -14,6 +14,9 @@
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
+//
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
@@ -80,6 +83,30 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters
+  static const FfiCode ARGUMENT_MUST_BE_NATIVE = FfiCode(
+    'ARGUMENT_MUST_BE_NATIVE',
+    "Argument to 'Native.addressOf' must be annotated with @Native",
+    correctionMessage:
+        "Try passing a static function or field annotated with '@Native'",
+  );
+
+  ///  No parameters.
+  static const FfiCode CALLBACK_MUST_NOT_USE_TYPED_DATA = FfiCode(
+    'CALLBACK_MUST_NOT_USE_TYPED_DATA',
+    "FFI callbacks can't take typed data arguments or return value.",
+    correctionMessage: "Try changing using `Pointer`s.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const FfiCode CALL_MUST_NOT_RETURN_TYPED_DATA = FfiCode(
+    'CALL_MUST_NOT_RETURN_TYPED_DATA',
+    "FFI calls can't return typed data.",
+    correctionMessage: "Try changing using `Pointer`s.",
+    hasPublishedDocs: true,
+  );
+
   ///  Parameters:
   ///  0: the name of the struct or union class
   static const FfiCode COMPOUND_IMPLEMENTS_FINALIZABLE = FfiCode(
@@ -127,10 +154,24 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters
+  static const FfiCode FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET = FfiCode(
+    'FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
+    "There may be at most one @DefaultAsset annotation on a library.",
+    correctionMessage: "Try removing the extra annotation.",
+  );
+
+  ///  No parameters
+  static const FfiCode FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS = FfiCode(
+    'FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
+    "Native functions and fields must have exactly one `@Native` annotation.",
+    correctionMessage: "Try removing the extra annotation.",
+  );
+
   ///  No parameters.
   static const FfiCode FFI_NATIVE_MUST_BE_EXTERNAL = FfiCode(
     'FFI_NATIVE_MUST_BE_EXTERNAL',
-    "FfiNative functions must be declared external.",
+    "Native functions must be declared external.",
     correctionMessage: "Add the `external` keyword to the function.",
   );
 
@@ -148,8 +189,8 @@ class FfiCode extends AnalyzerErrorCode {
   ///  1: the actual number of parameters
   static const FfiCode FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
-    "Unexpected number of FfiNative annotation parameters. Expected {0} but "
-        "has {1}.",
+    "Unexpected number of Native annotation parameters. Expected {0} but has "
+        "{1}.",
     correctionMessage: "Make sure parameters match the function annotated.",
   );
 
@@ -159,9 +200,9 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode
       FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
-    "Unexpected number of FfiNative annotation parameters. Expected {0} but "
-        "has {1}. FfiNative instance method annotation must have receiver as "
-        "first argument.",
+    "Unexpected number of Native annotation parameters. Expected {0} but has "
+        "{1}. Native instance method annotation must have receiver as first "
+        "argument.",
     correctionMessage:
         "Make sure parameters match the function annotated, including an extra "
         "first parameter for the receiver.",
@@ -329,12 +370,51 @@ class FfiCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: The invalid type.
+  static const FfiCode NATIVE_FIELD_INVALID_TYPE = FfiCode(
+    'NATIVE_FIELD_INVALID_TYPE',
+    "'{0}' is an unsupported type for native fields. Native fields only "
+        "support pointers, arrays or numeric and compound types.",
+    correctionMessage:
+        "Try changing the type in the `@Native` annotation to a numeric FFI "
+        "type, a pointer, array, or a compound class.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters
+  static const FfiCode NATIVE_FIELD_MISSING_TYPE = FfiCode(
+    'NATIVE_FIELD_MISSING_TYPE',
+    "The native type of this field could not be inferred and must be specified "
+        "in the annotation.",
+    correctionMessage:
+        "Try adding a type parameter extending `NativeType` to the `@Native` "
+        "annotation.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters
+  static const FfiCode NATIVE_FIELD_NOT_STATIC = FfiCode(
+    'NATIVE_FIELD_NOT_STATIC',
+    "Native fields must be static.",
+    correctionMessage: "Try adding the modifier 'static' to this field.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
   ///  0: the name of the function, method, or constructor having type arguments
   static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = FfiCode(
     'NON_CONSTANT_TYPE_ARGUMENT',
     "The type arguments to '{0}' must be known at compile time, so they can't "
         "be type parameters.",
     correctionMessage: "Try changing the type argument to be a constant type.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const FfiCode NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA = FfiCode(
+    'NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA',
+    "FFI non-leaf calls can't take typed data arguments.",
+    correctionMessage: "Try changing the call to a leaf call.",
     hasPublishedDocs: true,
   );
 

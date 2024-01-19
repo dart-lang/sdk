@@ -22,6 +22,8 @@ import 'package:analyzer/src/error/codes.dart';
 mixin ErrorDetectionHelpers {
   ErrorReporter get errorReporter;
 
+  bool get strictCasts;
+
   TypeSystemImpl get typeSystem;
 
   /// Verify that the given [expression] can be assigned to its corresponding
@@ -73,7 +75,8 @@ mixin ErrorDetectionHelpers {
       return;
     }
 
-    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
+    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
+        strictCasts: strictCasts)) {
       AstNode getErrorNode(AstNode node) {
         if (node is CascadeExpression) {
           return getErrorNode(node.target);
@@ -89,7 +92,8 @@ mixin ErrorDetectionHelpers {
           actualStaticType is! RecordType &&
           expression is ParenthesizedExpression) {
         var field = expectedStaticType.positionalFields.first;
-        if (typeSystem.isAssignableTo(field.type, actualStaticType)) {
+        if (typeSystem.isAssignableTo(field.type, actualStaticType,
+            strictCasts: strictCasts)) {
           errorReporter.reportErrorForNode(
             WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
             expression,
@@ -161,7 +165,8 @@ mixin ErrorDetectionHelpers {
     Expression expression = initializer.expression;
     // test the static type of the expression
     DartType staticType = expression.typeOrThrow;
-    if (typeSystem.isAssignableTo(staticType, fieldType)) {
+    if (typeSystem.isAssignableTo(staticType, fieldType,
+        strictCasts: strictCasts)) {
       if (fieldType is! VoidType) {
         checkForUseOfVoidResult(expression);
       }
@@ -186,7 +191,7 @@ mixin ErrorDetectionHelpers {
           messages);
     }
 
-    // TODO(brianwilkerson) Define a hint corresponding to these errors and
+    // TODO(brianwilkerson): Define a hint corresponding to these errors and
     // report it if appropriate.
 //        // test the propagated type of the expression
 //        Type propagatedType = expression.getPropagatedType();
@@ -288,6 +293,14 @@ mixin ErrorDetectionHelpers {
   /// > is a function type or the type `Function`, `e` is treated as `e.call`.
   MethodElement? getImplicitCallMethod(
       DartType type, DartType? context, SyntacticEntity errorNode) {
+    var visitedTypes = {type};
+    while (type is TypeParameterType) {
+      type = type.bound;
+      if (!visitedTypes.add(type)) {
+        // A cycle!
+        return null;
+      }
+    }
     if (context != null &&
         typeSystem.acceptsFunctionType(context) &&
         type is InterfaceType &&

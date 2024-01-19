@@ -8,7 +8,7 @@ part of "core_patch.dart";
 class _GrowableList<E> extends _ModifiableList<E> {
   _GrowableList._(int length, int capacity) : super(length, capacity);
 
-  _GrowableList._withData(WasmObjectArray<Object?> data)
+  _GrowableList._withData(WasmArray<Object?> data)
       : super._withData(data.length, data);
 
   factory _GrowableList(int length) {
@@ -38,7 +38,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
   factory _GrowableList.generate(int length, E generator(int index)) {
     final result = _GrowableList<E>(length);
     for (int i = 0; i < result.length; ++i) {
-      result._data.write(i, generator(i));
+      result._data[i] = generator(i);
     }
     return result;
   }
@@ -92,9 +92,9 @@ class _GrowableList<E> extends _ModifiableList<E> {
       throw RangeError.range(index, 0, length);
     }
 
-    final WasmObjectArray<Object?> data;
+    final WasmArray<Object?> data;
     if (length == _capacity) {
-      data = WasmObjectArray<Object?>(_nextCapacity(_capacity), null);
+      data = WasmArray<Object?>(_nextCapacity(_capacity));
       if (index != 0) {
         // Copy elements before the insertion point.
         data.copy(0, _data, 0, index - 1);
@@ -108,7 +108,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
     data.copy(index + 1, _data, index, length - index);
 
     // Insert new element.
-    data.write(index, element);
+    data[index] = element;
 
     _data = data;
     _length += 1;
@@ -129,7 +129,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
 
   bool remove(Object? element) {
     for (int i = 0; i < this.length; i++) {
-      if (_data.read(i) == element) {
+      if (_data[i] == element) {
         removeAt(i);
         return true;
       }
@@ -204,7 +204,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
       _growToNextCapacity();
     }
     _setLength(len + 1);
-    _data.write(len, value);
+    _data[len] = value;
   }
 
   void addAll(Iterable<E> iterable) {
@@ -233,7 +233,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
       while (len < _capacity) {
         int newLen = len + 1;
         this._setLength(newLen);
-        _data.write(len, it.current);
+        _data[len] = it.current;
         if (!it.moveNext()) return;
         if (this.length != newLen) throw ConcurrentModificationError(this);
         len = newLen;
@@ -250,10 +250,9 @@ class _GrowableList<E> extends _ModifiableList<E> {
   }
 
   // Shared array used as backing for new empty growable lists.
-  static final WasmObjectArray<Object?> _emptyData =
-      WasmObjectArray<Object?>(0, null);
+  static final WasmArray<Object?> _emptyData = WasmArray<Object?>(0);
 
-  static WasmObjectArray<Object?> _allocateData(int capacity) {
+  static WasmArray<Object?> _allocateData(int capacity) {
     if (capacity < 0) {
       throw RangeError.range(capacity, 0, _maxWasmArrayLength);
     }
@@ -261,14 +260,14 @@ class _GrowableList<E> extends _ModifiableList<E> {
       // Use shared empty list as backing.
       return _emptyData;
     }
-    return WasmObjectArray<Object?>(capacity, null);
+    return WasmArray<Object?>(capacity);
   }
 
   // Grow from 0 to 3, and then double + 1.
   int _nextCapacity(int old_capacity) => (old_capacity * 2) | 3;
 
   void _grow(int new_capacity) {
-    var newData = WasmObjectArray<Object?>(new_capacity, null);
+    var newData = WasmArray<Object?>(new_capacity);
     newData.copy(0, _data, 0, length);
     _data = newData;
   }
@@ -310,7 +309,7 @@ class _GrowableListIterator<E> implements Iterator<E> {
       _current = null;
       return false;
     }
-    _current = unsafeCast(_list._data.read(_index));
+    _current = unsafeCast(_list._data[_index]);
     _index++;
     return true;
   }

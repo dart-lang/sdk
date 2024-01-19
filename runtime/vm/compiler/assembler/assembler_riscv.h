@@ -1006,11 +1006,6 @@ class Assembler : public MicroAssembler {
                     Register temp,
                     Label* equals) override;
 
-  void Jump(const Code& code,
-            Register pp,
-            ObjectPoolBuilderEntry::Patchability patchable =
-                ObjectPoolBuilderEntry::kNotPatchable);
-
   void JumpAndLink(const Code& code,
                    ObjectPoolBuilderEntry::Patchability patchable =
                        ObjectPoolBuilderEntry::kNotPatchable,
@@ -1350,11 +1345,15 @@ class Assembler : public MicroAssembler {
     LoadObjectHelper(dst, obj, false);
   }
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadUniqueObject(Register dst, const Object& obj) {
-    LoadObjectHelper(dst, obj, true);
+  void LoadUniqueObject(
+      Register dst,
+      const Object& obj,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable) {
+    LoadObjectHelper(dst, obj, true, snapshot_behavior);
   }
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadImmediate(Register reg, intx_t imm);
+  void LoadImmediate(Register reg, intx_t imm) override;
 
   void LoadSImmediate(FRegister reg, float imms);
   void LoadDImmediate(FRegister reg, double immd);
@@ -1365,6 +1364,11 @@ class Assembler : public MicroAssembler {
   //
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadWordFromPoolIndex(Register dst, intptr_t index, Register pp = PP);
+
+  // Store word to pool at the given offset.
+  //
+  // Note: clobbers TMP, does not clobber TMP2.
+  void StoreWordToPoolIndex(Register src, intptr_t index, Register pp = PP);
 
   void PushObject(const Object& object) {
     if (IsSameObject(compiler::NullObject(), object)) {
@@ -1482,6 +1486,11 @@ class Assembler : public MicroAssembler {
                             Register temp_reg,
                             JumpDistance distance = JumpDistance::kFarJump);
 
+  void MaybeTraceAllocation(Register cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
                          Label* failure,
@@ -1544,6 +1553,11 @@ class Assembler : public MicroAssembler {
   //
   // See also above for the pc-relative call.
   void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
+
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale);
 
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
@@ -1654,7 +1668,14 @@ class Assembler : public MicroAssembler {
   intptr_t deferred_imm_ = 0;
 
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
+  void LoadObjectHelper(
+      Register dst,
+      const Object& obj,
+      bool is_unique,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
+
+  void JumpAndLink(intptr_t target_code_pool_index, CodeEntryKind entry_kind);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

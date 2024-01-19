@@ -41,6 +41,7 @@ enum E7 with MethodImplementation {
 }
 
 main() {}
+
 mixin MethodImplementation {
   void foo() {}
 }

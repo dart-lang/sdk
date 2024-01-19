@@ -240,15 +240,15 @@ class DeclarationsContext {
   /// this context.
   DartdocDirectiveInfo get dartdocDirectiveInfo => _dartdocDirectiveInfo;
 
-  /// The set of features that are globally enabled for this context.
-  FeatureSet get featureSet {
-    return _analysisContext.analysisOptions.contextFeatures;
-  }
-
   AnalysisDriver get _analysisDriver {
     var session = _analysisContext.currentSession as AnalysisSessionImpl;
     // ignore: deprecated_member_use_from_same_package
     return session.getDriver();
+  }
+
+  /// The set of features that are enabled for this file.
+  FeatureSet getFeatureSet(File file) {
+    return _analysisContext.getAnalysisOptionsForFile(file).contextFeatures;
   }
 
   /// Return libraries that are available to the file with the given [path].
@@ -399,46 +399,6 @@ class DeclarationsContext {
     }
   }
 
-  /// Traverse the folders of this context and fill [_packages];  use
-  /// `pubspec.yaml` files to set `Pub` dependencies.
-  void _findPackages() {
-    var pathContext = _tracker._resourceProvider.pathContext;
-    var pubPathPrefixToPathList = <String, List<String>>{};
-
-    for (var path in _analysisContext.contextRoot.analyzedFiles()) {
-      if (file_paths.isBlazeBuild(pathContext, path)) {
-        var file = _tracker._resourceProvider.getFile(path);
-        var packageFolder = file.parent;
-        _packages.add(_Package(packageFolder));
-      } else if (file_paths.isPubspecYaml(pathContext, path)) {
-        var file = _tracker._resourceProvider.getFile(path);
-        var dependencies = _parsePubspecDependencies(file);
-        var libPaths = _resolvePackageNamesToLibPaths(dependencies.lib);
-        var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
-
-        var packageFolder = file.parent;
-        var packagePath = packageFolder.path;
-        pubPathPrefixToPathList[packagePath] = [
-          ...libPaths,
-          ...devPaths,
-        ];
-
-        var libPath = pathContext.join(packagePath, 'lib');
-        pubPathPrefixToPathList[libPath] = libPaths;
-
-        _packages.add(_Package(packageFolder));
-      }
-    }
-
-    setDependencies(pubPathPrefixToPathList);
-
-    _packages.sort((a, b) {
-      var aRoot = a.root.path;
-      var bRoot = b.root.path;
-      return bRoot.compareTo(aRoot);
-    });
-  }
-
   bool _isLibSrcPath(String path) {
     var parts = _tracker._resourceProvider.pathContext.split(path);
     for (var i = 0; i < parts.length - 1; ++i) {
@@ -477,12 +437,48 @@ class DeclarationsContext {
     return uriConverter.pathToUri(path);
   }
 
-  void _scheduleContextFiles() {
-    var contextFiles = _analysisContext.contextRoot.analyzedFiles();
-    for (var path in contextFiles) {
+  /// Schedule all analyzed files and fill [_packages] in a single iteration of
+  /// `contextRoot.analyzedFiles`;  use `pubspec.yaml` files to set `Pub`
+  /// dependencies.
+  void _scheduleContextFilesAndFindPackages() {
+    var pathContext = _tracker._resourceProvider.pathContext;
+    var pubPathPrefixToPathList = <String, List<String>>{};
+
+    for (var path in _analysisContext.contextRoot.analyzedFiles()) {
       _contextPathSet.add(path);
       _tracker._addFile(this, path);
+
+      if (file_paths.isBlazeBuild(pathContext, path)) {
+        var file = _tracker._resourceProvider.getFile(path);
+        var packageFolder = file.parent;
+        _packages.add(_Package(packageFolder));
+      } else if (file_paths.isPubspecYaml(pathContext, path)) {
+        var file = _tracker._resourceProvider.getFile(path);
+        var dependencies = _parsePubspecDependencies(file);
+        var libPaths = _resolvePackageNamesToLibPaths(dependencies.lib);
+        var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
+
+        var packageFolder = file.parent;
+        var packagePath = packageFolder.path;
+        pubPathPrefixToPathList[packagePath] = [
+          ...libPaths,
+          ...devPaths,
+        ];
+
+        var libPath = pathContext.join(packagePath, 'lib');
+        pubPathPrefixToPathList[libPath] = libPaths;
+
+        _packages.add(_Package(packageFolder));
+      }
     }
+
+    setDependencies(pubPathPrefixToPathList);
+
+    _packages.sort((a, b) {
+      var aRoot = a.root.path;
+      var bRoot = b.root.path;
+      return bRoot.compareTo(aRoot);
+    });
   }
 
   void _scheduleDependencyFolder(List<String> files, Folder folder) {
@@ -614,9 +610,8 @@ class DeclarationsTracker {
     var declarationsContext = DeclarationsContext(this, analysisContext);
     _contexts[analysisContext] = declarationsContext;
 
-    declarationsContext._scheduleContextFiles();
+    declarationsContext._scheduleContextFilesAndFindPackages();
     declarationsContext._scheduleSdkLibraries();
-    declarationsContext._findPackages();
     return declarationsContext;
   }
 
@@ -731,8 +726,8 @@ class DeclarationsTracker {
     }
   }
 
-  /// TODO(scheglov) Remove after fixing
-  /// https://github.com/dart-lang/sdk/issues/45233
+  // TODO(scheglov): Remove after fixing
+  // https://github.com/dart-lang/sdk/issues/45233
   void _addPathOrUri(List<String> pathOrUriList, String path, Uri uri) {
     pathOrUriList.add('(uri: $uri, path: $path)');
 
@@ -1332,7 +1327,7 @@ class _File {
     if (bytes == null) {
       content ??= _readContent(resource);
 
-      CompilationUnit unit = _parse(context.featureSet, content);
+      CompilationUnit unit = _parse(context.getFeatureSet(resource), content);
       _buildFileDeclarations(unit);
       _extractDartdocInfoFromUnit(unit);
       _putFileDeclarationsToByteStore(contentKey);
@@ -1551,7 +1546,7 @@ class _File {
               classMember.returnType.offset,
             );
 
-            // TODO(brianwilkerson) Should we be passing in `isConst`?
+            // TODO(brianwilkerson): Should we be passing in `isConst`?
             addDeclaration(
               defaultArgumentListString: defaultArguments?.text,
               defaultArgumentListTextRanges: defaultArguments?.ranges,
@@ -1572,7 +1567,7 @@ class _File {
             );
             hasConstructor = true;
           } else if (classMember is FieldDeclaration) {
-            // TODO(brianwilkerson) Why are we creating declarations for
+            // TODO(brianwilkerson): Why are we creating declarations for
             //  instance members?
             var isStatic = classMember.isStatic;
             var isConst = classMember.fields.isConst;
@@ -1730,7 +1725,7 @@ class _File {
             relevanceTags: [_elementKindExtension],
           );
         }
-        // TODO(brianwilkerson) Should we be creating declarations for the
+        // TODO(brianwilkerson): Should we be creating declarations for the
         //  static members of the extension?
       } else if (node is FunctionDeclaration) {
         var functionExpression = node.functionExpression;

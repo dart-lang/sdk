@@ -1,0 +1,5 @@
+extension type MetadataIndex(Map<String, dynamic> map) {
+  Map<String, dynamic> get key => map['key'];
+}
+
+test(MetadataIndex index) {}

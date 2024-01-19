@@ -111,6 +111,8 @@ class BinaryDataSource implements DataSource {
 
   @override
   int get length => _bytes.length;
+  @override
+  int get currentOffset => _byteOffset;
 
   @override
   String get errorContext => ' Offset $_byteOffset in ${_bytes.length}.';

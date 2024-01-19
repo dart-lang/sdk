@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CastPatternTest1);
-    defineReflectiveTests(CastPatternTest2);
+    defineReflectiveTests(CastPatternTest);
   });
 }
 
 @reflectiveTest
-class CastPatternTest1 extends AbstractCompletionDriverTest
-    with CastPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class CastPatternTest2 extends AbstractCompletionDriverTest
-    with CastPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class CastPatternTest extends AbstractCompletionDriverTest
+    with CastPatternTestCases {}
 
 mixin CastPatternTestCases on AbstractCompletionDriverTest {
   Future<void> test_noType_afterDeclaration() async {
@@ -47,6 +36,8 @@ suggestions
     kind: class
   B01
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -70,6 +61,8 @@ suggestions
     kind: class
   B01
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -84,8 +77,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -94,19 +86,6 @@ suggestions
   A02
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A02
-    kind: class
-  B01
-    kind: class
-''');
-    }
   }
 
   Future<void> test_partialType_afterReference() async {
@@ -121,8 +100,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -131,18 +109,5 @@ suggestions
   A02
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A02
-    kind: class
-  B01
-    kind: class
-''');
-    }
   }
 }

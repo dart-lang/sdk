@@ -789,9 +789,7 @@ int passStruct1ByteIntx10(
   print(
       "passStruct1ByteIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct1ByteIntx10 throwing on purpose!");
@@ -915,9 +913,7 @@ int passStruct3BytesHomogeneousUint8x10(
   print(
       "passStruct3BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct3BytesHomogeneousUint8x10 throwing on purpose!");
@@ -1032,9 +1028,7 @@ int passStruct3BytesInt2ByteAlignedx10(
   print(
       "passStruct3BytesInt2ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct3BytesInt2ByteAlignedx10 throwing on purpose!");
@@ -1148,9 +1142,7 @@ int passStruct4BytesHomogeneousInt16x10(
   print(
       "passStruct4BytesHomogeneousInt16x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct4BytesHomogeneousInt16x10 throwing on purpose!");
@@ -1314,9 +1306,7 @@ int passStruct7BytesHomogeneousUint8x10(
   print(
       "passStruct7BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct7BytesHomogeneousUint8x10 throwing on purpose!");
@@ -1441,9 +1431,7 @@ int passStruct7BytesInt4ByteAlignedx10(
   print(
       "passStruct7BytesInt4ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct7BytesInt4ByteAlignedx10 throwing on purpose!");
@@ -1567,9 +1555,7 @@ int passStruct8BytesIntx10(
   print(
       "passStruct8BytesIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct8BytesIntx10 throwing on purpose!");
@@ -1683,9 +1669,7 @@ double passStruct8BytesHomogeneousFloatx10(
   print(
       "passStruct8BytesHomogeneousFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct8BytesHomogeneousFloatx10 throwing on purpose!");
@@ -1809,9 +1793,7 @@ double passStruct8BytesMixedx10(
   print(
       "passStruct8BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct8BytesMixedx10 throwing on purpose!");
@@ -1998,9 +1980,7 @@ int passStruct9BytesHomogeneousUint8x10(
   print(
       "passStruct9BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct9BytesHomogeneousUint8x10 throwing on purpose!");
@@ -2116,9 +2096,7 @@ int passStruct9BytesInt4Or8ByteAlignedx10(
   print(
       "passStruct9BytesInt4Or8ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -2216,9 +2194,7 @@ double passStruct12BytesHomogeneousFloatx6(
   print(
       "passStruct12BytesHomogeneousFloatx6(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct12BytesHomogeneousFloatx6 throwing on purpose!");
@@ -2309,9 +2285,7 @@ double passStruct16BytesHomogeneousFloatx5(
   print(
       "passStruct16BytesHomogeneousFloatx5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct16BytesHomogeneousFloatx5 throwing on purpose!");
@@ -2422,9 +2396,7 @@ double passStruct16BytesMixedx10(
   print(
       "passStruct16BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct16BytesMixedx10 throwing on purpose!");
@@ -2560,9 +2532,7 @@ double passStruct16BytesMixed2x10(
   print(
       "passStruct16BytesMixed2x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct16BytesMixed2x10 throwing on purpose!");
@@ -2686,9 +2656,7 @@ int passStruct17BytesIntx10(
   print(
       "passStruct17BytesIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct17BytesIntx10 throwing on purpose!");
@@ -2973,9 +2941,7 @@ int passStruct19BytesHomogeneousUint8x10(
   print(
       "passStruct19BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -3122,9 +3088,7 @@ int passStruct20BytesHomogeneousInt32x10(
   print(
       "passStruct20BytesHomogeneousInt32x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -3185,9 +3149,7 @@ double passStruct20BytesHomogeneousFloatCalculateResult() {
 double passStruct20BytesHomogeneousFloat(Struct20BytesHomogeneousFloat a0) {
   print("passStruct20BytesHomogeneousFloat(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct20BytesHomogeneousFloat throwing on purpose!");
@@ -3272,9 +3234,7 @@ double passStruct32BytesHomogeneousDoublex5(
   print(
       "passStruct32BytesHomogeneousDoublex5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -3330,9 +3290,7 @@ double passStruct40BytesHomogeneousDoubleCalculateResult() {
 double passStruct40BytesHomogeneousDouble(Struct40BytesHomogeneousDouble a0) {
   print("passStruct40BytesHomogeneousDouble(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct40BytesHomogeneousDouble throwing on purpose!");
@@ -3506,9 +3464,7 @@ int passStruct1024BytesHomogeneousUint64CalculateResult() {
 int passStruct1024BytesHomogeneousUint64(Struct1024BytesHomogeneousUint64 a0) {
   print("passStruct1024BytesHomogeneousUint64(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -3609,9 +3565,7 @@ double passFloatStruct16BytesHomogeneousFloatFloatStruct1(
   print(
       "passFloatStruct16BytesHomogeneousFloatFloatStruct1(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -3723,9 +3677,7 @@ double passFloatStruct32BytesHomogeneousDoubleFloatStruct(
   print(
       "passFloatStruct32BytesHomogeneousDoubleFloatStruct(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -3821,9 +3773,7 @@ double passInt8Struct16BytesMixedInt8Struct16BytesMixedIn(
   print(
       "passInt8Struct16BytesMixedInt8Struct16BytesMixedIn(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -3932,9 +3882,7 @@ double passDoublex6Struct16BytesMixedx4Int32(
   print(
       "passDoublex6Struct16BytesMixedx4Int32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -4035,9 +3983,7 @@ double passInt32x4Struct16BytesMixedx4Double(
   print(
       "passInt32x4Struct16BytesMixedx4Double(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -4114,9 +4060,7 @@ double passStruct40BytesHomogeneousDoubleStruct4BytesHomo(
   print(
       "passStruct40BytesHomogeneousDoubleStruct4BytesHomo(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -4348,9 +4292,7 @@ double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
   print(
       "passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19}, ${a20}, ${a21}, ${a22}, ${a23}, ${a24}, ${a25}, ${a26}, ${a27}, ${a28}, ${a29}, ${a30}, ${a31}, ${a32}, ${a33}, ${a34}, ${a35}, ${a36}, ${a37}, ${a38}, ${a39})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -4440,9 +4382,7 @@ int passStructAlignmentInt16CalculateResult() {
 int passStructAlignmentInt16(StructAlignmentInt16 a0) {
   print("passStructAlignmentInt16(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStructAlignmentInt16 throwing on purpose!");
@@ -4490,9 +4430,7 @@ int passStructAlignmentInt32CalculateResult() {
 int passStructAlignmentInt32(StructAlignmentInt32 a0) {
   print("passStructAlignmentInt32(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStructAlignmentInt32 throwing on purpose!");
@@ -4540,9 +4478,7 @@ int passStructAlignmentInt64CalculateResult() {
 int passStructAlignmentInt64(StructAlignmentInt64 a0) {
   print("passStructAlignmentInt64(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStructAlignmentInt64 throwing on purpose!");
@@ -4667,9 +4603,7 @@ int passStruct8BytesNestedIntx10(
   print(
       "passStruct8BytesNestedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct8BytesNestedIntx10 throwing on purpose!");
@@ -4783,9 +4717,7 @@ double passStruct8BytesNestedFloatx10(
   print(
       "passStruct8BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct8BytesNestedFloatx10 throwing on purpose!");
@@ -4901,9 +4833,7 @@ double passStruct8BytesNestedFloat2x10(
   print(
       "passStruct8BytesNestedFloat2x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct8BytesNestedFloat2x10 throwing on purpose!");
@@ -5027,9 +4957,7 @@ double passStruct8BytesNestedMixedx10(
   print(
       "passStruct8BytesNestedMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct8BytesNestedMixedx10 throwing on purpose!");
@@ -5103,9 +5031,7 @@ int passStruct16BytesNestedIntx2(
     Struct16BytesNestedInt a0, Struct16BytesNestedInt a1) {
   print("passStruct16BytesNestedIntx2(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0.a0 == 42 || a0.a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct16BytesNestedIntx2 throwing on purpose!");
@@ -5187,9 +5113,7 @@ int passStruct32BytesNestedIntx2(
     Struct32BytesNestedInt a0, Struct32BytesNestedInt a1) {
   print("passStruct32BytesNestedIntx2(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0.a0.a0 == 42 || a0.a0.a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct32BytesNestedIntx2 throwing on purpose!");
@@ -5243,9 +5167,7 @@ int passStructNestedIntStructAlignmentInt16(
     StructNestedIntStructAlignmentInt16 a0) {
   print("passStructNestedIntStructAlignmentInt16(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -5299,9 +5221,7 @@ int passStructNestedIntStructAlignmentInt32(
     StructNestedIntStructAlignmentInt32 a0) {
   print("passStructNestedIntStructAlignmentInt32(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -5355,9 +5275,7 @@ int passStructNestedIntStructAlignmentInt64(
     StructNestedIntStructAlignmentInt64 a0) {
   print("passStructNestedIntStructAlignmentInt64(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -5553,9 +5471,7 @@ double passStructNestedIrregularEvenBiggerx4(
     StructNestedIrregularEvenBigger a3) {
   print("passStructNestedIrregularEvenBiggerx4(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -5650,9 +5566,7 @@ int passStruct8BytesInlineArrayIntx4(
     Struct8BytesInlineArrayInt a3) {
   print("passStruct8BytesInlineArrayIntx4(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0[0] == 42 || a0.a0[0] == 84) {
     print("throwing!");
     throw Exception("PassStruct8BytesInlineArrayIntx4 throwing on purpose!");
@@ -5734,9 +5648,7 @@ int passStructInlineArrayIrregularx4(
     StructInlineArrayIrregular a3) {
   print("passStructInlineArrayIrregularx4(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0[0].a0 == 42 || a0.a0[0].a0 == 84) {
     print("throwing!");
     throw Exception("PassStructInlineArrayIrregularx4 throwing on purpose!");
@@ -5885,9 +5797,7 @@ int passStructInlineArray100BytesCalculateResult() {
 int passStructInlineArray100Bytes(StructInlineArray100Bytes a0) {
   print("passStructInlineArray100Bytes(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0[0] == 42 || a0.a0[0] == 84) {
     print("throwing!");
     throw Exception("PassStructInlineArray100Bytes throwing on purpose!");
@@ -5977,9 +5887,7 @@ double passStructStruct16BytesHomogeneousFloat2x5(
   print(
       "passStructStruct16BytesHomogeneousFloat2x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -6074,9 +5982,7 @@ double passStructStruct32BytesHomogeneousDouble2x5(
   print(
       "passStructStruct32BytesHomogeneousDouble2x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -6228,9 +6134,7 @@ double passStructStruct16BytesMixed3x10(
   print(
       "passStructStruct16BytesMixed3x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStructStruct16BytesMixed3x10 throwing on purpose!");
@@ -6395,9 +6299,7 @@ int passUint8Struct32BytesInlineArrayMultiDimensionalI(
   print(
       "passUint8Struct32BytesInlineArrayMultiDimensionalI(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -6463,9 +6365,7 @@ int passUint8Struct4BytesInlineArrayMultiDimensionalIn(
   print(
       "passUint8Struct4BytesInlineArrayMultiDimensionalIn(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -6574,9 +6474,7 @@ int passStruct3BytesPackedIntx10(
   print(
       "passStruct3BytesPackedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct3BytesPackedIntx10 throwing on purpose!");
@@ -6719,9 +6617,7 @@ int passStruct8BytesPackedIntx10(
   print(
       "passStruct8BytesPackedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct8BytesPackedIntx10 throwing on purpose!");
@@ -6847,9 +6743,7 @@ double passStruct9BytesPackedMixedx10DoubleInt32x2(
   print(
       "passStruct9BytesPackedMixedx10DoubleInt32x2(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -6910,9 +6804,7 @@ double passStruct5BytesPackedMixedCalculateResult() {
 double passStruct5BytesPackedMixed(Struct5BytesPackedMixed a0) {
   print("passStruct5BytesPackedMixed(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct5BytesPackedMixed throwing on purpose!");
@@ -6963,9 +6855,7 @@ double passStructNestedAlignmentStruct5BytesPackedMixed(
     StructNestedAlignmentStruct5BytesPackedMixed a0) {
   print("passStructNestedAlignmentStruct5BytesPackedMixed(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -7018,9 +6908,7 @@ double passStruct6BytesInlineArrayIntCalculateResult() {
 double passStruct6BytesInlineArrayInt(Struct6BytesInlineArrayInt a0) {
   print("passStruct6BytesInlineArrayInt(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0[0].a0 == 42 || a0.a0[0].a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct6BytesInlineArrayInt throwing on purpose!");
@@ -7072,9 +6960,7 @@ double passStruct15BytesInlineArrayMixedCalculateResult() {
 double passStruct15BytesInlineArrayMixed(Struct15BytesInlineArrayMixed a0) {
   print("passStruct15BytesInlineArrayMixed(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0[0].a0 == 42 || a0.a0[0].a0 == 84) {
     print("throwing!");
     throw Exception("PassStruct15BytesInlineArrayMixed throwing on purpose!");
@@ -7168,9 +7054,7 @@ double passUnion4BytesMixedx10(
   print(
       "passUnion4BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassUnion4BytesMixedx10 throwing on purpose!");
@@ -7273,9 +7157,7 @@ double passUnion8BytesNestedFloatx10(
   print(
       "passUnion8BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassUnion8BytesNestedFloatx10 throwing on purpose!");
@@ -7398,9 +7280,7 @@ double passUnion9BytesNestedIntx10(
   print(
       "passUnion9BytesNestedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassUnion9BytesNestedIntx10 throwing on purpose!");
@@ -7543,9 +7423,7 @@ double passUnion16BytesNestedInlineArrayFloatx10(
   print(
       "passUnion16BytesNestedInlineArrayFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0[0] == 42 || a0.a0[0] == 84) {
     print("throwing!");
     throw Exception(
@@ -7659,9 +7537,7 @@ double passUnion16BytesNestedFloatx10(
   print(
       "passUnion16BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("PassUnion16BytesNestedFloatx10 throwing on purpose!");
@@ -7775,9 +7651,7 @@ int passUint8Boolx9Struct10BytesHomogeneousBoolBool(
   print(
       "passUint8Boolx9Struct10BytesHomogeneousBoolBool(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -7896,9 +7770,7 @@ int passUint8Boolx9Struct10BytesInlineArrayBoolBool(
   print(
       "passUint8Boolx9Struct10BytesInlineArrayBoolBool(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -7960,9 +7832,7 @@ bool passUint8Struct1ByteBoolCalculateResult() {
 bool passUint8Struct1ByteBool(int a0, Struct1ByteBool a1) {
   print("passUint8Struct1ByteBool(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("PassUint8Struct1ByteBool throwing on purpose!");
@@ -8031,9 +7901,7 @@ int passWCharStructInlineArrayIntUintPtrx2LongUnsigned(
   print(
       "passWCharStructInlineArrayIntUintPtrx2LongUnsigned(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -8106,9 +7974,7 @@ int passInt64x7Struct12BytesHomogeneousInt32(int a0, int a1, int a2, int a3,
   print(
       "passInt64x7Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -8162,9 +8028,7 @@ Struct1ByteInt returnStruct1ByteIntCalculateResult() {
 Struct1ByteInt returnStruct1ByteInt(int a0) {
   print("returnStruct1ByteInt(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct1ByteInt throwing on purpose!");
@@ -8220,9 +8084,7 @@ Struct3BytesHomogeneousUint8 returnStruct3BytesHomogeneousUint8(
     int a0, int a1, int a2) {
   print("returnStruct3BytesHomogeneousUint8(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct3BytesHomogeneousUint8 throwing on purpose!");
@@ -8277,9 +8139,7 @@ Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAlignedCalculateResult() {
 Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAligned(int a0, int a1) {
   print("returnStruct3BytesInt2ByteAligned(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct3BytesInt2ByteAligned throwing on purpose!");
@@ -8334,9 +8194,7 @@ Struct4BytesHomogeneousInt16 returnStruct4BytesHomogeneousInt16(
     int a0, int a1) {
   print("returnStruct4BytesHomogeneousInt16(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct4BytesHomogeneousInt16 throwing on purpose!");
@@ -8402,9 +8260,7 @@ Struct7BytesHomogeneousUint8 returnStruct7BytesHomogeneousUint8(
   print(
       "returnStruct7BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct7BytesHomogeneousUint8 throwing on purpose!");
@@ -8466,9 +8322,7 @@ Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAligned(
     int a0, int a1, int a2) {
   print("returnStruct7BytesInt4ByteAligned(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct7BytesInt4ByteAligned throwing on purpose!");
@@ -8523,9 +8377,7 @@ Struct8BytesInt returnStruct8BytesIntCalculateResult() {
 Struct8BytesInt returnStruct8BytesInt(int a0, int a1, int a2) {
   print("returnStruct8BytesInt(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct8BytesInt throwing on purpose!");
@@ -8581,9 +8433,7 @@ Struct8BytesHomogeneousFloat returnStruct8BytesHomogeneousFloat(
     double a0, double a1) {
   print("returnStruct8BytesHomogeneousFloat(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct8BytesHomogeneousFloat throwing on purpose!");
@@ -8637,9 +8487,7 @@ Struct8BytesMixed returnStruct8BytesMixedCalculateResult() {
 Struct8BytesMixed returnStruct8BytesMixed(double a0, int a1, int a2) {
   print("returnStruct8BytesMixed(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct8BytesMixed throwing on purpose!");
@@ -8712,9 +8560,7 @@ Struct9BytesHomogeneousUint8 returnStruct9BytesHomogeneousUint8(
   print(
       "returnStruct9BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct9BytesHomogeneousUint8 throwing on purpose!");
@@ -8777,9 +8623,7 @@ Struct9BytesInt4Or8ByteAligned returnStruct9BytesInt4Or8ByteAligned(
     int a0, int a1) {
   print("returnStruct9BytesInt4Or8ByteAligned(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -8838,9 +8682,7 @@ Struct12BytesHomogeneousFloat returnStruct12BytesHomogeneousFloat(
     double a0, double a1, double a2) {
   print("returnStruct12BytesHomogeneousFloat(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct12BytesHomogeneousFloat throwing on purpose!");
@@ -8900,9 +8742,7 @@ Struct16BytesHomogeneousFloat returnStruct16BytesHomogeneousFloat(
     double a0, double a1, double a2, double a3) {
   print("returnStruct16BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct16BytesHomogeneousFloat throwing on purpose!");
@@ -8956,9 +8796,7 @@ Struct16BytesMixed returnStruct16BytesMixedCalculateResult() {
 Struct16BytesMixed returnStruct16BytesMixed(double a0, int a1) {
   print("returnStruct16BytesMixed(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct16BytesMixed throwing on purpose!");
@@ -9016,9 +8854,7 @@ Struct16BytesMixed2 returnStruct16BytesMixed2(
     double a0, double a1, double a2, int a3) {
   print("returnStruct16BytesMixed2(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct16BytesMixed2 throwing on purpose!");
@@ -9076,9 +8912,7 @@ Struct17BytesInt returnStruct17BytesIntCalculateResult() {
 Struct17BytesInt returnStruct17BytesInt(int a0, int a1, int a2) {
   print("returnStruct17BytesInt(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct17BytesInt throwing on purpose!");
@@ -9208,9 +9042,7 @@ Struct19BytesHomogeneousUint8 returnStruct19BytesHomogeneousUint8(
   print(
       "returnStruct19BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct19BytesHomogeneousUint8 throwing on purpose!");
@@ -9289,9 +9121,7 @@ Struct20BytesHomogeneousInt32 returnStruct20BytesHomogeneousInt32(
   print(
       "returnStruct20BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct20BytesHomogeneousInt32 throwing on purpose!");
@@ -9356,9 +9186,7 @@ Struct20BytesHomogeneousFloat returnStruct20BytesHomogeneousFloat(
   print(
       "returnStruct20BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct20BytesHomogeneousFloat throwing on purpose!");
@@ -9420,9 +9248,7 @@ Struct32BytesHomogeneousDouble returnStruct32BytesHomogeneousDouble(
     double a0, double a1, double a2, double a3) {
   print("returnStruct32BytesHomogeneousDouble(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -9488,9 +9314,7 @@ Struct40BytesHomogeneousDouble returnStruct40BytesHomogeneousDouble(
   print(
       "returnStruct40BytesHomogeneousDouble(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -10057,9 +9881,7 @@ Struct1024BytesHomogeneousUint64 returnStruct1024BytesHomogeneousUint64(
   print(
       "returnStruct1024BytesHomogeneousUint64(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19}, ${a20}, ${a21}, ${a22}, ${a23}, ${a24}, ${a25}, ${a26}, ${a27}, ${a28}, ${a29}, ${a30}, ${a31}, ${a32}, ${a33}, ${a34}, ${a35}, ${a36}, ${a37}, ${a38}, ${a39}, ${a40}, ${a41}, ${a42}, ${a43}, ${a44}, ${a45}, ${a46}, ${a47}, ${a48}, ${a49}, ${a50}, ${a51}, ${a52}, ${a53}, ${a54}, ${a55}, ${a56}, ${a57}, ${a58}, ${a59}, ${a60}, ${a61}, ${a62}, ${a63}, ${a64}, ${a65}, ${a66}, ${a67}, ${a68}, ${a69}, ${a70}, ${a71}, ${a72}, ${a73}, ${a74}, ${a75}, ${a76}, ${a77}, ${a78}, ${a79}, ${a80}, ${a81}, ${a82}, ${a83}, ${a84}, ${a85}, ${a86}, ${a87}, ${a88}, ${a89}, ${a90}, ${a91}, ${a92}, ${a93}, ${a94}, ${a95}, ${a96}, ${a97}, ${a98}, ${a99}, ${a100}, ${a101}, ${a102}, ${a103}, ${a104}, ${a105}, ${a106}, ${a107}, ${a108}, ${a109}, ${a110}, ${a111}, ${a112}, ${a113}, ${a114}, ${a115}, ${a116}, ${a117}, ${a118}, ${a119}, ${a120}, ${a121}, ${a122}, ${a123}, ${a124}, ${a125}, ${a126}, ${a127})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -10239,9 +10061,7 @@ Struct3BytesPackedInt returnStruct3BytesPackedIntCalculateResult() {
 Struct3BytesPackedInt returnStruct3BytesPackedInt(int a0, int a1) {
   print("returnStruct3BytesPackedInt(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct3BytesPackedInt throwing on purpose!");
@@ -10301,9 +10121,7 @@ Struct8BytesPackedInt returnStruct8BytesPackedInt(
     int a0, int a1, int a2, int a3, int a4) {
   print("returnStruct8BytesPackedInt(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct8BytesPackedInt throwing on purpose!");
@@ -10360,9 +10178,7 @@ Struct9BytesPackedMixed returnStruct9BytesPackedMixedCalculateResult() {
 Struct9BytesPackedMixed returnStruct9BytesPackedMixed(int a0, double a1) {
   print("returnStruct9BytesPackedMixed(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct9BytesPackedMixed throwing on purpose!");
@@ -10411,9 +10227,7 @@ Union4BytesMixed returnUnion4BytesMixedCalculateResult() {
 Union4BytesMixed returnUnion4BytesMixed(int a0) {
   print("returnUnion4BytesMixed(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnUnion4BytesMixed throwing on purpose!");
@@ -10463,9 +10277,7 @@ Union8BytesNestedFloat returnUnion8BytesNestedFloatCalculateResult() {
 Union8BytesNestedFloat returnUnion8BytesNestedFloat(double a0) {
   print("returnUnion8BytesNestedFloat(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnUnion8BytesNestedFloat throwing on purpose!");
@@ -10517,9 +10329,7 @@ Union9BytesNestedInt returnUnion9BytesNestedIntCalculateResult() {
 Union9BytesNestedInt returnUnion9BytesNestedInt(Struct8BytesInt a0) {
   print("returnUnion9BytesNestedInt(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("ReturnUnion9BytesNestedInt throwing on purpose!");
@@ -10572,9 +10382,7 @@ Union16BytesNestedFloat returnUnion16BytesNestedFloat(
     Struct8BytesHomogeneousFloat a0) {
   print("returnUnion16BytesNestedFloat(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("ReturnUnion16BytesNestedFloat throwing on purpose!");
@@ -10624,9 +10432,7 @@ Struct1ByteInt returnStructArgumentStruct1ByteIntCalculateResult() {
 Struct1ByteInt returnStructArgumentStruct1ByteInt(Struct1ByteInt a0) {
   print("returnStructArgumentStruct1ByteInt(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStructArgumentStruct1ByteInt throwing on purpose!");
@@ -10682,9 +10488,7 @@ Struct1ByteInt returnStructArgumentInt32x8Struct1ByteInt(int a0, int a1, int a2,
   print(
       "returnStructArgumentInt32x8Struct1ByteInt(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -10744,9 +10548,7 @@ Struct8BytesHomogeneousFloat returnStructArgumentStruct8BytesHomogeneousFloat(
     Struct8BytesHomogeneousFloat a0) {
   print("returnStructArgumentStruct8BytesHomogeneousFloat(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -10798,9 +10600,7 @@ Struct20BytesHomogeneousInt32 returnStructArgumentStruct20BytesHomogeneousInt32(
     Struct20BytesHomogeneousInt32 a0) {
   print("returnStructArgumentStruct20BytesHomogeneousInt32(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -10872,9 +10672,7 @@ Struct20BytesHomogeneousInt32
   print(
       "returnStructArgumentInt32x8Struct20BytesHomogeneou(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -10933,9 +10731,7 @@ Struct8BytesInlineArrayInt returnStructArgumentStruct8BytesInlineArrayInt(
     Struct8BytesInlineArrayInt a0) {
   print("returnStructArgumentStruct8BytesInlineArrayInt(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0[0] == 42 || a0.a0[0] == 84) {
     print("throwing!");
     throw Exception(
@@ -10989,9 +10785,7 @@ StructStruct16BytesHomogeneousFloat2
         StructStruct16BytesHomogeneousFloat2 a0) {
   print("returnStructArgumentStructStruct16BytesHomogeneous(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -11045,9 +10839,7 @@ StructStruct32BytesHomogeneousDouble2
         StructStruct32BytesHomogeneousDouble2 a0) {
   print("returnStructArgumentStructStruct32BytesHomogeneous(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -11097,9 +10889,7 @@ StructStruct16BytesMixed3 returnStructArgumentStructStruct16BytesMixed3(
     StructStruct16BytesMixed3 a0) {
   print("returnStructArgumentStructStruct16BytesMixed3(${a0})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -11149,9 +10939,7 @@ StructAlignmentInt16 returnStructAlignmentInt16CalculateResult() {
 StructAlignmentInt16 returnStructAlignmentInt16(int a0, int a1, int a2) {
   print("returnStructAlignmentInt16(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStructAlignmentInt16 throwing on purpose!");
@@ -11206,9 +10994,7 @@ StructAlignmentInt32 returnStructAlignmentInt32CalculateResult() {
 StructAlignmentInt32 returnStructAlignmentInt32(int a0, int a1, int a2) {
   print("returnStructAlignmentInt32(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStructAlignmentInt32 throwing on purpose!");
@@ -11263,9 +11049,7 @@ StructAlignmentInt64 returnStructAlignmentInt64CalculateResult() {
 StructAlignmentInt64 returnStructAlignmentInt64(int a0, int a1, int a2) {
   print("returnStructAlignmentInt64(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStructAlignmentInt64 throwing on purpose!");
@@ -11324,9 +11108,7 @@ Struct8BytesNestedInt returnStruct8BytesNestedInt(
     Struct4BytesHomogeneousInt16 a0, Struct4BytesHomogeneousInt16 a1) {
   print("returnStruct8BytesNestedInt(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct8BytesNestedInt throwing on purpose!");
@@ -11382,9 +11164,7 @@ Struct8BytesNestedFloat returnStruct8BytesNestedFloat(
     Struct4BytesFloat a0, Struct4BytesFloat a1) {
   print("returnStruct8BytesNestedFloat(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct8BytesNestedFloat throwing on purpose!");
@@ -11440,9 +11220,7 @@ Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2(
     Struct4BytesFloat a0, double a1) {
   print("returnStruct8BytesNestedFloat2(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct8BytesNestedFloat2 throwing on purpose!");
@@ -11499,9 +11277,7 @@ Struct8BytesNestedMixed returnStruct8BytesNestedMixed(
     Struct4BytesHomogeneousInt16 a0, Struct4BytesFloat a1) {
   print("returnStruct8BytesNestedMixed(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct8BytesNestedMixed throwing on purpose!");
@@ -11563,9 +11339,7 @@ Struct16BytesNestedInt returnStruct16BytesNestedInt(
     Struct8BytesNestedInt a0, Struct8BytesNestedInt a1) {
   print("returnStruct16BytesNestedInt(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct16BytesNestedInt throwing on purpose!");
@@ -11635,9 +11409,7 @@ Struct32BytesNestedInt returnStruct32BytesNestedInt(
     Struct16BytesNestedInt a0, Struct16BytesNestedInt a1) {
   print("returnStruct32BytesNestedInt(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0.a0.a0 == 42 || a0.a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception("ReturnStruct32BytesNestedInt throwing on purpose!");
@@ -11699,9 +11471,7 @@ StructNestedIntStructAlignmentInt16 returnStructNestedIntStructAlignmentInt16(
     StructAlignmentInt16 a0, StructAlignmentInt16 a1) {
   print("returnStructNestedIntStructAlignmentInt16(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -11764,9 +11534,7 @@ StructNestedIntStructAlignmentInt32 returnStructNestedIntStructAlignmentInt32(
     StructAlignmentInt32 a0, StructAlignmentInt32 a1) {
   print("returnStructNestedIntStructAlignmentInt32(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -11829,9 +11597,7 @@ StructNestedIntStructAlignmentInt64 returnStructNestedIntStructAlignmentInt64(
     StructAlignmentInt64 a0, StructAlignmentInt64 a1) {
   print("returnStructNestedIntStructAlignmentInt64(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -11924,9 +11690,7 @@ StructNestedIrregularEvenBigger returnStructNestedIrregularEvenBigger(int a0,
     StructNestedIrregularBigger a1, StructNestedIrregularBigger a2, double a3) {
   print("returnStructNestedIrregularEvenBigger(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(

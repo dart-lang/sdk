@@ -8,7 +8,8 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/protocol_server.dart' hide Position;
+import 'package:analysis_server/src/protocol_server.dart'
+    hide AnalysisOptions, Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
@@ -34,7 +35,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
   DartCodeActionsProducer(
     super.server,
-    super.path,
+    super.file,
     super.lineInfo,
     this.docIdentifier,
     this.library,
@@ -44,6 +45,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.length,
     required super.shouldIncludeKind,
     required super.capabilities,
+    required super.analysisOptions,
     required this.triggerKind,
   });
 
@@ -123,6 +125,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         server.instrumentationService,
         workspace,
         unit,
+        server.producerGeneratorsForLintRules,
         offset,
         length,
       );
@@ -172,7 +175,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         final fixes = await fixContributor.computeFixes(context);
         if (fixes.isNotEmpty) {
           final diagnostic = toDiagnostic(
-            server.pathContext,
+            server.uriConverter,
             unit,
             error,
             supportedTags: supportedDiagnosticTags,

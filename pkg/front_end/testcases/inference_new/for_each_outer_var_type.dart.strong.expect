@@ -32,7 +32,7 @@ class B extends self::A {
 }
 static method f<T extends core::Object? = dynamic>() → self::f::T%
   return throw "";
-static method test(core::Iterable<self::B> iterable, asy::Stream<self::B> stream, self::A a, self::B b, core::int i) → dynamic async /* futureValueType= dynamic */ {
+static method test(core::Iterable<self::B> iterable, asy::Stream<self::B> stream, self::A a, self::B b, core::int i) → dynamic async /* emittedValueType= dynamic */ {
   for (final self::B #t1 in iterable) {
     a = #t1;
   }

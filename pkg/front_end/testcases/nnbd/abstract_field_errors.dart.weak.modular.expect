@@ -199,32 +199,32 @@ Try removing the field initializer or the 'abstract' keyword from the field decl
                                    ^^^^^^^^^^^^^^^^^"
     ;
   abstract get fieldWithInitializer() → core::int;
-  abstract set fieldWithInitializer(core::int #externalFieldValue) → void;
+  abstract set fieldWithInitializer(synthesized core::int #externalFieldValue) → void;
   abstract get initializedField1() → core::int;
-  abstract set initializedField1(core::int #externalFieldValue) → void;
+  abstract set initializedField1(synthesized core::int #externalFieldValue) → void;
   abstract get initializedField2() → core::int;
-  abstract set initializedField2(core::int #externalFieldValue) → void;
+  abstract set initializedField2(synthesized core::int #externalFieldValue) → void;
   external get externalInstanceField1() → core::int;
-  external set externalInstanceField1(core::int #externalFieldValue) → void;
+  external set externalInstanceField1(synthesized core::int #externalFieldValue) → void;
   external get externalFinalInstanceField1() → core::int;
   external get externalCovariantInstanceField1() → core::num;
-  external set externalCovariantInstanceField1(covariant-by-declaration core::num #externalFieldValue) → void;
+  external set externalCovariantInstanceField1(covariant-by-declaration synthesized core::num #externalFieldValue) → void;
   external get externalInstanceField2() → core::int;
-  external set externalInstanceField2(core::int #externalFieldValue) → void;
+  external set externalInstanceField2(synthesized core::int #externalFieldValue) → void;
   external get externalFinalInstanceField2() → core::int;
   external get externalCovariantInstanceField2() → core::num;
-  external set externalCovariantInstanceField2(covariant-by-declaration core::num #externalFieldValue) → void;
+  external set externalCovariantInstanceField2(covariant-by-declaration synthesized core::num #externalFieldValue) → void;
   external get externalLateInstanceField() → core::int;
-  external set externalLateInstanceField(core::int #externalFieldValue) → void;
+  external set externalLateInstanceField(synthesized core::int #externalFieldValue) → void;
 }
 abstract class B extends core::Object /*isMixinDeclaration*/  {
   static field core::int staticField = null;
   static final field core::int finalStaticField = null;
   external get externalInstanceField() → core::int;
-  external set externalInstanceField(core::int #externalFieldValue) → void;
+  external set externalInstanceField(synthesized core::int #externalFieldValue) → void;
   external get externalFinalInstanceField() → core::int;
   external get externalCovariantInstanceField() → core::num;
-  external set externalCovariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
+  external set externalCovariantInstanceField(covariant-by-declaration synthesized core::num #externalFieldValue) → void;
 }
 extension Extension on self::A {
   get extensionInstanceField = get self::Extension|extensionInstanceField;
@@ -239,7 +239,7 @@ static const field core::int constField = #C1;
 static field core::int Extension|extensionStaticField = 0;
 static final field core::int Extension|finalExtensionStaticField = 0;
 static abstract extension-member get Extension|extensionInstanceField() → core::int;
-static abstract extension-member set Extension|extensionInstanceField(core::int #externalFieldValue) → void;
+static abstract extension-member set Extension|extensionInstanceField(synthesized core::int #externalFieldValue) → void;
 static abstract extension-member get Extension|finalExtensionInstanceField() → core::int;
 static method main() → dynamic {}
 

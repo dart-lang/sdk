@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // NOLINT
+#include "vm/pointer_tagging.h"
 #if defined(TARGET_ARCH_X64)
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
@@ -62,6 +63,18 @@ void Assembler::call(const ExternalLabel* label) {
   call(TMP);
 }
 
+void Assembler::CallCodeThroughPool(intptr_t target_code_pool_index,
+                                    CodeEntryKind entry_kind) {
+  // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+  // We don't actually use CODE_REG in the callee and caller might
+  // be using CODE_REG for a live value (e.g. a value that is alive
+  // across invocation of a shared stub like the one we use for
+  // allocating Mint boxes).
+  const Register code_reg = FLAG_precompiled_mode ? TMP : CODE_REG;
+  LoadWordFromPoolIndex(code_reg, target_code_pool_index);
+  call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
+}
+
 void Assembler::CallPatchable(
     const Code& target,
     CodeEntryKind entry_kind,
@@ -69,8 +82,7 @@ void Assembler::CallPatchable(
   ASSERT(constant_pool_allowed());
   const intptr_t idx = object_pool_builder().AddObject(
       ToObject(target), ObjectPoolBuilderEntry::kPatchable, snapshot_behavior);
-  LoadWordFromPoolIndex(CODE_REG, idx);
-  call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  CallCodeThroughPool(idx, entry_kind);
 }
 
 void Assembler::CallWithEquivalence(const Code& target,
@@ -79,8 +91,7 @@ void Assembler::CallWithEquivalence(const Code& target,
   ASSERT(constant_pool_allowed());
   const intptr_t idx =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, idx);
-  call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  CallCodeThroughPool(idx, entry_kind);
 }
 
 void Assembler::Call(
@@ -90,8 +101,7 @@ void Assembler::Call(
   const intptr_t idx = object_pool_builder().FindObject(
       ToObject(target), ObjectPoolBuilderEntry::kNotPatchable,
       snapshot_behavior);
-  LoadWordFromPoolIndex(CODE_REG, idx);
-  call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  CallCodeThroughPool(idx, CodeEntryKind::kNormal);
 }
 
 void Assembler::pushq(Register reg) {
@@ -1325,10 +1335,14 @@ void Assembler::LoadWordFromPoolIndex(Register dst, intptr_t idx) {
   ASSERT(constant_pool_allowed());
   ASSERT(dst != PP);
   // PP is tagged on X64.
-  const int32_t offset =
-      target::ObjectPool::element_offset(idx) - kHeapObjectTag;
-  // This sequence must be decodable by code_patcher_x64.cc.
-  movq(dst, Address(PP, offset));
+  movq(dst, FieldAddress(PP, target::ObjectPool::element_offset(idx)));
+}
+
+void Assembler::StoreWordToPoolIndex(Register src, intptr_t idx) {
+  ASSERT(constant_pool_allowed());
+  ASSERT(src != PP);
+  // PP is tagged on X64.
+  movq(FieldAddress(PP, target::ObjectPool::element_offset(idx)), src);
 }
 
 void Assembler::LoadInt64FromBoxOrSmi(Register result, Register value) {
@@ -1396,9 +1410,11 @@ void Assembler::LoadDispatchTable(Register dst) {
   movq(dst, Address(THR, target::Thread::dispatch_table_array_offset()));
 }
 
-void Assembler::LoadObjectHelper(Register dst,
-                                 const Object& object,
-                                 bool is_unique) {
+void Assembler::LoadObjectHelper(
+    Register dst,
+    const Object& object,
+    bool is_unique,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(IsOriginalObject(object));
 
   // `is_unique == true` effectively means object has to be patchable.
@@ -1415,10 +1431,12 @@ void Assembler::LoadObjectHelper(Register dst,
   }
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   const intptr_t index =
-      is_unique ? object_pool_builder().AddObject(
-                      object, ObjectPoolBuilderEntry::kPatchable)
-                : object_pool_builder().FindObject(
-                      object, ObjectPoolBuilderEntry::kNotPatchable);
+      is_unique
+          ? object_pool_builder().AddObject(
+                object, ObjectPoolBuilderEntry::kPatchable, snapshot_behavior)
+          : object_pool_builder().FindObject(
+                object, ObjectPoolBuilderEntry::kNotPatchable,
+                snapshot_behavior);
   LoadWordFromPoolIndex(dst, index);
 }
 
@@ -1426,8 +1444,11 @@ void Assembler::LoadObject(Register dst, const Object& object) {
   LoadObjectHelper(dst, object, false);
 }
 
-void Assembler::LoadUniqueObject(Register dst, const Object& object) {
-  LoadObjectHelper(dst, object, true);
+void Assembler::LoadUniqueObject(
+    Register dst,
+    const Object& object,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  LoadObjectHelper(dst, object, true, snapshot_behavior);
 }
 
 void Assembler::StoreObject(const Address& dst, const Object& object) {
@@ -2077,25 +2098,6 @@ LeafRuntimeScope::~LeafRuntimeScope() {
   __ LeaveFrame();
 }
 
-void Assembler::MsanUnpoison(Register base, intptr_t length_in_bytes) {
-  if (base != CallingConventions::kArg1Reg) {
-    movq(CallingConventions::kArg1Reg, base);
-  }
-  LoadImmediate(CallingConventions::kArg2Reg, length_in_bytes);
-  CallCFunction(
-      compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
-}
-
-void Assembler::MsanUnpoison(Register base, Register length_in_bytes) {
-  if (base != CallingConventions::kArg1Reg) {
-    movq(CallingConventions::kArg1Reg, base);
-  }
-  if (length_in_bytes != CallingConventions::kArg2Reg) {
-    movq(CallingConventions::kArg2Reg, length_in_bytes);
-  }
-  CallCFunction(
-      compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
-}
 
 #if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Address addr) {
@@ -2351,6 +2353,28 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
 }
 
 #ifndef PRODUCT
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  if (temp_reg == kNoRegister) {
+    temp_reg = TMP;
+  }
+  ASSERT(temp_reg != cid);
+  LoadIsolateGroup(temp_reg);
+  movq(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+
+  movq(temp_reg,
+       Address(temp_reg,
+               target::ClassTable::allocation_tracing_state_table_offset()));
+  cmpb(Address(temp_reg, cid, TIMES_1,
+               target::ClassTable::AllocationTracingStateSlotOffsetFor(0)),
+       Immediate(0));
+  // We are tracing for this class, jump to the trace label which will use
+  // the allocation stub.
+  j(NOT_ZERO, trace, distance);
+}
+
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
                                      Register temp_reg,
@@ -2758,6 +2782,18 @@ void Assembler::EnsureHasClassIdInDEBUG(intptr_t cid,
 
 Address Assembler::VMTagAddress() {
   return Address(THR, target::Thread::vm_tag_offset());
+}
+
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t disp =
+      index * index_scale +
+      (is_external ? 0 : target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  return Utils::IsInt(32, disp);
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

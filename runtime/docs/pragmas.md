@@ -15,6 +15,7 @@ These pragmas are part of the VM's API and are safe for use in external code.
 | `vm:invisible` | Allows to mark a function as invisible so it will not appear on stack traces. |
 | `vm:always-consider-inlining` | Marks a function which particularly benefits from inlining and specialization in context of the caller (for example, when concrete types of arguments are known). Inliner will not give up after one failed inlining attempt and will continue trying to inline this function. |
 | `vm:platform-const` | Marks a static getter or a static field with an initializer where the getter body or field initializer evaluates to a constant value if the target operating system is known. |
+| `vm:platform-const-if` | Like `vm:platform-const`, but takes a boolean argument and constant evaluation of the annotated member is only performed if the argument const evaluates to true. |
 | `weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](compiler/pragmas_recognized_by_compiler.md#declaring-a-static-weak-reference-intrinsic-method) |
 | `vm:isolate-unsendable` | Marks a class, instances of which won't be allowed to be passed through ports or sent between isolates. |
 | `vm:awaiter-link` | [Specifying variable to follow for awaiter stack unwinding](awaiter_stack_traces.md) |
@@ -38,6 +39,8 @@ These pragmas can cause unsound behavior if used incorrectly and therefore are o
 | `vm:exact-result-type` | [Declaring an exact result type of a method](compiler/pragmas_recognized_by_compiler.md#providing-an-exact-result-type) |
 | `vm:recognized` | [Marking this as a recognized method](compiler/pragmas_recognized_by_compiler.md#marking-recognized-methods) |
 | `vm:idempotent` | Method marked with this pragma can be repeated or restarted multiple times without change to its effect. Loading, storing of memory values are examples of this, while reads and writes from file are examples of non-idempotent methods. At present, use of this pragma is limited to driving inlining of force-optimized functions. |
+| `vm:cachable-idempotent` | Functions marked with this pragma will have their call site cache the return value. Not supported in ia32. Call site must have the pragma `vm:force-optimze`. |
+| `vm:force-optimze` | Functions marked with this pragma will be compiled with the optimized pipeline and may not deoptimize. |
 
 ## Pragmas ignored in user code
 
@@ -45,7 +48,9 @@ These pragma's are only used on AST nodes synthesized by us, so users defining t
 
 | Pragma | Meaning |
 | --- | --- |
+| `vm:ffi:call-closure`| [Closure performing FFI calls](compiler/ffi_pragmas.md) |
 | `vm:ffi:native-assets` | [Passing a native assets mapping to the VM](compiler/ffi_pragmas.md) |
+| `vm:ffi:native`| [Passing a native arguments to the VM](compiler/ffi_pragmas.md) |
 
 ## Pragmas for internal testing
 

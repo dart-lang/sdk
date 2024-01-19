@@ -9,6 +9,7 @@ declare_args() {
 
 import("//build/config/win/visual_studio_version.gni")
 import("//build/toolchain/goma.gni")
+import("//build/toolchain/rbe.gni")
 
 # Should only be running on Windows.
 assert(is_win)
@@ -25,9 +26,19 @@ tool_wrapper_path = rebase_path("tool_wrapper.py", root_build_dir)
 ninja_path = rebase_path("//buildtools/ninja/ninja")
 
 if (use_goma) {
-  goma_prefix = "$goma_dir/gomacc.exe "
+  compiler_prefix = "$goma_dir/gomacc.exe "
+} else if (use_rbe) {
+  compiler_args =
+      rewrapper_args + [ "--labels=type=compile,compiler=clang-cl,lang=cpp" ]
+  if (rbe_os != host_os || rbe_cpu != host_cpu) {
+    compiler_args += [
+      "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
+      "--remote_wrapper=../../build/rbe/llvm.sh",
+    ]
+  }
+  compiler_prefix = string_join(" ", compiler_args) + " "
 } else {
-  goma_prefix = ""
+  compiler_prefix = ""
 }
 
 if (current_toolchain == default_toolchain) {
@@ -258,7 +269,7 @@ template("win_toolchains") {
 
   msvc_toolchain(target_name) {
     environment = "environment." + toolchain_arch
-    cl = "${goma_prefix}\"${win_toolchain_data.vc_bin_dir}/cl.exe\""
+    cl = "${compiler_prefix}\"${win_toolchain_data.vc_bin_dir}/cl.exe\""
     toolchain_args = {
       if (defined(invoker.toolchain_args)) {
         forward_variables_from(invoker.toolchain_args, "*")
@@ -270,7 +281,14 @@ template("win_toolchains") {
   msvc_toolchain("clang_" + target_name) {
     environment = "environment." + toolchain_arch
     prefix = rebase_path("$clang_base_path/bin", root_build_dir)
-    cl = "${goma_prefix}$prefix/clang-cl.exe"
+    cl = "${compiler_prefix}$prefix/clang-cl.exe"
+    if (use_rbe) {
+      if (toolchain_arch == "x86") {
+        cl = "${cl} --target=i686-pc-windows-msvc"
+      } else if (toolchain_arch == "x64") {
+        cl = "${cl} --target=x86_64-pc-windows-msvc"
+      }
+    }
     toolchain_args = {
       if (defined(invoker.toolchain_args)) {
         forward_variables_from(invoker.toolchain_args, "*")

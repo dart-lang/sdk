@@ -35,24 +35,6 @@ class Analysis_UpdateContent extends ServerOperation {
   }
 }
 
-/// An operation that will send a 'completion.getSuggestions' request.
-class Completion_GetSuggestions extends ServerOperation {
-  /// The path of the file in which completions are being requested.
-  final String filePath;
-
-  /// The offset at which completions are being requested.
-  final int offset;
-
-  /// Initialize an operation to send a 'completion.getSuggestions' request with
-  /// the given [filePath] and [offset] as parameters.
-  Completion_GetSuggestions(this.filePath, this.offset);
-
-  @override
-  void perform(Server server) {
-    server.sendCompletionGetSuggestions(filePath, offset);
-  }
-}
-
 /// An operation to be performed during the simulation.
 abstract class ServerOperation {
   /// Perform this operation by communicating with the given [server].

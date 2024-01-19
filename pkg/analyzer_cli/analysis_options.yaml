@@ -4,43 +4,24 @@ analyzer:
   language:
     strict-casts: true
     strict-inference: true
+  errors:
+    # We import heavily from package:analyzer/src.
+    implementation_imports: ignore
+    non_constant_identifier_names: ignore
   exclude:
     - test/data/**
 
 linter:
   rules:
-    always_declare_return_types: true
-    avoid_empty_else: true
-    avoid_relative_lib_imports: true
-    avoid_shadowing_type_parameters: true
-    avoid_types_as_parameter_names: true
-    avoid_unused_constructor_parameters: true
-    camel_case_extensions: true
-    collection_methods_unrelated_type: true
-    curly_braces_in_flow_control_structures: true
-
-    # Enable when we require Dart 2.19.0.
-    #- dangling_library_doc_comments
-    depend_on_referenced_packages: true
-    directives_ordering: true
-    empty_catches: true
-    enable_null_safety: true
-
-    # We import heavily from package:analyzer/src.
-    implementation_imports: false
-    implicit_call_tearoffs: true
-    library_annotations: true
-
-    # This rule does not work well with package:test_reflective_loader.
-    no_duplicate_case_values: true
-    non_constant_identifier_names: false
-    omit_local_variable_types: true
-    prefer_is_empty: true
-    prefer_is_not_empty: true
-    prefer_iterable_whereType: true
-    prefer_single_quotes: true
-    unawaited_futures: true
-    unnecessary_library_directive: true
-    unnecessary_parenthesis: true
-    unreachable_from_main: true
-    unrelated_type_equality_checks: true
+    - always_declare_return_types
+    - avoid_unused_constructor_parameters
+    - directives_ordering
+    - enable_null_safety
+    - flutter_style_todos
+    - library_annotations
+    - omit_local_variable_types
+    - prefer_single_quotes
+    - unawaited_futures
+    - unnecessary_library_directive
+    - unnecessary_parenthesis
+    - unreachable_from_main

@@ -20,6 +20,7 @@ import 'package:linter/src/rules.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:unified_analytics/src/constants.dart';
 import 'package:unified_analytics/src/enums.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
@@ -584,7 +585,7 @@ class _MockAnalytics implements NoOpAnalytics {
   }
 
   @override
-  void close() {
+  Future<void> close({int delayDuration = kDelayDuration}) async {
     // Ignored
   }
 

@@ -95,7 +95,7 @@ void f() {
   }
 
   Future<void> test_multiple_files() async {
-    // TODO(scheglov) Unify behind `testPackageLibPath`
+    // TODO(scheglov): Unify behind `testPackageLibPath`
     final a = getFile('$projectFolderPath/lib/a.dart');
     newFile(a.path, r'''
 import 'main.dart';

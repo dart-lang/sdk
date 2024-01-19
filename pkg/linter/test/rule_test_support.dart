@@ -165,6 +165,8 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   bool get addJsPackageDep => false;
 
+  bool get addKernelPackageDep => false;
+
   bool get addMetaPackageDep => false;
 
   @override
@@ -172,7 +174,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   bool get dumpAstOnFailures => true;
 
-  List<String> get experiments => ['inline-class', 'macros'];
+  List<String> get experiments => ['macros'];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
@@ -410,6 +412,14 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       configCopy.add(name: 'js', rootPath: jsPath);
     }
 
+    if (addKernelPackageDep) {
+      var kernelPath = '/packages/kernel';
+      MockPackages.addKernelPackageFiles(
+        getFolder(kernelPath),
+      );
+      configCopy.add(name: 'kernel', rootPath: kernelPath);
+    }
+
     if (addMetaPackageDep) {
       var metaPath = '/packages/meta';
       MockPackages.addMetaPackageFiles(
@@ -599,7 +609,11 @@ abstract class StatefulWidget extends Widget {
   State<StatefulWidget> createState();
 }
 
-class State<T extends StatefulWidget> {}
+abstract class State<T extends StatefulWidget> {
+  BuildContext get context;
+
+  bool get mounted;
+}
 
 abstract class Widget {
   final Key? key;

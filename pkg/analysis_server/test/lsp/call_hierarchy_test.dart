@@ -81,12 +81,12 @@ class Bar {
             kind: SymbolKind.Class,
             uri: otherFileUri,
             range: rangeOfPattern(
-                otherCode.code, RegExp(r'class Bar \{.*\}', dotAll: true)),
-            selectionRange: rangeOfString(otherCode.code, 'Bar'),
+                otherCode, RegExp(r'class Bar \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherCode.code, 'Foo'),
+            rangeOfString(otherCode, 'Foo'),
           ],
         ),
       ],
@@ -120,7 +120,7 @@ final x = foo();
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherCode.code, 'foo'),
+            rangeOfString(otherCode, 'foo'),
           ],
         ),
       ],
@@ -156,12 +156,12 @@ void foo() {
             kind: SymbolKind.Function,
             uri: otherFileUri,
             range: rangeOfPattern(
-                otherCode.code, RegExp(r'void foo\(\) \{.*\}', dotAll: true)),
-            selectionRange: rangeOfString(otherCode.code, 'foo'),
+                otherCode, RegExp(r'void foo\(\) \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode, 'foo'),
           ),
           // Ranges of calls within this container.
           fromRanges: [
-            rangeOfString(otherCode.code, 'greater'),
+            rangeOfString(otherCode, 'greater'),
           ],
         ),
       ],
@@ -193,12 +193,12 @@ class Foo {}
             kind: SymbolKind.Function,
             uri: mainFileUri,
             range: rangeOfPattern(
-                code.code, RegExp(r'void main\(\) \{.*\}', dotAll: true)),
-            selectionRange: rangeOfString(code.code, 'main'),
+                code, RegExp(r'void main\(\) \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(code, 'main'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(code.code, 'Foo'),
+            rangeOfString(code, 'Foo'),
           ],
         ),
       ],
@@ -233,13 +233,13 @@ class B {
             detail: 'B',
             kind: SymbolKind.Method,
             uri: otherFileUri,
-            range: rangeOfPattern(otherCode.code,
-                RegExp(r'String bar\(\) \{.*\  }', dotAll: true)),
-            selectionRange: rangeOfString(otherCode.code, 'bar'),
+            range: rangeOfPattern(
+                otherCode, RegExp(r'String bar\(\) \{.*\  }', dotAll: true)),
+            selectionRange: rangeOfString(otherCode, 'bar'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherCode.code, 'foo'),
+            rangeOfString(otherCode, 'foo'),
           ],
         ),
       ],
@@ -275,12 +275,12 @@ extension type E2(E1 a) {
             kind: SymbolKind.Method,
             uri: otherFileUri,
             range: rangeOfPattern(
-                otherCode.code, RegExp(r'void g\(\) \{.*\  }', dotAll: true)),
-            selectionRange: rangeOfString(otherCode.code, 'g'),
+                otherCode, RegExp(r'void g\(\) \{.*\  }', dotAll: true)),
+            selectionRange: rangeOfString(otherCode, 'g'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherCode.code, 'foo'),
+            rangeOfString(otherCode, 'foo'),
           ],
         ),
       ],
@@ -314,12 +314,12 @@ class Bar {
             kind: SymbolKind.Class,
             uri: otherFileUri,
             range: rangeOfPattern(
-                otherCode.code, RegExp(r'class Bar \{.*\}', dotAll: true)),
-            selectionRange: rangeOfString(otherCode.code, 'Bar'),
+                otherCode, RegExp(r'class Bar \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherCode.code, 'named'),
+            rangeOfString(otherCode, 'named'),
           ],
         ),
       ],
@@ -391,13 +391,13 @@ class Bar {
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
-            range: rangeOfString(otherCode.code, 'Bar();'),
+            range: rangeOfString(otherCode, 'Bar();'),
             selectionRange:
                 rangeStartingAtString(otherCode.code, 'Bar();', 'Bar'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(code.code, 'Bar'),
+            rangeOfString(code, 'Bar'),
           ],
         ),
       ],
@@ -428,12 +428,12 @@ void bar() {}
             detail: 'other.dart',
             kind: SymbolKind.Function,
             uri: otherFileUri,
-            range: rangeOfString(otherCode.code, 'void bar() {}'),
-            selectionRange: rangeOfString(otherCode.code, 'bar'),
+            range: rangeOfString(otherCode, 'void bar() {}'),
+            selectionRange: rangeOfString(otherCode, 'bar'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(code.code, 'bar'),
+            rangeOfString(code, 'bar'),
           ],
         ),
       ],
@@ -469,12 +469,12 @@ bool greater(int x, int y) => x > y;
             kind: SymbolKind.Function,
             uri: otherFileUri,
             range: rangeOfString(
-                otherCode.code, 'bool greater(int x, int y) => x > y;'),
-            selectionRange: rangeOfString(otherCode.code, 'greater'),
+                otherCode, 'bool greater(int x, int y) => x > y;'),
+            selectionRange: rangeOfString(otherCode, 'greater'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(code.code, 'greater'),
+            rangeOfString(code, 'greater'),
           ],
         ),
       ],
@@ -507,12 +507,12 @@ class Bar {}
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
-            range: rangeOfString(otherCode.code, 'class Bar {}'),
-            selectionRange: rangeOfString(otherCode.code, 'Bar'),
+            range: rangeOfString(otherCode, 'class Bar {}'),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(code.code, 'Bar'),
+            rangeOfString(code, 'Bar'),
           ],
         ),
       ],
@@ -548,12 +548,12 @@ class Bar {
             detail: 'Bar',
             kind: SymbolKind.Method,
             uri: otherFileUri,
-            range: rangeOfString(otherCode.code, 'void bar() {}'),
-            selectionRange: rangeOfString(otherCode.code, 'bar'),
+            range: rangeOfString(otherCode, 'void bar() {}'),
+            selectionRange: rangeOfString(otherCode, 'bar'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(code.code, 'bar'),
+            rangeOfString(code, 'bar'),
           ],
         ),
       ],
@@ -588,12 +588,12 @@ extension type E1(int a) {
             detail: 'E1',
             kind: SymbolKind.Method,
             uri: otherFileUri,
-            range: rangeOfString(otherCode.code, 'void foo() {}'),
-            selectionRange: rangeOfString(otherCode.code, 'foo'),
+            range: rangeOfString(otherCode, 'void foo() {}'),
+            selectionRange: rangeOfString(otherCode, 'foo'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(code.code, 'foo'),
+            rangeOfString(code, 'foo'),
           ],
         ),
       ],
@@ -628,8 +628,8 @@ class Bar {
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
-            range: rangeOfString(otherCode.code, 'Bar.named();'),
-            selectionRange: rangeOfString(otherCode.code, 'named'),
+            range: rangeOfString(otherCode, 'Bar.named();'),
+            selectionRange: rangeOfString(otherCode, 'named'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
@@ -716,7 +716,7 @@ class Foo {
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
           uri: mainFileUri,
-          range: rangeOfString(code.code, 'Foo(String a) {}'),
+          range: rangeOfString(code, 'Foo(String a) {}'),
           selectionRange: code.range.range),
     );
   }
@@ -744,7 +744,7 @@ class Foo {
             detail: 'Foo', // Containing class name
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
-            range: rangeOfString(otherCode.code, 'Foo();'),
+            range: rangeOfString(otherCode, 'Foo();'),
             selectionRange: otherCode.range.range));
   }
 
@@ -760,8 +760,8 @@ void myFun^ction() {}
           detail: 'main.dart', // Containing file name
           kind: SymbolKind.Function,
           uri: mainFileUri,
-          range: rangeOfString(code.code, 'void myFunction() {}'),
-          selectionRange: rangeOfString(code.code, 'myFunction')),
+          range: rangeOfString(code, 'void myFunction() {}'),
+          selectionRange: rangeOfString(code, 'myFunction')),
     );
   }
 
@@ -786,8 +786,8 @@ void myFunction() {}
           detail: 'other.dart', // Containing file name
           kind: SymbolKind.Function,
           uri: otherFileUri,
-          range: rangeOfString(otherCode.code, 'void myFunction() {}'),
-          selectionRange: rangeOfString(otherCode.code, 'myFunction')),
+          range: rangeOfString(otherCode, 'void myFunction() {}'),
+          selectionRange: rangeOfString(otherCode, 'myFunction')),
     );
   }
 
@@ -815,8 +815,8 @@ class Foo {}
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
           uri: otherFileUri,
-          range: rangeOfString(otherCode.code, 'class Foo {}'),
-          selectionRange: rangeOfString(otherCode.code, 'Foo')),
+          range: rangeOfString(otherCode, 'class Foo {}'),
+          selectionRange: rangeOfString(otherCode, 'Foo')),
     );
   }
 
@@ -834,8 +834,8 @@ class Foo {
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Method,
           uri: mainFileUri,
-          range: rangeOfString(code.code, 'void myMethod() {}'),
-          selectionRange: rangeOfString(code.code, 'myMethod')),
+          range: rangeOfString(code, 'void myMethod() {}'),
+          selectionRange: rangeOfString(code, 'myMethod')),
     );
   }
 
@@ -862,8 +862,8 @@ class Foo {
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Method,
           uri: otherFileUri,
-          range: rangeOfString(otherCode.code, 'void myMethod() {}'),
-          selectionRange: rangeOfString(otherCode.code, 'myMethod')),
+          range: rangeOfString(otherCode, 'void myMethod() {}'),
+          selectionRange: rangeOfString(otherCode, 'myMethod')),
     );
   }
 
@@ -890,8 +890,8 @@ extension type E1(int a) {
           detail: 'E1',
           kind: SymbolKind.Method,
           uri: otherFileUri,
-          range: rangeOfString(otherCode.code, 'void f() {}'),
-          selectionRange: rangeOfString(otherCode.code, 'f')),
+          range: rangeOfString(otherCode, 'void f() {}'),
+          selectionRange: rangeOfString(otherCode, 'f')),
     );
   }
 
@@ -909,8 +909,8 @@ class Foo {
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
           uri: mainFileUri,
-          range: rangeOfString(code.code, 'Foo.Bar(String a) {}'),
-          selectionRange: rangeOfString(code.code, 'Bar')),
+          range: rangeOfString(code, 'Foo.Bar(String a) {}'),
+          selectionRange: rangeOfString(code, 'Bar')),
     );
   }
 
@@ -937,8 +937,8 @@ class Foo {
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
           uri: otherFileUri,
-          range: rangeOfString(otherCode.code, 'Foo.Bar();'),
-          selectionRange: rangeOfString(otherCode.code, 'Bar')),
+          range: rangeOfString(otherCode, 'Foo.Bar();'),
+          selectionRange: rangeOfString(otherCode, 'Bar')),
     );
   }
 

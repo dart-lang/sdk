@@ -886,6 +886,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   Zone* zone = thread->zone();
   Function& function = Function::Handle(zone);
   function ^= object_table.ObjectAt(ret_address_instr->object_table_index());
+  ASSERT(!function.ForceOptimize());
   ASSERT(code != nullptr);
   const Error& error =
       Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));

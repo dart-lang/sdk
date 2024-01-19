@@ -11,6 +11,8 @@ import 'dart:convert' hide JsonDecoder;
 import 'package:analysis_server_client/src/protocol/protocol_base.dart';
 import 'package:analysis_server_client/src/protocol/protocol_internal.dart';
 
+// ignore_for_file: flutter_style_todos
+
 /// AddContentOverlay
 ///
 /// {

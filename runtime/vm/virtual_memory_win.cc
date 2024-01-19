@@ -92,10 +92,6 @@ void VirtualMemory::Cleanup() {
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
-bool VirtualMemory::DualMappingEnabled() {
-  return false;
-}
-
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,

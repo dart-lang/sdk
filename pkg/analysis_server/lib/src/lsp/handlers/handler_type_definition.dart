@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -133,7 +132,7 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
   /// Creates an LSP [Location] for the server [location].
   Location _toLocation(plugin.Location location, LineInfo lineInfo) {
     return Location(
-      uri: pathContext.toUri(location.file),
+      uri: uriConverter.toClientUri(location.file),
       range: toRange(lineInfo, location.offset, location.length),
     );
   }
@@ -161,7 +160,7 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
     return LocationLink(
       originSelectionRange:
           toRange(originLineInfo, originEntity.offset, originEntity.length),
-      targetUri: pathContext.toUri(targetLocation.file),
+      targetUri: uriConverter.toClientUri(targetLocation.file),
       targetRange: codeRange,
       targetSelectionRange: nameRange,
     );
@@ -200,7 +199,7 @@ class TypeDefinitionRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => TextDocumentRegistrationOptions(
-        documentSelector: [dartFiles], // This is currently Dart-specific
+        documentSelector: dartFiles, // This is currently Dart-specific
       );
 
   @override

@@ -18,7 +18,7 @@ external T validTopLevel<T extends JSObject>(T t);
 @JS()
 external T invalidTopLevel<T>(T t);
 //         ^
-// [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+// [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
 typedef Typedef<T> = T Function();
 
@@ -29,7 +29,7 @@ extension type JSList<T>._(JSAny? _) {}
 class Uninstantiated<W, X extends Instantiated?> {
   external factory Uninstantiated(W w);
   //               ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'W' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external factory Uninstantiated.named(X x);
 }
 
@@ -37,35 +37,35 @@ extension UninstantiatedExtension<T, U extends JSAny?, V extends Instantiated>
     on Uninstantiated {
   external T fieldT;
   //         ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external U fieldU;
   external V fieldV;
 
   T get getTDart => throw UnimplementedError();
   external T get getT;
   //             ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external U get getU;
   external V get getV;
 
   set setTDart(T t) => throw UnimplementedError();
   external set setT(T t);
   //           ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external set setU(U u);
   external set setV(V v);
 
   T returnTDart() => throw UnimplementedError();
   external T returnT();
   //         ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external U returnU();
   external V returnV();
 
   void consumeTDart(T t) => throw UnimplementedError();
   external void consumeT(T t);
   //            ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external void consumeU(U u);
   external void consumeV(V v);
 
@@ -80,7 +80,7 @@ extension UninstantiatedExtension<T, U extends JSAny?, V extends Instantiated>
   W returnWDart<W>() => throw UnimplementedError();
   external W returnW<W>();
   //         ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'W' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external X returnX<X extends JSArray>();
 }
 
@@ -88,41 +88,41 @@ extension type UninstantiatedExtensionType<T, U extends JSAny?,
     V extends InstantiatedExtensionType>._(JSObject _) {
   external UninstantiatedExtensionType(T t);
   //       ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external factory UninstantiatedExtensionType.fact(U u);
 
   // Test simple type parameters.
   external T fieldT;
   //         ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external U fieldU;
   external V fieldV;
 
   T get getTDart => throw UnimplementedError();
   external T get getT;
   //             ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external U get getU;
   external V get getV;
 
   set setTDart(T t) => throw UnimplementedError();
   external set setT(T t);
   //           ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external set setU(U u);
   external set setV(V v);
 
   T returnTDart() => throw UnimplementedError();
   external T returnT();
   //         ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external U returnU();
   external V returnV();
 
   void consumeTDart(T t) => throw UnimplementedError();
   external void consumeT(T t);
   //            ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external void consumeU(U u);
   external void consumeV(V v);
 
@@ -137,7 +137,7 @@ extension type UninstantiatedExtensionType<T, U extends JSAny?,
   W returnWDart<W>() => throw UnimplementedError();
   external W returnW<W>();
   //         ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'W' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external X returnX<X extends JSArray>();
 }
 
@@ -145,7 +145,7 @@ extension UninstantiatedExtensionTypeExtension<T, U extends JSAny?,
     V extends InstantiatedExtensionType> on UninstantiatedExtensionType<T, U, V> {
   external T get extensionGetT;
   //             ^
-  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
   external U get extensionGetU;
   external V get extensionGetV;
 }

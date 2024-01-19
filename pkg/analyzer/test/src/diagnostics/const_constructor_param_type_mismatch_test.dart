@@ -11,8 +11,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstConstructorParamTypeMismatchTest);
-    defineReflectiveTests(
-        ConstConstructorParamTypeMismatchWithoutNullSafetyTest);
   });
 }
 
@@ -328,43 +326,5 @@ class B extends A<int> {
 
 const b = const B();
 ''');
-  }
-}
-
-@reflectiveTest
-class ConstConstructorParamTypeMismatchWithoutNullSafetyTest
-    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
-  test_assignable_fieldFormal_null() async {
-    // Null is assignable to anything (before null safety).
-    await assertNoErrorsInCode(r'''
-class A {
-  final int x;
-  const A(this.x);
-}
-var v = const A(null);
-''');
-  }
-
-  test_assignable_fieldFormal_unresolved_null() async {
-    // Null always passes runtime type checks, even when the type is
-    // unresolved.
-    await assertErrorsInCode(r'''
-class A {
-  final Unresolved x;
-  const A(String this.x);
-}
-var v = const A(null);
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
-    ]);
-  }
-
-  test_assignable_null() async {
-    // Null is assignable to anything (before null safety).
-    await assertNoErrorsInCode(r'''
-class A {
-  const A(int x);
-}
-var v = const A(null);''');
   }
 }

@@ -2941,6 +2941,29 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
     }
   }
 
+  void finalizeLoad() {
+    initializeSomeLoadedHunks();
+    // At this point all hunks have been loaded, so there should be no pending
+    // initializations to do.
+    assert(nextHunkToInitialize == total);
+    bool updated = _loadedLibraries.add(loadId);
+    if (updated && deferredLoadHook != null) {
+      deferredLoadHook!();
+    }
+  }
+
+  var deferredLibraryMultiLoader =
+      JS('', 'self.dartDeferredLibraryMultiLoader');
+
+  if (JS('bool', 'typeof # === "function"', deferredLibraryMultiLoader)) {
+    return _loadAllHunks(
+            deferredLibraryMultiLoader, uris, hashes, loadId, priority)
+        .then((_) {
+      waitingForLoad = List.filled(total, false);
+      finalizeLoad();
+    });
+  }
+
   Future loadAndInitialize(int i) {
     final hash = hashes[i];
     if (JS('bool', '#(#)', isHunkLoaded, hash)) {
@@ -2954,14 +2977,7 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
   }
 
   return Future.wait(new List.generate(total, loadAndInitialize)).then((_) {
-    initializeSomeLoadedHunks();
-    // At this point all hunks have been loaded, so there should be no pending
-    // initializations to do.
-    assert(nextHunkToInitialize == total);
-    bool updated = _loadedLibraries.add(loadId);
-    if (updated && deferredLoadHook != null) {
-      deferredLoadHook!();
-    }
+    finalizeLoad();
   });
 }
 
@@ -3101,6 +3117,95 @@ String _computeThisScriptFromTrace() {
   if (matches != null) return JS('String', '#[1]', matches);
 
   throw new UnsupportedError('Cannot extract URI from "$stack"');
+}
+
+Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
+    String loadId, int priority) {
+  var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
+  var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
+
+  _addEvent(part: hunkNames.join(';'), event: 'startLoad', loadId: loadId);
+
+  List<String> hunksToLoad = [];
+  List<String> urisToLoad = [];
+  List<String> hashesToLoad = [];
+  List<Future> pendingLoads = [];
+  for (int i = 0; i < hunkNames.length; ++i) {
+    final hunkName = hunkNames[i];
+    final hash = hashes[i];
+    if (JS('bool', '!#(#)', isHunkLoaded, hash)) {
+      final completerForHunk = _loadingLibraries[hunkName];
+      if (completerForHunk != null) {
+        pendingLoads.add(completerForHunk.future);
+        _addEvent(part: hunkName, event: 'reuse', loadId: loadId);
+      } else {
+        hunksToLoad.add(hunkName);
+        hashesToLoad.add(hash);
+        Object trustedScriptUri = _getBasedScriptUrl(hunkName, '');
+        // [trustedScriptUri] is either a String, in which case `toString()` is
+        // an identity function, or it is a TrustedScriptURL and `toString()`
+        // returns the sanitized URL.
+        urisToLoad.add(JS('', '#.toString()', trustedScriptUri));
+      }
+    }
+  }
+
+  if (hunksToLoad.isEmpty) {
+    return Future.wait(pendingLoads);
+  }
+
+  final loadedHunksString = hunksToLoad.join(';');
+
+  Completer<Null> completer = Completer();
+
+  hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = completer);
+  _addEvent(part: loadedHunksString, event: 'downloadMulti', loadId: loadId);
+
+  void failure(error, String context, StackTrace? stackTrace) {
+    _addEvent(
+        part: loadedHunksString, event: 'downloadFailure', loadId: loadId);
+    hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = null);
+    stackTrace ??= StackTrace.current;
+    completer.completeError(
+        DeferredLoadException('Loading $loadedHunksString failed: $error\n'
+            'Context: $context\n'
+            'event log:\n${_getEventLog()}\n'),
+        stackTrace);
+  }
+
+  void success() {
+    List<String> missingHunks = [];
+    for (int i = 0; i < hashesToLoad.length; i++) {
+      bool isLoaded = JS('bool', '#(#)', isHunkLoaded, hashesToLoad[i]);
+      if (!isLoaded) missingHunks.add(hunksToLoad[i]);
+    }
+    if (missingHunks.isEmpty) {
+      _addEvent(
+          part: loadedHunksString, event: 'downloadSuccess', loadId: loadId);
+      completer.complete(null);
+    } else {
+      failure(
+          'Success callback invoked but parts ${missingHunks.join(';')} not '
+              'loaded.',
+          '',
+          null);
+    }
+  }
+
+  var jsSuccess = convertDartClosureToJS(success, 0);
+  var jsFailure = convertDartClosureToJS((error) {
+    failure(unwrapException(error), 'js-failure-wrapper',
+        getTraceFromException(error));
+  }, 1);
+
+  try {
+    JS('void', '#(#, #, #, #, #)', loader, urisToLoad, jsSuccess, jsFailure,
+        loadId, priority);
+  } catch (error, stackTrace) {
+    failure(error, "invoking dartDeferredLibraryMultiLoader hook", stackTrace);
+  }
+
+  return Future.wait([...pendingLoads, completer.future]);
 }
 
 Future<Null> _loadHunk(
@@ -3271,7 +3376,7 @@ void applyExtension(name, nativeObject) {}
 // This is currently a no-op in dart2js, but used for native tests.
 void applyTestExtensions(List<String> names) {}
 
-// See tests/web_2/platform_environment_variable1_test.dart
+// See tests/web/platform_environment_variable1_test.dart
 const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
     'dart2js.test.platform.environment.variable',
     defaultValue: 'not-specified');

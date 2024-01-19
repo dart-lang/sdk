@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: library_prefixes
+
 import 'always_specify_types_test.dart' as always_specify_types;
 import 'always_use_package_imports_test.dart' as always_use_package_imports;
 import 'annotate_overrides_test.dart' as annotate_overrides;
@@ -9,6 +11,10 @@ import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
 import 'avoid_catching_errors_test.dart' as avoid_catching_errors;
+import 'avoid_classes_with_only_static_members_test.dart'
+    as avoid_class_with_only_static_members;
+import 'avoid_dynamic_calls_test.dart' as avoid_dynamic_calls;
+import 'avoid_empty_else_test.dart' as avoid_empty_else;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
     as avoid_equals_and_hash_code_on_mutable_classes;
 import 'avoid_escaping_inner_quotes_test.dart' as avoid_escaping_inner_quotes;
@@ -45,7 +51,6 @@ import 'avoid_types_as_parameter_names_test.dart'
 import 'avoid_types_on_closure_parameters_test.dart'
     as avoid_types_on_closure_parameters;
 import 'avoid_unnecessary_containers_test.dart' as avoid_unnecessary_containers;
-import 'avoid_unstable_final_fields_test.dart' as avoid_unstable_final_fields;
 import 'avoid_unused_constructor_parameters_test.dart'
     as avoid_unused_constructor_parameters;
 import 'avoid_void_async_test.dart' as avoid_void_async;
@@ -81,6 +86,8 @@ import 'empty_catches_test.dart' as empty_catches;
 import 'empty_constructor_bodies_test.dart' as empty_constructor_bodies;
 import 'empty_statements_test.dart' as empty_statements;
 import 'eol_at_end_of_file_test.dart' as eol_at_end_of_file;
+import 'erase_dart_type_extension_types_test.dart'
+    as erase_dart_type_extension_types;
 import 'exhaustive_cases_test.dart' as exhaustive_cases;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
@@ -105,7 +112,6 @@ import 'no_duplicate_case_values_test.dart' as no_duplicate_case_values;
 import 'no_leading_underscores_for_local_identifiers_test.dart'
     as no_leading_underscores_for_local_identifiers;
 import 'no_logic_in_create_state_test.dart' as no_logic_in_create_state;
-// ignore: library_prefixes
 import 'no_runtimeType_toString_test.dart' as no_runtimeType_toString;
 import 'no_self_assignments_test.dart' as no_self_assignments;
 import 'no_wildcard_variable_uses_test.dart' as no_wildcard_variable_uses;
@@ -142,7 +148,6 @@ import 'prefer_final_in_for_each_test.dart' as prefer_final_in_for_each;
 import 'prefer_final_locals_test.dart' as prefer_final_locals;
 import 'prefer_final_parameters_test.dart' as prefer_final_parameters;
 import 'prefer_for_elements_to_map_fromIterable_test.dart'
-// ignore: library_prefixes
     as prefer_for_elements_to_map_fromIterable;
 import 'prefer_foreach_test.dart' as prefer_foreach;
 import 'prefer_function_declarations_over_variables_test.dart'
@@ -154,7 +159,6 @@ import 'prefer_if_elements_to_conditional_expressions_test.dart'
 import 'prefer_inlined_adds_test.dart' as prefer_inlined_adds;
 import 'prefer_interpolation_to_compose_strings_test.dart'
     as prefer_interpolation_to_compose_strings;
-// ignore: library_prefixes
 import 'prefer_iterable_whereType_test.dart' as prefer_iterable_whereType;
 import 'prefer_mixin_test.dart' as prefer_mixin;
 import 'prefer_null_aware_method_calls_test.dart'
@@ -259,6 +263,9 @@ void main() {
   annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
   avoid_catching_errors.main();
+  avoid_class_with_only_static_members.main();
+  avoid_dynamic_calls.main();
+  avoid_empty_else.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
   avoid_final_parameters.main();
@@ -282,7 +289,6 @@ void main() {
   avoid_types_as_parameter_names.main();
   avoid_types_on_closure_parameters.main();
   avoid_unnecessary_containers.main();
-  avoid_unstable_final_fields.main();
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
   avoid_web_libraries_in_flutter.main();
@@ -309,6 +315,7 @@ void main() {
   empty_constructor_bodies.main();
   empty_statements.main();
   eol_at_end_of_file.main();
+  erase_dart_type_extension_types.main();
   exhaustive_cases.main();
   file_names.main();
   flutter_style_todos.main();

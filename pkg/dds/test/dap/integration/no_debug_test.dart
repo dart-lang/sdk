@@ -70,7 +70,10 @@ main() {
       expect(runInTerminalArgs, isNotNull);
       expect(
         runInTerminalArgs!.args,
-        containsAllInOrder([Platform.resolvedExecutable, testFile.path]),
+        containsAllInOrder([
+          Platform.resolvedExecutable,
+          dap.client.uppercaseDriveLetter(testFile.path),
+        ]),
       );
     });
     // These tests can be slow due to starting up the external server process.

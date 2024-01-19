@@ -46,7 +46,7 @@ part of dart.ffi;
 /// }
 /// ```
 @Since('2.16')
-base class AbiSpecificInteger extends NativeType {
+base class AbiSpecificInteger implements SizedNativeType {
   const AbiSpecificInteger();
 }
 

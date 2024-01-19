@@ -15,7 +15,7 @@ var tests = <IsolateTest>[
       isolateId,
       isolate.rootLib!.id!,
     ) as Library;
-    Class classLibrary = await service.getObject(
+    final Class classLibrary = await service.getObject(
       isolateId,
       rootLib.classRef!.id!,
     ) as Class;
@@ -23,7 +23,7 @@ var tests = <IsolateTest>[
     {
       bool caughtExceptions = false;
       try {
-        dynamic result = await service.evaluate(
+        final dynamic result = await service.evaluate(
           isolateId,
           classLibrary.id!,
           '3 + 4',
@@ -43,7 +43,7 @@ var tests = <IsolateTest>[
     {
       bool caughtExceptions = false;
       try {
-        dynamic result = await service.evaluate(
+        final dynamic result = await service.evaluate(
           isolateId,
           classClass.id!,
           '3 + 4',
@@ -60,12 +60,12 @@ var tests = <IsolateTest>[
       (await service.evaluate(
         isolateId,
         rootLib.id!,
-        "List<dynamic>.filled(2, null)",
+        'List<dynamic>.filled(2, null)',
       ) as InstanceRef)
           .classRef!
           .id!,
     ) as Class;
-    dynamic result = await service.evaluate(
+    final dynamic result = await service.evaluate(
       isolateId,
       classArray.id!,
       '3 + 4',
@@ -75,7 +75,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'eval_internal_class_test.dart',

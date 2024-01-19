@@ -32,8 +32,33 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
+
+class ExtensionTypeErasure extends ReplacementVisitor {
+  const ExtensionTypeErasure();
+
+  DartType perform(DartType type) {
+    return type.accept(this) ?? type;
+  }
+
+  @override
+  DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
+    if (type.representationType case final representationType?) {
+      final erased = representationType.accept(this) ?? representationType;
+      erased as TypeImpl;
+      // If the extension type is nullable, apply it to the erased.
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        return erased.withNullability(NullabilitySuffix.question);
+      }
+      // Use the erased as is, still might be nullable.
+      return erased;
+    }
+
+    return super.visitInterfaceType(type);
+  }
+}
 
 /// Fresh type parameters created to unify two lists of type parameters.
 class RelatedTypeParameters {
@@ -57,16 +82,6 @@ class TypeSystemImpl implements TypeSystem {
   /// The provider of types for the system.
   final TypeProviderImpl typeProvider;
 
-  /// True if "strict casts" should be enforced.
-  ///
-  /// This affects the behavior of [isAssignableTo].
-  bool strictCasts;
-
-  /// A flag indicating whether inference failures are allowed, off by default.
-  ///
-  /// This option is experimental and subject to change.
-  bool strictInference;
-
   /// The cached instance of `Object?`.
   InterfaceTypeImpl? _objectQuestion;
 
@@ -87,8 +102,6 @@ class TypeSystemImpl implements TypeSystem {
 
   TypeSystemImpl({
     required this.isNonNullableByDefault,
-    required this.strictCasts,
-    required this.strictInference,
     required TypeProvider typeProvider,
   }) : typeProvider = typeProvider as TypeProviderImpl {
     _greatestLowerBoundHelper = GreatestLowerBoundHelper(this);
@@ -140,9 +153,8 @@ class TypeSystemImpl implements TypeSystem {
   /// type that implements both [left] and [right], regardless of whether
   /// [left] is a subtype of [right], or [right] is a subtype of [left].
   bool canBeSubtypeOf(DartType left, DartType right) {
-    if (left case InterfaceTypeImpl(:final representationTypeErasure?)) {
-      left = representationTypeErasure;
-    }
+    left = left.extensionTypeErasure;
+    right = right.extensionTypeErasure;
 
     // If one is `Null`, then the other must be nullable.
     final leftIsNullable = isPotentiallyNullable(left);
@@ -587,7 +599,7 @@ class TypeSystemImpl implements TypeSystem {
           boundTypeParameters.addAll(type.typeFormals);
           appendParameters(type.returnType);
           type.parameters.map((p) => p.type).forEach(appendParameters);
-          // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44218
+          // TODO(scheglov): https://github.com/dart-lang/sdk/issues/44218
           type.alias?.typeArguments.forEach(appendParameters);
           boundTypeParameters.removeAll(type.typeFormals);
         } else if (type is InterfaceType) {
@@ -677,7 +689,10 @@ class TypeSystemImpl implements TypeSystem {
     FunctionType fnType, {
     ErrorReporter? errorReporter,
     AstNode? errorNode,
+    required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
+    required bool strictInference,
+    required bool strictCasts,
   }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
       return const <DartType>[];
@@ -690,7 +705,9 @@ class TypeSystemImpl implements TypeSystem {
     var inferrer = GenericInferrer(this, fnType.typeFormals,
         errorReporter: errorReporter,
         errorNode: errorNode,
-        genericMetadataIsEnabled: genericMetadataIsEnabled);
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+        strictInference: strictInference,
+        typeSystemOperations: typeSystemOperations);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
@@ -716,7 +733,7 @@ class TypeSystemImpl implements TypeSystem {
   /// bounds. See the issue for the algorithm description.
   ///
   /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-  // TODO(scheglov) Move this method to elements for classes, typedefs,
+  // TODO(scheglov): Move this method to elements for classes, typedefs,
   //  and generic functions; compute lazily and cache.
   DartType instantiateToBounds(DartType type,
       {List<bool>? hasError, Map<TypeParameterElement, DartType>? knownTypes}) {
@@ -756,7 +773,7 @@ class TypeSystemImpl implements TypeSystem {
     if (type is FunctionType) {
       return type.instantiate(typeArguments);
     } else if (type is InterfaceTypeImpl) {
-      // TODO(scheglov) Use `ClassElement.instantiate()`, don't use raw types.
+      // TODO(scheglov): Use `ClassElement.instantiate()`, don't use raw types.
       return type.element.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: type.nullabilitySuffix,
@@ -874,6 +891,9 @@ class TypeSystemImpl implements TypeSystem {
       if (element is ClassElement && element.isSealed) {
         return true;
       }
+      if (element is ExtensionTypeElement) {
+        return isAlwaysExhaustive(type.extensionTypeErasure);
+      }
       if (type.isDartAsyncFutureOr) {
         return isAlwaysExhaustive(type.typeArguments[0]);
       }
@@ -901,7 +921,8 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType) {
+  bool isAssignableTo(DartType fromType, DartType toType,
+      {bool strictCasts = false}) {
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -917,7 +938,8 @@ class TypeSystemImpl implements TypeSystem {
         !isNullable(fromType) &&
         acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
-      if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
+      if (callMethodType != null &&
+          isAssignableTo(callMethodType, toType, strictCasts: strictCasts)) {
         return true;
       }
     }
@@ -953,7 +975,7 @@ class TypeSystemImpl implements TypeSystem {
 
     // If the subtype relation goes the other way, allow the implicit downcast.
     if (isSubtypeOf(toType, fromType)) {
-      // TODO(leafp,jmesserly): we emit warnings for these in
+      // TODO(leafp): we emit warnings for these in
       // `src/task/strong/checker.dart`, which is a bit inconsistent. That code
       // should be handled into places that use `isAssignableTo`, such as
       // [ErrorVerifier].
@@ -965,11 +987,15 @@ class TypeSystemImpl implements TypeSystem {
 
   /// Return `true`  for things in the equivalence class of `Never`.
   bool isBottom(DartType type) {
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      assert(!type.isBottom);
+      return false;
+    }
+
     // BOTTOM(Never) is true
     if (type is NeverType) {
-      var result = type.nullabilitySuffix != NullabilitySuffix.question;
-      assert(type.isBottom == result);
-      return result;
+      assert(type.isBottom);
+      return true;
     }
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
@@ -1296,8 +1322,8 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isNonNullable(type.typeArguments[0]);
       }
-      if (type.representationType case final representationType?) {
-        return isNonNullable(representationType);
+      if (type.element is ExtensionTypeElement) {
+        return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
       var bound = type.element.bound;
@@ -1392,8 +1418,8 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isStrictlyNonNullable(type.typeArguments[0]);
       }
-      if (type.representationType case final representationType?) {
-        return isStrictlyNonNullable(representationType);
+      if (type.element is ExtensionTypeElement) {
+        return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
       return isStrictlyNonNullable(type.bound);
@@ -1562,10 +1588,15 @@ class TypeSystemImpl implements TypeSystem {
     List<TypeParameterElement> typeParameters,
     List<DartType> srcTypes,
     List<DartType> destTypes, {
+    required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
+    required bool strictInference,
+    required bool strictCasts,
   }) {
     var inferrer = GenericInferrer(this, typeParameters,
-        genericMetadataIsEnabled: genericMetadataIsEnabled);
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+        strictInference: strictInference,
+        typeSystemOperations: typeSystemOperations);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
       inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
@@ -1581,7 +1612,7 @@ class TypeSystemImpl implements TypeSystem {
       var srcType = substitution.substituteType(srcTypes[i]);
       var destType = destTypes[i];
       if (isNonNullableByDefault) {
-        // TODO(scheglov) waiting for the spec
+        // TODO(scheglov): waiting for the spec
         // https://github.com/dart-lang/sdk/issues/42605
       } else {
         srcType = toLegacyTypeIfOptOut(srcType);
@@ -1697,7 +1728,7 @@ class TypeSystemImpl implements TypeSystem {
   /// the arguments passed to the method are [argumentTypes], and the type
   /// produced so far by resolution is [currentType].
   ///
-  /// TODO(scheglov) I expected that [methodElement] is [MethodElement].
+  // TODO(scheglov): I expected that [methodElement] is [MethodElement].
   DartType refineNumericInvocationType(
       DartType targetType,
       Element? methodElement,
@@ -1837,14 +1868,18 @@ class TypeSystemImpl implements TypeSystem {
   /// Prepares to infer type arguments for a generic type, function, method, or
   /// list/map literal, initializing a [GenericInferrer] using the downward
   /// context type.
-  GenericInferrer setupGenericTypeInference(
-      {required List<TypeParameterElement> typeParameters,
-      required DartType declaredReturnType,
-      required DartType? contextReturnType,
-      ErrorReporter? errorReporter,
-      AstNode? errorNode,
-      required bool genericMetadataIsEnabled,
-      bool isConst = false}) {
+  GenericInferrer setupGenericTypeInference({
+    required List<TypeParameterElement> typeParameters,
+    required DartType declaredReturnType,
+    required DartType? contextReturnType,
+    ErrorReporter? errorReporter,
+    AstNode? errorNode,
+    required bool genericMetadataIsEnabled,
+    bool isConst = false,
+    required bool strictInference,
+    required bool strictCasts,
+    required TypeSystemOperations typeSystemOperations,
+  }) {
     // Create a GenericInferrer that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
@@ -1852,7 +1887,9 @@ class TypeSystemImpl implements TypeSystem {
     var inferrer = GenericInferrer(this, typeParameters,
         errorReporter: errorReporter,
         errorNode: errorNode,
-        genericMetadataIsEnabled: genericMetadataIsEnabled);
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+        strictInference: strictInference,
+        typeSystemOperations: typeSystemOperations);
 
     if (contextReturnType != null) {
       if (isConst) {
@@ -1929,14 +1966,6 @@ class TypeSystemImpl implements TypeSystem {
     } else {
       return const <TypeParameterElement>[];
     }
-  }
-
-  void updateOptions({
-    required bool strictCasts,
-    required bool strictInference,
-  }) {
-    this.strictCasts = strictCasts;
-    this.strictInference = strictInference;
   }
 
   /// Optimistically estimates, if type arguments of [left] can be equal to
@@ -2096,7 +2125,8 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement is ExtensionElement) {
+    if (methodElement.enclosingElement is ExtensionElement ||
+        methodElement.enclosingElement is ExtensionTypeElement) {
       return currentType;
     }
 
@@ -2200,7 +2230,8 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement is ExtensionElement) {
+    if (methodElement.enclosingElement is ExtensionElement ||
+        methodElement.enclosingElement is ExtensionTypeElement) {
       return currentType;
     }
 
@@ -2345,7 +2376,7 @@ class TypeSystemImpl implements TypeSystem {
   }
 }
 
-/// TODO(scheglov) Ask the language team how to deal with it.
+// TODO(scheglov): Ask the language team how to deal with it.
 class _RemoveBoundsOfGenericFunctionTypeVisitor extends ReplacementVisitor {
   final DartType _bottomType;
 

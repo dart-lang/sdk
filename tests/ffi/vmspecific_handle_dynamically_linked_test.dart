@@ -35,8 +35,14 @@ void testHandle() {
 
 void testNativeAPIs() {
   // No need to expect here, `lookupFunction` throws an argument error if lookup fails.
+  Expect.isTrue(testLibrary.providesSymbol("Dart_IsNull_DL"));
   testLibrary.lookupFunction<Bool Function(Handle), bool Function(Object)>(
       "Dart_IsNull_DL");
+  Expect.isTrue(NativeApi.majorVersion == 2);
+  Expect.isTrue(NativeApi.minorVersion >= 4);
+  Expect.isTrue(testLibrary.providesSymbol("Dart_Null_DL"));
+  testLibrary
+      .lookupFunction<Handle Function(), Object Function()>("Dart_Null_DL");
 }
 
 class SomeClass {

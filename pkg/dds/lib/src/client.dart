@@ -92,8 +92,7 @@ class DartDevelopmentServiceClient {
     return await _clientPeer.sendRequest(method, parameters);
   }
 
-  /// Registers handlers for JSON RPC methods which need to be intercepted by
-  /// DDS as well as fallback request forwarder.
+  /// Registers handlers for JSON RPC method endpoints.
   void _registerJsonRpcMethods() {
     _clientPeer.registerMethod('streamListen', (parameters) async {
       final streamId = parameters['streamId'].asString;
@@ -107,12 +106,22 @@ class DartDevelopmentServiceClient {
       return RPCResponses.success;
     });
 
+    /// jrpc endpoint for cancelling a stream.
+    ///
+    /// Parameters:
+    /// 'streamId': the stream to be cancelled.
     _clientPeer.registerMethod('streamCancel', (parameters) async {
       final streamId = parameters['streamId'].asString;
       await dds.streamManager.streamCancel(this, streamId);
       return RPCResponses.success;
     });
 
+    /// jrpc endpoint for posting an event to a stream.
+    ///
+    /// Parameters:
+    /// 'eventKind': the kind of event being sent.
+    /// 'data': the data being sent over the stream.
+    /// 'stream: the stream that is being posted to.
     _clientPeer.registerMethod('postEvent', (parameters) async {
       final eventKind = parameters['eventKind'].asString;
       final eventData = parameters['eventData'].asMap;

@@ -508,7 +508,7 @@ class InheritanceManager3 {
       superImplemented.add(implemented);
     }
 
-    // TODO(scheglov) Handling of members for super and mixins is not
+    // TODO(scheglov): Handling of members for super and mixins is not
     // optimal. We always have just one member for each name in super,
     // multiple candidates happen only when we merge super and multiple
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
@@ -651,8 +651,8 @@ class InheritanceManager3 {
       }
     }
 
-    /// TODO(scheglov) Instead of merging conflicts we could report them on
-    /// the corresponding mixins applied in the class.
+    // TODO(scheglov): Instead of merging conflicts we could report them on
+    // the corresponding mixins applied in the class.
     for (var mixinConflicts in mixinsConflicts) {
       if (mixinConflicts.isNotEmpty) {
         conflicts.addAll(mixinConflicts);
@@ -689,21 +689,38 @@ class InheritanceManager3 {
     final declared = <Name, ExecutableElement>{};
     _addImplemented(declared, element, augmented);
 
+    // Prepare precluded names.
+    final precludedNames = <Name>{};
+    final precludedMethods = <Name>{};
+    final precludedSetters = <Name>{};
+    for (final entry in declared.entries) {
+      final name = entry.key;
+      precludedNames.add(name);
+      switch (entry.value) {
+        case MethodElement():
+          precludedSetters.add(name.forSetter);
+        case PropertyAccessorElement(isSetter: true):
+          precludedMethods.add(name.forGetter);
+      }
+    }
+
     // These declared members take precedence over "inherited" ones.
     final implemented = Map.of(declared);
 
     // Prepare candidates for inheritance.
-    final extensionCandidates = <Name, List<ExecutableElement>>{};
-    final notExtensionCandidates = <Name, List<ExecutableElement>>{};
+    final extensionCandidates = <Name, _ExtensionTypeCandidates>{};
+    final notExtensionCandidates = <Name, _ExtensionTypeCandidates>{};
     for (final interface in augmented.interfaces) {
       final substitution = Substitution.fromInterfaceType(interface);
       for (final entry in getInterface(interface.element).map.entries) {
         final name = entry.key;
         final executable = ExecutableMember.from2(entry.value, substitution);
-        if (executable.enclosingElement is ExtensionTypeElement) {
-          (extensionCandidates[name] ??= []).add(executable);
+        if (executable.isExtensionTypeMember) {
+          (extensionCandidates[name] ??= _ExtensionTypeCandidates(name))
+              .add(executable);
         } else {
-          (notExtensionCandidates[name] ??= []).add(executable);
+          (notExtensionCandidates[name] ??= _ExtensionTypeCandidates(name))
+              .add(executable);
         }
       }
     }
@@ -715,29 +732,42 @@ class InheritanceManager3 {
     for (final entry in extensionCandidates.entries) {
       final name = entry.key;
       final candidates = entry.value;
-      (redeclared[name] ??= []).addAll(candidates);
+      (redeclared[name] ??= []).addAll(candidates.all);
 
-      // Stop if redeclared.
-      if (implemented.containsKey(name)) {
+      final notPrecluded = candidates.notPrecluded(
+        precludedNames: precludedNames,
+        precludedMethods: precludedMethods,
+        precludedSetters: precludedSetters,
+      );
+
+      // Stop if all precluded.
+      if (notPrecluded.isEmpty) {
         continue;
       }
 
-      // If not redeclared, can have either non-extension, or extension.
+      // If not precluded, can have either non-extension, or extension.
       final nonExtensionSignatures = notExtensionCandidates[name];
       if (nonExtensionSignatures != null) {
-        conflicts.add(
-          HasNonExtensionAndExtensionMemberConflict(
-            name: name,
-            nonExtension: nonExtensionSignatures,
-            extension: candidates,
-          ),
+        final notExtensionNotPrecluded = nonExtensionSignatures.notPrecluded(
+          precludedNames: precludedNames,
+          precludedMethods: precludedMethods,
+          precludedSetters: precludedSetters,
         );
+        if (notExtensionNotPrecluded.isNotEmpty) {
+          conflicts.add(
+            HasNonExtensionAndExtensionMemberConflict(
+              name: name,
+              nonExtension: notExtensionNotPrecluded,
+              extension: notPrecluded,
+            ),
+          );
+        }
         continue;
       }
 
       // The inherited member must be unique.
       ExecutableElement? uniqueElement;
-      for (final candidate in candidates) {
+      for (final candidate in notPrecluded) {
         if (uniqueElement == null) {
           uniqueElement = candidate;
         } else if (uniqueElement.declaration != candidate.declaration) {
@@ -746,26 +776,33 @@ class InheritanceManager3 {
         }
       }
 
-      if (uniqueElement != null) {
-        implemented[name] = uniqueElement;
-      } else {
+      if (uniqueElement == null) {
         conflicts.add(
           NotUniqueExtensionMemberConflict(
             name: name,
-            candidates: candidates,
+            candidates: notPrecluded,
           ),
         );
+        continue;
       }
+
+      implemented[name] = uniqueElement;
     }
 
     // Add non-extension type members.
     for (final entry in notExtensionCandidates.entries) {
       final name = entry.key;
       final candidates = entry.value;
-      (redeclared[name] ??= []).addAll(candidates);
+      (redeclared[name] ??= []).addAll(candidates.all);
 
-      // Stop if redeclared.
-      if (implemented.containsKey(name)) {
+      final notPrecluded = candidates.notPrecluded(
+        precludedNames: precludedNames,
+        precludedMethods: precludedMethods,
+        precludedSetters: precludedSetters,
+      );
+
+      // Stop if all precluded.
+      if (notPrecluded.isEmpty) {
         continue;
       }
 
@@ -777,21 +814,22 @@ class InheritanceManager3 {
 
       final combinedSignature = combineSignatures(
         targetClass: element,
-        candidates: candidates,
+        candidates: notPrecluded,
         doTopMerge: true,
         name: name,
       );
 
-      if (combinedSignature != null) {
-        implemented[name] = combinedSignature;
-      } else {
+      if (combinedSignature == null) {
         conflicts.add(
           CandidatesConflict(
             name: name,
-            candidates: candidates,
+            candidates: notPrecluded,
           ),
         );
+        continue;
       }
+
+      implemented[name] = combinedSignature;
     }
 
     // Ensure unique overridden elements.
@@ -1183,6 +1221,19 @@ class Name {
 
   Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
 
+  Name get forGetter {
+    if (name.endsWith('=')) {
+      final getterName = name.substring(0, name.length - 1);
+      return Name(libraryUri, getterName);
+    } else {
+      return this;
+    }
+  }
+
+  Name get forSetter {
+    return Name(libraryUri, '$name=');
+  }
+
   @override
   bool operator ==(Object other) {
     return other is Name &&
@@ -1206,6 +1257,45 @@ class NotUniqueExtensionMemberConflict extends Conflict {
     required super.name,
     required this.candidates,
   });
+}
+
+class _ExtensionTypeCandidates {
+  final Name name;
+  final List<MethodElement> methods = [];
+  final List<PropertyAccessorElement> getters = [];
+  final List<PropertyAccessorElement> setters = [];
+
+  _ExtensionTypeCandidates(this.name);
+
+  List<ExecutableElement> get all {
+    return [...methods, ...getters, ...setters];
+  }
+
+  void add(ExecutableElement element) {
+    switch (element) {
+      case MethodElement():
+        methods.add(element);
+      case PropertyAccessorElement(isGetter: true):
+        getters.add(element);
+      case PropertyAccessorElement(isSetter: true):
+        setters.add(element);
+    }
+  }
+
+  List<ExecutableElement> notPrecluded({
+    required Set<Name> precludedNames,
+    required Set<Name> precludedMethods,
+    required Set<Name> precludedSetters,
+  }) {
+    if (precludedNames.contains(name)) {
+      return const [];
+    }
+    return [
+      if (!precludedMethods.contains(name)) ...methods,
+      ...getters,
+      if (!precludedSetters.contains(name)) ...setters,
+    ];
+  }
 }
 
 class _ParameterDesc {

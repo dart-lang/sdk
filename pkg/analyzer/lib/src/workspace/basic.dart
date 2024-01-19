@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
@@ -15,21 +15,21 @@ class BasicWorkspace extends SimpleWorkspace {
   /// The singular package in this workspace.
   ///
   /// Each basic workspace is itself one package.
-  late final BasicWorkspacePackage _theOnlyPackage;
+  late final BasicWorkspacePackage theOnlyPackage;
 
   BasicWorkspace._(
     ResourceProvider provider,
     Packages packages,
     String root,
   ) : super(provider, packages, root) {
-    _theOnlyPackage = BasicWorkspacePackage(root, this);
+    theOnlyPackage = BasicWorkspacePackage(root, this);
   }
 
   @override
   WorkspacePackage? findPackageFor(String filePath) {
     final Folder folder = provider.getFolder(filePath);
     if (provider.pathContext.isWithin(root, folder.path)) {
-      return _theOnlyPackage;
+      return theOnlyPackage;
     } else {
       return null;
     }

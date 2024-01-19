@@ -8,28 +8,15 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(HideClauseTest1);
-    defineReflectiveTests(HideClauseTest2);
-    defineReflectiveTests(ImportDirectiveTest1);
-    defineReflectiveTests(ImportDirectiveTest2);
-    defineReflectiveTests(ShowClauseTest1);
-    defineReflectiveTests(ShowClauseTest2);
+    defineReflectiveTests(HideClauseTest);
+    defineReflectiveTests(ImportDirectiveTest);
+    defineReflectiveTests(ShowClauseTest);
   });
 }
 
 @reflectiveTest
-class HideClauseTest1 extends AbstractCompletionDriverTest
-    with HideClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class HideClauseTest2 extends AbstractCompletionDriverTest
-    with HideClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class HideClauseTest extends AbstractCompletionDriverTest
+    with HideClauseTestCases {}
 
 mixin HideClauseTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterComma_beforeSemicolon() async {
@@ -67,7 +54,7 @@ class F0 {}
 ''');
     // Part of the purpose of this test is to ensure that we don't suggest names
     // from other imports ('C0' and 'D0') or locally defined names ('F0').
-    // TODO(scheglov) It might be also interesting what happens when we have
+    // TODO(scheglov): It might be also interesting what happens when we have
     // just a getter, just a setter, a pair of a getter and a setter.
     assertResponse(r'''
 suggestions
@@ -86,18 +73,8 @@ suggestions
 }
 
 @reflectiveTest
-class ImportDirectiveTest1 extends AbstractCompletionDriverTest
-    with ImportDirectiveTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ImportDirectiveTest2 extends AbstractCompletionDriverTest
-    with ImportDirectiveTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ImportDirectiveTest extends AbstractCompletionDriverTest
+    with ImportDirectiveTestCases {}
 
 mixin ImportDirectiveTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterDeferred_beforeSemicolon() async {
@@ -151,6 +128,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -245,29 +224,13 @@ suggestions
     await computeSuggestions('''
 import "foo" d^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   deferred as
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  as
-    kind: keyword
-  deferred as
-    kind: keyword
-  hide
-    kind: keyword
-  show
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterUri_beforeHide_partial() async {
@@ -293,58 +256,26 @@ suggestions
     await computeSuggestions('''
 import "foo" d^ import
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   deferred as
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  as
-    kind: keyword
-  deferred as
-    kind: keyword
-  hide
-    kind: keyword
-  show
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterUri_beforeImport_partial_sh() async {
     await computeSuggestions('''
 import "foo" sh^ import "bar"; import "baz";
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   show
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  as
-    kind: keyword
-  deferred as
-    kind: keyword
-  hide
-    kind: keyword
-  show
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterUri_beforeSemicolon() async {
@@ -368,29 +299,13 @@ suggestions
     await computeSuggestions('''
 import "foo" d^;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   deferred as
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  as
-    kind: keyword
-  deferred as
-    kind: keyword
-  hide
-    kind: keyword
-  show
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterUri_beforeShow_partial() async {
@@ -414,18 +329,8 @@ suggestions
 }
 
 @reflectiveTest
-class ShowClauseTest1 extends AbstractCompletionDriverTest
-    with ShowClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ShowClauseTest2 extends AbstractCompletionDriverTest
-    with ShowClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ShowClauseTest extends AbstractCompletionDriverTest
+    with ShowClauseTestCases {}
 
 mixin ShowClauseTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterComma_beforeSemicolon() async {

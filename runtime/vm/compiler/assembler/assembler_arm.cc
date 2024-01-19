@@ -1569,6 +1569,33 @@ void Assembler::LoadWordFromPoolIndex(Register rd,
   }
 }
 
+void Assembler::StoreWordToPoolIndex(Register value,
+                                     intptr_t index,
+                                     Register pp,
+                                     Condition cond) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(value != pp);
+  // PP is tagged on ARM.
+  const int32_t offset =
+      target::ObjectPool::element_offset(index) - kHeapObjectTag;
+  int32_t offset_mask = 0;
+  if (Address::CanHoldLoadOffset(kFourBytes, offset, &offset_mask)) {
+    str(value, Address(pp, offset), cond);
+  } else {
+    int32_t offset_hi = offset & ~offset_mask;  // signed
+    uint32_t offset_lo = offset & offset_mask;  // unsigned
+    // Inline a simplified version of AddImmediate(rd, pp, offset_hi).
+    Operand o;
+    if (Operand::CanHold(offset_hi, &o)) {
+      add(TMP, pp, o, cond);
+    } else {
+      LoadImmediate(TMP, offset_hi, cond);
+      add(TMP, pp, Operand(TMP), cond);
+    }
+    str(value, Address(TMP, offset_lo), cond);
+  }
+}
+
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
   if (!FLAG_check_code_pointer) {
@@ -1636,11 +1663,13 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   return true;
 }
 
-void Assembler::LoadObjectHelper(Register rd,
-                                 const Object& object,
-                                 Condition cond,
-                                 bool is_unique,
-                                 Register pp) {
+void Assembler::LoadObjectHelper(
+    Register rd,
+    const Object& object,
+    Condition cond,
+    bool is_unique,
+    Register pp,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(IsOriginalObject(object));
   // `is_unique == true` effectively means object has to be patchable.
   if (!is_unique) {
@@ -1660,11 +1689,13 @@ void Assembler::LoadObjectHelper(Register rd,
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   // Make sure that class CallPattern is able to decode this load from the
   // object pool.
-  const auto index = is_unique
-                         ? object_pool_builder().AddObject(
-                               object, ObjectPoolBuilderEntry::kPatchable)
-                         : object_pool_builder().FindObject(
-                               object, ObjectPoolBuilderEntry::kNotPatchable);
+  const auto index =
+      is_unique
+          ? object_pool_builder().AddObject(
+                object, ObjectPoolBuilderEntry::kPatchable, snapshot_behavior)
+          : object_pool_builder().FindObject(
+                object, ObjectPoolBuilderEntry::kNotPatchable,
+                snapshot_behavior);
   LoadWordFromPoolIndex(rd, index, pp, cond);
 }
 
@@ -1672,10 +1703,13 @@ void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   LoadObjectHelper(rd, object, cond, /* is_unique = */ false, PP);
 }
 
-void Assembler::LoadUniqueObject(Register rd,
-                                 const Object& object,
-                                 Condition cond) {
-  LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP);
+void Assembler::LoadUniqueObject(
+    Register rd,
+    const Object& object,
+    Condition cond,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP,
+                   snapshot_behavior);
 }
 
 void Assembler::LoadNativeEntry(Register rd,
@@ -2681,18 +2715,22 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
   vmulqs(qd, qn, qd);
 }
 
-void Assembler::Branch(const Code& target,
-                       ObjectPoolBuilderEntry::Patchability patchable,
-                       Register pp,
-                       Condition cond) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index, pp, cond);
-  Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()), cond);
-}
-
 void Assembler::Branch(const Address& address, Condition cond) {
   ldr(PC, address, cond);
+}
+
+void Assembler::BranchLink(intptr_t target_code_pool_index,
+                           CodeEntryKind entry_kind) {
+  CLOBBERS_LR({
+    // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+    // We don't actually use CODE_REG in the callee and caller might
+    // be using CODE_REG for a live value (e.g. a value that is alive
+    // across invocation of a shared stub like the one we use for
+    // allocating Mint boxes).
+    const Register code_reg = FLAG_precompiled_mode ? LR : CODE_REG;
+    LoadWordFromPoolIndex(code_reg, target_code_pool_index, PP, AL);
+    Call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
+  });
 }
 
 void Assembler::BranchLink(
@@ -2706,8 +2744,7 @@ void Assembler::BranchLink(
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const intptr_t index = object_pool_builder().FindObject(
       ToObject(target), patchable, snapshot_behavior);
-  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::BranchLinkPatchable(
@@ -2727,8 +2764,7 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::BranchLink(const ExternalLabel* label) {
@@ -3554,6 +3590,28 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   MaybeTraceAllocation(temp_reg, trace);
 }
 
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  LoadAllocationTracingStateAddress(temp_reg, cid);
+  MaybeTraceAllocation(temp_reg, trace);
+}
+
+void Assembler::LoadAllocationTracingStateAddress(Register dest, Register cid) {
+  ASSERT(dest != kNoRegister);
+  ASSERT(dest != TMP);
+
+  LoadIsolateGroup(dest);
+  ldr(dest, Address(dest, target::IsolateGroup::class_table_offset()));
+  ldr(dest,
+      Address(dest,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddScaled(cid, cid, TIMES_1,
+            target::ClassTable::AllocationTracingStateSlotOffsetFor(0));
+  AddRegisters(dest, cid);
+}
+
 void Assembler::LoadAllocationTracingStateAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
@@ -3694,6 +3752,39 @@ void Assembler::GenerateUnRelocatedPcRelativeTailCall(
   PcRelativeTailCallPattern pattern(buffer_.contents() + buffer_.Size() -
                                     PcRelativeTailCallPattern::kLengthInBytes);
   pattern.set_distance(offset_into_target);
+}
+
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_load,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale,
+                                            bool* needs_base) {
+  ASSERT(needs_base != nullptr);
+  if ((cid == kTypedDataInt32x4ArrayCid) ||
+      (cid == kTypedDataFloat32x4ArrayCid) ||
+      (cid == kTypedDataFloat64x2ArrayCid)) {
+    // We are using vldmd/vstmd which do not support offset.
+    return false;
+  }
+
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const intptr_t offset_base =
+      (is_external ? 0
+                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  const int64_t offset = index * index_scale + offset_base;
+  ASSERT(Utils::IsInt(32, offset));
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
+    *needs_base = false;
+    return true;
+  }
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset - offset_base)) {
+    *needs_base = true;
+    return true;
+  }
+
+  return false;
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_load,

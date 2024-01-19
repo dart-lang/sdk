@@ -4,11 +4,11 @@
 
 library dart2js.js_model.env;
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
@@ -26,8 +26,8 @@ import 'closure.dart'
         ClosureFieldData;
 import 'element_map.dart'
     show
-        JsToElementMap,
         ClassDefinition,
+        JsToElementMap,
         MemberDefinition,
         forEachOrderedParameterByFunctionNode;
 import 'element_map_impl.dart';
@@ -259,7 +259,7 @@ class JClassEnvImpl implements JClassEnv {
     ir.Class cls = source.readClassNode();
     Map<String, ir.Member> constructorMap =
         source.readStringMap(source.readMemberNode);
-    Map<Name, ir.Member> memberMap = source.readNameMap(source.readMemberNode)!;
+    Map<Name, ir.Member> memberMap = source.readNameMap(source.readMemberNode);
     List<ir.Member> members = source.readMemberNodes();
     bool isSuperMixinApplication = source.readBool();
     source.end(tag);
@@ -324,14 +324,14 @@ class ContextEnv implements JClassEnv {
   /// data stream.
   static const String tag = 'context-env';
 
-  final Map<Name, IndexedMember> _memberMap;
+  final Map<Name, MemberEntity> _memberMap;
 
   ContextEnv(this._memberMap);
 
   factory ContextEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Map<Name, IndexedMember> _memberMap =
-        source.readNameMap(() => source.readMember() as IndexedMember)!;
+    Map<Name, MemberEntity> _memberMap =
+        source.readNameMap(() => source.readMember());
     source.end(tag);
     return ContextEnv(_memberMap);
   }
@@ -340,8 +340,7 @@ class ContextEnv implements JClassEnv {
   void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassEnvKind.context);
     sink.begin(tag);
-    sink.writeNameMap(
-        _memberMap, (IndexedMember member) => sink.writeMember(member));
+    sink.writeNameMap(_memberMap, (member) => sink.writeMember(member));
     sink.end(tag);
   }
 
@@ -391,8 +390,8 @@ class ClosureClassEnv extends ContextEnv {
 
   factory ClosureClassEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Map<Name, IndexedMember> _memberMap =
-        source.readNameMap(() => source.readMember() as IndexedMember)!;
+    Map<Name, MemberEntity> _memberMap =
+        source.readNameMap(() => source.readMember());
     source.end(tag);
     return ClosureClassEnv(_memberMap);
   }
@@ -401,8 +400,7 @@ class ClosureClassEnv extends ContextEnv {
   void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassEnvKind.closure);
     sink.begin(tag);
-    sink.writeNameMap(
-        _memberMap, (IndexedMember member) => sink.writeMember(member));
+    sink.writeNameMap(_memberMap, (member) => sink.writeMember(member));
     sink.end(tag);
   }
 }
@@ -412,14 +410,14 @@ class RecordClassEnv implements JClassEnv {
   /// data stream.
   static const String tag = 'record-env';
 
-  final Map<Name, IndexedMember> _memberMap;
+  final Map<Name, MemberEntity> _memberMap;
 
   RecordClassEnv(this._memberMap);
 
   factory RecordClassEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Map<Name, IndexedMember> _memberMap =
-        source.readNameMap(() => source.readMember() as IndexedMember)!;
+    Map<Name, MemberEntity> _memberMap =
+        source.readNameMap(() => source.readMember());
     source.end(tag);
     return RecordClassEnv(_memberMap);
   }
@@ -428,8 +426,7 @@ class RecordClassEnv implements JClassEnv {
   void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassEnvKind.record);
     sink.begin(tag);
-    sink.writeNameMap(
-        _memberMap, (IndexedMember member) => sink.writeMember(member));
+    sink.writeNameMap(_memberMap, (member) => sink.writeMember(member));
     sink.end(tag);
   }
 
@@ -922,6 +919,21 @@ abstract class DelegatedFunctionData implements FunctionData {
   @override
   ClassTypeVariableAccess get classTypeVariableAccess =>
       baseData.classTypeVariableAccess;
+}
+
+class ParameterStubFunctionData extends DelegatedFunctionData {
+  @override
+  final MemberDefinition definition;
+
+  ParameterStubFunctionData(super.baseData, this.definition);
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    throw UnimplementedError('Cannot serialize parameter stub data.');
+  }
+
+  @override
+  StaticTypeCache get staticTypes => const StaticTypeCache();
 }
 
 class GeneratorBodyFunctionData extends DelegatedFunctionData {

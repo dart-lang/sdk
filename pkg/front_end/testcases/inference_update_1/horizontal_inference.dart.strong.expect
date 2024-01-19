@@ -86,7 +86,7 @@ static method testUnnecessaryDueToExplicitParameterType(core::List<core::int> li
   a;
 }
 static method testUnnecessaryDueToExplicitParameterTypeNamed(<T extends core::Object? = dynamic>(T%, ({required x: T%, required y: core::int}) → T%) → T% f) → dynamic {
-  core::int? a = f<core::int?>(null, ({core::int? x = #C1, required core::int y = #C1}) → core::int => (let final core::int? #t5 = x in #t5 == null ?{core::int} 0 : #t5{core::int}).{core::num::+}(y){(core::num) → core::int}){(core::int?, ({required x: core::int?, required y: core::int}) → core::int?) → core::int?};
+  core::int? a = f<core::int?>(null, ({core::int? x = #C1, required core::int y}) → core::int => (let final core::int? #t5 = x in #t5 == null ?{core::int} 0 : #t5{core::int}).{core::num::+}(y){(core::num) → core::int}){(core::int?, ({required x: core::int?, required y: core::int}) → core::int?) → core::int?};
   a;
 }
 static method testParenthesized(<T extends core::Object? = dynamic>(T%, (T%) → void) → void f) → dynamic {

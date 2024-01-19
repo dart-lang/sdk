@@ -4,8 +4,11 @@ class A1 {
 }
 
 typedef TA1 = A1;
+
 typedef TTA1 = TA1;
+
 typedef TTTA1 = TTA1;
+
 typedef TTTTA1 = TTTA1;
 
 class D1 extends TTTTA1 {
@@ -18,8 +21,11 @@ class A2 {
 }
 
 typedef TA2 = A2;
+
 typedef TTA2 = TA2;
+
 typedef TTTA2 = TTA2;
+
 typedef TTTTA2 = TTTA2;
 
 class D2 extends TTTTA2 {
@@ -32,8 +38,11 @@ class A3 {
 }
 
 typedef TA3 = A3;
+
 typedef TTA3 = TA3;
+
 typedef TTTA3 = TTA3;
+
 typedef TTTTA3 = TTTA3;
 
 class D3 extends TTTTA3 {
@@ -45,8 +54,11 @@ class D4 extends TTTTA4 {
 }
 
 typedef TTTTA4 = TTTA4;
+
 typedef TTTA4 = TTA4;
+
 typedef TTA4 = TA4;
+
 typedef TA4 = A4;
 
 class A4 {

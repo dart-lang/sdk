@@ -61,9 +61,9 @@ IsolateTest coverageTest(Map<String, dynamic> expectedRange) {
 
     final root =
         await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
-    FuncRef funcRef =
+    final FuncRef funcRef =
         root.functions!.singleWhere((f) => f.name == 'wrapperFunction');
-    Func func = await service.getObject(isolateId, funcRef.id!) as Func;
+    final Func func = await service.getObject(isolateId, funcRef.id!) as Func;
     final location = func.location!;
 
     final report = await service.getSourceReport(
@@ -95,8 +95,8 @@ var tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [],
-        'misses': [27, 28, 28, 29, 29, 29, 30, 32, 32, 33]
-      }
+        'misses': [27, 28, 28, 29, 29, 29, 30, 32, 32, 33],
+      },
     },
   ),
   resumeIsolate,
@@ -109,13 +109,13 @@ var tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [27, 28, 28, 29, 29, 29, 30, 32, 32, 33],
-        'misses': []
-      }
+        'misses': [],
+      },
     },
   ),
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'coverage_async_test.dart',

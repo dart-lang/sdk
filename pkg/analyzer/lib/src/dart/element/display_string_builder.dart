@@ -9,25 +9,25 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 
+/// A class that builds a "display string" for [Element]s and [DartType]s.
 class ElementDisplayStringBuilder {
   final StringBuffer _buffer = StringBuffer();
 
-  final bool skipAllDynamicArguments;
-  final bool withNullability;
-  final bool multiline;
+  /// Whether to include the nullability ('?' characters) in a display string.
+  final bool _withNullability;
+
+  /// Whether to allow a display string to be written in multiple lines.
+  final bool _multiline;
 
   ElementDisplayStringBuilder({
-    required this.skipAllDynamicArguments,
-    required this.withNullability,
-    this.multiline = false,
-  });
+    required bool withNullability,
+    bool multiline = false,
+  })  : _withNullability = withNullability,
+        _multiline = multiline;
 
   @override
-  String toString() {
-    return _buffer.toString();
-  }
+  String toString() => _buffer.toString();
 
   void writeAbstractElement(ElementImpl element) {
     _write(element.name ?? '<unnamed $runtimeType>');
@@ -86,7 +86,7 @@ class ElementDisplayStringBuilder {
     _write('dynamic');
   }
 
-  void writeEnumElement(EnumElementImpl element) {
+  void writeEnumElement(EnumElement element) {
     _write('enum ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
@@ -99,8 +99,10 @@ class ElementDisplayStringBuilder {
       _write('augment ');
     }
 
-    _writeType(element.returnType);
-    _write(' ');
+    if (element.kind != ElementKind.SETTER) {
+      _writeType(element.returnType);
+      _write(' ');
+    }
 
     _write(name);
 
@@ -119,7 +121,7 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writeExtensionElement(ExtensionElementImpl element) {
+  void writeExtensionElement(ExtensionElement element) {
     _write('extension ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
@@ -192,7 +194,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeNeverType(NeverTypeImpl type) {
+  void writeNeverType(NeverType type) {
     _write('Never');
     _writeNullability(type.nullabilitySuffix);
   }
@@ -207,7 +209,7 @@ class ElementDisplayStringBuilder {
     _write(element.displayName);
   }
 
-  void writeRecordType(RecordTypeImpl type) {
+  void writeRecordType(RecordType type) {
     final positionalFields = type.positionalFields;
     final namedFields = type.namedFields;
     final fieldCount = positionalFields.length + namedFields.length;
@@ -336,10 +338,10 @@ class ElementDisplayStringBuilder {
     // Assume the display string looks better wrapped when there are at least
     // three parameters. This avoids having to pre-compute the single-line
     // version and know the length of the function name/return type.
-    var multiline = allowMultiline && this.multiline && parameters.length >= 3;
+    var multiline = allowMultiline && _multiline && parameters.length >= 3;
 
     // The prefix for open groups is included in separator for single-line but
-    // not for multline so must be added explicitly.
+    // not for multiline so must be added explicitly.
     var openGroupPrefix = multiline ? ' ' : '';
     var separator = multiline ? ',' : ', ';
     var trailingComma = multiline ? ',\n' : '';
@@ -388,16 +390,13 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeNullability(NullabilitySuffix nullabilitySuffix) {
-    if (withNullability) {
+    if (_withNullability) {
       switch (nullabilitySuffix) {
         case NullabilitySuffix.question:
           _write('?');
-          break;
         case NullabilitySuffix.star:
           _write('*');
-          break;
         case NullabilitySuffix.none:
-          break;
       }
     }
   }
@@ -409,12 +408,6 @@ class ElementDisplayStringBuilder {
   void _writeTypeArguments(List<DartType> typeArguments) {
     if (typeArguments.isEmpty) {
       return;
-    }
-
-    if (skipAllDynamicArguments) {
-      if (typeArguments.every((t) => t is DynamicType)) {
-        return;
-      }
     }
 
     _write('<');
@@ -537,8 +530,6 @@ class ElementDisplayStringBuilder {
       var newTypeParameter = TypeParameterElementImpl(name, -1);
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter);
-      ElementTypeProvider.current
-          .freshTypeParameterCreated(newTypeParameter, typeParameter);
     }
 
     return replaceTypeParameters(type as FunctionTypeImpl, newTypeParameters);

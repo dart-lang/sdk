@@ -98,8 +98,8 @@ abstract class TypeEnvironment extends Types {
     //
     // When none of these cases are applicable, we say that T does not have a
     // future type.
-    DartType resolved = t.resolveTypeParameterType;
-    if (resolved is InterfaceType) {
+    DartType resolved = t.nonTypeVariableBound;
+    if (resolved is TypeDeclarationType) {
       DartType? futureType = getTypeAsInstanceOf(
           resolved, coreTypes.futureClass, coreTypes,
           isNonNullableByDefault: true);
@@ -284,8 +284,8 @@ abstract class TypeEnvironment extends Types {
       // Otherwise the static type of e is num.
       return coreTypes.numNonNullableRawType;
     } else {
-      type1 = type1.resolveTypeParameterType;
-      type2 = type2.resolveTypeParameterType;
+      type1 = type1.nonTypeVariableBound;
+      type2 = type2.nonTypeVariableBound;
 
       if (type1 == type2) return type1;
 

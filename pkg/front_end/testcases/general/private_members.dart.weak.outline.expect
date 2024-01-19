@@ -7,7 +7,7 @@ abstract class _AbstractClass extends core::Object { // from org-dartlang-testca
   synthetic constructor •() → self::_AbstractClass
     ;
   abstract get _privateAbstractField() → core::int;
-  abstract set _privateAbstractField(core::int #externalFieldValue) → void;
+  abstract set _privateAbstractField(synthesized core::int #externalFieldValue) → void;
 }
 class _Class extends core::Object { // from org-dartlang-testcase:///private_members_part.dart
   field core::int _privateField;

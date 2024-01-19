@@ -688,7 +688,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(Object? other) =>
+  operator ==(Object other) =>
           other != null &&
           other is Person &&
           name == other.name;
@@ -699,7 +699,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(Object? other) =>
+  operator ==(Object other) =>
           other is Person &&
           name == other.name;
 }
@@ -712,7 +712,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(Object? other) {
+  operator ==(Object other) {
     return other != null &&
           other is Person &&
           name == other.name;
@@ -724,7 +724,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(Object? other) {
+  operator ==(Object other) {
     return other is Person &&
           name == other.name;
   }
@@ -738,7 +738,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(Object? other) {
+  operator ==(Object other) {
     if (other is! Person) return false;
     other ??= Person();
     return other.name == name;

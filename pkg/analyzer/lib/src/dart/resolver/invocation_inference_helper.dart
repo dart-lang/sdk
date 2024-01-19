@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
-import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Information about a constructor element to instantiate.
@@ -59,18 +58,15 @@ class InvocationInferenceHelper {
   final ResolverVisitor _resolver;
   final ErrorReporter _errorReporter;
   final TypeSystemImpl _typeSystem;
-  final MigrationResolutionHooks? _migrationResolutionHooks;
   final bool _genericMetadataIsEnabled;
 
   InvocationInferenceHelper({
     required ResolverVisitor resolver,
     required ErrorReporter errorReporter,
     required TypeSystemImpl typeSystem,
-    required MigrationResolutionHooks? migrationResolutionHooks,
   })  : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
-        _migrationResolutionHooks = migrationResolutionHooks,
         _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
             .isEnabled(Feature.generic_metadata);
 
@@ -87,13 +83,17 @@ class InvocationInferenceHelper {
     var typeName = constructorName.type;
     var typeElement = typeName.element;
     if (typeElement is InterfaceElement) {
+      var augmented = typeElement.augmented;
+      if (augmented == null) {
+        return null;
+      }
       typeParameters = typeElement.typeParameters;
       var constructorIdentifier = constructorName.name;
       if (constructorIdentifier == null) {
-        rawElement = typeElement.unnamedConstructor;
+        rawElement = augmented.unnamedConstructor;
       } else {
         var name = constructorIdentifier.name;
-        rawElement = typeElement.getNamedConstructor(name);
+        rawElement = augmented.getNamedConstructor(name);
         if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
           rawElement = null;
         }
@@ -132,6 +132,9 @@ class InvocationInferenceHelper {
         errorReporter: _errorReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
+        strictInference: _resolver.analysisOptions.strictInference,
+        strictCasts: _resolver.analysisOptions.strictCasts,
+        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
       );
       identifier.tearOffTypeArgumentTypes = typeArguments;
       if (typeArguments.isNotEmpty) {
@@ -147,11 +150,6 @@ class InvocationInferenceHelper {
   /// @param type the static type of the node
   void recordStaticType(ExpressionImpl expression, DartType type,
       {required DartType? contextType}) {
-    var hooks = _migrationResolutionHooks;
-    if (hooks != null) {
-      type = hooks.modifyExpressionType(expression, type, contextType);
-    }
-
     expression.staticType = type;
     if (_typeSystem.isBottom(type)) {
       _resolver.flowAnalysis.flow?.handleExit();

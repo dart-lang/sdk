@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor {
     var constructorElement = superInvocation.staticElement;
     if (constructorElement == null) return;
 
-    // todo(pq): consolidate logic shared w/ server
+    // TODO(pq): consolidate logic shared w/ server
     //  (https://github.com/dart-lang/linter/issues/3263)
 
     var referencedParameters = _referencedParameters(node);

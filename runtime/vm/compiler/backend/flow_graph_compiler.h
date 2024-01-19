@@ -520,6 +520,12 @@ class FlowGraphCompiler : public ValueObject {
                           const compiler::ffi::NativeLocation& src,
                           TemporaryRegisterAllocator* temp);
 
+  // Helper method to move a Dart const to a native location.
+  void EmitMoveConst(const compiler::ffi::NativeLocation& dst,
+                     Location src,
+                     Representation src_type,
+                     TemporaryRegisterAllocator* temp);
+
   bool CheckAssertAssignableTypeTestingABILocations(
       const LocationSummary& locs);
 
@@ -923,6 +929,15 @@ class FlowGraphCompiler : public ValueObject {
 
   bool IsEmptyBlock(BlockEntryInstr* block) const;
 
+  void EmitOptimizedStaticCall(
+      const Function& function,
+      const Array& arguments_descriptor,
+      intptr_t size_with_type_args,
+      intptr_t deopt_id,
+      const InstructionSource& source,
+      LocationSummary* locs,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+
  private:
   friend class BoxInt64Instr;            // For AddPcRelativeCallStubTarget().
   friend class CheckNullInstr;           // For AddPcRelativeCallStubTarget().
@@ -931,11 +946,15 @@ class FlowGraphCompiler : public ValueObject {
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreFieldInstr;          // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
-  friend class GraphIntrinsicCodeGenScope;   // For optimizing_.
+  friend class GraphIntrinsicCodeGenScope;  // For optimizing_.
 
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
                                   const compiler::ffi::NativeLocation& src);
+  void EmitNativeLoad(Register dst,
+                      Register base,
+                      intptr_t offset,
+                      compiler::ffi::PrimitiveType type);
 
   void EmitFrameEntry();
 
@@ -955,15 +974,6 @@ class FlowGraphCompiler : public ValueObject {
 
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
-
-  void EmitOptimizedStaticCall(
-      const Function& function,
-      const Array& arguments_descriptor,
-      intptr_t size_with_type_args,
-      intptr_t deopt_id,
-      const InstructionSource& source,
-      LocationSummary* locs,
-      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitUnoptimizedStaticCall(
       intptr_t size_with_type_args,

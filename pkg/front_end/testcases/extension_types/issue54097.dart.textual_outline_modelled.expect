@@ -1,0 +1,45 @@
+bar1() {}
+
+bar2() {}
+
+class A1<X extends E1<X>> {}
+
+class A2<X extends E1<Y>, Y extends X> {}
+
+enum Enum1<X extends E1<X>> {
+  element<Never>();
+}
+
+enum Enum2<X extends E1<Y>, Y extends X> {
+  element<Never, Never>();
+}
+
+extension Ext1<X extends E1<X>> on List<X> {}
+
+extension Ext2<X extends E1<Y>, Y extends X> on List<X> {}
+
+extension type E1<X>(X it) {}
+
+extension type ET1<X extends E1<X>>(Object? it) {}
+
+extension type ET2<X extends E1<Y>, Y extends X>(Object? it) {}
+
+foo1<X extends E1<X>>() {}
+
+foo2<X extends E1<Y>, Y extends X>() {}
+
+mixin M1<X extends E1<X>> on List<num> {}
+
+mixin M2<X extends E1<Y>, Y extends X> on List<num> {}
+
+typedef F1<X extends E1<X>> = int;
+
+typedef F2<X extends E1<Y>, Y extends X> = int;
+
+typedef G1 = void Function<X extends E1<X>>();
+
+typedef G2 = void Function<X extends E1<Y>, Y extends X>();
+
+typedef void H1<X extends E1<X>>();
+
+typedef void H2<X extends E1<Y>, Y extends X>();

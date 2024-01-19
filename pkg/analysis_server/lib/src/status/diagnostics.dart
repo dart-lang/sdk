@@ -26,9 +26,10 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -159,6 +160,17 @@ String writeOption(String name, dynamic value) {
   return '$name: <code>$value</code><br> ';
 }
 
+_CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
+  var collectedData = _CollectedOptionsData();
+  if (driver.analysisContext?.allAnalysisOptions case var allAnalysisOptions?) {
+    for (var analysisOptions in allAnalysisOptions) {
+      collectedData.lints.addAll(analysisOptions.lintRules.map((e) => e.name));
+      collectedData.plugins.addAll(analysisOptions.enabledPluginNames);
+    }
+  }
+  return collectedData;
+}
+
 class AnalyticsPage extends DiagnosticPageWithNav {
   AnalyticsPage(DiagnosticsSite site)
       : super(site, 'analytics', 'Analytics',
@@ -219,7 +231,7 @@ class AstPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult(filePath);
+    var result = await driver.getResolvedUnit(filePath);
     if (result is ResolvedUnitResult) {
       var writer = AstWriter(buf);
       result.unit.accept(writer);
@@ -351,9 +363,9 @@ class CollectReportPage extends DiagnosticPage {
       contextData['knownFiles'] = data.knownFiles.length;
       uniqueKnownFiles.addAll(data.knownFiles);
 
-      contextData['lints'] =
-          data.analysisOptions.lintRules.map((e) => e.name).toList();
-      contextData['plugins'] = data.analysisOptions.enabledPluginNames.toList();
+      var collectedOptionsData = _collectOptionsData(data);
+      contextData['lints'] = collectedOptionsData.lints.toList();
+      contextData['plugins'] = collectedOptionsData.plugins.toList();
     }
     collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
 
@@ -678,17 +690,6 @@ class ContextsPage extends DiagnosticPageWithNav {
   @override
   String get navDetail => '${server.driverMap.length}';
 
-  String describe(AnalysisOptionsImpl options) {
-    var b = StringBuffer();
-
-    b.write(writeOption('Feature set', options.contextFeatures.toString()));
-    b.write('<br>');
-
-    b.write(writeOption('Generate hints', options.hint));
-
-    return b.toString();
-  }
-
   @override
   Future<void> generateContent(Map<String, String> params) async {
     var driverMap = server.driverMap;
@@ -728,21 +729,23 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     buf.writeln(writeOption('Context location', escape(contextPath)));
-    buf.writeln(writeOption(
-        'Analysis options path',
-        escape(
-            driver.analysisContext?.contextRoot.optionsFile?.path ?? 'none')));
     buf.writeln(
         writeOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)));
 
-    buf.writeln('<div class="columns">');
-
-    buf.writeln('<div class="column one-half">');
     h3('Analysis options');
-    p(describe(driver.analysisOptions as AnalysisOptionsImpl), raw: true);
+    ul(driver.analysisOptionsMap.entries, (OptionsMapEntry entry) {
+      var folder = entry.folder;
+      buf.write(escape(folder.path));
+      var optionsPath = path.join(folder.path, 'analysis_options.yaml');
+      var contentsPath =
+          '/contents?file=${Uri.encodeQueryComponent(optionsPath)}';
+      buf.writeln(' <a href="$contentsPath">analysis_options.yaml</a>');
+    }, classes: 'scroll-table');
 
     h3('Pub files');
     buf.writeln('<p>');
+
+    buf.writeln('<div class="column one-half">');
 
     var packageConfig = folder
         .getChildAssumingFolder(file_paths.dotDartTool)
@@ -755,20 +758,9 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     buf.writeln('</div>');
 
-    buf.writeln('</div>');
-
-    h3('Lints');
-    var lints = driver.analysisOptions.lintRules.map((l) => l.name).toList()
-      ..sort();
-    ul(lints, (String lint) => buf.write(lint), classes: 'scroll-table');
-
-    h3('Error processors');
-    p(driver.analysisOptions.errorProcessors
-        .map((e) => e.description)
-        .join(', '));
-
     h3('Plugins');
-    p(driver.analysisOptions.enabledPluginNames.join(', '));
+    var optionsData = _collectOptionsData(driver);
+    p(optionsData.plugins.toList().join(', '));
 
     var priorityFiles = driver.priorityFiles;
     var addedFiles = driver.addedFiles.toList();
@@ -789,7 +781,7 @@ class ContextsPage extends DiagnosticPageWithNav {
       var contentsPath = '/contents?file=${Uri.encodeQueryComponent(file)}';
       var hasOverlay = server.resourceProvider.hasOverlay(file);
 
-      buf.write(file);
+      buf.write(file.wordBreakOnSlashes);
       buf.writeln(' <a href="$astPath">ast</a>');
       buf.writeln(' <a href="$elementPath">element</a>');
       buf.writeln(
@@ -1097,7 +1089,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult(filePath);
+    var result = await driver.getResolvedUnit(filePath);
     CompilationUnitElement? compilationUnitElement;
     if (result is ResolvedUnitResult) {
       compilationUnitElement = result.unit.declaredElement;
@@ -1413,32 +1405,34 @@ class PluginsPage extends DiagnosticPageWithNav {
 
         var components = path.split(id);
         var length = components.length;
-        String name;
-        if (length == 0) {
-          name = 'unknown plugin';
-        } else if (length > 2) {
-          name = components[length - 3];
-        } else {
-          name = components[length - 1];
-        }
+        var name = switch (length) {
+          0 => 'unknown plugin',
+          > 2 => components[length - 3],
+          _ => components[length - 1],
+        };
         h4(name);
-        p('bootstrap package path: $id');
-        if (plugin is DiscoveredPluginInfo) {
-          p('execution path: ${plugin.executionPath}');
-          p('packages file path: ${plugin.packagesPath}');
-        }
+
+        _emitTable([
+          ['Bootstrap package path:', id],
+          if (plugin is DiscoveredPluginInfo) ...[
+            ['Execution path:', plugin.executionPath.wordBreakOnSlashes],
+            ['Packages file path', plugin.packagesPath.wordBreakOnSlashes],
+          ],
+        ]);
+
         if (data.name == null) {
           if (plugin.exception != null) {
-            p('not running');
+            p('Not running due to:');
             pre(() {
               buf.write(plugin.exception);
             });
           } else {
-            p('not running for unknown reason');
+            p('Not running for unknown reason (no exception was caught while '
+                'starting).');
           }
         } else {
-          p('name: ${data.name}');
-          p('version: ${data.version}');
+          p('Name: ${data.name}');
+          p('Version: ${data.version}');
           p('Associated contexts:');
           var contexts = plugin.contextRoots;
           if (contexts.isEmpty) {
@@ -1454,7 +1448,7 @@ class PluginsPage extends DiagnosticPageWithNav {
           for (var entry in entries) {
             var requestName = entry.key;
             var data = entry.value;
-            // TODO(brianwilkerson) Consider displaying these times as a graph,
+            // TODO(brianwilkerson): Consider displaying these times as a graph,
             //  similar to the one in CompletionPage.generateContent.
             var buffer = StringBuffer();
             buffer.write(requestName);
@@ -1465,6 +1459,19 @@ class PluginsPage extends DiagnosticPageWithNav {
         }
       }
     }
+  }
+
+  void _emitTable(List<List<String>> data) {
+    buf.writeln('<table>');
+    for (var row in data) {
+      buf.writeln('<tr>');
+      for (var value in row) {
+        buf.writeln('<td>$value</td>');
+      }
+      buf.writeln('</tr>');
+    }
+
+    buf.writeln('</table>');
   }
 }
 
@@ -1544,16 +1551,6 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
         buf.write('$item');
       });
     }
-
-    // completion domain
-    h3('Completion domain subscriptions');
-    ul(CompletionService.VALUES, (service) {
-      if (server.completionState.subscriptions.contains(service)) {
-        buf.write('$service (has subscriptions)');
-      } else {
-        buf.write('$service (no subscriptions)');
-      }
-    });
   }
 }
 
@@ -1667,4 +1664,13 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       _emitTable(itemsSlow);
     }
   }
+}
+
+class _CollectedOptionsData {
+  final Set<String> lints = <String>{};
+  final Set<String> plugins = <String>{};
+}
+
+extension on String {
+  String get wordBreakOnSlashes => splitMapJoin('/', onMatch: (_) => '/<wbr>');
 }

@@ -69,7 +69,12 @@ DEFINE_FLAG(
 #if !defined(PRODUCT) || defined(DART_PRECOMPILER)
 ProfilerCounters Profiler::counters_ = {};
 
-static void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
+static void DumpStackFrame(uword pc, uword fp, const char* name, uword offset) {
+  OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s+0x%" Px "\n", pc, fp, name,
+               offset);
+}
+
+void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
   uword start = 0;
   // The pc for all frames except the top frame is a return address, which can
   // belong to a different inlining interval than the call. Subtract one to get
@@ -77,9 +82,7 @@ static void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
   uword lookup_pc = frame_index == 0 ? pc : pc - 1;
   if (auto const name =
           NativeSymbolResolver::LookupSymbolName(lookup_pc, &start)) {
-    uword offset = pc - start;
-    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s+0x%" Px "\n", pc, fp, name,
-                 offset);
+    DumpStackFrame(pc, fp, name, pc - start);
     NativeSymbolResolver::FreeSymbolName(name);
     return;
   }
@@ -87,12 +90,56 @@ static void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
   char* dso_name;
   uword dso_base;
   if (NativeSymbolResolver::LookupSharedObject(pc, &dso_base, &dso_name)) {
-    uword dso_offset = pc - dso_base;
-    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s+0x%" Px "\n", pc, fp, dso_name,
-                 dso_offset);
+    DumpStackFrame(pc, fp, dso_name, pc - dso_base);
     NativeSymbolResolver::FreeSymbolName(dso_name);
     return;
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // This relies on heap iteration, which might fail if we're crashing because
+  // of heap corruption. A nested crash symbolizing a JIT frame will prevent
+  // seeing all caller frames, so only do this when we aren't able to use the
+  // safer StackFrameIterator.
+  Thread* thread = Thread::Current();
+  bool symbolize_jit_code =
+      (thread != nullptr) &&
+      (thread->execution_state() != Thread::kThreadInNative) &&
+      (thread->execution_state() != Thread::kThreadInVM);
+  if (symbolize_jit_code) {
+    IsolateGroup* group = thread->isolate_group();
+    class FindCodeVisitor : public ObjectVisitor {
+     public:
+      explicit FindCodeVisitor(uword pc, Code& result)
+          : pc_(pc), result_(result) {}
+      void VisitObject(ObjectPtr obj) {
+        if (obj->IsCode()) {
+          CodePtr code = static_cast<CodePtr>(obj);
+          if (Code::ContainsInstructionAt(code, pc_)) {
+            result_ = code;
+          }
+        }
+      }
+
+     private:
+      uword pc_;
+      Code& result_;
+    };
+    PageSpace* old_space = group->heap()->old_space();
+    old_space->MakeIterable();
+    Code result;
+    result = Code::null();
+    FindCodeVisitor visitor(lookup_pc, result);
+    old_space->VisitObjectsUnsafe(&visitor);
+    Dart::vm_isolate_group()->heap()->old_space()->VisitObjectsUnsafe(&visitor);
+    if (!result.IsNull()) {
+      DumpStackFrame(
+          pc, fp,
+          result.QualifiedName(NameFormattingParams(Object::kInternalName)),
+          pc - result.PayloadStart());
+      return;
+    }
+  }
+#endif
 
   OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " Unknown symbol\n", pc, fp);
 }
@@ -509,10 +556,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     return;
   }
 
-  ProfilerNativeStackWalker native_stack_walker(&counters_, ILLEGAL_PORT,
-                                                nullptr, nullptr, stack_lower,
-                                                stack_upper, pc, fp, sp,
-                                                /*skip_count=*/0);
+  ProfilerNativeStackWalker native_stack_walker(
+      &counters_, ILLEGAL_PORT, nullptr, nullptr, stack_lower, stack_upper, pc,
+      fp, sp, /*skip_count=*/0);
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
 
@@ -1827,22 +1873,6 @@ void Profiler::IsolateShutdown(Thread* thread) {
   ProcessCompletedBlocks(thread->isolate());
 }
 
-class SampleBlockProcessorVisitor : public IsolateVisitor {
- public:
-  SampleBlockProcessorVisitor() = default;
-  virtual ~SampleBlockProcessorVisitor() = default;
-
-  void VisitIsolate(Isolate* isolate) {
-    if (isolate->TakeHasCompletedBlocks()) {
-      const bool kBypassSafepoint = false;
-      Thread::EnterIsolateGroupAsHelper(
-          isolate->group(), Thread::kSampleBlockTask, kBypassSafepoint);
-      Profiler::ProcessCompletedBlocks(isolate);
-      Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
-    }
-  }
-};
-
 void SampleBlockProcessor::ThreadMain(uword parameters) {
   ASSERT(initialized_);
   {
@@ -1855,7 +1885,6 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
     startup_ml.Notify();
   }
 
-  SampleBlockProcessorVisitor visitor;
   MonitorLocker wait_ml(monitor_);
   // Wakeup every 100ms.
   const int64_t wakeup_interval = 1000 * 100;
@@ -1864,7 +1893,20 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
     if (shutdown_) {
       break;
     }
-    Isolate::VisitIsolates(&visitor);
+
+    IsolateGroup::ForEach([&](IsolateGroup* group) {
+      if (group == Dart::vm_isolate_group()) return;
+
+      const bool kBypassSafepoint = false;
+      Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
+                                        kBypassSafepoint);
+      group->ForEachIsolate([&](Isolate* isolate) {
+        if (isolate->TakeHasCompletedBlocks()) {
+          Profiler::ProcessCompletedBlocks(isolate);
+        }
+      });
+      Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+    });
   }
   // Signal to main thread we are exiting.
   thread_running_ = false;

@@ -238,7 +238,6 @@ static AppSnapshot* TryReadAppSnapshotElf(
   }
   return new ElfAppSnapshot(handle, vm_data_buffer, vm_instructions_buffer,
                             isolate_data_buffer, isolate_instructions_buffer);
-  return nullptr;
 }
 
 #if defined(DART_TARGET_OS_MACOS)
@@ -621,11 +620,8 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
     }
   }
 
-  snapshot = TryReadAppSnapshotElf(script_name, /*file_offset=*/0,
-                                   force_load_elf_from_memory);
-  if (snapshot != nullptr) {
-    return snapshot;
-  }
+  return TryReadAppSnapshotElf(script_name, /*file_offset=*/0,
+                               force_load_elf_from_memory);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
   return nullptr;
 }

@@ -295,13 +295,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(element.kind, equals(ElementKind.FUNCTION_TYPE_ALIAS));
     expect(element.name, equals(name));
     expect(element.isDeprecated, equals(isDeprecated));
-    // TODO (danrubel) Determine why params are null
+    // TODO(danrubel): Determine why params are null
     //    String param = element.parameters;
     //    expect(param, isNotNull);
     //    expect(param[0], equals('('));
     //    expect(param[param.length - 1], equals(')'));
     expect(element.returnType, equals(returnType ?? 'dynamic'));
-    // TODO (danrubel) Determine why param info is missing
+    // TODO(danrubel): Determine why param info is missing
     //    assertHasParameterInfo(cs);
     return cs;
   }
@@ -375,9 +375,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.SETTER));
     expect(element.name, equals(name));
-    // TODO (danrubel) assert setter param
+    // TODO(danrubel): assert setter param
     //expect(element.parameters, isNull);
-    // TODO (danrubel) it would be better if this was always null
+    // TODO(danrubel): it would be better if this was always null
     if (element.returnType != null) {
       expect(element.returnType, 'dynamic');
     }

@@ -44,7 +44,7 @@ class Bar<T extends asy::Stream<core::String>> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T>
     : super core::Object::•()
     ;
-  method foo(covariant-by-class self::Bar::T t) → dynamic async /* futureValueType= dynamic */ {
+  method foo(covariant-by-class self::Bar::T t) → dynamic async /* emittedValueType= dynamic */ {
     await for (core::String i in t) {
       core::int x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
@@ -56,7 +56,7 @@ class Baz<T extends core::Object? = dynamic, E extends asy::Stream<self::Baz::T%
   synthetic constructor •() → self::Baz<self::Baz::T%, self::Baz::E, self::Baz::S>
     : super core::Object::•()
     ;
-  method foo(covariant-by-class self::Baz::S t) → dynamic async /* futureValueType= dynamic */ {
+  method foo(covariant-by-class self::Baz::S t) → dynamic async /* emittedValueType= dynamic */ {
     await for (self::Baz::T% i in t) {
       core::int x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
@@ -69,7 +69,7 @@ abstract class MyStream<T extends core::Object? = dynamic> extends asy::Stream<s
   static factory •<T extends core::Object? = dynamic>() → self::MyStream<self::MyStream::•::T%>
     return throw "";
 }
-static method test() → dynamic async /* futureValueType= dynamic */ {
+static method test() → dynamic async /* emittedValueType= dynamic */ {
   self::MyStream<self::Foo> myStream = self::MyStream::•<self::Foo>();
   await for (self::Foo x in myStream) {
     core::String y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.

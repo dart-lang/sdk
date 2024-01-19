@@ -26,16 +26,17 @@ Future<void> main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor<Features>(const ExhaustivenessDataComputer(), [
-        const TestConfig(cfeMarker, 'cfe with experiments',
+        const CfeTestConfig(cfeMarker, 'cfe with experiments',
             explicitExperimentalFlags: const {
               ExperimentalFlag.patterns: true,
               ExperimentalFlag.records: true,
-              ExperimentalFlag.sealedClass: true
+              ExperimentalFlag.sealedClass: true,
+              ExperimentalFlag.inlineClass: true
             })
       ]));
 }
 
-class ExhaustivenessDataComputer extends DataComputer<Features> {
+class ExhaustivenessDataComputer extends CfeDataComputer<Features> {
   const ExhaustivenessDataComputer();
 
   @override
@@ -46,7 +47,7 @@ class ExhaustivenessDataComputer extends DataComputer<Features> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     member.accept(new ExhaustivenessDataExtractor(

@@ -62,7 +62,7 @@ class EditFormatHandler extends LegacyHandler {
     var edits = <SourceEdit>[];
 
     if (formattedSource != unformattedCode) {
-      //TODO: replace full replacements with smaller, more targeted edits
+      // TODO(brianwilkerson): replace full replacements with smaller, more targeted edits
       var edit = SourceEdit(0, unformattedCode.length, formattedSource);
       edits.add(edit);
     }

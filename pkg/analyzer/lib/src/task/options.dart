@@ -5,12 +5,13 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -343,6 +344,13 @@ class CannotIgnoreOptionValidator extends OptionsValidator {
   static final Set<String> _errorCodes =
       errorCodeValues.map((ErrorCode code) => code.name).toSet();
 
+  /// The error code names that existed, but were removed.
+  /// We don't want to report these, this breaks clients.
+  // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
+  static const Set<String> _removedErrorCodes = {
+    'MISSING_RETURN',
+  };
+
   /// Lazily populated set of lint codes.
   late final Set<String> _lintCodes = Registry.ruleRegistry.rules
       .map((rule) => rule.name.toUpperCase())
@@ -364,7 +372,8 @@ class CannotIgnoreOptionValidator extends OptionsValidator {
             }
             var upperCaseName = unignorableName.toUpperCase();
             if (!_errorCodes.contains(upperCaseName) &&
-                !_lintCodes.contains(upperCaseName)) {
+                !_lintCodes.contains(upperCaseName) &&
+                !_removedErrorCodes.contains(upperCaseName)) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                   unignorableNameNode.span,
@@ -556,6 +565,13 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   static final Set<String> _errorCodes =
       errorCodeValues.map((ErrorCode code) => code.name).toSet();
 
+  /// The error code names that existed, but were removed.
+  /// We don't want to report these, this breaks clients.
+  // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
+  static const Set<String> _removedErrorCodes = {
+    'MISSING_RETURN',
+  };
+
   /// Lazily populated set of lint codes.
   late final Set<String> _lintCodes = Registry.ruleRegistry.rules
       .map((rule) => rule.name.toUpperCase())
@@ -571,7 +587,9 @@ class ErrorFilterOptionValidator extends OptionsValidator {
           String? value;
           if (k is YamlScalar) {
             value = toUpperCase(k.value);
-            if (!_errorCodes.contains(value) && !_lintCodes.contains(value)) {
+            if (!_errorCodes.contains(value) &&
+                !_lintCodes.contains(value) &&
+                !_removedErrorCodes.contains(value)) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                   k.span,
@@ -658,7 +676,7 @@ class LanguageOptionValidator extends OptionsValidator {
 }
 
 /// Validates `linter` top-level options.
-/// TODO(pq): move into `linter` package and plugin.
+// TODO(pq): move into `linter` package and plugin.
 class LinterOptionsValidator extends TopLevelOptionValidator {
   LinterOptionsValidator() : super('linter', const ['rules']);
 }
@@ -928,7 +946,7 @@ class TopLevelOptionValidator extends OptionsValidator {
                 [pluginName, k.valueOrThrow, _valueProposal]);
           }
         }
-        //TODO(pq): consider an error if the node is not a Scalar.
+        // TODO(pq): consider an error if the node is not a Scalar.
       });
     }
     // TODO(srawlins): Report non-Map with

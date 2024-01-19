@@ -21,4 +21,5 @@ class F4<T> {
 }
 
 main() {}
+
 void test() {}

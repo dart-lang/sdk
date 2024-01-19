@@ -9,4 +9,5 @@ class I {
 }
 
 test() {}
+
 var x = c * c;

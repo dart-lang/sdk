@@ -121,38 +121,38 @@ static method ok<T extends core::Object?>(core::String? s, self::A? a, self::ok:
   a =={core::Object::==}{(core::Object) → core::bool} a;
   t =={core::Object::==}{(core::Object) → core::bool} t;
   b =={core::Object::==}{(core::Object) → core::bool} b;
-  s.{core::Object::hashCode}{core::int};
-  a.{core::Object::hashCode}{core::int};
-  t.{core::Object::hashCode}{core::int};
-  b.{core::Object::hashCode}{core::int};
-  s.{core::Object::toString}(){() → core::String};
-  a.{core::Object::toString}(){() → core::String};
-  t.{core::Object::toString}(){() → core::String};
-  b.{core::Object::toString}(){() → core::String};
+  s.{core::Object::hashCode}{<object>}.{core::int};
+  a.{core::Object::hashCode}{<object>}.{core::int};
+  t.{core::Object::hashCode}{<object>}.{core::int};
+  b.{core::Object::hashCode}{<object>}.{core::int};
+  s.{core::Object::toString}{<object>}.(){() → core::String};
+  a.{core::Object::toString}{<object>}.(){() → core::String};
+  t.{core::Object::toString}{<object>}.(){() → core::String};
+  b.{core::Object::toString}{<object>}.(){() → core::String};
   try {
-    s.{core::Object::noSuchMethod}(i){(core::Invocation) → dynamic};
+    s.{core::Object::noSuchMethod}{<object>}.(i){(core::Invocation) → dynamic};
   }
   on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   try {
-    a.{core::Object::noSuchMethod}(i){(core::Invocation) → dynamic};
+    a.{core::Object::noSuchMethod}{<object>}.(i){(core::Invocation) → dynamic};
   }
   on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   try {
-    t.{core::Object::noSuchMethod}(i){(core::Invocation) → dynamic};
+    t.{core::Object::noSuchMethod}{<object>}.(i){(core::Invocation) → dynamic};
   }
   on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   try {
-    b.{core::Object::noSuchMethod}(i){(core::Invocation) → dynamic};
+    b.{core::Object::noSuchMethod}{<object>}.(i){(core::Invocation) → dynamic};
   }
   on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
-  s.{core::Object::runtimeType}{core::Type};
-  a.{core::Object::runtimeType}{core::Type};
-  t.{core::Object::runtimeType}{core::Type};
-  b.{core::Object::runtimeType}{core::Type};
+  s.{core::Object::runtimeType}{<object>}.{core::Type};
+  a.{core::Object::runtimeType}{<object>}.{core::Type};
+  t.{core::Object::runtimeType}{<object>}.{core::Type};
+  b.{core::Object::runtimeType}{<object>}.{core::Type};
 }
 static method main() → dynamic {}
 

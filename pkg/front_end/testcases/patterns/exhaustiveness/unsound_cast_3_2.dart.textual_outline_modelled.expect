@@ -1,0 +1,36 @@
+// @dart = 3.2
+
+class A extends S {}
+
+class B extends S {}
+
+class C extends S {}
+
+class X extends A {}
+
+class Y extends B {}
+
+class Z implements A, B {}
+
+expect(expected, actual) {}
+
+int? sound1(S s) => switch (s) {
+      X() as A => 0,
+      Y() as B => 1,
+      _ => null,
+    };
+
+int? sound2(S s) {}
+
+int unsound1(S s) => switch (s) {
+      X() as A => 0,
+      Y() as B => 1,
+    };
+
+int unsound2(S s) {}
+
+main() {}
+
+sealed class S {}
+
+throws(void Function() f) {}

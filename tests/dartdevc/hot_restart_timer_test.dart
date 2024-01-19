@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:_runtime' as dart;
 
-void main() async {
-  await timeoutTest();
-  await periodicTest();
+void main() {
+  asyncTest(() async {
+    await timeoutTest();
+    await periodicTest();
+  });
 }
 
 Future<void> timeoutTest() async {

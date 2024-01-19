@@ -23,7 +23,11 @@ extension Extension2<K, V> on MapLike2<K, V> {
 }
 
 main() {}
+
 implicit() {}
+
 explicitWithTypeArguments() {}
+
 explicitInferredTypeArguments() {}
+
 expect(expected, actual) {}

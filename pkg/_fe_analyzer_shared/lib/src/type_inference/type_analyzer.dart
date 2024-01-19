@@ -4,7 +4,7 @@
 
 import '../flow_analysis/flow_analysis.dart';
 import 'type_analysis_result.dart';
-import 'type_operations.dart';
+import 'type_analyzer_operations.dart';
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
 /// or [TypeAnalyzer.analyzeSwitchStatement] about a single case head or
@@ -93,13 +93,6 @@ class MapPatternEntry<Expression extends Object, Pattern extends Object> {
   });
 }
 
-class NamedType<Type extends Object> {
-  final String name;
-  final Type type;
-
-  NamedType(this.name, this.type);
-}
-
 /// Information supplied by the client to [TypeAnalyzer.analyzeObjectPattern],
 /// [TypeAnalyzer.analyzeRecordPattern], or
 /// [TypeAnalyzer.analyzeRecordPatternSchema] about a single field in a record
@@ -119,16 +112,6 @@ class RecordPatternField<Node extends Object, Pattern extends Object> {
     required this.node,
     required this.name,
     required this.pattern,
-  });
-}
-
-class RecordType<Type extends Object> {
-  final List<Type> positional;
-  final List<NamedType<Type>> named;
-
-  RecordType({
-    required this.positional,
-    required this.named,
   });
 }
 
@@ -283,43 +266,20 @@ mixin TypeAnalyzer<
     Variable extends Object,
     Type extends Object,
     Pattern extends Node,
-    Error> {
-  /// Returns the type `bool`.
-  Type get boolType;
-
-  /// Returns the type `double`.
-  Type get doubleType;
-
-  /// Returns the type `dynamic`.
-  Type get dynamicType;
-
+    Error,
+    TypeSchema extends Object> {
   TypeAnalyzerErrors<Node, Statement, Expression, Variable, Type, Pattern,
       Error> get errors;
-
-  /// Returns the type used by the client in the case of errors.
-  Type get errorType;
 
   /// Returns the client's [FlowAnalysis] object.
   FlowAnalysis<Node, Statement, Expression, Variable, Type> get flow;
 
-  /// Returns the type `int`.
-  Type get intType;
-
-  /// Returns the type `Never`.
-  Type get neverType;
-
-  /// Returns the type `Object?`.
-  Type get objectQuestionType;
-
-  /// The [Operations], used to access types, check subtyping, and query
-  /// variable types.
-  Operations<Variable, Type> get operations;
+  /// The [TypeAnalyzerOperations], used to access types, check subtyping, and
+  /// query variable types.
+  TypeAnalyzerOperations<Variable, Type, TypeSchema> get operations;
 
   /// Options affecting the behavior of [TypeAnalyzer].
   TypeAnalyzerOptions get options;
-
-  /// Returns the unknown type context (`?`) used in type inference.
-  Type get unknownType;
 
   /// Analyzes a non-wildcard variable pattern appearing in an assignment
   /// context.  [node] is the pattern itself, and [variable] is the variable
@@ -383,8 +343,9 @@ mixin TypeAnalyzer<
 
   /// Computes the type schema for a variable pattern appearing in an assignment
   /// context.  [variable] is the variable being referenced.
-  Type analyzeAssignedVariablePatternSchema(Variable variable) =>
-      flow.promotedType(variable) ?? operations.variableType(variable);
+  TypeSchema analyzeAssignedVariablePatternSchema(Variable variable) =>
+      operations.typeToSchema(
+          flow.promotedType(variable) ?? operations.variableType(variable));
 
   /// Analyzes a cast pattern.  [innerPattern] is the sub-pattern] and
   /// [requiredType] is the type to cast to.
@@ -425,7 +386,8 @@ mixin TypeAnalyzer<
   /// Computes the type schema for a cast pattern.
   ///
   /// Stack effect: none.
-  Type analyzeCastPatternSchema() => objectQuestionType;
+  TypeSchema analyzeCastPatternSchema() =>
+      operations.typeToSchema(operations.objectQuestionType);
 
   /// Analyzes a constant pattern.  [node] is the pattern itself, and
   /// [expression] is the constant expression.  Depending on the client's
@@ -450,7 +412,8 @@ mixin TypeAnalyzer<
               pattern: node, context: irrefutableContext);
     }
     Type matchedType = flow.getMatchedValueType();
-    Type expressionType = analyzeExpression(expression, matchedType);
+    Type expressionType =
+        analyzeExpression(expression, operations.typeToSchema(matchedType));
     flow.constantPattern_end(expression, expressionType,
         patternsEnabled: options.patternsEnabled);
     // Stack: (Expression)
@@ -482,12 +445,12 @@ mixin TypeAnalyzer<
   /// Computes the type schema for a constant pattern.
   ///
   /// Stack effect: none.
-  Type analyzeConstantPatternSchema() {
+  TypeSchema analyzeConstantPatternSchema() {
     // Constant patterns are only allowed in refutable contexts, and refutable
     // contexts don't propagate a type schema into the scrutinee.  So this
     // code path is only reachable if the user's code contains errors.
     errors.assertInErrorRecovery();
-    return unknownType;
+    return operations.unknownType;
   }
 
   /// Analyzes a variable pattern in a non-assignment context.  [node] is the
@@ -537,7 +500,7 @@ mixin TypeAnalyzer<
         flow.declaredVariablePattern(
             matchedType: matchedType,
             staticType: staticType,
-            isFinal: context.isFinal || isVariableFinal(variable),
+            isFinal: context.isFinal || operations.isVariableFinal(variable),
             isLate: false,
             isImplicitlyTyped: isImplicitlyTyped);
     setVariableType(variable, staticType);
@@ -554,21 +517,23 @@ mixin TypeAnalyzer<
   /// declared type (if present).
   ///
   /// Stack effect: none.
-  Type analyzeDeclaredVariablePatternSchema(Type? declaredType) {
-    return declaredType ?? unknownType;
+  TypeSchema analyzeDeclaredVariablePatternSchema(Type? declaredType) {
+    return declaredType == null
+        ? operations.unknownType
+        : operations.typeToSchema(declaredType);
   }
 
   /// Analyzes an expression.  [node] is the expression to analyze, and
-  /// [context] is the type schema which should be used for type inference.
+  /// [schema] is the type schema which should be used for type inference.
   ///
   /// Stack effect: pushes (Expression).
-  Type analyzeExpression(Expression node, Type? context) {
+  Type analyzeExpression(Expression node, TypeSchema? schema) {
     // Stack: ()
-    if (context == null || operations.isDynamic(context)) {
-      context = unknownType;
+    if (schema == null || operations.typeSchemaIsDynamic(schema)) {
+      schema = operations.unknownType;
     }
     ExpressionTypeAnalysisResult<Type> result =
-        dispatchExpression(node, context);
+        dispatchExpression(node, schema);
     // Stack: (Expression)
     if (operations.isNever(result.provisionalType)) {
       flow.handleExit();
@@ -608,7 +573,8 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    Type initializerType = analyzeExpression(expression, unknownType);
+    Type initializerType =
+        analyzeExpression(expression, operations.unknownType);
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
@@ -629,7 +595,8 @@ mixin TypeAnalyzer<
     Error? nonBooleanGuardError;
     Type? guardType;
     if (guard != null) {
-      guardType = analyzeExpression(guard, boolType);
+      guardType = analyzeExpression(
+          guard, operations.typeToSchema(operations.boolType));
       nonBooleanGuardError = _checkGuardType(guard, guardType);
     } else {
       handleNoGuard(node, 0);
@@ -669,7 +636,8 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    Type initializerType = analyzeExpression(expression, unknownType);
+    Type initializerType =
+        analyzeExpression(expression, operations.unknownType);
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
@@ -696,7 +664,8 @@ mixin TypeAnalyzer<
     Error? nonBooleanGuardError;
     Type? guardType;
     if (guard != null) {
-      guardType = analyzeExpression(guard, boolType);
+      guardType = analyzeExpression(
+          guard, operations.typeToSchema(operations.boolType));
       nonBooleanGuardError = _checkGuardType(guard, guardType);
     } else {
       handleNoGuard(node, 0);
@@ -730,7 +699,7 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     flow.ifStatement_conditionBegin();
-    analyzeExpression(condition, boolType);
+    analyzeExpression(condition, operations.typeToSchema(operations.boolType));
     handle_ifElement_conditionEnd(node);
     // Stack: (Expression condition)
     flow.ifStatement_thenBegin(condition, node);
@@ -751,20 +720,22 @@ mixin TypeAnalyzer<
       Statement ifTrue, Statement? ifFalse) {
     // Stack: ()
     flow.ifStatement_conditionBegin();
-    analyzeExpression(condition, boolType);
+    analyzeExpression(condition, operations.typeToSchema(operations.boolType));
     handle_ifStatement_conditionEnd(node);
     // Stack: (Expression condition)
     flow.ifStatement_thenBegin(condition, node);
     _analyzeIfCommon(node, ifTrue, ifFalse);
   }
 
-  /// Analyzes an integer literal, given the type context [context].
+  /// Analyzes an integer literal, given the type schema [schema].
   ///
   /// Stack effect: none.
-  IntTypeAnalysisResult<Type> analyzeIntLiteral(Type context) {
-    bool convertToDouble = !operations.isSubtypeOf(intType, context) &&
-        operations.isSubtypeOf(doubleType, context);
-    Type type = convertToDouble ? doubleType : intType;
+  IntTypeAnalysisResult<Type> analyzeIntLiteral(TypeSchema schema) {
+    bool convertToDouble = !operations.isTypeSchemaSatisfied(
+            type: operations.intType, typeSchema: schema) &&
+        operations.isTypeSchemaSatisfied(
+            type: operations.doubleType, typeSchema: schema);
+    Type type = convertToDouble ? operations.doubleType : operations.intType;
     return new IntTypeAnalysisResult<Type>(
         type: type, convertedToDouble: convertToDouble);
   }
@@ -793,14 +764,14 @@ mixin TypeAnalyzer<
       if (listElementType != null) {
         valueType = listElementType;
       } else if (operations.isDynamic(matchedType)) {
-        valueType = dynamicType;
+        valueType = operations.dynamicType;
       } else if (operations.isError(matchedType)) {
-        valueType = errorType;
+        valueType = operations.errorType;
       } else {
-        valueType = objectQuestionType;
+        valueType = operations.objectQuestionType;
       }
     }
-    Type requiredType = listType(valueType);
+    Type requiredType = operations.listType(valueType);
     flow.promoteForPattern(
         matchedType: matchedType,
         knownType: requiredType,
@@ -859,26 +830,26 @@ mixin TypeAnalyzer<
   /// subpatterns.
   ///
   /// Stack effect: none.
-  Type analyzeListPatternSchema({
+  TypeSchema analyzeListPatternSchema({
     required Type? elementType,
     required List<Node> elements,
   }) {
     if (elementType != null) {
-      return listType(elementType);
+      return operations.listTypeSchema(operations.typeToSchema(elementType));
     }
 
     if (elements.isEmpty) {
-      return listType(unknownType);
+      return operations.listTypeSchema(operations.unknownType);
     }
 
-    Type? currentGLB;
+    TypeSchema? currentGLB;
     for (Node element in elements) {
-      Type? typeToAdd;
+      TypeSchema? typeToAdd;
       if (isRestPatternElement(element)) {
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          Type subPatternType = dispatchPatternSchema(subPattern);
-          typeToAdd = operations.matchIterableType(subPatternType);
+          TypeSchema subPatternType = dispatchPatternSchema(subPattern);
+          typeToAdd = operations.matchIterableTypeSchema(subPatternType);
         }
       } else {
         typeToAdd = dispatchPatternSchema(element);
@@ -887,12 +858,12 @@ mixin TypeAnalyzer<
         if (currentGLB == null) {
           currentGLB = typeToAdd;
         } else {
-          currentGLB = operations.glb(currentGLB, typeToAdd);
+          currentGLB = operations.typeSchemaGlb(currentGLB, typeToAdd);
         }
       }
     }
-    currentGLB ??= unknownType;
-    return listType(currentGLB);
+    currentGLB ??= operations.unknownType;
+    return operations.listTypeSchema(currentGLB);
   }
 
   /// Analyzes a logical-and pattern.  [node] is the pattern itself, and [lhs]
@@ -927,8 +898,8 @@ mixin TypeAnalyzer<
   /// the left and right sides of the `&&` operator.
   ///
   /// Stack effect: none.
-  Type analyzeLogicalAndPatternSchema(Node lhs, Node rhs) {
-    return operations.glb(
+  TypeSchema analyzeLogicalAndPatternSchema(Node lhs, Node rhs) {
+    return operations.typeSchemaGlb(
         dispatchPatternSchema(lhs), dispatchPatternSchema(rhs));
   }
 
@@ -1015,12 +986,12 @@ mixin TypeAnalyzer<
   /// the left and right sides of the `|` or `&` operator.
   ///
   /// Stack effect: none.
-  Type analyzeLogicalOrPatternSchema(Node lhs, Node rhs) {
+  TypeSchema analyzeLogicalOrPatternSchema(Node lhs, Node rhs) {
     // Logical-or patterns are only allowed in refutable contexts, and
     // refutable contexts don't propagate a type schema into the scrutinee.
     // So this code path is only reachable if the user's code contains errors.
     errors.assertInErrorRecovery();
-    return unknownType;
+    return operations.unknownType;
   }
 
   /// Analyzes a map pattern.  [node] is the pattern itself, [typeArguments]
@@ -1041,33 +1012,33 @@ mixin TypeAnalyzer<
   }) {
     Type keyType;
     Type valueType;
-    Type keyContext;
+    TypeSchema keySchema;
     Type matchedType = flow.getMatchedValueType();
     if (typeArguments != null) {
       keyType = typeArguments.keyType;
       valueType = typeArguments.valueType;
-      keyContext = keyType;
+      keySchema = operations.typeToSchema(keyType);
     } else {
       typeArguments = operations.matchMapType(matchedType);
       if (typeArguments != null) {
         keyType = typeArguments.keyType;
         valueType = typeArguments.valueType;
-        keyContext = keyType;
+        keySchema = operations.typeToSchema(keyType);
       } else if (operations.isDynamic(matchedType)) {
-        keyType = dynamicType;
-        valueType = dynamicType;
-        keyContext = unknownType;
+        keyType = operations.dynamicType;
+        valueType = operations.dynamicType;
+        keySchema = operations.unknownType;
       } else if (operations.isError(matchedType)) {
-        keyType = errorType;
-        valueType = errorType;
-        keyContext = unknownType;
+        keyType = operations.errorType;
+        valueType = operations.errorType;
+        keySchema = operations.unknownType;
       } else {
-        keyType = objectQuestionType;
-        valueType = objectQuestionType;
-        keyContext = unknownType;
+        keyType = operations.objectQuestionType;
+        valueType = operations.objectQuestionType;
+        keySchema = operations.unknownType;
       }
     }
-    Type requiredType = mapType(
+    Type requiredType = operations.mapType(
       keyType: keyType,
       valueType: valueType,
     );
@@ -1090,7 +1061,7 @@ mixin TypeAnalyzer<
       Node element = elements[i];
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
-        Type keyType = analyzeExpression(entry.key, keyContext);
+        Type keyType = analyzeExpression(entry.key, keySchema);
         flow.pushSubpattern(valueType);
         dispatchPattern(
           context.withUnnecessaryWildcardKind(null),
@@ -1102,7 +1073,7 @@ mixin TypeAnalyzer<
         assert(isRestPatternElement(element));
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          flow.pushSubpattern(dynamicType);
+          flow.pushSubpattern(operations.dynamicType);
           dispatchPattern(
             context.withUnnecessaryWildcardKind(null),
             subPattern,
@@ -1142,32 +1113,32 @@ mixin TypeAnalyzer<
   /// subpatterns.
   ///
   /// Stack effect: none.
-  Type analyzeMapPatternSchema({
+  TypeSchema analyzeMapPatternSchema({
     required MapPatternTypeArguments<Type>? typeArguments,
     required List<Node> elements,
   }) {
     if (typeArguments != null) {
-      return mapType(
+      return operations.typeToSchema(operations.mapType(
         keyType: typeArguments.keyType,
         valueType: typeArguments.valueType,
-      );
+      ));
     }
 
-    Type? valueType;
+    TypeSchema? valueType;
     for (Node element in elements) {
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
-        Type entryValueType = dispatchPatternSchema(entry.value);
+        TypeSchema entryValueType = dispatchPatternSchema(entry.value);
         if (valueType == null) {
           valueType = entryValueType;
         } else {
-          valueType = operations.glb(valueType, entryValueType);
+          valueType = operations.typeSchemaGlb(valueType, entryValueType);
         }
       }
     }
-    return mapType(
-      keyType: unknownType,
-      valueType: valueType ?? unknownType,
+    return operations.mapTypeSchema(
+      keyTypeSchema: operations.unknownType,
+      valueTypeSchema: valueType ?? operations.unknownType,
     );
   }
 
@@ -1224,16 +1195,17 @@ mixin TypeAnalyzer<
   /// a null-check or a null-assert pattern.
   ///
   /// Stack effect: none.
-  Type analyzeNullCheckOrAssertPatternSchema(Pattern innerPattern,
+  TypeSchema analyzeNullCheckOrAssertPatternSchema(Pattern innerPattern,
       {required bool isAssert}) {
     if (isAssert) {
-      return operations.makeNullable(dispatchPatternSchema(innerPattern));
+      return operations
+          .makeTypeSchemaNullable(dispatchPatternSchema(innerPattern));
     } else {
       // Null-check patterns are only allowed in refutable contexts, and
       // refutable contexts don't propagate a type schema into the scrutinee.
       // So this code path is only reachable if the user's code contains errors.
       errors.assertInErrorRecovery();
-      return unknownType;
+      return operations.unknownType;
     }
   }
 
@@ -1323,8 +1295,8 @@ mixin TypeAnalyzer<
   /// specified with the object name, and with the type arguments applied.
   ///
   /// Stack effect: none.
-  Type analyzeObjectPatternSchema(Type type) {
-    return type;
+  TypeSchema analyzeObjectPatternSchema(Type type) {
+    return operations.typeToSchema(type);
   }
 
   /// Analyzes a patternAssignment expression of the form `pattern = rhs`.
@@ -1333,10 +1305,10 @@ mixin TypeAnalyzer<
   /// the pattern, and [rhs] for the right hand side.
   ///
   /// Stack effect: pushes (Expression, Pattern).
-  PatternAssignmentAnalysisResult<Type> analyzePatternAssignment(
+  PatternAssignmentAnalysisResult<Type, TypeSchema> analyzePatternAssignment(
       Expression node, Pattern pattern, Expression rhs) {
     // Stack: ()
-    Type patternSchema = dispatchPatternSchema(pattern);
+    TypeSchema patternSchema = dispatchPatternSchema(pattern);
     Type rhsType = analyzeExpression(rhs, patternSchema);
     // Stack: (Expression)
     flow.patternAssignment_afterRhs(rhs, rhsType);
@@ -1359,7 +1331,7 @@ mixin TypeAnalyzer<
     }
     flow.patternAssignment_end();
     // Stack: (Expression, Pattern)
-    return new PatternAssignmentAnalysisResult<Type>(
+    return new PatternAssignmentAnalysisResult<Type, TypeSchema>(
       patternSchema: patternSchema,
       type: rhsType,
     );
@@ -1384,10 +1356,10 @@ mixin TypeAnalyzer<
     required void Function() dispatchBody,
   }) {
     // Stack: ()
-    Type patternTypeSchema = dispatchPatternSchema(pattern);
-    Type expressionTypeSchema = hasAwait
-        ? streamType(patternTypeSchema)
-        : iterableType(patternTypeSchema);
+    TypeSchema patternTypeSchema = dispatchPatternSchema(pattern);
+    TypeSchema expressionTypeSchema = hasAwait
+        ? operations.streamTypeSchema(patternTypeSchema)
+        : operations.iterableTypeSchema(patternTypeSchema);
     Type expressionType = analyzeExpression(expression, expressionTypeSchema);
     // Stack: (Expression)
 
@@ -1397,9 +1369,9 @@ mixin TypeAnalyzer<
         : operations.matchIterableType(expressionType);
     if (elementType == null) {
       if (operations.isDynamic(expressionType)) {
-        elementType = dynamicType;
+        elementType = operations.dynamicType;
       } else if (operations.isError(expressionType)) {
-        elementType = errorType;
+        elementType = operations.errorType;
       } else {
         patternForInExpressionIsNotIterableError =
             errors.patternForInExpressionIsNotIterable(
@@ -1407,7 +1379,7 @@ mixin TypeAnalyzer<
           expression: expression,
           expressionType: expressionType,
         );
-        elementType = errorType;
+        elementType = operations.errorType;
       }
     }
     flow.patternForIn_afterExpression(elementType);
@@ -1453,12 +1425,12 @@ mixin TypeAnalyzer<
   /// type of the initializer and the type schema of the [pattern].
   ///
   /// Stack effect: pushes (Expression, Pattern).
-  PatternVariableDeclarationAnalysisResult<Type>
+  PatternVariableDeclarationAnalysisResult<Type, TypeSchema>
       analyzePatternVariableDeclaration(
           Node node, Pattern pattern, Expression initializer,
           {required bool isFinal}) {
     // Stack: ()
-    Type patternSchema = dispatchPatternSchema(pattern);
+    TypeSchema patternSchema = dispatchPatternSchema(pattern);
     Type initializerType = analyzeExpression(initializer, patternSchema);
     // Stack: (Expression)
     flow.patternVariableDeclaration_afterInitializer(
@@ -1536,14 +1508,14 @@ mixin TypeAnalyzer<
         requiredTypePositionalCount++;
       } else {
         requiredTypeNamedTypes.add(
-          new NamedType(name, objectQuestionType),
+          new NamedType(name, operations.objectQuestionType),
         );
       }
     }
-    Type requiredType = recordType(
+    Type requiredType = operations.recordType(
       positional: new List.filled(
         requiredTypePositionalCount,
-        objectQuestionType,
+        operations.objectQuestionType,
       ),
       named: requiredTypeNamedTypes,
     );
@@ -1551,7 +1523,7 @@ mixin TypeAnalyzer<
     flow.promoteForPattern(matchedType: matchedType, knownType: requiredType);
 
     // Stack: ()
-    RecordType<Type>? matchedRecordType = asRecordType(matchedType);
+    RecordType<Type>? matchedRecordType = operations.asRecordType(matchedType);
     if (matchedRecordType != null) {
       List<Type>? fieldTypes = _matchRecordTypeShape(fields, matchedRecordType);
       if (fieldTypes != null) {
@@ -1560,14 +1532,14 @@ mixin TypeAnalyzer<
           dispatchField(fields[i], fieldTypes[i]);
         }
       } else {
-        dispatchFields(objectQuestionType);
+        dispatchFields(operations.objectQuestionType);
       }
     } else if (operations.isDynamic(matchedType)) {
-      dispatchFields(dynamicType);
+      dispatchFields(operations.dynamicType);
     } else if (operations.isError(matchedType)) {
-      dispatchFields(errorType);
+      dispatchFields(operations.errorType);
     } else {
-      dispatchFields(objectQuestionType);
+      dispatchFields(operations.objectQuestionType);
     }
     // Stack: (n * Pattern) where n = fields.length
 
@@ -1584,7 +1556,7 @@ mixin TypeAnalyzer<
       );
     }
 
-    Type demonstratedType = recordType(
+    Type demonstratedType = operations.recordType(
         positional: demonstratedPositionalTypes, named: demonstratedNamedTypes);
     flow.promoteForPattern(
         matchedType: matchedType,
@@ -1600,13 +1572,13 @@ mixin TypeAnalyzer<
   /// Computes the type schema for a record pattern.
   ///
   /// Stack effect: none.
-  Type analyzeRecordPatternSchema({
+  TypeSchema analyzeRecordPatternSchema({
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
-    List<Type> positional = [];
-    List<NamedType<Type>> named = [];
+    List<TypeSchema> positional = [];
+    List<NamedType<TypeSchema>> named = [];
     for (RecordPatternField<Node, Pattern> field in fields) {
-      Type fieldType = dispatchPatternSchema(field.pattern);
+      TypeSchema fieldType = dispatchPatternSchema(field.pattern);
       String? name = field.name;
       if (name != null) {
         named.add(new NamedType(name, fieldType));
@@ -1614,7 +1586,7 @@ mixin TypeAnalyzer<
         positional.add(fieldType);
       }
     }
-    return recordType(positional: positional, named: named);
+    return operations.recordTypeSchema(positional: positional, named: named);
   }
 
   /// Analyzes a relational pattern.  [node] is the pattern itself, and
@@ -1645,40 +1617,41 @@ mixin TypeAnalyzer<
     Type matchedValueType = flow.getMatchedValueType();
     RelationalOperatorResolution<Type>? operator =
         resolveRelationalPatternOperator(node, matchedValueType);
-    Type operandContext = operator?.parameterType ?? unknownType;
-    Type operandType = analyzeExpression(operand, operandContext);
-    bool isEquality;
-    switch (operator?.kind) {
-      case RelationalOperatorKind.equals:
-        isEquality = true;
-        flow.equalityRelationalPattern_end(operand, operandType,
-            notEqual: false);
-        break;
-      case RelationalOperatorKind.notEquals:
-        isEquality = true;
-        flow.equalityRelationalPattern_end(operand, operandType,
-            notEqual: true);
-        break;
-      default:
-        isEquality = false;
-        flow.nonEqualityRelationalPattern_end();
-        break;
+    Type? parameterType = operator?.parameterType;
+    bool isEquality = switch (operator?.kind) {
+      RelationalOperatorKind.equals => true,
+      RelationalOperatorKind.notEquals => true,
+      _ => false
+    };
+    if (isEquality && parameterType != null) {
+      parameterType = operations.makeNullable(parameterType);
+    }
+    Type operandType = analyzeExpression(
+        operand,
+        parameterType == null
+            ? operations.unknownType
+            : operations.typeToSchema(parameterType));
+    if (isEquality) {
+      flow.equalityRelationalPattern_end(operand, operandType,
+          notEqual: operator?.kind == RelationalOperatorKind.notEquals);
+    } else {
+      flow.nonEqualityRelationalPattern_end();
     }
     // Stack: (Expression)
     Error? argumentTypeNotAssignableError;
     Error? operatorReturnTypeNotAssignableToBoolError;
     if (operator != null) {
-      Type argumentType =
-          isEquality ? operations.promoteToNonNull(operandType) : operandType;
-      if (!operations.isAssignableTo(argumentType, operator.parameterType)) {
+      if (parameterType != null &&
+          !operations.isAssignableTo(operandType, parameterType)) {
         argumentTypeNotAssignableError =
             errors.relationalPatternOperandTypeNotAssignable(
           pattern: node,
-          operandType: argumentType,
+          operandType: operandType,
           parameterType: operator.parameterType,
         );
       }
-      if (!operations.isAssignableTo(operator.returnType, boolType)) {
+      if (!operations.isAssignableTo(
+          operator.returnType, operations.boolType)) {
         operatorReturnTypeNotAssignableToBoolError =
             errors.relationalPatternOperatorReturnTypeNotAssignableToBool(
           pattern: node,
@@ -1698,12 +1671,12 @@ mixin TypeAnalyzer<
   /// Computes the type schema for a relational pattern.
   ///
   /// Stack effect: none.
-  Type analyzeRelationalPatternSchema() {
+  TypeSchema analyzeRelationalPatternSchema() {
     // Relational patterns are only allowed in refutable contexts, and refutable
     // contexts don't propagate a type schema into the scrutinee.  So this
     // code path is only reachable if the user's code contains errors.
     errors.assertInErrorRecovery();
-    return unknownType;
+    return operations.unknownType;
   }
 
   /// Analyzes an expression of the form `switch (expression) { cases }`.
@@ -1714,9 +1687,9 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression, n * ExpressionCase), where n is the
   /// number of cases.
   SwitchExpressionResult<Type, Error> analyzeSwitchExpression(
-      Expression node, Expression scrutinee, int numCases, Type context) {
+      Expression node, Expression scrutinee, int numCases, TypeSchema schema) {
     // Stack: ()
-    Type expressionType = analyzeExpression(scrutinee, unknownType);
+    Type expressionType = analyzeExpression(scrutinee, operations.unknownType);
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
     flow.switchStatement_expressionEnd(null, scrutinee, expressionType);
@@ -1754,7 +1727,8 @@ mixin TypeAnalyzer<
         guard = memberInfo.head.guard;
         bool hasGuard = guard != null;
         if (hasGuard) {
-          Type guardType = analyzeExpression(guard, boolType);
+          Type guardType = analyzeExpression(
+              guard, operations.typeToSchema(operations.boolType));
           Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
           (guardTypes ??= {})[i] = guardType;
           if (nonBooleanGuardError != null) {
@@ -1772,7 +1746,7 @@ mixin TypeAnalyzer<
       flow.switchStatement_endAlternative(guard, {});
       flow.switchStatement_endAlternatives(null, hasLabels: false);
       // Stack: (Expression, i * ExpressionCase, CaseHead)
-      Type type = analyzeExpression(memberInfo.expression, context);
+      Type type = analyzeExpression(memberInfo.expression, schema);
       flow.switchStatement_afterCase();
       // Stack: (Expression, i * ExpressionCase, CaseHead, Expression)
       if (lubType == null) {
@@ -1783,7 +1757,7 @@ mixin TypeAnalyzer<
       finishExpressionCase(node, i);
       // Stack: (Expression, (i + 1) * ExpressionCase)
     }
-    lubType ??= neverType;
+    lubType ??= operations.neverType;
     // Stack: (Expression, numCases * ExpressionCase)
     flow.switchStatement_end(true);
     return new SwitchExpressionResult(
@@ -1799,7 +1773,7 @@ mixin TypeAnalyzer<
   SwitchStatementTypeAnalysisResult<Type, Error> analyzeSwitchStatement(
       Statement node, Expression scrutinee, final int numCases) {
     // Stack: ()
-    Type scrutineeType = analyzeExpression(scrutinee, unknownType);
+    Type scrutineeType = analyzeExpression(scrutinee, operations.unknownType);
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
     flow.switchStatement_expressionEnd(node, scrutinee, scrutineeType);
@@ -1847,7 +1821,8 @@ mixin TypeAnalyzer<
           //         numHeads * CaseHead, Pattern),
           guard = head.guard;
           if (guard != null) {
-            Type guardType = analyzeExpression(guard, boolType);
+            Type guardType = analyzeExpression(
+                guard, operations.typeToSchema(operations.boolType));
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             ((guardTypes ??= {})[caseIndex] ??= {})[headIndex] = guardType;
             if (nonBooleanGuardError != null) {
@@ -1910,7 +1885,7 @@ mixin TypeAnalyzer<
       requiresExhaustivenessValidation = false;
     } else if (options.patternsEnabled) {
       requiresExhaustivenessValidation =
-          isExhaustive = isAlwaysExhaustiveType(scrutineeType);
+          isExhaustive = operations.isAlwaysExhaustiveType(scrutineeType);
     } else {
       isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
       requiresExhaustivenessValidation = false;
@@ -1942,7 +1917,7 @@ mixin TypeAnalyzer<
   Type analyzeUninitializedVariableDeclaration(
       Node node, Variable variable, Type? declaredType,
       {required bool isFinal}) {
-    Type inferredType = declaredType ?? dynamicType;
+    Type inferredType = declaredType ?? operations.dynamicType;
     setVariableType(variable, inferredType);
     flow.declare(variable, inferredType, initialized: false);
     return inferredType;
@@ -2000,14 +1975,13 @@ mixin TypeAnalyzer<
   /// explicitly declared type (if present).
   ///
   /// Stack effect: none.
-  Type analyzeWildcardPatternSchema({
+  TypeSchema analyzeWildcardPatternSchema({
     required Type? declaredType,
   }) {
-    return declaredType ?? unknownType;
+    return declaredType == null
+        ? operations.unknownType
+        : operations.typeToSchema(declaredType);
   }
-
-  /// If [type] is a record type, returns it.
-  RecordType<Type>? asRecordType(Type type);
 
   /// Calls the appropriate `analyze` method according to the form of
   /// collection [element], and then adjusts the stack as needed to combine
@@ -2019,7 +1993,7 @@ mixin TypeAnalyzer<
   void dispatchCollectionElement(Node element, Object? context);
 
   /// Calls the appropriate `analyze` method according to the form of
-  /// [expression], and then adjusts the stack as needed to combine any
+  /// [node], and then adjusts the stack as needed to combine any
   /// sub-structures into a single expression.
   ///
   /// For example, if [node] is a binary expression (`a + b`), calls
@@ -2027,7 +2001,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
-      Expression node, Type context);
+      Expression node, TypeSchema schema);
 
   /// Calls the appropriate `analyze` method according to the form of [pattern].
   ///
@@ -2044,7 +2018,7 @@ mixin TypeAnalyzer<
   /// [pattern].
   ///
   /// Stack effect: none.
-  Type dispatchPatternSchema(Node pattern);
+  TypeSchema dispatchPatternSchema(Node pattern);
 
   /// Calls the appropriate `analyze` method according to the form of
   /// [statement], and then adjusts the stack as needed to combine any
@@ -2104,9 +2078,6 @@ mixin TypeAnalyzer<
   /// See [analyzeSwitchStatement].
   SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
       getSwitchStatementMemberInfo(Statement node, int caseIndex);
-
-  /// Returns the type of [variable].
-  Type getVariableType(Variable variable);
 
   /// Called after visiting the pattern in `if-case` statement.
   void handle_ifCaseStatement_afterPattern({required Statement node}) {}
@@ -2240,11 +2211,6 @@ mixin TypeAnalyzer<
   /// Stack effect: none.
   void handleSwitchScrutinee(Type type);
 
-  /// Queries whether [type] is an "always-exhaustive" type (as defined in the
-  /// patterns spec).  Exhaustive types are types for which the switch statement
-  /// is required to be exhaustive when patterns support is enabled.
-  bool isAlwaysExhaustiveType(Type type);
-
   /// Queries whether the switch statement or expression represented by [node]
   /// was exhaustive.  [expressionType] is the static type of the scrutinee.
   ///
@@ -2255,27 +2221,8 @@ mixin TypeAnalyzer<
   /// Returns whether [node] is a rest element in a list or map pattern.
   bool isRestPatternElement(Node node);
 
-  /// Returns whether [node] is final.
-  bool isVariableFinal(Variable node);
-
   /// Queries whether [pattern] is a variable pattern.
   bool isVariablePattern(Node pattern);
-
-  /// Returns the type `Iterable`, with type argument [elementType].
-  Type iterableType(Type elementType);
-
-  /// Returns the type `List`, with type argument [elementType].
-  Type listType(Type elementType);
-
-  /// Returns the type `Map`, with type arguments.
-  Type mapType({
-    required Type keyType,
-    required Type valueType,
-  });
-
-  /// Builds the client specific record type.
-  Type recordType(
-      {required List<Type> positional, required List<NamedType<Type>> named});
 
   /// Returns the type of the property in [receiverType] that corresponds to
   /// the name of the [field].  If the property cannot be resolved, the client
@@ -2299,9 +2246,6 @@ mixin TypeAnalyzer<
   /// is called once per variable, regardless of whether the variable's type is
   /// explicit or inferred.
   void setVariableType(Variable variable, Type type);
-
-  /// Returns the type `Stream`, with type argument [elementType].
-  Type streamType(Type elementType);
 
   /// Computes the type that should be inferred for an implicitly typed variable
   /// whose initializer expression has static type [type].
@@ -2356,7 +2300,7 @@ mixin TypeAnalyzer<
     // TODO(paulberry): spec says the type must be `bool` or `dynamic`.  This
     // logic permits `T extends bool`, `T promoted to bool`, or `Never`.  What
     // do we want?
-    if (!operations.isAssignableTo(type, boolType)) {
+    if (!operations.isAssignableTo(type, operations.boolType)) {
       return errors.nonBooleanCondition(node: expression);
     }
     return null;
@@ -2388,8 +2332,8 @@ mixin TypeAnalyzer<
         if (identical(variable, component)) {
           isIdenticalToComponent = true;
         }
-        Type componentType = getVariableType(component);
-        bool isComponentFinal = isVariableFinal(component);
+        Type componentType = operations.variableType(component);
+        bool isComponentFinal = operations.isVariableFinal(component);
         if (isFirst) {
           typeIfConsistent = componentType;
           isFinalIfConsistent = isComponentFinal;
@@ -2424,7 +2368,7 @@ mixin TypeAnalyzer<
                   ? JoinedPatternVariableInconsistency.none
                   : JoinedPatternVariableInconsistency.differentFinalityOrType,
               isFinal: isFinalIfConsistent ?? false,
-              type: typeIfConsistent ?? errorType);
+              type: typeIfConsistent ?? operations.errorType);
           flow.assignMatchedPatternVariable(variable, promotionKey);
         }
       }

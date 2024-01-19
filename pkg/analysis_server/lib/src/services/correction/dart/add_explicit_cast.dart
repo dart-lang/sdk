@@ -58,8 +58,8 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
     } else {
       return;
     }
-    if (typeSystem.isAssignableTo(
-        toType, typeSystem.promoteToNonNull(fromType))) {
+    if (typeSystem.isAssignableTo(toType, typeSystem.promoteToNonNull(fromType),
+        strictCasts: analysisOptions.strictCasts)) {
       // The only reason that `fromType` can't be assigned to `toType` is
       // because it's nullable, in which case a cast won't fix the problem.
       return;

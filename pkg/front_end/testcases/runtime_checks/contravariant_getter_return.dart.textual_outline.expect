@@ -8,6 +8,9 @@ class C<T> {
 }
 
 void g1(C<num> c) {}
+
 void g2(C<num> c) {}
+
 void g3(C<num> c) {}
+
 void main() {}

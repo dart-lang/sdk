@@ -8,6 +8,8 @@
 
 // SharedOptions=--enable-experiment=inference-update-2
 
+import '../static_type_helper.dart';
+
 part 'field_promotion_name_conflicts_part.dart';
 
 class C {
@@ -74,117 +76,87 @@ enum E {
   int? get _f14 => 0;
 }
 
-void acceptsInt(int x) {}
-
 void testFinalField(C c) {
   if (c._f1 != null) {
-    var x = c._f1;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f1.expectStaticType<Exactly<int>>();
   }
 }
 
 void testNonFinalField(C c) {
   if (c._f2 != null) {
-    var x = c._f2;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f2.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testAbstractGetter(C c) {
   if (c._f3 != null) {
-    var x = c._f3;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f3.expectStaticType<Exactly<int>>();
   }
 }
 
 void testConcreteGetter(C c) {
   if (c._f4 != null) {
-    var x = c._f4;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f4.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testSetter(C c) {
   if (c._f5 != null) {
-    var x = c._f5;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f5.expectStaticType<Exactly<int>>();
   }
 }
 
 void testStaticField(C c) {
   if (c._f6 != null) {
-    var x = c._f6;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f6.expectStaticType<Exactly<int>>();
   }
 }
 
 void testStaticGetter(C c) {
   if (c._f7 != null) {
-    var x = c._f7;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f7.expectStaticType<Exactly<int>>();
   }
 }
 
 void testTopLevelField(C c) {
   if (c._f8 != null) {
-    var x = c._f8;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f8.expectStaticType<Exactly<int>>();
   }
 }
 
 void testTopLevelGetter(C c) {
   if (c._f9 != null) {
-    var x = c._f9;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f9.expectStaticType<Exactly<int>>();
   }
 }
 
 void testExtensionGetter(C c) {
   if (c._f10 != null) {
-    var x = c._f10;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f10.expectStaticType<Exactly<int>>();
   }
 }
 
 void testGetterInPart(C c) {
   if (c._f11 != null) {
-    var x = c._f11;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f11.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testFieldInMixin(C c) {
   if (c._f12 != null) {
-    var x = c._f12;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f12.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testGetterInMixin(C c) {
   if (c._f13 != null) {
-    var x = c._f13;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f13.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testGetterInEnum(C c) {
   if (c._f14 != null) {
-    var x = c._f14;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f14.expectStaticType<Exactly<int?>>();
   }
 }
 

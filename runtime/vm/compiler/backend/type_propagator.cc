@@ -1005,6 +1005,31 @@ bool CompileType::CanBeFuture() {
   return CHA::ClassCanBeFuture(cls);
 }
 
+// Keep this format in sync with pkg/vm/lib/testing/il_matchers.dart.
+void CompileType::PrintTo(JSONWriter* writer) const {
+  if (IsNone()) {
+    return;
+  }
+
+  if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
+    const Class& cls =
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid_));
+    writer->PrintPropertyStr("c", String::Handle(cls.ScrubbedName()));
+  }
+
+  if (type_ != nullptr && !type_->IsDynamicType()) {
+    writer->PrintPropertyStr("t", String::Handle(type_->ScrubbedName()));
+  }
+
+  if (can_be_null_) {
+    writer->PrintPropertyBool("n", true);
+  }
+
+  if (can_be_sentinel_) {
+    writer->PrintPropertyBool("s", true);
+  }
+}
+
 void CompileType::PrintTo(BaseTextBuffer* f) const {
   const char* type_name = "?";
   if (IsNone()) {
@@ -1670,8 +1695,8 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
 }
 
 CompileType CreateArrayInstr::ComputeType() const {
-  // TODO(fschneider): Add abstract type and type arguments to the compile type.
-  return CompileType::FromCid(kArrayCid);
+  auto type = CompileType::FromCid(kArrayCid);
+  return ComputeListFactoryType(&type, type_arguments());
 }
 
 CompileType AllocateTypedDataInstr::ComputeType() const {
@@ -2024,6 +2049,7 @@ static CompileType ComputeArrayElementType(Value* array) {
       elem_type = ExtractElementTypeFromArrayType(elem_type);
     }
   }
+
   return CompileType::FromAbstractType(elem_type, CompileType::kCanBeNull,
                                        CompileType::kCannotBeSentinel);
 }
@@ -2031,13 +2057,15 @@ static CompileType ComputeArrayElementType(Value* array) {
 CompileType LoadIndexedInstr::ComputeType() const {
   switch (class_id_) {
     case kArrayCid:
-    case kImmutableArrayCid:
+    case kImmutableArrayCid: {
+      CompileType elem_type = ComputeArrayElementType(array());
       if (result_type_ != nullptr &&
           !CompileType::Dynamic().IsEqualTo(result_type_)) {
         // The original call knew something.
-        return *result_type_;
+        return *CompileType::ComputeRefinedType(&elem_type, result_type_);
       }
-      return ComputeArrayElementType(array());
+      return elem_type;
+    }
 
     case kTypeArgumentsCid:
       return CompileType::FromAbstractType(Object::dynamic_type(),

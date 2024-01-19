@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:dart_style/dart_style.dart';
 
@@ -141,14 +142,12 @@ class _WidgetDescriptionComputer {
     this.widgetOffset,
   );
 
-  Flutter get _flutter => Flutter.instance;
-
   Future<_WidgetDescription?> compute() async {
     var node = resolvedUnit.unit.nodeCovering(offset: widgetOffset);
     if (node == null) {
       return null;
     }
-    var instanceCreation = _flutter.identifyNewExpression(node);
+    var instanceCreation = Flutter.identifyNewExpression(node);
     if (instanceCreation == null) {
       return null;
     }
@@ -174,7 +173,7 @@ class _WidgetDescriptionComputer {
     List<PropertyDescription> properties,
     InstanceCreationExpression widgetCreation,
   ) {
-    if (!_flutter.isWidgetCreation(widgetCreation)) {
+    if (!Flutter.isWidgetCreation(widgetCreation)) {
       return;
     }
 
@@ -191,7 +190,7 @@ class _WidgetDescriptionComputer {
     }
 
     PropertyDescription containerProperty;
-    if (_flutter.isExactlyContainerCreation(parentCreation)) {
+    if (Flutter.isExactlyContainerCreation(parentCreation)) {
       containerProperty = PropertyDescription(
         resolvedUnit: resolvedUnit,
         instanceCreation: parentCreation,
@@ -242,9 +241,9 @@ class _WidgetDescriptionComputer {
       );
 
       if (parentCreation != null &&
-          _flutter.isExactlyAlignCreation(parentCreation) &&
-          _flutter.findNamedArgument(parentCreation, 'widthFactor') == null &&
-          _flutter.findNamedArgument(parentCreation, 'heightFactor') == null) {
+          Flutter.isExactlyAlignCreation(parentCreation) &&
+          parentCreation.argumentList.byName('widthFactor') == null &&
+          parentCreation.argumentList.byName('heightFactor') == null) {
         _replaceNestedContainerProperty(
           containerProperty,
           parentCreation,
@@ -253,7 +252,7 @@ class _WidgetDescriptionComputer {
       }
 
       if (parentCreation != null &&
-          _flutter.isExactlyPaddingCreation(parentCreation)) {
+          Flutter.isExactlyPaddingCreation(parentCreation)) {
         _replaceNestedContainerProperty(
           containerProperty,
           parentCreation,
@@ -354,7 +353,6 @@ class _WidgetDescriptionComputer {
     var propertyDescription = PropertyDescription(
       parent: parent,
       resolvedUnit: resolvedUnit,
-      flutter: _flutter,
       classDescription: classDescription,
       instanceCreation: instanceCreation,
       argumentExpression: argumentExpression,
@@ -375,7 +373,7 @@ class _WidgetDescriptionComputer {
 
     var classEdgeInsets = _classEdgeInsets;
     if (classEdgeInsets != null &&
-        _flutter.isExactEdgeInsetsGeometryType(parameter.type)) {
+        Flutter.isExactEdgeInsetsGeometryType(parameter.type)) {
       propertyDescription.addEdgeInsetsNestedProperties(classEdgeInsets);
     } else if (valueExpression is InstanceCreationExpression) {
       var type = valueExpression.staticType;
@@ -423,19 +421,19 @@ class _WidgetDescriptionComputer {
   Future<void> _fetchClassElements() async {
     var sessionHelper = AnalysisSessionHelper(resolvedUnit.session);
     _classAlignment = await sessionHelper.getClass(
-      _flutter.widgetsUri,
+      Flutter.widgetsUri,
       'Alignment',
     );
     _classAlignmentDirectional = await sessionHelper.getClass(
-      _flutter.widgetsUri,
+      Flutter.widgetsUri,
       'AlignmentDirectional',
     );
     _classContainer = await sessionHelper.getClass(
-      _flutter.widgetsUri,
+      Flutter.widgetsUri,
       'Container',
     );
     _classEdgeInsets = await sessionHelper.getClass(
-      _flutter.widgetsUri,
+      Flutter.widgetsUri,
       'EdgeInsets',
     );
   }
@@ -469,7 +467,7 @@ class _WidgetDescriptionComputer {
           enumItems: _enumItemsForEnum(classElement),
         );
       }
-      if (_flutter.isExactAlignmentGeometry(classElement)) {
+      if (Flutter.isExactAlignmentGeometry(classElement)) {
         var items = <protocol.FlutterWidgetPropertyValueEnumItem>[];
         var classAlignment = _classAlignment;
         if (classAlignment != null) {
@@ -495,7 +493,7 @@ class _WidgetDescriptionComputer {
     InstanceCreationExpression parentCreation,
     String name,
   ) {
-    var argument = _flutter.findNamedArgument(parentCreation, name);
+    var argument = parentCreation.argumentList.byName(name);
     if (argument != null) {
       var staticParameterElement = argument.staticParameterElement;
       if (staticParameterElement != null) {
@@ -548,8 +546,8 @@ class _WidgetDescriptionComputer {
         if (field is FieldElement && field.isStatic) {
           var enclosingClass = field.enclosingElement as InterfaceElement;
           if (field.isEnumConstant ||
-              _flutter.isExactAlignment(enclosingClass) ||
-              _flutter.isExactAlignmentDirectional(enclosingClass)) {
+              Flutter.isExactAlignment(enclosingClass) ||
+              Flutter.isExactAlignmentDirectional(enclosingClass)) {
             return protocol.FlutterWidgetPropertyValue(
               enumValue: _toEnumItem(field),
             );

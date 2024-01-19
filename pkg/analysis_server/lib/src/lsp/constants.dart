@@ -52,10 +52,6 @@ final analysisOptionsFile = TextDocumentFilterWithScheme(
 /// A [ProgressToken] used for reporting progress while the server is analyzing.
 final analyzingProgressToken = ProgressToken.t2('ANALYZING');
 
-/// A [TextDocumentFilterWithScheme] for Dart file.
-final dartFiles =
-    TextDocumentFilterWithScheme(language: 'dart', scheme: 'file');
-
 final emptyWorkspaceEdit = WorkspaceEdit();
 
 final fileOperationRegistrationOptions = FileOperationRegistrationOptions(
@@ -122,6 +118,9 @@ abstract class CustomMethods {
   static const publishFlutterOutline =
       Method('dart/textDocument/publishFlutterOutline');
   static const super_ = Method('dart/textDocument/super');
+  static const dartTextDocumentContent = Method('dart/textDocumentContent');
+  static const dartTextDocumentContentDidChange =
+      Method('dart/textDocumentContentDidChange');
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
   // should be relying on it as we now support proper $/progress events.

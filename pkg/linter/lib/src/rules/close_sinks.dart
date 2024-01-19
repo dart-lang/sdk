@@ -54,6 +54,12 @@ void someFunctionOK() {
 }
 ```
 
+**Known limitations**
+
+This rule does not track all patterns of Sink instantiations and
+closures. See [linter#1381](https://github.com/dart-lang/linter/issues/1381)
+for more information.
+
 ''';
 
 bool _isSink(DartType type) => type.implementsInterface('Sink', 'dart.core');

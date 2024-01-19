@@ -17,7 +17,7 @@ class CiderDocumentSymbolsComputer {
 
   Future<List<DocumentSymbol>> compute2(String filePath) async {
     var result = <DocumentSymbol>[];
-    var resolvedUnit = await _fileResolver.resolve2(path: filePath);
+    var resolvedUnit = await _fileResolver.resolve(path: filePath);
 
     final computer = DartUnitOutlineComputer(resolvedUnit);
     final outline = computer.compute();

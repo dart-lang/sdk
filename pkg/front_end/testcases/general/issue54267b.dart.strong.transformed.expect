@@ -1,0 +1,64 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
+//   const A(this.value);
+//                ^^^^^
+//
+// pkg/front_end/testcases/general/issue54267b.dart:9:13: Error: Final field 'value2' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int value2;
+//             ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::A> values = invalid-expression "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
+  const A(this.value);
+               ^^^^^";
+  final field core::int value2 = null;
+  enum-element static const field self::A a = invalid-expression "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
+  const A(this.value);
+               ^^^^^";
+  enum-element static const field self::A b = invalid-expression "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
+  const A(this.value);
+               ^^^^^";
+  const constructor •(core::int #index, core::String #name, dynamic value) → self::A
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
+  const A(this.value);
+               ^^^^^"
+    ;
+  method _enumToString() → core::String
+    return "A.${this.{core::_Enum::_name}{core::String}}";
+}
+static method fn(self::A a) → core::int
+  return block {
+    core::int #t2;
+    #L1:
+    switch(a) /* isExplicitlyExhaustive, self::A */ {
+      #L2:
+      case invalid-expression "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
+  const A(this.value);
+               ^^^^^":
+        {
+          #t2 = 0;
+          break #L1;
+        }
+      #L3:
+      case invalid-expression "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
+  const A(this.value);
+               ^^^^^":
+        {
+          #t2 = 1;
+          break #L1;
+        }
+    }
+  } =>#t2;
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue54267b.dart:
+- A. (from org-dartlang-testcase:///issue54267b.dart:10:9)

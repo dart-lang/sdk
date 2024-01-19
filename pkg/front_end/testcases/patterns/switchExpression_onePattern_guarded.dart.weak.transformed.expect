@@ -29,5 +29,5 @@ static method f(dynamic x) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: LogicalExpression @ org-dartlang-testcase:///switchExpression_onePattern_guarded.dart:6:10 -> BoolConstant(true)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///switchExpression_onePattern_guarded.dart:6:15 -> BoolConstant(true)
 Extra constant evaluation: evaluated: 7, effectively constant: 1

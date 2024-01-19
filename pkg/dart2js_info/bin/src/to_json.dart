@@ -51,7 +51,33 @@ class ToJsonCommand extends Command<void> with PrintUsageException {
     var json = AllInfoJsonCodec(isBackwardCompatible: isBackwardCompatible)
         .encode(info);
     String outputFilename = args['out'] ?? '$filename.json';
-    File(outputFilename)
-        .writeAsStringSync(const JsonEncoder.withIndent("  ").convert(json));
+    final sink = File(outputFilename).openWrite();
+    final converterSink = const JsonEncoder.withIndent("  ")
+        .startChunkedConversion(_BufferedStringOutputSink(sink));
+    converterSink.add(json);
+    converterSink.close();
+    await sink.close();
+  }
+}
+
+class _BufferedStringOutputSink implements Sink<String> {
+  StringBuffer buffer = StringBuffer();
+  final StringSink outputSink;
+  static const int _maxLength = 1024 * 1024 * 500;
+
+  _BufferedStringOutputSink(this.outputSink);
+
+  @override
+  void add(String data) {
+    buffer.write(data);
+    if (buffer.length > _maxLength) {
+      outputSink.write(buffer.toString());
+      buffer.clear();
+    }
+  }
+
+  @override
+  void close() {
+    outputSink.write(buffer.toString());
   }
 }

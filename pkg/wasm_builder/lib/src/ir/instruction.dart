@@ -363,7 +363,7 @@ class TableSet implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeByte(0x25);
+    s.writeByte(0x26);
     s.writeUnsigned(table.index);
   }
 }
@@ -375,7 +375,7 @@ class TableGet implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeByte(0x26);
+    s.writeByte(0x25);
     s.writeUnsigned(table.index);
   }
 }

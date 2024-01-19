@@ -7,5 +7,7 @@ class C {
 }
 
 foo() {}
+
 bar() {}
+
 main() {}

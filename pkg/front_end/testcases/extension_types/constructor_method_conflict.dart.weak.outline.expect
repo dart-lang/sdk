@@ -3,17 +3,17 @@ import self as self;
 import "dart:core" as core;
 
 extension type E1(core::int it) {
-  abstract inline-class-member representation-field get it() → core::int;
+  abstract extension-type-member representation-field get it() → core::int;
   method name = self::E1|name;
   method tearoff name = self::E1|get#name;
   constructor name = self::E1|constructor#name;
   constructor tearoff name = self::E1|constructor#_#name#tearOff;
 }
-static inline-class-member method E1|constructor#name(core::int it) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#name(core::int it) → self::E1 /* = core::int */
   ;
-static inline-class-member method E1|constructor#_#name#tearOff(core::int it) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#_#name#tearOff(core::int it) → self::E1 /* = core::int */
   return self::E1|constructor#name(it);
-static inline-class-member method E1|name(lowered final self::E1 /* = core::int */ #this) → void
+static extension-type-member method E1|name(lowered final self::E1 /* = core::int */ #this) → void
   ;
-static inline-class-member method E1|get#name(lowered final self::E1 /* = core::int */ #this) → () → void
+static extension-type-member method E1|get#name(lowered final self::E1 /* = core::int */ #this) → () → void
   return () → void => self::E1|name(#this);

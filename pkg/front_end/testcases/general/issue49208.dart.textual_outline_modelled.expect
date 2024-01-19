@@ -20,4 +20,5 @@ class StatefulWidget {}
 mixin MyMixin<T, W extends StatefulWidget> on State<W> {
   void listenToEvents(Stream<MyModel<T>> stream) {}
 }
+
 typedef MyMixinTypedef = MyMixin<String, MyWidget>;

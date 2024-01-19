@@ -17,6 +17,37 @@ main() {
 @reflectiveTest
 class BinaryExpressionResolutionTest extends PubPackageResolutionTest
     with BinaryExpressionResolutionTestCases {
+  test_eqEq_alwaysBool() async {
+    await assertNoErrorsInCode(r'''
+extension type MyBool(bool it) implements bool {}
+
+class A {
+  MyBool operator ==(_) => MyBool(true);
+}
+
+void f(A a) {
+  a == 0;
+}
+''');
+
+    final node = findNode.binary('a == 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::==::@parameter::_
+    staticType: int
+  staticElement: self::@class::A::@method::==
+  staticInvokeType: MyBool Function(Object)
+  staticType: bool
+''');
+  }
+
   test_eqEq_switchExpression_left() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x) {
@@ -301,6 +332,38 @@ BinaryExpression
   staticElement: <null>
   staticInvokeType: null
   staticType: int?
+''');
+  }
+
+  test_plus_extensionType_int() async {
+    await assertNoErrorsInCode('''
+extension type Int(int i) implements int {
+  Int operator +(int other) {
+    return Int(i + other);
+  }
+}
+
+void f(Int a, int b) {
+  a + b;
+}
+''');
+
+    final node = findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: Int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    parameter: self::@extensionType::Int::@method::+::@parameter::other
+    staticElement: self::@function::f::@parameter::b
+    staticType: int
+  staticElement: self::@extensionType::Int::@method::+
+  staticInvokeType: Int Function(int)
+  staticType: Int
 ''');
   }
 
@@ -742,7 +805,7 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: InvalidType
+  staticType: bool
 ''');
   }
 
@@ -1500,17 +1563,15 @@ BinaryExpression
   }
 
   test_plus_num_context_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 T f<T>() => throw Error();
 g(num a) {
   h(a + f());
 }
 h(int x) {}
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
+    ]);
 
     final node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -1531,8 +1592,7 @@ MethodInvocation
   }
 
   test_plus_other_context_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 abstract class A {
   num operator+(String x);
 }
@@ -1541,10 +1601,9 @@ g(A a) {
   h(a + f());
 }
 h(int x) {}
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
+    ]);
 
     final node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''

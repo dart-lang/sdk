@@ -370,7 +370,16 @@ class Search {
       return _searchReferences_PatternVariable(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
-      return _searchReferences_Local(element, (n) => n is Block, searchedFiles);
+      return _searchReferences_Local(
+          element,
+          (n) =>
+              n is Block ||
+              n is ForElement ||
+              n is FunctionBody ||
+              n is TopLevelVariableDeclaration ||
+              n is SwitchExpression ||
+              n.parent is CompilationUnit,
+          searchedFiles);
     } else if (element is LibraryElement) {
       return _searchReferences_Library(element, searchedFiles);
     } else if (element is ParameterElement) {
@@ -691,7 +700,7 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await _driver.getResult(unitPath);
+      var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = ImportElementReferencesVisitor(element, unitElement);
         unitResult.unit.accept(visitor);
@@ -711,7 +720,7 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     for (CompilationUnitElement unitElement in element.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await _driver.getResult(unitPath);
+      var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         CompilationUnit unit = unitResult.unit;
         for (Directive directive in unit.directives) {
@@ -741,7 +750,7 @@ class Search {
     }
 
     // Prepare the unit.
-    var unitResult = await _driver.getResult(path);
+    var unitResult = await _driver.getResolvedUnit(path);
     if (unitResult is! ResolvedUnitResult) {
       return const <SearchResult>[];
     }
@@ -754,7 +763,14 @@ class Search {
     }
 
     // Prepare the enclosing node.
-    var enclosingNode = node.thisOrAncestorMatching(isRootNode);
+    var enclosingNode = node.thisOrAncestorMatching((node) =>
+        isRootNode(node) || node is ClassMember || node is CompilationUnit);
+    assert(
+      enclosingNode != null && enclosingNode is! CompilationUnit,
+      'Did not find enclosing node for local "${element.name}". '
+      'Perhaps the isRootNode function is missing a condition to locate the '
+      'outermost node where this element is in scope?',
+    );
     if (enclosingNode == null) {
       return const <SearchResult>[];
     }
@@ -834,7 +850,7 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await _driver.getResult(unitPath);
+      var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = _LocalReferencesVisitor({element}, unitElement);
         unitResult.unit.accept(visitor);

@@ -1,0 +1,141 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/combined_member_signature.dart:26:38: Error: A value of type '(Object?, Object?)' can't be returned from a function with return type '(int, Object?)'.
+//  - 'Object' is from 'dart:core'.
+// (int, Object?) testMethod1(E e) => e.method(); // Error
+//                                      ^
+//
+// pkg/front_end/testcases/general/combined_member_signature.dart:27:38: Error: A value of type '(Object?, Object?)' can't be returned from a function with return type '(Object?, int)'.
+//  - 'Object' is from 'dart:core'.
+// (Object?, int) testMethod2(E e) => e.method(); // Error
+//                                      ^
+//
+// pkg/front_end/testcases/general/combined_member_signature.dart:30:38: Error: A value of type '(Object?, Object?)' can't be returned from a function with return type '(int, Object?)'.
+//  - 'Object' is from 'dart:core'.
+// (int, Object?) testGetter1(E e) => e.getter; // Error
+//                                      ^
+//
+// pkg/front_end/testcases/general/combined_member_signature.dart:31:38: Error: A value of type '(Object?, Object?)' can't be returned from a function with return type '(Object?, int)'.
+//  - 'Object' is from 'dart:core'.
+// (Object?, int) testGetter2(E e) => e.getter; // Error
+//                                      ^
+//
+// pkg/front_end/testcases/general/combined_member_signature.dart:35:24: Error: A value of type '(Object?, int)' can't be returned from a function with return type '(int, int)'.
+//  - 'Object' is from 'dart:core'.
+//   e.setter = (a, b) => (a, b as int); // Error
+//                        ^
+//
+// pkg/front_end/testcases/general/combined_member_signature.dart:36:24: Error: A value of type '(int, Object?)' can't be returned from a function with return type '(int, int)'.
+//  - 'Object' is from 'dart:core'.
+//   e.setter = (a, b) => (a as int, b); // Error
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  abstract method method() → (core::Object?, dynamic);
+  abstract get getter() → (core::Object?, dynamic);
+  abstract set setter((core::Object?, dynamic) → (core::int, core::int) f) → void;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  abstract method method() → (dynamic, core::Object?);
+  abstract get getter() → (dynamic, core::Object?);
+  abstract set setter((dynamic, core::Object?) → (core::int, core::int) f) → void;
+}
+abstract class E extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+  abstract member-signature method method() → (core::Object?, core::Object?); -> self::A::method
+  abstract member-signature set setter((core::Object?, core::Object?) → (core::int, core::int) f) → void; -> self::A::setter
+  abstract member-signature get getter() → (core::Object?, core::Object?); -> self::A::getter
+}
+class D extends core::Object implements self::E {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  method method() → (core::int, core::int)
+    return (42, 87);
+  get getter() → (core::int, core::int)
+    return (42, 87);
+  set setter((dynamic, dynamic) → (core::int, core::int) f) → void {}
+}
+static method testMethod0(self::E e) → (core::Object?, core::Object?)
+  return e.{self::E::method}(){() → (core::Object?, core::Object?)};
+static method testMethod1(self::E e) → (core::int, core::Object?)
+  return invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:26:38: Error: A value of type '(Object?, Object?)' can't be returned from a function with return type '(int, Object?)'.
+ - 'Object' is from 'dart:core'.
+(int, Object?) testMethod1(E e) => e.method(); // Error
+                                     ^" in e.{self::E::method}(){() → (core::Object?, core::Object?)} as{TypeError} (core::int, core::Object?);
+static method testMethod2(self::E e) → (core::Object?, core::int)
+  return invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:27:38: Error: A value of type '(Object?, Object?)' can't be returned from a function with return type '(Object?, int)'.
+ - 'Object' is from 'dart:core'.
+(Object?, int) testMethod2(E e) => e.method(); // Error
+                                     ^" in e.{self::E::method}(){() → (core::Object?, core::Object?)} as{TypeError} (core::Object?, core::int);
+static method testGetter0(self::E e) → (core::Object?, core::Object?)
+  return e.{self::E::getter}{(core::Object?, core::Object?)};
+static method testGetter1(self::E e) → (core::int, core::Object?)
+  return invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:30:38: Error: A value of type '(Object?, Object?)' can't be returned from a function with return type '(int, Object?)'.
+ - 'Object' is from 'dart:core'.
+(int, Object?) testGetter1(E e) => e.getter; // Error
+                                     ^" in e.{self::E::getter}{(core::Object?, core::Object?)} as{TypeError} (core::int, core::Object?);
+static method testGetter2(self::E e) → (core::Object?, core::int)
+  return invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:31:38: Error: A value of type '(Object?, Object?)' can't be returned from a function with return type '(Object?, int)'.
+ - 'Object' is from 'dart:core'.
+(Object?, int) testGetter2(E e) => e.getter; // Error
+                                     ^" in e.{self::E::getter}{(core::Object?, core::Object?)} as{TypeError} (core::Object?, core::int);
+static method testSetter(self::E e) → void {
+  e.{self::E::setter} = (core::Object? a, core::Object? b) → (core::int, core::int) => (a as core::int, b as core::int);
+  e.{self::E::setter} = (core::Object? a, core::Object? b) → (core::int, core::int) => invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:35:24: Error: A value of type '(Object?, int)' can't be returned from a function with return type '(int, int)'.
+ - 'Object' is from 'dart:core'.
+  e.setter = (a, b) => (a, b as int); // Error
+                       ^" in (a, b as core::int) as{TypeError} (core::int, core::int);
+  e.{self::E::setter} = (core::Object? a, core::Object? b) → (core::int, core::int) => invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:36:24: Error: A value of type '(int, Object?)' can't be returned from a function with return type '(int, int)'.
+ - 'Object' is from 'dart:core'.
+  e.setter = (a, b) => (a as int, b); // Error
+                       ^" in (a as core::int, b) as{TypeError} (core::int, core::int);
+}
+static method method(self::E e) → void {
+  hoisted has-declared-initializer core::Object? a;
+  hoisted has-declared-initializer core::Object? b;
+  {
+    final synthesized(core::Object?, core::Object?) #0#0 = e.{self::E::method}(){() → (core::Object?, core::Object?)};
+    a = #0#0.$1{core::Object?};
+    b = #0#0.$2{core::Object?};
+  }
+  self::expect(42, a);
+  self::expect(87, b);
+  hoisted has-declared-initializer core::Object? c;
+  hoisted has-declared-initializer core::Object? d;
+  {
+    final synthesized(core::Object?, core::Object?) #1#0 = e.{self::E::getter}{(core::Object?, core::Object?)};
+    c = #1#0.$1{core::Object?};
+    d = #1#0.$2{core::Object?};
+  }
+  self::expect(42, c);
+  self::expect(87, d);
+  e.{self::E::setter} = (dynamic a, dynamic b) → (core::int, core::int) => (42, 87);
+}
+static method main() → dynamic {
+  self::method(new self::D::•());
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+
+Extra constant evaluation status:
+Evaluated: RecordLiteral @ org-dartlang-testcase:///combined_member_signature.dart:20:26 -> RecordConstant(const (42, 87))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///combined_member_signature.dart:21:28 -> RecordConstant(const (42, 87))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///combined_member_signature.dart:46:40 -> RecordConstant(const (42, 87))
+Extra constant evaluation: evaluated: 58, effectively constant: 3

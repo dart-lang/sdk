@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.17
-
 import 'dart:developer';
 
 import 'package:test/test.dart';
@@ -33,11 +31,17 @@ enum E with M implements I1, I2 {
   e2,
   e3;
 
+  @override
   int interfaceMethod1() => 42;
+  @override
   int get interfaceGetter1 => 42;
+  @override
   set interfaceSetter1(int value) {}
+  @override
   int interfaceMethod2() => 42;
+  @override
   int get interfaceGetter2 => 42;
+  @override
   set interfaceSetter2(int value) {}
 
   static int staticMethod() => 42;
@@ -59,6 +63,7 @@ enum F<T> {
 
   final T value;
 
+  @override
   String toString() => 'OVERRIDE ${value.toString()}';
 }
 
@@ -126,7 +131,7 @@ final tests = <IsolateTest>[
         'interfaceSetter2=',
         'staticMethod',
         'staticGetter',
-        'staticSetter='
+        'staticSetter=',
       ]),
     );
     expect(
@@ -189,7 +194,7 @@ final tests = <IsolateTest>[
   },
   (VmService service, _) async {
     // Ensure we can evaluate instance getters and methods.
-    dynamic e1 = await service.evaluate(isolateId, enumEClsId, 'e1');
+    final dynamic e1 = await service.evaluate(isolateId, enumEClsId, 'e1');
     expect(e1, isA<InstanceRef>());
     final e1Id = e1.id!;
 
@@ -231,7 +236,7 @@ final tests = <IsolateTest>[
   },
   (VmService service, _) async {
     // Ensure we can invoke instance methods.
-    dynamic e1 = await service.evaluate(isolateId, enumEClsId, 'e1');
+    final dynamic e1 = await service.evaluate(isolateId, enumEClsId, 'e1');
     expect(e1, isA<InstanceRef>());
     final e1Id = e1.id!;
 
@@ -254,7 +259,7 @@ final tests = <IsolateTest>[
   },
   (VmService service, _) async {
     // Ensure we can invoke static methods.
-    dynamic result =
+    final dynamic result =
         await service.evaluate(isolateId, enumEClsId, 'staticMethod()');
     expect(result, isA<InstanceRef>());
     expect(result.valueAsString, '42');
@@ -291,7 +296,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'enhanced_enum_test.dart',

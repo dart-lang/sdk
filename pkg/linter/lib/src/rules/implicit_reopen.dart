@@ -10,8 +10,8 @@ import '../analyzer.dart';
 
 const _desc = r"Don't implicitly reopen classes.";
 
-/// todo(pq): link out to (upcoming) dart.dev docs.
-/// https://github.com/dart-lang/site-www/issues/4833
+// TODO(pq): link out to (upcoming) dart.dev docs.
+// https://github.com/dart-lang/site-www/issues/4833
 const _details = r'''
 Using an `interface`, `base`, `final`, or `sealed` modifier on a class,
 or a `base` modifier on a mixin,

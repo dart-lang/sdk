@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -169,7 +171,14 @@ abstract class TypeSchemaEnvironmentTestBase {
               declaredReturnTypeNode,
               typeParameterNodesToInfer,
               returnContextTypeNode,
-              isNonNullableByDefault: isNonNullableByDefault);
+              isNonNullableByDefault: isNonNullableByDefault,
+              typeOperations: new OperationsCfe(typeSchemaEnvironment,
+                  nullability: Nullability.nullable,
+                  fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
+                      fieldNameInfo: {}, individualPropertyReasons: {}),
+                  typeCacheNonNullable: {},
+                  typeCacheNullable: {},
+                  typeCacheLegacy: {}));
       if (formalTypeNodes == null) {
         inferredTypeNodes = typeSchemaEnvironment.choosePreliminaryTypes(
             gatherer, typeParameterNodesToInfer, inferredTypeNodes,

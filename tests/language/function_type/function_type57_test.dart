@@ -208,7 +208,7 @@ class U57<T> {
     Expect.isFalse(f1 is F1<bool>);
     Expect.isTrue(confuse(f1) is F1<int>);
     Expect.isFalse(confuse(f1) is F1<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x1 = (f1 as dynamic);
       });
@@ -257,7 +257,7 @@ class U57<T> {
     Expect.isFalse(f2 is F2<bool>);
     Expect.isTrue(confuse(f2) is F2<int>);
     Expect.isFalse(confuse(f2) is F2<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x2 = (f2 as dynamic);
       });
@@ -378,7 +378,7 @@ class U57<T> {
     Expect.isFalse(f6 is F6<bool>);
     Expect.isTrue(confuse(f6) is F6<int>);
     Expect.isFalse(confuse(f6) is F6<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x6 = (f6 as dynamic);
       });
@@ -599,7 +599,7 @@ class U57<T> {
     Expect.isFalse(f14 is F14<bool>);
     Expect.isTrue(confuse(f14) is F14<int>);
     Expect.isFalse(confuse(f14) is F14<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x14 = (f14 as dynamic);
       });
@@ -648,7 +648,7 @@ class U57<T> {
     Expect.isFalse(f15 is F15<bool>);
     Expect.isTrue(confuse(f15) is F15<int>);
     Expect.isFalse(confuse(f15) is F15<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x15 = (f15 as dynamic);
       });
@@ -842,7 +842,7 @@ class U57<T> {
 }
 
 void main() {
-  new U57().runTests();
-  new U57<int>(tIsInt: true).runTests();
-  new U57<bool>(tIsBool: true).runTests();
+  U57().runTests();
+  U57<int>(tIsInt: true).runTests();
+  U57<bool>(tIsBool: true).runTests();
 }

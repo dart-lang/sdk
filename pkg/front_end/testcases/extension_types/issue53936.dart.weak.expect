@@ -1,0 +1,47 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef TypeAlias<T extends core::Object? = dynamic> = T%;
+extension type E<T extends core::Object? = dynamic>(core::Object? o) {
+  abstract extension-type-member representation-field get o() → core::Object?;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+  constructor cast = self::E|constructor#cast;
+  constructor tearoff cast = self::E|constructor#_#cast#tearOff;
+}
+extension type TypeOf<T extends core::Object? = dynamic>(T% _) {
+  abstract extension-type-member representation-field get _() → T%;
+  constructor • = self::TypeOf|constructor#;
+  constructor tearoff • = self::TypeOf|constructor#_#new#tearOff;
+}
+static extension-type-member method E|constructor#<T extends core::Object? = dynamic>(core::Object? o) → self::E<self::E|constructor#::T%> /* = core::Object? */ {
+  lowered final self::E<self::E|constructor#::T%> /* = core::Object? */ #this = o;
+  return #this;
+}
+static extension-type-member method E|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Object? o) → self::E<self::E|constructor#_#new#tearOff::T%>% /* = core::Object? */
+  return self::E|constructor#<self::E|constructor#_#new#tearOff::T%>(o);
+static extension-type-member method E|constructor#cast<T extends core::Object? = dynamic>(core::Object? v) → self::E<self::E|constructor#cast::T%> /* = core::Object? */ {
+  lowered final self::E<self::E|constructor#cast::T%> /* = core::Object? */ #this;
+  #this = self::E|constructor#<self::E|constructor#cast::T%>(v as self::E|constructor#cast::T%);
+  return #this;
+}
+static extension-type-member method E|constructor#_#cast#tearOff<T extends core::Object? = dynamic>(core::Object? v) → self::E<self::E|constructor#_#cast#tearOff::T%>% /* = core::Object? */
+  return self::E|constructor#cast<self::E|constructor#_#cast#tearOff::T%>(v);
+static extension-type-member method TypeOf|constructor#<T extends core::Object? = dynamic>(self::TypeOf|constructor#::T% _) → self::TypeOf<self::TypeOf|constructor#::T%> /* = self::TypeOf|constructor#::T% */ {
+  lowered final self::TypeOf<self::TypeOf|constructor#::T%> /* = self::TypeOf|constructor#::T% */ #this = _;
+  return #this;
+}
+static extension-type-member method TypeOf|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::TypeOf|constructor#_#new#tearOff::T% _) → self::TypeOf<self::TypeOf|constructor#_#new#tearOff::T%>% /* = self::TypeOf|constructor#_#new#tearOff::T% */
+  return self::TypeOf|constructor#<self::TypeOf|constructor#_#new#tearOff::T%>(_);
+static method main() → void {
+  #C1;
+  #C1;
+  #C1;
+  #C1;
+  #C1;
+}
+
+constants  {
+  #C1 = "a"
+}

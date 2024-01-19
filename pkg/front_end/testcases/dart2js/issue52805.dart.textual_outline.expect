@@ -1,0 +1,3 @@
+use(o) {}
+
+void Function() f(List<int> list) {}

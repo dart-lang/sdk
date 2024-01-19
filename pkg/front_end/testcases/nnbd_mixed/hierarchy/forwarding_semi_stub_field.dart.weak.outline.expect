@@ -126,17 +126,17 @@ class Class extends self::Super implements self::Interface {
   synthetic constructor •() → self::Class
     ;
   abstract get field1() → core::int;
-  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ field1(covariant-by-declaration core::num #externalFieldValue) → void
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ field1(covariant-by-declaration synthesized core::num #externalFieldValue) → void
     return super.{self::Super::field1} = #externalFieldValue;
   abstract get field2() → core::String;
-  forwarding-stub forwarding-semi-stub set /* signature-type: (core::String) → void */ field2(covariant-by-declaration core::num #externalFieldValue) → void
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::String) → void */ field2(covariant-by-declaration synthesized core::num #externalFieldValue) → void
     return super.{self::Super::field2} = #externalFieldValue;
   abstract get field3() → core::int;
-  abstract set field3(core::int #externalFieldValue) → void;
+  abstract set field3(synthesized core::int #externalFieldValue) → void;
   abstract get field4() → core::int;
-  abstract set field4(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract set field4(covariant-by-declaration synthesized core::int #externalFieldValue) → void;
   abstract get field5() → core::num;
-  abstract set field5(covariant-by-declaration core::num #externalFieldValue) → void;
+  abstract set field5(covariant-by-declaration synthesized core::num #externalFieldValue) → void;
 }
 static method main() → dynamic
   ;

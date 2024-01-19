@@ -1,0 +1,7 @@
+extension type E1(F1 it) {}
+
+typedef F1 = F1;
+
+typedef F2 = F2;
+
+extension type E2(F2 it) {}

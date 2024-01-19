@@ -55,12 +55,12 @@ static method method2() → dynamic {
   yield* [1];
   ^^^^^"{<invalid>}.*(<core::int>[1]);
 }
-static method method3() → dynamic async /* futureValueType= dynamic */ {
+static method method3() → dynamic async /* emittedValueType= dynamic */ {
   invalid-expression "pkg/front_end/testcases/general/invalid_yield.dart:17:3: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
   yield 1;
   ^";
 }
-static method method4() → dynamic async /* futureValueType= dynamic */ {
+static method method4() → dynamic async /* emittedValueType= dynamic */ {
   invalid-expression "pkg/front_end/testcases/general/invalid_yield.dart:21:3: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
   yield [1];
   ^";

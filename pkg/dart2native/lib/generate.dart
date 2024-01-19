@@ -33,6 +33,7 @@ Future<void> generateNative({
   String verbosity = 'all',
   List<String> extraOptions = const [],
   String? nativeAssets,
+  String? resourcesFile,
 }) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
@@ -78,6 +79,7 @@ Future<void> generateNative({
         '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
       ],
       nativeAssets: nativeAssets,
+      resourcesFile: resourcesFile,
     );
     await _forwardOutput(kernelResult);
     if (kernelResult.exitCode != 0) {

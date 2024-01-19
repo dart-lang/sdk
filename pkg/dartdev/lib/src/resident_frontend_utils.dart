@@ -8,8 +8,8 @@ import 'dart:io' show File, FileSystemException, InternetAddress, Socket;
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
-import 'analytics.dart';
 import 'resident_frontend_constants.dart';
+import 'unified_analytics.dart';
 
 /// The Resident Frontend Compiler's shutdown command.
 final residentServerShutdownCommand = jsonEncode(

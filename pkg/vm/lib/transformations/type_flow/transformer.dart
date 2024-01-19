@@ -9,6 +9,8 @@ import 'dart:core' hide Type;
 
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     show StaticWeakReferences;
+import 'package:front_end/src/fasta/kernel/resource_identifier.dart'
+    as ResourceIdentifiers;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
@@ -260,14 +262,24 @@ class CleanupAnnotations extends RecursiveVisitor {
     }
   }
 
+  /// We do not want to eliminate
+  /// * `pragma`s
+  /// * Protobuf annotations
+  /// * `ResourceIdentifier` annotations
+  ///
+  /// as we need these later in the pipeline.
   bool _keepAnnotation(Expression annotation) {
     if (annotation is ConstantExpression) {
       final constant = annotation.constant;
       if (constant is InstanceConstant) {
         final cls = constant.classNode;
-        return (cls == pragmaClass) ||
-            (protobufHandler != null &&
-                protobufHandler!.usesAnnotationClass(cls));
+        final usesProtobufAnnotation =
+            protobufHandler?.usesAnnotationClass(cls) ?? false;
+        bool usesResourceIdentifier =
+            ResourceIdentifiers.isResourceIdentifier(cls);
+        return cls == pragmaClass ||
+            usesProtobufAnnotation ||
+            usesResourceIdentifier;
       }
     }
     return false;
@@ -315,6 +327,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final UnboxingInfoMetadataRepository _unboxingInfoMetadata;
   final UnboxingInfoManager _unboxingInfo;
   final Class _intClass;
+  final TFClass _intTFClass;
   late final Constant _nullConstant = NullConstant();
 
   AnnotateKernel(Component component, this._typeFlowAnalysis, this.hierarchy,
@@ -329,7 +342,9 @@ class AnnotateKernel extends RecursiveVisitor {
         _tableSelectorMetadata = TableSelectorMetadataRepository(),
         _closureIdMetadata = ClosureIdMetadataRepository(),
         _unboxingInfoMetadata = UnboxingInfoMetadataRepository(),
-        _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
+        _intClass = _typeFlowAnalysis.environment.coreTypes.intClass,
+        _intTFClass = _typeFlowAnalysis.hierarchyCache
+            .getTFClass(_typeFlowAnalysis.environment.coreTypes.intClass) {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_inferredArgTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
@@ -365,7 +380,7 @@ class AnnotateKernel extends RecursiveVisitor {
       concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
 
       if (concreteClass == null) {
-        isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intClass);
+        isInt = type.isSubtypeOf(_intTFClass);
       }
 
       if (type is ConcreteType && !nullable) {
@@ -468,7 +483,8 @@ class AnnotateKernel extends RecursiveVisitor {
         // here), then the receiver cannot be _Smi. This heuristic covers most
         // cases, so we skip these to avoid showering the AST with annotations.
         if (interfaceTarget == null ||
-            hierarchy.isSubtypeOf(_intClass, interfaceTarget.enclosingClass!)) {
+            hierarchy.isSubInterfaceOf(
+                _intClass, interfaceTarget.enclosingClass!)) {
           markReceiverNotInt = true;
         }
       }
@@ -1064,6 +1080,12 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
     if (declaration is Class) {
       shaker.addClassUsedInType(declaration);
     }
+    node.visitChildren(this);
+  }
+
+  @override
+  visitExtensionType(ExtensionType node) {
+    shaker.addUsedExtensionTypeDeclaration(node.extensionTypeDeclaration);
     node.visitChildren(this);
   }
 }
@@ -1783,36 +1805,53 @@ class _TreeShakerPass2 extends RemovingTransformer {
     }
   }
 
-  final _libraryExportDeps = <Library, Set<Library>>{};
+  final _removedLibraryDeps = <Library, Set<Library>>{};
   final _additionalDeps = <Library>{};
 
   // Returns set of export dependencies of given library.
-  Set<Library> getLibraryExportDeps(Library node) =>
-      _libraryExportDeps[node] ??= calculateLibraryExportDeps(node);
+  Set<Library> getRemovedLibraryDeps(Library node) {
+    final deps = _removedLibraryDeps[node];
+    if (deps != null) return deps;
+    calculateRemovedLibraryDeps(node);
+    return _removedLibraryDeps[node]!;
+  }
 
-  Set<Library> calculateLibraryExportDeps(Library node) {
-    final processed = <Library>{};
-    final worklist = <Library>[];
-    final deps = <Library>{};
-    worklist.add(node);
-    processed.add(node);
+  void calculateRemovedLibraryDeps(Library node) {
+    final worklist = <Library>[node];
+    final deadPredecessors = <Library, Set<Library>>{node: {}};
+    final liveSuccessors = <Library, Set<Library>>{};
     while (worklist.isNotEmpty) {
       final lib = worklist.removeLast();
+      final deps = liveSuccessors[lib] = {};
       for (final dep in lib.dependencies) {
-        if (!dep.isExport) {
-          continue;
-        }
         final targetLibrary = dep.targetLibrary;
-        if (processed.add(targetLibrary)) {
-          if (shaker.isLibraryUsed(targetLibrary)) {
-            deps.add(targetLibrary);
+        if (shaker.isLibraryUsed(targetLibrary)) {
+          // Live import.
+          deps.add(targetLibrary);
+        } else {
+          final targetDeps = _removedLibraryDeps[targetLibrary];
+          if (targetDeps != null) {
+            // Reuse previously calculated live import.
+            deps.addAll(targetDeps);
           } else {
-            worklist.add(targetLibrary);
+            var preds = deadPredecessors[targetLibrary];
+            if (preds == null) {
+              deadPredecessors[targetLibrary] = preds = {};
+              worklist.add(targetLibrary);
+            }
+            preds.add(lib);
+            preds.addAll(deadPredecessors[lib]!);
           }
         }
       }
     }
-    return deps;
+    deadPredecessors.forEach((lib, preds) {
+      final successors = liveSuccessors[lib]!;
+      for (final pred in preds) {
+        liveSuccessors[pred]!.addAll(successors);
+      }
+    });
+    _removedLibraryDeps.addAll(liveSuccessors);
   }
 
   @override
@@ -1858,7 +1897,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
       LibraryDependency node, TreeNode? removalSentinel) {
     final targetLibrary = node.targetLibrary;
     if (!shaker.isLibraryUsed(targetLibrary)) {
-      _additionalDeps.addAll(getLibraryExportDeps(targetLibrary));
+      _additionalDeps.addAll(getRemovedLibraryDeps(targetLibrary));
       return removalSentinel!;
     }
     return node;
@@ -2070,9 +2109,9 @@ class _TreeShakerPass2 extends RemovingTransformer {
       }
       node.memberDescriptors.length = writeIndex;
 
-      // We only retain the extension type declaration if at least one member is
-      // retained.
-      assert(node.memberDescriptors.isNotEmpty);
+      // The procedures of the extension type declaration are never used.
+      node.procedures.clear();
+
       return node;
     }
     return removalSentinel!;

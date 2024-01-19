@@ -7,4 +7,5 @@ final class ImplementsFinalClass implements A {}
 enum EnumImplementsFinalMixin implements A { x }
 
 base mixin MixinOnA on A {}
+
 base mixin MixinOnAB on A, B {}

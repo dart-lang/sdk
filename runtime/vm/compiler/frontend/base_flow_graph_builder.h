@@ -22,6 +22,7 @@ class InlineExitCollector;
 namespace kernel {
 
 class BaseFlowGraphBuilder;
+struct InferredTypeMetadata;
 class TryCatchBlock;
 
 class Fragment {
@@ -405,12 +406,6 @@ class BaseFlowGraphBuilder {
     return stack_ == nullptr ? 0 : stack_->definition()->temp_index() + 1;
   }
 
-  // Builds the graph for an invocation of '_asFunctionInternal'.
-  //
-  // 'signatures' contains the pair [<dart signature>, <native signature>].
-  Fragment BuildFfiAsFunctionInternalCall(const TypeArguments& signatures,
-                                          bool is_leaf);
-
   Fragment AllocateObject(TokenPosition position,
                           const Class& klass,
                           intptr_t argument_count);
@@ -461,7 +456,8 @@ class BaseFlowGraphBuilder {
                        TokenPosition position,
                        intptr_t type_args_len,
                        intptr_t argument_count,
-                       const Array& argument_names);
+                       const Array& argument_names,
+                       const InferredTypeMetadata* result_type = nullptr);
 
   // Pops function type arguments, instantiator type arguments, dst_type, and
   // value; and type checks value against the type arguments.

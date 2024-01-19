@@ -14,13 +14,13 @@ final class _Closure implements Function {
 
   @override
   bool operator ==(Object other) {
-    if (other is! _Closure) {
+    if (other is! Function) {
       return false;
     }
     return _equals(this, other);
   }
 
-  external static bool _equals(_Closure a, _Closure b);
+  external static bool _equals(Function a, Function b);
 
   // Simple hash code for now, we can optimize later
   @override
@@ -28,7 +28,7 @@ final class _Closure implements Function {
 
   // Support dynamic tear-off of `.call` on functions
   @pragma("wasm:entry-point")
-  _Closure get call => this;
+  Function get call => this;
 
   @override
   String toString() => 'Closure: $runtimeType';

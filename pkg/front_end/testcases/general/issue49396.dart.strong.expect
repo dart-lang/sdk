@@ -5,7 +5,7 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-static method main() → dynamic async /* futureValueType= dynamic */ {
+static method main() → dynamic async /* emittedValueType= dynamic */ {
   FutureOr<core::Object>future1 = asy::Future::value<core::Object?>();
   core::Object x = await future1 /* runtimeCheckType= asy::Future<core::Object> */ ;
   core::Object o = asy::Future::value<core::Object?>();

@@ -75,6 +75,35 @@ class ConvertClassToEnumTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.use_enums;
 
+  Future<void> test_minimal_documentationComments() async {
+    await resolveTestCode('''
+class E {
+  /// C0.
+  static const E c0 = E._(0);
+
+  /// C1.
+  static const E c1 = E._(1);
+
+  final int value;
+
+  const E._(this.value);
+}
+''');
+    await assertHasFix('''
+enum E {
+  /// C0.
+  c0._(0),
+
+  /// C1.
+  c1._(1);
+
+  final int value;
+
+  const E._(this.value);
+}
+''');
+  }
+
   Future<void> test_minimal_intField_privateClass() async {
     await resolveTestCode('''
 class _E {

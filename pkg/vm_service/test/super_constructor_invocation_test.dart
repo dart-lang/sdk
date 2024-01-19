@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.17
-
 import 'dart:developer';
 
 import 'package:test/test.dart';
@@ -16,8 +14,8 @@ class S<T> {
   num? n;
   T? t;
   String constrName;
-  S({this.n, this.t}) : constrName = "S";
-  S.named({this.t, this.n}) : constrName = "S.named";
+  S({this.n, this.t}) : constrName = 'S';
+  S.named({this.t, this.n}) : constrName = 'S.named';
 }
 
 class C<T> extends S<T> {
@@ -29,8 +27,8 @@ class C<T> extends S<T> {
 }
 
 class R<T> {
-  final f1;
-  var v1;
+  final dynamic f1;
+  dynamic v1;
   num i1;
   T t1;
   R(this.f1, this.v1, this.i1, this.t1);
@@ -51,7 +49,7 @@ void testMain() {
 late final String isolateId;
 late final String rootLibId;
 
-createInstance(VmService service, String expr) async {
+Future<Response> createInstance(VmService service, String expr) async {
   return await service.evaluate(
     isolateId,
     rootLibId,
@@ -60,8 +58,12 @@ createInstance(VmService service, String expr) async {
   );
 }
 
-evaluateGetter(VmService service, String instanceId, String getter) async {
-  dynamic result = await service.evaluate(isolateId, instanceId, getter);
+Future<Obj> evaluateGetter(
+  VmService service,
+  String instanceId,
+  String getter,
+) async {
+  final dynamic result = await service.evaluate(isolateId, instanceId, getter);
   return await service.getObject(isolateId, result.id);
 }
 
@@ -139,7 +141,7 @@ final tests = <IsolateTest>[
     expect(result.json['name'], 'int');
   },
   (VmService service, _) async {
-    dynamic instance = await createInstance(service, 'B(1, 2, 3, 4)');
+    final dynamic instance = await createInstance(service, 'B(1, 2, 3, 4)');
     dynamic result = await evaluateGetter(service, instance.id, 'f1');
     expect(result.valueAsString, '1');
     result = await evaluateGetter(service, instance.id, 'v1');
@@ -173,7 +175,7 @@ final tests = <IsolateTest>[
   }
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'super_constructor_invocation_test.dart',

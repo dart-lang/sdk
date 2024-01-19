@@ -105,11 +105,11 @@ abstract class Super extends core::Object {
     : super core::Object::•()
     ;
   abstract get extendedAbstractField() → core::int;
-  abstract set extendedAbstractField(core::int #externalFieldValue) → void;
+  abstract set extendedAbstractField(synthesized core::int #externalFieldValue) → void;
   abstract get extendedAbstractImplementedField() → core::int;
-  abstract set extendedAbstractImplementedField(core::int #externalFieldValue) → void;
+  abstract set extendedAbstractImplementedField(synthesized core::int #externalFieldValue) → void;
   abstract get extendedAbstractImplementedMultipleField() → core::int;
-  abstract set extendedAbstractImplementedMultipleField(core::int #externalFieldValue) → void;
+  abstract set extendedAbstractImplementedMultipleField(synthesized core::int #externalFieldValue) → void;
 }
 class Interface1 extends core::Object {
   field core::int extendedConcreteImplementedField = 0;

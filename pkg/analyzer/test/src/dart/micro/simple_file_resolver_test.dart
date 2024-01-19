@@ -824,9 +824,6 @@ byteStore
 
 @reflectiveTest
 class FileResolverTest extends FileResolutionTest {
-  @override
-  bool get isNullSafetyEnabled => true;
-
   test_analysisOptions_default_fromPackageUri() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', r'''
 analyzer:
@@ -1858,23 +1855,8 @@ void f(int? a) {
     );
   }
 
-  test_nullSafety_notEnabled() async {
-    newFile('/workspace/dart/test/BUILD', '');
-
-    await assertErrorsInCode(r'''
-void f(int? a) {}
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
-    ]);
-
-    assertType(
-      findElement.parameter('a').type,
-      'int*',
-    );
-  }
-
   test_part_notInLibrary_libraryDoesNotExist() async {
-    // TODO(scheglov) Should report CompileTimeErrorCode.URI_DOES_NOT_EXIST
+    // TODO(scheglov): Should report CompileTimeErrorCode.URI_DOES_NOT_EXIST
     await assertNoErrorsInCode(r'''
 part of 'a.dart';
 ''');
@@ -2379,7 +2361,7 @@ void f(A a) {}
 
     // We started resolution from the library, and then followed to the part.
     // So, the part knows its library, there is no need to discover it.
-    // TODO(scheglov) Use textual dump
+    // TODO(scheglov): Use textual dump
     // _assertDiscoveredLibraryForParts([]);
   }
 
@@ -2403,7 +2385,7 @@ void func() {
 }
 ''');
 
-    // TODO(scheglov) Use textual dump
+    // TODO(scheglov): Use textual dump
     final fsState = fileResolver.fsState!;
     final testState = fsState.getExisting(testFile)!;
     final testKind = testState.kind as PartFileKind;
@@ -2428,7 +2410,7 @@ void func() {
 }
 ''');
 
-    // TODO(scheglov) Use textual dump
+    // TODO(scheglov): Use textual dump
     final fsState = fileResolver.fsState!;
     final testState = fsState.getExisting(testFile)!;
     final testKind = testState.kind as PartFileKind;
@@ -2441,7 +2423,7 @@ void func() {
     // No resolved files yet.
     _assertResolvedFiles([]);
 
-    await resolveFile2(testFile.path);
+    await resolveFile2(testFile);
     var result1 = result;
 
     // The file was resolved.
@@ -2451,7 +2433,7 @@ void func() {
     expect(fileResolver.cachedResults, contains(testFile.path));
 
     // Ask again, no changes, not resolved.
-    await resolveFile2(testFile.path);
+    await resolveFile2(testFile);
     _assertResolvedFiles([]);
 
     // The same result was returned.
@@ -2462,7 +2444,7 @@ void func() {
     fileResolver.changeFiles([a_path]);
 
     // The was a change to a file, no matter which, resolve again.
-    await resolveFile2(testFile.path);
+    await resolveFile2(testFile);
     _assertResolvedFiles([testFile]);
 
     // Get should get a new result.
@@ -2499,16 +2481,10 @@ void func() {
     newFile('/workspace/dart/bbb/BUILD', '');
 
     var aPath = '/workspace/dart/aaa/lib/a.dart';
-    var aResult = await assertErrorsInFile(aPath, r'''
-num a = 0;
-int b = a;
-''', []);
+    var aResult = await assertErrorsInFile(aPath, '', []);
 
     var bPath = '/workspace/dart/bbb/lib/a.dart';
-    var bResult = await assertErrorsInFile(bPath, r'''
-num a = 0;
-int b = a;
-''', []);
+    var bResult = await assertErrorsInFile(bPath, '', []);
 
     // Both files use the same (default) analysis options.
     // So, when we resolve 'bbb', we can reuse the context after 'aaa'.
@@ -2577,7 +2553,7 @@ import 'dart:math';
   }
 
   Future<Element> _findElement(int offset, String filePath) async {
-    var resolvedUnit = await fileResolver.resolve2(path: filePath);
+    var resolvedUnit = await fileResolver.resolve(path: filePath);
     var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
     var element = getElementOfNode(node);
     return element!;

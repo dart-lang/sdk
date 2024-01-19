@@ -1,0 +1,40 @@
+class AssertIdentical {
+  const AssertIdentical(Object? v1, Object? v2)
+      : assert(identical(v1, v2), "${(v1, v2)}");
+  const AssertIdentical.not(Object? v1, Object? v2)
+      : assert(!identical(v1, v2), "${(v1, v2)}");
+}
+
+class C<T> {
+  C(this.value);
+  C.named(this.value);
+  C.redirect(T value) : this.named(value);
+  factory C.factory(T value) => C<T>(value);
+  factory C.factoryRedirect(T value) = C<T>;
+  final T value;
+}
+
+extension type E<T>(T value) {
+  E.named(this.value);
+  E.redirect(T value) : this.named(value);
+  factory E.factory(T value) => E<T>(value);
+  factory E.factoryRedirect(T value) = E<T>;
+}
+
+typedef ACI = C<int>;
+
+typedef ACN<T extends num> = C<T>;
+
+typedef ACR<T> = C<T>;
+
+typedef AEI = E<int>;
+
+typedef AEN<T extends num> = E<T>;
+
+typedef AER<T> = E<T>;
+
+void checkClass() {}
+
+void checkExtensionType() {}
+
+void main() {}

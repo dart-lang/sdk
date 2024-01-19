@@ -139,6 +139,8 @@ class DartUtils {
   // is not a string value an API error is propagated.
   static const char* GetNativeStringArgument(Dart_NativeArguments args,
                                              intptr_t index);
+  static const char* GetNativeTypedDataArgument(Dart_NativeArguments args,
+                                                intptr_t index);
   static Dart_Handle SetIntegerField(Dart_Handle handle,
                                      const char* name,
                                      int64_t val);

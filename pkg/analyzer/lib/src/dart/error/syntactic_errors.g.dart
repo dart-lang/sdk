@@ -14,6 +14,9 @@
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
+//
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
 
@@ -192,6 +195,11 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY,
   ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
   ParserErrorCode.EXPECTED_EXTENSION_BODY,
+  ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE,
+  ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR,
+  ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS,
+  ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS,
+  ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -213,6 +221,19 @@ class ParserErrorCode extends ErrorCode {
     'ABSTRACT_EXTERNAL_FIELD',
     "Fields can't be declared both 'abstract' and 'external'.",
     correctionMessage: "Try removing the 'abstract' or 'external' keyword.",
+  );
+
+  static const ParserErrorCode ABSTRACT_FINAL_BASE_CLASS = ParserErrorCode(
+    'ABSTRACT_FINAL_BASE_CLASS',
+    "An 'abstract' class can't be declared as both 'final' and 'base'.",
+    correctionMessage: "Try removing either the 'final' or 'base' keyword.",
+  );
+
+  static const ParserErrorCode ABSTRACT_FINAL_INTERFACE_CLASS = ParserErrorCode(
+    'ABSTRACT_FINAL_INTERFACE_CLASS',
+    "An 'abstract' class can't be declared as both 'final' and 'interface'.",
+    correctionMessage:
+        "Try removing either the 'final' or 'interface' keyword.",
   );
 
   static const ParserErrorCode ABSTRACT_LATE_FIELD = ParserErrorCode(
@@ -797,6 +818,15 @@ class ParserErrorCode extends ErrorCode {
         "'external'.",
   );
 
+  static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS =
+      ParserErrorCode(
+    'EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS',
+    "An external constructor can't initialize fields.",
+    correctionMessage:
+        "Try removing the field initializers, or removing the keyword "
+        "'external'.",
+  );
+
   static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER =
       ParserErrorCode(
     'EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER',
@@ -875,6 +905,20 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXTRANEOUS_MODIFIER = ParserErrorCode(
     'EXTRANEOUS_MODIFIER',
     "Can't have modifier '{0}' here.",
+    correctionMessage: "Try removing '{0}'.",
+  );
+
+  static const ParserErrorCode EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE =
+      ParserErrorCode(
+    'EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE',
+    "Can't have modifier '{0}' in an extension type.",
+    correctionMessage: "Try removing '{0}'.",
+  );
+
+  static const ParserErrorCode EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR =
+      ParserErrorCode(
+    'EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR',
+    "Can't have modifier '{0}' in a primary constructor.",
     correctionMessage: "Try removing '{0}'.",
   );
 

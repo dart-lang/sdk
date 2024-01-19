@@ -48,7 +48,7 @@ import "dart:async" as asy;
 import "dart:async" show FutureOr;
 import "dart:collection" show LinkedHashMap, LinkedHashSet;
 
-static method main() → dynamic async /* futureValueType= dynamic */ {
+static method main() → dynamic async /* emittedValueType= dynamic */ {
   core::Map<core::int, core::bool> m = <core::int, core::bool>{};
   core::Set<core::int> s = block {
     final core::Set<core::int> #t1 = new col::_Set::•<core::int>();
@@ -79,17 +79,17 @@ static method main() → dynamic async /* futureValueType= dynamic */ {
   col::LinkedHashSet<core::int> flhs2 = await self::lhsfun2() /* runtimeCheckType= asy::Future<col::LinkedHashSet<core::int>> */ ;
   col::LinkedHashMap<core::int, core::bool> flhm2 = await self::lhmfun2() /* runtimeCheckType= asy::Future<col::LinkedHashMap<core::int, core::bool>> */ ;
 }
-static method mapfun() → asy::Future<core::Map<core::int, core::bool>> async /* futureValueType= core::Map<core::int, core::bool> */ 
+static method mapfun() → asy::Future<core::Map<core::int, core::bool>> async /* emittedValueType= core::Map<core::int, core::bool> */ 
   return <core::int, core::bool>{};
-static method setfun() → asy::Future<core::Set<core::int>> async /* futureValueType= core::Set<core::int> */ 
+static method setfun() → asy::Future<core::Set<core::int>> async /* emittedValueType= core::Set<core::int> */ 
   return block {
     final core::Set<core::int> #t4 = new col::_Set::•<core::int>();
   } =>#t4;
-static method iterablefun() → asy::Future<core::Iterable<core::int>> async /* futureValueType= core::Iterable<core::int> */ 
+static method iterablefun() → asy::Future<core::Iterable<core::int>> async /* emittedValueType= core::Iterable<core::int> */ 
   return block {
     final core::Set<core::int> #t5 = new col::_Set::•<core::int>();
   } =>#t5;
-static method lhsfun() → asy::Future<col::LinkedHashSet<core::int>> async /* futureValueType= col::LinkedHashSet<core::int> */ 
+static method lhsfun() → asy::Future<col::LinkedHashSet<core::int>> async /* emittedValueType= col::LinkedHashSet<core::int> */ 
   return invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:32:46: Error: A value of type 'Set<dynamic>' can't be returned from an async function with return type 'Future<LinkedHashSet<int>>'.
  - 'Set' is from 'dart:core'.
  - 'Future' is from 'dart:async'.
@@ -98,7 +98,7 @@ Future<LinkedHashSet<int>> lhsfun() async => {};
                                              ^" in ( block {
     final core::Set<dynamic> #t6 = new col::_Set::•<dynamic>();
   } =>#t6) as{TypeError} col::LinkedHashSet<core::int>;
-static method lhmfun() → asy::Future<col::LinkedHashMap<core::int, core::bool>> async /* futureValueType= col::LinkedHashMap<core::int, core::bool> */ 
+static method lhmfun() → asy::Future<col::LinkedHashMap<core::int, core::bool>> async /* emittedValueType= col::LinkedHashMap<core::int, core::bool> */ 
   return invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:33:52: Error: A value of type 'Map<dynamic, dynamic>' can't be returned from an async function with return type 'Future<LinkedHashMap<int, bool>>'.
  - 'Map' is from 'dart:core'.
  - 'Future' is from 'dart:async'.

@@ -167,7 +167,7 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
 bool FlowGraph::ShouldReorderBlocks(const Function& function,
                                     bool is_optimized) {
   return is_optimized && FLAG_reorder_basic_blocks &&
-         !function.is_intrinsic() && !function.IsFfiTrampoline();
+         !function.is_intrinsic() && !function.IsFfiCallbackTrampoline();
 }
 
 GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
@@ -2555,6 +2555,10 @@ void FlowGraph::EliminateEnvironments() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+      // This check is inconsistent with the flow graph checker. The flow graph
+      // checker does not allow for not having an env if the block is not
+      // inside a try-catch.
+      // See FlowGraphChecker::VisitInstruction.
       if (!current->ComputeCanDeoptimize() &&
           !current->ComputeCanDeoptimizeAfterCall() &&
           (!current->MayThrow() || !current->GetBlock()->InsideTryBlock())) {

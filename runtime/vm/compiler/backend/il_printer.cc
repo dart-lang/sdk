@@ -144,6 +144,12 @@ class IlTestPrinter : public AllStatic {
       if (defn->ssa_temp_index() != -1) {
         writer->PrintProperty("v", defn->ssa_temp_index());
       }
+
+      if (defn->HasType()) {
+        writer->OpenObject("T");
+        defn->Type()->PrintTo(writer);
+        writer->CloseObject();
+      }
     }
     writer->PrintProperty("o", instr->DebugName());
     if (auto branch = instr->AsBranch()) {
@@ -898,6 +904,15 @@ void StaticCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
+void CachableIdempotentCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf(" %s<%" Pd "> ", String::Handle(function().name()).ToCString(),
+            type_args_len());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    if (i > 0) f->AddString(", ");
+    ArgumentValueAt(i)->PrintTo(f);
+  }
+}
+
 void LoadLocalInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s @%d", local().name().ToCString(), local().index().value());
 }
@@ -1102,6 +1117,9 @@ void DoubleTestOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
       break;
     case MethodRecognizer::kDouble_getIsInfinite:
       f->AddString("IsInfinite ");
+      break;
+    case MethodRecognizer::kDouble_getIsNegative:
+      f->AddString("IsNegative ");
       break;
     default:
       UNREACHABLE();
@@ -1365,9 +1383,9 @@ void NativeEntryInstr::PrintTo(BaseTextBuffer* f) const {
 void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString(" pointer=");
   InputAt(TargetAddressIndex())->PrintTo(f);
-  if (marshaller_.PassTypedData()) {
-    f->AddString(", typed_data=");
-    InputAt(TypedDataIndex())->PrintTo(f);
+  if (marshaller_.ReturnsCompound()) {
+    f->AddString(", compound_return_typed_data=");
+    InputAt(CompoundReturnTypedDataIndex())->PrintTo(f);
   }
   intptr_t def_index = 0;
   for (intptr_t arg_index = 0; arg_index < marshaller_.num_args();

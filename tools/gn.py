@@ -7,6 +7,7 @@ import argparse
 import os
 import platform
 import subprocess
+import socket
 import sys
 import time
 import utils
@@ -178,20 +179,18 @@ def UseSysroot(args, gn_args):
     # Don't use the sysroot if we're given another sysroot.
     if TargetSysroot(args):
         return False
-    # Our Debian Jesse sysroot doesn't work with GCC 9
+    # Don't use the sysroot if we're given another toolchain.
     if not gn_args['is_clang']:
         return False
-    # Our Debian Jesse sysroot has incorrect annotations on realloc.
-    if gn_args['is_ubsan']:
-        return False
-    # Our Debian Jesse sysroot doesn't support RISCV
-    if gn_args['target_cpu'] in ['riscv32', 'riscv64']:
+    # Fuchsia's Linux sysroot doesn't support RISCV32
+    if gn_args['target_cpu'] in ['riscv32']:
         return False
     # Otherwise use the sysroot.
     return True
 
 
-def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
+def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
+             git_version):
     gn_args = {}
 
     host_os = HostOsForGn(HOST_OS)
@@ -235,6 +234,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
             gn_args['arm_version'] = 7
             gn_args['arm_float_abi'] = floatabi
             gn_args['arm_use_neon'] = True
+    if gn_args['target_os'] == 'fuchsia':
+        gn_args['fuchsia_target_api_level'] = 15
 
     gn_args['is_debug'] = mode == 'debug'
     gn_args['is_release'] = mode == 'release'
@@ -317,8 +318,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         gn_args['use_goma'] = False
         gn_args['goma_dir'] = None
 
-    if gn_args['target_os'] == 'mac' and gn_args['use_goma']:
-        gn_args['mac_use_goma_rbe'] = True
+    gn_args['use_rbe'] = args.rbe
 
     # Code coverage requires -O0 to be set.
     if enable_code_coverage:
@@ -329,6 +329,10 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         gn_args['debug_optimization_level'] = args.debug_opt_level
 
     gn_args['verify_sdk_hash'] = verify_sdk_hash
+    gn_args['dart_version_git_info'] = git_version
+
+    if args.codesigning_identity != '':
+        gn_args['codesigning_identity'] = args.codesigning_identity
 
     return gn_args
 
@@ -407,6 +411,12 @@ def ProcessOptions(args):
     if HOST_OS != 'win' and args.use_crashpad:
         print("Crashpad is only supported on Windows")
         return False
+    if os.environ.get('RBE_cfg') == None and \
+       socket.getfqdn().endswith('.corp.google.com') and \
+       sys.platform in ['linux']:
+        print('You can speed up your build by following: go/dart-rbe')
+        if not args.rbe and not args.goma:
+            print('Goma is no longer enabled by default since RBE is ready.')
     return True
 
 
@@ -426,15 +436,26 @@ def ide_switch(host_os):
 def AddCommonGnOptionArgs(parser):
     """Adds arguments that will change the default GN arguments."""
 
+    use_rbe = os.environ.get('RBE_cfg') != None
+
     parser.add_argument('--goma', help='Use goma', action='store_true')
     parser.add_argument('--no-goma',
                         help='Disable goma',
                         dest='goma',
                         action='store_false')
-    parser.set_defaults(goma=True)
+    parser.set_defaults(goma=not use_rbe and sys.platform not in ['linux'])
 
+    parser.add_argument('--rbe', help='Use rbe', action='store_true')
+    parser.add_argument('--no-rbe',
+                        help='Disable rbe',
+                        dest='rbe',
+                        action='store_false')
+    parser.set_defaults(rbe=use_rbe)
+
+    # Disable git hashes when remote compiling to ensure cache hits of the final
+    # output artifacts when nothing has changed.
     parser.add_argument('--verify-sdk-hash',
-                        help='Enable SDK hash checks (default)',
+                        help='Enable SDK hash checks',
                         dest='verify_sdk_hash',
                         action='store_true')
     parser.add_argument('-nvh',
@@ -442,7 +463,18 @@ def AddCommonGnOptionArgs(parser):
                         help='Disable SDK hash checks',
                         dest='verify_sdk_hash',
                         action='store_false')
-    parser.set_defaults(verify_sdk_hash=True)
+    parser.set_defaults(verify_sdk_hash=not use_rbe)
+
+    parser.add_argument('--git-version',
+                        help='Enable git commit in version',
+                        dest='git_version',
+                        action='store_true')
+    parser.add_argument('-ngv',
+                        '--no-git-version',
+                        help='Disable git commit in version',
+                        dest='git_version',
+                        action='store_false')
+    parser.set_defaults(git_version=not use_rbe)
 
     parser.add_argument('--clang', help='Use Clang', action='store_true')
     parser.add_argument('--no-clang',
@@ -511,6 +543,10 @@ def AddCommonGnOptionArgs(parser):
                         default=False,
                         dest='use_mallinfo2',
                         action='store_true')
+    parser.add_argument('--codesigning-identity',
+                        help='Sign executables using the given identity.',
+                        default='',
+                        type=str)
 
 
 def AddCommonConfigurationArgs(parser):
@@ -593,7 +629,8 @@ def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
     # See dartbug.com/32364
     command = [gn, 'gen', out_dir]
     gn_args = ToCommandLine(
-        ToGnArgs(args, mode, arch, target_os, sanitizer, args.verify_sdk_hash))
+        ToGnArgs(args, mode, arch, target_os, sanitizer, args.verify_sdk_hash,
+                 args.git_version))
     gn_args += GetGNArgs(args)
     if args.ide:
         command.append(ide_switch(HOST_OS))

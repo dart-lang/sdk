@@ -93,6 +93,7 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
       await getSuggestions(
         path: testFile.path,
         completionOffset: completionOffset,
+        maxResults: 1 << 10,
       );
 
       filterResults(spec.source);

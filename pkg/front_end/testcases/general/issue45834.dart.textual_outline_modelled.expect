@@ -1,7 +1,11 @@
 // @dart = 2.6
+
 Function<X extends Function(Function<T>())>() foo4() => throw 42;
+
 Function<X extends Function<T>()>() foo3() => throw 42;
+
 Function<X extends Function<T>()>() get corge1 => throw 42;
+
 Function<X extends Function<T>()>() quuz1 = throw 42;
 
 class A1<X extends Function<T>()> {
@@ -16,8 +20,7 @@ class A1<X extends Function<T>()> {
 
 class A2<X extends void Function<Y extends Function<T>()>()> {}
 
-class A3<
-    X extends Function(void Function<Y extends Function(Function<T>())>())> {}
+class A3< X extends Function(void Function<Y extends Function(Function<T>())>())> {}
 
 class B1 {}
 
@@ -30,12 +33,19 @@ extension E1<X extends Function<T>()> on B1 {
 }
 
 foo1(Function<X extends Function<T>()>() f) {}
+
 foo2(Function<X extends Function(Function<T>())>() f) {}
+
 main() {}
+
 typedef F1 = void Function<X extends void Function<T>()>();
+
 typedef F2 = void Function<X extends Function(void Function<T>())>();
+
 typedef F3<X extends Function<T>()> = Function();
+
 typedef F4<X extends Function<Y extends Function<T>()>()> = Function();
-typedef F5<X extends Function(Function<Y extends Function(Function<T>())>())>
-    = Function();
+
+typedef F5<X extends Function(Function<Y extends Function(Function<T>())>())> = Function();
+
 void set grault1(Function<X extends Function<T>()>() value) {}

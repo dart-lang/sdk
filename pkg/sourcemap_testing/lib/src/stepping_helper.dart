@@ -1,4 +1,5 @@
 import 'dart:convert' show jsonDecode;
+import 'dart:ffi' show Abi;
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
@@ -443,12 +444,14 @@ File? _cachedD8File;
 Directory? _cachedSdkRoot;
 File getD8File() {
   File attemptFileFromDir(Directory dir) {
+    final arch = Abi.current().toString().split('_')[1];
     if (Platform.isWindows) {
-      return File('${dir.path}${Platform.pathSeparator}d8/windows/d8.exe');
+      return File(
+          '${dir.path}${Platform.pathSeparator}d8/windows/$arch/d8.exe');
     } else if (Platform.isLinux) {
-      return File('${dir.path}${Platform.pathSeparator}d8/linux/d8');
+      return File('${dir.path}${Platform.pathSeparator}d8/linux/$arch/d8');
     } else if (Platform.isMacOS) {
-      return File('${dir.path}${Platform.pathSeparator}d8/macos/d8');
+      return File('${dir.path}${Platform.pathSeparator}d8/macos/$arch/d8');
     }
     throw UnsupportedError('Unsupported platform.');
   }

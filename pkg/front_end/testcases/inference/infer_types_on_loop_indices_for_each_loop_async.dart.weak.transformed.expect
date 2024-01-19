@@ -44,7 +44,7 @@ class Bar<T extends asy::Stream<core::String>> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T>
     : super core::Object::•()
     ;
-  method foo(covariant-by-class self::Bar::T t) → dynamic async /* futureValueType= dynamic */ {
+  method foo(covariant-by-class self::Bar::T t) → dynamic async /* emittedValueType= dynamic */ {
     {
       synthesized self::Bar::T :stream = t;
       synthesized asy::_StreamIterator<core::String>? :for-iterator = new asy::_StreamIterator::•<core::String>(:stream);
@@ -67,7 +67,7 @@ class Baz<T extends core::Object? = dynamic, E extends asy::Stream<self::Baz::T%
   synthetic constructor •() → self::Baz<self::Baz::T%, self::Baz::E, self::Baz::S>
     : super core::Object::•()
     ;
-  method foo(covariant-by-class self::Baz::S t) → dynamic async /* futureValueType= dynamic */ {
+  method foo(covariant-by-class self::Baz::S t) → dynamic async /* emittedValueType= dynamic */ {
     {
       synthesized self::Baz::S :stream = t;
       synthesized asy::_StreamIterator<self::Baz::T%>? :for-iterator = new asy::_StreamIterator::•<self::Baz::T%>(:stream);
@@ -91,7 +91,7 @@ abstract class MyStream<T extends core::Object? = dynamic> extends asy::Stream<s
   static factory •<T extends core::Object? = dynamic>() → self::MyStream<self::MyStream::•::T%>
     return throw "";
 }
-static method test() → dynamic async /* futureValueType= dynamic */ {
+static method test() → dynamic async /* emittedValueType= dynamic */ {
   self::MyStream<self::Foo> myStream = self::MyStream::•<self::Foo>();
   {
     synthesized self::MyStream<self::Foo> :stream = myStream;

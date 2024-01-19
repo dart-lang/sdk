@@ -8,6 +8,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
+#include "vm/constants_base.h"
 #include "vm/growable_array.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -18,6 +19,13 @@
 #endif
 #if !defined(FFI_UNIT_TESTS)
 #include "vm/object.h"
+#endif
+
+#if !defined(FFI_UNIT_TESTS)
+#define UNREACHABLE_THIS() FATAL("Unreachable code with: %s", ToCString())
+#else
+// No Zone-less ToCString() in tests.
+#define UNREACHABLE_THIS() UNREACHABLE()
 #endif
 
 namespace dart {
@@ -110,23 +118,37 @@ class NativeType : public ZoneAllocated {
   virtual bool IsExpressibleAsRepresentation() const { return false; }
 
   // Unboxed Representation if it exists.
-  virtual Representation AsRepresentation() const { UNREACHABLE(); }
+  virtual Representation AsRepresentation() const { UNREACHABLE_THIS(); }
 
   // Unboxed Representation, over approximates if needed.
-  Representation AsRepresentationOverApprox(Zone* zone_) const {
-    const auto& widened = WidenTo4Bytes(zone_);
-    return widened.AsRepresentation();
-  }
+  Representation AsRepresentationOverApprox(Zone* zone_) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
-  virtual bool Equals(const NativeType& other) const { UNREACHABLE(); }
+  virtual bool Equals(const NativeType& other) const { UNREACHABLE_THIS(); }
 
   // Split representation in two.
-  virtual NativeType& Split(Zone* zone, intptr_t index) const { UNREACHABLE(); }
+  virtual NativeType& Split(Zone* zone, intptr_t index) const {
+    UNREACHABLE_THIS();
+  }
 
   // If this is a 8 or 16 bit int, returns a 32 bit container.
   // Otherwise, return original representation.
   const NativeType& WidenTo4Bytes(Zone* zone) const;
+  // If this is a 8, 16 or 32 bit int, returns a 64 bit container.
+  // Otherwise, return original representation.
+  const NativeType& WidenTo8Bytes(Zone* zone) const;
+  const NativeType& Extend(Zone* zone, ExtensionStrategy extension) const {
+    switch (extension) {
+      case kNotExtended:
+        return *this;
+      case kExtendedTo4:
+        return WidenTo4Bytes(zone);
+      case kExtendedTo8:
+        return WidenTo8Bytes(zone);
+      default:
+        UNREACHABLE();
+    }
+  }
 
   virtual void PrintTo(BaseTextBuffer* f,
                        bool multi_line = false,
@@ -166,6 +188,14 @@ enum PrimitiveType {
   kFloat,
   kDouble,
   kHalfDouble,  // When doubles are split over two 32 bit locations.
+  kInt24,
+  kUint24,
+  kInt40,
+  kUint40,
+  kInt48,
+  kUint48,
+  kInt56,
+  kUint56,
   kVoid,
   // TODO(37470): Add packed data structures.
 };

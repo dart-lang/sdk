@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void main() {
-  // todo(pq): re-enable when we're reading from DEPS or from a stable published version
+  // TODO(pq): re-enable when we're reading from DEPS or from a stable published version
   // see: https://github.com/dart-lang/linter/issues/4756
 
   // group('machine output tests', () {

@@ -18,6 +18,10 @@ void main() {
   testStore();
   testToString();
   testRange();
+  testRangeArrayOfPointer();
+  testRangeArrayOfArray();
+  testRangeArrayOfStruct();
+  testRangeArrayOfAbiSpecificInt();
 }
 
 void testSizeOf() {
@@ -87,4 +91,71 @@ void testRange() {
   Expect.throws(() => array[8]);
   Expect.throws(() => array[8] = 0);
   calloc.free(pointer);
+}
+
+void testRangeArrayOfPointer() {
+  final pointer = calloc<StructWithArrayOfPointer>();
+  final struct = pointer.ref;
+  final array = struct.a0;
+  array[0] = Pointer.fromAddress(123);
+  Expect.equals(123, array[0].address);
+  array[7] = nullptr;
+  Expect.equals(0, array[7].address);
+  Expect.throws(() => array[-1]);
+  Expect.throws(() => array[-1] = nullptr);
+  Expect.throws(() => array[8]);
+  Expect.throws(() => array[8] = nullptr);
+  calloc.free(pointer);
+}
+
+final class StructWithArrayOfPointer extends Struct {
+  @Array(8)
+  external Array<Pointer<Uint8>> a0;
+}
+
+void testRangeArrayOfArray() {
+  final pointer = calloc<StructWithArrayArray>();
+  final struct = pointer.ref;
+  final array = struct.a0;
+  array[0] = array[1];
+  Expect.throws(() => array[-1]);
+  Expect.throws(() => array[-1] = array[1]);
+  Expect.throws(() => array[2]);
+  Expect.throws(() => array[2] = array[1]);
+  calloc.free(pointer);
+}
+
+final class StructWithArrayArray extends Struct {
+  @Array(2, 2)
+  external Array<Array<Uint8>> a0;
+}
+
+void testRangeArrayOfStruct() {
+  final pointer = calloc<Struct4BytesInlineArrayMultiDimensionalInt>();
+  final struct = pointer.ref;
+  final array = struct.a0[0];
+  print(array[0]);
+  Expect.throws(() => array[-1]);
+  Expect.throws(() => array[2]);
+  calloc.free(pointer);
+}
+
+void testRangeArrayOfAbiSpecificInt() {
+  final pointer = calloc<StructWithArrayOfAbiSpecificInt>();
+  final struct = pointer.ref;
+  final array = struct.a0;
+  array[0] = 1;
+  Expect.equals(1, array[0]);
+  array[7] = 7;
+  Expect.equals(7, array[7]);
+  Expect.throws(() => array[-1]);
+  Expect.throws(() => array[-1] = 0);
+  Expect.throws(() => array[8]);
+  Expect.throws(() => array[8] = 0);
+  calloc.free(pointer);
+}
+
+final class StructWithArrayOfAbiSpecificInt extends Struct {
+  @Array(8)
+  external Array<Size> a0;
 }

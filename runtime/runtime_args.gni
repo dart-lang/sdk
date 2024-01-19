@@ -59,13 +59,7 @@ declare_args() {
   dart_version_git_info = true
 
   # Controls whether the VM is built as a static library or a shared library.
-  if (is_fuchsia) {
-    # Allow for deduping the VM between standalone, flutter_runner and dart_runner.
-    # TODO(dartbug.com/42473): Use shared_library once elf_loader is untangled.
-    dart_component_kind = "static_library"
-  } else {
-    dart_component_kind = "static_library"
-  }
+  dart_component_kind = "static_library"
 
   # Whether the VM includes the kernel service in all modes (debug, release,
   # product).
@@ -93,5 +87,6 @@ declare_args() {
   build_analyze_snapshot =
       (target_os == "linux" || target_os == "android" ||
        target_os == "fuchsia") &&
-      (dart_target_arch == "x64" || dart_target_arch == "arm64")
+      (dart_target_arch == "x64" || dart_target_arch == "arm64" ||
+       dart_target_arch == "riscv64")
 }

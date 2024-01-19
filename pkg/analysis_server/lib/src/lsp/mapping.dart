@@ -16,7 +16,9 @@ import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
@@ -26,9 +28,9 @@ import 'package:analyzer/source/source_range.dart' as server;
 import 'package:analyzer/src/dart/analysis/search.dart' as server
     show DeclarationKind;
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:collection/collection.dart';
-import 'package:path/path.dart' as path;
 
 const languageSourceName = 'dart';
 
@@ -49,6 +51,10 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
     lsp.DiagnosticTag.Deprecated
   ],
 };
+
+/// The value to subtract relevance from to get the correct sortText for a
+/// completion item.
+final sortTextMaxValue = int.parse('9' * maximumRelevance.toString().length);
 
 /// A regex used for splitting the display text in a completion so that
 /// filterText only includes the symbol name and not any additional text (such
@@ -103,13 +109,13 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
 
 /// Create a [WorkspaceEdit] that renames [oldPath] to [newPath].
 WorkspaceEdit createRenameEdit(
-    path.Context pathContext, String oldPath, String newPath) {
+    ClientUriConverter uriConverter, String oldPath, String newPath) {
   final changes =
       <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
   final rename = RenameFile(
-    oldUri: pathContext.toUri(oldPath),
-    newUri: pathContext.toUri(newPath),
+    oldUri: uriConverter.toClientUri(oldPath),
+    newUri: uriConverter.toClientUri(newPath),
   );
 
   final renameUnion =
@@ -393,7 +399,10 @@ CompletionDetail getCompletionDetail(
 }) {
   final element = suggestion.element;
   var parameters = element?.parameters;
-  var returnType = element?.returnType;
+  // Prefer the element return type (because it's available for things like
+  // overrides) but fall back to the suggestion if there isn't one (to handle
+  // records).
+  var returnType = element?.returnType ?? suggestion.returnType;
 
   // Extract the type from setters to be shown in the place a return type
   // would usually be shown.
@@ -540,7 +549,7 @@ lsp.LocationLink? navigationTargetToLocationLink(
 }
 
 lsp.Diagnostic pluginToDiagnostic(
-  path.Context pathContext,
+  ClientUriConverter uriConverter,
   server.LineInfo? Function(String) getLineInfo,
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
@@ -551,7 +560,7 @@ lsp.Diagnostic pluginToDiagnostic(
   if (contextMessages != null && contextMessages.isNotEmpty) {
     relatedInformation = contextMessages
         .map((message) => pluginToDiagnosticRelatedInformation(
-            pathContext, getLineInfo, message))
+            uriConverter, getLineInfo, message))
         .whereNotNull()
         .toList();
   }
@@ -589,11 +598,11 @@ lsp.Diagnostic pluginToDiagnostic(
 }
 
 lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
-    path.Context pathContext,
+    ClientUriConverter uriConverter,
     server.LineInfo? Function(String) getLineInfo,
     plugin.DiagnosticMessage message) {
   final file = message.location.file;
-  final uri = pathContext.toUri(file);
+  final uri = uriConverter.toClientUri(file);
   final lineInfo = getLineInfo(file);
   // We shouldn't get context messages for something we can't get a LineInfo for
   // but if we did, it's better to omit the context than fail to send the errors.
@@ -632,18 +641,20 @@ lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
 /// Converts a numeric relevance to a sortable string.
 ///
 /// The servers relevance value is a number with highest being best. LSP uses a
-/// a string sort on the `sortText` field. Subtracting the relevance from a large
-/// number will produce text that will sort correctly.
+/// a string sort on the `sortText` field. Subtracting the relevance from a
+/// large number will produce text that will sort correctly.
 ///
 /// Relevance can be 0, so it's important to subtract from a number like 999
 /// and not 1000 or the 0 relevance items will sort at the top instead of the
 /// bottom.
 ///
-/// 555 -> 9999999 - 555 -> 9 999 444
-///  10 -> 9999999 -  10 -> 9 999 989
-///   1 -> 9999999 -   1 -> 9 999 998
-///   0 -> 9999999 -   0 -> 9 999 999
-String relevanceToSortText(int relevance) => (9999999 - relevance).toString();
+/// 1000000 -> 9999999 - 1000000 -> 8 999 999
+///     555 -> 9999999 -     555 -> 9 999 444
+///      10 -> 9999999 -      10 -> 9 999 989
+///       1 -> 9999999 -       1 -> 9 999 998
+///       0 -> 9999999 -       0 -> 9 999 999
+String relevanceToSortText(int relevance) =>
+    (sortTextMaxValue - relevance).toString();
 
 /// Creates a SnippetTextEdit for a set of edits using Linked Edit Groups.
 ///
@@ -702,6 +713,7 @@ lsp.CompletionItem snippetToCompletionItem(
   LineInfo lineInfo,
   Position position,
   Snippet snippet,
+  CompletionListItemDefaults? defaults,
 ) {
   assert(capabilities.completionSnippets);
 
@@ -751,9 +763,16 @@ lsp.CompletionItem snippetToCompletionItem(
       .firstWhere((edit) => edit.range.start.line == position.line);
   final nonMainEdits = mainFileEdits.where((edit) => edit != mainEdit).toList();
 
+  // Capture any default combined range. If there are different insert/replace
+  // ranges just take `null` because snippets always use the same ranges and
+  // if defaults are different ours can't possibly be redundant.
+  final defaultRange =
+      defaults?.editRange?.map((ranges) => null, (range) => range);
+  final hasDefaultEditRange = mainEdit.range == defaultRange;
+
   return lsp.CompletionItem(
     label: snippet.label,
-    filterText: snippet.prefix,
+    filterText: snippet.prefix.orNullIfSameAs(snippet.label),
     kind: lsp.CompletionItemKind.Snippet,
     command: command,
     documentation: documentation != null
@@ -766,8 +785,15 @@ lsp.CompletionItem snippetToCompletionItem(
     sortText: 'zzz${snippet.prefix}',
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
-    textEdit: Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
-    additionalTextEdits: nonMainEdits,
+    // Set textEdit or textEditText depending on whether we need to specify
+    // a range or not.
+    textEdit: hasDefaultEditRange
+        ? null
+        : Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
+    textEditText: hasDefaultEditRange
+        ? mainEdit.newText.orNullIfSameAs(snippet.label)
+        : null,
+    additionalTextEdits: nonMainEdits.nullIfEmpty,
   );
 }
 
@@ -914,7 +940,13 @@ lsp.CompletionItem toCompletionItem(
   // Displayed labels may have additional info appended (for example '(...)' on
   // callables and ` => ` on getters) that should not be included in filterText,
   // so strip anything from the first paren/space.
-  final filterText = label.split(_completionFilterTextSplitPattern).first;
+  //
+  // Only do this if label doesn't start with the pattern, because if it does
+  // (for example for a closure `(a, b) {}`) we'll end up with an empty string
+  // but we should instead use the whole label.
+  final filterText = !label.startsWith(_completionFilterTextSplitPattern)
+      ? label.split(_completionFilterTextSplitPattern).first
+      : label;
 
   // If we're using label details, we also don't want the label to include any
   // additional symbols as noted above, because they will appear in the extra
@@ -1002,7 +1034,7 @@ lsp.CompletionItem toCompletionItem(
         ? CompletionItemLabelDetails(
             detail: labelDetails.truncatedSignature.nullIfEmpty,
             description: labelDetails.autoImportUri,
-          )
+          ).nullIfEmpty
         : null,
     documentation: cleanedDoc != null
         ? asMarkupContentOrString(formats, cleanedDoc)
@@ -1011,9 +1043,8 @@ lsp.CompletionItem toCompletionItem(
         ? true
         : null,
     sortText: relevanceToSortText(suggestion.relevance),
-    filterText: filterText != label
-        ? filterText
-        : null, // filterText uses label if not set
+    filterText:
+        filterText.orNullIfSameAs(label), // filterText uses label if not set
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
@@ -1039,20 +1070,19 @@ lsp.CompletionItem toCompletionItem(
                 ),
               ),
     // When using defaults for edit range, use textEditText.
-    textEditText:
-        hasDefaultEditRange && insertText != label ? insertText : null,
+    textEditText: hasDefaultEditRange ? insertText.orNullIfSameAs(label) : null,
   );
 }
 
 lsp.Diagnostic toDiagnostic(
-  path.Context pathContext,
+  ClientUriConverter uriConverter,
   server.ResolvedUnitResult result,
   server.AnalysisError error, {
   required Set<lsp.DiagnosticTag> supportedTags,
   required bool clientSupportsCodeDescription,
 }) {
   return pluginToDiagnostic(
-    pathContext,
+    uriConverter,
     (_) => result.lineInfo,
     server.newAnalysisError_fromEngine(result, error),
     supportedTags: supportedTags,
@@ -1136,15 +1166,14 @@ List<lsp.DocumentHighlight> toHighlights(
       .map((occurrence) => occurrence.offsets.map((offset) =>
           lsp.DocumentHighlight(
               range: toRange(lineInfo, offset, occurrence.length))))
-      .expand((occurrences) => occurrences)
-      .toSet()
+      .flattenedToSet2
       .toList();
 }
 
-lsp.Location toLocation(path.Context pathContext, server.Location location,
-        server.LineInfo lineInfo) =>
+lsp.Location toLocation(ClientUriConverter uriConverter,
+        server.Location location, server.LineInfo lineInfo) =>
     lsp.Location(
-      uri: pathContext.toUri(location.file),
+      uri: uriConverter.toClientUri(location.file),
       range: toRange(
         lineInfo,
         location.offset,
@@ -1500,10 +1529,10 @@ typedef CompletionDetail = ({
   /// native deprecated tag.
   String detail,
 
-  /// Truncated parameters. Similate to [truncatedSignature] but does not
+  /// Truncated parameters. Similar to [truncatedSignature] but does not
   /// include return types. Used in clients that cannot format signatures
   /// differently and is appended immediately after the completion label. The
-  /// return type is ommitted to reduce noise because this text is not subtle.
+  /// return type is omitted to reduce noise because this text is not subtle.
   String truncatedParams,
 
   /// A signature with truncated params. Used for showing immediately after
@@ -1515,3 +1544,19 @@ typedef CompletionDetail = ({
   /// The URI that will be auto-imported if this item is selected.
   String? autoImportUri,
 });
+
+extension on CompletionItemLabelDetails {
+  /// Returns `null` if no fields are set, otherwise `this`.
+  CompletionItemLabelDetails? get nullIfEmpty =>
+      detail != null || description != null ? this : null;
+}
+
+extension on String? {
+  /// Returns `null` if this string is the same as [other], otherwise `this`.
+  String? orNullIfSameAs(String other) => this == other ? null : this;
+}
+
+extension _ListExtensions<T> on List<T> {
+  /// Returns `null` if this list is empty, otherwise `this`.
+  List<T>? get nullIfEmpty => isEmpty ? null : this;
+}

@@ -14,7 +14,8 @@ import '../elements/entities.dart';
 import '../inferrer/engine.dart' show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_world.dart' show JClosedWorld, LocalLookupImpl;
+import '../js_model/elements.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
@@ -267,8 +268,6 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
       InferredData inferredData) {
-    source.registerLocalLookup(LocalLookupImpl(globalLocalsMap));
-
     source.begin(tag);
     Deferrable<Map<MemberEntity, GlobalTypeInferenceMemberResult>>
         memberResults = source.readDeferrable((source) => source.readMemberMap(
@@ -338,6 +337,12 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         failedAt(
             member,
             "unexpected input: ConstructorBodyElements are created"
+            " after global type inference, no data is available for them."));
+    assert(
+        member is! JParameterStub,
+        failedAt(
+            member,
+            "unexpected input: parameter stub are created"
             " after global type inference, no data is available for them."));
     // TODO(sigmund,johnniwinther): Make it an error to query for results that
     // don't exist..

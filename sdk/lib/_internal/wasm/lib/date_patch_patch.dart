@@ -24,9 +24,12 @@ class DateTime {
         return stringToDartString(match[1]);
       }""", secondsSinceEpoch.toDouble());
 
+  // In Dart, the offset is the difference between local time and UTC,
+  // while in JS, the offset is the difference between UTC and local time.
+  // As a result, the signs are opposite, so we negate the value returned by JS.
   @patch
   static int _timeZoneOffsetInSecondsForClampedSeconds(int secondsSinceEpoch) =>
-      JS<double>("s => new Date(s * 1000).getTimezoneOffset() * 60 ",
+      -JS<double>("s => new Date(s * 1000).getTimezoneOffset() * 60 ",
               secondsSinceEpoch.toDouble())
           .toInt();
 }

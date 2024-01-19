@@ -129,7 +129,7 @@ import 'target.dart';
     newFile('$testPackageLibPath/target.dart', '');
 
     // Make sure the error goes away.
-    // TODO(brianwilkerson) The error does not go away, possibly because the
+    // TODO(brianwilkerson): The error does not go away, possibly because the
     //  file is not being reanalyzed.
     await resolveTestFile();
     assertErrorsInResult([

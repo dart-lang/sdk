@@ -5,14 +5,15 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_dart_text_document_content_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_document_link.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_folding.dart';
@@ -54,6 +55,9 @@ abstract class FeatureRegistration {
   /// for. This information is derived from the [ClientCapabilities].
   ClientDynamicRegistrations get clientDynamic => _context.clientDynamic;
 
+  /// A set of filters for the currently supported Dart files.
+  List<TextDocumentFilterWithScheme> get dartFiles => _context.dartFilters;
+
   /// Gets all dynamic registrations for this feature.
   ///
   /// These registrations should only be used if [supportsDynamic] returns true.
@@ -66,12 +70,12 @@ abstract class FeatureRegistration {
   /// functionality in most handlers.
   List<TextDocumentFilterWithScheme> get fullySupportedTypes {
     return {
-      dartFiles,
+      ...dartFiles,
       ...pluginTypes,
     }.toList();
   }
 
-  /// Types of documents that loaded plugins are interetsed in.
+  /// Types of documents that loaded plugins are interested in.
   List<TextDocumentFilterWithScheme> get pluginTypes => _context.pluginTypes;
 
   /// Whether both the client, and this feature, support dynamic registration.
@@ -85,6 +89,7 @@ class LspFeatures {
   final CodeActionRegistrations codeActions;
   final CompletionRegistrations completion;
   final DefinitionRegistrations definition;
+  final DocumentLinkRegistrations documentLink;
   final DocumentColorRegistrations colors;
   final DocumentHighlightsRegistrations documentHighlight;
   final DocumentSymbolsRegistrations documentSymbol;
@@ -108,6 +113,8 @@ class LspFeatures {
   final WorkspaceDidChangeConfigurationRegistrations
       workspaceDidChangeConfiguration;
   final WorkspaceSymbolRegistrations workspaceSymbol;
+  final DartTextDocumentContentProviderRegistrations
+      dartTextDocumentContentProvider;
 
   LspFeatures(RegistrationContext context)
       : callHierarchy = CallHierarchyRegistrations(context),
@@ -116,6 +123,7 @@ class LspFeatures {
         colors = DocumentColorRegistrations(context),
         completion = CompletionRegistrations(context),
         definition = DefinitionRegistrations(context),
+        documentLink = DocumentLinkRegistrations(context),
         format = FormattingRegistrations(context),
         documentHighlight = DocumentHighlightsRegistrations(context),
         formatOnType = FormatOnTypeRegistrations(context),
@@ -137,7 +145,9 @@ class LspFeatures {
         willRename = WillRenameFilesRegistrations(context),
         workspaceDidChangeConfiguration =
             WorkspaceDidChangeConfigurationRegistrations(context),
-        workspaceSymbol = WorkspaceSymbolRegistrations(context);
+        workspaceSymbol = WorkspaceSymbolRegistrations(context),
+        dartTextDocumentContentProvider =
+            DartTextDocumentContentProviderRegistrations(context);
 
   List<FeatureRegistration> get allFeatures => [
         callHierarchy,
@@ -145,6 +155,7 @@ class LspFeatures {
         codeActions,
         completion,
         definition,
+        documentLink,
         colors,
         documentHighlight,
         documentSymbol,
@@ -175,7 +186,7 @@ class RegistrationContext {
   /// for. This information is derived from the [ClientCapabilities].
   final ClientDynamicRegistrations clientDynamic;
 
-  /// Types of documents that loaded plugins are interetsed in.
+  /// Types of documents that loaded plugins are interested in.
   final List<TextDocumentFilterWithScheme> pluginTypes;
 
   /// The capabilities of the client.
@@ -184,9 +195,19 @@ class RegistrationContext {
   /// The configuration provided by the client.
   final LspClientConfiguration clientConfiguration;
 
+  /// Filters for all Dart files supported by the current server.
+  final List<TextDocumentFilterWithScheme> dartFilters;
+
+  /// Custom schemes supported for Dart files by the current server.
+  ///
+  /// 'file' is implied and not included.
+  final Set<String> customDartSchemes;
+
   RegistrationContext({
     required this.clientCapabilities,
     required this.clientConfiguration,
+    required this.customDartSchemes,
+    required this.dartFilters,
     required this.pluginTypes,
   }) : clientDynamic = ClientDynamicRegistrations(clientCapabilities.raw);
 }

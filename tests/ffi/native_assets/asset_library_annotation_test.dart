@@ -13,6 +13,7 @@
 library asset_test;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -63,6 +64,7 @@ Future<void> selfInvokes() async {
 
 Future<void> runTests() async {
   testFfiTestfunctionsDll();
+  testFfiTestFieldsDll();
 }
 
 @Native<Int32 Function(Int32, Int32)>()
@@ -71,4 +73,100 @@ external int SumPlus42(int a, int b);
 void testFfiTestfunctionsDll() {
   final result2 = SumPlus42(2, 3);
   Expect.equals(2 + 3 + 42, result2);
+
+  final ptr =
+      Native.addressOf<NativeFunction<Int32 Function(Int32, Int32)>>(SumPlus42);
+  final function = ptr.asFunction<int Function(int, int)>();
+  Expect.equals(2 + 3 + 42, function(2, 3));
+}
+
+@Native<Int32>()
+external int globalInt;
+
+@Native<Int32>(symbol: 'globalInt')
+external int get globalIntProcedure;
+
+@Native<Int32>(symbol: 'globalInt')
+external set globalIntProcedure(int value);
+
+@Native<Void Function(Int32)>()
+external void SetGlobalVar(int value);
+
+@Native<Int32 Function()>()
+external int GetGlobalVar();
+
+@Native()
+external final Pointer<Char> globalString;
+
+final class Coord extends Struct {
+  @Double()
+  external double x;
+
+  @Double()
+  external double y;
+
+  external Pointer<Coord> next;
+}
+
+@Native()
+external Coord globalStruct;
+
+@Native<Coord Function()>()
+external Coord GetGlobalStruct();
+
+@Native()
+@Array(3)
+external Array<Int> globalArray;
+
+@Native()
+@Array(3, 3)
+external final Array<Array<Double>> identity3x3;
+
+void testFfiTestFieldsDll() {
+  SetGlobalVar(42);
+  Expect.equals(globalInt, 42);
+  Expect.equals(globalIntProcedure, 42);
+  globalInt = 13;
+  Expect.equals(GetGlobalVar(), 13);
+  globalIntProcedure = 26;
+  Expect.equals(GetGlobalVar(), 26);
+
+  var readString = utf8.decode(globalString.cast<Uint8>().asTypedList(11));
+  Expect.equals(readString, 'Hello Dart!');
+
+  globalStruct
+    ..x = 1
+    ..y = 2
+    ..next = nullptr;
+  final viaFunction = GetGlobalStruct();
+  Expect.equals(viaFunction.x, 1.0);
+  Expect.equals(viaFunction.y, 2.0);
+  Expect.equals(viaFunction.next, nullptr);
+
+  viaFunction.x *= 2;
+  viaFunction.y *= 2;
+  viaFunction.next = Pointer.fromAddress(0xdeadbeef);
+  globalStruct = viaFunction;
+
+  Expect.equals(globalStruct.x, 2.0);
+  Expect.equals(globalStruct.y, 4.0);
+  Expect.equals(globalStruct.next.address, 0xdeadbeef);
+
+  Expect.equals(globalArray[0], 1);
+  Expect.equals(globalArray[1], 2);
+  Expect.equals(globalArray[2], 3);
+
+  globalArray[0] = 42;
+  Expect.equals(globalArray[0], 42);
+  globalArray[0] = 1;
+
+  for (var i = 0; i < 3; i++) {
+    for (var j = 0; j < 3; j++) {
+      if (i == j) {
+        Expect.equals(identity3x3[i][j], 1);
+      } else {
+        Expect.equals(identity3x3[i][j], 0);
+      }
+    }
+  }
 }

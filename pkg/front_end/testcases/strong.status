@@ -10,7 +10,6 @@
 class_modifiers/issue52115/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
 class_modifiers/issue52316/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
 const_functions/const_functions_switch_statements: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53111
-extension_types/representation_type: SemiFuzzCrash # https://github.com/dart-lang/sdk/issues/53270
 
 # POSSIBLY BAD ONES
 dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
@@ -22,6 +21,8 @@ dart2js/sealed_class: semiFuzzFailureOnForceRebuildBodies # can't split because 
 dartdevc/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
+extension_types/inherited_representation_field: semiFuzzFailureOnForceRebuildBodies # privacy.
+extension_types/issue53446: semiFuzzFailureOnForceRebuildBodies # privacy.
 extensions/internal_resolution: semiFuzzFailureOnForceRebuildBodies # unnamed extensions
 extensions/issue40816: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 extensions/nullable_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
@@ -52,9 +53,12 @@ inference_update_2/external_field: semiFuzzFailureOnForceRebuildBodies # privacy
 inference_update_2/field_promotion_and_no_such_method: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/field_promotion_name_conflicts: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
+macros/macro_class: SemiFuzzFailure # Declares macros.
+patterns/exhaustiveness/extension_types: semiFuzzFailureOnForceRebuildBodies # uses sealed
 patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/exhaustiveness/issue52041: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
 patterns/exhaustiveness/issue52048: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+patterns/exhaustiveness/unsound_cast_3_2: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/extension_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
 patterns/extension_tear_off: semiFuzzFailureOnForceRebuildBodies # private extension method.
 patterns/issue51009: semiFuzzFailureOnForceRebuildBodies # private extension method.
@@ -146,6 +150,7 @@ extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # 
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
 extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
+extension_types/with_dependencies/issue53209_1/main: SemiFuzzFailure
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError

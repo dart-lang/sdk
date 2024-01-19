@@ -16,6 +16,7 @@ import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:linter/src/rules.dart';
 
 /// Finds an [Element] with the given [name].
 Element? findChildElement(Element root, String name, [ElementKind? kind]) {
@@ -127,13 +128,14 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   /// Write an analysis options file based on the given arguments.
-  /// TODO(asashour) Use AnalysisOptionsFileConfig
+  // TODO(asashour): Use AnalysisOptionsFileConfig
   void writeTestPackageAnalysisOptionsFile({
     List<String>? lints,
   }) {
     var buffer = StringBuffer();
 
     if (lints != null) {
+      registerLintRules();
       buffer.writeln('linter:');
       buffer.writeln('  rules:');
       for (var lint in lints) {
@@ -141,7 +143,7 @@ class AbstractContextTest with ResourceProviderMixin {
       }
     }
 
-    newFile('$testPackageRootPath/analysis_options.yaml', buffer.toString());
+    newFile(testPackageAnalysisOptionsPath, buffer.toString());
   }
 
   void writeTestPackageConfig({
@@ -188,11 +190,6 @@ class AbstractContextTest with ResourceProviderMixin {
       sdkPath: sdkRoot.path,
     );
   }
-}
-
-mixin WithoutNullSafetyMixin on AbstractContextTest {
-  @override
-  String? get testPackageLanguageVersion => '2.9';
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of

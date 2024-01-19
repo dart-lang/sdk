@@ -17,6 +17,7 @@ class Super {
 }
 
 main() {}
+
 mixin Mixin {
   void extendedConcreteMixedInAbstractImplementedMethod(int i);
   void extendedConcreteMixedInAbstractMethod();

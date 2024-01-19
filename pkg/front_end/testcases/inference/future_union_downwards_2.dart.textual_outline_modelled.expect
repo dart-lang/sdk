@@ -3,9 +3,13 @@ library test;
 import 'dart:async';
 
 Future<List<int>> g2() async {}
+
 Future<List<int>> g3() async {}
+
 Future<List<int>> t2 = f.then((_) => [3]);
+
 Future<int> t1 = f.then((_) => new MyFuture.value('hi'));
+
 MyFuture f = throw '';
 
 class MyFuture<T> implements Future<T> {

@@ -5,7 +5,7 @@
 #include "vm/parser.h"
 #include "vm/flags.h"
 
-#ifndef DART_PRECOMPILED_RUNTIME
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "lib/invocation_mirror.h"
 #include "platform/utils.h"
@@ -368,4 +368,4 @@ ParsedFunction::EnsureDynamicClosureCallVars() {
 
 }  // namespace dart
 
-#endif  // DART_PRECOMPILED_RUNTIME
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

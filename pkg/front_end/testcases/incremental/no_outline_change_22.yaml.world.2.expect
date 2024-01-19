@@ -283,7 +283,7 @@ library from "org-dartlang-test:///main.dart" as main {
       dart._internal::Sort::sort<dart.core::int>(this, let final (dart.core::int, dart.core::int) →? dart.core::int #t4 = compare in #t4 == null ?{(dart.core::int, dart.core::int) → dart.core::int} #C6 : #t4{(dart.core::int, dart.core::int) → dart.core::int});
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([dart.math::Random? random = #C2]) → void {
-      random == null ?{dart.math::Random} random = dart.math::Random::•() : null;
+      random == null ?{dart.math::Random?} random = dart.math::Random::•() : null;
       dart.core::int length = this.{dart.core::List::length}{dart.core::int};
       while (length.{dart.core::num::>}(1){(dart.core::num) → dart.core::bool}) {
         dart.core::int pos = random{dart.math::Random}.{dart.math::Random::nextInt}(length){(dart.core::int) → dart.core::int};
@@ -303,7 +303,7 @@ library from "org-dartlang-test:///main.dart" as main {
       } =>#t5;
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sublist(dart.core::int start, [dart.core::int? end = #C2]) → dart.core::List<dart.core::int> {
       dart.core::int listLength = this.{dart.core::List::length}{dart.core::int};
-      end == null ?{dart.core::int} end = listLength : null;
+      end == null ?{dart.core::int?} end = listLength : null;
       dart.core::RangeError::checkValidRange(start, end{dart.core::int}, listLength);
       return dart.core::List::from<dart.core::int>(this.{dart.collection::ListBase::getRange}(start, end{dart.core::int}){(dart.core::int, dart.core::int) → dart.core::Iterable<dart.core::int>});
     }

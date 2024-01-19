@@ -46,4 +46,12 @@ class S2 extends S1 {}
 class S3 extends S2 {}
 ''');
   }
+
+  test_supertype3() async {
+    await assertNoErrorsInCode('''
+extension type V1(num _) {}
+extension type V2(int _) implements V1 {}
+extension type ET(V2 id) implements V1 {}
+''');
+  }
 }

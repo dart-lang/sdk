@@ -1,0 +1,37 @@
+extension type ET1(int id) {
+  abstract int m;
+}
+
+extension type ET2<T>(T id) {
+  T get getter;
+}
+
+extension type ET3(int id) {
+  void setter(int x);
+}
+
+extension type ET4<T>(T id) {
+  void method();
+}
+
+extension type ET5(int id) {
+  int operator +(int other);
+}
+
+class A {
+  int x();
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+extension type ET6(A id) implements A {
+  int method();
+  int get getter;
+  void set setter(int v);
+}
+
+extension E on A {
+  abstract int m;
+  int method();
+  int get getter;
+  void set setter(int v);
+}

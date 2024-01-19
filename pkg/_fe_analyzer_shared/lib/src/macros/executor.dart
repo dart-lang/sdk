@@ -189,6 +189,7 @@ enum DeclarationKind {
   enumType,
   enumValue,
   extension,
+  extensionType,
   field,
   function,
   library,

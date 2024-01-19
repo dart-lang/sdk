@@ -44,6 +44,8 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone,
   const auto representation = instr->representation();
   switch (representation) {
     case kTagged:
+    case kUnboxedUint32:
+    case kUnboxedInt32:
       result->set_out(
           0, Location::RegisterLocation(CallingConventions::kReturnReg));
       break;
@@ -799,6 +801,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     ASSERT(destination.IsStackSlot());
     ASSERT(tmp != kNoRegister);
     const intptr_t dest_offset = destination.ToStackSlotOffset();
+    compiler::OperandSize operand_size = compiler::kWordBytes;
     if (RepresentationUtils::IsUnboxedInteger(representation())) {
       int64_t val = Integer::Cast(value_).AsInt64Value();
 #if XLEN == 32
@@ -811,6 +814,11 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       } else {
         __ LoadImmediate(tmp, val);
       }
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ LoadImmediate(tmp, float_bits);
+      operand_size = compiler::kFourBytes;
     } else {
       ASSERT(representation() == kTagged);
       if (value_.IsNull()) {
@@ -821,7 +829,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
         __ LoadObject(tmp, value_);
       }
     }
-    __ StoreToOffset(tmp, destination.base_reg(), dest_offset);
+    __ StoreToOffset(tmp, destination.base_reg(), dest_offset, operand_size);
   }
 }
 
@@ -2032,23 +2040,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
-  ConstantInstr* constant = value->definition()->AsConstant();
-  if ((constant == nullptr) || !constant->value().IsSmi()) {
-    return false;
-  }
-  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
-  const intptr_t scale = Instance::ElementSizeFor(cid);
-  const int64_t offset =
-      index * scale +
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
-  if (IsITypeImm(offset)) {
-    ASSERT(IsSTypeImm(offset));
-    return true;
-  }
-  return false;
-}
-
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -2056,11 +2047,13 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    locs->set_in(1, Location::RequiresRegister());
-  }
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
+  locs->set_in(1, can_be_constant
+                      ? Location::Constant(index()->definition()->AsConstant())
+                      : Location::RequiresRegister());
   if ((representation() == kUnboxedFloat) ||
       (representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
@@ -2301,11 +2294,13 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    locs->set_in(1, Location::RequiresRegister());
-  }
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
+  locs->set_in(1, can_be_constant
+                      ? Location::Constant(index()->definition()->AsConstant())
+                      : Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
 
   switch (class_id()) {
@@ -4412,6 +4407,9 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     __ TestImmediate(TMP, kFClassSignallingNan | kFClassQuietNan);
   } else if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
     __ TestImmediate(TMP, kFClassNegInfinity | kFClassPosInfinity);
+  } else if (op_kind() == MethodRecognizer::kDouble_getIsNegative) {
+    __ TestImmediate(TMP, kFClassNegInfinity | kFClassNegNormal |
+                              kFClassNegSubnormal | kFClassNegZero);
   } else {
     UNREACHABLE();
   }

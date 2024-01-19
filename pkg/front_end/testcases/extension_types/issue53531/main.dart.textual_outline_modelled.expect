@@ -1,0 +1,7 @@
+import 'main_lib.dart';
+
+extension type E<X, Y>(String s) {}
+
+typedef F<X> = E<X, X>;
+
+void main() {}

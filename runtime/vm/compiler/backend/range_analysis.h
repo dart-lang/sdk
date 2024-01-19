@@ -347,6 +347,8 @@ class Range : public ZoneAllocated {
                  RangeBoundary::MaxConstant(size));
   }
 
+  static Range Full(Representation rep);
+
   void PrintTo(BaseTextBuffer* f) const;
   static const char* ToCString(const Range* range);
 
@@ -427,11 +429,24 @@ class Range : public ZoneAllocated {
   bool IsWithin(int64_t min_int, int64_t max_int) const;
 
   // Inclusive.
+  bool IsWithin(const Range* other) const;
+
+  // Inclusive.
   bool Overlaps(int64_t min_int, int64_t max_int) const;
 
   bool IsUnsatisfiable() const;
 
   bool IsFinite() const { return !min_.IsInfinity() && !max_.IsInfinity(); }
+
+  bool IsSingleton() const {
+    return min_.IsConstant() && max_.IsConstant() &&
+           min_.ConstantValue() == max_.ConstantValue();
+  }
+
+  int64_t Singleton() const {
+    ASSERT(IsSingleton());
+    return min_.ConstantValue();
+  }
 
   Range Intersect(const Range* other) const {
     return Range(RangeBoundary::IntersectionMin(min(), other->min()),
@@ -558,8 +573,12 @@ class RangeUtils : public AllStatic {
     return !Range::IsUnknown(range) && range->Fits(size);
   }
 
-  static bool IsWithin(Range* range, int64_t min, int64_t max) {
+  static bool IsWithin(const Range* range, int64_t min, int64_t max) {
     return !Range::IsUnknown(range) && range->IsWithin(min, max);
+  }
+
+  static bool IsWithin(const Range* range, const Range* other) {
+    return !Range::IsUnknown(range) && range->IsWithin(other);
   }
 
   static bool IsPositive(Range* range) {
@@ -577,6 +596,10 @@ class RangeUtils : public AllStatic {
 
   static bool OnlyLessThanOrEqualTo(Range* range, intptr_t value) {
     return !Range::IsUnknown(range) && range->OnlyLessThanOrEqualTo(value);
+  }
+
+  static bool IsSingleton(Range* range) {
+    return !Range::IsUnknown(range) && range->IsSingleton();
   }
 };
 

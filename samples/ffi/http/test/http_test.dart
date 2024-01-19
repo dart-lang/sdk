@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:ffi/ffi.dart';
 import 'package:test/test.dart';
 
-import '../lib/http.dart';
+import 'package:http_sample/http.dart';
 
 Future<void> main() async {
   test('httpGet', () async {

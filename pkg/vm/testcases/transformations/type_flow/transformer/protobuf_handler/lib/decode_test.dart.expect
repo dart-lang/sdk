@@ -1,27 +1,50 @@
 library #lib;
 import self as self;
 import "generated/foo.pb.dart" as pb;
-import "package:test_core/scaffolding.dart" as sca;
+import "package:test_core/src/scaffolding.dart" as sca;
 import "package:matcher/src/expect/expect.dart" as exp;
 import "dart:core" as core;
 
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";
 import "package:matcher/src/expect/expect.dart";
 import "package:test_api/hooks.dart";
-import "package:test_core/scaffolding.dart";
-import "package:matcher/src/core_matchers.dart";
 import "package:matcher/src/description.dart";
-import "package:matcher/src/equals_matcher.dart";
 import "package:matcher/src/interfaces.dart";
+import "package:matcher/src/util.dart";
+import "package:matcher/src/expect/util/pretty_print.dart";
+import "package:test_core/src/scaffolding.dart";
+import "package:matcher/src/equals_matcher.dart";
 import "package:matcher/src/operator_matchers.dart";
 import "package:matcher/src/type_matcher.dart";
-import "package:matcher/src/util.dart";
+import "package:matcher/src/core_matchers.dart";
+import "dart:async";
+import "package:async/src/async_memoizer.dart";
+import "package:async/src/delegate/sink.dart";
+import "package:async/src/future_group.dart";
+import "package:async/src/restartable_timer.dart";
+import "package:async/src/stream_group.dart";
+import "dart:typed_data";
+import "dart:convert";
+import "dart:collection";
+import "package:collection/src/functions.dart";
+import "package:collection/src/iterable_extensions.dart";
+import "package:collection/src/queue_list.dart";
+import "package:collection/src/union_set.dart";
+import "package:collection/src/union_set_controller.dart";
+import "package:collection/src/unmodifiable_wrappers.dart";
+import "package:collection/src/wrappers.dart";
+import "dart:math";
+import "package:stack_trace/src/chain.dart";
+import "package:stack_trace/src/frame.dart";
+import "package:stack_trace/src/trace.dart";
+import "package:stack_trace/src/unparsed_frame.dart";
+import "package:matcher/src/feature_matcher.dart";
 
 [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>]static field core::List<core::int> buffer = <core::int>[10, 4, 8, 5, 16, 4, 26, 9, 10, 3, 102, 111, 111, 18, 2, 8, 42, 34, 9, 10, 3, 122, 111, 112, 18, 2, 8, 3, 40, 43, 50, 0, 58, 0];
 [@vm.closure-id=1]static method main() → dynamic {
   [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep foo = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] self::buffer);
   sca::test([@vm.closure-id=1]() → Null {
-    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mapKeep] [@vm.inferred-type.metadata=!] foo.{pb::FooKeep::mapKeep}{core::Map<core::String, pb::BarKeep>}.{core::Map::[]}("foo"){(core::Object?) → pb::BarKeep?}!.{pb::BarKeep::aKeep}{core::int}, 42);
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::PbMap.[]] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep? (skip check)] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mapKeep] [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::PbMap] foo.{pb::FooKeep::mapKeep}{core::Map<core::String, pb::BarKeep>}.{core::Map::[]}("foo"){(core::Object?) → pb::BarKeep?}!.{pb::BarKeep::aKeep}{core::int}, 42);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep] foo.{pb::FooKeep::barKeep}{pb::BarKeep}.{pb::BarKeep::aKeep}{core::int}, 5);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=int] foo.{pb::FooKeep::aKeep}{core::int}, 43);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.hasHasKeep] [@vm.inferred-type.metadata=dart.core::bool (skip check)] foo.{pb::FooKeep::hasHasKeep}(){() → core::bool}, true);
@@ -64,7 +87,7 @@ class FooKeep extends pro::GeneratedMessage {
     return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_getN] [@vm.inferred-type.metadata=foo.pb.dart::BarKeep (skip check)] this.{pro::GeneratedMessage::$_getN}<self::BarKeep>(){(core::int) → self::BarKeep};
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  @#C12
   get mapKeep() → core::Map<core::String, self::BarKeep>
-    return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_getMap] [@vm.inferred-type.metadata=! (skip check)] this.{pro::GeneratedMessage::$_getMap}<core::String, self::BarKeep>(){(core::int) → core::Map<core::String, self::BarKeep>};
+    return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_getMap] [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::PbMap (skip check)] this.{pro::GeneratedMessage::$_getMap}<core::String, self::BarKeep>(){(core::int) → pro::PbMap<core::String, self::BarKeep>};
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4] [@vm.unboxing-info.metadata=()->i]  @#C14
   get aKeep() → core::int
     return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{pro::GeneratedMessage::$_getIZ}(4){(core::int) → core::int};

@@ -28,7 +28,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
-      EnableString.patterns,
+      EnableString.inline_class,
     ];
 
   Future<void> test_annotation() async {
@@ -555,6 +555,24 @@ extension A on String {}
     await _verifyTokens(content, expected);
   }
 
+  Future<void> test_extensionType() async {
+    final content = '''
+extension type E(int i) {}
+''';
+
+    final expected = [
+      _Token('extension', SemanticTokenTypes.keyword),
+      _Token('type', SemanticTokenTypes.keyword),
+      _Token(
+          'E', SemanticTokenTypes.class_, [SemanticTokenModifiers.declaration]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('i', SemanticTokenTypes.property,
+          [SemanticTokenModifiers.declaration])
+    ];
+
+    await _verifyTokens(content, expected);
+  }
+
   Future<void> test_fromPlugin() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
@@ -852,6 +870,25 @@ import 'dart:async';
     await _verifyTokens(content, expected);
   }
 
+  Future<void> test_mixin() async {
+    final content = '''
+mixin M on C {}
+class C {}
+''';
+
+    final expected = [
+      _Token('mixin', SemanticTokenTypes.keyword),
+      _Token('M', SemanticTokenTypes.class_),
+      _Token('on', SemanticTokenTypes.keyword),
+      _Token('C', SemanticTokenTypes.class_),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token(
+          'C', SemanticTokenTypes.class_, [SemanticTokenModifiers.declaration])
+    ];
+
+    await _verifyTokens(content, expected);
+  }
+
   Future<void> test_multilineRegions() async {
     final content = '''
 /**
@@ -1125,6 +1162,40 @@ class!] MyClass {}
       _Token(' */', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
+    ];
+
+    await _verifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_record_fields() async {
+    final content = r'''
+void f((int, {int field1}) record) {
+  [!
+  record.$1;
+  record.field1;
+  (1,).$1;
+  (field1: 1).field1;
+  (1,).unresolved;
+  !]
+}
+''';
+
+    final expected = [
+      _Token('record', SemanticTokenTypes.parameter),
+      _Token(r'$1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('record', SemanticTokenTypes.parameter),
+      _Token('field1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token(r'$1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('field1', SemanticTokenTypes.parameter),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('field1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('unresolved', CustomSemanticTokenTypes.source),
     ];
 
     await _verifyTokensInRange(content, expected);

@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 import "./issue46518_lib.dart";
 
 const optedOutToken = OT<NullableIntF>();
@@ -8,5 +9,7 @@ class CheckIdentical {
 }
 
 testOptedOut() {}
+
 const testCrossLibraries = const CheckIdentical(optedInToken, optedOutToken);
+
 main() {}

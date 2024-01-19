@@ -14,8 +14,13 @@ class A<X> {
 }
 
 typedef F1 = A<FutureOr<dynamic>> Function();
+
 typedef F2 = A<dynamic> Function();
+
 typedef F3 = A<FutureOr<FutureOr<dynamic>?>> Function();
+
 typedef F4 = A Function();
+
 test1() {}
+
 main() {}

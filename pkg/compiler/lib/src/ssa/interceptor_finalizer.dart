@@ -188,9 +188,13 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
 
   void tryReplaceExplicitReceiverForTargetWithDummy(
       HInvoke node, Selector? selector, MemberEntity target) {
+    // Automatically generated property extraction closures don't work with the
+    // dummy receiver optimization. If the selector is a getter but the target
+    // is not, we have a 'tear-off'.
+    //
     // TODO(15933): Make automatically generated property extraction closures
     // work with the dummy receiver optimization.
-    if (selector != null && selector.isGetter) return;
+    if (selector != null && selector.isGetter && !target.isGetter) return;
 
     if (usesSelfInterceptor(target)) {
       _replaceReceiverArgumentWithDummy(node, 1);

@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
+// VMOptions=
+// VMOptions=--stacktrace-every=100
 // VMOptions=--deterministic --optimization-counter-threshold=500
 // VMOptions=--deterministic --optimization-counter-threshold=-1
-// VMOptions=--deterministic --optimization-counter-threshold=500 --no-dual-map-code --write-protect-code
-// VMOptions=--deterministic --optimization-counter-threshold=-1 --no-dual-map-code --write-protect-code
-// VMOptions=--no-dual-map-code --write-protect-code
-// VMOptions=--no-dual-map-code --write-protect-code --stacktrace-every=100
 //
 // Dart test program for stress-testing boxing and GC in return paths from FFI
 // trampolines.

@@ -38,7 +38,7 @@ InstanceInvocation createOperatorInvocation(InferenceVisitorBase base,
   return new InstanceInvocation(InstanceAccessKind.Instance, left, operatorName,
       createArguments([right], fileOffset: fileOffset),
       functionType: target.getFunctionType(base),
-      interfaceTarget: target.member as Procedure)
+      interfaceTarget: target.classMember as Procedure)
     ..fileOffset = fileOffset;
 }
 
@@ -49,7 +49,7 @@ InstanceGet createInstanceGet(InferenceVisitorBase base, DartType receiverType,
     {required int fileOffset}) {
   ObjectAccessTarget target =
       base.findInterfaceMember(receiverType, name, fileOffset, isSetter: false);
-  Member? member = target.member;
+  Member? member = target.classMember;
   assert(member is Field || member is Procedure && member.isGetter);
   return new InstanceGet(InstanceAccessKind.Instance, receiver, name,
       resultType: target.getGetterType(base), interfaceTarget: member!)
@@ -70,7 +70,7 @@ InstanceInvocation createInstanceInvocation(
   return new InstanceInvocation(InstanceAccessKind.Instance, receiver, name,
       createArguments(positionalArguments, fileOffset: fileOffset),
       functionType: target.getFunctionType(base),
-      interfaceTarget: target.member as Procedure)
+      interfaceTarget: target.classMember as Procedure)
     ..fileOffset = fileOffset;
 }
 
@@ -82,7 +82,7 @@ EqualsCall createEqualsCall(InferenceVisitorBase base, DartType leftType,
       .findInterfaceMember(leftType, equalsName, fileOffset, isSetter: false);
   return new EqualsCall(left, right,
       functionType: target.getFunctionType(base),
-      interfaceTarget: target.member as Procedure)
+      interfaceTarget: target.classMember as Procedure)
     ..fileOffset = fileOffset;
 }
 

@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 112;
+  UInt32 formatVersion = 115;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -457,9 +457,8 @@ type Procedure extends Member {
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isExtensionMember, isNonNullableByDefault, isSynthetic,
-              isInternalImplementation, isAbstractFieldAccessor,
-              isExtensionTypeMember, hasWeakTearoffReferencePragma,
-              IsLoweredLateField);
+              isInternalImplementation, isExtensionTypeMember,
+              hasWeakTearoffReferencePragma, IsLoweredLateField);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -531,7 +530,7 @@ type FunctionNode {
   List<VariableDeclarationPlain> positionalParameters;
   List<VariableDeclarationPlain> namedParameters;
   DartType returnType;
-  Option<DartType> futureValueType;
+  Option<DartType> emittedValueType;
   Option<RedirectingFactoryTarget> redirectingFactoryTarget;
   Option<Statement> body;
 }
@@ -752,6 +751,7 @@ type RedirectingFactoryTearOff extends Expression {
 
 type TypedefTearOff extends Expression {
   Byte tag = 83;
+  FileOffset fileOffset;
   List<TypeParameter> typeParameters;
   Expression expression;
   List<DartType> typeArguments;
@@ -807,6 +807,7 @@ type InstanceGetterInvocation extends Expression {
 type DynamicInvocation extends Expression {
   Byte tag = 124;
   Byte kind; // Index into DynamicAccessKind above.
+  Byte flags (isImplicitCall);
   FileOffset fileOffset;
   Expression receiver;
   Name name;
@@ -910,6 +911,7 @@ type ConstConstructorInvocation extends Expression {
 
 type Not extends Expression {
   Byte tag = 33;
+  FileOffset fileOffset;
   Expression operand;
 }
 
@@ -925,6 +927,7 @@ type NullCheck extends Expression {
 
 type LogicalExpression extends Expression {
   Byte tag = 34;
+  FileOffset fileOffset;
   Expression left;
   Byte operator; // Index into LogicalOperator enum above
   Expression right;
@@ -932,6 +935,7 @@ type LogicalExpression extends Expression {
 
 type ConditionalExpression extends Expression {
   Byte tag = 35;
+  FileOffset fileOffset;
   Expression condition;
   Expression then;
   Expression otherwise;
@@ -1005,7 +1009,7 @@ type StringLiteral extends Expression {
   StringReference value;
 }
 
-type IntegerLiteral extends Expression {}
+abstract type IntegerLiteral extends Expression {}
 
 type SpecializedIntLiteral extends IntegerLiteral {
   Byte tag = 240 + N; // Where 0 <= N < 8.
@@ -1168,12 +1172,14 @@ type Let extends Expression {
 
 type BlockExpression extends Expression {
   Byte tag = 82;
+  FileOffset fileOffset;
   List<Statement> body;
   Expression value;
 }
 
 type Instantiation extends Expression {
   Byte tag = 54;
+  FileOffset fileOffset;
   Expression expression;
   List<DartType> typeArguments;
 }

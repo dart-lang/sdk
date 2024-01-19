@@ -50,7 +50,7 @@ class PluginLocator {
   /// The implementation of [findPlugin].
   String? _findPlugin(String packageRoot) {
     var packageFolder = resourceProvider.getFolder(packageRoot);
-    // TODO(brianwilkerson) Re-enable this after deciding how we want to deal
+    // TODO(brianwilkerson): Re-enable this after deciding how we want to deal
     // with discovery of plugins.
 //    import 'package:yaml/yaml.dart';
 //    File pubspecFile = packageFolder.getChildAssumingFile(pubspecFileName);

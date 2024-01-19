@@ -14,11 +14,13 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
 import 'package:analyzer/src/summary2/extension_type.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
@@ -87,7 +89,7 @@ class TypesBuilder {
       builder.build();
     }
 
-    // TODO(scheglov) generalize
+    // TODO(scheglov): generalize
     _linker.elementNodes.forEach((element, node) {
       if (element is GenericFunctionTypeElementImpl &&
           node is GenericFunctionType) {
@@ -132,13 +134,9 @@ class TypesBuilder {
       var type = extendsClause.superclass.type;
       if (type is InterfaceType && _isInterfaceTypeClass(type)) {
         element.supertype = type;
-      } else {
-        element.supertype = _objectType(element);
       }
-    } else if (element.library.isDartCore && element.name == 'Object') {
+    } else if (element.isDartCoreObject) {
       element.setModifier(Modifier.DART_CORE_OBJECT, true);
-    } else {
-      element.supertype = _objectType(element);
     }
 
     element.interfaces = _toInterfaceTypeList(
@@ -158,8 +156,6 @@ class TypesBuilder {
     var superType = node.superclass.type;
     if (superType is InterfaceType && _isInterfaceTypeClass(superType)) {
       element.supertype = superType;
-    } else {
-      element.supertype = _objectType(element);
     }
 
     element.mixins = _toInterfaceTypeList(
@@ -346,9 +342,6 @@ class TypesBuilder {
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
     );
-    if (!element.isAugmentation && constraints.isEmpty) {
-      constraints = [_objectType(element)];
-    }
     element.superclassConstraints = constraints;
 
     element.interfaces = _toInterfaceTypeList(
@@ -449,19 +442,35 @@ class TypesBuilder {
     final typeProvider = element.library.typeProvider;
 
     if (element is InterfaceElementImpl &&
-        augmented is AugmentedInterfaceElementImpl) {
+        augmented is AugmentedInterfaceElementImpl &&
+        declaration is InterfaceElementImpl) {
+      if (declaration.supertype == null) {
+        final elementSuperType = element.supertype;
+        if (elementSuperType != null) {
+          final superType = toDeclaration.mapInterfaceType(elementSuperType);
+          declaration.supertype = superType;
+        }
+      }
+
       augmented.interfaces.addAll(
         toDeclaration.mapInterfaceTypes(element.interfaces),
       );
 
-      augmented.constructors.addAll(
-        element.constructors.notAugmented.map((element) {
+      augmented.constructors = [
+        ...augmented.constructors.notAugmented,
+        ...element.constructors.notAugmented.map((element) {
           if (toDeclaration.map.isEmpty) {
             return element;
           }
-          return ConstructorMember(typeProvider, element, toDeclaration, false);
+          return ConstructorMember(
+            typeProvider: typeProvider,
+            declaration: element,
+            augmentationSubstitution: toDeclaration,
+            substitution: Substitution.empty,
+            isLegacy: false,
+          );
         }),
-      );
+      ];
     }
 
     if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {
@@ -470,33 +479,38 @@ class TypesBuilder {
       );
     }
 
-    augmented.fields.addAll(
-      element.fields.notAugmented.map((element) {
+    augmented.fields = [
+      ...augmented.fields.notAugmented,
+      ...element.fields.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return FieldMember(typeProvider, element, toDeclaration, false);
+        return FieldMember(
+            typeProvider, element, toDeclaration, Substitution.empty, false);
       }),
-    );
+    ];
 
-    augmented.accessors.addAll(
-      element.accessors.notAugmented.map((element) {
+    augmented.accessors = [
+      ...augmented.accessors.notAugmented,
+      ...element.accessors.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
         return PropertyAccessorMember(
-            typeProvider, element, toDeclaration, false);
+            typeProvider, element, toDeclaration, Substitution.empty, false);
       }),
-    );
+    ];
 
-    augmented.methods.addAll(
-      element.methods.notAugmented.map((element) {
+    augmented.methods = [
+      ...augmented.methods.notAugmented,
+      ...element.methods.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return MethodMember(typeProvider, element, toDeclaration, false);
+        return MethodMember(
+            typeProvider, element, toDeclaration, Substitution.empty, false);
       }),
-    );
+    ];
   }
 
   /// The [FunctionType] to use when a function type is expected for a type
@@ -509,10 +523,6 @@ class TypesBuilder {
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
-
-  static InterfaceType _objectType(InterfaceElementImpl element) {
-    return element.library.typeProvider.objectType;
-  }
 }
 
 /// Performs mixins inference in a [ClassDeclaration].
@@ -521,10 +531,12 @@ class _MixinInference {
   final TypeSystemImpl typeSystem;
   final FeatureSet featureSet;
   final InterfaceType classType;
+  final TypeSystemOperations typeSystemOperations;
 
   late final InterfacesMerger interfacesMerger;
 
-  _MixinInference(this.element, this.featureSet)
+  _MixinInference(this.element, this.featureSet,
+      {required this.typeSystemOperations})
       : typeSystem = element.library.typeSystem,
         classType = element.thisType {
     interfacesMerger = InterfacesMerger(typeSystem);
@@ -651,6 +663,9 @@ class _MixinInference {
       supertypeConstraints,
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
+      strictInference: false,
+      strictCasts: false,
+      typeSystemOperations: typeSystemOperations,
     );
     if (inferredTypeArguments == null) {
       return mixinType;
@@ -716,15 +731,21 @@ class _MixinsInference {
     final declarationMixins = <InterfaceType>[];
 
     try {
+      // Casts aren't relevant for mixin inference.
+      var typeSystemOperations =
+          TypeSystemOperations(element.library.typeSystem, strictCasts: false);
+
       if (declaration.withClause case final withClause?) {
-        final inference = _MixinInference(element, featureSet);
+        final inference = _MixinInference(element, featureSet,
+            typeSystemOperations: typeSystemOperations);
         final inferred = inference.perform(withClause);
         element.mixins = inferred;
         declarationMixins.addAll(inferred);
       }
 
       for (final augmentation in declaration.augmentations) {
-        final inference = _MixinInference(element, featureSet);
+        final inference = _MixinInference(element, featureSet,
+            typeSystemOperations: typeSystemOperations);
         inference.addTypes(
           augmentation.fromDeclaration.mapInterfaceTypes(declarationMixins),
         );
@@ -791,15 +812,5 @@ extension<T extends ExecutableElement> on List<T> {
 extension<T extends PropertyInducingElement> on List<T> {
   Iterable<T> get notAugmented {
     return where((e) => e.augmentation == null);
-  }
-}
-
-extension on List<TypeParameterElement> {
-  List<TypeParameterType> instantiateNone() {
-    return map((e) {
-      return e.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }).toList();
   }
 }

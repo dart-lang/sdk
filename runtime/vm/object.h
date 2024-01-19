@@ -1373,8 +1373,11 @@ class Class : public Object {
   }
 
   // Returns a canonicalized vector of the type parameters instantiated
-  // to bounds. If non-generic, the empty type arguments vector is returned.
-  TypeArgumentsPtr InstantiateToBounds(Thread* thread) const;
+  // to bounds (e.g., the type arguments used if no TAV is provided for class
+  // instantiation).
+  //
+  // If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr DefaultTypeArguments(Zone* zone) const;
 
   // If this class is parameterized, each instance has a type_arguments field.
   static constexpr intptr_t kNoTypeArguments = -1;
@@ -2949,8 +2952,7 @@ struct NameFormattingParams {
   }
 };
 
-enum class FfiFunctionKind : uint8_t {
-  kCall,
+enum class FfiCallbackKind : uint8_t {
   kIsolateLocalStaticCallback,
   kIsolateLocalClosureCallback,
   kAsyncCallback,
@@ -2979,45 +2981,38 @@ class Function : public Object {
   // Can only be used on FFI trampolines.
   void SetFfiCSignature(const FunctionType& sig) const;
 
-  // Retrieves the "C signature" for an FFI trampoline.
-  // Can only be used on FFI trampolines.
+  // Retrieves the "C signature" for an FFI trampoline or FFI native.
   FunctionTypePtr FfiCSignature() const;
 
   bool FfiCSignatureContainsHandles() const;
   bool FfiCSignatureReturnsStruct() const;
 
   // Can only be called on FFI trampolines.
-  // -1 for Dart -> native calls.
   int32_t FfiCallbackId() const;
 
   // Should be called when ffi trampoline function object is created.
   void AssignFfiCallbackId(int32_t callback_id) const;
 
-  // Can only be called on FFI trampolines.
+  // Can only be called on FFI natives and FFI call closures.
   bool FfiIsLeaf() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiIsLeaf(bool is_leaf) const;
-
-  // Can only be called on FFI trampolines.
-  // Null for Dart -> native calls.
   FunctionPtr FfiCallbackTarget() const;
 
   // Can only be called on FFI trampolines.
   void SetFfiCallbackTarget(const Function& target) const;
 
   // Can only be called on FFI trampolines.
-  // Null for Dart -> native calls.
   InstancePtr FfiCallbackExceptionalReturn() const;
 
   // Can only be called on FFI trampolines.
   void SetFfiCallbackExceptionalReturn(const Instance& value) const;
 
   // Can only be called on FFI trampolines.
-  FfiFunctionKind GetFfiFunctionKind() const;
+  FfiCallbackKind GetFfiCallbackKind() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiFunctionKind(FfiFunctionKind value) const;
+  void SetFfiCallbackKind(FfiCallbackKind value) const;
 
   // Return the signature of this function.
   PRECOMPILER_WSR_FIELD_DECLARATION(FunctionType, signature);
@@ -3072,6 +3067,10 @@ class Function : public Object {
 
   StringPtr native_name() const;
   void set_native_name(const String& name) const;
+
+  InstancePtr GetNativeAnnotation() const;
+  bool is_ffi_native() const;
+  bool is_old_native() const;
 
   AbstractTypePtr result_type() const {
     return signature()->untag()->result_type();
@@ -3223,18 +3222,22 @@ class Function : public Object {
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
-  using DefaultTypeArgumentsKind =
-      UntaggedClosureData::DefaultTypeArgumentsKind;
-
   // Returns a canonicalized vector of the type parameters instantiated
-  // to bounds. If non-generic, the empty type arguments vector is returned.
-  TypeArgumentsPtr InstantiateToBounds(
-      Thread* thread,
-      DefaultTypeArgumentsKind* kind_out = nullptr) const;
+  // to bounds (e.g., the local type arguments that are used if no TAV is
+  // provided when the function is invoked).
+  //
+  // If the function is owned by a generic class or has any generic parent
+  // functions, then the returned vector may require instantiation, see
+  // default_type_arguments_instantiation_mode() for Closure functions
+  // or TypeArguments::GetInstantiationMode() otherwise.
+  //
+  // If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr DefaultTypeArguments(Zone* zone) const;
 
   // Only usable for closure functions.
-  DefaultTypeArgumentsKind default_type_arguments_kind() const;
-  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
+  InstantiationMode default_type_arguments_instantiation_mode() const;
+  void set_default_type_arguments_instantiation_mode(
+      InstantiationMode value) const;
 
   // Enclosing outermost function of this local function.
   FunctionPtr GetOutermostFunction() const;
@@ -3570,12 +3573,17 @@ class Function : public Object {
   // run.
   bool ForceOptimize() const;
 
+  // Whether this function should be inlined if at all possible.
+  bool IsPreferInline() const;
+
   // Whether this function is idempotent (i.e. calling it twice has the same
   // effect as calling it once - no visible side effects).
   //
   // If a function is idempotent VM may decide to abort halfway through one call
   // and retry it again.
   bool IsIdempotent() const;
+
+  bool IsCachableIdempotent() const;
 
   // Whether this function's |recognized_kind| requires optimization.
   bool RecognizedKindForceOptimize() const;
@@ -3897,14 +3905,21 @@ class Function : public Object {
   }
 
   // Returns true if this function represents an ffi trampoline.
-  bool IsFfiTrampoline() const {
+  bool IsFfiCallbackTrampoline() const {
     return kind() == UntaggedFunction::kFfiTrampoline;
   }
-  static bool IsFfiTrampoline(FunctionPtr function) {
+  static bool IsFfiCallbackTrampoline(FunctionPtr function) {
     NoSafepointScope no_safepoint;
     return function->untag()->kind_tag_.Read<KindBits>() ==
            UntaggedFunction::kFfiTrampoline;
   }
+
+  // Returns true if this function is a closure function
+  // used to represent ffi call.
+  bool IsFfiCallClosure() const;
+
+  // Returns value of vm:ffi:call-closure pragma.
+  InstancePtr GetFfiCallClosurePragmaValue() const;
 
   // Returns true for functions which execution can be suspended
   // using Suspend/Resume stubs. Such functions have an artificial
@@ -4121,6 +4136,7 @@ class Function : public Object {
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)                                    \
+  V(IsExtensionTypeMember, is_extension_type_member)                           \
   V(IsRedirectingFactory, is_redirecting_factory)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
@@ -4224,10 +4240,6 @@ class Function : public Object {
     kTearOff,
     kLength,
   };
-  // Given the provided defaults type arguments, determines which
-  // DefaultTypeArgumentsKind applies.
-  DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
-      const TypeArguments& defaults) const;
 
   void set_ic_data_array(const Array& value) const;
   void set_name(const String& value) const;
@@ -4277,10 +4289,7 @@ class ClosureData : public Object {
     return OFFSET_OF(UntaggedClosureData, packed_fields_);
   }
 
-  using DefaultTypeArgumentsKind =
-      UntaggedClosureData::DefaultTypeArgumentsKind;
-  using PackedDefaultTypeArgumentsKind =
-      UntaggedClosureData::PackedDefaultTypeArgumentsKind;
+  using PackedInstantiationMode = UntaggedClosureData::PackedInstantiationMode;
 
   static constexpr uint8_t kNoAwaiterLinkDepth =
       UntaggedClosureData::kNoAwaiterLinkDepth;
@@ -4304,8 +4313,15 @@ class ClosureData : public Object {
   }
   void set_implicit_static_closure(const Closure& closure) const;
 
-  DefaultTypeArgumentsKind default_type_arguments_kind() const;
-  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
+  static InstantiationMode DefaultTypeArgumentsInstantiationMode(
+      ClosureDataPtr ptr) {
+    return ptr->untag()->packed_fields_.Read<PackedInstantiationMode>();
+  }
+  InstantiationMode default_type_arguments_instantiation_mode() const {
+    return DefaultTypeArgumentsInstantiationMode(ptr());
+  }
+  void set_default_type_arguments_instantiation_mode(
+      InstantiationMode value) const;
 
   static ClosureDataPtr New();
 
@@ -4341,16 +4357,13 @@ class FfiTrampolineData : public Object {
   }
   void set_callback_exceptional_return(const Instance& value) const;
 
-  FfiFunctionKind ffi_function_kind() const {
-    return static_cast<FfiFunctionKind>(untag()->ffi_function_kind_);
+  FfiCallbackKind ffi_function_kind() const {
+    return static_cast<FfiCallbackKind>(untag()->ffi_function_kind_);
   }
-  void set_ffi_function_kind(FfiFunctionKind kind) const;
+  void set_ffi_function_kind(FfiCallbackKind kind) const;
 
   int32_t callback_id() const { return untag()->callback_id_; }
   void set_callback_id(int32_t value) const;
-
-  bool is_leaf() const { return untag()->is_leaf_; }
-  void set_is_leaf(bool value) const;
 
   static FfiTrampolineDataPtr New();
 
@@ -4399,6 +4412,9 @@ class Field : public Object {
   bool is_late() const { return IsLateBit::decode(kind_bits()); }
   bool is_extension_member() const {
     return IsExtensionMemberBit::decode(kind_bits());
+  }
+  bool is_extension_type_member() const {
+    return IsExtensionTypeMemberBit::decode(kind_bits());
   }
   bool needs_load_guard() const {
     return NeedsLoadGuardBit::decode(kind_bits());
@@ -4685,6 +4701,10 @@ class Field : public Object {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(IsExtensionMemberBit::update(value, untag()->kind_bits_));
   }
+  void set_is_extension_type_member(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
+    set_kind_bits(IsExtensionTypeMemberBit::update(value, untag()->kind_bits_));
+  }
   void set_needs_load_guard(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(NeedsLoadGuardBit::update(value, untag()->kind_bits_));
@@ -4803,6 +4823,7 @@ class Field : public Object {
     kGenericCovariantImplBit,
     kIsLateBit,
     kIsExtensionMemberBit,
+    kIsExtensionTypeMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
   };
@@ -4825,6 +4846,8 @@ class Field : public Object {
   class IsLateBit : public BitField<uint16_t, bool, kIsLateBit, 1> {};
   class IsExtensionMemberBit
       : public BitField<uint16_t, bool, kIsExtensionMemberBit, 1> {};
+  class IsExtensionTypeMemberBit
+      : public BitField<uint16_t, bool, kIsExtensionTypeMemberBit, 1> {};
   class NeedsLoadGuardBit
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit
@@ -5119,6 +5142,11 @@ class Library : public Object {
 
   void AddMetadata(const Object& declaration, intptr_t kernel_offset) const;
   ObjectPtr GetMetadata(const Object& declaration) const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void EvaluatePragmas();
+  void CopyPragmas(const Library& old_lib);
+#endif
 
   // Tries to finds a @pragma annotation on [object].
   //
@@ -5509,8 +5537,8 @@ class ObjectPool : public Object {
   using SnapshotBehavior = compiler::ObjectPoolBuilderEntry::SnapshotBehavior;
   using TypeBits = compiler::ObjectPoolBuilderEntry::TypeBits;
   using PatchableBit = compiler::ObjectPoolBuilderEntry::PatchableBit;
-  using SnapshotBehaviorBit =
-      compiler::ObjectPoolBuilderEntry::SnapshotBehaviorBit;
+  using SnapshotBehaviorBits =
+      compiler::ObjectPoolBuilderEntry::SnapshotBehaviorBits;
 
   struct Entry {
     Entry() : raw_value_(), type_() {}
@@ -5560,14 +5588,14 @@ class ObjectPool : public Object {
 
   SnapshotBehavior SnapshotBehaviorAt(intptr_t index) const {
     ASSERT((index >= 0) && (index <= Length()));
-    return SnapshotBehaviorBit::decode(untag()->entry_bits()[index]);
+    return SnapshotBehaviorBits::decode(untag()->entry_bits()[index]);
   }
 
   static uint8_t EncodeBits(EntryType type,
                             Patchability patchable,
                             SnapshotBehavior snapshot_behavior) {
     return PatchableBit::encode(patchable) | TypeBits::encode(type) |
-           SnapshotBehaviorBit::encode(snapshot_behavior);
+           SnapshotBehaviorBits::encode(snapshot_behavior);
   }
 
   void SetTypeAt(intptr_t index,
@@ -6128,8 +6156,12 @@ class PcDescriptors : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
+    return memcmp(untag()->data(), other.untag()->data(), Length()) == 0;
   }
+
+  // Writes the contents of the PcDescriptors object to the given buffer.
+  // The base argument is added to the PC offset for each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
  private:
   static const char* KindAsStr(UntaggedPcDescriptors::Kind kind);
@@ -6174,7 +6206,7 @@ class CodeSourceMap : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
+    return memcmp(untag()->data(), other.untag()->data(), Length()) == 0;
   }
 
   uint32_t Hash() const {
@@ -6210,7 +6242,7 @@ class CompressedStackMaps : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(payload_size())) == 0;
+    return memcmp(data(), other.data(), payload_size()) == 0;
   }
   uword Hash() const;
 
@@ -6480,7 +6512,12 @@ class CompressedStackMaps : public Object {
 
   Iterator<CompressedStackMaps> iterator(Thread* thread) const;
 
-  void WriteToBuffer(BaseTextBuffer* buffer, const char* separator) const;
+  // Writes the contents of the CompressedStackMaps object to the given buffer.
+  // The base argument is added to the PC offset for each entry, and the
+  // separator string is inserted between each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer,
+                     uword base,
+                     const char* separator) const;
 
  private:
   static CompressedStackMapsPtr New(const void* payload,
@@ -6541,6 +6578,10 @@ class ExceptionHandlers : public Object {
 
   // We would have a VisitPointers function here to traverse the
   // exception handler table to visit objects if any in the table.
+
+  // Writes the contents of the ExceptionHandlers object to the given buffer.
+  // The base argument is added to the PC offset for each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
  private:
   // Pick somewhat arbitrary maximum number of exception handlers
@@ -7314,6 +7355,7 @@ class Code : public Object {
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
   friend class InstanceCall;       // for StorePointerUnaligned
   friend class StaticCall;         // for StorePointerUnaligned
+  friend void DumpStackFrame(intptr_t frame_index, uword pc, uword fp);
 };
 
 class Context : public Object {
@@ -8210,6 +8252,7 @@ class Instance : public Object {
   // Equivalent to invoking identityHashCode with this instance.
   IntegerPtr IdentityHashCode(Thread* thread) const;
 
+  static intptr_t UnroundedSize() { return sizeof(UntaggedInstance); }
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedInstance));
   }
@@ -8549,6 +8592,22 @@ class TypeArguments : public Instance {
   // Concatenate [this] and [other] vectors of type parameters.
   TypeArgumentsPtr ConcatenateTypeParameters(Zone* zone,
                                              const TypeArguments& other) const;
+
+  // Returns an InstantiationMode for this type argument vector, which
+  // specifies whether the type argument vector requires instantiation and
+  // shortcuts to instantiate the vector when possible.
+  //
+  // If [function] is provided, any function type arguments used in the type
+  // arguments vector are assumed to be bound by the function or its parent
+  // functions.
+  //
+  // If [class] is provided, any class type arguments used in the type arguments
+  // vector are assumed to be bound by that class. If [function] is provided
+  // but [class] is not, then the owning class of the function is retrieved
+  // and used.
+  InstantiationMode GetInstantiationMode(Zone* zone,
+                                         const Function* function = nullptr,
+                                         const Class* cls = nullptr) const;
 
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
@@ -9660,6 +9719,8 @@ class FunctionType : public AbstractType {
                              Heap::Space space = Heap::kOld);
 
   static FunctionTypePtr Clone(const FunctionType& orig, Heap::Space space);
+
+  bool ContainsHandles() const;
 
  private:
   static FunctionTypePtr New(Heap::Space space);
@@ -11010,13 +11071,15 @@ class Array : public Instance {
     return 0;
   }
 
-  static constexpr intptr_t InstanceSize(intptr_t len) {
+  static constexpr intptr_t UnroundedSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(UntaggedArray) ==
            (sizeof(UntaggedInstance) + (2 * kBytesPerElement)));
     ASSERT(IsValidLength(len));
-    return RoundedAllocationSize(sizeof(UntaggedArray) +
-                                 (len * kBytesPerElement));
+    return sizeof(UntaggedArray) + (len * kBytesPerElement);
+  }
+  static constexpr intptr_t InstanceSize(intptr_t len) {
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;

@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SwitchExpressionTest1);
-    defineReflectiveTests(SwitchExpressionTest2);
+    defineReflectiveTests(SwitchExpressionTest);
   });
 }
 
 @reflectiveTest
-class SwitchExpressionTest1 extends AbstractCompletionDriverTest
-    with SwitchExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class SwitchExpressionTest2 extends AbstractCompletionDriverTest
-    with SwitchExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class SwitchExpressionTest extends AbstractCompletionDriverTest
+    with SwitchExpressionTestCases {}
 
 mixin SwitchExpressionTestCases on AbstractCompletionDriverTest {
   Future<void> test_body_afterArrow() async {
@@ -150,9 +139,8 @@ final B03 = 0;
 int A04() => 0;
 int B04() => 0;
 ''');
-    if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
-      assertResponse(r'''
+    // TODO(scheglov): This is wrong.
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -167,33 +155,6 @@ suggestions
   A04
     kind: functionInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A01
-    kind: constructorInvocation
-  A02
-    kind: topLevelVariable
-  A03
-    kind: topLevelVariable
-  A04
-    kind: functionInvocation
-  B01
-    kind: class
-  B01
-    kind: constructorInvocation
-  B02
-    kind: topLevelVariable
-  B03
-    kind: topLevelVariable
-  B04
-    kind: functionInvocation
-''');
-    }
   }
 
   Future<void> test_body_partial2() async {
@@ -216,9 +177,8 @@ final B03 = 0;
 int A04() => 0;
 int B04() => 0;
 ''');
-    if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
-      assertResponse(r'''
+    // TODO(scheglov): This is wrong.
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -233,33 +193,6 @@ suggestions
   A04
     kind: functionInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A01
-    kind: constructorInvocation
-  A02
-    kind: topLevelVariable
-  A03
-    kind: topLevelVariable
-  A04
-    kind: functionInvocation
-  B01
-    kind: class
-  B01
-    kind: constructorInvocation
-  B02
-    kind: topLevelVariable
-  B03
-    kind: topLevelVariable
-  B04
-    kind: functionInvocation
-''');
-    }
   }
 
   Future<void> test_expression() async {

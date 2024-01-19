@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -119,10 +118,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _inheritanceManager = inheritanceManager,
         _annotationVerifier = AnnotationVerifier(
             _errorReporter, _currentLibrary, workspacePackage),
-        _deprecatedVerifier =
-            DeprecatedMemberUseVerifier(workspacePackage, _errorReporter),
-        _errorHandlerVerifier =
-            ErrorHandlerVerifier(_errorReporter, typeProvider, typeSystem),
+        _deprecatedVerifier = DeprecatedMemberUseVerifier(
+            workspacePackage, _errorReporter,
+            strictCasts: analysisOptions.strictCasts),
+        _errorHandlerVerifier = ErrorHandlerVerifier(
+            _errorReporter, typeProvider, typeSystem,
+            strictCasts: analysisOptions.strictCasts),
         _invalidAccessVerifier = _InvalidAccessVerifier(
             _errorReporter, _currentLibrary, workspacePackage),
         _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
@@ -594,6 +595,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForMissingReturn(node.body, node);
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
+      _checkForNullableEqualsParameterType(node);
 
       var name = Name(_currentLibrary.source.uri, element.name);
       var elementIsOverride = element is ClassMemberElement &&
@@ -635,7 +637,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _deprecatedVerifier.methodInvocation(node);
-    _checkForNullAwareWarnings(node, node.operator);
     _errorHandlerVerifier.verifyMethodInvocation(node);
     _nullSafeApiVerifier.methodInvocation(node);
     super.visitMethodInvocation(node);
@@ -708,12 +709,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitPrefixExpression(PrefixExpression node) {
     _deprecatedVerifier.prefixExpression(node);
     super.visitPrefixExpression(node);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _checkForNullAwareWarnings(node, node.operator);
-    super.visitPropertyAccess(node);
   }
 
   @override
@@ -1176,8 +1171,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (!node.isConst &&
         constructor.hasLiteral &&
         _linterContext.canBeConst(node)) {
-      // Echoing jwren's TODO from _checkForDeprecatedMemberUse:
-      // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
+      // Echoing jwren's `TODO` from _checkForDeprecatedMemberUse:
+      // TODO(jwren): We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
       // here.
       String fullConstructorName = constructorName.type.qualifiedName;
@@ -1238,7 +1233,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     var bodyContext = BodyInferenceContext.of(body)!;
-    // TODO(scheglov) Update InferenceContext to record any type, dynamic.
+    // TODO(scheglov): Update InferenceContext to record any type, dynamic.
     var returnType = bodyContext.contextType ?? DynamicTypeImpl.instance;
 
     if (_typeSystem.isNullable(returnType)) {
@@ -1270,6 +1265,44 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForNullableEqualsParameterType(MethodDeclaration node) {
+    if (!_typeSystem.isNonNullableByDefault) {
+      // Cannot specify non-nullable types before null safety.
+      return;
+    }
+
+    if (node.name.type != TokenType.EQ_EQ) {
+      return;
+    }
+
+    var parameters = node.parameters;
+    if (parameters == null) {
+      return;
+    }
+
+    if (parameters.parameters.length != 1) {
+      return;
+    }
+
+    var parameter = parameters.parameters.first;
+    var parameterElement = parameter.declaredElement;
+    if (parameterElement == null) {
+      return;
+    }
+
+    var type = parameterElement.type;
+    if (!type.isDartCoreObject && type is! DynamicType) {
+      // There is no legal way to define a nullable parameter type, which is not
+      // `dynamic` or `Object?`, so avoid double reporting here.
+      return;
+    }
+
+    if (_typeSystem.isNullable(parameterElement.type)) {
+      _errorReporter.reportErrorForToken(
+          WarningCode.NON_NULLABLE_EQUALS_PARAMETER, node.name);
+    }
+  }
+
   void _checkForNullableTypeInCatchClause(CatchClause node) {
     if (!_isNonNullableByDefault) {
       return;
@@ -1285,81 +1318,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
         type,
       );
-    }
-  }
-
-  /// Produce several null-aware related warnings.
-  void _checkForNullAwareWarnings(Expression node, Token? operator) {
-    if (_isNonNullableByDefault) {
-      return;
-    }
-
-    if (operator == null || operator.type != TokenType.QUESTION_PERIOD) {
-      return;
-    }
-
-    // childOfParent is used to know from which branch node comes.
-    var childOfParent = node;
-    var parent = node.parent;
-    while (parent is ParenthesizedExpression) {
-      childOfParent = parent;
-      parent = parent.parent;
-    }
-
-    // CAN_BE_NULL_AFTER_NULL_AWARE
-    if (parent is MethodInvocation &&
-        !parent.isNullAware &&
-        _nullType.lookUpMethod2(parent.methodName.name, _currentLibrary) ==
-            null) {
-      _errorReporter.reportErrorForNode(
-          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
-      return;
-    }
-    if (parent is PropertyAccess &&
-        !parent.isNullAware &&
-        _nullType.lookUpGetter2(parent.propertyName.name, _currentLibrary) ==
-            null) {
-      _errorReporter.reportErrorForNode(
-          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
-      return;
-    }
-    if (parent is CascadeExpression && parent.target == childOfParent) {
-      _errorReporter.reportErrorForNode(
-          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
-      return;
-    }
-
-    // NULL_AWARE_IN_CONDITION
-    if (parent is IfStatement && parent.expression == childOfParent ||
-        parent is ForPartsWithDeclarations &&
-            parent.condition == childOfParent ||
-        parent is DoStatement && parent.condition == childOfParent ||
-        parent is WhileStatement && parent.condition == childOfParent ||
-        parent is ConditionalExpression && parent.condition == childOfParent ||
-        parent is AssertStatement && parent.condition == childOfParent) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.NULL_AWARE_IN_CONDITION, childOfParent);
-      return;
-    }
-
-    // NULL_AWARE_IN_LOGICAL_OPERATOR
-    if (parent is PrefixExpression && parent.operator.type == TokenType.BANG ||
-        parent is BinaryExpression &&
-            [TokenType.BAR_BAR, TokenType.AMPERSAND_AMPERSAND]
-                .contains(parent.operator.type)) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, childOfParent);
-      return;
-    }
-
-    // NULL_AWARE_BEFORE_OPERATOR
-    if (parent is BinaryExpression &&
-        ![TokenType.EQ_EQ, TokenType.BANG_EQ, TokenType.QUESTION_QUESTION]
-            .contains(parent.operator.type) &&
-        parent.leftOperand == childOfParent) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.NULL_AWARE_BEFORE_OPERATOR, childOfParent);
-      return;
     }
   }
 
@@ -1466,11 +1424,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (isReturnVoid) {
         var expression = body.expression;
         if (expression is SetOrMapLiteralImpl && expression.isSet) {
-          var elements = expression.elements;
-          if (elements.length == 1 && elements.first is Expression) {
-            _errorReporter.reportErrorForNode(
-                WarningCode.UNNECESSARY_SET_LITERAL, expression);
-          }
+          _errorReporter.reportErrorForNode(
+              WarningCode.UNNECESSARY_SET_LITERAL, expression);
         }
       }
     }
@@ -1677,37 +1632,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     // The cast is necessary.
-    if (!typeSystem.isSubtypeOf(leftType, rightType)) {
+    if (leftType != rightType) {
       return false;
-    }
-
-    // Casting from `T*` to `T?` is a way to force `T?`.
-    if (leftType.nullabilitySuffix == NullabilitySuffix.star &&
-        rightType.nullabilitySuffix == NullabilitySuffix.question) {
-      return false;
-    }
-
-    // For `condition ? then : else` the result type is `LUB`.
-    // Casts might be used to consider only a portion of the inheritance tree.
-    var parent = node.parent;
-    if (parent is ConditionalExpression) {
-      var other = node == parent.thenExpression
-          ? parent.elseExpression
-          : parent.thenExpression;
-
-      var currentType = typeSystem.leastUpperBound(
-        node.typeOrThrow,
-        other.typeOrThrow,
-      );
-
-      var typeWithoutCast = typeSystem.leastUpperBound(
-        node.expression.typeOrThrow,
-        other.typeOrThrow,
-      );
-
-      if (typeWithoutCast != currentType) {
-        return false;
-      }
     }
 
     return true;

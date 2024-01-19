@@ -8,4 +8,5 @@ class B extends A {
 }
 
 test() {}
+
 main() {}

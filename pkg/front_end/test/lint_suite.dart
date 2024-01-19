@@ -87,13 +87,6 @@ class Context extends ChainContext {
     const LintStep(),
   ];
 
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
-
   @override
   Stream<LintTestDescription> list(Chain suite) async* {
     late Set<Uri> gitFiles;
@@ -165,9 +158,17 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       bytes.setRange(
           0, description.cache.rawBytes!.length, description.cache.rawBytes!);
 
-      Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
-          configuration: ScannerConfiguration.nonNullable,
-          includeComments: true);
+      Utf8BytesScanner scanner = new Utf8BytesScanner(
+        bytes,
+        configuration: const ScannerConfiguration(
+            enableExtensionMethods: true,
+            enableNonNullable: true,
+            enableTripleShift: true),
+        includeComments: true,
+        languageVersionChanged: (scanner, languageVersion) {
+          // Nothing - but don't overwrite the previous settings.
+        },
+      );
       description.cache.firstToken = scanner.tokenize();
       description.cache.lineStarts = scanner.lineStarts;
 

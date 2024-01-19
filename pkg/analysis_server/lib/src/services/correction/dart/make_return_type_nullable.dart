@@ -60,7 +60,8 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
 
     if (node is! NullLiteral &&
         !typeSystem.isAssignableTo(
-            returnType.typeOrThrow, typeSystem.promoteToNonNull(type))) {
+            returnType.typeOrThrow, typeSystem.promoteToNonNull(type),
+            strictCasts: analysisOptions.strictCasts)) {
       return;
     }
 

@@ -52,12 +52,19 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
           final declarationStatement = declarationList.parent;
           if (declarationStatement is VariableDeclarationStatement) {
             if (declarationList.variables.length == 1) {
-              _commands.add(
-                _DeleteStatementCommand(
-                  utils: utils,
-                  statement: declarationStatement,
-                ),
-              );
+              final initializer = declarationList.variables.first.initializer;
+              if (initializer is MethodInvocation) {
+                _commands.add(_DeleteSourceRangeCommand(
+                    sourceRange: SourceRange(declarationStatement.offset,
+                        initializer.offset - declarationStatement.offset)));
+              } else {
+                _commands.add(
+                  _DeleteStatementCommand(
+                    utils: utils,
+                    statement: declarationStatement,
+                  ),
+                );
+              }
             } else {
               _commands.add(
                 _DeleteNodeInListCommand(
@@ -272,7 +279,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   }
 
   SourceRange _forAssignmentExpression(AssignmentExpression node) {
-    // todo (pq): consider node.parent is! ExpressionStatement to handle
+    // TODO(pq): consider node.parent is! ExpressionStatement to handle
     // assignments in parens, etc.
     var parent = node.parent!;
     if (parent is ArgumentList) {

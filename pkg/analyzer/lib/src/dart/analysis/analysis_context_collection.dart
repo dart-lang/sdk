@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macro;
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
@@ -29,14 +27,14 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /// The instance of macro executor that is used for all macros.
-  final macro.MultiMacroExecutor macroExecutor = macro.MultiMacroExecutor();
-
-  /// The instance of the macro kernel builder.
-  final MacroKernelBuilder macroKernelBuilder = MacroKernelBuilder();
+  /// The support for executing macros.
+  late final MacroSupport macroSupport;
 
   /// The shared container into which drivers record files ownership.
   final OwnedFiles ownedFiles = OwnedFiles();
+
+  /// The scheduler used for all analysis contexts.
+  late final AnalysisDriverScheduler scheduler;
 
   /// The list of analysis contexts.
   @override
@@ -62,26 +60,33 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
-    @Deprecated('Use updateAnalysisOptions2, which must be a function that '
-        'accepts a second parameter')
-    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
       required DartSdk sdk,
     })? updateAnalysisOptions2,
+    MacroSupport? macroSupport,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
+    performanceLog ??= PerformanceLog(null);
+
+    if (scheduler == null) {
+      scheduler = AnalysisDriverScheduler(performanceLog);
+      if (drainStreams) {
+        scheduler.events.drain<void>();
+      }
+      scheduler.start();
+    }
+    // TODO(scheglov): https://github.com/dart-lang/linter/issues/3134
+    // ignore: prefer_initializing_formals
+    this.scheduler = scheduler;
+
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
 
-    if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
-      throw ArgumentError(
-          'Either updateAnalysisOptions or updateAnalysisOptions2 must be '
-          'given, but not both.');
-    }
+    this.macroSupport = macroSupport ??= KernelMacroSupport();
 
     var contextLocator = ContextLocator(
       resourceProvider: this.resourceProvider,
@@ -108,14 +113,11 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        // ignore: deprecated_member_use_from_same_package
-        updateAnalysisOptions: updateAnalysisOptions,
         updateAnalysisOptions2: updateAnalysisOptions2,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         infoDeclarationStore: infoDeclarationStore,
-        macroKernelBuilder: macroKernelBuilder,
-        macroExecutor: macroExecutor,
+        macroSupport: macroSupport,
         ownedFiles: ownedFiles,
       );
       contexts.add(context);
@@ -155,7 +157,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     for (final analysisContext in contexts) {
       await analysisContext.driver.dispose2();
     }
-    await macroExecutor.close();
+    await macroSupport.dispose();
     // If there are other collections, they will have to start it again.
     if (!forTesting) {
       await KernelCompilationService.dispose();

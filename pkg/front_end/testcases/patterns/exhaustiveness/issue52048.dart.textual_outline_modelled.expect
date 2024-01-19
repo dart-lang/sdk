@@ -3,7 +3,9 @@ class B extends A with M {
 }
 
 f(A a) {}
+
 main() {}
+
 mixin M {}
 
 sealed class A {}

@@ -493,8 +493,10 @@ class List<E> implements Iterable<E> {
   external factory List.unmodifiable(Iterable elements);
 
   E get last => throw 0;
+  set length(int newLength) {}
   E operator [](int index) => throw 0;
   void operator []=(int index, E value) {}
+  void set first(E value) {}
 
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
@@ -712,63 +714,88 @@ final MockSdkLibrary _LIB_FFI = MockSdkLibrary('ffi', [
 @Since('2.6')
 library dart.ffi;
 
-final class NativeType {
-  const NativeType();
-}
+abstract final class NativeType {}
+
+@Since('3.4')
+abstract final class SizedNativeType implements NativeType {}
 
 @Since('2.9')
-abstract final class Handle extends NativeType {}
+abstract final class Handle implements NativeType {}
 
 @Since('2.12')
-abstract base class Opaque extends NativeType {}
+abstract base class Opaque implements NativeType {}
 
-final class Void extends NativeType {}
+final class Void implements NativeType {}
 
-final class Int8 extends NativeType {
+final class Int8 implements SizedNativeType {
   const Int8();
 }
 
-final class Uint8 extends NativeType {
+final class Uint8 implements SizedNativeType {
   const Uint8();
 }
 
-final class Int16 extends NativeType {
+final class Int16 implements SizedNativeType {
   const Int16();
 }
 
-final class Uint16 extends NativeType {
+final class Uint16 implements SizedNativeType {
   const Uint16();
 }
 
-final class Int32 extends NativeType {
+final class Int32 implements SizedNativeType {
   const Int32();
 }
 
-final class Uint32 extends NativeType {
+final class Uint32 implements SizedNativeType {
   const Uint32();
 }
 
-final class Int64 extends NativeType {
+final class Int64 implements SizedNativeType {
   const Int64();
 }
 
-final class Uint64 extends NativeType {
+final class Uint64 implements SizedNativeType {
   const Uint64();
 }
 
-final class Float extends NativeType {
+final class Float implements SizedNativeType {
   const Float();
 }
 
-final class Double extends NativeType {
+final class Double implements SizedNativeType {
   const Double();
 }
 
-final class IntPtr extends NativeType {
+@AbiSpecificIntegerMapping({
+  Abi.androidArm: Int32(),
+  Abi.androidArm64: Int64(),
+  Abi.androidIA32: Int32(),
+  Abi.androidX64: Int64(),
+  Abi.androidRiscv64: Int64(),
+  Abi.fuchsiaArm64: Int64(),
+  Abi.fuchsiaX64: Int64(),
+  Abi.fuchsiaRiscv64: Int64(),
+  Abi.iosArm: Int32(),
+  Abi.iosArm64: Int64(),
+  Abi.iosX64: Int64(),
+  Abi.linuxArm: Int32(),
+  Abi.linuxArm64: Int64(),
+  Abi.linuxIA32: Int32(),
+  Abi.linuxX64: Int64(),
+  Abi.linuxRiscv32: Int32(),
+  Abi.linuxRiscv64: Int64(),
+  Abi.macosArm64: Int64(),
+  Abi.macosX64: Int64(),
+  Abi.windowsArm64: Int64(),
+  Abi.windowsIA32: Int32(),
+  Abi.windowsX64: Int64(),
+})
+final class IntPtr extends AbiSpecificInteger {
   const IntPtr();
 }
 
-final class Pointer<T extends NativeType> extends NativeType {
+final class Pointer<T extends NativeType> implements SizedNativeType {
   external factory Pointer.fromAddress(int ptr);
 
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
@@ -795,13 +822,13 @@ extension NativeFunctionPointer<NF extends Function>
   external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
-final class _Compound extends NativeType {}
+final class _Compound implements SizedNativeType {}
 
 @Since('2.12')
-base class Struct extends _Compound {}
+abstract base class Struct extends _Compound {}
 
 @Since('2.14')
-base class Union extends _Compound {}
+abstract base class Union extends _Compound {}
 
 @Since('2.13')
 final class Packed {
@@ -812,6 +839,8 @@ final class Packed {
 
 abstract final class DynamicLibrary {
   external factory DynamicLibrary.open(String name);
+
+  external Pointer<T> lookup<T extends NativeType>(String symbolName);
 }
 
 extension DynamicLibraryExtension on DynamicLibrary {
@@ -819,14 +848,14 @@ extension DynamicLibraryExtension on DynamicLibrary {
       String symbolName, {bool isLeaf:false});
 }
 
-abstract final class NativeFunction<T extends Function> extends NativeType {}
+abstract final class NativeFunction<T extends Function> implements NativeType {}
 
 final class DartRepresentationOf {
   const DartRepresentationOf(String nativeType);
 }
 
 @Since('2.13')
-final class Array<T extends NativeType> extends NativeType {
+final class Array<T extends NativeType> implements NativeType {
   const factory Array(int dimension1,
       [int dimension2,
       int dimension3,
@@ -863,12 +892,6 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   external T operator [](int index);
 }
 
-final class FfiNative<T> {
-  final String nativeName;
-  final bool isLeaf;
-  const FfiNative(this.nativeName, {this.isLeaf = false});
-}
-
 @Since('2.19')
 final class Native<T> {
   final String? symbol;
@@ -880,6 +903,14 @@ final class Native<T> {
     this.isLeaf: false,
     this.symbol,
   });
+
+  external static Pointer<T> addressOf<T extends NativeType>(
+      @DartRepresentationOf('T') Object object);
+}
+
+final class DefaultAsset {
+  final String id;
+  const DefaultAsset(this.id);
 }
 
 final class Asset {
@@ -924,7 +955,7 @@ enum _OS {
 }
 
 @Since('2.16')
-base class AbiSpecificInteger extends NativeType {
+base class AbiSpecificInteger implements SizedNativeType {
   const AbiSpecificInteger();
 }
 
@@ -935,13 +966,18 @@ final class AbiSpecificIntegerMapping {
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
+@AbiSpecificIntegerMapping({})
+final class Int extends AbiSpecificInteger {
+  const Int();
+}
+
 @Since('2.17')
 abstract interface class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
 
 @Since('3.0')
-abstract final class VarArgs<T extends Record> extends NativeType {}
+abstract final class VarArgs<T extends Record> implements NativeType {}
 ''',
   )
 ]);
@@ -1258,6 +1294,14 @@ class IOSink implements Sink<List<int>> {
   Future<dynamic> close() {}
 }
 
+class Platform {
+  @deprecated
+  static final bool isAndroid = (operatingSystem == "android");
+
+  @deprecated
+  static final String localHostname = 'hostname';
+}
+
 class ProcessStartMode {
   static const normal = const ProcessStartMode._internal(0);
   const ProcessStartMode._internal(int mode);
@@ -1356,23 +1400,52 @@ class Point<T extends num> {}
   ],
 );
 
+final MockSdkLibrary _LIB_TYPED_DATA = MockSdkLibrary(
+  'typed_data',
+  [
+    MockSdkLibraryUnit(
+      'typed_data/typed_data.dart',
+      '''
+library dart.typed_data;
+
+abstract final class Uint8List {
+  external factory Uint8List(int length);
+}
+
+abstract final class Int8List {
+  external factory Int8List(int length);
+}
+
+abstract final class Float32List {
+  external factory Float32List(int length);
+}
+
+abstract final class Float64List {
+  external factory Float64List(int length);
+}
+''',
+    )
+  ],
+);
+
 final MockSdkLibrary _LIB_WASM = MockSdkLibrary('_wasm', [
   MockSdkLibraryUnit('_wasm/wasm.dart', ''),
 ]);
 
 final List<MockSdkLibrary> _LIBRARIES = [
-  _LIB_CORE,
   _LIB_ASYNC,
   _LIB_ASYNC2,
   _LIB_COLLECTION,
   _LIB_CONVERT,
+  _LIB_CORE,
   _LIB_FFI,
-  _LIB_IO,
-  _LIB_ISOLATE,
-  _LIB_MATH,
   _LIB_HTML_DART2JS,
   _LIB_INTERCEPTORS,
   _LIB_INTERNAL,
+  _LIB_IO,
+  _LIB_ISOLATE,
+  _LIB_MATH,
+  _LIB_TYPED_DATA,
   _LIB_WASM,
 ];
 

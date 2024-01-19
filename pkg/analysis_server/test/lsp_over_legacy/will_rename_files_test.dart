@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_will_rename_files.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -43,17 +46,35 @@ class WillRenameFilesTest extends LspOverLegacyTest {
   Future<void> test_inconsistentAnalysis() async {
     final testFileNewPath = join(testPackageLibPath, 'test_new.dart');
 
-    await addOverlay(testFilePath, 'original');
-    // Don't await, need to send modification.
-    final editFuture = onWillRename([
-      FileRename(
-        oldUri: toUri(testFilePath).toString(),
-        newUri: toUri(testFileNewPath).toString(),
-      ),
-    ]);
-    await updateOverlay(testFilePath, SourceEdit(0, 0, 'inserted'));
+    // Use a Completer to control when the refactor finishes computing so that
+    // we can ensure the overlay modification had time to be applied and trigger
+    // creation of new sessions.
+    final completer = Completer<void>();
+    WillRenameFilesHandler.delayDuringComputeForTests = completer.future;
+    try {
+      await addOverlay(testFilePath, 'original');
+      // Don't await, need to send modification.
+      final editFuture = onWillRename([
+        FileRename(
+          oldUri: toUri(testFilePath).toString(),
+          newUri: toUri(testFileNewPath).toString(),
+        ),
+      ]);
+      // Allow the refactor time to start before sending the update. We know the
+      // refactor won't complete because it's waiting for the future we control.
+      await pumpEventQueue(times: 5000);
+      await updateOverlay(testFilePath, SourceEdit(0, 0, 'inserted'));
 
-    expect(editFuture, throwsA(isResponseError(ErrorCodes.ContentModified)));
+      // Allow time for the overlay to be applied and analyzed before allowing
+      // the refactor to continue.
+      await pumpEventQueue(times: 5000);
+      completer.complete();
+
+      expect(editFuture, throwsA(isResponseError(ErrorCodes.ContentModified)));
+    } finally {
+      // Ensure we never leave an incomplete future if anything above throws.
+      WillRenameFilesHandler.delayDuringComputeForTests = null;
+    }
   }
 
   /// Test moving multiple items at once. Both files reference each other

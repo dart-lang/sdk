@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         Field,
         FunctionNode,
         Member,
+        Name,
         Procedure,
         ProcedureKind,
         ProcedureStubKind;
@@ -21,7 +22,7 @@ import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 
 import '../builder/procedure_builder.dart';
-import '../kernel/hierarchy/class_member.dart' show ClassMember;
+import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
 
@@ -49,6 +50,9 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   @override
   String get name => member.name.text;
+
+  @override
+  Name get memberName => member.name;
 
   @override
   bool get isConstructor => member is Constructor;
@@ -89,12 +93,18 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   @override
   List<ClassMember> get localMembers => _localMembers ??= isSetter
       ? const <ClassMember>[]
-      : <ClassMember>[new DillClassMember(this, forSetter: false)];
+      : <ClassMember>[
+          new DillClassMember(
+              this,
+              member is Field || isGetter
+                  ? ClassMemberKind.Getter
+                  : ClassMemberKind.Method)
+        ];
 
   @override
   List<ClassMember> get localSetters =>
       _localSetters ??= isSetter || member is Field && member.hasSetter
-          ? <ClassMember>[new DillClassMember(this, forSetter: true)]
+          ? <ClassMember>[new DillClassMember(this, ClassMemberKind.Setter)]
           : const <ClassMember>[];
 
   @override
@@ -264,12 +274,18 @@ class DillClassMember extends BuilderClassMember {
   Covariance? _covariance;
 
   @override
-  final bool forSetter;
+  final ClassMemberKind memberKind;
 
-  DillClassMember(this.memberBuilder, {required this.forSetter});
+  DillClassMember(this.memberBuilder, this.memberKind);
 
   @override
   bool get isSourceDeclaration => false;
+
+  @override
+  bool get isExtensionTypeMember {
+    Member member = memberBuilder.member;
+    return member.isExtensionTypeMember;
+  }
 
   @override
   bool get isInternalImplementation {
@@ -285,12 +301,6 @@ class DillClassMember extends BuilderClassMember {
   }
 
   @override
-  bool get isProperty =>
-      memberBuilder.kind == null ||
-      memberBuilder.kind == ProcedureKind.Getter ||
-      memberBuilder.kind == ProcedureKind.Setter;
-
-  @override
   bool get isSynthesized {
     Member member = memberBuilder.member;
     return member is Procedure && member.isSynthetic;
@@ -298,6 +308,12 @@ class DillClassMember extends BuilderClassMember {
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) => memberBuilder.member;
+
+  @override
+  Member? getTearOff(ClassMembersBuilder membersBuilder) {
+    Member? readTarget = memberBuilder.readTarget;
+    return readTarget != memberBuilder.invokeTarget ? readTarget : null;
+  }
 
   @override
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
@@ -318,6 +334,18 @@ class DillClassMember extends BuilderClassMember {
   @override
   bool isSameDeclaration(ClassMember other) {
     return other is DillClassMember && memberBuilder == other.memberBuilder;
+  }
+
+  @override
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
+    Member member = getMember(membersBuilder);
+    if (member is Procedure &&
+        member.stubKind == ProcedureStubKind.RepresentationField) {
+      return new TypeDeclarationInstanceMemberResult(
+          getMember(membersBuilder), memberKind,
+          isDeclaredAsField: true);
+    }
+    return super.getMemberResult(membersBuilder);
   }
 
   @override

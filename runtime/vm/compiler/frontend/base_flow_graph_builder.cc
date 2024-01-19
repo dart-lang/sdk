@@ -7,8 +7,8 @@
 #include <utility>
 
 #include "vm/compiler/backend/range_analysis.h"  // For Range.
-#include "vm/compiler/ffi/call.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 #include "vm/compiler/runtime_api.h"
 #include "vm/growable_array.h"
@@ -261,7 +261,7 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
 Fragment BaseFlowGraphBuilder::UnboxedIntConstant(
     int64_t value,
     Representation representation) {
-  const auto& obj = Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  const auto& obj = Integer::ZoneHandle(Z, Integer::NewCanonical(value));
   auto const constant = new (Z) UnboxedConstantInstr(obj, representation);
   Push(constant);
   return Fragment(constant);
@@ -1025,56 +1025,6 @@ Fragment BaseFlowGraphBuilder::Box(Representation from) {
   return Fragment(box);
 }
 
-Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
-    const TypeArguments& signatures,
-    bool is_leaf) {
-  ASSERT(signatures.IsInstantiated());
-  ASSERT(signatures.Length() == 2);
-
-  const auto& dart_type =
-      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(0)));
-  const auto& native_type =
-      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(1)));
-
-  // AbiSpecificTypes can have an incomplete mapping.
-  const char* error = nullptr;
-  compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_type, &error);
-  if (error != nullptr) {
-    const auto& language_error = Error::Handle(
-        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
-                           Report::kError, Heap::kOld));
-    Report::LongJump(language_error);
-  }
-
-  const auto& name =
-      String::Handle(parsed_function_->function().UserVisibleName());
-  const Function& target = Function::ZoneHandle(
-      compiler::ffi::TrampolineFunction(dart_type, native_type, is_leaf, name));
-
-  Fragment code;
-  // Store the pointer in the context, we cannot load the untagged address
-  // here as these can be unoptimized call sites.
-  LocalVariable* pointer = MakeTemporary();
-
-  code += Constant(target);
-
-  auto& context_slots = CompilerState::Current().GetDummyContextSlots(
-      /*context_id=*/0, /*num_variables=*/1);
-  code += AllocateContext(context_slots);
-  LocalVariable* context = MakeTemporary();
-
-  code += LoadLocal(context);
-  code += LoadLocal(pointer);
-  code += StoreNativeField(*context_slots[0]);
-
-  code += AllocateClosure();
-
-  // Drop address.
-  code += DropTempsPreserveTop(1);
-
-  return code;
-}
-
 Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
 #ifdef PRODUCT
   return Fragment();
@@ -1184,12 +1134,14 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   return call_hook;
 }
 
-Fragment BaseFlowGraphBuilder::ClosureCall(const Function& target_function,
-                                           TokenPosition position,
-                                           intptr_t type_args_len,
-                                           intptr_t argument_count,
-                                           const Array& argument_names) {
-  Fragment result = RecordCoverage(position);
+Fragment BaseFlowGraphBuilder::ClosureCall(
+    const Function& target_function,
+    TokenPosition position,
+    intptr_t type_args_len,
+    intptr_t argument_count,
+    const Array& argument_names,
+    const InferredTypeMetadata* result_type) {
+  Fragment instructions = RecordCoverage(position);
   const intptr_t total_count =
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
@@ -1198,8 +1150,12 @@ Fragment BaseFlowGraphBuilder::ClosureCall(const Function& target_function,
       target_function, std::move(arguments), type_args_len, argument_names,
       InstructionSource(position), GetNextDeoptId());
   Push(call);
-  result <<= call;
-  return result;
+  instructions <<= call;
+  if (result_type != nullptr && result_type->IsConstant()) {
+    instructions += Drop();
+    instructions += Constant(result_type->constant_value);
+  }
+  return instructions;
 }
 
 void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {

@@ -33,9 +33,9 @@ class A extends self::B implements req::C {
   synthetic constructor •() → self::A
     : super self::B::•()
     ;
-  method test_default({required core::int? i = #C1}) → void {}
-  method test_nondefault({required core::int? i = #C1}) → void {}
-  method test_legacy({required core::int? i = #C1}) → void {}
+  method test_default({required core::int? i}) → void {}
+  method test_nondefault({required core::int? i}) → void {}
+  method test_legacy({required core::int? i}) → void {}
   abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
 static method main() → dynamic {

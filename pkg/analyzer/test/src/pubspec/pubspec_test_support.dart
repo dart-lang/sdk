@@ -21,7 +21,7 @@ class PubspecDiagnosticTest with ResourceProviderMixin {
       contents: node,
       source: source,
       provider: resourceProvider,
-      // TODO: Can/should we pass analysisOptions here?
+      // TODO(sigurdm): Can/should we pass analysisOptions here?
     ));
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }

@@ -87,4 +87,33 @@ void main(List<String> args) async {
       });
     }
   }
+
+  test('dart build native assets build failure', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final buildDotDart = dartAppUri.resolve('../native_add/build.dart');
+      await File.fromUri(buildDotDart).writeAsString('''
+void main(List<String> args) {
+  throw UnimplementedError();
+}
+''');
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          'build',
+          'bin/dart_app.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(
+        result.stderr,
+        contains(
+          'Native assets build failed.',
+        ),
+      );
+      expect(result.exitCode, 255);
+    });
+  });
 }

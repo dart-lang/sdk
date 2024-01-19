@@ -2,6 +2,7 @@ extension on Object {
   int get setter => 42;
   void set getter(int value) {}
 }
+
 extension type InlineClass(int it) {
   test() {}
   int operator +(int other) => 42;
@@ -14,4 +15,5 @@ extension type InlineClass(int it) {
   T genericMethod<T>(T t) => t;
   int call() => 321;
 }
+
 test(InlineClass ic) {}

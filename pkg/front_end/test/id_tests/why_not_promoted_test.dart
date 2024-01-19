@@ -25,7 +25,7 @@ Future<void> main(List<String> args) async {
           const WhyNotPromotedDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
-class WhyNotPromotedDataComputer extends DataComputer<String> {
+class WhyNotPromotedDataComputer extends CfeDataComputer<String> {
   const WhyNotPromotedDataComputer();
 
   @override
@@ -41,7 +41,7 @@ class WhyNotPromotedDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     SourceMemberBuilder memberBuilder =

@@ -12,4 +12,5 @@ class C {
 }
 
 main() {}
+
 void test(C c, num n) {}

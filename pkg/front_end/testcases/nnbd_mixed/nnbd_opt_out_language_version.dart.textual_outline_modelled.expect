@@ -1,4 +1,5 @@
 // @dart = 2.4
+
 class C {
   late l = late();
   required r = required();

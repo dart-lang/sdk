@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dds/src/dap/isolate_manager.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -9,10 +10,13 @@ import 'mocks.dart';
 
 main() {
   group('IsolateManager', () {
-    final adapter = MockDartCliDebugAdapter();
-    final isolateManager = adapter.isolateManager;
+    late MockDartCliDebugAdapter adapter;
+    late IsolateManager isolateManager;
 
     setUp(() async {
+      adapter = MockDartCliDebugAdapter();
+      isolateManager = adapter.isolateManager;
+
       isolateManager.debug = true;
       isolateManager.debugSdkLibraries = false;
       isolateManager.debugExternalPackageLibraries = true;
@@ -119,6 +123,26 @@ main() {
       // Ensure thread1 had data cleared, but thread2 did not.
       expect(isolateManager.getStoredData(ref1), isNull);
       expect(isolateManager.getStoredData(ref2), isNotNull);
+    });
+
+    test('uses uri converter to convert resolved uri', () async {
+      String? receivedUri;
+      adapter.setUriConverter((uri) {
+        receivedUri = uri;
+        return 'returned/file/path.dart';
+      });
+
+      adapter.mockService.lookupResolvedPackageUrisResponse =
+          UriList(uris: ['scheme://file/path.dart']);
+
+      final thread = isolateManager.threads[0];
+      final resolved =
+          await thread.resolveUriToPath(Uri.parse('package:pkg/path.dart'));
+
+      expect(adapter.mockService.receivedLookupResolvedPackageUris,
+          ['package:pkg/path.dart']);
+      expect(receivedUri, 'scheme://file/path.dart');
+      expect(resolved, 'returned/file/path.dart');
     });
   });
 }

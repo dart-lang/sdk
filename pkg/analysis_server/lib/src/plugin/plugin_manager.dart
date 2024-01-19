@@ -196,7 +196,9 @@ abstract class PluginInfo {
   }
 
   void reportException(CaughtException exception) {
-    _exception = exception;
+    // If a previous exception has been reported, do not replace it here; the
+    //first should have more "root cause" information.
+    _exception ??= exception;
     instrumentationService.logPluginException(
         data, exception.exception, exception.stackTrace);
   }
@@ -916,7 +918,7 @@ class PluginSession {
   /// Return `true` if there are any requests that have not been responded to
   /// within the maximum allowed amount of time.
   bool isNonResponsive() {
-    // TODO(brianwilkerson) Figure out when to invoke this method in order to
+    // TODO(brianwilkerson): Figure out when to invoke this method in order to
     // identify non-responsive plugins and kill them.
     var cutOffTime = DateTime.now().millisecondsSinceEpoch -
         MAXIMUM_RESPONSE_TIME.inMilliseconds;
@@ -966,13 +968,13 @@ class PluginSession {
       return false;
     }
     channel = info._createChannel();
-    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // TODO(brianwilkerson): Determine if await is necessary, if so, change the
     // return type of `channel.listen` to `Future<void>`.
     await (channel!.listen(handleResponse, handleNotification,
         onDone: handleOnDone, onError: handleOnError) as dynamic);
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
-      // handleOnDone, which will cause `channel` to be set to `null`.
+      // `handleOnDone`, which will cause `channel` to be set to `null`.
       info.reportException(CaughtException(
           PluginException('Unrecorded error while starting the plugin.'),
           StackTrace.current));

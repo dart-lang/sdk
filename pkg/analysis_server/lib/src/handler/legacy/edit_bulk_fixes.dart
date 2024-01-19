@@ -41,8 +41,11 @@ class EditBulkFixes extends LegacyHandler {
       );
       var workspace = DartChangeWorkspace(
           collection.contexts.map((c) => c.currentSession).toList());
-      var processor = BulkFixProcessor(server.instrumentationService, workspace,
-          useConfigFiles: params.inTestMode ?? false, codes: codes);
+      var processor = BulkFixProcessor(
+        server.instrumentationService,
+        workspace,
+        codes: codes,
+      );
       if (!updatePubspec) {
         var result = await processor.fixErrors(collection.contexts);
         var message = result.errorMessage;
@@ -57,7 +60,7 @@ class EditBulkFixes extends LegacyHandler {
         sendResult(EditBulkFixesResult('', result.edits, result.details));
       }
     } catch (exception, stackTrace) {
-      // TODO(brianwilkerson) Move exception handling outside [handle].
+      // TODO(brianwilkerson): Move exception handling outside [handle].
       server.sendServerErrorNotification('Exception while getting bulk fixes',
           CaughtException(exception, stackTrace), stackTrace);
     }

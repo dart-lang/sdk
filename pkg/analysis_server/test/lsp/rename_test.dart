@@ -505,6 +505,43 @@ final a = MyEnum.newOne;
     return _test_rename_withDocumentChanges(content, 'newOne', expectedContent);
   }
 
+  Future<void> test_rename_forEachElement_blockBody() {
+    const content = '''
+void f(List<int> values) {
+  [for (final val^ue in values) value * 2];
+}
+''';
+    const expectedContent = '''
+void f(List<int> values) {
+  [for (final newName in values) newName * 2];
+}
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
+  Future<void> test_rename_forEachElement_expressionBody() {
+    const content = '''
+Object f() => [for (final val^ue in []) value * 2];
+''';
+    const expectedContent = '''
+Object f() => [for (final newName in []) newName * 2];
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
+  Future<void> test_rename_forEachElement_topLevel() {
+    const content = '''
+final a = [for (final val^ue in []) value * 2];
+''';
+    const expectedContent = '''
+final a = [for (final newName in []) newName * 2];
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
   Future<void> test_rename_function_startOfParameterList() {
     const content = '''
 void f^() {}
@@ -973,7 +1010,6 @@ final a = new MyNewClass();
 
     setDocumentChangesSupport();
     setFileRenameSupport();
-    final initialAnalysis = waitForAnalysisComplete();
 
     final code = TestCode.parse(content);
     await initialize(

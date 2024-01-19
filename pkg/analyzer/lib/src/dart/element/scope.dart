@@ -111,7 +111,7 @@ class LibraryOrAugmentationScope extends EnclosedScope {
     _container.prefixes.forEach(_addGetter);
     _container.library.units.forEach(_addUnitElements);
 
-    // TODO(scheglov) I don't understand why it used to work, but broke now.
+    // TODO(scheglov): I don't understand why it used to work, but broke now.
     // Now: when I'm adding `ImportElement2`.
     // We used to get it from `exportedReference`, but this is wrong.
     // These elements are declared in dart:core itself.

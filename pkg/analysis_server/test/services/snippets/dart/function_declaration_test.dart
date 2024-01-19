@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/function_declaration.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,24 +28,26 @@ class FunctionDeclarationTest extends DartSnippetProducerTest {
   String get prefix => FunctionDeclaration.prefix;
 
   Future<void> test_classMethod() async {
-    var code = r'''
+    final code = TestCode.parse(r'''
 class A {
   ^
-}''';
+}
+''');
     final snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
-    code = withoutMarkers(code);
+    var result = code.code;
     for (var edit in snippet.change.edits) {
-      code = SourceEdit.applySequence(code, edit.edits);
+      result = SourceEdit.applySequence(result, edit.edits);
     }
-    expect(code, '''
+    expect(result, '''
 class A {
   void name(params) {
     
   }
-}''');
+}
+''');
     expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 36);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
@@ -73,24 +76,26 @@ class A {
   }
 
   Future<void> test_nested() async {
-    var code = r'''
+    final code = TestCode.parse(r'''
 void a() {
   ^
-}''';
+}
+''');
     final snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
-    code = withoutMarkers(code);
+    var result = code.code;
     for (var edit in snippet.change.edits) {
-      code = SourceEdit.applySequence(code, edit.edits);
+      result = SourceEdit.applySequence(result, edit.edits);
     }
-    expect(code, '''
+    expect(result, '''
 void a() {
   void name(params) {
     
   }
-}''');
+}
+''');
     expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 37);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
@@ -119,28 +124,30 @@ void a() {
   }
 
   Future<void> test_topLevel() async {
-    var code = r'''
+    final code = TestCode.parse(r'''
 class A {}
   
 ^
 
-class B {}''';
+class B {}
+''');
     final snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
-    code = withoutMarkers(code);
+    var result = code.code;
     for (var edit in snippet.change.edits) {
-      code = SourceEdit.applySequence(code, edit.edits);
+      result = SourceEdit.applySequence(result, edit.edits);
     }
-    expect(code, '''
+    expect(result, '''
 class A {}
   
 void name(params) {
   
 }
 
-class B {}''');
+class B {}
+''');
     expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 36);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [

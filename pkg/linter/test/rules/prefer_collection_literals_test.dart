@@ -61,6 +61,37 @@ void c() {
     ]);
   }
 
+  test_conditionalLeft() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+void f(LinkedHashMap<int, int> a, LinkedHashMap<int, int> b) {
+  a = (1 == 2) ? LinkedHashMap() : b;
+}
+''');
+  }
+
+  test_conditionalRight() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+void f(LinkedHashMap<int, int> a, LinkedHashMap<int, int> b) {
+  a = (1 == 2) ? b : LinkedHashMap();
+}
+''');
+  }
+
+  test_constructorInitializer() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+class Foo {
+  LinkedHashMap<int, double> a;
+  Foo() : a = LinkedHashMap();
+}
+''');
+  }
+
   test_functionExpression_functionDeclaration() async {
     await assertNoDiagnostics(r'''
 import 'dart:collection';

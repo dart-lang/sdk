@@ -14,7 +14,6 @@
 #include "vm/compiler/backend/loops.h"
 #include "vm/hash_map.h"
 #include "vm/object_store.h"
-#include "vm/stack_frame.h"
 
 namespace dart {
 
@@ -298,18 +297,6 @@ class Place : public ValueObject {
     }
   }
 
-  bool IsConstant(Object* value) const {
-    switch (kind()) {
-      case kInstanceField:
-        return (instance() != nullptr) && instance()->IsConstant() &&
-               LoadFieldInstr::TryEvaluateLoad(
-                   instance()->AsConstant()->constant_value(), instance_field(),
-                   value);
-      default:
-        return false;
-    }
-  }
-
   // Create object representing *[*] alias.
   static Place* CreateAnyInstanceAnyIndexAlias(Zone* zone, intptr_t id) {
     return Wrap(
@@ -526,13 +513,6 @@ class Place : public ValueObject {
     return (kind() == kStaticField)
                ? (static_field().Original() == other.static_field().Original())
                : (raw_selector_ == other.raw_selector_);
-  }
-
-  uword FieldHash() const {
-    return (kind() == kStaticField)
-               ? String::Handle(Field::Handle(static_field().Original()).name())
-                     .Hash()
-               : raw_selector_;
   }
 
   void set_representation(Representation rep) {
@@ -1534,19 +1514,6 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 }
 
-// Returns true if instruction may have a "visible" effect,
-static bool MayHaveVisibleEffect(Instruction* instr) {
-  switch (instr->tag()) {
-    case Instruction::kStoreField:
-    case Instruction::kStoreStaticField:
-    case Instruction::kStoreIndexed:
-    case Instruction::kStoreIndexedUnsafe:
-      return true;
-    default:
-      return instr->HasUnknownSideEffects() || instr->MayThrow();
-  }
-}
-
 void LICM::Optimize() {
   if (flow_graph()->function().ProhibitsInstructionHoisting()) {
     // Do not hoist any.
@@ -1624,7 +1591,7 @@ void LICM::Optimize() {
         // effect invalidates the first "visible" effect flag.
         if (is_loop_invariant) {
           Hoist(&it, pre_header, current);
-        } else if (!seen_visible_effect && MayHaveVisibleEffect(current)) {
+        } else if (!seen_visible_effect && current->MayHaveVisibleEffect()) {
           seen_visible_effect = true;
         }
       }
@@ -4441,20 +4408,6 @@ void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
   }
 }
 
-// Returns true if [current] instruction can be possibly eliminated
-// (if its result is not used).
-static bool CanEliminateInstruction(Instruction* current,
-                                    BlockEntryInstr* block) {
-  ASSERT(current->GetBlock() == block);
-  if (MayHaveVisibleEffect(current) || current->CanDeoptimize() ||
-      current == block->last_instruction() || current->IsMaterializeObject() ||
-      current->IsCheckStackOverflow() || current->IsReachabilityFence() ||
-      current->IsRawStoreField()) {
-    return false;
-  }
-  return true;
-}
-
 void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
   GrowableArray<Instruction*> worklist;
   BitVector live(flow_graph->zone(), flow_graph->current_ssa_temp_index());
@@ -4468,7 +4421,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
       ASSERT(!current->IsMoveArgument());
       // TODO(alexmarkov): take control dependencies into account and
       // eliminate dead branches/conditions.
-      if (!CanEliminateInstruction(current, block)) {
+      if (!current->CanEliminate(block)) {
         worklist.Add(current);
         if (Definition* def = current->AsDefinition()) {
           if (def->HasSSATemp()) {
@@ -4525,7 +4478,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!CanEliminateInstruction(current, block)) {
+      if (!current->CanEliminate(block)) {
         continue;
       }
       ASSERT(!current->IsMoveArgument());

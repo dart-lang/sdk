@@ -20,7 +20,7 @@ final class WCharStruct extends ffi::Struct {
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  get a0() → core::int
     return [@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificInt<self::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  set a0([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int #externalFieldValue) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  set a0([@vm.inferred-arg-type.metadata=dart.core::_Smi] synthesized core::int #externalFieldValue) → void
     return [@vm.inferred-type.metadata=int] ffi::_storeAbiSpecificInt<self::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
 [@vm.unboxing-info.metadata=()->i]  @#C10
   static get #sizeOf() → core::int*
@@ -83,10 +83,18 @@ static method testInlineArray() → void {
   final ffi::Pointer<self::WCharArrayStruct> p = let final core::int* #t4 = [@vm.inferred-type.metadata=dart.core::_Smi] self::WCharArrayStruct::#sizeOf in [@vm.direct-call.metadata=#lib::_DummyAllocator.allocate] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] #C32.{ffi::Allocator::allocate}<self::WCharArrayStruct>(){(core::int, {alignment: core::int?}) → ffi::Pointer<self::WCharArrayStruct>};
   final ffi::Array<self::WChar> array = [@vm.direct-call.metadata=#lib::WCharArrayStruct.a0] [@vm.inferred-type.metadata=dart.ffi::Array<#lib::WChar>] new self::WCharArrayStruct::#fromTypedDataBase(_in::unsafeCast<ffi::Pointer<self::WCharArrayStruct>>(p)).{self::WCharArrayStruct::a0}{ffi::Array<self::WChar>};
   for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
-    ffi::_storeAbiSpecificIntAtIndex<self::WChar>([@vm.direct-call.metadata=dart.ffi::Array._typedDataBase] [@vm.inferred-type.metadata=!] array.{ffi::Array::_typedDataBase}{core::Object}, i, i);
+    block {
+      synthesized ffi::Array<dynamic> #array = _in::unsafeCast<ffi::Array<self::WChar>>(array);
+      synthesized core::int #index = _in::unsafeCast<core::int>(i);
+      [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=!? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
+    } =>ffi::_storeAbiSpecificIntAtIndex<self::WChar>([@vm.direct-call.metadata=dart.ffi::Array._typedDataBase] [@vm.inferred-type.metadata=!] #array.{ffi::Array::_typedDataBase}{core::Object}, #index, i);
   }
   for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
-    core::print([@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificIntAtIndex<self::WChar>([@vm.direct-call.metadata=dart.ffi::Array._typedDataBase] [@vm.inferred-type.metadata=!] array.{ffi::Array::_typedDataBase}{core::Object}, i));
+    core::print( block {
+      synthesized ffi::Array<dynamic> #array = _in::unsafeCast<ffi::Array<self::WChar>>(array);
+      synthesized core::int #index = _in::unsafeCast<core::int>(i);
+      [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=!? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
+    } =>[@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificIntAtIndex<self::WChar>([@vm.direct-call.metadata=dart.ffi::Array._typedDataBase] [@vm.inferred-type.metadata=!] #array.{ffi::Array::_typedDataBase}{core::Object}, #index));
   }
   [@vm.direct-call.metadata=#lib::_DummyAllocator.free] [@vm.inferred-type.metadata=!? (skip check)] #C32.{self::_DummyAllocator::free}(){(ffi::Pointer<ffi::NativeType>) → void};
 }

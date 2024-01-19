@@ -116,10 +116,12 @@ class ObjectPointerVisitor;
   V(FfiInt8, "Int8")                                                           \
   V(FfiIntPtr, "IntPtr")                                                       \
   V(FfiIsolateLocalCallback, "_FfiIsolateLocalCallback")                       \
+  V(FfiNative, "Native")                                                       \
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \
   V(FfiNativeTypes, "nativeTypes")                                             \
   V(FfiPointer, "Pointer")                                                     \
+  V(FfiFromAddress, "_fromAddress")                                            \
   V(FfiStructLayout, "_FfiStructLayout")                                       \
   V(FfiStructLayoutArray, "_FfiInlineArray")                                   \
   V(FfiTrampolineData, "FfiTrampolineData")                                    \
@@ -384,6 +386,7 @@ class ObjectPointerVisitor;
   V(_Type, "_Type")                                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
+  V(_TypedList, "_TypedList")                                                  \
   V(_TypedListBase, "_TypedListBase")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
@@ -426,6 +429,7 @@ class ObjectPointerVisitor;
   V(_checkSetRangeArguments, "_checkSetRangeArguments")                        \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
+  V(_ffi_resolver_function, "_ffi_resolver_function")                          \
   V(future, "future")                                                          \
   V(_future, "_future")                                                        \
   V(_getRegisters, "_getRegisters")                                            \
@@ -448,6 +452,16 @@ class ObjectPointerVisitor;
   V(_mapGet, "_mapGet")                                                        \
   V(_mapKeys, "_mapKeys")                                                      \
   V(_name, "_name")                                                            \
+  V(_nativeGetFloat32, "_nativeGetFloat32")                                    \
+  V(_nativeSetFloat32, "_nativeSetFloat32")                                    \
+  V(_nativeGetFloat64, "_nativeGetFloat64")                                    \
+  V(_nativeSetFloat64, "_nativeSetFloat64")                                    \
+  V(_nativeGetFloat32x4, "_nativeGetFloat32x4")                                \
+  V(_nativeSetFloat32x4, "_nativeSetFloat32x4")                                \
+  V(_nativeGetInt32x4, "_nativeGetInt32x4")                                    \
+  V(_nativeSetInt32x4, "_nativeSetInt32x4")                                    \
+  V(_nativeGetFloat64x2, "_nativeGetFloat64x2")                                \
+  V(_nativeSetFloat64x2, "_nativeSetFloat64x2")                                \
   V(_nativeSetRange, "_nativeSetRange")                                        \
   V(_objectEquals, "_objectEquals")                                            \
   V(_objectHashCode, "_objectHashCode")                                        \
@@ -480,6 +494,7 @@ class ObjectPointerVisitor;
   V(add, "add")                                                                \
   V(addStream, "addStream")                                                    \
   V(asyncStarBody, "asyncStarBody")                                            \
+  V(byteOffset, "byteOffset")                                                  \
   V(c_result, ":result")                                                       \
   V(call, "call")                                                              \
   V(callback, "callback")                                                      \
@@ -497,6 +512,7 @@ class ObjectPointerVisitor;
   V(from, "from")                                                              \
   V(get, "get")                                                                \
   V(index_temp, ":index_temp")                                                 \
+  V(isLeaf, "isLeaf")                                                          \
   V(isPaused, "isPaused")                                                      \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \
@@ -525,12 +541,15 @@ class ObjectPointerVisitor;
   V(vm_exact_result_type, "vm:exact-result-type")                              \
   V(vm_external_name, "vm:external-name")                                      \
   V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
+  V(vm_ffi_call_closure, "vm:ffi:call-closure")                                \
+  V(vm_ffi_native, "vm:ffi:native")                                            \
   V(vm_ffi_native_assets, "vm:ffi:native-assets")                              \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_force_optimize, "vm:force-optimize")                                    \
   V(vm_idempotent, "vm:idempotent")                                            \
   V(vm_invisible, "vm:invisible")                                              \
   V(vm_isolate_unsendable, "vm:isolate-unsendable")                            \
+  V(vm_cachable_idempotent, "vm:cachable-idempotent")                          \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \

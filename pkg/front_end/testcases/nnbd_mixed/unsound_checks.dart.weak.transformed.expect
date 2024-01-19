@@ -478,7 +478,7 @@ static method ifNullPropertySetOptInForEffect(core::int i) → dynamic {
 static method ifNullSetOptIn(core::int i) → dynamic
   return let final core::int #t65 = i in #t65 == null ?{core::int} i = 42 : #t65;
 static method ifNullSetOptInForEffect(core::int i) → dynamic {
-  i == null ?{core::int} i = 42 : null;
+  i == null ?{core::int?} i = 42 : null;
 }
 static method ifNullSuperIndexSetOptIn(core::int i) → dynamic
   return new uns::OptInClass4::•().{uns::OptInClass4::method}(i){(core::int) → dynamic};

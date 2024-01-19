@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddAsync extends ResolvedCorrectionProducer {
-  // todo(pq): consider adding a variation that adds an `await` as well
+  // TODO(pq): consider adding a variation that adds an `await` as well
 
   /// A flag indicating whether this producer is producing a fix in the case
   /// where a function is missing a return at the end.

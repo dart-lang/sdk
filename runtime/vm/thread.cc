@@ -741,6 +741,7 @@ ErrorPtr Thread::HandleInterrupts() {
       // occur that does promote them.
       heap()->CollectGarbage(this, GCType::kEvacuate, GCReason::kStoreBuffer);
     }
+    heap()->CheckFinalizeMarking(this);
 
 #if !defined(PRODUCT)
     if (isolate()->TakeHasCompletedBlocks()) {

@@ -14,10 +14,16 @@ aaa
 aarhus
 abcompile
 ac
+aci
+acn
+acr
 adapter
 adaptor
 adopted
 advantages
+aei
+aen
+aer
 af
 albeit
 aligns
@@ -112,11 +118,13 @@ ca
 cafebabe
 calloc
 camel
+capacity
 capitalized
 caption
 captions
 carefully
 categorization
+categorize
 causal
 cb
 cc
@@ -130,6 +138,7 @@ characteristics
 charset
 checkme
 checkout
+chk
 chromes
 chunked
 cipd
@@ -278,6 +287,7 @@ estat
 et
 everytime
 evicting
+ex
 examines
 exceed
 excess
@@ -295,19 +305,23 @@ fa
 fac
 faking
 falling
+faults
 favors
 fb
 fd
 fec
 fi
 fibonacci
+filesize
 filesystem
 filler
 filters
 fisk
 five
+fixtures
 fl
 flame
+flipped
 floor
 fluctuate
 foo'bar'baz
@@ -339,6 +353,7 @@ gave
 gc
 gcd
 gclient
+ge
 gesture
 gi
 gm
@@ -356,6 +371,7 @@ hardcoding
 hardly
 hb
 hc
+helpfully
 hest
 heuristics
 hi
@@ -402,6 +418,7 @@ instrument
 instrumenter
 insufficient
 intdiv
+intel
 interactions
 interactive
 interchangeable
@@ -417,6 +434,7 @@ italic
 iter
 ja
 jc
+jk
 jlcontreras
 joo
 jumped
@@ -425,6 +443,7 @@ kitty
 ko
 koo
 la
+lambdas
 lat
 launch
 launching
@@ -440,6 +459,7 @@ lints
 listening
 listing
 ln
+locating
 logd
 logs
 loo
@@ -448,6 +468,7 @@ loopback
 ma
 mac
 maker
+manual
 matters
 mds
 meaningless
@@ -473,6 +494,7 @@ misspelled
 mistake
 mistakes
 mixups
+ml
 mmethod
 mod
 modelled
@@ -541,6 +563,7 @@ party
 pause
 paused
 pays
+pb
 pc
 periodic
 periodically
@@ -578,6 +601,7 @@ protected
 proved
 proxy
 pseudocode
+pt
 pubspec
 pv
 px
@@ -633,6 +657,8 @@ runtimes
 rv
 sanitize
 saves
+scaled
+scaling
 scans
 scenarios
 scheduler
@@ -664,6 +690,7 @@ sigint
 signalled
 sigwinch
 silence
+simplistic
 slashes
 slight
 sliver
@@ -684,6 +711,7 @@ splitting
 spurious
 sqrt
 squared
+ss
 sssp
 stacks
 stashed
@@ -721,6 +749,7 @@ t\u
 ta
 tails
 taskset
+te
 templates
 theoretically
 thereby

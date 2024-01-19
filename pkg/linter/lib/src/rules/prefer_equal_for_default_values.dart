@@ -7,6 +7,8 @@ import '../analyzer.dart';
 const _desc = r'Use `=` to separate a named parameter from its default value.';
 
 const _details = r'''
+NOTE: This rule is removed in Dart 3.0; it is no longer functional.
+
 **DO** use `=` to separate a named parameter from its default value.
 
 **BAD:**
@@ -18,6 +20,7 @@ m({a: 1})
 ```dart
 m({a = 1})
 ```
+
 ''';
 
 class PreferEqualForDefaultValues extends LintRule {

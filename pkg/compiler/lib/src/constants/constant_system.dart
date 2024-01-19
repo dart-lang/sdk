@@ -648,7 +648,6 @@ abstract class RelationalNumOperation implements BinaryOperation {
       } else {
         foldedValue = foldNums(left.doubleValue, right.doubleValue);
       }
-      assert((foldedValue as dynamic) != null);
       return createBool(foldedValue);
     }
     return null;

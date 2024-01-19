@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -22,6 +23,7 @@ class AstResolver {
   final FeatureSet _featureSet;
   final AnalysisErrorListener _errorListener =
       AnalysisErrorListener.NULL_LISTENER;
+  final AnalysisOptionsImpl analysisOptions;
   final InterfaceElement? enclosingClassElement;
   final ExecutableElement? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
@@ -29,6 +31,8 @@ class AstResolver {
     featureSet: _featureSet,
     nameScope: _nameScope,
     errorListener: _errorListener,
+    strictInference: analysisOptions.strictInference,
+    strictCasts: analysisOptions.strictCasts,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
     _unitElement.library,
@@ -37,8 +41,10 @@ class AstResolver {
     _errorListener,
     nameScope: _nameScope,
   );
-  late final _flowAnalysis =
-      FlowAnalysisHelper(_unitElement.library.typeSystem, false, _featureSet);
+  late final _flowAnalysis = FlowAnalysisHelper(false, _featureSet,
+      typeSystemOperations: TypeSystemOperations(
+          _unitElement.library.typeSystem,
+          strictCasts: analysisOptions.strictCasts));
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,
@@ -46,13 +52,15 @@ class AstResolver {
     _unitElement.library.typeProvider,
     _errorListener,
     featureSet: _featureSet,
+    analysisOptions: analysisOptions,
     flowAnalysisHelper: _flowAnalysis,
   );
 
   AstResolver(
     this._linker,
     this._unitElement,
-    this._nameScope, {
+    this._nameScope,
+    this.analysisOptions, {
     this.enclosingClassElement,
     this.enclosingExecutableElement,
   }) : _featureSet = _unitElement.library.featureSet;

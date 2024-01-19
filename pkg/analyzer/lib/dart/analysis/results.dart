@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 
 /// The result of performing some kind of analysis on a single file. Every
 /// result that implements this interface will also implement a sub-interface.
@@ -83,6 +85,16 @@ abstract class ErrorsResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileResult implements SomeFileResult, AnalysisResult {
+  /// The analysis options for this file.
+  AnalysisOptions get analysisOptions;
+
+  /// The latest read content of [file], the same that was used to compute
+  /// other properties of this result.
+  String get content;
+
+  /// The file resource.
+  File get file;
+
   /// Whether the file is a library augmentation.
   /// When `true`, [isLibrary] and [isPart] are `false`.
   bool get isAugmentation;
@@ -90,6 +102,10 @@ abstract class FileResult implements SomeFileResult, AnalysisResult {
   /// Whether the file is a library.
   /// When `true`, [isAugmentation] and [isPart] are `false`.
   bool get isLibrary;
+
+  /// Whether the file is a macro augmentation.
+  /// When `true`, [isAugmentation] is also `true`.
+  bool get isMacroAugmentation;
 
   /// Whether the file is a part.
   /// When `true`, [isAugmentation] and [isLibrary] are `false`.
@@ -202,9 +218,6 @@ abstract class ParsedLibraryResult
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParsedUnitResult
     implements SomeParsedUnitResult, AnalysisResultWithErrors {
-  /// The content of the file that was scanned and parsed.
-  String get content;
-
   /// The parsed, unresolved compilation unit for the [content].
   CompilationUnit get unit;
 }
@@ -341,7 +354,7 @@ abstract class SomeUnitElementResult {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 ///
-/// TODO(scheglov) Stop implementing [FileResult].
+// TODO(scheglov): Stop implementing [FileResult].
 abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
   /// The element of the file.
   CompilationUnitElement get element;

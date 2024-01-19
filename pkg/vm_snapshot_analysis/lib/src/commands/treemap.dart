@@ -7,7 +7,7 @@
 /// flag.
 ///
 /// It used the same visualization framework as Chromium's binary_size tool
-/// located in runtime/third_party/binary_size.
+/// located in third_party/binary_size.
 library vm_snapshot_analysis.commands.treemap;
 
 import 'dart:async';

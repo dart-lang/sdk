@@ -523,7 +523,7 @@ int x = 0;
 main() {
   print(x);
 }''');
-    // TODO(brianwilkerson) This should produce a hint because the
+    // TODO(brianwilkerson): This should produce a hint because the
     // annotation is being applied to the wrong kind of declaration.
   }
 

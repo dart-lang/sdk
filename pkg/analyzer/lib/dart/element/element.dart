@@ -45,10 +45,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show Namespace;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
@@ -305,7 +306,7 @@ abstract class ClassElement implements InterfaceElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassMemberElement implements Element {
-  // TODO(brianwilkerson) Either remove this class or rename it to something
+  // TODO(brianwilkerson): Either remove this class or rename it to something
   //  more correct.
 
   @override
@@ -414,7 +415,7 @@ abstract class ConstructorElement
   /// The offset of the character immediately following the last character of
   /// this constructor's name, or `null` if not named.
   ///
-  /// TODO(migration): encapsulate [nameEnd] and [periodOffset]?
+  // TODO(migration): encapsulate [nameEnd] and [periodOffset]?
   int? get nameEnd;
 
   /// The offset of the `.` before this constructor name, or `null` if not
@@ -655,7 +656,7 @@ abstract class Element implements AnalysisTarget {
   /// The kind of element that this is.
   ElementKind get kind;
 
-  /// Tibrary that contains this element.
+  /// Library that contains this element.
   ///
   /// This will be the element itself if it is a library element. This will be
   /// `null` if this element is [MultiplyDefinedElement] that is not contained
@@ -749,7 +750,7 @@ abstract class Element implements AnalysisTarget {
   /// compilation unit in which the type is defined. If [shortName] is `null`
   /// then [displayName] will be used as the name of this element. Otherwise
   /// the provided name will be used.
-  // TODO(brianwilkerson) Make the parameter optional.
+  // TODO(brianwilkerson): Make the parameter optional.
   String getExtendedDisplayName(String? shortName);
 
   /// Whether the element, assuming that it is within scope, is accessible to
@@ -965,34 +966,36 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind METHOD = ElementKind('METHOD', 20, "method");
 
-  static const ElementKind NAME = ElementKind('NAME', 21, "<name>");
+  static const ElementKind MIXIN = ElementKind('MIXIN', 21, "mixin");
 
-  static const ElementKind NEVER = ElementKind('NEVER', 22, "<never>");
+  static const ElementKind NAME = ElementKind('NAME', 22, "<name>");
+
+  static const ElementKind NEVER = ElementKind('NEVER', 23, "<never>");
 
   static const ElementKind PARAMETER =
-      ElementKind('PARAMETER', 23, "parameter");
+      ElementKind('PARAMETER', 24, "parameter");
 
-  static const ElementKind PART = ElementKind('PART', 24, "part");
+  static const ElementKind PART = ElementKind('PART', 25, "part");
 
-  static const ElementKind PREFIX = ElementKind('PREFIX', 25, "import prefix");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 26, "import prefix");
 
-  static const ElementKind RECORD = ElementKind('RECORD', 26, "record");
+  static const ElementKind RECORD = ElementKind('RECORD', 27, "record");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 27, "setter");
+  static const ElementKind SETTER = ElementKind('SETTER', 28, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 28, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 29, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 29, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 30, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 30, "type parameter");
+      ElementKind('TYPE_PARAMETER', 31, "type parameter");
 
   static const ElementKind TYPE_ALIAS =
-      ElementKind('TYPE_ALIAS', 31, "type alias");
+      ElementKind('TYPE_ALIAS', 32, "type alias");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 32, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 33, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
@@ -1014,6 +1017,7 @@ class ElementKind implements Comparable<ElementKind> {
     LIBRARY,
     LOCAL_VARIABLE,
     METHOD,
+    MIXIN,
     NAME,
     NEVER,
     PARAMETER,
@@ -1205,6 +1209,9 @@ abstract class ExecutableElement implements FunctionTypedElement {
   ///
   /// If `true`, declaration has the explicit `augment` modifier.
   bool get isAugmentation;
+
+  /// Whether the executable element is an extension type member.
+  bool get isExtensionTypeMember;
 
   /// Whether the executable element is external.
   ///
@@ -1417,9 +1424,16 @@ abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class HideElementCombinator implements NamespaceCombinator {
+  /// The offset of the character immediately following the last character of
+  /// this node.
+  int get end;
+
   /// The names that are not to be made visible in the importing library even
   /// if they are defined in the imported library.
   List<String> get hiddenNames;
+
+  /// The offset of the 'hide' keyword of this element.
+  int get offset;
 }
 
 /// Usage of a [PrefixElement] in an `import` directive.
@@ -1556,32 +1570,32 @@ abstract class InterfaceElement implements InstanceElement {
   ///
   /// If the class does not declare any constructors, a synthetic default
   /// constructor will be returned.
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   ConstructorElement? get unnamedConstructor;
 
   /// The field (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   FieldElement? getField(String name);
 
   /// The getter (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   PropertyAccessorElement? getGetter(String name);
 
   /// The method defined directly in this class or augmentation that has the
   /// given [name].
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   MethodElement? getMethod(String name);
 
   /// The constructor defined directly in this class or augmentation
   /// that has the given [name].
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   ConstructorElement? getNamedConstructor(String name);
 
   /// The setter (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   PropertyAccessorElement? getSetter(String name);
 
   /// Create the [InterfaceType] for this element with the given
@@ -1606,7 +1620,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
   /// failed.
   /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   MethodElement? lookUpConcreteMethod(
       String methodName, LibraryElement library);
 
@@ -1626,7 +1640,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
   /// lookup has failed.
   /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   PropertyAccessorElement? lookUpGetter(
       String getterName, LibraryElement library);
 
@@ -1647,7 +1661,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
   /// lookup has failed.
   /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   PropertyAccessorElement? lookUpInheritedConcreteGetter(
       String getterName, LibraryElement library);
 
@@ -1667,7 +1681,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
   /// failed.
   /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   MethodElement? lookUpInheritedConcreteMethod(
       String methodName, LibraryElement library);
 
@@ -1688,7 +1702,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
   /// lookup has failed.
   /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   PropertyAccessorElement? lookUpInheritedConcreteSetter(
       String setterName, LibraryElement library);
 
@@ -1707,7 +1721,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
   /// failed.
   /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   MethodElement? lookUpInheritedMethod(
       String methodName, LibraryElement library);
 
@@ -1726,7 +1740,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
   /// failed.
   /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   MethodElement? lookUpMethod(String methodName, LibraryElement library);
 
   /// Returns the element representing the setter that results from looking up
@@ -1745,7 +1759,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
   /// lookup has failed.
   /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
+  // TODO(scheglov): Deprecate and remove it.
   PropertyAccessorElement? lookUpSetter(
       String setterName, LibraryElement library);
 }

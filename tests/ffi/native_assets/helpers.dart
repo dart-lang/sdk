@@ -73,12 +73,13 @@ Future<void> withTempDir(
   String prefix = 'tests_ffi_native_assets_',
 }) async {
   final tempDir = await Directory.systemTemp.createTemp(prefix);
+  final tempDirResolved = Directory(await tempDir.resolveSymbolicLinks());
   try {
-    await fun(tempDir.uri);
+    await fun(tempDirResolved.uri);
   } finally {
     if (!Platform.environment.containsKey(keepTempKey) ||
         Platform.environment[keepTempKey]!.isEmpty) {
-      await tempDir.delete(recursive: true);
+      await tempDirResolved.delete(recursive: true);
     }
   }
 }
@@ -115,6 +116,7 @@ stderr     : ${result.stderr}''';
 
 enum Runtime {
   aot,
+  appjit,
   jit,
 }
 
@@ -254,13 +256,28 @@ Future<void> compileAndRun({
     runtime: runtime,
   );
 
-  if (runtime == Runtime.jit) {
-    await runDart(scriptUri: outDillUri, arguments: runArguments);
-  } else {
-    final snapshotUri = tempUri.resolve('out.snapshot');
-    await runGenSnapshot(dillUri: outDillUri, outputUri: snapshotUri);
-    await runDartAotRuntime(
-        aotSnapshotUri: snapshotUri, arguments: runArguments);
+  switch (runtime) {
+    case Runtime.aot:
+      final snapshotUri = tempUri.resolve('out.snapshot');
+      await runGenSnapshot(dillUri: outDillUri, outputUri: snapshotUri);
+      await runDartAotRuntime(
+          aotSnapshotUri: snapshotUri, arguments: runArguments);
+    case Runtime.appjit:
+      final outJitUri = tempUri.resolve('out.jit');
+      await runDart(
+        toolArgs: [
+          '--snapshot-kind=app-jit',
+          '--snapshot=${outJitUri.toFilePath()}',
+        ],
+        scriptUri: outDillUri,
+        arguments: runArguments,
+      );
+      await runDart(
+        scriptUri: outJitUri,
+        arguments: runArguments,
+      );
+    case Runtime.jit:
+      await runDart(scriptUri: outDillUri, arguments: runArguments);
   }
 }
 
@@ -344,7 +361,7 @@ Future<void> testIsolateSpawn(Future Function() fun) async {
 ///    _with_ a native asset mapping.
 /// 2. The [doOnProcessInvocation]. In this, we know that we have a snapshot
 ///    from the outer invocation and are in the corresponding Dart runtime.
-///    This means we have an asset mapping and can use `@FfiNative` bindings.
+///    This means we have an asset mapping and can use `@Native` bindings.
 ///    In this invocation, we can call [Isolate.spawn] which should then reuse
 ///    native asset mapping, because this mapping is shared among the isolate
 ///    group.
@@ -404,20 +421,30 @@ Future<void> Function(List<String> args, Object? message) selfInvokingTest({
 
 const doesNotExistName = 'doesnotexist92304';
 
-@FfiNative<Int32 Function(Int32, Int32)>(doesNotExistName)
-external int doesNotExist(int a, int b);
-
 @Native<Int32 Function(Int32, Int32)>()
 external int doesnotexist92304(int a, int b);
 
 void testNonExistingFunction() {
-  final argumentError = Expect.throws<ArgumentError>(() {
-    doesNotExist(2, 3);
-  });
-  Expect.contains(doesNotExistName, argumentError.message);
-
   final argumentError2 = Expect.throws<ArgumentError>(() {
     doesnotexist92304(2, 3);
   });
   Expect.contains(doesNotExistName, argumentError2.message);
+  Expect.contains('No asset with id', argumentError2.message);
+  Expect.contains('Available native assets: ', argumentError2.message);
+  Expect.contains(
+    'Attempted to fallback to process lookup.',
+    argumentError2.message,
+  );
+
+  final addressOfError = Expect.throws<ArgumentError>(() {
+    Native.addressOf<NativeFunction<Int32 Function(Int32, Int32)>>(
+        doesnotexist92304);
+  });
+  Expect.contains(doesNotExistName, addressOfError.message);
+  Expect.contains('No asset with id', addressOfError.message);
+  Expect.contains('Available native assets: ', addressOfError.message);
+  Expect.contains(
+    'Attempted to fallback to process lookup.',
+    addressOfError.message,
+  );
 }

@@ -103,23 +103,6 @@ void testValidation() {
 }
 
 void testSelectors() {
-  // Legacy suites.
-  for (var arguments in [
-    ['--nnbd=legacy'],
-    ['-nvm-legacy']
-  ]) {
-    var configuration = parseConfiguration(arguments);
-    Expect.setEquals({
-      'corelib_2',
-      'language_2',
-      'vm',
-      'utils',
-      'lib_2',
-      'kernel',
-      'ffi_2',
-    }, configuration.selectors.keys, "suites for $arguments");
-  }
-
   // Default null safe suites.
   for (var arguments in [
     <String>[],
@@ -135,7 +118,6 @@ void testSelectors() {
       'vm',
       'utils',
       'lib',
-      'service',
       'kernel',
       'ffi',
     }, configuration.selectors.keys, "suites for $arguments");
@@ -150,7 +132,7 @@ void testSelectors() {
       .join(Platform.pathSeparator);
   final co19Path = [
     'tests',
-    'co19_2',
+    'co19',
     'src',
     'subdir_1',
     'subdir_src',
@@ -161,14 +143,13 @@ void testSelectors() {
       // suite selectors, one with a pattern ending in .dart.
       // The final .dart is removed both from file paths and selector
       // patterns.
-      ['vm', 'language_2/a_legacy_test.dart', testPath, co19Path]);
+      ['vm', 'lib/a_legacy_test.dart', testPath, co19Path]);
   Expect.equals(
       'subdir/some_test', configuration.selectors['language']?.pattern);
   Expect.equals('subdir_1/subdir_src/some_co19_test',
-      configuration.selectors['co19_2']?.pattern);
+      configuration.selectors['co19']?.pattern);
   Expect.equals('.?', configuration.selectors['vm']?.pattern);
-  Expect.equals(
-      'a_legacy_test', configuration.selectors['language_2']?.pattern);
+  Expect.equals('a_legacy_test', configuration.selectors['lib']?.pattern);
 }
 
 TestConfiguration parseConfiguration(List<String> arguments) {

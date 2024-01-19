@@ -1,5 +1,7 @@
 const forParameter = 1;
+
 const forFactoryItself = 2;
+
 const anotherForParameter = 3;
 
 class Foo {

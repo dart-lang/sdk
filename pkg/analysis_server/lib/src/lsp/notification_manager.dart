@@ -2,26 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol.dart';
-import 'package:path/path.dart';
 
 class LspNotificationManager extends AbstractNotificationManager {
-  /// The channel used to send notifications to the client.
-  final LspServerCommunicationChannel channel;
-
   /// The analysis server, used to fetch LineInfo in order to map plugin
   /// data structures to LSP structures.
   late LspAnalysisServer
       server; // Set externally immediately after construction
 
-  LspNotificationManager(this.channel, Context pathContext)
-      : super(pathContext);
+  LspNotificationManager(super.pathContext);
 
   /// Sends errors for a file to the client.
   @override
@@ -29,7 +22,7 @@ class LspNotificationManager extends AbstractNotificationManager {
       String filePath, List<protocol.AnalysisError> errors) {
     final diagnostics = errors
         .map((error) => pluginToDiagnostic(
-              pathContext,
+              server.uriConverter,
               (path) => server.getLineInfo(path),
               error,
               supportedTags: server.lspClientCapabilities?.diagnosticTags,
@@ -39,15 +32,7 @@ class LspNotificationManager extends AbstractNotificationManager {
             ))
         .toList();
 
-    final params = PublishDiagnosticsParams(
-        uri: pathContext.toUri(filePath), diagnostics: diagnostics);
-    final message = NotificationMessage(
-      method: Method.textDocument_publishDiagnostics,
-      params: params,
-      jsonrpc: jsonRpcVersion,
-    );
-
-    channel.sendNotification(message);
+    server.publishDiagnostics(filePath, diagnostics);
   }
 
   @override
@@ -62,7 +47,7 @@ class LspNotificationManager extends AbstractNotificationManager {
   @override
   void sendHighlightRegions(
       String filePath, List<protocol.HighlightRegion> mergedHighlights) {
-    // TODO: implement sendHighlightRegions
+    // TODO(dantup): implement sendHighlightRegions
   }
 
   @override
@@ -92,6 +77,6 @@ class LspNotificationManager extends AbstractNotificationManager {
 
   @override
   void sendPluginErrorNotification(Notification notification) {
-    // TODO: implement sendPluginErrorNotification
+    // TODO(dantup): implement sendPluginErrorNotification
   }
 }

@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension Extension on core::int {
+  get getter = self::Extension|get#getter;
+}
+static extension-member method Extension|get#getter(lowered final core::int #this) → core::num
+  ;
+static method method1(core::int i) → dynamic
+  ;
+static method method2(core::int i) → dynamic
+  ;

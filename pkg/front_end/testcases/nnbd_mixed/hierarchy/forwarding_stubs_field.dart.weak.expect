@@ -129,11 +129,11 @@ abstract class Super extends core::Object {
     : super core::Object::•()
     ;
   abstract get extendedAbstractCovariantField() → core::int;
-  abstract set extendedAbstractCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract set extendedAbstractCovariantField(covariant-by-declaration synthesized core::int #externalFieldValue) → void;
   abstract get extendedAbstractCovariantImplementedField() → core::int;
-  abstract set extendedAbstractCovariantImplementedField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract set extendedAbstractCovariantImplementedField(covariant-by-declaration synthesized core::int #externalFieldValue) → void;
   abstract get extendedAbstractImplementedCovariantField() → core::int;
-  abstract set extendedAbstractImplementedCovariantField(core::int #externalFieldValue) → void;
+  abstract set extendedAbstractImplementedCovariantField(synthesized core::int #externalFieldValue) → void;
 }
 class Interface1 extends core::Object {
   field core::int extendedConcreteCovariantImplementedField = 0;

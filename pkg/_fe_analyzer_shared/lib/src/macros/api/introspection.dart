@@ -20,8 +20,8 @@ abstract interface class Annotatable {
 /// These can be passed directly to [Code] objects, which will automatically do
 /// any necessary prefixing when emitting references.
 ///
-/// Concrete implementations should override `==` so that identifiers can be
-/// reliably compared against each other.
+/// Identifier equality/identity is not specified. To check for type equality, a
+/// [StaticType] should be used.
 abstract interface class Identifier {
   String get name;
 }
@@ -138,15 +138,6 @@ abstract interface class ParameterizedTypeDeclaration
   Iterable<TypeParameterDeclaration> get typeParameters;
 }
 
-/// A marker interface for the type declarations which are introspectable.
-///
-/// All type declarations which can have members will have a variant which
-/// implements this type.
-abstract interface class IntrospectableType implements TypeDeclaration {}
-
-/// A marker interface for the enum declarations which are introspectable.
-abstract interface class IntrospectableEnum implements IntrospectableType {}
-
 /// Class introspection information.
 ///
 /// Information about fields, methods, and constructors must be retrieved from
@@ -184,10 +175,6 @@ abstract interface class ClassDeclaration
   Iterable<NamedTypeAnnotation> get mixins;
 }
 
-/// An introspectable class declaration.
-abstract interface class IntrospectableClassDeclaration
-    implements ClassDeclaration, IntrospectableType {}
-
 /// Enum introspection information.
 ///
 /// Information about values, fields, methods, and constructors must be
@@ -203,21 +190,19 @@ abstract interface class EnumDeclaration
 
 /// Enum entry introspection information.
 ///
-/// TODO(https://github.com/dart-lang/language/issues/1930): Design
-/// introspection API for the values of these (or decide not to).
+/// Note that enum values are not introspectable, because they can be augmented.
+///
+/// You can however do const evaluation of enum values, if they are not in a
+/// library cycle with the current library.
 abstract interface class EnumValueDeclaration implements Declaration {
   /// The enum that surrounds this entry.
   Identifier get definingEnum;
 }
 
-/// An introspectable enum declaration.
-abstract interface class IntrospectableEnumDeclaration
-    implements EnumDeclaration, IntrospectableEnum {}
-
 /// The class for introspecting on an extension.
 ///
 /// Note that extensions do not actually introduce a new type, but we model them
-/// as [ParameterizedTypeDeclaration]s anyways, because they generally look
+/// as [ParameterizedTypeDeclaration]s anyway, because they generally look
 /// exactly like other type declarations, and are treated the same.
 abstract interface class ExtensionDeclaration
     implements ParameterizedTypeDeclaration, Declaration {
@@ -225,9 +210,12 @@ abstract interface class ExtensionDeclaration
   TypeAnnotation get onType;
 }
 
-/// An introspectable extension declaration.
-abstract interface class IntrospectableExtensionDeclaration
-    implements ExtensionDeclaration, IntrospectableType {}
+/// The class for introspecting on an extension type.
+abstract interface class ExtensionTypeDeclaration
+    implements ParameterizedTypeDeclaration, Declaration {
+  /// The representation type of this extension type.
+  TypeAnnotation get representationType;
+}
 
 /// Mixin introspection information.
 ///
@@ -245,10 +233,6 @@ abstract interface class MixinDeclaration
   Iterable<NamedTypeAnnotation> get superclassConstraints;
 }
 
-/// An introspectable mixin declaration.
-abstract interface class IntrospectableMixinDeclaration
-    implements MixinDeclaration, IntrospectableType {}
-
 /// Type alias introspection information.
 abstract interface class TypeAliasDeclaration
     implements ParameterizedTypeDeclaration {
@@ -258,9 +242,6 @@ abstract interface class TypeAliasDeclaration
 
 /// Function introspection information.
 abstract interface class FunctionDeclaration implements Declaration {
-  /// Whether this function has an `abstract` modifier.
-  bool get hasAbstract;
-
   /// Whether or not this function has a body.
   ///
   /// This is useful when augmenting a function, so you know whether an
@@ -307,13 +288,13 @@ abstract interface class ConstructorDeclaration implements MethodDeclaration {
 
 /// Variable introspection information.
 abstract interface class VariableDeclaration implements Declaration {
-  /// Whether this field has an `external` modifier.
+  /// Whether this variable has an `external` modifier.
   bool get hasExternal;
 
-  /// Whether this field has a `final` modifier.
+  /// Whether this variable has a `final` modifier.
   bool get hasFinal;
 
-  /// Whether this field has a `late` modifier.
+  /// Whether this variable has a `late` modifier.
   bool get hasLate;
 
   /// The type of this field.
@@ -322,7 +303,10 @@ abstract interface class VariableDeclaration implements Declaration {
 
 /// Field introspection information.
 abstract interface class FieldDeclaration
-    implements VariableDeclaration, MemberDeclaration {}
+    implements VariableDeclaration, MemberDeclaration {
+  /// Whether this field has an `abstract` modifier.
+  bool get hasAbstract;
+}
 
 /// General parameter introspection information, see the subtypes
 /// [FunctionTypeParameter] and [ParameterDeclaration].
@@ -422,4 +406,10 @@ abstract interface class ConstructorMetadataAnnotation
   /// For unnamed constructors, the name of this identifier will be the empty
   /// String.
   Identifier get constructor;
+
+  /// The positional arguments of this constructor call.
+  Iterable<ExpressionCode> get positionalArguments;
+
+  /// The named arguments of this constructor call.
+  Map<String, ExpressionCode> get namedArguments;
 }

@@ -1651,7 +1651,8 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType representationType = readDartType();
     String representationName = readStringReference();
-    List<DartType> implements = _readExtensionTypeDeclarationImplementsList();
+    List<TypeDeclarationType> implements =
+        _readExtensionTypeDeclarationImplementsList();
 
     node.proceduresInternal = _readProcedureListWithoutOffsets(node);
     typeParameterStack.length = 0;
@@ -1668,14 +1669,15 @@ class BinaryBuilder {
     return node;
   }
 
-  List<DartType> _readExtensionTypeDeclarationImplementsList() {
+  List<TypeDeclarationType> _readExtensionTypeDeclarationImplementsList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
-      return emptyListOfExtensionType;
+      return emptyListOfTypeDeclarationType;
     }
-    return new List<DartType>.generate(length, (_) => readDartType(),
+    return new List<TypeDeclarationType>.generate(
+        length, (_) => readDartType() as TypeDeclarationType,
         growable: useGrowableLists);
   }
 
@@ -2053,7 +2055,7 @@ class BinaryBuilder {
         returnType: returnType,
         asyncMarker: asyncMarker,
         dartAsyncMarker: dartAsyncMarker,
-        futureValueType: futureValueType)
+        emittedValueType: futureValueType)
       ..fileOffset = offset
       ..fileEndOffset = endOffset
       ..redirectingFactoryTarget = redirectingFactoryTarget;
@@ -2492,11 +2494,13 @@ class BinaryBuilder {
   }
 
   Expression _readTypedefTearOff() {
+    int offset = readOffset();
     List<TypeParameter> typeParameters = readAndPushTypeParameterList();
     Expression expression = readExpression();
     List<DartType> typeArguments = readDartTypeList();
     typeParameterStack.length -= typeParameters.length;
-    return new TypedefTearOff(typeParameters, expression, typeArguments);
+    return new TypedefTearOff(typeParameters, expression, typeArguments)
+      ..fileOffset = offset;
   }
 
   Expression _readRedirectingFactoryTearOff() {
@@ -2553,10 +2557,12 @@ class BinaryBuilder {
 
   Expression _readDynamicInvocation() {
     DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int flags = readByte();
     int offset = readOffset();
     return new DynamicInvocation(
         kind, readExpression(), readName(), readArguments())
-      ..fileOffset = offset;
+      ..fileOffset = offset
+      ..flags = flags;
   }
 
   Expression _readFunctionInvocation() {
@@ -2648,7 +2654,8 @@ class BinaryBuilder {
   }
 
   Expression _readNot() {
-    return new Not(readExpression());
+    int offset = readOffset();
+    return new Not(readExpression())..fileOffset = offset;
   }
 
   Expression _readNullCheck() {
@@ -2657,17 +2664,21 @@ class BinaryBuilder {
   }
 
   Expression _readLogicalExpression() {
+    int offset = readOffset();
     return new LogicalExpression(
-        readExpression(), logicalOperatorToEnum(readByte()), readExpression());
+        readExpression(), logicalOperatorToEnum(readByte()), readExpression())
+      ..fileOffset = offset;
   }
 
   Expression _readConditionalExpression() {
+    int offset = readOffset();
     return new ConditionalExpression(
         readExpression(),
         readExpression(),
         readExpression(),
         // TODO(johnniwinther): Change this to use `readDartType`.
-        readDartTypeOption()!);
+        readDartTypeOption()!)
+      ..fileOffset = offset;
   }
 
   Expression _readStringConcatenation() {
@@ -2915,17 +2926,20 @@ class BinaryBuilder {
   }
 
   Expression _readBlockExpression() {
+    int offset = readOffset();
     int stackHeight = variableStack.length;
     List<Statement> statements = readStatementListAlwaysGrowable();
     Expression value = readExpression();
     variableStack.length = stackHeight;
-    return new BlockExpression(new Block(statements), value);
+    return new BlockExpression(new Block(statements), value)
+      ..fileOffset = offset;
   }
 
   Expression _readInstantiation() {
+    int offset = readOffset();
     Expression expression = readExpression();
     List<DartType> typeArguments = readDartTypeList();
-    return new Instantiation(expression, typeArguments);
+    return new Instantiation(expression, typeArguments)..fileOffset = offset;
   }
 
   Expression _readConstantExpression() {

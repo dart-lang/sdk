@@ -14,6 +14,9 @@
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
+//
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
 
@@ -41,7 +44,7 @@ class PubspecWarningCode extends ErrorCode {
   ///  No parameters.
   static const PubspecWarningCode ASSET_FIELD_NOT_LIST = PubspecWarningCode(
     'ASSET_FIELD_NOT_LIST',
-    "The value of the 'asset' field is expected to be a list of relative file "
+    "The value of the 'assets' field is expected to be a list of relative file "
         "paths.",
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
@@ -49,9 +52,36 @@ class PubspecWarningCode extends ErrorCode {
   );
 
   ///  No parameters.
+  static const PubspecWarningCode ASSET_MISSING_PATH = PubspecWarningCode(
+    'ASSET_MISSING_PATH',
+    "Asset map entry must contain a 'path' field.",
+    correctionMessage: "Try adding a 'path' field.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  ///
+  ///  This code is deprecated in favor of the
+  ///  'ASSET_NOT_STRING_OR_MAP' code, and will be removed.
   static const PubspecWarningCode ASSET_NOT_STRING = PubspecWarningCode(
     'ASSET_NOT_STRING',
     "Assets are required to be file paths (strings).",
+    correctionMessage: "Try converting the value to be a string.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const PubspecWarningCode ASSET_NOT_STRING_OR_MAP = PubspecWarningCode(
+    'ASSET_NOT_STRING_OR_MAP',
+    "An asset value is required to be a file path (string) or map.",
+    correctionMessage: "Try converting the value to be a string or map.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const PubspecWarningCode ASSET_PATH_NOT_STRING = PubspecWarningCode(
+    'ASSET_PATH_NOT_STRING',
+    "Asset paths are required to be file paths (strings).",
     correctionMessage: "Try converting the value to be a string.",
     hasPublishedDocs: true,
   );

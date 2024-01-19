@@ -1,0 +1,19 @@
+void method(covariant int i) {}
+
+void setter(covariant int x) {}
+
+extension type ET1(num id) {
+  void method(covariant int i) {}
+}
+
+extension type ET2<T extends num>(T id) {
+  void setter(covariant int x) {}
+}
+
+extension type ET3(num id) {
+  int operator +(covariant int other) => other + id.floor();
+}
+
+extension type ET4(covariant num id) {}
+
+extension type ET5(required num id) {}

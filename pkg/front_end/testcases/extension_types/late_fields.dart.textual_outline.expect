@@ -1,0 +1,17 @@
+extension type ET1(int id) {
+  late int id = 0;
+}
+
+extension type ET2(int id) {
+  late int x = 0;
+}
+
+extension type ET3(int id) {
+  late final x = 0;
+}
+
+extension type ET4(int id) {
+  late final int x;
+}
+
+main() {}

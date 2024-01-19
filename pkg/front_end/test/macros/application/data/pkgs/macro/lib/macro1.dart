@@ -11,7 +11,7 @@ class Macro1 implements ClassDeclarationsMacro {
   const Macro1();
 
   @override
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) {
     builder.declareInType(new DeclarationCode.fromString('''
   get isMacro => true;

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_merge.dart';
@@ -38,6 +40,7 @@ class AugmentedClassDeclarationBuilder
     required this.declaration,
   }) {
     addFields(declaration.fields);
+    addConstructors(declaration.constructors);
     addAccessors(declaration.accessors);
     addMethods(declaration.methods);
   }
@@ -175,7 +178,7 @@ class LibraryBuilder {
   final Map<String, Reference> _declaredReferences = {};
 
   /// The export scope of the library.
-  final ExportScope exportScope = ExportScope();
+  ExportScope exportScope = ExportScope();
 
   /// The `export` directives that export this library.
   final List<Export> exports = [];
@@ -269,6 +272,10 @@ class LibraryBuilder {
       constructor.reference = reference;
 
       classElement.constructors = [constructor].toFixedList();
+
+      if (classElement.augmented case AugmentedClassElementImpl augmented) {
+        augmented.constructors = classElement.constructors;
+      }
     }
   }
 
@@ -312,6 +319,7 @@ class LibraryBuilder {
   }
 
   void buildInitialExportScope() {
+    exportScope = ExportScope();
     _declaredReferences.forEach((name, reference) {
       if (name.startsWith('_')) return;
       if (reference.isPrefix) return;
@@ -339,88 +347,100 @@ class LibraryBuilder {
 
   /// Computes which fields in this library are promotable.
   void computeFieldPromotability() {
-    if (!element.featureSet.isEnabled(Feature.inference_update_2)) {
-      return;
-    }
-
-    _FieldPromotability(this).perform();
+    _FieldPromotability(this,
+            enabled: element.featureSet.isEnabled(Feature.inference_update_2))
+        .perform();
   }
 
   void declare(String name, Reference reference) {
     _declaredReferences[name] = reference;
   }
 
-  Future<void> executeMacroDeclarationsPhase({
+  /// Completes with `true` if a macro application was run in this library.
+  ///
+  /// Completes with `false` if there are no macro applications to run, either
+  /// because we ran all, or those that we have not run yet have dependencies
+  /// of interfaces declared in other libraries that, and we have not run yet
+  /// declarations phase macro applications for them.
+  Future<MacroDeclarationsPhaseStepResult> executeMacroDeclarationsPhase({
+    required ElementImpl? targetElement,
+  }) async {
+    final macroApplier = linker.macroApplier;
+    if (macroApplier == null) {
+      return MacroDeclarationsPhaseStepResult.nothing;
+    }
+
+    final results = await macroApplier.executeDeclarationsPhase(
+      library: element,
+      targetElement: targetElement,
+    );
+
+    // No more applications to execute.
+    if (results == null) {
+      return MacroDeclarationsPhaseStepResult.nothing;
+    }
+
+    await _addMacroResults(macroApplier, results, buildTypes: true);
+
+    // Check if a new top-level declaration was added.
+    final augmentationUnit = units.last.element;
+    if (augmentationUnit.functions.isNotEmpty ||
+        augmentationUnit.topLevelVariables.isNotEmpty) {
+      element.resetScope();
+      return MacroDeclarationsPhaseStepResult.topDeclaration;
+    }
+
+    // Probably class member declarations.
+    return MacroDeclarationsPhaseStepResult.otherProgress;
+  }
+
+  Future<void> executeMacroDefinitionsPhase({
     required OperationPerformanceImpl performance,
   }) async {
-    final macroApplier = _createMacroApplier();
+    final macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return;
     }
 
-    await performance.runAsync(
-      'buildApplications',
-      (performance) async {
-        await macroApplier.buildApplications(
-          container: element,
-          performance: performance,
-        );
-      },
-    );
+    while (true) {
+      final results = await macroApplier.executeDefinitionsPhase();
 
-    final macroResults = await performance.runAsync(
-      'executeDeclarationsPhase',
-      (performance) async {
-        return await macroApplier.executeDeclarationsPhase();
-      },
-    );
-    if (macroResults.isEmpty) {
-      return;
+      // No more applications to execute.
+      if (results == null) {
+        return;
+      }
+
+      await _addMacroResults(macroApplier, results, buildTypes: true);
     }
-    _macroResults.add(macroResults);
-
-    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      macroResults,
-    );
-    if (augmentationCode == null) {
-      return;
-    }
-
-    final importState = kind.addMacroAugmentation(
-      augmentationCode,
-      addLibraryAugmentDirective: true,
-      partialIndex: _macroResults.length,
-    );
-
-    final augmentation = _addMacroAugmentation(importState);
-
-    final macroLinkingUnit = units.last;
-    ElementBuilder(
-      libraryBuilder: this,
-      container: macroLinkingUnit.container,
-      unitReference: macroLinkingUnit.reference,
-      unitElement: macroLinkingUnit.element,
-    ).buildDeclarationElements(macroLinkingUnit.node);
-
-    final nodesToBuildType = NodesToBuildType();
-    final resolver = ReferenceResolver(linker, nodesToBuildType, augmentation);
-    macroLinkingUnit.node.accept(resolver);
-    TypesBuilder(linker).build(nodesToBuildType);
   }
 
   Future<void> executeMacroTypesPhase({
     required OperationPerformanceImpl performance,
   }) async {
-    var macroAugmentation = await _executeMacroTypesPhase(
-      container: element,
-      performance: performance,
-    );
+    final macroApplier = linker.macroApplier;
+    if (macroApplier == null) {
+      return;
+    }
 
-    // Repeat if new types were added.
-    while (macroAugmentation != null) {
-      macroAugmentation = await _executeMacroTypesPhase(
-        container: macroAugmentation,
-        performance: performance,
+    while (true) {
+      final results = await macroApplier.executeTypesPhase();
+
+      // No more applications to execute.
+      if (results == null) {
+        break;
+      }
+
+      await _addMacroResults(macroApplier, results, buildTypes: false);
+    }
+  }
+
+  /// Fills with macro applications in user code.
+  Future<void> fillMacroApplier(LibraryMacroApplier macroApplier) async {
+    for (final linkingUnit in units) {
+      await macroApplier.add(
+        libraryElement: element,
+        container: element,
+        unit: linkingUnit.node,
       );
     }
   }
@@ -434,13 +454,13 @@ class LibraryBuilder {
   Future<void> mergeMacroAugmentations({
     required OperationPerformanceImpl performance,
   }) async {
-    final macroApplier = _createMacroApplier();
+    final macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return;
     }
 
     final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      _macroResults.expand((e) => e).toList(),
+      _macroResults.flattenedToList2,
     );
     if (augmentationCode == null) {
       return;
@@ -483,9 +503,11 @@ class LibraryBuilder {
     );
     augmentation.definingCompilationUnit = unitElement;
     augmentation.reference = unitReference;
+
+    final informativeBytes = importedFile.unlinked2.informativeBytes;
     augmentation.macroGenerated = MacroGeneratedAugmentationLibrary(
       code: importedFile.content,
-      informativeBytes: importedFile.unlinked2.informativeBytes,
+      informativeBytes: informativeBytes,
     );
 
     _buildDirectives(
@@ -498,7 +520,15 @@ class LibraryBuilder {
       unitReference: unitReference,
       unitNode: unitNode,
       unitElement: unitElement,
+      augmentation: augmentation,
     ).perform();
+
+    // Set offsets the same way as when reading from summary.
+    InformativeDataApplier(
+      linker.elementFactory,
+      {},
+      NoOpInfoDeclarationStore(),
+    ).applyToUnit(unitElement, informativeBytes);
 
     final importUri = DirectiveUriWithAugmentationImpl(
       relativeUriString: importState.uri.relativeUriStr,
@@ -545,16 +575,16 @@ class LibraryBuilder {
   }
 
   void resolveConstructors() {
-    ConstructorInitializerResolver(linker, element).resolve();
+    ConstructorInitializerResolver(linker, this).resolve();
   }
 
   void resolveDefaultValues() {
-    DefaultValueResolver(linker, element).resolve();
+    DefaultValueResolver(linker, this).resolve();
   }
 
   void resolveMetadata() {
     for (var linkingUnit in units) {
-      var resolver = MetadataResolver(linker, element, linkingUnit.element);
+      var resolver = MetadataResolver(linker, linkingUnit.element, this);
       linkingUnit.node.accept(resolver);
     }
   }
@@ -567,6 +597,35 @@ class LibraryBuilder {
         linkingUnit.container,
       );
       linkingUnit.node.accept(resolver);
+    }
+  }
+
+  void setDefaultSupertypes() {
+    var shouldResetClassHierarchies = false;
+    final objectType = element.typeProvider.objectType;
+    for (final interface in element.topLevelElements) {
+      switch (interface) {
+        case ClassElementImpl():
+          if (interface.isAugmentation) continue;
+          if (interface.isDartCoreObject) continue;
+          if (interface.supertype == null) {
+            shouldResetClassHierarchies = true;
+            interface.supertype = objectType;
+          }
+        case MixinElementImpl():
+          if (interface.isAugmentation) continue;
+          final augmented = interface.augmented!;
+          if (augmented.superclassConstraints.isEmpty) {
+            shouldResetClassHierarchies = true;
+            interface.superclassConstraints = [objectType];
+            if (augmented is AugmentedMixinElementImpl) {
+              augmented.superclassConstraints = [objectType];
+            }
+          }
+      }
+    }
+    if (shouldResetClassHierarchies) {
+      element.session.classHierarchy.removeOfLibraries({uri});
     }
   }
 
@@ -622,6 +681,58 @@ class LibraryBuilder {
     return augmentation;
   }
 
+  /// Add results from the declarations or definitions phase.
+  Future<void> _addMacroResults(
+    LibraryMacroApplier macroApplier,
+    List<macro.MacroExecutionResult> results, {
+    required bool buildTypes,
+  }) async {
+    // No results from the application.
+    if (results.isEmpty) {
+      return;
+    }
+
+    _macroResults.add(results);
+
+    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
+      results,
+    );
+    if (augmentationCode == null) {
+      return;
+    }
+
+    final importState = kind.addMacroAugmentation(
+      augmentationCode,
+      addLibraryAugmentDirective: true,
+      partialIndex: _macroResults.length,
+    );
+
+    final augmentation = _addMacroAugmentation(importState);
+
+    final macroLinkingUnit = units.last;
+    ElementBuilder(
+      libraryBuilder: this,
+      container: macroLinkingUnit.container,
+      unitReference: macroLinkingUnit.reference,
+      unitElement: macroLinkingUnit.element,
+    ).buildDeclarationElements(macroLinkingUnit.node);
+
+    if (buildTypes) {
+      final nodesToBuildType = NodesToBuildType();
+      final resolver =
+          ReferenceResolver(linker, nodesToBuildType, augmentation);
+      macroLinkingUnit.node.accept(resolver);
+      TypesBuilder(linker).build(nodesToBuildType);
+    }
+
+    // Append applications from the partial augmentation.
+    await macroApplier.add(
+      libraryElement: element,
+      container: augmentation,
+      unit: macroLinkingUnit.node,
+    );
+  }
+
   AugmentationImportElementImpl _buildAugmentationImport(
     LibraryOrAugmentationElementImpl augmentationTarget,
     AugmentationImportState state,
@@ -635,10 +746,11 @@ class LibraryBuilder {
         final unitNode = importedFile.parse();
         final unitElement = CompilationUnitElementImpl(
           source: importedFile.source,
-          // TODO(scheglov) Remove this parameter.
+          // TODO(scheglov): Remove this parameter.
           librarySource: importedFile.source,
           lineInfo: unitNode.lineInfo,
         );
+        unitNode.declaredElement = unitElement;
         unitElement.setCodeRange(0, unitNode.length);
 
         final unitReference =
@@ -711,8 +823,10 @@ class LibraryBuilder {
           ..end = unlinked.endOffset
           ..shownNames = unlinked.names;
       } else {
-        // TODO(scheglov) Why no offsets?
-        return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
+        return HideElementCombinatorImpl()
+          ..offset = unlinked.keywordOffset
+          ..end = unlinked.endOffset
+          ..hiddenNames = unlinked.names;
       }
     }).toFixedList();
   }
@@ -901,7 +1015,7 @@ class LibraryBuilder {
     required int nameOffset,
     required LibraryOrAugmentationElementImpl container,
   }) {
-    // TODO(scheglov) Make reference required.
+    // TODO(scheglov): Make reference required.
     final containerRef = container.reference!;
     final reference = containerRef.getChild('@prefix').getChild(name);
     final existing = reference.element;
@@ -918,23 +1032,6 @@ class LibraryBuilder {
     }
   }
 
-  LibraryMacroApplier? _createMacroApplier() {
-    if (!element.featureSet.isEnabled(Feature.macros)) {
-      return null;
-    }
-
-    final macroExecutor = linker.macroExecutor;
-    if (macroExecutor == null) {
-      return null;
-    }
-
-    return LibraryMacroApplier(
-      macroExecutor: macroExecutor,
-      declarationBuilder: linker.macroDeclarationBuilder,
-      libraryBuilder: this,
-    );
-  }
-
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
@@ -946,64 +1043,6 @@ class LibraryBuilder {
       neverRef.element = NeverElementImpl.instance;
       declare('Never', neverRef);
     }
-  }
-
-  /// Executes a single pass of the types phase.
-  Future<LibraryAugmentationElementImpl?> _executeMacroTypesPhase({
-    required LibraryOrAugmentationElementImpl container,
-    required OperationPerformanceImpl performance,
-  }) async {
-    final macroApplier = _createMacroApplier();
-    if (macroApplier == null) {
-      return null;
-    }
-
-    await performance.runAsync(
-      'buildApplications',
-      (performance) async {
-        await macroApplier.buildApplications(
-          container: container,
-          performance: performance,
-        );
-      },
-    );
-
-    final macroResults = await performance.runAsync(
-      'executeTypesPhase',
-      (performance) async {
-        return await macroApplier.executeTypesPhase();
-      },
-    );
-    if (macroResults.isEmpty) {
-      return null;
-    }
-
-    _macroResults.add(macroResults);
-
-    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      macroResults,
-    );
-    if (augmentationCode == null) {
-      return null;
-    }
-
-    final importState = kind.addMacroAugmentation(
-      augmentationCode,
-      addLibraryAugmentDirective: true,
-      partialIndex: _macroResults.length,
-    );
-
-    final augmentation = _addMacroAugmentation(importState);
-
-    final macroLinkingUnit = units.last;
-    ElementBuilder(
-      libraryBuilder: this,
-      container: macroLinkingUnit.container,
-      unitReference: macroLinkingUnit.reference,
-      unitElement: macroLinkingUnit.element,
-    ).buildDeclarationElements(macroLinkingUnit.node);
-
-    return augmentation;
   }
 
   static void build(Linker linker, LibraryFileKind inputLibrary) {
@@ -1053,6 +1092,7 @@ class LibraryBuilder {
         librarySource: libraryFile.source,
         lineInfo: libraryUnitNode.lineInfo,
       );
+      libraryUnitNode.declaredElement = unitElement;
       unitElement.isSynthetic = !libraryFile.exists;
       unitElement.setCodeRange(0, libraryUnitNode.length);
 
@@ -1084,6 +1124,7 @@ class LibraryBuilder {
             librarySource: libraryFile.source,
             lineInfo: partUnitNode.lineInfo,
           );
+          partUnitNode.declaredElement = unitElement;
           unitElement.isSynthetic = !partFile.exists;
           unitElement.uri = partFile.uriStr;
           unitElement.setCodeRange(0, partUnitNode.length);
@@ -1169,6 +1210,12 @@ class LinkingUnit {
   });
 }
 
+enum MacroDeclarationsPhaseStepResult {
+  nothing,
+  otherProgress,
+  topDeclaration,
+}
+
 /// This class examines all the [InterfaceElement]s in a library and determines
 /// which fields are promotable within that library.
 class _FieldPromotability extends FieldPromotability<InterfaceElement,
@@ -1176,10 +1223,12 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
   /// The [_libraryBuilder] for the library being analyzed.
   final LibraryBuilder _libraryBuilder;
 
+  final bool enabled;
+
   /// Fields that might be promotable, if not marked unpromotable later.
   final List<FieldElementImpl> _potentiallyPromotableFields = [];
 
-  _FieldPromotability(this._libraryBuilder);
+  _FieldPromotability(this._libraryBuilder, {required this.enabled});
 
   @override
   Iterable<InterfaceElement> getSuperclasses(InterfaceElement class_,
@@ -1262,7 +1311,7 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
           isFinal: field.isFinal,
           isAbstract: field.isAbstract,
           isExternal: field.isExternal);
-      if (nonPromotabilityReason == null) {
+      if (enabled && nonPromotabilityReason == null) {
         _potentiallyPromotableFields.add(field);
       }
     }
@@ -1272,8 +1321,11 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
         continue;
       }
 
-      addGetter(classInfo, accessor, accessor.name,
+      var nonPromotabilityReason = addGetter(classInfo, accessor, accessor.name,
           isAbstract: accessor.isAbstract);
+      if (enabled && nonPromotabilityReason == null) {
+        _potentiallyPromotableFields.add(accessor.variable as FieldElementImpl);
+      }
     }
   }
 }

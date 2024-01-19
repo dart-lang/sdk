@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -11,13 +10,65 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleIdentifierResolutionTest);
-    defineReflectiveTests(SimpleIdentifierResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
-class SimpleIdentifierResolutionTest extends PubPackageResolutionTest
-    with SimpleIdentifierResolutionTestCases {
+class SimpleIdentifierResolutionTest extends PubPackageResolutionTest {
+  test_dynamic_explicitCore() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core';
+
+main() {
+  dynamic;
+}
+''');
+
+    final node = findNode.simple('dynamic;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: dynamic
+  staticElement: dynamic@-1
+  staticType: Type
+''');
+  }
+
+  test_dynamic_explicitCore_withPrefix_referenceWithout() async {
+    await assertErrorsInCode(r'''
+import 'dart:core' as mycore;
+
+main() {
+  dynamic;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7),
+    ]);
+
+    final node = findNode.simple('dynamic;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: dynamic
+  staticElement: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_dynamic_implicitCore() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  dynamic;
+}
+''');
+
+    final node = findNode.simple('dynamic;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: dynamic
+  staticElement: dynamic@-1
+  staticType: Type
+''');
+  }
+
   test_enum_typeParameter_in_method() async {
     await assertNoErrorsInCode('''
 enum E<T> {
@@ -28,11 +79,13 @@ enum E<T> {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('T;'),
-      element: findElement.typeParameter('T'),
-      type: 'Type',
-    );
+    final node = findNode.simple('T;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: T
+  staticElement: T@7
+  staticType: Type
+''');
   }
 
   test_expression_topLevelVariable() async {
@@ -118,31 +171,20 @@ SimpleIdentifier
 ''');
   }
 
-  test_functionReference() async {
-    noSoundNullSafety = false;
-    await assertErrorsInCode('''
-// @dart = 2.7
-import 'dart:math';
-
+  test_implicitCall_tearOff() async {
+    await assertNoErrorsInCode('''
 class A {
-  const A(_);
+  int call() => 0;
 }
 
-@A([min])
-main() {}
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
-    ]);
-
-    final node = findNode.simple('min]');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: min
-  staticElement: FunctionMember
-    base: dart:math::@function::min
-    isLegacy: true
-  staticType: T* Function<T extends num*>(T*, T*)*
+int Function() foo(A a) {
+  return a;
+}
 ''');
+
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.parameter('a'));
+    assertType(identifier, 'A');
   }
 
   test_implicitCall_tearOff_nullable() async {
@@ -472,77 +514,6 @@ SimpleIdentifier
   staticType: int
 ''');
   }
-}
-
-@reflectiveTest
-class SimpleIdentifierResolutionTest_WithoutNullSafety
-    extends PubPackageResolutionTest
-    with SimpleIdentifierResolutionTestCases, WithoutNullSafetyMixin {}
-
-mixin SimpleIdentifierResolutionTestCases on PubPackageResolutionTest {
-  test_dynamic_explicitCore() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:core';
-
-main() {
-  dynamic;
-}
-''');
-
-    assertSimpleIdentifier(
-      findNode.simple('dynamic;'),
-      element: dynamicElement,
-      type: 'Type',
-    );
-  }
-
-  test_dynamic_explicitCore_withPrefix_referenceWithout() async {
-    await assertErrorsInCode(r'''
-import 'dart:core' as mycore;
-
-main() {
-  dynamic;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7),
-    ]);
-
-    assertSimpleIdentifier(
-      findNode.simple('dynamic;'),
-      element: null,
-      type: 'InvalidType',
-    );
-  }
-
-  test_dynamic_implicitCore() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  dynamic;
-}
-''');
-
-    assertSimpleIdentifier(
-      findNode.simple('dynamic;'),
-      element: dynamicElement,
-      type: 'Type',
-    );
-  }
-
-  test_implicitCall_tearOff() async {
-    await assertNoErrorsInCode('''
-class A {
-  int call() => 0;
-}
-
-int Function() foo(A a) {
-  return a;
-}
-''');
-
-    var identifier = findNode.simple('a;');
-    assertElement(identifier, findElement.parameter('a'));
-    assertType(identifier, 'A');
-  }
 
   test_localFunction_generic() async {
     await assertNoErrorsInCode('''
@@ -565,11 +536,14 @@ main() {
   Never;
 }
 ''');
-    assertSimpleIdentifier(
-      findNode.simple('Never;'),
-      element: neverElement,
-      type: 'Type',
-    );
+
+    final node = findNode.simple('Never;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: Never
+  staticElement: Never@-1
+  staticType: Type
+''');
   }
 
   test_tearOff_function_topLevel() async {

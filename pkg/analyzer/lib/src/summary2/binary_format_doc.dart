@@ -16,7 +16,7 @@ class AstBundle {
   /// partially - URI, offsets of units, but nothing about units. So,
   /// we don't know where one library ends, and another starts.
   ///
-  /// TODO(scheglov) too complicated? Read all?
+  // TODO(scheglov): too complicated? Read all?
   List<Uint30>? libraryOffsets;
 
   /// [stringTableOffset] points here.
@@ -102,7 +102,7 @@ class ResolutionBundle {
   /// partially - URI, offsets of units, but nothing about units. So,
   /// we don't know where one library ends, and another starts.
   ///
-  /// TODO(scheglov) too complicated? Read all?
+  // TODO(scheglov): too complicated? Read all?
   List<Uint30>? libraryOffsets;
 
   /// The index of the parent reference, so we can add its name from

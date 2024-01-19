@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +29,7 @@ void main() {
     defineReflectiveTests(UndefinedIdentifierTest);
     defineReflectiveTests(UndefinedMethodTest);
     defineReflectiveTests(UndefinedSetterTest);
-    defineReflectiveTests(WithConfigFileTest);
+    defineReflectiveTests(UriTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsConstructorTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsExtensionTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsMethodTest);
@@ -1152,53 +1152,24 @@ void f(C a, C b) {
 }
 
 @reflectiveTest
-class WithConfigFileTest extends _DataDrivenTest {
-  @override
-  bool get useConfigFiles => true;
-
-  Future<void> test_bulkApply_withConfig() async {
-    setPackageContent('''
+class UriTest extends _DataDrivenTest {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/52233')
+  Future<void> test_relative_uri_for_exported() async {
+    newFile('$workspaceRootPath/p/lib/src/ex.dart', '''
+@deprecated
+class Old {}
 class New {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib.dart', '''
+export 'src/ex.dart';
 ''');
     addPackageDataFile('''
 version: 1
 transforms:
 - title: 'Rename to New'
-  date: 2021-21-01
-  bulkApply: false
+  date: 2020-09-01
   element:
-    uris: ['$importUri']
-    class: 'Old'
-  changes:
-    - kind: 'rename'
-      newName: 'New'
-''');
-    newFile('$testPackageLibPath/test.config', '''
-'Rename to New':
-  bulkApply: true
-''');
-    await resolveTestCode('''
-import '$importUri';
-void f(Old p) {}
-''');
-    await assertHasFix('''
-import '$importUri';
-void f(New p) {}
-''');
-  }
-
-  Future<void> test_bulkApply_withoutConfig() async {
-    setPackageContent('''
-class New {}
-''');
-    addPackageDataFile('''
-version: 1
-transforms:
-- title: 'Rename to New'
-  date: 2021-21-01
-  bulkApply: false
-  element:
-    uris: ['$importUri']
+    uris: ['lib.dart']
     class: 'Old'
   changes:
     - kind: 'rename'
@@ -1206,10 +1177,13 @@ transforms:
 ''');
     await resolveTestCode('''
 import '$importUri';
-void f(Old p) {}
+class A extends Old {}
+class B extends Old {}
 ''');
     await assertHasFix('''
-void f(Old p) {}
+import '$importUri';
+class A extends New {}
+class B extends New {}
 ''');
   }
 }

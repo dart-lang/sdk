@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_runtime' show gFnType, typeRep, isSubtypeOf;
+import 'dart:_foreign_helper' show TYPE_REF;
+import 'dart:_runtime' show gFnType, isSubtypeOf;
 
 import 'package:expect/expect.dart';
 
@@ -10,7 +11,8 @@ import 'package:expect/expect.dart';
 /// the form: <T extends [bound]> void -> void.
 ///
 // TODO(nshahan): The generic function type is created as a legacy type.
-genericFunction(bound) => gFnType((T) => [typeRep<void>(), []], (T) => [bound]);
+genericFunction(bound) =>
+    gFnType((T) => [TYPE_REF<void>(), []], (T) => [bound]);
 
 /// Returns an unwrapped generic function type with a bounded type argument in
 /// the form: <T extends [bound]> [argumentType] -> T.

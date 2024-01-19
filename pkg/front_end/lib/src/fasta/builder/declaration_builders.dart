@@ -8,9 +8,10 @@ import 'package:kernel/src/unaliasing.dart';
 
 import '../fasta_codes.dart';
 import '../kernel/body_builder_context.dart';
+import '../loader.dart';
 import '../messages.dart';
 import '../modifier.dart';
-import '../problems.dart' show internalProblem, unhandled;
+import '../problems.dart' show internalProblem, unexpected, unhandled;
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../type_inference/type_schema.dart' show UnknownType;

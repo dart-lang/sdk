@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show patch, POWERS_OF_TEN, unsafeCast;
+import "dart:_js_string_convert";
+import "dart:_js_types";
 import "dart:_string";
+import "dart:_typed_data";
+import "dart:_wasm";
 import "dart:typed_data" show Uint8List, Uint16List;
 
 /// This patch library has no additional parts.
@@ -27,19 +31,12 @@ class Utf8Decoder {
   @patch
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     if (next is JsonDecoder) {
-      return new _JsonUtf8Decoder(
+      return _JsonUtf8Decoder(
               (next as JsonDecoder)._reviver, this._allowMalformed)
           as dynamic/*=Converter<List<int>, T>*/;
     }
     // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
     return super.fuse<T>(next);
-  }
-
-  // Allow intercepting of UTF-8 decoding when built-in lists are passed.
-  @patch
-  static String? _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int? end) {
-    return null; // This call was not intercepted.
   }
 }
 
@@ -1088,7 +1085,6 @@ abstract class _ChunkedJsonParser<T> {
       if (position == end) return position;
       start = position;
     }
-    return -1; // UNREACHABLE.
   }
 
   /**
@@ -1365,7 +1361,7 @@ abstract class _ChunkedJsonParser<T> {
       message = "Unexpected character";
       if (position == chunkEnd) message = "Unexpected end of input";
     }
-    throw new FormatException(message, chunk, position);
+    throw FormatException(message, chunk, position);
   }
 }
 
@@ -1470,7 +1466,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
  * Chunked JSON parser that parses UTF-8 chunks.
  */
 class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
-  static final Uint8List emptyChunk = Uint8List(0);
+  static final U8List emptyChunk = U8List(0);
 
   final _Utf8Decoder decoder;
   List<int> chunk = emptyChunk;
@@ -1643,7 +1639,6 @@ class _Utf8Decoder {
     _bomIndex = -1;
   }
 
-  @pragma("vm:prefer-inline")
   int scan(Uint8List bytes, int start, int end) {
     // Assumes 0 <= start <= end <= bytes.length
     int size = 0;
@@ -1651,21 +1646,18 @@ class _Utf8Decoder {
     int localStart = start;
     while (end - localStart > scanChunkSize) {
       int localEnd = localStart + scanChunkSize;
-      size += _scan(bytes, localStart, localEnd, scanTable);
+      size += _scan(bytes, localStart, localEnd);
       localStart = localEnd;
     }
-    size += _scan(bytes, localStart, end, scanTable);
+    size += _scan(bytes, localStart, end);
     return size;
   }
 
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  int _scan(Uint8List bytes, int start, int end, String scanTable) {
+  int _scan(Uint8List bytes, int start, int end) {
     int size = 0;
     int flags = 0;
     for (int i = start; i < end; i++) {
-      int t = scanTable.codeUnitAt(bytes[i]);
+      int t = scanTable.oneByteStringCodeUnitAtUnchecked(bytes[i]);
       size += t & sizeMask;
       flags |= t;
     }
@@ -1680,19 +1672,49 @@ class _Utf8Decoder {
   @patch
   String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
     int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
+    if (start == end) return "";
 
-    // Have bytes as Uint8List.
-    Uint8List bytes;
-    int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = unsafeCast<Uint8List>(codeUnits);
-      errorOffset = 0;
-    } else {
-      bytes = _makeUint8List(codeUnits, start, end);
-      errorOffset = start;
-      end -= start;
-      start = 0;
+    if (codeUnits is JSUint8ArrayImpl) {
+      JSStringImpl? decoded =
+          decodeUtf8JS(codeUnits, start, end, allowMalformed);
+      if (decoded != null) return decoded;
     }
+
+    final U8List bytes;
+    if (codeUnits is U8List) {
+      bytes = unsafeCast<U8List>(codeUnits);
+    } else {
+      // If we're passed a `List<int>` other than `U8List` or a JS typed array,
+      // it means the performance is not too important. Convert the input to
+      // `U8List` to avoid shipping another UTF-8 decoder for `List<int>`.
+      final length = end - start;
+      bytes = U8List(length);
+      final u8listData = bytes.data;
+      if (allowMalformed) {
+        int u8listIdx = 0;
+        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
+          int byte = codeUnits[codeUnitsIdx];
+          if (byte < 0 || byte > 255) {
+            byte = 0xFF;
+          }
+          u8listData.write(u8listIdx++, byte);
+        }
+      } else {
+        int u8listIdx = 0;
+        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
+          final byte = codeUnits[codeUnitsIdx];
+          if (byte < 0 || byte > 255) {
+            throw FormatException(
+                'Invalid UTF-8 byte', codeUnits, codeUnitsIdx);
+          }
+          u8listData.write(u8listIdx++, byte);
+        }
+      }
+      start = 0;
+      end = length;
+    }
+
+    final actualStart = start;
 
     // Skip initial BOM.
     start = skipBomSingle(bytes, start, end);
@@ -1701,14 +1723,15 @@ class _Utf8Decoder {
     if (start == end) return "";
 
     // Scan input to determine size and appropriate decoder.
-    int size = scan(bytes, start, end);
-    int flags = _scanFlags;
+    final int size = scan(bytes, start, end);
+    final int flags = _scanFlags;
 
     if (flags == 0) {
       // Pure ASCII.
       assert(size == end - start);
       OneByteString result = OneByteString.withLength(size);
-      copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
+      oneByteStringArray(result)
+          .copy(0, bytes.data, bytes.offsetInBytes + start, size);
       return result;
     }
 
@@ -1731,7 +1754,7 @@ class _Utf8Decoder {
         _charOrIndex = end;
       }
       final String message = errorDescription(_state);
-      throw FormatException(message, codeUnits, errorOffset + _charOrIndex);
+      throw FormatException(message, codeUnits, actualStart + _charOrIndex);
     }
 
     // Start over on slow path.
@@ -1846,7 +1869,6 @@ class _Utf8Decoder {
     return result;
   }
 
-  @pragma("vm:prefer-inline")
   int skipBomSingle(Uint8List bytes, int start, int end) {
     if (end - start >= 3 &&
         bytes[start] == 0xEF &&
@@ -1857,7 +1879,6 @@ class _Utf8Decoder {
     return start;
   }
 
-  @pragma("vm:prefer-inline")
   int skipBomChunked(Uint8List bytes, int start, int end) {
     assert(start <= end);
     int bomIndex = _bomIndex;
@@ -1936,7 +1957,6 @@ class _Utf8Decoder {
 
   String decode16(Uint8List bytes, int start, int end, int size) {
     assert(start < end);
-    final String typeTable = _Utf8Decoder.typeTable;
     final String transitionTable = _Utf8Decoder.transitionTable;
     TwoByteString result = TwoByteString.withLength(size);
     int i = start;
@@ -1947,7 +1967,9 @@ class _Utf8Decoder {
     // First byte
     assert(!isErrorState(state));
     final int byte = bytes[i++];
-    final int type = typeTable.codeUnitAt(byte) & typeMask;
+    final int type =
+        _Utf8Decoder.typeTable.oneByteStringCodeUnitAtUnchecked(byte) &
+            typeMask;
     if (state == accept) {
       char = byte & (shiftedByteMask >> type);
       state = transitionTable.codeUnitAt(type);
@@ -1958,7 +1980,9 @@ class _Utf8Decoder {
 
     while (i < end) {
       final int byte = bytes[i++];
-      final int type = typeTable.codeUnitAt(byte) & typeMask;
+      final int type =
+          _Utf8Decoder.typeTable.oneByteStringCodeUnitAtUnchecked(byte) &
+              typeMask;
       if (state == accept) {
         if (char >= 0x10000) {
           assert(char < 0x110000);

@@ -9,7 +9,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_yaml.dart';
@@ -316,7 +316,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   void _setSelectionRange(SourceRange range) {
     _selectionRange = range;
     // If we previously had a selection, update it to this new offset.
-    final selection = _selection;
+    var selection = _selection;
     if (selection != null) {
       _selection = Position(selection.file, range.offset);
     }

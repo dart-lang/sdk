@@ -32,14 +32,14 @@ extension RangeFactoryExtensions on RangeFactory {
   /// See [nodeWithComments].
   SourceRange nodeInListWithComments<T extends AstNode>(
       LineInfo lineInfo, NodeList<T> list, T node) {
-    // TODO(brianwilkerson) Improve the name and signature of this method and
+    // TODO(brianwilkerson): Improve the name and signature of this method and
     //  make it part of the API of either `RangeFactory` or
     //  `DartFileEditBuilder`. The implementation currently assumes that the
     //  list is an argument list, and we might want to generalize that.
-    // TODO(brianwilkerson) Consider adding parameters to allow us to access the
+    // TODO(brianwilkerson): Consider adding parameters to allow us to access the
     //  left and right parentheses in cases where the only element of the list
     //  is being removed.
-    // TODO(brianwilkerson) Consider adding a `separator` parameter so that we
+    // TODO(brianwilkerson): Consider adding a `separator` parameter so that we
     //  can handle things like statements in a block.
     if (list.length == 1) {
       if (list[0] != node) {

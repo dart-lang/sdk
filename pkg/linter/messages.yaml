@@ -1,0 +1,1292 @@
+LintCode:
+  avoid_empty_else:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the statement after an `else`
+      is an empty statement (a semicolon).
+
+      For more information, see the documentation for [avoid_empty_else][].
+
+      #### Example
+
+      The following code produces this diagnostic because the statement
+      following the `else` is an empty statement:
+
+      ```dart
+      void f(int x, int y) {
+        if (x > y)
+          print("1");
+        else [!;!]
+          print("2");
+      }
+      ```
+
+      #### Common fixes
+
+      If the statement after the empty statement is intended to be executed only
+      when the condition is `false`, then remove the empty statement:
+
+      ```dart
+      void f(int x, int y) {
+        if (x > y)
+          print("1");
+        else
+          print("2");
+      }
+      ```
+
+      If there is no code that is intended to be executed only when the
+      condition is `false`, then remove the whole `else` clause:
+
+      ```dart
+      void f(int x, int y) {
+        if (x > y)
+          print("1");
+        print("2");
+      }
+      ```
+  avoid_relative_lib_imports:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the URI in an `import`
+      directive has `lib` in the path.
+
+      #### Example
+
+      Assuming that there is a file named `a.dart` in the `lib` directory:
+
+      ```dart
+      %uri="lib/a.dart"
+      class A {}
+      ```
+
+      The following code produces this diagnostic because the import contains a
+      path that includes `lib`:
+
+      ```dart
+      import [!'../lib/a.dart'!];
+      ```
+
+      #### Common fixes
+
+      Rewrite the import to not include `lib` in the URI:
+
+      ```dart
+      import 'a.dart';
+      ```
+  avoid_shadowing_type_parameters:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a type parameter shadows a type
+      parameter from an enclosing declaration.
+
+      Shadowing a type parameter with a different type parameter can lead to
+      subtle bugs that are difficult to debug.
+
+      #### Example
+
+      The following code produces this diagnostic because the type parameter `T`
+      defined by the method `m` shadows the type parameter `T` defined by the
+      class `C`:
+
+      ```dart
+      class C<T> {
+        void m<[!T!]>() {}
+      }
+      ```
+
+      #### Common fixes
+
+      Rename one of the type parameters:
+
+      ```dart
+      class C<T> {
+        void m<S>() {}
+      }
+      ```
+  avoid_types_as_parameter_names:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the name of a parameter in a
+      parameter list is the same as a visible type (a type whose name is in
+      scope).
+
+      This often indicates that the intended name of the parameter is missing,
+      causing the name of the type to be used as the name of the parameter
+      rather than the type of the parameter. Even when that's not the case (the
+      name of the parameter is intentional), the name of the parameter will
+      shadow the existing type, which can lead to bugs that are difficult to
+      diagnose.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f` has a
+      parameter named `int`, which shadows the type `int` from `dart:core`:
+
+      ```dart
+      void f([!int!]) {}
+      ```
+
+      #### Common fixes
+
+      If the parameter name is missing, then add a name for the parameter:
+
+      ```dart
+      void f(int x) {}
+      ```
+
+      If the parameter is intended to have an implicit type of `dynamic`, then
+      rename the parameter so that it doesn't shadow the name of any visible type:
+
+      ```dart
+      void f(int_) {}
+      ```
+  await_only_futures:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the expression after `await`
+      has any type other than `Future<T>`, `FutureOr<T>`, `Future<T>?`,
+      `FutureOr<T>?` or `dynamic`.
+
+      An exception is made for the expression `await null` because it is a
+      common way to introduce a microtask delay.
+
+      Unless the expression can produce a `Future`, the `await` is unnecessary
+      and can cause a reader to assume a level of asynchrony that doesn't exist.
+
+      #### Example
+
+      The following code produces this diagnostic because the expression after
+      `await` has the type `int`:
+
+      ```dart
+      void f() async {
+        [!await!] 23;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the `await`:
+
+      ```dart
+      void f() async {
+        23;
+      }
+      ```
+  camel_case_extensions:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the name of an extension
+      doesn't use the 'UpperCamelCase' naming style.
+
+      #### Example
+
+      The following code produces this diagnostic because the name of the
+      extension doesn't start with an uppercase letter:
+
+      ```dart
+      extension [!stringExtension!] on String {}
+      ```
+
+      #### Common fixes
+
+      If the extension needs to have a name (needs to be visible outside this
+      library), then rename the extension so that it has a valid name:
+
+      ```dart
+      extension StringExtension on String {}
+      ```
+
+      If the extension doesn't need to have a name, then remove the name of the
+      extension:
+
+      ```dart
+      extension on String {}
+      ```
+  camel_case_types:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the name of a type (a class,
+      mixin, enum, or typedef) doesn't use the 'UpperCamelCase' naming style.
+
+      #### Example
+
+      The following code produces this diagnostic because the name of the class
+      doesn't start with an uppercase letter:
+
+      ```dart
+      class [!c!] {}
+      ```
+
+      #### Common fixes
+
+      Rename the type so that it has a valid name:
+
+      ```dart
+      class C {}
+      ```
+  collection_methods_unrelated_type:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when any one of several methods in
+      the core libraries are invoked with arguments of an inappropriate type.
+      These methods are ones that don't provide a specific enough type for the
+      parameter to allow the normal type checking to catch the error.
+
+      The arguments that are checked are:
+      - an argument to `Iterable<E>.contains` should be related to `E`
+      - an argument to `List<E>.remove` should be related to `E`
+      - an argument to `Map<K, V>.containsKey` should be related to `K`
+      - an argument to `Map<K, V>.containsValue` should be related to `V`
+      - an argument to `Map<K, V>.remove` should be related to `K`
+      - an argument to `Map<K, V>.[]` should be related to `K`
+      - an argument to `Queue<E>.remove` should be related to `E`
+      - an argument to `Set<E>.lookup` should be related to `E`
+      - an argument to `Set<E>.remove` should be related to `E`
+
+      #### Example
+
+      The following code produces this diagnostic because the argument to
+      `contains` is a `String`, which isn't assignable to `int`, the element
+      type of the list `l`:
+
+      ```dart
+      bool f(List<int> l)  => l.contains([!'1'!]);
+      ```
+
+      #### Common fixes
+
+      If the element type is correct, then change the argument to have the same
+      type:
+
+      ```dart
+      bool f(List<int> l)  => l.contains(1);
+      ```
+
+      If the argument type is correct, then change the element type:
+
+      ```dart
+      bool f(List<String> l)  => l.contains('1');
+      ```
+  curly_braces_in_flow_control_structures:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a control structure (`if`,
+      `for`, `while`, or `do` statement) has a statement other than a block.
+
+      #### Example
+
+      The following code produces this diagnostic because the `then` statement
+      is not enclosed in a block:
+
+      ```dart
+      int f(bool b) {
+        if (b)
+          [!return 1;!]
+        return 0;
+      }
+      ```
+
+      #### Common fixes
+
+      Add braces around the statement that should be a block:
+
+      ```dart
+      int f(bool b) {
+        if (b) {
+          return 1;
+        }
+        return 0;
+      }
+      ```
+  dangling_library_doc_comments:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation comment that
+      appears to be library documentation isn't followed by a `library`
+      directive. More specificially, it is produced when a documentation comment
+      appears before the first directive in the library, assuming that it isn't
+      a `library` directive, or before the first top-level declaration and is
+      separated from the declaration by one or more blank lines.
+
+      #### Example
+
+      The following code produces this diagnostic because there's a
+      documentation comment before the first `import` directive:
+
+      ```dart
+      [!/// This is a great library.!]
+      import 'dart:core';
+      ```
+
+      The following code produces this diagnostic because there's a
+      documentation comment before the first class declaration, but there's a
+      blank line between the comment and the declaration.
+
+      ```dart
+      [!/// This is a great library.!]
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      If the comment is library documentation, then add a `library` directive
+      without a name:
+
+      ```dart
+      /// This is a great library.
+      library;
+
+      import 'dart:core';
+      ```
+
+      If the comment is documentation for the following declaration, then remove
+      the blank line:
+
+      ```dart
+      /// This is a great library.
+      class C {}
+      ```
+  depend_on_referenced_packages:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a package import refers to a
+      package that is not specified in the `pubspec.yaml` file.
+
+      Depending explicitly on packages that you reference ensures they will
+      always exist and allows you to put a dependency constraint on them to
+      guard against breaking changes.
+
+      #### Example
+
+      Given a `pubspec.yaml` file containing the following:
+
+      ```yaml
+      dependencies:
+        meta: ^3.0.0
+      ```
+
+      The following code produces this diagnostic because there is no dependency
+      on the package `a`:
+
+      ```dart
+      import 'package:a/a.dart';
+      ```
+
+      #### Common fixes
+
+      Whether the dependency should be a regular dependency or dev dependency
+      depends on whether the package is referenced from a public library (one
+      under either `lib` or `bin`), or only private libraries, (such as one
+      under `test`).
+
+      If the package is referenced from at least one public library, then add a
+      regular dependency on the package to the `pubspec.yaml` file under the
+      `dependencies` field:
+
+      ```yaml
+      dependencies:
+        a: ^1.0.0
+        meta: ^3.0.0
+      ```
+
+      If the package is referenced only from private libraries, then add a
+      dev dependency on the package to the `pubspec.yaml` file under the
+      `dev_dependencies` field:
+
+      ```yaml
+      dependencies:
+        meta: ^3.0.0
+      dev_dependencies:
+        a: ^1.0.0
+      ```
+  empty_catches:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the block in a `catch` clause
+      is empty.
+
+      #### Example
+
+      The following code produces this diagnostic because the catch block is
+      empty:
+
+      ```dart
+      void f() {
+        try {
+          print('Hello');
+        } catch (exception) [!{}!]
+      }
+      ```
+
+      #### Common fixes
+
+      If the exception shouldn't be ignored, then add code to handle the
+      exception:
+
+      ```dart
+      void f() {
+        try {
+          print('We can print.');
+        } catch (exception) {
+          print("We can't print.");
+        }
+      }
+      ```
+
+      If the exception is intended to be ignored, then add a comment explaining
+      why:
+
+      ```dart
+      void f() {
+        try {
+          print('We can print.');
+        } catch (exception) {
+          // Nothing to do.
+        }
+      }
+      ```
+
+      If the exception is intended to be ignored and there isn't any good
+      explanation for why, then rename the exception parameter:
+
+      ```dart
+      void f() {
+        try {
+          print('We can print.');
+        } catch (_) {}
+      }
+      ```
+  file_names:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the name of a `.dart` file
+      doesn't use lower_case_with_underscores.
+
+      #### Example
+
+      A file named `SliderMenu.dart` produces this diagnostic because the file
+      name uses the UpperCamelCase convention.
+
+      #### Common fixes
+
+      Rename the file to use the lower_case_with_underscores convention, such as
+      `slider_menu.dart`.
+  hash_and_equals:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class or mixin either
+      overrides the definition of `==` but doesn't override the definition of
+      `hashCode`, or conversely overrides the definition of `hashCode` but
+      doesn't override the definition of `==`.
+
+      Both the `==` operator and the `hashCode` property of objects must be
+      consistent for a common hash map implementation to function properly. As a
+      result, when overriding either method, both should be overridden.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `C`
+      overrides the `==` operator but doesn't override the getter `hashCode`:
+
+      ```dart
+      class C {
+        final int value;
+
+        C(this.value);
+
+        @override
+        bool operator [!==!](Object other) =>
+            other is C &&
+            other.runtimeType == runtimeType &&
+            other.value == value;
+      }
+      ```
+
+      #### Common fixes
+
+      If you need to override one of the members, then add an override of the
+      other:
+
+      ```dart
+      class C {
+        final int value;
+
+        C(this.value);
+
+        @override
+        bool operator ==(Object other) =>
+            other is C &&
+            other.runtimeType == runtimeType &&
+            other.value == value;
+
+        @override
+        int get hashCode => value.hashCode;
+      }
+      ```
+
+      If you don't need to override either of the members, then remove the
+      unnecessary override:
+
+      ```dart
+      class C {
+        final int value;
+
+        C(this.value);
+      }
+      ```
+  implicit_call_tearoffs:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an object with a `call` method
+      is assigned to a function-typed variable, implicitly tearing off the
+      `call` method.
+
+      #### Example
+
+      The following code produces this diagnostic because an instance of
+      `Callable` is passed to a function expecting a `Function`:
+
+      ```dart
+      class Callable {
+        void call() {}
+      }
+
+      void callIt(void Function() f) {
+        f();
+      }
+
+      void f() {
+        callIt([!Callable()!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Explicitly tear off the `call` method:
+
+      ```dart
+      class Callable {
+        void call() {}
+      }
+
+      void callIt(void Function() f) {
+        f();
+      }
+
+      void f() {
+        callIt(Callable().call);
+      }
+      ```
+  no_duplicate_case_values:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when two or more `case` clauses in
+      the same `switch` statement have the same value.
+
+      Any `case` clauses after the first can't be executed, so having duplicate
+      `case` clauses is misleading.
+
+      This diagnostic is often the result of either a typo or a change to the
+      value of a constant.
+
+      #### Example
+
+      The following code produces this diagnostic because two case clauses have
+      the same value (1):
+
+      ```dart
+      // @dart = 2.14
+      void f(int v) {
+        switch (v) {
+          case 1:
+            break;
+          case [!1!]:
+            break;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If one of the clauses should have a different value, then change the value
+      of the clause:
+
+      ```dart
+      void f(int v) {
+        switch (v) {
+          case 1:
+            break;
+          case 2:
+            break;
+        }
+      }
+      ```
+
+      If the value is correct, then merge the statements into a single clause:
+
+      ```dart
+      void f(int v) {
+        switch (v) {
+          case 1:
+            break;
+        }
+      }
+      ```
+  no_wildcard_variable_uses:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either a parameter or local
+      variable whose name consists of only underscores is referenced. Such
+      names will become non-binding in a future version of the Dart language,
+      making the reference illegal.
+
+      #### Example
+
+      The following code produces this diagnostic because the name of the
+      parameter consists of two underscores:
+
+      ```dart
+      void f(int __) {
+        print([!__!]);
+      }
+      ```
+
+      The following code produces this diagnostic because the name of the
+      local variable consists of a single underscore:
+
+      ```dart
+      void f() {
+        int _ = 0;
+        print([!_!]);
+      }
+      ```
+
+      #### Common fixes
+
+      If the variable or parameter is intended to be referenced, then give it a
+      name that has at least one non-underscore character:
+
+      ```dart
+      void f(int p) {
+        print(p);
+      }
+      ```
+
+      If the variable or parameter is not intended to be referenced, then
+      replace the reference with a different expression:
+
+      ```dart
+      void f() {
+        print(0);
+      }
+      ```
+  non_constant_identifier_names:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the name of a class member,
+      top-level declaration, variable, parameter, named parameter, or named
+      constructor that isn't declared to be `const`, doesn't use the
+      lowerCamelCase convention.
+
+      #### Example
+
+      The following code produces this diagnostic because the top-level variable
+      `Count` doesn't start with a lowercase letter:
+
+      ```dart
+      var [!Count!] = 0;
+      ```
+
+      #### Common fixes
+
+      Change the name in the declaration to follow the lowerCamelCase
+      convention:
+
+      ```dart
+      var count = 0;
+      ```
+  null_check_on_nullable_type_parameter:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a null check operator is used
+      on a variable whose type is `T?`, where `T` is a type parameter that
+      allows the type argument to be nullable (either has no bound or has a
+      bound that is nullable).
+
+      Given a generic type parameter `T` which has a nullable bound, it is very
+      easy to introduce erroneous null checks when working with a variable of
+      type `T?`. Specifically, it is not uncommon to have `T? x;` and want to
+      assert that `x` has been set to a valid value of type `T`. A common
+      mistake is to do so using `x!`. This is almost always incorrect, because
+      if `T` is a nullable type, `x` may validly hold `null` as a value of type
+      `T`.
+
+      #### Example
+
+      The following code produces this diagnostic because `t` has the type `T?`
+      and `T` allows the type argument to be nullable (because it has no
+      `extends` clause):
+
+      ```dart
+      T f<T>(T? t) => t[!!!];
+      ```
+
+      #### Common fixes
+
+      Use the type parameter to cast the variable:
+
+      ```dart
+      T f<T>(T? t) => t as T;
+      ```
+  package_prefixed_library_names:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a library has a name that
+      doesn't follow these guidelines:
+
+      - Prefix all library names with the package name.
+      - Make the entry library have the same name as the package.
+      - For all other libraries in a package, after the package name add the
+        dot-separated path to the library's Dart file.
+      - For libraries under `lib`, omit the top directory name.
+
+      For example, given a package named `my_package`, here are the library
+      names for various files in the package:
+
+      ```
+      // In lib/my_package.dart
+      library my_package;
+
+      // In lib/other.dart
+      library my_package.other;
+
+      // In lib/foo/bar.dart
+      library my_package.foo.bar;
+
+      // In example/foo/bar.dart
+      library my_package.example.foo.bar;
+
+      // In lib/src/private.dart
+      library my_package.src.private;
+      ```
+
+      #### Example
+
+      Assuming that the file containing the following code is not in a file
+      named `special.dart` in the `lib` directory of a package named `something`
+      (which would be an exception to the rule), the analyzer produces this
+      diagnostic because the name of the library doesn't conform to the
+      guidelines above:
+
+      ```dart
+      library [!something.special!];
+      ```
+
+      #### Common fixes
+
+      Change the name of the library to conform to the guidelines.
+  prefer_generic_function_type_aliases:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a typedef is written using the
+      older syntax for function type aliases in which the name being declared is
+      embedded in the function type.
+
+      #### Example
+
+      The following code produces this diagnostic because it uses the older
+      syntax:
+
+      ```dart
+      typedef void [!F!]<T>();
+      ```
+
+      #### Common fixes
+
+      Rewrite the typedef to use the newer syntax:
+
+      ```dart
+      typedef F<T> = void Function();
+      ```
+  prefer_is_empty:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the result of invoking either
+      `Iterable.length` or `Map.length` is compared for equality with zero
+      (`0`).
+
+      #### Example
+
+      The following code produces this diagnostic because the result of invoking
+      `length` is checked for equality with zero:
+
+      ```dart
+      int f(Iterable<int> p) => [!p.length == 0!] ? 0 : p.first;
+      ```
+
+      #### Common fixes
+
+      Replace the use of `length` with a use of either `isEmpty` or
+      `isNotEmpty`:
+
+      ```dart
+      void f(Iterable<int> p) => p.isEmpty ? 0 : p.first;
+      ```
+  prefer_is_not_empty:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the result of invoking
+      `Iterable.isEmpty` or `Map.isEmpty` is negated.
+
+      #### Example
+
+      The following code produces this diagnostic because the result of invoking
+      `Iterable.isEmpty` is negated:
+
+      ```dart
+      void f(Iterable<int> p) => [!!p.isEmpty!] ? p.first : 0;
+      ```
+
+      #### Common fixes
+
+      Rewrite the code to use `isNotEmpty`:
+
+      ```dart
+      void f(Iterable<int> p) => p.isNotEmpty ? p.first : 0;
+      ```
+  prefer_iterable_whereType:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the method `Iterable.where` is
+      being used to filter elements based on their type.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `where` is
+      being used to access only the strings within the iterable:
+
+      ```dart
+      Iterable<Object> f(Iterable<Object> p) => p.[!where!]((e) => e is String);
+      ```
+
+      #### Common fixes
+
+      Rewrite the code to use `whereType`:
+
+      ```dart
+      Iterable<String> f(Iterable<Object> p) => p.whereType<String>();
+      ```
+
+      This might also allow you to tighten the types in your code or remove
+      other type checks.
+  prefer_typing_uninitialized_variables:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a variable without an
+      initializer doesn't have an explicit type annotation.
+
+      Without either a type annotation or an initializer, a variable has the
+      type `dynamic`, which allows any value to be assigned to the variable,
+      often causing hard to identify bugs.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `r`
+      doesn't have either a type annotation or an initializer:
+
+      ```dart
+      Object f() {
+        var [!r!];
+        r = '';
+        return r;
+      }
+      ```
+
+      #### Common fixes
+
+      If the variable can be initialized, then add an initializer:
+
+      ```dart
+      Object f() {
+        var r = '';
+        return r;
+      }
+      ```
+
+      If the variable can't be initialized, then add an explicit type
+      annotation:
+
+      ```dart
+      Object f() {
+        String r;
+        r = '';
+        return r;
+      }
+      ```
+  provide_deprecation_message:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `deprecated` annotation is
+      used instead of the `Deprecated` annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f` is
+      annotated with `deprecated`:
+
+      ```dart
+      [!@deprecated!]
+      void f() {}
+      ```
+
+      #### Common fixes
+
+      Convert the code to use the longer form:
+
+      ```dart
+      @Deprecated('Use g instead. Will be removed in 4.0.0.')
+      void f() {}
+      ```
+  secure_pubspec_urls:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a URL in a `pubspec.yaml` file is
+      using a non-secure scheme, such as `http`.
+
+      #### Example
+
+      The following code produces this diagnostic because the `pubspec.yaml` file
+      contains an `http` URL:
+
+      ```yaml
+      dependencies:
+        example: any
+          repository: [!http://github.com/dart-lang/example!]
+      ```
+
+      #### Common fixes
+
+      Change the scheme of the URL to use a secure scheme, such as `https`:
+
+      ```yaml
+      dependencies:
+        example: any
+          repository: https://github.com/dart-lang/example
+      ```
+  type_literal_in_constant_pattern:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a type literal appears as a
+      pattern.
+
+      #### Example
+
+      The following code produces this diagnostic because a type literal is used
+      as a constant pattern:
+
+      ```dart
+      void f(Object? x) {
+        if (x case [!num!]) {
+          // ...
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the type literal is intended to match an object of the given type, then
+      use either a variable pattern:
+
+      ```dart
+      void f(Object? x) {
+        if (x case num _) {
+          // ...
+        }
+      }
+      ```
+
+      Or an object pattern:
+
+      ```dart
+      void f(Object? x) {
+        if (x case num()) {
+          // ...
+        }
+      }
+      ```
+
+      If the type literal is intended to match the type literal, then write it
+      as a constant pattern:
+
+      ```dart
+      void f(Object? x) {
+        if (x case const (num)) {
+          // ...
+        }
+      }
+      ```
+  unnecessary_overrides:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance member overrides an
+      inherited member but only invokes the overridden member with exactly the
+      same arguments.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `D.m`
+      doesn't do anything other than invoke the overridden method:
+
+      ```dart
+      class C {
+        int m(int x) => x;
+      }
+
+      class D extends C {
+        @override
+        int [!m!](int x) => super.m(x);
+      }
+      ```
+
+      #### Common fixes
+
+      If the method should do something more than what the overridden method
+      does, then implement the missing functionality:
+
+      ```dart
+      class C {
+        int m(int x) => x;
+      }
+
+      class D extends C {
+        @override
+        int m(int x) => super.m(x) + 1;
+      }
+      ```
+
+      If the overridden method should be modified by changing the return type or
+      one or more of the parameter types, making one of the parameters
+      `covariant`, having a documentation comment, or by having additional
+      annotations, then update the code:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        int m(int x) => x;
+      }
+
+      class D extends C {
+        @mustCallSuper
+        @override
+        int m(int x) => super.m(x);
+      }
+      ```
+
+      If the overriding method doesn't change or enhance the semantics of the
+      code, then remove it:
+
+      ```dart
+      class C {
+        int m(int x) => x;
+      }
+
+      class D extends C {}
+      ```
+  unrelated_type_equality_checks:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when two objects are being compared
+      and neither of the static types of the two objects is a subtype of the
+      other.
+
+      Such a comparison will usually return `false` and might not reflect the
+      programmer's intent.
+
+      There can be false positives. For example, a class named `Point` might
+      have subclasses named `CartesianPoint` and `PolarPoint`, neither of which
+      is a subtype of the other, but it might still be appropriate to test the
+      equality of instances.
+
+      As a concrete case, the classes `Int64` and `Int32` from `package:fixnum`
+      allow comparing instances to an `int` provided the `int` is on the
+      right-hand side. This case is specifically allowed by the diagnostic, but
+      other such cases are not.
+
+      #### Example
+
+      The following code produces this diagnostic because the string `s` is
+      being compared to the integer `1`:
+
+      ```dart
+      bool f(String s) {
+        return s [!==!] 1;
+      }
+      ```
+
+      #### Common fixes
+
+      Replace one of the operands with something compatible with the other
+      operand:
+
+      ```dart
+      bool f(String s) {
+        return s.length == 1;
+      }
+      ```
+  use_string_in_part_of_directives:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `part of` directive uses a
+      library name to refer to the library that the part is a part of.
+
+      #### Example
+
+      Given a file named `lib.dart` that contains the following:
+
+      ```dart
+      %uri="lib/lib.dart"
+      library lib;
+
+      part 'test.dart';
+      ```
+
+      The following code produces this diagnostic because the `part of`
+      directive uses the name of the library rather than the URI of the library
+      it's part of:
+
+      ```dart
+      [!part of lib;!]
+      ```
+
+      #### Common fixes
+
+      Use a URI to reference the library:
+
+      ```dart
+      part of 'lib.dart';
+      ```
+  valid_regexps:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the string passed to the
+      default constructor of the class `RegExp` doesn't contain a valid regular
+      expression.
+
+      A regular expression created with invalid syntax will throw a
+      `FormatException` at runtime.
+
+      #### Example
+
+      The following code produces this diagnostic because the regular expression
+      isn't valid:
+
+      ```dart
+      var r = RegExp([!r'('!]);
+      ```
+
+      #### Common fixes
+
+      Fix the regular expression:
+
+      ```dart
+      var r = RegExp(r'\(');
+      ```
+  void_checks:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value is assigned to a
+      variable of type `void`.
+
+      It isn't possible to access the value of such a variable, so the
+      assignment has no value.
+
+      #### Example
+
+      The following code produces this diagnostic because the field `value` has
+      the type `void`, but a value is being assigned to it:
+
+      ```dart
+      class A<T> {
+        T? value;
+      }
+
+      void f(A<void> a) {
+        [!a.value = 1!];
+      }
+      ```
+
+      The following code produces this diagnostic because the type of the
+      parameter `p` in the method `m` is `void`, but a value is being assigned
+      to it in the invocation:
+
+      ```dart
+      class A<T> {
+        void m(T p) { }
+      }
+
+      void f(A<void> a) {
+        a.m([!1!]);
+      }
+      ```
+
+      #### Common fixes
+
+      If the type of the variable is incorrect, then change the type of the
+      variable:
+
+      ```dart
+      class A<T> {
+        T? value;
+      }
+
+      void f(A<int> a) {
+        a.value = 1;
+      }
+      ```
+
+      If the type of the variable is correct, then remove the assignment:
+
+      ```dart
+      class A<T> {
+        T? value;
+      }
+
+      void f(A<void> a) {}
+      ```

@@ -474,6 +474,22 @@ void f() {
 ''', SnippetContext.inQualifiedMemberAccess);
   }
 
+  Future<void> test_return_expression() async {
+    await testRequest(r'''
+int f() {
+  return [!sw^!]
+}
+''', SnippetContext.inExpression);
+  }
+
+  Future<void> test_return_expression_empty() async {
+    await testRequest(r'''
+int f() {
+  return [!^!]
+}
+''', SnippetContext.inExpression);
+  }
+
   Future<void> test_statement_forCondition() async {
     await testRequest(r'''
 foo() {

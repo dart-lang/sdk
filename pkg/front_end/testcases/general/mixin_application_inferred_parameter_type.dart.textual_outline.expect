@@ -6,5 +6,7 @@ class Super {
 }
 
 class Class = Super with Mixin;
+
 main() {}
+
 error() {}

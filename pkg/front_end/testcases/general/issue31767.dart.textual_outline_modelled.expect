@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 import 'issue31767_lib.dart';
 
 StringBuffer sb;
@@ -9,13 +10,19 @@ class C {
 }
 
 class D = C with M;
+
 class E = A with N;
+
 expect(expected, actual) {}
+
 int p(String name, int value) {}
+
 main() {}
+
 mixin M on C {
   int get w2 => w * w;
 }
+
 mixin N on A {
   int get w2 => w * w;
 }

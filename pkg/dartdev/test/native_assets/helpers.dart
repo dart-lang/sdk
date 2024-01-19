@@ -74,10 +74,15 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger) async {
   final manifest = [
     for (final path in manifestYaml.contents as YamlList) Uri(path: path)
   ];
-  final filesToCopy =
-      manifest.where((e) => e.pathSegments.last != 'pubspec.yaml').toList();
-  final filesToModify =
-      manifest.where((e) => e.pathSegments.last == 'pubspec.yaml').toList();
+  final filesToCopy = manifest
+      .where((e) => !(e.pathSegments.last.startsWith('pubspec') &&
+          e.pathSegments.last.endsWith('.yaml')))
+      .toList();
+  final filesToModify = manifest
+      .where((e) =>
+          e.pathSegments.last.startsWith('pubspec') &&
+          e.pathSegments.last.endsWith('.yaml'))
+      .toList();
 
   for (final pathToCopy in filesToCopy) {
     final sourceFile = File.fromUri(testProjectsUri.resolveUri(pathToCopy));
@@ -178,6 +183,11 @@ Future<run_process.RunProcessResult> runDart({
     logger: logger,
   );
   if (expectExitCodeZero) {
+    if (result.exitCode != 0) {
+      print(result.stdout);
+      print(result.stderr);
+      print(result.exitCode);
+    }
     expect(result.exitCode, 0);
   }
   return result;

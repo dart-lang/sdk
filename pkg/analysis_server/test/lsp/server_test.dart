@@ -37,20 +37,15 @@ class ServerDartFixPromptTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_trigger_afterInitialAnalysis() async {
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
     await pumpEventQueue(times: 5000);
     expect(promptManager.checksTriggered, 1);
   }
 
   Future<void> test_trigger_afterPackageConfigChange() async {
-    // Set up and let initial analysis complete.
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
     await pumpEventQueue(times: 5000);
     expect(promptManager.checksTriggered, 1);
 
@@ -94,9 +89,6 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     final notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
 
-    // Track diagnostics for the file to ensure we're analyzing the existing
-    // root.
-    final diagnosticsFuture = waitForDiagnostics(mainFileUri);
     newFile(mainFilePath, 'NotAClass a;');
 
     await initialize(
@@ -115,9 +107,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       ]),
     );
 
-    final diagnostics = await diagnosticsFuture;
-    expect(diagnostics, hasLength(1));
-    expect(diagnostics!.single.code, 'undefined_class');
+    expect(diagnostics[mainFileUri]!.single.code, 'undefined_class');
   }
 
   Future<void> test_capturesLatency_afterStartup() async {
@@ -191,7 +181,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
         Uri.parse(mainFileUri.toString() + r'###***\\\///:::.dart'),
       ),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'File URI did not contain a valid file path')),
+          message: 'URI does not contain a valid file path')),
     );
   }
 
@@ -210,7 +200,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await expectLater(
       getHover(missingDriveLetterFileUri, startOfDocPos),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI was not an absolute file path (missing drive letter)')),
+          message:
+              'URI does not contain an absolute file path (missing drive letter)')),
     );
   }
 
@@ -220,7 +211,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await expectLater(
       getHover(relativeFileUri, startOfDocPos),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI was not a valid file:// URI')),
+          message:
+              "URI scheme 'foo' is not supported. Allowed schemes are 'file'.")),
     );
   }
 
@@ -232,7 +224,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       // The pathContext.toUri() above translates to a non-file:// URI of just
       // 'a/b.dart' so will get the not-file-scheme error message.
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI was not a valid file:// URI')),
+          message: 'URI is not a valid file:// URI')),
     );
   }
 

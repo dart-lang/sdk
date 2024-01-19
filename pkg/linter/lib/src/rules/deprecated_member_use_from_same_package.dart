@@ -159,8 +159,10 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
 class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   final _DeprecatedMemberUseVerifier _deprecatedVerifier;
 
-  _RecursiveVisitor(LintRule rule, WorkspacePackage package)
-      : _deprecatedVerifier = _DeprecatedMemberUseVerifier(rule, package);
+  _RecursiveVisitor(
+    LintRule rule,
+    WorkspacePackage package,
+  ) : _deprecatedVerifier = _DeprecatedMemberUseVerifier(rule, package);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -479,6 +481,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // declaration.
       return;
     }
+
     var visitor = _RecursiveVisitor(_rule, package);
     node.accept(visitor);
   }

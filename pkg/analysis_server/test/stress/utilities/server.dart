@@ -176,7 +176,7 @@ class Server {
   /// Return a list of the paths of files that are currently being analyzed.
   List<String> get analyzedDartFiles {
     bool isAnalyzed(String filePath) {
-      // TODO(brianwilkerson) This should use the path package to determine
+      // TODO(brianwilkerson): This should use the path package to determine
       // inclusion, and needs to take exclusions into account.
       for (var includedRoot in _analysisRootIncludes) {
         if (filePath.startsWith(includedRoot)) {
@@ -388,11 +388,6 @@ class Server {
   void sendAnalysisUpdateOptions(AnalysisOptions options) {
     var params = AnalysisUpdateOptionsParams(options).toJson();
     _send('analysis.updateOptions', params);
-  }
-
-  void sendCompletionGetSuggestions(String file, int offset) {
-    var params = CompletionGetSuggestionsParams(file, offset).toJson();
-    _send('completion.getSuggestions', params);
   }
 
   RequestData sendDiagnosticGetDiagnostics() {

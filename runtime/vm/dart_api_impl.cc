@@ -84,7 +84,7 @@ DEFINE_FLAG(bool,
             "Dump common hash tables before snapshotting.");
 DEFINE_FLAG(bool,
             enable_deprecated_wait_for,
-            true,
+            false,
             "Enable deprecated dart:cli waitFor. "
             "This feature will be fully removed in Dart 3.4 release. "
             "See https://dartbug.com/52121.");
@@ -2918,6 +2918,20 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
   RETURN_TYPE_ERROR(thread->zone(), str, String);
 }
 
+DART_EXPORT Dart_Handle Dart_StringUTF8Length(Dart_Handle str, intptr_t* len) {
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
+    if (!str_obj.IsNull()) {
+      *len = Utf8::Length(str_obj);
+      return Api::Success();
+    }
+  }
+  RETURN_TYPE_ERROR(thread->zone(), str, String);
+}
+
 DART_EXPORT Dart_Handle Dart_NewStringFromCString(const char* str) {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
@@ -3056,6 +3070,28 @@ DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
   }
   str_obj.ToUTF8(*utf8_array, str_len);
   *length = str_len;
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_CopyUTF8EncodingOfString(Dart_Handle str,
+                                                      uint8_t* utf8_array,
+                                                      intptr_t length) {
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  if (utf8_array == nullptr) {
+    RETURN_NULL_ERROR(utf8_array);
+  }
+  const String& str_obj = Api::UnwrapStringHandle(Z, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, str, String);
+  }
+  intptr_t str_len = Utf8::Length(str_obj);
+  if (length < str_len) {
+    return Api::NewError(
+        "Provided buffer is not large enough to hold "
+        "the UTF-8 representation of the string");
+  }
+  str_obj.ToUTF8(utf8_array, str_len);
   return Api::Success();
 }
 
@@ -6217,8 +6253,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const uint8_t* snapshot_instructions,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // If snapshot is an app-jit snapshot we will figure out the mode by
+  // If we have a snapshot then try to figure out the mode by
   // sniffing the feature string in the snapshot.
   if (snapshot_data != nullptr) {
     // Read the snapshot and check for null safety option.
@@ -6227,6 +6262,8 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
       return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
     }
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // If kernel_buffer is specified, it could be a self contained
   // kernel file or the kernel file of the application,
   // figure out the null safety mode by sniffing the kernel file.
@@ -6238,6 +6275,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
     }
   }
 #endif
+
   return FLAG_sound_null_safety;
 }
 

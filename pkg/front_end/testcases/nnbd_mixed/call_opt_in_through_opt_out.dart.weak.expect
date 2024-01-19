@@ -33,19 +33,18 @@ static method takesNull(Null n) → void {}
 static method takesNever(Never n) → void {}
 static method applyTakesNull((Null) → void f) → dynamic {}
 static method applyTakesNever((Never) → void f) → dynamic {}
-static method applyTakesNullNamed({required (Null) → void f = #C5}) → dynamic {}
-static method applyTakesNeverNamed({required (Never) → void f = #C5}) → dynamic {}
+static method applyTakesNullNamed({required (Null) → void f}) → dynamic {}
+static method applyTakesNeverNamed({required (Never) → void f}) → dynamic {}
 static method takesNullable(core::int? i) → void {}
 static method takesNonNullable(core::int i) → void {}
 static method applyTakesNullable((core::int?) → void f) → dynamic {}
 static method applyTakesNonNullable((core::int) → void f) → dynamic {}
-static method applyTakesNullableNamed({required (core::int?) → void f = #C5}) → dynamic {}
-static method applyTakesNonNullableNamed({required (core::int) → void f = #C5}) → dynamic {}
+static method applyTakesNullableNamed({required (core::int?) → void f}) → dynamic {}
+static method applyTakesNonNullableNamed({required (core::int) → void f}) → dynamic {}
 
 constants  {
   #C1 = static-tearoff cal::takesNever
   #C2 = static-tearoff cal::takesNull
   #C3 = static-tearoff cal::takesNonNullable
   #C4 = static-tearoff cal::takesNullable
-  #C5 = null
 }

@@ -11,9 +11,10 @@ import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -24,6 +25,12 @@ import 'package:yaml_edit/yaml_edit.dart';
 
 /// The generator used to generate fixes in analysis options files.
 class AnalysisOptionsFixGenerator {
+  static const List<ErrorCode> codesWithFixes = [
+    AnalysisOptionsHintCode.DEPRECATED_LINT,
+    AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
+    AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+  ];
+
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
@@ -61,9 +68,15 @@ class AnalysisOptionsFixGenerator {
     }
 
     var errorCode = error.errorCode;
-//    if (errorCode == AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR) {
-//    } else if (errorCode == AnalysisOptionsErrorCode.PARSE_ERROR) {
-//    } else
+    // Check whether [errorCode] is within [codeWithFixes], which is (currently)
+    // the canonical list of analysis option error codes with fixes.
+    // If we move analysis option fixes to the style of correction producers,
+    // and a map from error codes to the correction producers that can fix
+    // violations, we won't need this check.
+    if (!codesWithFixes.contains(errorCode)) {
+      return fixes;
+    }
+
     if (errorCode ==
         AnalysisOptionsWarningCode
             .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT) {
@@ -71,11 +84,12 @@ class AnalysisOptionsFixGenerator {
       if (analyzerMap is! YamlMap) {
         return fixes;
       }
-      var strongModeMap = analyzerMap['strong-mode'];
 
+      var strongModeMap = analyzerMap['strong-mode'];
       if (strongModeMap is! YamlMap) {
         return fixes;
       }
+
       if (_isErrorAtMapKey(strongModeMap, 'implicit-casts')) {
         await _addFix_replaceWithStrictCasts(
             coveringNodePath, analyzerMap, strongModeMap);
@@ -85,20 +99,9 @@ class AnalysisOptionsFixGenerator {
       }
     } else if (errorCode == AnalysisOptionsHintCode.DEPRECATED_LINT) {
       await _addFix_removeLint(coveringNodePath);
-//    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING) {
-//    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND) {
-//    } else if (errorCode == AnalysisOptionsWarningCode.INVALID_OPTION) {
-//    } else if (errorCode == AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT) {
-//    } else if (errorCode ==
-//        AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE) {
     } else if (errorCode ==
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES) {
       await _addFix_removeSetting(coveringNodePath);
-//    } else if (errorCode ==
-//        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE) {
-//    } else if (errorCode ==
-//        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES) {
-//    } else if (errorCode == AnalysisOptionsWarningCode.UNSUPPORTED_VALUE) {
     }
     return fixes;
   }

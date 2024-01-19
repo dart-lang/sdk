@@ -5,16 +5,16 @@
 import 'dart:io';
 
 import 'package:args/args.dart' as args;
-import 'package:front_end/src/api_unstable/vm.dart'
-    show printDiagnosticMessage, resolveInputUri;
+import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
-import 'package:dart2wasm/compile.dart';
-import 'package:dart2wasm/compiler_options.dart';
+import 'package:dart2wasm/generate_wasm.dart';
 import 'package:dart2wasm/option.dart';
 
 // Used to allow us to keep defaults on their respective option structs.
-final CompilerOptions _d = CompilerOptions.defaultOptions();
+// Note: When adding new options, consider if CLI options should be add
+// to `pkg/dartdev/lib/src/commands/compile.dart` too.
+final WasmCompilerOptions _d = WasmCompilerOptions.defaultOptions();
 
 final List<Option> options = [
   Flag("help", (o, _) {}, abbr: "h", negatable: false, defaultsTo: false),
@@ -34,8 +34,6 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printKernel),
   Flag("print-wasm", (o, value) => o.translatorOptions.printWasm = value,
       defaultsTo: _d.translatorOptions.printWasm),
-  Flag("stringref", (o, value) => o.translatorOptions.useStringref = value,
-      defaultsTo: _d.translatorOptions.useStringref),
   Flag("js-compatibility",
       (o, value) => o.translatorOptions.jsCompatibility = value,
       defaultsTo: _d.translatorOptions.jsCompatibility),
@@ -45,6 +43,9 @@ final List<Option> options = [
   Flag("omit-type-checks",
       (o, value) => o.translatorOptions.omitTypeChecks = value,
       defaultsTo: _d.translatorOptions.omitTypeChecks),
+  Flag("verify-type-checks",
+      (o, value) => o.translatorOptions.verifyTypeChecks = value,
+      defaultsTo: _d.translatorOptions.verifyTypeChecks),
   IntOption(
       "inlining-limit", (o, value) => o.translatorOptions.inliningLimit = value,
       defaultsTo: "${_d.translatorOptions.inliningLimit}"),
@@ -95,7 +96,7 @@ Map<String, String> processEnvironment(List<String> defines) =>
       return MapEntry<String, String>(keyAndValue[0], keyAndValue[1]);
     }));
 
-CompilerOptions parseArguments(List<String> arguments) {
+WasmCompilerOptions parseArguments(List<String> arguments) {
   args.ArgParser parser = args.ArgParser();
   for (Option arg in options) {
     arg.applyToParser(parser);
@@ -123,8 +124,8 @@ CompilerOptions parseArguments(List<String> arguments) {
     if (rest.length != 2) {
       throw ArgumentError('Requires two positional file arguments');
     }
-    CompilerOptions compilerOptions =
-        CompilerOptions(mainUri: resolveInputUri(rest[0]), outputFile: rest[1]);
+    WasmCompilerOptions compilerOptions = WasmCompilerOptions(
+        mainUri: resolveInputUri(rest[0]), outputFile: rest[1]);
     for (Option arg in options) {
       if (results.wasParsed(arg.name)) {
         arg.applyToOptions(compilerOptions, results[arg.name]);
@@ -139,20 +140,6 @@ CompilerOptions parseArguments(List<String> arguments) {
 }
 
 Future<int> main(List<String> args) async {
-  CompilerOptions options = parseArguments(args);
-  CompilerOutput? output = await compileToModule(
-      options, (message) => printDiagnosticMessage(message, print));
-
-  if (output == null) {
-    exitCode = 1;
-    return exitCode;
-  }
-
-  await File(options.outputFile).writeAsBytes(output.wasmModule);
-
-  final String outputJSRuntimeFile = options.outputJSRuntimeFile ??
-      '${options.outputFile.substring(0, options.outputFile.lastIndexOf('.'))}.mjs';
-  await File(outputJSRuntimeFile).writeAsString(output.jsRuntime);
-
-  return 0;
+  WasmCompilerOptions options = parseArguments(args);
+  return generateWasm(options);
 }

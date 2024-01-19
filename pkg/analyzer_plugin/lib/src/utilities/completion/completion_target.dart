@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -120,7 +121,7 @@ class CompletionTarget {
 
   /// The enclosing [InterfaceElement], or `null` if not in a class.
   late final InterfaceElement? enclosingInterfaceElement = () {
-    final unitMember =
+    var unitMember =
         containingNode.thisOrAncestorOfType<CompilationUnitMember>();
     if (unitMember is ClassDeclaration) {
       return unitMember.declaredElement;
@@ -174,7 +175,7 @@ class CompletionTarget {
             // Try to replace with a comment token.
             var commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
-              // TODO(scheglov) This is duplicate of the code below.
+              // TODO(scheglov): This is duplicate of the code below.
               // If the preceding comment is dartdoc token, then update
               // the containing node to be the dartdoc comment.
               // Otherwise completion is not required.
@@ -278,7 +279,7 @@ class CompletionTarget {
       }
     }
     if (node is NamedType) {
-      final importPrefix = node.importPrefix;
+      var importPrefix = node.importPrefix;
       if (importPrefix != null && identical(node.name2, entity)) {
         return SimpleIdentifierImpl(importPrefix.name)
           ..staticElement = importPrefix.element;
@@ -355,7 +356,7 @@ class CompletionTarget {
       var invocation = argumentList.parent;
 
       if (invocation is FunctionExpressionInvocation) {
-        final invokeType = invocation.staticInvokeType;
+        var invokeType = invocation.staticInvokeType;
         if (invokeType is FunctionType) {
           _functionType = invokeType;
         }
@@ -397,7 +398,7 @@ class CompletionTarget {
           token.type == TokenType.COMMA;
     }
 
-    final token = lastTokenOfEntity;
+    var token = lastTokenOfEntity;
     if (token == null) {
       return false;
     }
@@ -485,7 +486,7 @@ class CompletionTarget {
           directive = containingNode;
           uri = containingNode.uri;
           // Check whether the offset was in a configurations URI.
-          for (final configuration in containingNode.configurations) {
+          for (var configuration in containingNode.configurations) {
             if (configuration.uri.offset <= requestOffset &&
                 configuration.uri.end >= requestOffset) {
               uri = configuration.uri;
@@ -642,7 +643,7 @@ class CompletionTarget {
     if (!token.isEof && offset >= token.offset) {
       return null;
     }
-    final startToken = token;
+    var startToken = token;
     token = token.precedingComments;
     while (token != null) {
       if (offset <= token.offset) {

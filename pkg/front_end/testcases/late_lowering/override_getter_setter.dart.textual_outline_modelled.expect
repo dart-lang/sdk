@@ -14,5 +14,7 @@ class C extends A {
 }
 
 expect(expected, actual) {}
+
 main() {}
+
 throws(f(), String message) {}

@@ -1,11 +1,17 @@
 import 'pattern_types_lib1.dart';
+
 import 'pattern_types_lib2.dart';
 
 typedef Dynamic = dynamic;
+
 typedef Function1 = void Function();
+
 typedef Function1_ = Function1?;
+
 typedef Record1 = (int, {String named});
+
 typedef Record1_ = Record1?;
+
 typedef Class_ = Class?;
 
 class Class {
@@ -42,6 +48,7 @@ extension on String {
 }
 
 objectPattern(o) {}
+
 relationalPattern(
   dynamic dyn,
   Never never,

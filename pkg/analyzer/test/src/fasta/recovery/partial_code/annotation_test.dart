@@ -132,7 +132,7 @@ class AnnotationTest extends PartialCodeTest {
       head: 'f() { ',
       tail: ' }',
     );
-    // TODO(brianwilkerson) Many of the combinations produced by the following
+    // TODO(brianwilkerson): Many of the combinations produced by the following
     // produce "valid" code that is not valid. Even when we recover the
     // annotation, the following statement is not allowed to have an annotation.
     const localAllowed = [

@@ -5,30 +5,18 @@
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../client/completion_driver_test.dart';
 import '../../../../src/utilities/mock_packages.dart';
 import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NamedArgumentTest1);
-    defineReflectiveTests(NamedArgumentTest2);
+    defineReflectiveTests(NamedArgumentTest);
   });
 }
 
 @reflectiveTest
-class NamedArgumentTest1 extends CompletionRelevanceTest
-    with NamedArgumentTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class NamedArgumentTest2 extends CompletionRelevanceTest
-    with NamedArgumentTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class NamedArgumentTest extends CompletionRelevanceTest
+    with NamedArgumentTestCases {}
 
 mixin NamedArgumentTestCases on CompletionRelevanceTest {
   @override

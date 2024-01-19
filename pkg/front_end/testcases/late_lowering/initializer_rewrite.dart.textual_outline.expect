@@ -1,7 +1,10 @@
 int nonNullableTopLevelFieldReads = 0;
+
 late final int nonNullableTopLevelField =
     nonNullableTopLevelFieldReads++ == 0 ? nonNullableTopLevelField + 1 : 0;
+
 int nullableTopLevelFieldReads = 0;
+
 late final int? nullableTopLevelField =
     nullableTopLevelFieldReads++ == 0 ? nullableTopLevelField.hashCode : 0;
 
@@ -21,4 +24,5 @@ class Class {
 }
 
 void main() {}
+
 throws(f(), String message) {}

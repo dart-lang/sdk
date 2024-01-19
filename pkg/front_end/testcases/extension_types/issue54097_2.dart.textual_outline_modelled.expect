@@ -1,0 +1,63 @@
+class A1<X extends Y, Y extends X> {}
+
+class A2<X extends X> {}
+
+class A3<X, Y extends Z, Z extends Y> {}
+
+class AE11<X extends E1<X>> {}
+
+class AE12<X extends E2<X>> {}
+
+class AE13<X extends E3<X>> {}
+
+class AE14<X extends E4<X>> {}
+
+class AE15<X extends E5<X>> {}
+
+class AE16<X extends E6<X>> {}
+
+class AE17<X extends E7<X>> {}
+
+class AF11<X extends F1<X>> {}
+
+class AF12<X extends F2<X>> {}
+
+class AF13<X extends F3<X>> {}
+
+class AF14<X extends F4<X>> {}
+
+class AF15<X extends F5<X>> {}
+
+class AF16<X extends F6<X>> {}
+
+class AF17<X extends F7<X>> {}
+
+extension type E1<X>(X it) {}
+
+extension type E2<X>(F1<X> it) {}
+
+extension type E3<X>(F1<E1<X>> it) {}
+
+extension type E4<X>(E1<F1<X>> it) {}
+
+extension type E5<X>(E1<F1<E1<X>>> it) {}
+
+extension type E6<X>(E1<E1<X>> it) {}
+
+extension type E7<X>(F1<F1<X>> it) {}
+
+test() {}
+
+typedef F1<X> = X;
+
+typedef F2<X> = E1<X>;
+
+typedef F3<X> = E1<F1<X>>;
+
+typedef F4<X> = F1<E1<X>>;
+
+typedef F5<X> = F1<E1<F1<X>>>;
+
+typedef F6<X> = F1<F1<X>>;
+
+typedef F7<X> = E1<E1<X>>;

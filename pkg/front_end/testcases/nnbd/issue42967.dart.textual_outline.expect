@@ -37,4 +37,5 @@ mixin M {
   external final dynamic fieldExternalFinalDynamicOfM;
   abstract final dynamic fieldAbstractFinalDynamicOfM;
 }
+
 main() {}

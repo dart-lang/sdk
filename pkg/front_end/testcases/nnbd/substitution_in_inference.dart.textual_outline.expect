@@ -1,5 +1,7 @@
 foo<T extends Object?, S extends List<T>>(T t) => null;
+
 bar<T extends Object?, S extends List<T?>>(T t) => null;
+
 baz(int? x, int y) {}
 
 class A<T extends Object?, S extends Object> {

@@ -30,7 +30,7 @@ class JsGetFlagLowering {
 
   JsGetFlagLowering(this._coreTypes, this._options);
 
-  TreeNode transformStaticInvocation(StaticInvocation node) {
+  Expression transformStaticInvocation(StaticInvocation node) {
     if (node.target != _coreTypes.jsGetFlag) return node;
     final argument = node.arguments.positional.single;
 
@@ -66,8 +66,7 @@ class JsGetFlagLowering {
       case 'LEGACY':
         return _options.useLegacySubtyping;
       case 'EXTRA_NULL_SAFETY_CHECKS':
-        // TODO(fishythefish): Handle this flag as needed.
-        return false;
+        return _options.experimentNullSafetyChecks;
       case 'PRINT_LEGACY_STARS':
         return _options.printLegacyStars;
       default:

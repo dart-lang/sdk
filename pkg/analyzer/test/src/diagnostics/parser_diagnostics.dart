@@ -17,7 +17,7 @@ import '../dart/resolution/node_text_expectations.dart';
 import '../summary/resolved_ast_printer.dart';
 
 class ParserDiagnosticsTest {
-  /// TODO(scheglov) Enable [withCheckingLinking] everywhere.
+  // TODO(scheglov): Enable [withCheckingLinking] everywhere.
   void assertParsedNodeText(
     AstNode node,
     String expected, {

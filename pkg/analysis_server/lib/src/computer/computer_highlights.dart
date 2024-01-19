@@ -23,6 +23,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
@@ -297,6 +298,17 @@ class DartUnitHighlightsComputer {
         type = accessor.isGetter
             ? HighlightRegionType.INSTANCE_GETTER_REFERENCE
             : HighlightRegionType.INSTANCE_SETTER_REFERENCE;
+      }
+    }
+    // Handle tokens that are references to record fields.
+    if (element == null &&
+        parent is PropertyAccess &&
+        nameToken == parent.propertyName.token) {
+      var staticType = parent.realTarget.staticType;
+      if (staticType is RecordType) {
+        type = staticType.fieldByName(nameToken.lexeme) != null
+            ? HighlightRegionType.INSTANCE_FIELD_REFERENCE
+            : HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
       }
     }
     // add region
@@ -749,7 +761,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     constructorName.type.accept(this);
 
     // We have a `ConstructorReference` only when it is resolved.
-    // TODO(scheglov) The `ConstructorName` in a tear-off always has a name,
+    // TODO(scheglov): The `ConstructorName` in a tear-off always has a name,
     //  but this is not expressed via types.
     computer._addRegion_node(
         constructorName.name!, HighlightRegionType.CONSTRUCTOR_TEAR_OFF);
@@ -1194,6 +1206,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    if (node.importPrefix case final importPrefix?) {
+      computer._addRegion_token(
+        importPrefix.name,
+        HighlightRegionType.IMPORT_PREFIX,
+      );
+    }
+
     var type = node.type;
     if (type != null) {
       var isDynamic = type is DynamicType && node.name2.lexeme == 'dynamic';
@@ -1345,7 +1364,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     if (node.isMap) {
       computer._addRegion_node(node, HighlightRegionType.LITERAL_MAP);
-      // TODO(brianwilkerson) Add a highlight region for set literals. This
+      // TODO(brianwilkerson): Add a highlight region for set literals. This
       //  would be a breaking change, but would be consistent with list and map
       //  literals.
 //    } else if (node.isSet) {

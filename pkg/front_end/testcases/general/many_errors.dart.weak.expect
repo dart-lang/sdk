@@ -53,7 +53,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   constructor named1() → self::A*
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/many_errors.dart:10:26: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
   const A.named1() sync* {}
-                         ^" {}
+                         ^" /* emittedValueType= dynamic */ {}
   const constructor named2() → self::A*
     : final dynamic #t2 = throw invalid-expression "pkg/front_end/testcases/general/many_errors.dart:12:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.

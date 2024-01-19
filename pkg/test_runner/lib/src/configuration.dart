@@ -7,7 +7,8 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:native_assets_cli/native_assets_cli.dart' show CCompilerConfig;
+import 'package:native_assets_cli/native_assets_cli_internal.dart'
+    show CCompilerConfig;
 import 'package:smith/configuration.dart';
 import 'package:smith/smith.dart';
 
@@ -411,8 +412,8 @@ class TestConfiguration {
 
   /// The set of [Feature]s supported by this configuration.
   late final Set<Feature> supportedFeatures = compiler == Compiler.dart2analyzer
-      // The analyzer should parse all tests.
-      ? {...Feature.all}
+      // The analyzer should parse all tests that don't require legacy support.
+      ? {...Feature.noLegacy}
       : {
           // TODO(rnystrom): Define more features for things like "dart:io", separate
           // int/double representation, etc.

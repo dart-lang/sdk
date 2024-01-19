@@ -224,7 +224,8 @@ class ExtensionMemberResolver {
     if (receiverType is VoidType) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
-    } else if (!_typeSystem.isAssignableTo(receiverType, extendedType)) {
+    } else if (!_typeSystem.isAssignableTo(receiverType, extendedType,
+        strictCasts: _resolver.analysisOptions.strictCasts)) {
       var whyNotPromoted =
           whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
       _errorReporter.reportErrorForNode(
@@ -342,10 +343,15 @@ class ExtensionMemberResolver {
         return _listOfDynamic(typeParameters);
       }
     } else {
-      var inferrer = GenericInferrer(_typeSystem, typeParameters,
-          errorReporter: _errorReporter,
-          errorNode: SimpleIdentifierImpl(node.name),
-          genericMetadataIsEnabled: _genericMetadataIsEnabled);
+      var inferrer = GenericInferrer(
+        _typeSystem,
+        typeParameters,
+        errorReporter: _errorReporter,
+        errorNode: SimpleIdentifierImpl(node.name),
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
+        strictInference: _resolver.analysisOptions.strictInference,
+        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+      );
       inferrer.constrainArgument(
         receiverType,
         element.extendedType,
@@ -397,7 +403,7 @@ class ExtensionMemberResolver {
 
     // 5. ...the instantiate-to-bounds type of T1 is a subtype of the
     //    instantiate-to-bounds type of T2 and not vice versa.
-    // TODO(scheglov) store instantiated types
+    // TODO(scheglov): store instantiated types
     var extendedTypeBound1 = _instantiateToBounds(e1.extension);
     var extendedTypeBound2 = _instantiateToBounds(e2.extension);
     return _isSubtypeOf(extendedTypeBound1, extendedTypeBound2) &&

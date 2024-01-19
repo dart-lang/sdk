@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: illegal_language_version_override
-// @dart = 2.9
-
 import 'dart:async';
 
 typedef Typedef();
@@ -24,36 +21,31 @@ const null_ = /*cfe.TypeLiteral(Null)*/ Null;
 
 main() {
   print(
-      /*analyzer.TypeLiteral(dynamic Function()*)*/
-      /*cfe.TypeLiteral(dynamic Function())*/
+      /*cfe|analyzer.TypeLiteral(dynamic Function())*/
       /*dart2js.TypeLiteral(()->dynamic)*/
       typedef);
 
   print(
-      /*analyzer.TypeLiteral(void Function(dynamic)*)*/
-      /*cfe.TypeLiteral(void Function(dynamic))*/
+      /*cfe|analyzer.TypeLiteral(void Function(dynamic))*/
       /*dart2js.TypeLiteral((dynamic)->void)*/
       genericTypedef);
 
   print(
-      /*analyzer.TypeLiteral(void Function<T>(T*)*)*/
-      /*cfe.TypeLiteral(void Function<T>(T))*/
+      /*cfe|analyzer.TypeLiteral(void Function<T>(T))*/
       /*dart2js.TypeLiteral((0)->void)*/
       genericFunctionTypedef);
 
   print(
-      /*analyzer.TypeLiteral(void Function<T>(FutureOr<T*>*)*)*/
-      /*cfe.TypeLiteral(void Function<T>(FutureOr<T>))*/
+      /*cfe|analyzer.TypeLiteral(void Function<T>(FutureOr<T>))*/
       /*dart2js.TypeLiteral((FutureOr<0>)->void)*/
       typedefWithFutureOr);
 
   print(
-      /*analyzer.TypeLiteral(FutureOr<dynamic>*)*/
+      /*analyzer.TypeLiteral(FutureOr<dynamic>)*/
       /*cfe|dart2js.TypeLiteral(dynamic)*/
       futureOr);
 
   print(
-      /*analyzer.TypeLiteral(Null*)*/
-      /*cfe|dart2js.TypeLiteral(Null)*/
+      /*TypeLiteral(Null)*/
       null_);
 }

@@ -76,7 +76,7 @@ final class UiMatrix {
   ///     0  0  0  1
   ///
   /// If both `x` and `y` are zero, returns the [identity] constant.
-  static UiMatrix translation2d({ required double dx, required double dy }) {
+  static UiMatrix translation2d({required double dx, required double dy}) {
     if (dx == 0 && dy == 0) {
       return identity;
     }
@@ -234,8 +234,12 @@ final class UiMatrix {
     required double m11,
     required double m03,
     required double m13,
-    _MatrixExtension? rest = null,
-  }) : _m00 = m00, _m11 = m11, _m03 = m03, _m13 = m13, _rest = rest;
+    _MatrixExtension? rest,
+  })  : _m00 = m00,
+        _m11 = m11,
+        _m03 = m03,
+        _m13 = m13,
+        _rest = rest;
 
   final double _m00;
   final double _m11;
@@ -272,7 +276,7 @@ final class UiMatrix {
     _MatrixExtension? rest;
     if (otherRest != null || selfRest != null) {
       rest = (selfRest ?? _MatrixExtension._identityExtension) +
-             (otherRest ?? _MatrixExtension._identityExtension);
+          (otherRest ?? _MatrixExtension._identityExtension);
     }
 
     return UiMatrix._(
@@ -310,11 +314,13 @@ final class UiMatrix {
           m13: _m13 + _m11 * n13,
         );
       } else {
-        return _generalMultiply(this, selfRest, other, _MatrixExtension._identityExtension);
+        return _generalMultiply(
+            this, selfRest, other, _MatrixExtension._identityExtension);
       }
     } else {
       if (selfRest == null) {
-        return _generalMultiply(this, _MatrixExtension._identityExtension, other, otherRest);
+        return _generalMultiply(
+            this, _MatrixExtension._identityExtension, other, otherRest);
       } else {
         return _generalMultiply(this, selfRest, other, otherRest);
       }
@@ -356,8 +362,8 @@ final class UiMatrix {
       return UiMatrix.simple2d(
         scaleX: a11 * invDet,
         scaleY: a00 * invDet,
-        dx: - a11 * a30 * invDet,
-        dy: - a00 * a31 * invDet,
+        dx: -a11 * a30 * invDet,
+        dy: -a00 * a31 * invDet,
       );
     } else {
       return _generalInvert(this, rest);
@@ -395,18 +401,18 @@ final class _MatrixExtension {
     required double m31,
     required double m32,
     required double m33,
-  }) : _m01 = m01,
-       _m02 = m02,
-       _m10 = m10,
-       _m12 = m12,
-       _m20 = m20,
-       _m21 = m21,
-       _m22 = m22,
-       _m23 = m23,
-       _m30 = m30,
-       _m31 = m31,
-       _m32 = m32,
-       _m33 = m33;
+  })  : _m01 = m01,
+        _m02 = m02,
+        _m10 = m10,
+        _m12 = m12,
+        _m20 = m20,
+        _m21 = m21,
+        _m22 = m22,
+        _m23 = m23,
+        _m30 = m30,
+        _m31 = m31,
+        _m32 = m32,
+        _m33 = m33;
 
   final double _m01;
   final double _m02;
@@ -456,7 +462,8 @@ final class _MatrixExtension {
   }
 }
 
-UiMatrix _generalMultiply(UiMatrix m, _MatrixExtension mExt, UiMatrix n, _MatrixExtension nExt) {
+UiMatrix _generalMultiply(
+    UiMatrix m, _MatrixExtension mExt, UiMatrix n, _MatrixExtension nExt) {
   final double m00 = m._m00;
   final double m01 = mExt._m01;
   final double m02 = mExt._m02;

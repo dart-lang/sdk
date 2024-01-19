@@ -56,10 +56,9 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
     final collector = NavigationCollectorImpl();
 
     final result = await server.getResolvedUnit(path);
-    final unit = result?.unit;
-    if (unit != null) {
+    if (result != null) {
       computeDartNavigation(
-          server.resourceProvider, collector, unit, offset, 0);
+          server.resourceProvider, collector, result, offset, 0);
       if (supportsLocationLink) {
         await _updateTargetsWithCodeLocations(collector);
       }
@@ -218,7 +217,7 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
   Location? _toLocation(
       AnalysisNavigationParams mergedResults, NavigationTarget target) {
     final targetFilePath = mergedResults.files[target.fileIndex];
-    final targetFileUri = pathContext.toUri(targetFilePath);
+    final targetFileUri = uriConverter.toClientUri(targetFilePath);
     final targetLineInfo = server.getLineInfo(targetFilePath);
     return targetLineInfo != null
         ? navigationTargetToLocation(targetFileUri, target, targetLineInfo)
@@ -229,7 +228,7 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
       LineInfo sourceLineInfo, NavigationTarget target) {
     final region = mergedResults.regions.first;
     final targetFilePath = mergedResults.files[target.fileIndex];
-    final targetFileUri = pathContext.toUri(targetFilePath);
+    final targetFileUri = uriConverter.toClientUri(targetFilePath);
     final targetLineInfo = server.getLineInfo(targetFilePath);
 
     return targetLineInfo != null

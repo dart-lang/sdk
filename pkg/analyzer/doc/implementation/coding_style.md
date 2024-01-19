@@ -21,10 +21,11 @@ This section documents the styles we have agreed to follow.
 
 ### Lint rules
 
-None.
-
-- prefer_single_quotes - We don't enforce this in each of our packages yet, but
+- `flutter_style_todos` - Keeps our todo format canonical.
+- `prefer_single_quotes` - We don't enforce this in each of our packages yet, but
   we aspire to.
+- `unnecessary_breaks` - All our packages require at least Dart `3.0.0`, so we
+  can do it.
 
 ### Formatting and sorting
 
@@ -65,6 +66,19 @@ library) are named in a consistent style. An extension on a class `Foo` is
 named `FooExtension`. While this can lead to long names (like
 `AnalysisOptionsImplExtension`), the extension name is rarely used (only in
 explicit extension overrides), and we value consistency.
+
+### Modifier usage
+
+#### Local variables
+
+We use `var` to declare local variables with two exceptions:
+
+- We use a type annotation if the type of the variable would be incorrectly
+  inferred without it, such as when a variable that needs to be nullable would
+  be inferred to be non-nullable because it's initialized to a non-null value.
+
+- We use `final` if the local variable shadows a field and is being used to
+  allow the type of the field to be promoted.
 
 ## Styles we're discussing
 

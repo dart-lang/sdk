@@ -6,6 +6,8 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show isExtensionTypeThis;
+import 'package:front_end/src/fasta/kernel/resource_identifier.dart'
+    as ResourceIdentifiers;
 
 import 'analysis.dart';
 import 'table_selector_assigner.dart';
@@ -211,6 +213,13 @@ class _ParameterInfo {
     // would make distinct tear-off closure instances not equal,
     // as required by the spec.
     if (member.isExtensionTypeMember && isExtensionTypeThis(param)) {
+      isChecked = true;
+    }
+
+    /// Avoid inlining methods annotated with `@ResourceIdentifier`, where we
+    /// want to store which arguments were actually passed.
+    if (member is Procedure &&
+        ResourceIdentifiers.findResourceAnnotations(member).isNotEmpty) {
       isChecked = true;
     }
   }

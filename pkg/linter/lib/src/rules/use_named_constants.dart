@@ -55,6 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   final LinterContext context;
+
   _Visitor(this.rule, this.context);
 
   @override

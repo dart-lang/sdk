@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -95,7 +96,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       String? nameGroupName,
       DartType? superclass,
       String? superclassGroupName}) {
-    // TODO(brianwilkerson) Add support for type parameters, probably as a
+    // TODO(brianwilkerson): Add support for type parameters, probably as a
     // parameterWriter parameter.
     if (isAbstract) {
       write(Keyword.ABSTRACT.lexeme);
@@ -111,7 +112,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' extends ');
       writeType(superclass, groupName: superclassGroupName);
     } else if (mixins != null && mixins.isNotEmpty) {
-      // TODO(brianwilkerson) Remove this branch when 2.1 semantics are
+      // TODO(brianwilkerson): Remove this branch when 2.1 semantics are
       // supported everywhere.
       write(' extends Object ');
     }
@@ -361,7 +362,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       void Function()? membersWriter,
       String? nameGroupName,
       Iterable<DartType>? superclassConstraints}) {
-    // TODO(brianwilkerson) Add support for type parameters, probably as a
+    // TODO(brianwilkerson): Add support for type parameters, probably as a
     // parameterWriter parameter.
     write('mixin ');
     if (nameGroupName == null) {
@@ -681,7 +682,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParametersMatchingArguments(ArgumentList argumentList) {
-    // TODO(brianwilkerson) Handle the case when there are required parameters
+    // TODO(brianwilkerson): Handle the case when there are required parameters
     // after named parameters.
     var usedNames = <String>{};
     List<Expression> arguments = argumentList.arguments;
@@ -734,7 +735,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(' ');
       }
     }
-    // TODO(brianwilkerson) The name of the setter is unlikely to be a good name
+    // TODO(brianwilkerson): The name of the setter is unlikely to be a good name
     //  for the parameter. We need to find a better name to produce here.
     write(name);
     write(') ');
@@ -917,7 +918,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is RecordType) {
-      // TODO(brianwilkerson) This should return `false` if the `records`
+      // TODO(brianwilkerson): This should return `false` if the `records`
       //  feature is not enabled.
       return true;
     }
@@ -1069,7 +1070,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (suggestions.isNotEmpty) {
       return suggestions;
     }
-    // TODO(brianwilkerson) Verify that the name below is not in the set of used names.
+    // TODO(brianwilkerson): Verify that the name below is not in the set of used names.
     return <String>['param$index'];
   }
 
@@ -1163,35 +1164,32 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return;
     }
 
-    // TODO(scheglov) We should use "methodBeingCopied" to verify that
+    // TODO(scheglov): We should use "methodBeingCopied" to verify that
     // we really are just copying this type parameter.
     if (element is TypeParameterElement) {
       return;
     }
 
     var import = dartFileEditBuilder._getImportElement(element);
-    if (import != null) {
-      var prefix = import.prefix;
-      if (prefix.isNotEmpty) {
-        write(prefix);
-        write('.');
-      }
-    } else {
+    if (import == null) {
       var library = element.library?.source.uri;
       if (library != null) {
-        var import = dartFileEditBuilder._importLibrary(library);
-        var prefix = import.prefix;
-        if (prefix.isNotEmpty) {
-          write(prefix);
-          write('.');
-        }
+        import = dartFileEditBuilder._importLibrary(library);
       }
+    }
+    if (import == null) {
+      return;
+    }
+    import.ensureShown(element.name!);
+    var prefix = import.prefix;
+    if (prefix.isNotEmpty) {
+      write('$prefix.');
     }
   }
 
   void _writeSuperMemberInvocation(ExecutableElement element, String memberName,
       List<ParameterElement> parameters) {
-    final isOperator = element.isOperator;
+    var isOperator = element.isOperator;
     write(isOperator ? ' ' : '.');
     write(memberName);
     write(isOperator ? ' ' : '(');
@@ -1295,7 +1293,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is RecordType) {
-      // TODO(brianwilkerson) This should return `false` if the `records`
+      // TODO(brianwilkerson): This should return `false` if the `records`
       //  feature is not enabled. More importantly, we can't currently return
       //  `false` if some portion of a type has already been written, so we
       //  need to figure out what to do when a record type is nested in another
@@ -1423,8 +1421,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       {this.createEditsForImports = true})
       : super(changeBuilder, resolvedUnit.path, timeStamp);
 
-  CodeStyleOptions get codeStyleOptions =>
-      resolvedUnit.session.analysisContext.analysisOptions.codeStyleOptions;
+  CodeStyleOptions get codeStyleOptions => resolvedUnit.session.analysisContext
+      .getAnalysisOptionsForFile(resolvedUnit.file)
+      .codeStyleOptions;
 
   @override
   bool get hasEdits =>
@@ -1562,7 +1561,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     var existingImport = _getImportElement(element);
     var name = element.name;
     if (existingImport != null && name != null) {
-      existingImport.ensureShown(name);
+      existingImport.ensureShown(name, useShow: useShow);
       return;
     }
 
@@ -1572,7 +1571,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (libraryWithElement != null) {
       _elementLibrariesToImport[element] = _importLibrary(
         libraryWithElement.source.uri,
-        showName: useShow ? element.name : null,
+        shownName: element.name,
+        useShow: useShow,
       );
       return;
     }
@@ -1580,13 +1580,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // If we didn't find one, use the original URI.
     var uri = element.source?.uri;
     if (uri != null) {
-      _importLibrary(uri, showName: useShow ? element.name : null);
+      _importLibrary(uri, shownName: element.name, useShow: useShow);
     }
   }
 
   @override
-  String importLibrary(Uri uri, {String? prefix, String? showName}) {
-    return _importLibrary(uri, prefix: prefix, showName: showName).uriText;
+  String importLibrary(Uri uri,
+      {String? prefix, String? showName, bool useShow = false}) {
+    return _importLibrary(uri,
+            prefix: prefix, shownName: showName, useShow: useShow)
+        .uriText;
   }
 
   @override
@@ -1676,7 +1679,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Sort imports by URIs.
     var importList = imports.toList();
     importList.sort((a, b) => a.uriText.compareTo(b.uriText));
-
+    var sortCombinators = resolvedUnit.session.analysisContext
+        .getAnalysisOptionsForFile(resolvedUnit.file)
+        .isLintEnabled('combinators_ordering');
     var quote = codeStyleOptions.preferredQuoteForUris(importDirectives);
     void writeImport(EditBuilder builder, _LibraryImport import) {
       assert(import.prefixes.isNotEmpty);
@@ -1693,13 +1698,21 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           builder.write(' as ');
           builder.write(prefix);
         }
-        if (import.showNames.isNotEmpty) {
+        if (import.shownNames.isNotEmpty) {
           builder.write(' show ');
-          builder.write(import.showNames.join(', '));
+          if (sortCombinators) {
+            builder.write(import.allShownNames.sorted().join(', '));
+          } else {
+            builder.write(import.allShownNames.join(', '));
+          }
         }
-        if (import.hideNames.isNotEmpty) {
+        if (import.hiddenNames.isNotEmpty) {
           builder.write(' hide ');
-          builder.write(import.hideNames.join(', '));
+          if (sortCombinators) {
+            builder.write(import.allHiddenNames.sorted().join(', '));
+          } else {
+            builder.write(import.allHiddenNames.join(', '));
+          }
         }
         builder.write(';');
       }
@@ -1712,10 +1725,93 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         var isPackage = import.uriText.startsWith('package:');
         var inserted = false;
 
+        void updateShowCombinators(ImportDirective replace) {
+          // We don't need to replace anything if there isn't a show combinator
+          // already.
+          if (import.shownNames.isEmpty) {
+            return;
+          }
+
+          var showCombinators =
+              replace.combinators.whereType<ShowCombinator>().toList();
+
+          // Insert any new show combinators at the end of the last show
+          // combinator list, in sorted order, but only if there already is a
+          // show combinator. If there isn't one, then don't add one.
+          if (showCombinators.isEmpty) {
+            return;
+          }
+          var existingShownNames = {
+            for (var combinator in showCombinators)
+              for (var nameElement in combinator.shownNames) nameElement.name,
+          };
+
+          var addedNames = import.allShownNames.difference(existingShownNames);
+          if (addedNames.isNotEmpty) {
+            if (sortCombinators || existingShownNames.isSorted()) {
+              // If the existing names are already sorted, or the analyzer flag
+              // for sorting them is set, then sort all the names.
+              var combinedNames = {
+                ...showCombinators.last.shownNames
+                    .map<String>((element) => element.name),
+                ...addedNames,
+              }.sorted();
+              addSimpleReplacement(
+                range.node(showCombinators.last),
+                'show ${combinedNames.join(', ')}',
+              );
+            } else {
+              addInsertion(showCombinators.last.end, (builder) {
+                builder.write(', ${addedNames.sorted().join(', ')}');
+              });
+            }
+          }
+        }
+
+        void updateHideCombinators(ImportDirective replace) {
+          // Go through all of the hide combinators and remove any names that
+          // are no longer hidden. We don't ever add any names to pre-existing
+          // import.hiddenNames, so we don't need to worry about updating the
+          // sort order.
+          for (var hide in replace.combinators.whereType<HideCombinator>()) {
+            var offset = hide.offset;
+            var length = hide.end - offset;
+            var hiddenList = hide.hiddenNames.map((e) => e.name);
+            var hiddenNames = hiddenList.toSet();
+            // Find any names that need to be visible, either because they are
+            // in the shown names, or because they're no longer in the hidden
+            // names.
+            var newNames = hiddenNames
+                .intersection(import.allHiddenNames)
+                .difference(import.allShownNames);
+            if (newNames.isEmpty) {
+              var previousEnd = hide.beginToken.previous?.end ?? 0;
+              addDeletion(SourceRange(previousEnd, hide.end - previousEnd));
+            } else if (hiddenNames.intersection(newNames).length !=
+                hiddenNames.length) {
+              // Unless sort_combinators lint is enabled, make sure to preserve
+              // original order, while removing any names that don't appear in
+              // newNames.
+              var orderedList = sortCombinators
+                  ? newNames.sorted()
+                  : hiddenList.where((element) => newNames.contains(element));
+              addSimpleReplacement(
+                SourceRange(offset, length),
+                'hide ${orderedList.join(', ')}',
+              );
+            }
+          }
+        }
+
         void insert(
             {ImportDirective? prev,
-            required ImportDirective next,
+            ImportDirective? replace,
+            ImportDirective? next,
             bool trailingNewLine = false}) {
+          assert(prev == null || replace == null,
+              "Can't supply both prev and replace");
+          assert(prev != null || replace != null || next != null);
+
           var lineInfo = resolvedUnit.lineInfo;
           if (prev != null) {
             var offset = prev.end;
@@ -1731,12 +1827,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
               builder.writeln();
               writeImport(builder, import);
             });
+          } else if (replace != null) {
+            updateHideCombinators(replace);
+            updateShowCombinators(replace);
           } else {
             // Annotations attached to the first directive should remain above
             // the newly inserted import, as they are treated as being for the
             // file.
             var isFirst =
-                next == (next.parent as CompilationUnit).directives.first;
+                next == (next!.parent as CompilationUnit).directives.first;
             var offset = isFirst
                 ? next.firstTokenAfterCommentAndMetadata.offset
                 : next.offset;
@@ -1762,10 +1861,13 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           var isExistingDart = existingUri.startsWith('dart:');
           var isExistingPackage = existingUri.startsWith('package:');
           var isExistingRelative = !existingUri.contains(':');
-
+          var isReplacement = import.uriText == existingUri &&
+              import.prefix == (existingImport.prefix?.name ?? '');
           var isNewBeforeExisting = import.uriText.compareTo(existingUri) < 0;
 
-          if (isDart) {
+          if (isReplacement) {
+            insert(replace: existingImport);
+          } else if (isDart) {
             if (!isExistingDart || isNewBeforeExisting) {
               insert(
                   prev: lastExistingDart,
@@ -1907,6 +2009,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       if (definedNames.containsValue(element)) {
         return _LibraryImport(
           uriText: import.librarySource.uri.toString(),
+          shownNames: [
+            for (var combinator in import.combinators)
+              if (combinator is ShowElementCombinator)
+                combinator.shownNames.toList(),
+          ],
+          hiddenNames: [
+            for (var combinator in import.combinators)
+              if (combinator is HideElementCombinator)
+                combinator.hiddenNames.toList(),
+          ],
           prefix: import.prefix?.element.displayName ?? '',
         );
       }
@@ -1968,37 +2080,69 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// If [prefix] is null, will use [importPrefixGenerator] to generate one or
   /// reuse an existing prefix for this import.
   ///
-  /// If [showName] is supplied then any new import will show only this element,
+  /// If [shownName] is supplied then any new import will show only this element,
   /// or if an import already exists it will be added to 'show' or removed from
   /// 'hide' if appropriate.
   _LibraryImport _importLibrary(
     Uri uri, {
     String? prefix,
-    String? showName,
+    String? shownName,
+    bool useShow = false,
     bool forceAbsolute = false,
     bool forceRelative = false,
   }) {
     var import = (libraryChangeBuilder ?? this).librariesToImport[uri];
+    var shownNames = <List<String>>[];
+    var hiddenNames = <List<String>>[];
+
     if (import != null) {
       if (prefix != null) {
         import.prefixes.add(prefix);
       }
-      if (showName != null) {
-        import.ensureShown(showName);
+      if (shownName != null) {
+        import.ensureShown(shownName, useShow: useShow);
       }
     } else {
       var uriText = _getLibraryUriText(uri,
           forceAbsolute: forceAbsolute, forceRelative: forceRelative);
+      // Collect the list of existing shows and hides for any imports that match
+      // the uri and prefix we care about.
+      for (var element in resolvedUnit.libraryElement.libraryImports) {
+        var library = element.importedLibrary;
+        if (library == null || element.prefix?.element.name != prefix) {
+          continue;
+        }
+        var elementUrlText = _getLibraryUriText(library.source.uri,
+            forceAbsolute: forceAbsolute, forceRelative: forceRelative);
+        if (uriText != elementUrlText) {
+          continue;
+        }
+        if ((element.prefix?.element.name ?? '') != (prefix ?? '')) {
+          // Imports need to have the same prefix to be replaced.
+          continue;
+        }
+        for (var combinator in element.combinators) {
+          if (combinator is ShowElementCombinator) {
+            shownNames.add(combinator.shownNames.toList());
+          }
+          if (combinator is HideElementCombinator) {
+            hiddenNames.add(combinator.hiddenNames.toList());
+          }
+        }
+      }
       prefix ??=
           importPrefixGenerator != null ? importPrefixGenerator!(uri) : null;
       import = _LibraryImport(
         uriText: uriText,
         prefix: prefix ?? '',
-        showNames: showName != null ? {showName} : null,
+        shownNames: shownNames,
+        hiddenNames: hiddenNames,
       );
+      if (shownName != null) {
+        import.ensureShown(shownName, useShow: useShow);
+      }
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
     }
-
     return import;
   }
 
@@ -2111,20 +2255,26 @@ class _LibraryImport {
   final Set<String> prefixes = {};
 
   /// Names this import has in its `show` combinator.
-  final Set<String> showNames;
+  final List<List<String>> shownNames;
 
   /// Names this import has in its `hide` combinator.
-  final Set<String> hideNames;
+  final List<List<String>> hiddenNames;
 
   _LibraryImport({
     required this.uriText,
     required String prefix,
-    Set<String>? showNames,
-    Set<String>? hideNames,
-  })  : showNames = showNames ?? {},
-        hideNames = hideNames ?? {} {
+    List<List<String>>? shownNames,
+    List<List<String>>? hiddenNames,
+  })  : shownNames = shownNames ?? [],
+        hiddenNames = hiddenNames ?? [] {
     prefixes.add(prefix);
   }
+
+  /// Returns the set of all names that are hidden for this import.
+  Set<String> get allHiddenNames => hiddenNames.expand((e) => e).toSet();
+
+  /// Returns the set of all names that are visible for this import.
+  Set<String> get allShownNames => shownNames.expand((e) => e).toSet();
 
   @override
   int get hashCode => uriText.hashCode;
@@ -2145,10 +2295,23 @@ class _LibraryImport {
   ///
   /// If the import already has a show combinator, this name will be added.
   /// If the import hides this name, it will be unhidden.
-  void ensureShown(String name) {
-    if (showNames.isNotEmpty) {
-      showNames.add(name);
+  void ensureShown(String name, {bool useShow = false}) {
+    if (shownNames.isEmpty && useShow) {
+      shownNames.add([name]);
+    } else if (shownNames.isNotEmpty) {
+      shownNames.last.add(name);
     }
-    hideNames.remove(name);
+    // Remove the name from all the hidden lists.
+    for (var hiddenList in hiddenNames) {
+      hiddenList.remove(name);
+    }
+    hiddenNames.removeWhere((nameList) => nameList.isEmpty);
+  }
+
+  @override
+  String toString() {
+    return "import '$uriText'${prefix.isNotEmpty ? 'as $prefix' : ''}"
+        '${allShownNames.isNotEmpty ? 'show ${allShownNames.join(', ')}' : ''}'
+        '${allHiddenNames.isNotEmpty ? 'hide ${allHiddenNames.join(', ')}' : ''};';
   }
 }

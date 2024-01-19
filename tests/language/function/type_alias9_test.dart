@@ -10,6 +10,7 @@ typedef void F(List<G> l);
 typedef void G(List<F> l);
 //           ^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+// [cfe] The typedef 'G' has a reference to itself.
 
 main() {
   F? foo(G? g) => g as F?;

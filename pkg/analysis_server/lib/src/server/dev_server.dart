@@ -47,6 +47,7 @@ class DevAnalysisServer {
     var timer = Stopwatch()..start();
 
     var whenComplete = Completer<int>();
+    var beganAnalysis = false;
 
     var exitCode = 0;
 
@@ -55,7 +56,10 @@ class DevAnalysisServer {
       if (params != null && params.containsKey('analysis')) {
         var isAnalyzing =
             (params['analysis'] as Map<String, Object>)['isAnalyzing'] as bool;
-        if (!isAnalyzing) {
+        if (isAnalyzing) {
+          beganAnalysis = true;
+        } else if (beganAnalysis) {
+          beganAnalysis = false;
           timer.stop();
           var seconds = timer.elapsedMilliseconds / 1000.0;
           print('Completed in ${seconds.toStringAsFixed(1)}s.');
@@ -143,15 +147,17 @@ class DevAnalysisServer {
       {'included': directories, 'excluded': []},
     ));
 
-    return whenComplete.future.whenComplete(() {
-      notificationSubscriptions.cancel();
+    try {
+      return await whenComplete.future;
+    } finally {
+      await notificationSubscriptions.cancel();
 
-      _channel.simulateRequestFromClient(Request(
+      await _channel.simulateRequestFromClient(Request(
         '${_nextId++}',
         'analysis.setAnalysisRoots',
         {'included': [], 'excluded': []},
       ));
-    });
+    }
   }
 }
 

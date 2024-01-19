@@ -1,0 +1,5 @@
+extension type E07(int this.x) {}
+
+extension type E08(int super.x) {}
+
+extension type E11(int x()) {}

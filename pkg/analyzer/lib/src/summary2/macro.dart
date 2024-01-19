@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' as io;
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -11,23 +12,96 @@ import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
     as isolated_executor;
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
+    as process_executor;
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
     as macro;
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as package_path;
 
-class BundleMacroExecutor {
-  final macro.MultiMacroExecutor macroExecutor;
+/// The interface for a bundle of macros.
+abstract class BundleMacroExecutor {
+  void dispose();
+
+  Future<macro.MacroInstanceIdentifier> instantiate({
+    required Uri libraryUri,
+    required String className,
+    required String constructorName,
+    required macro.Arguments arguments,
+  });
+}
+
+/// [BundleMacroExecutor] that runs pre-compiled native executables.
+class ExecutableBundleMacroExecutor extends BundleMacroExecutor {
+  final ExecutableMacroSupport support;
+  late final macro.ExecutorFactoryToken _executorFactoryToken;
+
+  ExecutableBundleMacroExecutor({
+    required this.support,
+    required io.File executable,
+    required Set<Uri> libraries,
+  }) {
+    _executorFactoryToken = support.executor.registerExecutorFactory(
+      () => process_executor.start(
+        macro.SerializationMode.byteData,
+        process_executor.CommunicationChannel.socket,
+        executable.path,
+      ),
+      libraries,
+    );
+  }
+
+  @override
+  void dispose() {
+    support.executor.unregisterExecutorFactory(_executorFactoryToken);
+  }
+
+  @override
+  Future<macro.MacroInstanceIdentifier> instantiate({
+    required Uri libraryUri,
+    required String className,
+    required String constructorName,
+    required macro.Arguments arguments,
+  }) async {
+    return await support.executor
+        .instantiateMacro(libraryUri, className, constructorName, arguments);
+  }
+}
+
+/// [MacroSupport] that can runs macros from native executables.
+///
+/// It does not support compilation, because it happens outside.
+class ExecutableMacroSupport extends MacroSupport {
+  void add({
+    required io.File executable,
+    required Set<Uri> libraries,
+  }) {
+    final bundleExecutor = ExecutableBundleMacroExecutor(
+      support: this,
+      executable: executable,
+      libraries: libraries,
+    );
+
+    for (final libraryUri in libraries) {
+      _bundleExecutors[libraryUri] = bundleExecutor;
+    }
+  }
+}
+
+/// [BundleMacroExecutor] that runs macros from kernels.
+class KernelBundleMacroExecutor extends BundleMacroExecutor {
+  final KernelMacroSupport support;
   late final macro.ExecutorFactoryToken _executorFactoryToken;
   final Uint8List kernelBytes;
   Uri? _kernelUriCached;
 
-  BundleMacroExecutor({
-    required this.macroExecutor,
+  KernelBundleMacroExecutor({
+    required this.support,
     required Uint8List kernelBytes,
     required Set<Uri> libraries,
   }) : kernelBytes = Uint8List.fromList(kernelBytes) {
-    _executorFactoryToken = macroExecutor.registerExecutorFactory(
+    _executorFactoryToken = support.executor.registerExecutorFactory(
       () => isolated_executor.start(
         macro.SerializationMode.byteData,
         _kernelUri,
@@ -42,8 +116,9 @@ class BundleMacroExecutor {
         (Isolate.current as dynamic).createUriForKernelBlob(kernelBytes) as Uri;
   }
 
+  @override
   void dispose() {
-    macroExecutor.unregisterExecutorFactory(_executorFactoryToken);
+    support.executor.unregisterExecutorFactory(_executorFactoryToken);
     final kernelUriCached = _kernelUriCached;
     if (kernelUriCached != null) {
       // ignore: avoid_dynamic_calls
@@ -52,19 +127,35 @@ class BundleMacroExecutor {
     }
   }
 
-  /// Any macro must be instantiated using this method to guarantee that
-  /// the corresponding kernel was registered first. Although as it is now,
-  /// it is still possible to request an unrelated [libraryUri].
+  @override
   Future<macro.MacroInstanceIdentifier> instantiate({
     required Uri libraryUri,
     required String className,
     required String constructorName,
     required macro.Arguments arguments,
   }) async {
-    // TODO: Dispose of these instances using `macroExecutor.disposeMacro` once
-    // we are done with them.
-    return await macroExecutor.instantiateMacro(
-        libraryUri, className, constructorName, arguments);
+    return await support.executor
+        .instantiateMacro(libraryUri, className, constructorName, arguments);
+  }
+}
+
+/// [MacroSupport] that can compile and run macros from kernels.
+class KernelMacroSupport extends MacroSupport {
+  final MacroKernelBuilder builder = MacroKernelBuilder();
+
+  void add({
+    required Uint8List kernelBytes,
+    required Set<Uri> libraries,
+  }) {
+    final bundleExecutor = KernelBundleMacroExecutor(
+      support: this,
+      kernelBytes: kernelBytes,
+      libraries: libraries,
+    );
+
+    for (final libraryUri in libraries) {
+      _bundleExecutors[libraryUri] = bundleExecutor;
+    }
   }
 }
 
@@ -132,6 +223,39 @@ class MacroLibrary {
   });
 
   String get uriStr => uri.toString();
+}
+
+/// The interface for tracking macro executors for libraries.
+class MacroSupport {
+  /// The instance of macro executor that is used for all macros.
+  final macro.MultiMacroExecutor executor = macro.MultiMacroExecutor();
+
+  final Map<Uri, BundleMacroExecutor> _bundleExecutors = {};
+
+  /// Disposes the whole macro support, with all its executors.
+  @mustCallSuper
+  Future<void> dispose() async {
+    await executor.close();
+  }
+
+  /// Returns the executor registered for this library.
+  BundleMacroExecutor? forLibrary(Uri uri) {
+    return _bundleExecutors[uri];
+  }
+
+  /// Removes and disposes executors for all libraries.
+  void removeLibraries() {
+    for (final bundleExecutor in _bundleExecutors.values) {
+      bundleExecutor.dispose();
+    }
+    _bundleExecutors.clear();
+  }
+
+  /// Removes and disposes the executor for the library.
+  void removeLibrary(Uri uri) {
+    final bundleExecutor = _bundleExecutors.remove(uri);
+    bundleExecutor?.dispose();
+  }
 }
 
 /// [MacroFileEntry] for a file with overridden content.

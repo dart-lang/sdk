@@ -211,7 +211,7 @@ class BasicClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  bool isSubtypeOf(Class subtype, Class supertype) {
+  bool isSubInterfaceOf(Class subtype, Class supertype) {
     return supertypes[subtype]!.contains(supertype);
   }
 

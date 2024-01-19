@@ -25,11 +25,37 @@ const char* Platform::executable_name_ = nullptr;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = nullptr;
 
+static const char* strcode(int si_signo, int si_code) {
+#define CASE(signo, code)                                                      \
+  if (si_signo == signo && si_code == code) return #code;
+
+  CASE(SIGILL, ILL_ILLOPC);
+  CASE(SIGILL, ILL_ILLOPN);
+  CASE(SIGILL, ILL_ILLADR);
+  CASE(SIGILL, ILL_ILLTRP);
+  CASE(SIGILL, ILL_PRVOPC);
+  CASE(SIGILL, ILL_PRVREG);
+  CASE(SIGILL, ILL_COPROC);
+  CASE(SIGILL, ILL_BADSTK);
+  CASE(SIGSEGV, SEGV_MAPERR);
+  CASE(SIGSEGV, SEGV_ACCERR);
+  CASE(SIGBUS, BUS_ADRALN);
+  CASE(SIGBUS, BUS_ADRERR);
+  CASE(SIGBUS, BUS_OBJERR);
+  CASE(SIGBUS, BUS_MCEERR_AR);
+  CASE(SIGBUS, BUS_MCEERR_AO);
+  CASE(SIGTRAP, TRAP_BRKPT);
+  CASE(SIGTRAP, TRAP_TRACE);
+#undef CASE
+  return "?";
+}
+
 static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   Syslog::PrintErr(
       "\n===== CRASH =====\n"
-      "si_signo=%s(%d), si_code=%d, si_addr=%p\n",
-      strsignal(siginfo->si_signo), siginfo->si_signo, siginfo->si_code,
+      "si_signo=%s(%d), si_code=%s(%d), si_addr=%p\n",
+      strsignal(siginfo->si_signo), siginfo->si_signo,
+      strcode(siginfo->si_signo, siginfo->si_code), siginfo->si_code,
       siginfo->si_addr);
   Dart_DumpNativeStackTrace(context);
   Dart_PrepareToAbort();

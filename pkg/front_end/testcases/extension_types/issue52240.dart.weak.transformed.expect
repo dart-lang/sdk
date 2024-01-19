@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type X(core::int obj) {
-  abstract inline-class-member representation-field get obj() → core::int;
+  abstract extension-type-member representation-field get obj() → core::int;
   constructor _ = self::X|constructor#_;
   constructor tearoff _ = self::X|constructor#_#_#tearOff;
   constructor • = self::X|constructor#;
@@ -11,23 +11,23 @@ extension type X(core::int obj) {
   constructor named = self::X|constructor#named;
   constructor tearoff named = self::X|constructor#_#named#tearOff;
 }
-static inline-class-member method X|constructor#_(core::int obj) → self::X /* = core::int */ {
+static extension-type-member method X|constructor#_(core::int obj) → self::X /* = core::int */ {
   lowered final self::X /* = core::int */ #this = obj;
   return #this;
 }
-static inline-class-member method X|constructor#_#_#tearOff(core::int obj) → self::X /* = core::int */
+static extension-type-member method X|constructor#_#_#tearOff(core::int obj) → self::X /* = core::int */
   return self::X|constructor#_(obj);
-static inline-class-member method X|constructor#() → self::X /* = core::int */ {
+static extension-type-member method X|constructor#() → self::X /* = core::int */ {
   lowered final self::X /* = core::int */ #this = 0;
   return #this;
 }
-static inline-class-member method X|constructor#_#new#tearOff() → self::X /* = core::int */
+static extension-type-member method X|constructor#_#new#tearOff() → self::X /* = core::int */
   return self::X|constructor#();
-static inline-class-member method X|constructor#named() → self::X /* = core::int */ {
+static extension-type-member method X|constructor#named() → self::X /* = core::int */ {
   lowered final self::X /* = core::int */ #this = 0;
   return #this;
 }
-static inline-class-member method X|constructor#_#named#tearOff() → self::X /* = core::int */
+static extension-type-member method X|constructor#_#named#tearOff() → self::X /* = core::int */
   return self::X|constructor#named();
 static method main() → void {
   core::print(#C1(){() → self::X /* = core::int */} as{Unchecked} core::int);

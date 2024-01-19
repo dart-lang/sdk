@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'dart:convert' show jsonEncode;
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
@@ -272,7 +273,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// If `null`, [SourceLoader.computeFieldPromotability] hasn't been called
   /// yet, or field promotion is disabled for this library.  If not `null`,
-  /// information about which fields are promotable in this library.
+  /// Information about which fields are promotable in this library, or `null`
+  /// if [SourceLoader.computeFieldPromotability] hasn't been called.
   FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
   SourceLibraryBuilder.internal(
@@ -1653,10 +1655,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         } else if (member is SourceProcedureBuilder && member.isGetter) {
           if (member.isSynthetic) continue;
-          fieldPromotability.addGetter(classInfo, member, member.name,
+          PropertyNonPromotabilityReason? reason = fieldPromotability.addGetter(
+              classInfo, member, member.name,
               isAbstract: member.isAbstract);
-          individualPropertyReasons[member.procedure] =
-              PropertyNonPromotabilityReason.isNotField;
+          if (reason != null) {
+            individualPropertyReasons[member.procedure] = reason;
+          }
         }
       }
     }
@@ -1672,7 +1676,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             !member.isStatic &&
             member.isGetter) {
           individualPropertyReasons[member.procedure] =
-              PropertyNonPromotabilityReason.isNotField;
+              member.memberName.isPrivate
+                  ? PropertyNonPromotabilityReason.isNotField
+                  : PropertyNonPromotabilityReason.isNotPrivate;
         }
       }
     }
@@ -1681,12 +1687,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (extensionTypeIterator.moveNext()) {
       SourceExtensionTypeDeclarationBuilder extensionType =
           extensionTypeIterator.current;
+      Member? representationGetter =
+          extensionType.representationFieldBuilder?.readTarget;
+      if (representationGetter != null &&
+          !representationGetter.name.isPrivate) {
+        individualPropertyReasons[representationGetter] =
+            PropertyNonPromotabilityReason.isNotPrivate;
+      }
       for (Builder member in extensionType.scope.localMembers) {
         if (member is SourceProcedureBuilder &&
             !member.isStatic &&
             member.isGetter) {
           individualPropertyReasons[member.procedure] =
-              PropertyNonPromotabilityReason.isNotField;
+              member.memberName.isPrivate
+                  ? PropertyNonPromotabilityReason.isNotField
+                  : PropertyNonPromotabilityReason.isNotPrivate;
         }
       }
     }
@@ -2124,17 +2139,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else {
         typeVariablesByName[tv.name] = tv;
         if (owner is TypeDeclarationBuilder) {
+          // Only classes and extension types and type variables can't have the
+          // same name. See
+          // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
+          // [#54602](https://github.com/dart-lang/sdk/issues/54602).
           switch (owner) {
             case ClassBuilder():
-              // Only classes and type variables can't have the same name. See
-              // [#29555](https://github.com/dart-lang/sdk/issues/29555).
+            case ExtensionBuilder():
+            case ExtensionTypeDeclarationBuilder():
               if (tv.name == owner.name) {
                 addProblem(messageTypeVariableSameNameAsEnclosing,
                     tv.charOffset, tv.name.length, fileUri);
               }
-            case ExtensionBuilder():
-            case ExtensionTypeDeclarationBuilder():
-            // TODO(johnniwinther): Should an error be reported here?
             case TypeAliasBuilder():
             case NominalVariableBuilder():
             case StructuralVariableBuilder():
@@ -2387,8 +2403,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
 
-    ExtensionTypeDeclaration? referenceFrom =
-        indexedLibrary?.lookupExtensionTypeDeclaration(name);
+    IndexedContainer? indexedContainer =
+        indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
@@ -2418,7 +2434,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             startOffset,
             nameOffset,
             endOffset,
-            referenceFrom,
+            indexedContainer,
             representationFieldBuilder);
     constructorReferences.clear();
     Map<String, NominalVariableBuilder>? typeVariablesByName =
@@ -2452,103 +2468,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(extensionTypeDeclarationBuilder.name,
         extensionTypeDeclarationBuilder, nameOffset,
-        getterReference: referenceFrom?.reference);
-  }
-
-  void addInlineClassDeclaration(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int nameOffset,
-      int endOffset) {
-    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    TypeParameterScopeBuilder declaration = endNestedDeclaration(
-        TypeParameterScopeKind.inlineClassDeclaration, name)
-      ..resolveNamedTypes(typeVariables, this);
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, Builder> members = declaration.members!;
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
-
-    Scope memberScope = new Scope(
-        kind: ScopeKind.declaration,
-        local: members,
-        setters: setters,
-        parent: scope.withTypeVariables(typeVariables),
-        debugName: "extension type $name",
-        isModifiable: false);
-    ConstructorScope constructorScope =
-        new ConstructorScope(name, constructors);
-
-    ExtensionTypeDeclaration? referenceFrom =
-        indexedLibrary?.lookupExtensionTypeDeclaration(name);
-
-    SourceFieldBuilder? representationFieldBuilder;
-    outer:
-    for (Builder? member in members.values) {
-      while (member != null) {
-        if (!member.isDuplicate &&
-            member is SourceFieldBuilder &&
-            !member.isStatic) {
-          representationFieldBuilder = member;
-          break outer;
-        }
-        member = member.next;
-      }
-    }
-
-    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
-        new SourceExtensionTypeDeclarationBuilder(
-            metadata,
-            modifiers,
-            declaration.name,
-            typeVariables,
-            interfaces,
-            memberScope,
-            constructorScope,
-            this,
-            new List<ConstructorReferenceBuilder>.of(constructorReferences),
-            startOffset,
-            nameOffset,
-            endOffset,
-            referenceFrom,
-            representationFieldBuilder);
-    constructorReferences.clear();
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = extensionTypeDeclarationBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
-
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          extensionTypeDeclarationBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    members.forEach(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
-    addBuilder(extensionTypeDeclarationBuilder.name,
-        extensionTypeDeclarationBuilder, nameOffset,
-        getterReference: referenceFrom?.reference);
+        getterReference: indexedContainer?.reference);
   }
 
   TypeBuilder? _applyMixins(
@@ -3145,9 +3065,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     AbstractSourceConstructorBuilder constructorBuilder;
 
     if (currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.inlineClassDeclaration ||
-        currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionTypeDeclaration) {
+        TypeParameterScopeKind.extensionTypeDeclaration) {
       constructorBuilder = new SourceExtensionTypeConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
@@ -3578,14 +3496,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<FormalParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri fileUri,
-      int charOffset) {
+      int charOffset,
+      {required bool hasFunctionFormalParameterSyntax}) {
     FunctionTypeBuilder builder = new FunctionTypeBuilderImpl(
         returnType,
         structuralVariableBuilders,
         formals,
         nullabilityBuilder,
         fileUri,
-        charOffset);
+        charOffset,
+        hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
     checkStructuralVariables(structuralVariableBuilders, null);
     if (structuralVariableBuilders != null) {
       for (StructuralVariableBuilder builder in structuralVariableBuilders) {
@@ -4192,17 +4112,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    String getName(
-        /* TypeParameterType | StructuralParameterType */ DartType type) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (type is TypeParameterType) {
-        return type.parameter.name!;
-      } else {
-        type as StructuralParameterType;
-        return type.parameter.name!;
-      }
-    }
-
     Nullability computeNullabilityFromBound(
         /* TypeParameterType | StructuralParameterType */ DartType type) {
       assert(type is TypeParameterType || type is StructuralParameterType);
@@ -4253,14 +4162,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (getDeclaredNullability(next) == marker) {
               setDeclaredNullability(next, Nullability.undetermined);
               if (isDirectDependency) {
+                // The dependency error is reported elsewhere.
                 setBoundAndDefaultType(
                     current, const InvalidType(), const InvalidType());
-                addProblem(
-                    templateCycleInTypeVariables.withArguments(
-                        getName(next), getName(current)),
-                    pendingNullability.charOffset,
-                    getName(next).length,
-                    pendingNullability.fileUri);
               }
               next = null;
             }
@@ -4291,14 +4195,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (getDeclaredNullability(next) == marker) {
               setDeclaredNullability(next, Nullability.undetermined);
               if (isDirectDependency) {
+                // The dependency error is reported elsewhere.
                 setBoundAndDefaultType(
                     current, const InvalidType(), const InvalidType());
-                addProblem(
-                    templateCycleInTypeVariables.withArguments(
-                        getName(next), getName(current)),
-                    pendingNullability.charOffset,
-                    getName(next).length,
-                    pendingNullability.fileUri);
               }
               next = null;
             }
@@ -5216,6 +5115,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is SourceFieldBuilder) {
         declaration.checkTypes(this, typeEnvironment);
       } else if (declaration is SourceProcedureBuilder) {
+        List<TypeVariableBuilderBase>? typeVariables =
+            declaration.typeVariables;
+        if (typeVariables != null && typeVariables.isNotEmpty) {
+          checkTypeVariableDependencies(typeVariables);
+        }
         declaration.checkTypes(this, typeEnvironment);
         if (declaration.isGetter) {
           Builder? setterDeclaration =
@@ -5226,13 +5130,32 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         }
       } else if (declaration is SourceClassBuilder) {
+        List<TypeVariableBuilderBase>? typeVariables =
+            declaration.typeVariables;
+        if (typeVariables != null && typeVariables.isNotEmpty) {
+          checkTypeVariableDependencies(typeVariables);
+        }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
+        List<TypeVariableBuilderBase>? typeVariables =
+            declaration.typeParameters;
+        if (typeVariables != null && typeVariables.isNotEmpty) {
+          checkTypeVariableDependencies(typeVariables);
+        }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
+        List<TypeVariableBuilderBase>? typeVariables =
+            declaration.typeParameters;
+        if (typeVariables != null && typeVariables.isNotEmpty) {
+          checkTypeVariableDependencies(typeVariables);
+        }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
-        // Do nothing.
+        List<TypeVariableBuilderBase>? typeVariables =
+            declaration.typeVariables;
+        if (typeVariables != null && typeVariables.isNotEmpty) {
+          checkTypeVariableDependencies(typeVariables);
+        }
       } else {
         assert(
             declaration is! TypeDeclarationBuilder ||
@@ -5241,6 +5164,54 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     checkPendingBoundsChecks(typeEnvironment);
+  }
+
+  void checkTypeVariableDependencies(
+      List<TypeVariableBuilderBase> typeVariables) {
+    Map<TypeVariableBuilderBase, TypeVariableTraversalState>
+        typeVariablesTraversalState =
+        <TypeVariableBuilderBase, TypeVariableTraversalState>{};
+    for (TypeVariableBuilderBase typeVariable in typeVariables) {
+      if ((typeVariablesTraversalState[typeVariable] ??=
+              TypeVariableTraversalState.unvisited) ==
+          TypeVariableTraversalState.unvisited) {
+        TypeVariableCyclicDependency? dependency =
+            typeVariable.findCyclicDependency(
+                typeVariablesTraversalState: typeVariablesTraversalState);
+        if (dependency != null) {
+          Message message;
+          if (dependency.viaTypeVariables != null) {
+            message = templateCycleInTypeVariables.withArguments(
+                dependency.typeVariableBoundOfItself.name,
+                dependency.viaTypeVariables!.map((v) => v.name).join("', '"));
+          } else {
+            message = templateDirectCycleInTypeVariables
+                .withArguments(dependency.typeVariableBoundOfItself.name);
+          }
+          addProblem(
+              message,
+              dependency.typeVariableBoundOfItself.charOffset,
+              dependency.typeVariableBoundOfItself.name.length,
+              dependency.typeVariableBoundOfItself.fileUri);
+
+          typeVariable.bound = new NamedTypeBuilderImpl(
+              new SyntheticTypeName(typeVariable.name, typeVariable.charOffset),
+              const NullabilityBuilder.omitted(),
+              fileUri: typeVariable.fileUri,
+              charOffset: typeVariable.charOffset,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Unexpected)
+            ..bind(
+                this,
+                new InvalidTypeDeclarationBuilder(
+                    typeVariable.name,
+                    message.withLocation(
+                        dependency.typeVariableBoundOfItself.fileUri ?? fileUri,
+                        dependency.typeVariableBoundOfItself.charOffset,
+                        dependency.typeVariableBoundOfItself.name.length)));
+        }
+      }
+    }
   }
 
   void computeShowHideElements(ClassMembersBuilder membersBuilder) {
@@ -5394,14 +5365,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         case TypeUse.invocationTypeArgument:
         case TypeUse.typeLiteral:
         case TypeUse.extensionOnType:
+        case TypeUse.extensionTypeRepresentationType:
         case TypeUse.typeArgument:
           checkBoundsInType(pendingBoundsCheck.type, typeEnvironment,
               pendingBoundsCheck.fileUri, pendingBoundsCheck.charOffset,
               inferred: pendingBoundsCheck.inferred, allowSuperBounded: true);
           break;
         case TypeUse.typedefAlias:
-        case TypeUse.superType:
-        case TypeUse.mixedInType:
+        case TypeUse.classExtendsType:
+        case TypeUse.classImplementsType:
+        // TODO(johnniwinther): Is this a correct handling wrt well-boundedness
+        //  for mixin on clause?
+        case TypeUse.mixinOnType:
+        case TypeUse.extensionTypeImplementsType:
+        case TypeUse.classWithType:
           checkBoundsInType(pendingBoundsCheck.type, typeEnvironment,
               pendingBoundsCheck.fileUri, pendingBoundsCheck.charOffset,
               inferred: pendingBoundsCheck.inferred, allowSuperBounded: false);
@@ -5532,7 +5509,6 @@ enum TypeParameterScopeKind {
   extensionOrExtensionTypeDeclaration,
   extensionDeclaration,
   extensionTypeDeclaration,
-  inlineClassDeclaration,
   typedef,
   staticMethod,
   instanceMethod,
@@ -5557,7 +5533,6 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.namedMixinApplication:
       case TypeParameterScopeKind.enumDeclaration:
       case TypeParameterScopeKind.extensionTypeDeclaration:
-      case TypeParameterScopeKind.inlineClassDeclaration:
         return new ClassName(name);
       case TypeParameterScopeKind.extensionDeclaration:
         return extensionName;
@@ -5588,7 +5563,6 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.extensionDeclaration:
         return ContainerType.Extension;
       case TypeParameterScopeKind.extensionTypeDeclaration:
-      case TypeParameterScopeKind.inlineClassDeclaration:
         return ContainerType.ExtensionType;
       case TypeParameterScopeKind.typedef:
       case TypeParameterScopeKind.staticMethod:
@@ -5740,18 +5714,6 @@ class TypeParameterScopeBuilder {
     assert(_kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
         "Unexpected declaration kind: $_kind");
     _kind = TypeParameterScopeKind.extensionTypeDeclaration;
-    _name = name;
-    _charOffset = charOffset;
-    _typeVariables = typeVariables;
-  }
-
-  /// Registers that this builder is preparing for an inline class declaration
-  /// with the given [name] and [typeVariables] located [charOffset].
-  void markAsInlineClassDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
-    assert(_kind == TypeParameterScopeKind.classOrNamedMixinApplication,
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.inlineClassDeclaration;
     _name = name;
     _charOffset = charOffset;
     _typeVariables = typeVariables;

@@ -97,8 +97,19 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
   UNREACHABLE();
   return nullptr;
 #else
+
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_PRECOMPILED_RUNTIME)
+  // If we are not going to use vm_remap then we need to pass
+  // is_executable=true so that pages get allocated with MAP_JIT flag if
+  // necessary. Otherwise OS will kill us with a codesigning violation if
+  // hardened runtime is enabled.
+  const bool is_executable = true;
+#else
+  const bool is_executable = false;
+#endif
+
   VirtualMemory* new_page = VirtualMemory::AllocateAligned(
-      MappingSize(), MappingAlignment(), /*is_executable=*/false,
+      MappingSize(), MappingAlignment(), is_executable,
       /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
   if (new_page == nullptr) {
     return nullptr;
@@ -264,13 +275,13 @@ FfiCallbackMetadata::CreateIsolateLocalFfiCallback(Isolate* isolate,
   if (closure.IsNull()) {
     // If the closure is null, it means the target is a static function, so is
     // baked into the trampoline and is an ordinary sync callback.
-    ASSERT(function.GetFfiFunctionKind() ==
-           FfiFunctionKind::kIsolateLocalStaticCallback);
+    ASSERT(function.GetFfiCallbackKind() ==
+           FfiCallbackKind::kIsolateLocalStaticCallback);
     return CreateSyncFfiCallbackImpl(isolate, zone, function, nullptr,
                                      list_head);
   } else {
-    ASSERT(function.GetFfiFunctionKind() ==
-           FfiFunctionKind::kIsolateLocalClosureCallback);
+    ASSERT(function.GetFfiCallbackKind() ==
+           FfiCallbackKind::kIsolateLocalClosureCallback);
     return CreateSyncFfiCallbackImpl(isolate, zone, function,
                                      CreatePersistentHandle(isolate, closure),
                                      list_head);
@@ -308,7 +319,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateAsyncFfiCallback(
     const Function& send_function,
     Dart_Port send_port,
     Metadata** list_head) {
-  ASSERT(send_function.GetFfiFunctionKind() == FfiFunctionKind::kAsyncCallback);
+  ASSERT(send_function.GetFfiCallbackKind() == FfiCallbackKind::kAsyncCallback);
   return CreateMetadataEntry(isolate, TrampolineType::kAsync,
                              GetEntryPoint(zone, send_function),
                              static_cast<uint64_t>(send_port), list_head);

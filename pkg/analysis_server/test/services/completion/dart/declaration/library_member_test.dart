@@ -8,10 +8,8 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LibraryMemberWithPrefixTest1);
-    defineReflectiveTests(LibraryMemberWithPrefixTest2);
-    defineReflectiveTests(LibraryMemberWithoutPrefixTest1);
-    defineReflectiveTests(LibraryMemberWithoutPrefixTest2);
+    defineReflectiveTests(LibraryMemberWithPrefixTest);
+    defineReflectiveTests(LibraryMemberWithoutPrefixTest);
   });
 }
 
@@ -389,56 +387,20 @@ foo() {
   print("f");
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   Future
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  Future
-    kind: constructorInvocation
-  Future.delayed
-    kind: constructorInvocation
-  Future.microtask
-    kind: constructorInvocation
-  Future.value
-    kind: constructorInvocation
-''');
-    }
   }
 }
 
 @reflectiveTest
-class LibraryMemberWithoutPrefixTest1 extends AbstractCompletionDriverTest
-    with LibraryMemberImportedWithoutPrefixTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
+class LibraryMemberWithoutPrefixTest extends AbstractCompletionDriverTest
+    with LibraryMemberImportedWithoutPrefixTestCases {}
 
 @reflectiveTest
-class LibraryMemberWithoutPrefixTest2 extends AbstractCompletionDriverTest
-    with LibraryMemberImportedWithoutPrefixTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
-
-@reflectiveTest
-class LibraryMemberWithPrefixTest1 extends AbstractCompletionDriverTest
-    with LibraryMemberImportedWithPrefixTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class LibraryMemberWithPrefixTest2 extends AbstractCompletionDriverTest
-    with LibraryMemberImportedWithPrefixTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class LibraryMemberWithPrefixTest extends AbstractCompletionDriverTest
+    with LibraryMemberImportedWithPrefixTestCases {}

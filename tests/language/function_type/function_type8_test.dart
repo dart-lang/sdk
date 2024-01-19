@@ -213,7 +213,7 @@ class U8<T> {
     Expect.isFalse(f1 is F1<bool>);
     Expect.isTrue(confuse(f1) is F1<int>);
     Expect.isFalse(confuse(f1) is F1<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x1 = (f1 as dynamic);
       });
@@ -481,7 +481,7 @@ class U8<T> {
     Expect.isFalse(f11 is F11<bool>);
     Expect.isTrue(confuse(f11) is F11<int>);
     Expect.isFalse(confuse(f11) is F11<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x11 = (f11 as dynamic);
       });
@@ -581,7 +581,7 @@ class U8<T> {
     Expect.isFalse(f14 is F14<bool>);
     Expect.isTrue(confuse(f14) is F14<int>);
     Expect.isFalse(confuse(f14) is F14<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x14 = (f14 as dynamic);
       });
@@ -630,7 +630,7 @@ class U8<T> {
     Expect.isFalse(f15 is F15<bool>);
     Expect.isTrue(confuse(f15) is F15<int>);
     Expect.isFalse(confuse(f15) is F15<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x15 = (f15 as dynamic);
       });
@@ -775,7 +775,7 @@ class U8<T> {
     Expect.isFalse(f20 is F20<bool>);
     Expect.isTrue(confuse(f20) is F20<int>);
     Expect.isFalse(confuse(f20) is F20<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x20 = (f20 as dynamic);
       });
@@ -849,7 +849,7 @@ class U8<T> {
     Expect.isFalse(f22 is F22<bool>);
     Expect.isTrue(confuse(f22) is F22<int>);
     Expect.isFalse(confuse(f22) is F22<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x22 = (f22 as dynamic);
       });
@@ -897,7 +897,7 @@ class U8<T> {
 }
 
 void main() {
-  new U8().runTests();
-  new U8<int>(tIsInt: true).runTests();
-  new U8<bool>(tIsBool: true).runTests();
+  U8().runTests();
+  U8<int>(tIsInt: true).runTests();
+  U8<bool>(tIsBool: true).runTests();
 }

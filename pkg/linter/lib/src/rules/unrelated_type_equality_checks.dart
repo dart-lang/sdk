@@ -227,7 +227,7 @@ extension on DartType? {
 
   bool get isFixnumIntX {
     var self = this;
-    // todo(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
+    // TODO(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
     // See: https://github.com/dart-lang/linter/issues/3868
     if (self is! InterfaceType) return false;
     var element = self.element;

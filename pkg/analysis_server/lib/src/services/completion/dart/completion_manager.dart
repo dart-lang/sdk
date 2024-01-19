@@ -5,32 +5,21 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/enum_constant_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
-import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/redirecting_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
-import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analysis_server/src/services/completion/dart/super_formal_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
@@ -42,11 +31,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -89,11 +80,6 @@ class DartCompletionManager {
   /// included suggestion sets.
   final Set<String>? includedElementNames;
 
-  /// If [includedElementKinds] is not null, must be also not `null`, and
-  /// will be filled with tags for suggestions that should be given higher
-  /// relevance than other included suggestions.
-  final List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
-
   /// The listener to be notified at certain points in the process of building
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
@@ -112,15 +98,10 @@ class DartCompletionManager {
     required this.budget,
     this.includedElementKinds,
     this.includedElementNames,
-    this.includedSuggestionRelevanceTags,
     this.listener,
     this.notImportedSuggestions,
-  }) : assert((includedElementKinds != null &&
-                includedElementNames != null &&
-                includedSuggestionRelevanceTags != null) ||
-            (includedElementKinds == null &&
-                includedElementNames == null &&
-                includedSuggestionRelevanceTags == null));
+  }) : assert((includedElementKinds != null && includedElementNames != null) ||
+            (includedElementKinds == null && includedElementNames == null));
 
   Future<List<CompletionSuggestionBuilder>> computeSuggestions(
     DartCompletionRequest request,
@@ -146,34 +127,20 @@ class DartCompletionManager {
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
     var contributors = <DartCompletionContributor>[
-      ArgListContributor(request, builder),
       ClosureContributor(request, builder),
-      CombinatorContributor(request, builder),
       EnumConstantConstructorContributor(request, builder),
       ExtensionMemberContributor(request, builder),
-      FieldFormalContributor(request, builder),
       LibraryMemberContributor(request, builder),
       LibraryPrefixContributor(request, builder),
-      LocalLibraryContributor(request, builder),
-      LocalReferenceContributor(request, builder),
       NamedConstructorContributor(request, builder),
       if (enableOverrideContributor) OverrideContributor(request, builder),
       RecordLiteralContributor(request, builder),
-      RedirectingContributor(request, builder),
-      StaticMemberContributor(request, builder),
-      SuperFormalContributor(request, builder),
-      TypeMemberContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
       VariableNameContributor(request, builder),
     ];
 
     if (includedElementKinds != null) {
       _addIncludedElementKinds(request);
-      _addIncludedSuggestionRelevanceTags(request);
-    } else {
-      contributors.add(
-        ImportedReferenceContributor(request, builder),
-      );
     }
 
     final notImportedSuggestions = this.notImportedSuggestions;
@@ -188,7 +155,7 @@ class DartCompletionManager {
       await performance.runAsync(
         'InScopeCompletionPass',
         (performance) async {
-          _runFirstPass(request, builder);
+          _runFirstPass(request, builder, includedElementKinds != null);
         },
       );
       for (var contributor in contributors) {
@@ -248,64 +215,17 @@ class DartCompletionManager {
     }
   }
 
-  void _addIncludedSuggestionRelevanceTags(DartCompletionRequest request) {
-    final includedSuggestionRelevanceTags =
-        this.includedSuggestionRelevanceTags!;
-    var location = request.opType.completionLocation;
-    if (location != null) {
-      var locationTable = elementKindRelevance[location];
-      if (locationTable != null) {
-        var inConstantContext = request.inConstantContext;
-        for (var entry in locationTable.entries) {
-          var kind = entry.key.toString();
-          var elementBoost = (entry.value.upper * 100).floor();
-          includedSuggestionRelevanceTags
-              .add(IncludedSuggestionRelevanceTag(kind, elementBoost));
-          if (inConstantContext) {
-            includedSuggestionRelevanceTags.add(IncludedSuggestionRelevanceTag(
-                '$kind+const', elementBoost + 100));
-          }
-        }
-      }
-    }
-
-    var type = request.contextType;
-    if (type is InterfaceType) {
-      var element = type.element;
-      var tag = '${element.librarySource.uri}::${element.name}';
-      if (element is EnumElement) {
-        includedSuggestionRelevanceTags.add(
-          IncludedSuggestionRelevanceTag(
-            tag,
-            RelevanceBoost.availableEnumConstant,
-          ),
-        );
-      } else {
-        // TODO(brianwilkerson) This was previously used to boost exact type
-        //  matches. For example, if the context type was `Foo`, then the class
-        //  `Foo` and it's constructors would be given this boost. Now this
-        //  boost will almost always be ignored because the element boost will
-        //  be bigger. Find a way to use this boost without negating the element
-        //  boost, which is how we get constructors to come before classes.
-        includedSuggestionRelevanceTags.add(
-          IncludedSuggestionRelevanceTag(
-            tag,
-            RelevanceBoost.availableDeclaration,
-          ),
-        );
-      }
-    }
-  }
-
   // Run the first pass of the code completion algorithm.
-  void _runFirstPass(DartCompletionRequest request, SuggestionBuilder builder) {
+  void _runFirstPass(DartCompletionRequest request, SuggestionBuilder builder,
+      bool skipImports) {
     var collector = SuggestionCollector();
     var selection = request.unit.select(offset: request.offset, length: 0);
     if (selection == null) {
       throw AbortCompletion();
     }
-    var state = CompletionState(request.libraryElement, selection);
-    var pass = InScopeCompletionPass(state: state, collector: collector);
+    var state = CompletionState(request, selection);
+    var pass = InScopeCompletionPass(
+        state: state, collector: collector, skipImports: skipImports);
     pass.computeSuggestions();
     builder.suggestFromCandidates(collector.suggestions);
   }
@@ -524,7 +444,7 @@ class DartCompletionRequest {
       }
     }
 
-    /// TODO(scheglov) Can we make it better?
+    // TODO(scheglov): Can we make it better?
     String fromToken(Token token) {
       final lexeme = token.lexeme;
       if (offset >= token.offset && offset < token.end) {

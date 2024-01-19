@@ -18,8 +18,9 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:collection/collection.dart';
-import 'package:leak_tracker/src/usage_tracking/model.dart';
+import 'package:memory_usage/memory_usage.dart';
 import 'package:meta/meta.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
@@ -96,7 +97,7 @@ class AnalyticsManager {
     }
   }
 
-  /// Record information about the number of files and the numer of lines of
+  /// Record information about the number of files and the number of lines of
   /// code in those files, for both immediate files, transitive files, and the
   /// number of unique transitive files.
   void analysisComplete({
@@ -147,15 +148,20 @@ class AnalyticsManager {
   /// Record that the [contexts] have been created.
   void createdAnalysisContexts(List<AnalysisContext> contexts) {
     for (var context in contexts) {
-      for (var rule in context.analysisOptions.lintRules) {
-        var name = rule.name;
-        _lintUsageCounts[name] = (_lintUsageCounts[name] ?? 0) + 1;
-      }
-      for (var processor in context.analysisOptions.errorProcessors) {
-        var severity = processor.severity?.name ?? 'ignore';
-        var severityCounts =
-            _severityAdjustments.putIfAbsent(processor.code, () => {});
-        severityCounts[severity] = (severityCounts[severity] ?? 0) + 1;
+      var allOptions =
+          (context as DriverBasedAnalysisContext).allAnalysisOptions;
+      for (var analysisOptions in allOptions) {
+        for (var rule in analysisOptions.lintRules) {
+          var name = rule.name;
+          _lintUsageCounts[name] = (_lintUsageCounts[name] ?? 0) + 1;
+        }
+
+        for (var processor in analysisOptions.errorProcessors) {
+          var severity = processor.severity?.name ?? 'ignore';
+          var severityCounts =
+              _severityAdjustments.putIfAbsent(processor.code, () => {});
+          severityCounts[severity] = (severityCounts[severity] ?? 0) + 1;
+        }
       }
     }
   }
@@ -220,7 +226,7 @@ class AnalyticsManager {
     assert((event.delta == null) == (event.period == null));
 
     if (delta == null || seconds == null) {
-      await analytics.send(Event.memoryInfo(
+      analytics.send(Event.memoryInfo(
         rss: event.rss,
       ));
       return;
@@ -228,7 +234,7 @@ class AnalyticsManager {
 
     if (seconds == 0) seconds = 1;
 
-    await analytics.send(Event.memoryInfo(
+    analytics.send(Event.memoryInfo(
       rss: event.rss,
       periodSec: seconds,
       mbPerSec: delta / seconds,
@@ -263,7 +269,7 @@ class AnalyticsManager {
 
     periodicTimer?.cancel();
     periodicTimer = null;
-    analytics.close();
+    await analytics.close();
   }
 
   /// Record data from the given [params].
@@ -463,12 +469,12 @@ class AnalyticsManager {
     requestData.responseTimes.addValue(responseTime);
   }
 
-  /// Send information about the number of files and the numer of lines of code
+  /// Send information about the number of files and the number of lines of code
   /// in those files.
   Future<void> _sendAnalysisData() async {
     var contextStructure = _contextStructure;
     if (contextStructure != null) {
-      await analytics.send(Event.contextStructure(
+      analytics.send(Event.contextStructure(
         numberOfContexts: contextStructure.numberOfContexts,
         contextsWithoutFiles: contextStructure.contextsWithoutFiles,
         contextsFromPackagesFiles: contextStructure.contextsFromPackagesFiles,
@@ -492,7 +498,7 @@ class AnalyticsManager {
       var entries = _lintUsageCounts.entries.toList();
       _lintUsageCounts.clear();
       for (var entry in entries) {
-        await analytics.send(Event.lintUsageCount(
+        analytics.send(Event.lintUsageCount(
           count: entry.value,
           name: entry.key,
         ));
@@ -506,7 +512,7 @@ class AnalyticsManager {
       var completedNotifications = _completedNotifications.values.toList();
       _completedNotifications.clear();
       for (var data in completedNotifications) {
-        await analytics.send(Event.clientNotification(
+        analytics.send(Event.clientNotification(
           latency: data.latencyTimes.toAnalyticsString(),
           method: data.method,
           duration: data.handlingTimes.toAnalyticsString(),
@@ -533,7 +539,7 @@ class AnalyticsManager {
       responseTimes.clear();
       for (var pluginEntry in entries) {
         for (var responseEntry in pluginEntry.value.entries) {
-          await analytics.send(Event.pluginRequest(
+          analytics.send(Event.pluginRequest(
             pluginId: pluginEntry.key.safePluginId,
             method: responseEntry.key,
             duration: responseEntry.value.toAnalyticsString(),
@@ -549,7 +555,7 @@ class AnalyticsManager {
       var completedRequests = _completedRequests.values.toList();
       _completedRequests.clear();
       for (var data in completedRequests) {
-        await analytics.send(Event.clientRequest(
+        analytics.send(Event.clientRequest(
           latency: data.latencyTimes.toAnalyticsString(),
           method: data.method,
           duration: data.responseTimes.toAnalyticsString(),
@@ -566,13 +572,13 @@ class AnalyticsManager {
         var commandMap = data.additionalEnumCounts[commandEnumKey];
         if (commandMap != null) {
           for (var entry in commandMap.entries) {
-            await analytics.send(Event.commandExecuted(
+            analytics.send(Event.commandExecuted(
               count: entry.value,
               name: entry.key,
             ));
           }
         }
-        // TODO(brianwilkerson) We don't appear to have an event defined that we
+        // TODO(brianwilkerson): We don't appear to have an event defined that we
         //  can use to send analytics about how often old-style refactorings are
         //  being invoked.
         // var refactoringMap = data.additionalEnumCounts[refactoringKindEnumKey];
@@ -584,7 +590,7 @@ class AnalyticsManager {
   Future<void> _sendSessionData(SessionData sessionData) async {
     var endTime = DateTime.now().millisecondsSinceEpoch;
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
-    await analytics.send(Event.serverSession(
+    analytics.send(Event.serverSession(
       flags: sessionData.commandLineArguments,
       parameters: sessionData.initializeParams,
       clientId: sessionData.clientId,
@@ -592,7 +598,7 @@ class AnalyticsManager {
       duration: duration,
     ));
     for (var entry in _pluginData.usageCounts.entries) {
-      await analytics.send(Event.pluginUse(
+      analytics.send(Event.pluginUse(
           count: _pluginData.recordCount,
           enabled: entry.value.toAnalyticsString(),
           pluginId: entry.key));
@@ -606,7 +612,7 @@ class AnalyticsManager {
       var entries = _severityAdjustments.entries.toList();
       _severityAdjustments.clear();
       for (var entry in entries) {
-        await analytics.send(Event.severityAdjustment(
+        analytics.send(Event.severityAdjustment(
           adjustments: json.encode(entry.value),
           diagnostic: entry.key,
         ));

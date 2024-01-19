@@ -12,6 +12,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
@@ -26,14 +29,14 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/exception/exception.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
@@ -62,7 +65,8 @@ abstract class AugmentationFileKind<U extends DirectiveUri>
 }
 
 /// Information about a single `import augment` directive.
-class AugmentationImportState<U extends DirectiveUri> extends DirectiveState {
+final class AugmentationImportState<U extends DirectiveUri>
+    extends DirectiveState {
   final UnlinkedAugmentationImportDirective unlinked;
   final U uri;
 
@@ -78,7 +82,7 @@ class AugmentationImportState<U extends DirectiveUri> extends DirectiveState {
 }
 
 /// [AugmentationImportWithUri] that has a valid URI that references a file.
-class AugmentationImportWithFile
+final class AugmentationImportWithFile
     extends AugmentationImportWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
 
@@ -112,7 +116,7 @@ class AugmentationImportWithFile
 }
 
 /// [AugmentationImportState] that has a valid URI.
-class AugmentationImportWithUri<U extends DirectiveUriWithUri>
+final class AugmentationImportWithUri<U extends DirectiveUriWithUri>
     extends AugmentationImportWithUriStr<U> {
   AugmentationImportWithUri({
     required super.unlinked,
@@ -121,7 +125,7 @@ class AugmentationImportWithUri<U extends DirectiveUriWithUri>
 }
 
 /// [AugmentationImportState] that has a relative URI string.
-class AugmentationImportWithUriStr<U extends DirectiveUriWithString>
+final class AugmentationImportWithUriStr<U extends DirectiveUriWithString>
     extends AugmentationImportState<U> {
   AugmentationImportWithUriStr({
     required super.unlinked,
@@ -213,7 +217,7 @@ class AugmentationUnknownFileKind extends AugmentationFileKind<DirectiveUri> {
 /// Information about a directive that "includes" a file - `import`, `export`,
 /// or `part`. But not `part of` or `library augment` - these are modelled as
 /// kinds.
-class DirectiveState {
+sealed class DirectiveState {
   void dispose() {}
 }
 
@@ -371,6 +375,9 @@ abstract class FileKind {
 class FileState {
   final FileSystemState _fsState;
 
+  /// The [AnalysisOptions] associated with this file.
+  final AnalysisOptionsImpl analysisOptions;
+
   /// The absolute path of the file.
   final String path;
 
@@ -388,7 +395,7 @@ class FileState {
   /// It might be `null` if the file is outside of the workspace.
   final WorkspacePackage? workspacePackage;
 
-  /// The [FeatureSet] for all files in the analysis context.
+  /// The [FeatureSet] for this file.
   ///
   /// Usually it is the feature set of the latest language version, plus
   /// possibly additional enabled experiments (from the analysis options file,
@@ -396,7 +403,7 @@ class FileState {
   ///
   /// This feature set is then restricted, with the [packageLanguageVersion],
   /// or with a `@dart` language override token in the file header.
-  final FeatureSet _contextFeatureSet;
+  final FeatureSet _featureSet;
 
   /// The language version for the package that contains this file.
   final Version packageLanguageVersion;
@@ -432,8 +439,9 @@ class FileState {
     this.uri,
     this.source,
     this.workspacePackage,
-    this._contextFeatureSet,
+    this._featureSet,
     this.packageLanguageVersion,
+    this.analysisOptions,
   ) : uriProperties = FileUriProperties(uri);
 
   /// The unlinked API signature of the file.
@@ -533,13 +541,13 @@ class FileState {
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
-      signature.addFeatureSet(_contextFeatureSet);
+      signature.addFeatureSet(_featureSet);
       signature.addLanguageVersion(packageLanguageVersion);
       signature.addString(contentHash);
       signature.addBool(exists);
       _unlinkedSignature = signature.toByteList();
       var signatureHex = hex.encode(_unlinkedSignature!);
-      // TODO(scheglov) Use the path as the key, and store the signature.
+      // TODO(scheglov): Use the path as the key, and store the signature.
       _unlinkedKey = '$signatureHex.unlinked2';
     }
 
@@ -619,7 +627,7 @@ class FileState {
     }
   }
 
-  /// TODO(scheglov) move to _fsState?
+  // TODO(scheglov): move to _fsState?
   NamespaceDirectiveUris _buildNamespaceDirectiveUris(
     UnlinkedNamespaceDirective directive,
   ) {
@@ -729,8 +737,8 @@ class FileState {
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(
-        featureSetForOverriding: _contextFeatureSet,
-        featureSet: _contextFeatureSet.restrictToVersion(
+        featureSetForOverriding: _featureSet,
+        featureSet: _featureSet.restrictToVersion(
           packageLanguageVersion,
         ),
       );
@@ -756,7 +764,7 @@ class FileState {
     return unit;
   }
 
-  /// TODO(scheglov) write tests
+  // TODO(scheglov): write tests
   void _prefetchDirectReferences() {
     final prefetchFiles = _fsState.prefetchFiles;
     if (prefetchFiles == null) {
@@ -1173,6 +1181,9 @@ class FileSystemState {
   /// macro [FileState]. During the refresh, this will is reset back to `null`.
   FileContent? _macroFileContent;
 
+  /// Used for looking up options to associate with created file states.
+  final AnalysisOptionsMap _analysisOptionsMap;
+
   FileSystemState(
     this._logger,
     this._byteStore,
@@ -1183,14 +1194,15 @@ class FileSystemState {
     this._declaredVariables,
     this._saltForUnlinked,
     this._saltForElements,
-    this.featureSetProvider, {
+    this.featureSetProvider,
+    AnalysisOptionsMap analysisOptionsMap, {
     required this.fileContentStrategy,
     required this.unlinkedUnitStore,
     required this.prefetchFiles,
     required this.isGenerated,
     required this.onNewFile,
     required this.testData,
-  }) {
+  }) : _analysisOptionsMap = analysisOptionsMap {
     _testView = FileSystemStateTestView(this);
   }
 
@@ -1244,34 +1256,6 @@ class FileSystemState {
     }
   }
 
-  FeatureSet contextFeatureSet(
-    String path,
-    Uri uri,
-    WorkspacePackage? workspacePackage,
-  ) {
-    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
-    if (workspacePackageExperiments != null) {
-      return featureSetProvider.featureSetForExperiments(
-        workspacePackageExperiments,
-      );
-    }
-
-    return featureSetProvider.getFeatureSet(path, uri);
-  }
-
-  Version contextLanguageVersion(
-    String path,
-    Uri uri,
-    WorkspacePackage? workspacePackage,
-  ) {
-    var workspaceLanguageVersion = workspacePackage?.languageVersion;
-    if (workspaceLanguageVersion != null) {
-      return workspaceLanguageVersion;
-    }
-
-    return featureSetProvider.getLanguageVersion(path, uri);
-  }
-
   /// Notifies this object that it is about to be discarded.
   ///
   /// Returns the keys of the artifacts that are no longer used.
@@ -1300,20 +1284,7 @@ class FileSystemState {
 
   /// Return the [FileState] for the given absolute [path]. The returned file
   /// has the last known state since if was last refreshed.
-  /// TODO(scheglov) Merge with [getFileForPath2].
   FileState getFileForPath(String path) {
-    return getFileForPath2(
-      path: path,
-      performance: OperationPerformanceImpl('<root>'),
-    );
-  }
-
-  /// Return the [FileState] for the given absolute [path]. The returned file
-  /// has the last known state since if was last refreshed.
-  FileState getFileForPath2({
-    required String path,
-    required OperationPerformanceImpl performance,
-  }) {
     var file = _pathToFile[path];
     if (file == null) {
       File resource = resourceProvider.getFile(path);
@@ -1376,7 +1347,7 @@ class FileSystemState {
   List<String> getFilesContaining(String value) {
     var result = <String>[];
     _pathToFile.forEach((path, file) {
-      // TODO(scheglov) tests for excluding generated
+      // TODO(scheglov): tests for excluding generated
       if (!isGenerated(path)) {
         if (file.content.contains(value)) {
           result.add(path);
@@ -1475,14 +1446,52 @@ class FileSystemState {
     unlinkedUnitStore.clear();
   }
 
+  AnalysisOptionsImpl _getAnalysisOptions(File file) =>
+      _analysisOptionsMap.getOptions(file);
+
+  FeatureSet _getFeatureSet(
+    String path,
+    Uri uri,
+    WorkspacePackage? workspacePackage,
+    AnalysisOptionsImpl analysisOptions,
+  ) {
+    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
+    if (workspacePackageExperiments != null) {
+      return featureSetProvider.featureSetForExperiments(
+        workspacePackageExperiments,
+      );
+    }
+
+    return featureSetProvider.getFeatureSet(path, uri,
+        contextFeatures: analysisOptions.contextFeatures,
+        nonPackageFeatureSet: analysisOptions.nonPackageFeatureSet);
+  }
+
+  Version _getLanguageVersion(
+    String path,
+    Uri uri,
+    WorkspacePackage? workspacePackage,
+    AnalysisOptionsImpl analysisOptions,
+  ) {
+    var workspaceLanguageVersion = workspacePackage?.languageVersion;
+    if (workspaceLanguageVersion != null) {
+      return workspaceLanguageVersion;
+    }
+
+    return featureSetProvider.getLanguageVersion(path, uri,
+        nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion);
+  }
+
   FileState _newFile(File resource, String path, Uri uri) {
     FileSource uriSource = FileSource(resource, uri);
     WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
-    FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
+    AnalysisOptionsImpl analysisOptions = _getAnalysisOptions(resource);
+    FeatureSet featureSet =
+        _getFeatureSet(path, uri, workspacePackage, analysisOptions);
     Version packageLanguageVersion =
-        contextLanguageVersion(path, uri, workspacePackage);
+        _getLanguageVersion(path, uri, workspacePackage, analysisOptions);
     var file = FileState._(this, path, uri, uriSource, workspacePackage,
-        featureSet, packageLanguageVersion);
+        featureSet, packageLanguageVersion, analysisOptions);
     _pathToFile[path] = file;
     _uriToFile[uri] = file;
     knownFilePaths.add(path);
@@ -1582,7 +1591,7 @@ class FileUriProperties {
 }
 
 /// Information about a single `export` directive.
-class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
+final class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedLibraryExportDirective unlinked;
   final U selectedUri;
   final NamespaceDirectiveUris uris;
@@ -1605,7 +1614,8 @@ class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
 }
 
 /// [LibraryExportWithUri] that has a valid URI that references a file.
-class LibraryExportWithFile extends LibraryExportWithUri<DirectiveUriWithFile> {
+final class LibraryExportWithFile
+    extends LibraryExportWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
 
   LibraryExportWithFile({
@@ -1646,7 +1656,7 @@ class LibraryExportWithFile extends LibraryExportWithUri<DirectiveUriWithFile> {
 }
 
 /// [LibraryExportWithUri] with a URI that resolves to [InSummarySource].
-class LibraryExportWithInSummarySource
+final class LibraryExportWithInSummarySource
     extends LibraryExportWithUri<DirectiveUriWithInSummarySource> {
   LibraryExportWithInSummarySource({
     required super.unlinked,
@@ -1668,7 +1678,7 @@ class LibraryExportWithInSummarySource
 }
 
 /// [LibraryExportState] that has a valid URI.
-class LibraryExportWithUri<U extends DirectiveUriWithUri>
+final class LibraryExportWithUri<U extends DirectiveUriWithUri>
     extends LibraryExportWithUriStr<U> {
   LibraryExportWithUri({
     required super.unlinked,
@@ -1678,7 +1688,7 @@ class LibraryExportWithUri<U extends DirectiveUriWithUri>
 }
 
 /// [LibraryExportState] that has a relative URI string.
-class LibraryExportWithUriStr<U extends DirectiveUriWithString>
+final class LibraryExportWithUriStr<U extends DirectiveUriWithString>
     extends LibraryExportState<U> {
   LibraryExportWithUriStr({
     required super.unlinked,
@@ -1933,7 +1943,7 @@ $code
 }
 
 /// Information about a single `import` directive.
-class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
+final class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedLibraryImportDirective unlinked;
   final U selectedUri;
   final NamespaceDirectiveUris uris;
@@ -1958,7 +1968,8 @@ class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
 }
 
 /// [LibraryImportWithUri] that has a valid URI that references a file.
-class LibraryImportWithFile extends LibraryImportWithUri<DirectiveUriWithFile> {
+final class LibraryImportWithFile
+    extends LibraryImportWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
 
   LibraryImportWithFile({
@@ -1999,7 +2010,7 @@ class LibraryImportWithFile extends LibraryImportWithUri<DirectiveUriWithFile> {
 }
 
 /// [LibraryImportWithUri] with a URI that resolves to [InSummarySource].
-class LibraryImportWithInSummarySource
+final class LibraryImportWithInSummarySource
     extends LibraryImportWithUri<DirectiveUriWithInSummarySource> {
   LibraryImportWithInSummarySource({
     required super.unlinked,
@@ -2021,7 +2032,7 @@ class LibraryImportWithInSummarySource
 }
 
 /// [LibraryImportState] that has a valid URI.
-class LibraryImportWithUri<U extends DirectiveUriWithUri>
+final class LibraryImportWithUri<U extends DirectiveUriWithUri>
     extends LibraryImportWithUriStr<U> {
   LibraryImportWithUri({
     required super.unlinked,
@@ -2031,7 +2042,7 @@ class LibraryImportWithUri<U extends DirectiveUriWithUri>
 }
 
 /// [LibraryImportState] that has a relative URI string.
-class LibraryImportWithUriStr<U extends DirectiveUriWithString>
+final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
     extends LibraryImportState<U> {
   LibraryImportWithUriStr({
     required super.unlinked,
@@ -2320,10 +2331,7 @@ class PartOfNameFileKind extends PartFileKind {
 
       for (final sibling in siblings) {
         if (file_paths.isDart(pathContext, sibling.path)) {
-          file._fsState.getFileForPath2(
-            path: sibling.path,
-            performance: OperationPerformanceImpl('<root>'),
-          );
+          file._fsState.getFileForPath(sibling.path);
         }
       }
     }
@@ -2387,7 +2395,7 @@ class PartOfUriUnknownFileKind extends PartOfUriFileKind {
 }
 
 /// Information about a single `part` directive.
-class PartState<U extends DirectiveUri> extends DirectiveState {
+final class PartState<U extends DirectiveUri> extends DirectiveState {
   final LibraryFileKind library;
   final UnlinkedPartDirective unlinked;
   final U uri;
@@ -2405,7 +2413,7 @@ class PartState<U extends DirectiveUri> extends DirectiveState {
 }
 
 /// [PartWithUri] that has a valid URI that references a file.
-class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
+final class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
   PartWithFile({
     required super.library,
     required super.unlinked,
@@ -2436,7 +2444,8 @@ class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
 }
 
 /// [PartState] that has a valid URI.
-class PartWithUri<U extends DirectiveUriWithUri> extends PartWithUriStr<U> {
+final class PartWithUri<U extends DirectiveUriWithUri>
+    extends PartWithUriStr<U> {
   PartWithUri({
     required super.library,
     required super.unlinked,
@@ -2445,7 +2454,8 @@ class PartWithUri<U extends DirectiveUriWithUri> extends PartWithUriStr<U> {
 }
 
 /// [PartState] that has a relative URI string.
-class PartWithUriStr<U extends DirectiveUriWithString> extends PartState<U> {
+final class PartWithUriStr<U extends DirectiveUriWithString>
+    extends PartState<U> {
   PartWithUriStr({
     required super.library,
     required super.unlinked,

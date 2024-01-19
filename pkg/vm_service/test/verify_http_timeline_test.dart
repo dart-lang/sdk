@@ -46,7 +46,10 @@ Future<void> executeWithRandomDelay(Function f) =>
         .then((_) async {
       try {
         await f();
-      } on HttpException catch (_) {} on SocketException catch (_) {} on StateError catch (_) {} on OSError catch (_) {}
+      } on HttpException catch (_) {
+      } on SocketException catch (_) {
+      } on StateError catch (_) {
+      } on OSError catch (_) {}
     });
 
 Uri randomlyAddRequestParams(Uri uri) {
@@ -55,10 +58,12 @@ Uri randomlyAddRequestParams(Uri uri) {
       possiblePathSegments.sublist(0, rng.nextInt(possiblePathSegments.length));
   uri = uri.replace(pathSegments: segmentSubset);
   if (rng.nextInt(3) == 0) {
-    uri = uri.replace(queryParameters: {
-      'foo': 'bar',
-      'year': '2019',
-    });
+    uri = uri.replace(
+      queryParameters: {
+        'foo': 'bar',
+        'year': '2019',
+      },
+    );
   }
   return uri;
 }
@@ -75,7 +80,8 @@ Future<HttpServer> startServer() async {
     }
     // Randomly delay response.
     await Future.delayed(
-        Duration(milliseconds: rng.nextInt(maxResponseDelayMs)));
+      Duration(milliseconds: rng.nextInt(maxResponseDelayMs)),
+    );
     await response.close();
   });
   return server;
@@ -171,8 +177,8 @@ Future<void> testMain() async {
   print('done');
 }
 
-bool isStartEvent(Map event) => (event['ph'] == 'b');
-bool isFinishEvent(Map event) => (event['ph'] == 'e');
+bool isStartEvent(Map event) => event['ph'] == 'b';
+bool isFinishEvent(Map event) => event['ph'] == 'e';
 
 bool hasCompletedEvents(List<TimelineEvent> traceEvents) {
   final events = <String, int>{};
@@ -195,11 +201,16 @@ bool hasCompletedEvents(List<TimelineEvent> traceEvents) {
 }
 
 List<TimelineEvent> filterEventsByName(
-        List<TimelineEvent> traceEvents, String name) =>
+  List<TimelineEvent> traceEvents,
+  String name,
+) =>
     traceEvents.where((e) => e.json!.containsKey(name)).toList();
 
 List<TimelineEvent> filterEventsByIdAndName(
-        List<TimelineEvent> traceEvents, String id, String name) =>
+  List<TimelineEvent> traceEvents,
+  String id,
+  String name,
+) =>
     traceEvents
         .where((e) => e.json!['id'] == id && e.json!['name'].contains(name))
         .toList();
@@ -245,7 +256,10 @@ void validateHttpFinishEvent(Map event) {
 }
 
 void hasValidHttpRequests(
-    HttpProfile profile, List<TimelineEvent> traceEvents, String method) {
+  HttpProfile profile,
+  List<TimelineEvent> traceEvents,
+  String method,
+) {
   final requests = profile.requests
       .where(
         (element) => element.method == method,
@@ -298,10 +312,14 @@ void hasValidHttpProfile(HttpProfile profile, String method) {
 }
 
 void hasValidHttpCONNECTs(
-        HttpProfile profile, List<TimelineEvent> traceEvents) =>
+  HttpProfile profile,
+  List<TimelineEvent> traceEvents,
+) =>
     hasValidHttpRequests(profile, traceEvents, 'CONNECT');
 void hasValidHttpDELETEs(
-        HttpProfile profile, List<TimelineEvent> traceEvents) =>
+  HttpProfile profile,
+  List<TimelineEvent> traceEvents,
+) =>
     hasValidHttpRequests(profile, traceEvents, 'DELETE');
 void hasValidHttpGETs(HttpProfile profile, List<TimelineEvent> traceEvents) =>
     hasValidHttpRequests(profile, traceEvents, 'GET');
@@ -336,7 +354,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'verify_http_timeline_test.dart',

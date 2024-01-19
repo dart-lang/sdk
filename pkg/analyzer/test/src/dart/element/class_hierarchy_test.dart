@@ -16,7 +16,6 @@ import '../../../generated/type_system_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassHierarchyTest);
-    defineReflectiveTests(ClassHierarchyWithoutNullSafetyTest);
   });
 }
 
@@ -55,32 +54,6 @@ class ClassHierarchyTest extends AbstractTypeSystemTest
     _checkA(
       typeArguments: [objectQuestion, dynamicType],
       interfaces: ['A<Object?>'],
-    );
-  }
-}
-
-@reflectiveTest
-class ClassHierarchyWithoutNullSafetyTest
-    extends AbstractTypeSystemWithoutNullSafetyTest
-    with _AbstractClassHierarchyMixin {
-  @override
-  void setUp() {
-    super.setUp();
-    _createSharedElements();
-  }
-
-  test_invalid() {
-    _checkA(
-      typeArguments: [intNone, doubleNone],
-      interfaces: ['A<int*>'],
-      errors: ['A<int*> vs. A<double*>'],
-    );
-  }
-
-  test_valid() {
-    _checkA(
-      typeArguments: [intNone, intQuestion],
-      interfaces: ['A<int*>'],
     );
   }
 }

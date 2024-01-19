@@ -27,9 +27,9 @@ class C<U, V> extends S<Map<U, V>> with M<List<U>>, N<Set<V>> {}
 main() {
   var c = new C<int, bool>();
   Expect.isTrue(c is S<Map<int, bool>>);
-  Expect.equals("Map<int, bool>", c.s().toString());
+  Expect.equals(Map<int, bool>, c.s());
   Expect.isTrue(c is M<List<int>>);
-  Expect.equals("List<int>", c.m().toString());
+  Expect.equals(List<int>, c.m());
   Expect.isTrue(c is N<Set<bool>>);
-  Expect.equals("Set<bool>", c.n().toString());
+  Expect.equals(Set<bool>, c.n());
 }

@@ -1,8 +1,13 @@
 int get property1 => 0;
+
 void set property1(int value) {}
+
 int get property2 => 0;
+
 void set property2(num value) {}
+
 num get property3 => 0;
+
 void set property3(int value) {}
 
 abstract class A {

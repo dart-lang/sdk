@@ -10,7 +10,6 @@ import '../common/names.dart';
 import '../common/elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ir/constants.dart';
 import '../ir/impact.dart';
@@ -25,6 +24,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
+import '../js_model/elements.dart';
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
@@ -160,8 +160,8 @@ class KernelImpactConverter implements ImpactRegistry {
       // TODO(johnniwinther): NativeDataBuilder already has the native behavior
       // at this point. Use that instead.
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
-      Iterable<ConstantValue> metadata = elementMap.elementEnvironment
-          .getMemberMetadata(member as IndexedMember);
+      Iterable<ConstantValue> metadata =
+          elementMap.elementEnvironment.getMemberMetadata(member as JMember);
       Iterable<String> createsAnnotations =
           getCreatesAnnotations(dartTypes, reporter, commonElements, metadata);
       Iterable<String> returnsAnnotations =
@@ -180,8 +180,8 @@ class KernelImpactConverter implements ImpactRegistry {
       // TODO(johnniwinther): NativeDataBuilder already has the native behavior
       // at this point. Use that instead.
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
-      Iterable<ConstantValue> metadata = elementMap.elementEnvironment
-          .getMemberMetadata(member as IndexedMember);
+      Iterable<ConstantValue> metadata =
+          elementMap.elementEnvironment.getMemberMetadata(member as JMember);
       Iterable<String> createsAnnotations =
           getCreatesAnnotations(dartTypes, reporter, commonElements, metadata);
       Iterable<String> returnsAnnotations =
@@ -226,8 +226,8 @@ class KernelImpactConverter implements ImpactRegistry {
       // TODO(johnniwinther): NativeDataBuilder already has the native behavior
       // at this point. Use that instead.
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
-      Iterable<ConstantValue> metadata = elementMap.elementEnvironment
-          .getMemberMetadata(member as IndexedMember);
+      Iterable<ConstantValue> metadata =
+          elementMap.elementEnvironment.getMemberMetadata(member as JMember);
       Iterable<String> createsAnnotations =
           getCreatesAnnotations(dartTypes, reporter, commonElements, metadata);
       Iterable<String> returnsAnnotations =

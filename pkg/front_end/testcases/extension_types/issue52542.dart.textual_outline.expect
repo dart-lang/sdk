@@ -1,0 +1,8 @@
+extension type const Option<V>(Object? _value) {
+  static const Option<Never> none = const None() as Option<Never>;
+  V get value => _value is None ? (throw StateError("No Value")) : _value as V;
+}
+
+class None {
+  const None();
+}

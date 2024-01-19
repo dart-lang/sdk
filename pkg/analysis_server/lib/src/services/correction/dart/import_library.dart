@@ -134,6 +134,7 @@ class ImportLibrary extends MultiCorrectionProducer {
           ElementKind.CLASS,
           ElementKind.ENUM,
           ElementKind.FUNCTION_TYPE_ALIAS,
+          ElementKind.MIXIN,
           ElementKind.TYPE_ALIAS,
         ]);
       } else if (mightBeImplicitConstructor(targetNode)) {
@@ -182,10 +183,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       foundImport = true;
       var instantiatedExtensions = importedLibrary.exportedExtensions
           .hasMemberWithBaseName(memberName)
-          .applicableTo(
-            targetLibrary: libraryElement,
-            targetType: targetType,
-          );
+          .applicableTo(targetLibrary: libraryElement, targetType: targetType);
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
@@ -193,7 +191,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         if (combinators.length == 1) {
           var combinator = combinators[0];
           if (combinator is HideElementCombinator) {
-            // TODO(brianwilkerson) Support removing the extension name from a
+            // TODO(brianwilkerson): Support removing the extension name from a
             //  hide combinator.
           } else if (combinator is ShowElementCombinator) {
             producers.add(_ImportLibraryShow(
@@ -229,7 +227,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   }) {
     if (!includeRelativeFix) {
       producers.add(_ImportAbsoluteLibrary(fixKind, library));
-    } else if (codeStyleOptions.useRelativeUris) {
+    } else if (getCodeStyleOptions(unitResult.file).useRelativeUris) {
       producers.add(_ImportRelativeLibrary(fixKind, library));
       producers.add(_ImportAbsoluteLibrary(fixKind, library));
     } else {
@@ -277,7 +275,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (combinators.length == 1) {
         var combinator = combinators[0];
         if (combinator is HideElementCombinator) {
-          // TODO(brianwilkerson) Support removing the element name from a
+          // TODO(brianwilkerson): Support removing the element name from a
           //  hide combinator.
         } else if (combinator is ShowElementCombinator) {
           // prepare library name - unit name or 'dart:name' for SDK library
@@ -458,10 +456,7 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var instantiatedExtensions = library.exportedExtensions
         .hasMemberWithBaseName(memberName)
-        .applicableTo(
-          targetLibrary: libraryElement,
-          targetType: targetType,
-        );
+        .applicableTo(targetLibrary: libraryElement, targetType: targetType);
     if (instantiatedExtensions.isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {
         _uriText = builder.importLibrary(library.source.uri);
@@ -491,8 +486,14 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    var targetNode = node;
+
+    if (targetNode is Annotation) {
+      targetNode = targetNode.name;
+    }
+
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '$_prefixName.');
+      builder.addSimpleInsertion(targetNode.offset, '$_prefixName.');
     });
   }
 }

@@ -51,34 +51,47 @@ main() {
   // ~2^53.
   test(0x1fffffffffffff, "9007199254740991");
   test(0x20000000000000, "9007199254740992");
-  test(0x20000000000001, "9007199254740993"); //        //# 01: ok
-  // ~2^62.
-  test(0x3fffffffffffffff, "4611686018427387903"); //   //# 01: continued
-  test(0x4000000000000000, "4611686018427387904"); //   //# 01: continued
-  test(0x4000000000000001, "4611686018427387905"); //   //# 01: continued
-  // ~2^63.
-  test(0x7fffffffffffffff, "9223372036854775807"); //   //# 01: continued
-  test(0x8000000000000000, "-9223372036854775808"); //  //# 01: continued
-  test(0x8000000000000001, "-9223372036854775807"); //  //# 01: continued
-  // ~2^64.
-  test(0xffffffffffffffff, "-1"); //                    //# 01: continued
+  // Split literals into sum of two web numbers to avoid compilation errors.
+  if (webNumbers) {
+    // The String for large integral web numbers (doubles) could be any sequence
+    // of digits that parse back to the same value. The algorithm chooses 'nice'
+    // rounded numbers rather than the equivalent digits for some multiple of a
+    // power of two.
+    test(0x20000000000000 + 1, "9007199254740992");
+    // ~2^62.
+    test(0x3ffffffffffff000 + 0xfff, "4611686018427388000");
+    test(0x4000000000000000, "4611686018427388000");
+    test(0x4000000000000000 + 1, "4611686018427388000");
+    // ~2^63.
+    test(0x7ffffffffffff000 + 0xfff, "9223372036854776000");
+    test(0x8000000000000000, "9223372036854776000");
+    test(0x8000000000000000 + 1, "9223372036854776000");
+    // ~2^64.
+    test(0xfffffffffffff000 + 0xfff, "18446744073709552000");
+  } else {
+    test(0x20000000000000 + 1, "9007199254740993");
+    // ~2^62.
+    test(0x3ffffffffffff000 + 0xfff, "4611686018427387903");
+    test(0x4000000000000000, "4611686018427387904");
+    test(0x4000000000000000 + 1, "4611686018427387905");
+    // ~2^63.
+    test(0x7ffffffffffff000 + 0xfff, "9223372036854775807");
+    test(0x8000000000000000, "-9223372036854775808");
+    test(0x8000000000000000 + 1, "-9223372036854775807");
+    // ~2^64.
+    test(0xfffffffffffff000 + 0xfff, "-1");
+  }
 
   // Decimal special cases.
 
   int number = 10;
   // Numbers 99..99, 100...00, and 100..01 up to 18 digits.
-  for (int i = 1; i < 15; i++) {
+  for (int i = 1; i < 19; i++) {
     // Works in dart2js up to 10^15.
+    if (webNumbers && i > 15) break;
     test(number - 1, "9" * i);
     test(number, "1" + "0" * i);
     test(number + 1, "1" + "0" * (i - 1) + "1");
     number *= 10;
   }
-  // Fails to represent exactly in dart2js.
-  for (int i = 15; i < 19; i++) { //                    //# 01: continued
-    test(number - 1, "9" * i); //                       //# 01: continued
-    test(number, "1" + "0" * i); //                     //# 01: continued
-    test(number + 1, "1" + "0" * (i - 1) + "1"); //     //# 01: continued
-    number *= 10; //                                    //# 01: continued
-  } //                                                  //# 01: continued
 }

@@ -913,8 +913,8 @@ void filterOperators(Set<InterfaceType> allTypes) {
 bool isExcludedMethod(InterfaceType tp, MethodElement method) {
   // TODO(bkonyi): Enable operator / for these types after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
-  if (((tp.element2.name == 'Float32x4') && (method.name == '/')) ||
-      ((tp.element2.name == 'Float64x2') && (method.name == '/'))) {
+  if (((tp.element.name == 'Float32x4') && (method.name == '/')) ||
+      ((tp.element.name == 'Float64x2') && (method.name == '/'))) {
     return true;
   }
   return false;
@@ -1107,7 +1107,7 @@ bool shouldFilterConstructor(InterfaceType tp, ConstructorElement cons) {
   // Constructor exclude list
   // TODO(bkonyi): Enable Float32x4.fromInt32x4Bits after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
-  if ((tp.element2.name == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {
+  if ((tp.element.name == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {
     return true;
   }
   return false;
@@ -1137,9 +1137,9 @@ void analyzeTypes(Set<InterfaceType> allTypes) {
     }
 
     // Group current type with their respective type group.
-    if (iTyp.name == 'Set') setTypes.add(typName);
-    if (iTyp.name == 'List') listTypes.add(typName);
-    if (iTyp.name == 'Map') mapTypes.add(typName);
+    if (iTyp.element.name == 'Set') setTypes.add(typName);
+    if (iTyp.element.name == 'List') listTypes.add(typName);
+    if (iTyp.element.name == 'Map') mapTypes.add(typName);
 
     if (iTyp.typeArguments.length == 1) {
       // Analyze Array, List and Set types.
@@ -1190,11 +1190,12 @@ void getParameterizedTypes(
   // Out: types with no parameters.
   for (var tp in allTypes) {
     if (tp.typeArguments.length == 1 &&
-        (tp.typeArguments[0].name == 'E' || tp.typeArguments[0].name == 'T')) {
+        (tp.typeArguments[0].element?.name == 'E' ||
+            tp.typeArguments[0].element?.name == 'T')) {
       pTypes1.add(tp);
     } else if (tp.typeArguments.length == 2 &&
-        tp.typeArguments[0].name == 'K' &&
-        tp.typeArguments[1].name == 'V') {
+        tp.typeArguments[0].element?.name == 'K' &&
+        tp.typeArguments[1].element?.name == 'V') {
       pTypes2.add(tp);
     } else {
       iTypes.add(tp);
@@ -1231,7 +1232,7 @@ Set<InterfaceType> instantiatePTypes(
       } else {
         return;
       }
-      InterfaceType ptx = pType.element2.instantiate(
+      InterfaceType ptx = pType.element.instantiate(
         typeArguments: [iType],
         nullabilitySuffix: NullabilitySuffix.star,
       );
@@ -1252,7 +1253,7 @@ Set<InterfaceType> instantiatePTypes(
         } else {
           return;
         }
-        InterfaceType ptx = pType.element2.instantiate(
+        InterfaceType ptx = pType.element.instantiate(
           typeArguments: [iType1, iType2],
           nullabilitySuffix: NullabilitySuffix.star,
         );
@@ -1286,7 +1287,7 @@ Set<InterfaceType> instantiateAllTypes(
   // complex types like Int8List.
   var filteredITypes = <InterfaceType>{};
   for (var iType in iTypes) {
-    if (iTypeFilter.contains(iType.element2.name)) {
+    if (iTypeFilter.contains(iType.element.name)) {
       filteredITypes.add(iType);
     }
   }
@@ -1324,7 +1325,7 @@ int countOperators(InterfaceElement ce) {
       no += 100;
     }
     for (var ci in ce.interfaces) {
-      no += countOperators(ci.element2);
+      no += countOperators(ci.element);
     }
   });
   return no;
@@ -1429,7 +1430,7 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
         iterableTypes1.add(typName);
       }
     }
-    for (var it in tp.element2.allSupertypes) {
+    for (var it in tp.element.allSupertypes) {
       var ifTypName = typeConstName(it);
       interfaceRels[ifTypName] ??= <String>{};
       interfaceRels[ifTypName]!.add(typName);

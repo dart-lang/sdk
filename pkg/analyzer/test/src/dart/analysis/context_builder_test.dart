@@ -63,16 +63,17 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   void test_analysisOptions_invalid() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile(projectPath, ';');
+    var optionsFile = newAnalysisOptionsYamlFile(projectPath, ';');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.analysisOptionsImpl;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsImplForFile(optionsFile);
     _expectEqualOptions(analysisOptions, AnalysisOptionsImpl());
   }
 
   void test_analysisOptions_languageOptions() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile(
+    var optionsFile = newAnalysisOptionsYamlFile(
       projectPath,
       AnalysisOptionsFileConfig(
         strictRawTypes: true,
@@ -80,32 +81,12 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     );
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.analysisOptionsImpl;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsImplForFile(optionsFile);
     _expectEqualOptions(
       analysisOptions,
       AnalysisOptionsImpl()..strictRawTypes = true,
     );
-  }
-
-  void test_analysisOptions_sdkVersionConstraint_hasPubspec_hasSdk() {
-    var projectPath = convertPath('/home/test');
-    newPubspecYamlFile(projectPath, '''
-environment:
-  sdk: ^2.1.0
-''');
-
-    var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.analysisOptionsImpl;
-    expect(analysisOptions.sdkVersionConstraint.toString(), '^2.1.0');
-  }
-
-  void test_analysisOptions_sdkVersionConstraint_noPubspec() {
-    var projectPath = convertPath('/home/test');
-    newFile('$projectPath/lib/a.dart', '');
-
-    var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.driver.analysisOptions;
-    expect(analysisOptions.sdkVersionConstraint, isNull);
   }
 
   test_createContext_declaredVariables() {
@@ -116,7 +97,6 @@ environment:
       declaredVariables: declaredVariables,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
   }
@@ -129,7 +109,6 @@ environment:
       declaredVariables: declaredVariables,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
     expect(
@@ -143,7 +122,6 @@ environment:
       contextRoot: contextRoot,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
   }
 
@@ -152,7 +130,6 @@ environment:
       contextRoot: contextRoot,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     expect(
       context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core')!.fullName,
@@ -163,7 +140,6 @@ environment:
   test_createContext_sdkRoot() {
     var context = contextBuilder.createContext(
         contextRoot: contextRoot, sdkPath: sdkRoot.path);
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     expect(context.sdkRoot, sdkRoot);
   }
@@ -222,7 +198,7 @@ environment:
     AnalysisOptionsImpl actual,
     AnalysisOptionsImpl expected,
   ) {
-    // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
+    // TODO(brianwilkerson): Consider moving this to AnalysisOptionsImpl.==.
     expect(actual.enableTiming, expected.enableTiming);
     expect(actual.lint, expected.lint);
     expect(actual.warning, expected.warning);
@@ -238,11 +214,10 @@ environment:
 }
 
 extension on DriverBasedAnalysisContext {
-  AnalysisOptionsImpl get analysisOptionsImpl {
-    return driver.analysisOptions as AnalysisOptionsImpl;
-  }
-
   List<UriResolver> get uriResolvers {
     return (driver.sourceFactory as SourceFactoryImpl).resolvers;
   }
+
+  AnalysisOptionsImpl getAnalysisOptionsImplForFile(File file) =>
+      driver.getAnalysisOptionsForFile(file);
 }

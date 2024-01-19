@@ -7,9 +7,10 @@ import 'dart:async';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
-import 'package:linter/src/util/score_utils.dart' as score_utils;
 
-/// todo (pq): reign in the nullable types
+import 'util/score_utils.dart' as score_utils;
+
+// TODO(pq): reign in the nullable types
 
 final _flutterOptionsUrl = Uri.https('raw.githubusercontent.com',
     '/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');

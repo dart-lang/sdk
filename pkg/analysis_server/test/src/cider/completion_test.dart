@@ -59,7 +59,6 @@ void f() {
 
     _assertHasOperationPerformance(['resolution']);
     _assertHasOperationPerformance(['suggestions']);
-    _assertHasOperationPerformance(['suggestions', 'RedirectingContributor']);
   }
 
   Future<void> test_compute_prefixStart_beforeToken_identifier() async {
@@ -817,7 +816,7 @@ import 'a.dart';
     };
   }
 
-  /// TODO(scheglov) Implement incremental updating
+  // TODO(scheglov): Implement incremental updating
   void _createFileResolver() {
     createFileResolver();
   }

@@ -9,7 +9,8 @@ for more details about the presubmit API built into gcl.
 """
 
 import datetime
-import imp
+import importlib.util
+import importlib.machinery
 import os
 import os.path
 from typing import Callable
@@ -70,10 +71,22 @@ def _CheckFormat(input_api,
     return unformatted_files
 
 
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname,
+                                                  filename,
+                                                  loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    # The module is always executed and not cached in sys.modules.
+    # Uncomment the following line to cache the module.
+    # sys.modules[module.__name__] = module
+    loader.exec_module(module)
+    return module
+
+
 def _CheckDartFormat(input_api, output_api):
     local_root = input_api.change.RepositoryRoot()
-    utils = imp.load_source('utils',
-                            os.path.join(local_root, 'tools', 'utils.py'))
+    utils = load_source('utils', os.path.join(local_root, 'tools', 'utils.py'))
 
     dart = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
 
@@ -155,8 +168,7 @@ def _CheckDartFormat(input_api, output_api):
 
 def _CheckStatusFiles(input_api, output_api):
     local_root = input_api.change.RepositoryRoot()
-    utils = imp.load_source('utils',
-                            os.path.join(local_root, 'tools', 'utils.py'))
+    utils = load_source('utils', os.path.join(local_root, 'tools', 'utils.py'))
 
     dart = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
     lint = os.path.join(local_root, 'pkg', 'status_file', 'bin', 'lint.dart')
@@ -231,12 +243,12 @@ def _CheckLayering(input_api, output_api):
         return []
 
     local_root = input_api.change.RepositoryRoot()
-    compiler_layering_check = imp.load_source(
+    compiler_layering_check = load_source(
         'compiler_layering_check',
         os.path.join(local_root, 'runtime', 'tools',
                      'compiler_layering_check.py'))
     errors = compiler_layering_check.DoCheck(local_root)
-    embedder_layering_check = imp.load_source(
+    embedder_layering_check = load_source(
         'embedder_layering_check',
         os.path.join(local_root, 'runtime', 'tools',
                      'embedder_layering_check.py'))
@@ -286,14 +298,13 @@ def _CheckClangTidy(input_api, output_api):
 def _CheckAnalyzerFiles(input_api, output_api):
     """Run analyzer checks on source files."""
 
-    # The first (and so far, only) check, is to verify the "error fix status"
-    # file.
-    relevant_files = [
+    # Verify the "error fix status" file.
+    code_files = [
         "pkg/analyzer/lib/src/error/error_code_values.g.dart",
         "pkg/linter/lib/src/rules.dart",
     ]
 
-    if any(f.LocalPath() in relevant_files for f in input_api.AffectedFiles()):
+    if any(f.LocalPath() in code_files for f in input_api.AffectedFiles()):
         args = [
             "tools/sdks/dart-sdk/bin/dart",
             "pkg/analysis_server/tool/presubmit/verify_error_fix_status.dart",
@@ -305,6 +316,23 @@ def _CheckAnalyzerFiles(input_api, output_api):
         return [
             output_api.PresubmitError(
                 "The verify_error_fix_status Analyzer tool revealed issues:",
+                long_text=stdout)
+        ]
+
+    # Verify the linter's `example/all.yaml` file.
+    if any(f.LocalPath().startswith('pkg/linter/lib/src/rules')
+           for f in input_api.AffectedFiles()):
+        args = [
+            "tools/sdks/dart-sdk/bin/dart",
+            "pkg/linter/tool/checks/check_all_yaml.dart",
+        ]
+        stdout = input_api.subprocess.check_output(args).strip()
+        if not stdout:
+            return []
+
+        return [
+            output_api.PresubmitError(
+                "The check_all_yaml linter tool revealed issues:",
                 long_text=stdout)
         ]
 

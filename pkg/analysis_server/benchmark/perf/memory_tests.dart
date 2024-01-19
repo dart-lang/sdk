@@ -139,7 +139,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   int _fileVersion = 1;
 
   @override
-  Future<void> get analysisFinished => _test.waitForAnalysisComplete();
+  Future<void> get analysisFinished => _test.initialAnalysis;
 
   @override
   Future<void> closeFile(String filePath) {

@@ -25,8 +25,10 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, WarningCode;
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -72,6 +74,8 @@ class GenericInferrer {
   /// type arguments are allowed to be instantiated with generic function types.
   final bool genericMetadataIsEnabled;
 
+  final bool _strictInference;
+
   /// Map whose keys are type parameters for which a previous inference phase
   /// has fixed a type, and whose values are the corresponding fixed types.
   ///
@@ -96,10 +100,16 @@ class GenericInferrer {
   /// implicit runtime checks).
   final Map<TypeParameterElement, DartType> _typesInferredSoFar = {};
 
+  final TypeSystemOperations _typeSystemOperations;
+
   GenericInferrer(this._typeSystem, this._typeFormals,
       {this.errorReporter,
       this.errorNode,
-      required this.genericMetadataIsEnabled}) {
+      required this.genericMetadataIsEnabled,
+      required bool strictInference,
+      required TypeSystemOperations typeSystemOperations})
+      : _strictInference = strictInference,
+        _typeSystemOperations = typeSystemOperations {
     if (errorReporter != null) {
       assert(errorNode != null);
     }
@@ -254,7 +264,7 @@ class GenericInferrer {
 
       if (UnknownInferredType.isKnown(inferred)) {
         knownTypes[parameter] = inferred;
-      } else if (_typeSystem.strictInference) {
+      } else if (_strictInference) {
         // [typeParam] could not be inferred. A result will still be returned
         // by [infer], with [typeParam] filled in as its bounds. This is
         // considered a failure of inference, under the "strict-inference"
@@ -428,7 +438,7 @@ class GenericInferrer {
     var inferredTypes = List<DartType>.filled(
         _typeFormals.length, UnknownInferredType.instance);
     for (int i = 0; i < _typeFormals.length; i++) {
-      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
       var typeParam = _typeFormals[i] as TypeParameterElementImpl;
       _TypeConstraint? extendsClause;
@@ -487,7 +497,7 @@ class GenericInferrer {
         .values
         .where((l) =>
             l.every((c) => c.isSatisfiedBy(_typeSystem, inferred)) == expected)
-        .expand((i) => i);
+        .flattenedToList2;
 
     String unsatisfied = _formatConstraints(isSatisfied(false));
     String satisfied = _formatConstraints(isSatisfied(true));
@@ -641,7 +651,9 @@ class GenericInferrer {
       DartType t1, DartType t2, _TypeConstraintOrigin origin,
       {required bool covariant}) {
     var gatherer = TypeConstraintGatherer(
-        typeSystem: _typeSystem, typeParameters: _typeParameters);
+        typeSystem: _typeSystem,
+        typeParameters: _typeParameters,
+        typeSystemOperations: _typeSystemOperations);
     var success = gatherer.trySubtypeMatch(t1, t2, !covariant);
     if (success) {
       var constraints = gatherer.computeConstraints();

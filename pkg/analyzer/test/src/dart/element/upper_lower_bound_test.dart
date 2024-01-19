@@ -114,7 +114,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     T = typeParameter('T', bound: objectQuestion);
 
     isBottom(promotedTypeParameterTypeNone(T, neverNone));
-    isBottom(promotedTypeParameterTypeQuestion(T, neverNone));
+    isNotBottom(promotedTypeParameterTypeQuestion(T, neverNone));
     isBottom(promotedTypeParameterTypeStar(T, neverNone));
 
     isNotBottom(promotedTypeParameterTypeNone(T, neverQuestion));
@@ -124,7 +124,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     // BOTTOM(X extends T) is true iff BOTTOM(T)
     T = typeParameter('T', bound: neverNone);
     isBottom(typeParameterTypeNone(T));
-    isBottom(typeParameterTypeQuestion(T));
+    isNotBottom(typeParameterTypeQuestion(T));
     isBottom(typeParameterTypeStar(T));
 
     T = typeParameter('T', bound: neverQuestion);
@@ -2861,6 +2861,38 @@ class UpperBoundTest extends _BoundsTestBase {
     );
   }
 
+  void test_extensionType_implementExtensionType_implicitObjectQuestion() {
+    // extension type A(Object?) {}
+    // extension type B(Object?) implements A {}
+    // extension type C(Object?) implements A {}
+
+    final A_none = interfaceTypeNone(
+      extensionType(
+        'A',
+        representationType: objectQuestion,
+        interfaces: [],
+      ),
+    );
+
+    _checkLeastUpperBound(
+      interfaceTypeNone(
+        extensionType(
+          'B',
+          representationType: objectQuestion,
+          interfaces: [A_none],
+        ),
+      ),
+      interfaceTypeNone(
+        extensionType(
+          'C',
+          representationType: objectQuestion,
+          interfaces: [A_none],
+        ),
+      ),
+      A_none,
+    );
+  }
+
   void test_extensionType_noTypeParameters_interfaces() {
     // extension type A(int) implements int {}
     // extension type B(double) implements double {}
@@ -2885,80 +2917,23 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_extensionType_noTypeParameters_noInterfaces() {
-    // A(Object?) and B(Object?)
+    // extension type A(int) {}
+    // extension type B(double) {}
+
     _checkLeastUpperBound(
       interfaceTypeNone(
         extensionType(
           'A',
-          representationType: objectQuestion,
-          interfaces: [objectQuestion],
+          representationType: intNone,
         ),
       ),
       interfaceTypeNone(
         extensionType(
           'B',
-          representationType: objectQuestion,
-          interfaces: [objectQuestion],
+          representationType: doubleNone,
         ),
       ),
       objectQuestion,
-    );
-
-    // A(Object) and B(Object?)
-    _checkLeastUpperBound(
-      interfaceTypeNone(
-        extensionType(
-          'A',
-          representationType: objectNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      interfaceTypeNone(
-        extensionType(
-          'B',
-          representationType: objectQuestion,
-          interfaces: [objectQuestion],
-        ),
-      ),
-      objectQuestion,
-    );
-
-    // A(Object) and B(Object)
-    _checkLeastUpperBound(
-      interfaceTypeNone(
-        extensionType(
-          'A',
-          representationType: objectNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      interfaceTypeNone(
-        extensionType(
-          'B',
-          representationType: objectNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      objectNone,
-    );
-
-    // A(String) and B(num)
-    _checkLeastUpperBound(
-      interfaceTypeNone(
-        extensionType(
-          'A',
-          representationType: stringNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      interfaceTypeNone(
-        extensionType(
-          'B',
-          representationType: numNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      objectNone,
     );
   }
 
@@ -3603,6 +3578,86 @@ class UpperBoundTest extends _BoundsTestBase {
       typeParameterTypeNone(T),
       intNone,
       objectQuestion,
+    );
+  }
+
+  void test_typeParameter_intersection_basic() {
+    // `X extends num?`, `Y extends X`, `X & num`.
+    var X = typeParameter('X', bound: numQuestion);
+    var X_none = typeParameterTypeNone(X);
+    var Y = typeParameter('Y', bound: X_none);
+    var Y_none = typeParameterTypeNone(Y);
+    var X_none_promoted = typeParameterTypeNone(X, promotedBound: numNone);
+
+    // `UP(X & num, Y) == X`, because `Y <: X`.
+    _checkLeastUpperBound(
+      X_none_promoted,
+      Y_none,
+      X_none,
+    );
+
+    // `UP(X & num, num?) == num?`, because `X <: num?`.
+    _checkLeastUpperBound(
+      X_none_promoted,
+      numQuestion,
+      numQuestion,
+    );
+
+    // `UP(X & num, String) == Object`.
+    _checkLeastUpperBound(
+      X_none_promoted,
+      stringNone,
+      objectNone,
+    );
+  }
+
+  void test_typeParameter_intersection_fbounded() {
+    // `X`, `class C<X> {}`, `Y extends C<Y>?`, `Y & C<Y>`.
+    var X = typeParameter('X');
+    var C = class_(name: 'C', typeParameters: [X]);
+    var Y = typeParameter('Y');
+    var Y_none = typeParameterTypeNone(Y);
+    Y.bound = interfaceTypeQuestion(C, typeArguments: [Y_none]);
+    var C_Y_none = interfaceTypeNone(C, typeArguments: [Y_none]);
+    var Y_none_promoted = typeParameterTypeNone(
+      Y,
+      promotedBound: C_Y_none,
+    );
+    var C_Never_none = interfaceTypeNone(C, typeArguments: [neverNone]);
+    var C_ObjectQuestion_none =
+        interfaceTypeNone(C, typeArguments: [objectQuestion]);
+
+    // `UP(Y & C<Y>, C<Never>) == C<Object?>`.
+    _checkLeastUpperBound(
+      Y_none_promoted,
+      C_Never_none,
+      C_ObjectQuestion_none,
+    );
+  }
+
+  void test_typeParameter_intersection_null() {
+    var X = typeParameter('X');
+    var X_none_promoted_nullable = typeParameterTypeNone(
+      X,
+      promotedBound: numQuestion,
+    );
+    var X_none_promoted_nonnullable = typeParameterTypeNone(
+      X,
+      promotedBound: numNone,
+    );
+
+    // UP(X & num?, Null) == num?
+    _checkLeastUpperBound(
+      X_none_promoted_nullable,
+      nullNone,
+      numQuestion,
+    );
+
+    // UP(X & num, Null) == num?
+    _checkLeastUpperBound(
+      X_none_promoted_nonnullable,
+      nullNone,
+      numQuestion,
     );
   }
 

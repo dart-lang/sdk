@@ -23,11 +23,15 @@ Future streamHistoryTest(Isolate isolate, String stream) async {
   final completer = Completer<void>();
   int i = 1;
   await subscribeToStream(isolate.vm, stream, (event) async {
-    // Newlines are sent as separate events for some reason. Ignore them.
-    if (!event.bytesAsString!.startsWith(stream)) {
-      return;
+    if (stream == 'Stdout') {
+      expect(event.bytesAsString, '$stream log$i\n');
+    } else {
+      // Newlines are sent as separate events for some reason. Ignore them.
+      if (!event.bytesAsString!.startsWith(stream)) {
+        return;
+      }
+      expect(event.bytesAsString, '$stream log$i');
     }
-    expect(event.bytesAsString, '$stream log$i');
     i++;
 
     if (i == 10) {

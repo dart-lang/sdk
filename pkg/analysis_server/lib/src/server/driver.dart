@@ -24,6 +24,7 @@ import 'package:analysis_server/src/server/isolate_analysis_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
@@ -211,7 +212,7 @@ class Driver implements ServerStarter {
     final defaultSdkPath = _getSdkPath(results);
     final dartSdkManager = DartSdkManager(defaultSdkPath);
 
-    // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
+    // TODO(brianwilkerson): It would be nice to avoid creating an SDK that
     // can't be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
     var defaultSdk = _createDefaultSdk(defaultSdkPath);
@@ -388,10 +389,8 @@ class Driver implements ServerStarter {
         return;
       }
     }
-    //
-    // Register lint rules.
-    //
     linter.registerLintRules();
+    registerBuiltInProducers();
 
     var diagnosticServer = _DiagnosticServerImpl();
 
@@ -500,6 +499,7 @@ class Driver implements ServerStarter {
         : _captureExceptions;
 
     linter.registerLintRules();
+    registerBuiltInProducers();
 
     var diagnosticServer = _DiagnosticServerImpl();
 
@@ -559,7 +559,7 @@ class Driver implements ServerStarter {
   /// Create the `Analytics` instance to be used to report analytics.
   Analytics _createAnalytics(
       DartSdk dartSdk, String dartSdkPath, DashTool tool) {
-    // TODO(brianwilkerson) Find out whether there's a way to get the channel
+    // TODO(brianwilkerson): Find out whether there's a way to get the channel
     //  without running `flutter channel`.
     var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
     var flutterSdkRoot = pathContext

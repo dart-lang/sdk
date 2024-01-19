@@ -6,7 +6,11 @@ class Class {
 }
 
 main() {}
+
 test(Class? c) {}
+
 final bool inStrongMode = _inStrongMode();
+
 bool _inStrongMode() {}
+
 void throwsInStrong(void Function() f) {}

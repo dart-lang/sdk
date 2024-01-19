@@ -18,11 +18,14 @@ import 'code_actions_source_test.dart' as code_actions_source;
 import 'completion_dart_test.dart' as completion_dart;
 import 'completion_yaml_test.dart' as completion_yaml;
 import 'configuration_test.dart' as configuration;
+import 'dart_text_document_content_provider_test.dart'
+    as dart_text_document_content_provider;
 import 'definition_test.dart' as definition;
 import 'diagnostic_test.dart' as diagnostic;
 import 'document_changes_test.dart' as document_changes;
 import 'document_color_test.dart' as document_color;
 import 'document_highlights_test.dart' as document_highlights;
+import 'document_link_test.dart' as document_link;
 import 'document_symbols_test.dart' as document_symbols;
 import 'file_modification_test.dart' as file_modification;
 import 'flutter_outline_test.dart' as flutter_outline;
@@ -68,11 +71,13 @@ void main() {
     completion_dart.main();
     completion_yaml.main();
     configuration.main();
+    dart_text_document_content_provider.main();
     definition.main();
     diagnostic.main();
     document_changes.main();
     document_color.main();
     document_highlights.main();
+    document_link.main();
     document_symbols.main();
     file_modification.main();
     flutter_outline.main();

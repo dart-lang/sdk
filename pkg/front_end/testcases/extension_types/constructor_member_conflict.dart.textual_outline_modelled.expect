@@ -5,12 +5,18 @@ extension type ExtensionType(int it) {
   dynamic get constructorAndGetter => null;
   dynamic get factoryAndGetter => null;
   dynamic get redirectingFactoryAndGetter => null;
-  factory ExtensionType.factoryAndGetter() => new ExtensionType.constructorAndGetter();
-  factory ExtensionType.factoryAndMethod() => new ExtensionType.constructorAndMethod();
-  factory ExtensionType.factoryAndSetter() => new ExtensionType.constructorAndSetter();
-  factory ExtensionType.redirectingFactoryAndGetter() = ExtensionType.constructorAndGetter;
-  factory ExtensionType.redirectingFactoryAndMethod() = ExtensionType.constructorAndMethod;
-  factory ExtensionType.redirectingFactoryAndSetter() = ExtensionType.constructorAndSetter;
+  factory ExtensionType.factoryAndGetter() =>
+      new ExtensionType.constructorAndGetter();
+  factory ExtensionType.factoryAndMethod() =>
+      new ExtensionType.constructorAndMethod();
+  factory ExtensionType.factoryAndSetter() =>
+      new ExtensionType.constructorAndSetter();
+  factory ExtensionType.redirectingFactoryAndGetter() =
+      ExtensionType.constructorAndGetter;
+  factory ExtensionType.redirectingFactoryAndMethod() =
+      ExtensionType.constructorAndMethod;
+  factory ExtensionType.redirectingFactoryAndSetter() =
+      ExtensionType.constructorAndSetter;
   void constructorAndMethod() {}
   void factoryAndMethod() {}
   void redirectingFactoryAndMethod() {}

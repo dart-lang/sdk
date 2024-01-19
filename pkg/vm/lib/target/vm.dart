@@ -168,11 +168,9 @@ class VmTarget extends Target {
           diagnosticReporter,
           referenceFromIndex,
           changedStructureNotifier);
-      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
-      logger?.call("Transformed ffi annotations");
+      logger?.call("Transformed ffi definitions");
 
-      // Transform @FfiNative(..) functions into FFI native call functions.
+      // Transform @Native(..) functions into FFI native call functions.
       // Pass instance method receivers as implicit first argument to the static
       // native function.
       // Transform arguments that extend NativeFieldWrapperClass1 to Pointer if
@@ -180,11 +178,18 @@ class VmTarget extends Target {
       transformFfiNative.transformLibraries(component, coreTypes, hierarchy,
           transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi natives");
+
+      // The use sites transformer implements `Native.addressOf` by reading a
+      // VM pragma attached to valid targets in the native transformer. Hence,
+      // it can only run after `@Native` targets have been transformed.
+      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
+          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
+      logger?.call("Transformed ffi use sites");
     }
 
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformLibraries(libraries, coreTypes, hierarchy,
-        nullSafety: flags.soundNullSafety, productMode: productMode);
+        soundNullSafety: flags.soundNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
 
     callSiteAnnotator.transformLibraries(
@@ -201,7 +206,7 @@ class VmTarget extends Target {
       {void Function(String msg)? logger}) {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformProcedure(procedure, coreTypes, hierarchy,
-        nullSafety: flags.soundNullSafety, productMode: productMode);
+        soundNullSafety: flags.soundNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
   }
 

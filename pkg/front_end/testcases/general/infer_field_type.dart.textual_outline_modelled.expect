@@ -12,7 +12,11 @@ class C extends B {
 }
 
 int? method() => 0;
+
 main() {}
+
 var topLevelFieldFromA = new A().field;
+
 var topLevelFieldFromB = new B().field;
+
 var topLevelFieldFromC = new C().field;

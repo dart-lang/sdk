@@ -420,29 +420,16 @@ class Types with StandardBounds {
 
   static List<Object>? typeChecksForTesting;
 
-  InterfaceType? getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, CoreTypes coreTypes,
+  TypeDeclarationType? getTypeAsInstanceOf(TypeDeclarationType type,
+      TypeDeclaration typeDeclaration, CoreTypes coreTypes,
       {required bool isNonNullableByDefault}) {
-    return hierarchy.getTypeAsInstanceOf(type, superclass,
+    return hierarchy.getTypeAsInstanceOf(type, typeDeclaration,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 
   List<DartType>? getTypeArgumentsAsInstanceOf(
-      InterfaceType type, Class superclass) {
-    return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
-  }
-
-  List<DartType>? getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
-      ExtensionType type, ExtensionTypeDeclaration superDeclaration) {
-    return hierarchy
-        .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
-            type, superDeclaration);
-  }
-
-  List<DartType>? getExtensionTypeArgumentsAsInstanceOfClass(
-      ExtensionType type, Class superclass) {
-    return hierarchy.getExtensionTypeArgumentsAsInstanceOfClass(
-        type, superclass);
+      TypeDeclarationType type, TypeDeclaration typeDeclaration) {
+    return hierarchy.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
   }
 
   bool isTop(DartType type) {
@@ -497,8 +484,8 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
     if (s.classReference == t.classReference) {
       asSupertypeArguments = s.typeArguments;
     } else {
-      asSupertypeArguments =
-          types.hierarchy.getTypeArgumentsAsInstanceOf(s, t.classNode);
+      asSupertypeArguments = types.hierarchy
+          .getInterfaceTypeArgumentsAsInstanceOfClass(s, t.classNode);
     }
     if (asSupertypeArguments == null) {
       return const IsSubtypeOf.never();
@@ -584,8 +571,8 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   IsSubtypeOf isExtensionTypeRelated(
       ExtensionType s, InterfaceType t, Types types) {
-    List<DartType>? asSupertypeArguments =
-        types.getExtensionTypeArgumentsAsInstanceOfClass(s, t.classNode);
+    List<DartType>? asSupertypeArguments = types.hierarchy
+        .getExtensionTypeArgumentsAsInstanceOfClass(s, t.classNode);
     if (asSupertypeArguments == null) {
       return const IsSubtypeOf.never();
     }

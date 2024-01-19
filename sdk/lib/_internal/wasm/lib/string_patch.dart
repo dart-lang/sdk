@@ -10,7 +10,14 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]) {
-    return StringBase.createFromCharCodes(charCodes, start, end, null);
+    RangeError.checkNotNegative(start, "start");
+    if (end != null) {
+      if (end < start) {
+        throw RangeError.range(end, start, null, "end");
+      }
+      if (end == start) return "";
+    }
+    return StringBase.createFromCharCodes(charCodes, start, end);
   }
 
   @patch

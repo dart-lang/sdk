@@ -9,6 +9,9 @@ class _AImpl implements A {
 }
 
 const _new = A.new;
+
 const _newImpl = _AImpl.new;
+
 expect(expected, actual) {}
+
 void main(List<String> args) {}

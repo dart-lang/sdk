@@ -337,7 +337,7 @@ static Heap::Space SpaceForRuntimeAllocation() {
 
 static void RuntimeAllocationEpilogue(Thread* thread) {
   if (UNLIKELY(FLAG_runtime_allocate_spill_tlab)) {
-    static uword count = 0;
+    static RelaxedAtomic<uword> count = 0;
     if ((count++ % 10) == 0) {
       thread->heap()->new_space()->AbandonRemainingTLAB(thread);
     }
@@ -3159,6 +3159,7 @@ DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
   // Handle interrupts:
   //  - store buffer overflow
   //  - OOB message (vm-service or dart:isolate)
+  //  - marking ready for finalization
   const Error& error = Error::Handle(thread->HandleInterrupts());
   ThrowIfError(error);
 

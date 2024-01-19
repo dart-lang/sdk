@@ -45,6 +45,7 @@ import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
+import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
@@ -85,7 +86,7 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    with ClassDeclarationMixin
+    with ClassDeclarationMixin, SourceTypedDeclarationBuilderMixin
     implements Comparable<SourceClassBuilder>, ClassDeclaration {
   final Class actualCls;
 
@@ -107,7 +108,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   TypeBuilder? mixedInTypeBuilder;
 
-  final IndexedContainer? referencesFromIndexed;
+  final IndexedContainer? indexedContainer;
 
   @override
   final bool isMacro;
@@ -166,7 +167,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       int startCharOffset,
       int nameOffset,
       int charEndOffset,
-      this.referencesFromIndexed,
+      this.indexedContainer,
       {Class? cls,
       this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
@@ -178,7 +179,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isAugmentation = false,
       this.isMixinClass = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
+            startCharOffset, nameOffset, charEndOffset, indexedContainer,
             isAugmentation: isAugmentation),
         super(metadata, modifiers, name, scope, constructors, parent,
             nameOffset) {
@@ -245,7 +246,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
-    Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder);
+    Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder,
+        isMixinDeclaration ? TypeUse.mixinOnType : TypeUse.classExtendsType);
     if (supertype != null &&
         LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
       supertype = null;
@@ -301,8 +303,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
-        Supertype? supertype =
-            interfaceBuilders![i].buildSupertype(libraryBuilder);
+        Supertype? supertype = interfaceBuilders![i]
+            .buildSupertype(libraryBuilder, TypeUse.classImplementsType);
         if (supertype != null) {
           if (LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
             continue;
@@ -313,41 +315,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    NameIterator<MemberBuilder> iterator =
-        constructorScope.filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: true);
-    while (iterator.moveNext()) {
-      String name = iterator.name;
-      MemberBuilder constructor = iterator.current;
-      Builder? member = scope.lookupLocalMember(name, setter: false);
-      if (member == null) continue;
-      if (!member.isStatic) continue;
-      // TODO(ahe): Revisit these messages. It seems like the last two should
-      // be `context` parameter to this message.
-      addProblem(templateConflictsWithMember.withArguments(name),
-          constructor.charOffset, noLength);
-      if (constructor.isFactory) {
-        addProblem(
-            templateConflictsWithFactory.withArguments("${this.name}.${name}"),
-            member.charOffset,
-            noLength);
-      } else {
-        addProblem(
-            templateConflictsWithConstructor
-                .withArguments("${this.name}.${name}"),
-            member.charOffset,
-            noLength);
-      }
-    }
-
-    scope.forEachLocalSetter((String name, Builder setter) {
-      Builder? constructor = constructorScope.lookupLocalMember(name);
-      if (constructor == null || !setter.isStatic) return;
-      addProblem(templateConflictsWithConstructor.withArguments(name),
-          setter.charOffset, noLength);
-      addProblem(templateConflictsWithSetter.withArguments(name),
-          constructor.charOffset, noLength);
-    });
+    checkConstructorStaticConflict();
 
     cls.procedures.sort(compareProcedures);
     return cls;
@@ -903,9 +871,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     for (Supertype constraint in cls.mixedInClass!.onClause) {
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
-      InterfaceType? implementedInterface = hierarchy.getTypeAsInstanceOf(
-          supertype, requiredInterface.classNode,
-          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+      InterfaceType? implementedInterface =
+          hierarchy.getInterfaceTypeAsInstanceOfClass(
+              supertype, requiredInterface.classNode,
+              isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
       if (implementedInterface == null ||
           !typeEnvironment.areMutualSubtypes(
               implementedInterface,
@@ -1361,154 +1330,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(ahe): Handle other cases: accessors, operators, and fields.
   }
 
-  void checkGetterSetter(Types types, Member getter, Member setter) {
-    if (getter == setter) {
-      return;
-    }
-    if (cls != getter.enclosingClass &&
-        getter.enclosingClass == setter.enclosingClass) {
-      return;
-    }
-
-    DartType getterType = getter.getterType;
-    if (getter.enclosingClass!.typeParameters.isNotEmpty) {
-      getterType = Substitution.fromPairs(
-              getter.enclosingClass!.typeParameters,
-              types.hierarchy.getTypeArgumentsAsInstanceOf(
-                  thisType, getter.enclosingClass!)!)
-          .substituteType(getterType);
-    }
-
-    DartType setterType = setter.setterType;
-    if (setter.enclosingClass!.typeParameters.isNotEmpty) {
-      setterType = Substitution.fromPairs(
-              setter.enclosingClass!.typeParameters,
-              types.hierarchy.getTypeArgumentsAsInstanceOf(
-                  thisType, setter.enclosingClass!)!)
-          .substituteType(setterType);
-    }
-
-    if (getterType is InvalidType || setterType is InvalidType) {
-      // Don't report a problem as something else is wrong that has already
-      // been reported.
-    } else {
-      bool isValid = types.isSubtypeOf(
-          getterType,
-          setterType,
-          libraryBuilder.isNonNullableByDefault
-              ? SubtypeCheckMode.withNullabilities
-              : SubtypeCheckMode.ignoringNullabilities);
-      if (!isValid && !libraryBuilder.isNonNullableByDefault) {
-        // Allow assignability in legacy libraries.
-        isValid = types.isSubtypeOf(
-            setterType, getterType, SubtypeCheckMode.ignoringNullabilities);
-      }
-      if (!isValid) {
-        Member getterOrigin = getter.memberSignatureOrigin ?? getter;
-        Member setterOrigin = setter.memberSignatureOrigin ?? setter;
-        String getterMemberName = '${getterOrigin.enclosingClass!.name}'
-            '.${getterOrigin.name.text}';
-        String setterMemberName = '${setterOrigin.enclosingClass!.name}'
-            '.${setterOrigin.name.text}';
-        if (getterOrigin.enclosingClass == cls &&
-            setterOrigin.enclosingClass == cls) {
-          Template<Message Function(DartType, String, DartType, String, bool)>
-              template = libraryBuilder.isNonNullableByDefault
-                  ? templateInvalidGetterSetterType
-                  : templateInvalidGetterSetterTypeLegacy;
-          libraryBuilder.addProblem(
-              template.withArguments(getterType, getterMemberName, setterType,
-                  setterMemberName, libraryBuilder.isNonNullableByDefault),
-              getterOrigin.fileOffset,
-              getterOrigin.name.text.length,
-              getterOrigin.fileUri,
-              context: [
-                templateInvalidGetterSetterTypeSetterContext
-                    .withArguments(setterMemberName)
-                    .withLocation(setterOrigin.fileUri, setterOrigin.fileOffset,
-                        setterOrigin.name.text.length)
-              ]);
-        } else if (getterOrigin.enclosingClass == cls) {
-          Template<Message Function(DartType, String, DartType, String, bool)>
-              template = libraryBuilder.isNonNullableByDefault
-                  ? templateInvalidGetterSetterTypeSetterInheritedGetter
-                  : templateInvalidGetterSetterTypeSetterInheritedGetterLegacy;
-          if (getterOrigin is Field) {
-            template = libraryBuilder.isNonNullableByDefault
-                ? templateInvalidGetterSetterTypeSetterInheritedField
-                : templateInvalidGetterSetterTypeSetterInheritedFieldLegacy;
-          }
-          libraryBuilder.addProblem(
-              template.withArguments(getterType, getterMemberName, setterType,
-                  setterMemberName, libraryBuilder.isNonNullableByDefault),
-              getterOrigin.fileOffset,
-              getterOrigin.name.text.length,
-              getterOrigin.fileUri,
-              context: [
-                templateInvalidGetterSetterTypeSetterContext
-                    .withArguments(setterMemberName)
-                    .withLocation(setterOrigin.fileUri, setterOrigin.fileOffset,
-                        setterOrigin.name.text.length)
-              ]);
-        } else if (setterOrigin.enclosingClass == cls) {
-          Template<Message Function(DartType, String, DartType, String, bool)>
-              template = libraryBuilder.isNonNullableByDefault
-                  ? templateInvalidGetterSetterTypeGetterInherited
-                  : templateInvalidGetterSetterTypeGetterInheritedLegacy;
-          Template<Message Function(String)> context =
-              templateInvalidGetterSetterTypeGetterContext;
-          if (getterOrigin is Field) {
-            template = libraryBuilder.isNonNullableByDefault
-                ? templateInvalidGetterSetterTypeFieldInherited
-                : templateInvalidGetterSetterTypeFieldInheritedLegacy;
-            context = templateInvalidGetterSetterTypeFieldContext;
-          }
-          libraryBuilder.addProblem(
-              template.withArguments(getterType, getterMemberName, setterType,
-                  setterMemberName, libraryBuilder.isNonNullableByDefault),
-              setterOrigin.fileOffset,
-              setterOrigin.name.text.length,
-              setterOrigin.fileUri,
-              context: [
-                context.withArguments(getterMemberName).withLocation(
-                    getterOrigin.fileUri,
-                    getterOrigin.fileOffset,
-                    getterOrigin.name.text.length)
-              ]);
-        } else {
-          Template<Message Function(DartType, String, DartType, String, bool)>
-              template = libraryBuilder.isNonNullableByDefault
-                  ? templateInvalidGetterSetterTypeBothInheritedGetter
-                  : templateInvalidGetterSetterTypeBothInheritedGetterLegacy;
-          Template<Message Function(String)> context =
-              templateInvalidGetterSetterTypeGetterContext;
-          if (getterOrigin is Field) {
-            template = libraryBuilder.isNonNullableByDefault
-                ? templateInvalidGetterSetterTypeBothInheritedField
-                : templateInvalidGetterSetterTypeBothInheritedFieldLegacy;
-            context = templateInvalidGetterSetterTypeFieldContext;
-          }
-          libraryBuilder.addProblem(
-              template.withArguments(getterType, getterMemberName, setterType,
-                  setterMemberName, libraryBuilder.isNonNullableByDefault),
-              charOffset,
-              noLength,
-              fileUri,
-              context: [
-                context.withArguments(getterMemberName).withLocation(
-                    getterOrigin.fileUri,
-                    getterOrigin.fileOffset,
-                    getterOrigin.name.text.length),
-                templateInvalidGetterSetterTypeSetterContext
-                    .withArguments(setterMemberName)
-                    .withLocation(setterOrigin.fileUri, setterOrigin.fileOffset,
-                        setterOrigin.name.text.length)
-              ]);
-        }
-      }
-    }
-  }
-
   Uri _getMemberUri(Member member) {
     if (member is Field) return member.fileUri;
     if (member is Procedure) return member.fileUri;
@@ -1531,8 +1352,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Class enclosingClass = interfaceMember.enclosingClass!;
       interfaceSubstitution = Substitution.fromPairs(
           enclosingClass.typeParameters,
-          types.hierarchy
-              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass)!);
+          types.hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
+              thisType, enclosingClass)!);
     }
 
     if (declaredFunction?.typeParameters.length !=
@@ -1643,8 +1464,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Class enclosingClass = declaredMember.enclosingClass!;
       declaredSubstitution = Substitution.fromPairs(
           enclosingClass.typeParameters,
-          types.hierarchy
-              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass)!);
+          types.hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
+              thisType, enclosingClass)!);
     }
     return declaredSubstitution;
   }

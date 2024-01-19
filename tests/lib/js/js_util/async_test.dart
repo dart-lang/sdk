@@ -19,42 +19,34 @@ external void eval(String code);
 abstract class Promise<T> {}
 
 @JS()
-external Promise get resolvedPromise;
-
-@JS()
-external Promise get rejectedPromise;
-
-@JS()
 external Promise getResolvedPromise();
+
+@JS()
+external Promise getRejectedPromise();
 
 main() {
   eval(r"""
-    var rejectedPromise = new Promise((resolve, reject) => reject('rejected'));
-    var resolvedPromise = new Promise(resolve => resolve('resolved'));
     function getResolvedPromise() {
-      return resolvedPromise;
+      return new Promise(resolve => resolve('resolved'));
+    }
+    function getRejectedPromise() {
+      return new Promise((resolve, reject) => reject('rejected'));
     }
     """);
 
   Future<void> testResolvedPromise() async {
-    final String result = await js_util.promiseToFuture(resolvedPromise);
+    final String result = await js_util.promiseToFuture(getResolvedPromise());
     expect(result, equals('resolved'));
   }
 
   Future<void> testRejectedPromise() async {
     final String error = await asyncExpectThrows<String>(
-        js_util.promiseToFuture(rejectedPromise));
+        js_util.promiseToFuture(getRejectedPromise()));
     expect(error, equals('rejected'));
-  }
-
-  Future<void> testReturnResolvedPromise() async {
-    final String result = await js_util.promiseToFuture(getResolvedPromise());
-    expect(result, equals('resolved'));
   }
 
   asyncTest(() async {
     await testResolvedPromise();
     await testRejectedPromise();
-    await testReturnResolvedPromise();
   });
 }

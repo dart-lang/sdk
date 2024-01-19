@@ -27,7 +27,12 @@ final tests = <IsolateTest>[
     var uris = result.uris!;
     expect(uris.length, 4);
     expect(uris[0], 'org-dartlang-sdk:///sdk/lib/io/io.dart');
-    expect(uris[1], Platform.script.toString());
+    if (Platform.isWindows) {
+      // Paths are case-insensitive on Windows.
+      expect(uris[1]!.toLowerCase(), Platform.script.toString().toLowerCase());
+    } else {
+      expect(uris[1], Platform.script.toString());
+    }
     expect(uris[2], startsWith('file:///'));
     expect(uris[2], endsWith('third_party/pkg/test/pkgs/test/lib/test.dart'));
     expect(uris[3], isNull);
@@ -43,7 +48,12 @@ final tests = <IsolateTest>[
     uris = result.uris!;
     expect(uris.length, 4);
     expect(uris[0], unresolvedUris[0]);
-    expect(uris[1], unresolvedUris[1]);
+    if (Platform.isWindows) {
+      // Paths are case-insensitive on Windows.
+      expect(uris[1]!.toLowerCase(), unresolvedUris[1].toLowerCase());
+    } else {
+      expect(uris[1], unresolvedUris[1]);
+    }
     expect(uris[2], unresolvedUris[2]);
     expect(uris[3], isNull);
   },

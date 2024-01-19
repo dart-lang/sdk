@@ -1,2 +1,0 @@
-mixin M on Function() {}
-void main() {}

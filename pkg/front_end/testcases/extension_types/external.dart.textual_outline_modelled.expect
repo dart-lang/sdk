@@ -1,4 +1,5 @@
 abstract class A {}
+
 extension type B._(A a) {
   external A field;
   external A method();
@@ -13,4 +14,5 @@ extension type B._(A a) {
   external static void set staticSetter(B b);
   external void set setter(B b);
 }
+
 void method(A a) {}

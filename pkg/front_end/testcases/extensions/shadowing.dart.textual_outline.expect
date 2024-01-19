@@ -1,4 +1,5 @@
 int getter = 42;
+
 int setter = 42;
 
 extension on int {

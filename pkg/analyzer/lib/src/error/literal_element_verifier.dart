@@ -43,6 +43,8 @@ class LiteralElementVerifier {
     required this.featureSet,
   });
 
+  bool get _strictCasts => _errorVerifier.options.strictCasts;
+
   void verify(CollectionElement element) {
     _verifyElement(element);
   }
@@ -51,7 +53,9 @@ class LiteralElementVerifier {
   /// report the list or set error on the [errorNode].
   void _checkAssignableToElementType(DartType type, AstNode errorNode) {
     var elementType = this.elementType;
-    if (!typeSystem.isAssignableTo(type, elementType!)) {
+
+    if (!typeSystem.isAssignableTo(type, elementType!,
+        strictCasts: _strictCasts)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
@@ -116,7 +120,8 @@ class LiteralElementVerifier {
     }
 
     var keyType = entry.key.typeOrThrow;
-    if (!typeSystem.isAssignableTo(keyType, mapKeyType)) {
+    if (!typeSystem.isAssignableTo(keyType, mapKeyType,
+        strictCasts: _strictCasts)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         entry.key,
@@ -125,7 +130,8 @@ class LiteralElementVerifier {
     }
 
     var valueType = entry.value.typeOrThrow;
-    if (!typeSystem.isAssignableTo(valueType, mapValueType)) {
+    if (!typeSystem.isAssignableTo(valueType, mapValueType,
+        strictCasts: _strictCasts)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         entry.value,
@@ -139,7 +145,7 @@ class LiteralElementVerifier {
   void _verifySpreadForListOrSet(bool isNullAware, Expression expression) {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
-      if (typeSystem.strictCasts) {
+      if (_errorVerifier.strictCasts) {
         return errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
           expression,
@@ -188,7 +194,8 @@ class LiteralElementVerifier {
 
     var iterableElementType = iterableType.typeArguments[0];
     var elementType = this.elementType;
-    if (!typeSystem.isAssignableTo(iterableElementType, elementType!)) {
+    if (!typeSystem.isAssignableTo(iterableElementType, elementType!,
+        strictCasts: _strictCasts)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
@@ -211,13 +218,17 @@ class LiteralElementVerifier {
             errorReporter: errorReporter,
             errorNode: expression,
             genericMetadataIsEnabled: true,
+            strictInference: _errorVerifier.options.strictInference,
+            strictCasts: _errorVerifier.options.strictCasts,
+            typeSystemOperations: _errorVerifier.typeSystemOperations,
           );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);
           }
         }
 
-        if (!typeSystem.isAssignableTo(tearoffType, elementType)) {
+        if (!typeSystem.isAssignableTo(tearoffType, elementType,
+            strictCasts: _strictCasts)) {
           errorReporter.reportErrorForNode(
             errorCode,
             expression,
@@ -233,7 +244,7 @@ class LiteralElementVerifier {
   void _verifySpreadForMap(bool isNullAware, Expression expression) {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
-      if (typeSystem.strictCasts) {
+      if (_errorVerifier.strictCasts) {
         return errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_MAP_SPREAD,
           expression,
@@ -282,7 +293,8 @@ class LiteralElementVerifier {
 
     var keyType = mapType.typeArguments[0];
     var mapKeyType = this.mapKeyType;
-    if (!typeSystem.isAssignableTo(keyType, mapKeyType!)) {
+    if (!typeSystem.isAssignableTo(keyType, mapKeyType!,
+        strictCasts: _strictCasts)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         expression,
@@ -292,7 +304,8 @@ class LiteralElementVerifier {
 
     var valueType = mapType.typeArguments[1];
     var mapValueType = this.mapValueType;
-    if (!typeSystem.isAssignableTo(valueType, mapValueType!)) {
+    if (!typeSystem.isAssignableTo(valueType, mapValueType!,
+        strictCasts: _strictCasts)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         expression,

@@ -263,7 +263,7 @@ class Bn extends self::An {
   constructor •({core::int x = #C4}) → self::Bn
     : super self::An::•(x: x)
     ;
-  constructor req({required core::int x = #C4}) → self::Bn
+  constructor req({required core::int x}) → self::Bn
     : super self::An::•(x: x)
     ;
 }

@@ -207,6 +207,12 @@ class PointerType extends CType {
   String get dartStructFieldAnnotation => "";
   bool get hasSize => false;
   int get size => throw "Size unknown";
+  String get dartTypedData => switch (pointerTo) {
+        float => 'Float32List',
+        double_ => 'Float64List',
+        FundamentalType() => '${pointerTo.dartCType}List',
+        _ => throw UnimplementedError(),
+      };
 
   bool get isOnlyFloatingPoint => false;
   bool get isOnlyInteger => true;
@@ -220,9 +226,8 @@ class Member {
 
   Member(this.type, this.name);
 
-  String dartStructField(bool nnbd) {
-    final modifier = nnbd ? "external" : "";
-    return "${type.dartStructFieldAnnotation} $modifier ${type.dartType} $name;";
+  String dartStructField() {
+    return "${type.dartStructFieldAnnotation} external ${type.dartType} $name;";
   }
 
   String get cStructField {

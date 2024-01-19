@@ -1,37 +1,3 @@
 # Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
-language_2/async_await_syntax_test/a05g_generated: Crash
-language_2/async_await_syntax_test/b10b_generated: Crash
-language_2/async_await_syntax_test/c11a_generated: Crash
-language_2/conditional_property_assignment_test/04_generated: VerificationError
-language_2/conditional_property_assignment_test/13_generated: VerificationError
-language_2/conditional_property_increment_decrement_test/04_generated: VerificationError
-language_2/conditional_property_increment_decrement_test/08_generated: VerificationError
-language_2/conditional_property_increment_decrement_test/12_generated: VerificationError
-language_2/conditional_property_increment_decrement_test/16_generated: VerificationError
-language_2/conditional_property_increment_decrement_test/21_generated: VerificationError
-language_2/conditional_property_increment_decrement_test/27_generated: VerificationError
-language_2/extension_methods/static_extension_operators_test: VerificationError
-language_2/if_null_assignment_behavior_test/13_generated: Crash
-language_2/if_null_assignment_behavior_test/15_generated: Crash
-language_2/if_null_assignment_behavior_test/29_generated: Crash
-language_2/superinterface_variance/mixin_error_test/37_generated: Crash
-language_2/superinterface_variance/mixin_error_test/38_generated: Crash
-language_2/superinterface_variance/mixin_error_test/40_generated: Crash
-language_2/superinterface_variance/mixin_error_test/41_generated: Crash
-language_2/superinterface_variance/mixin_error_test/42_generated: Crash
-language_2/superinterface_variance/mixin_error_test/43_generated: Crash
-language_2/superinterface_variance/mixin_error_test/44_generated: Crash
-language_2/superinterface_variance/mixin_error_test/46_generated: Crash
-language_2/superinterface_variance/mixin_error_test/47_generated: Crash
-language_2/superinterface_variance/mixin_error_test/48_generated: Crash
-language_2/type_parameter_test/04_generated: VerificationError
-language_2/type_parameter_test/05_generated: VerificationError
-language_2/type_parameter_test/06_generated: VerificationError
-language_2/type_parameter_test/08_generated: VerificationError
-language_2/type_parameter_test/09_generated: VerificationError
-language_2/type_variable_scope_test/03_generated: VerificationError
-language_2/void/void_type_usage_test/final_local_use_in_conditional_assignment_left_generated: Crash
-language_2/void/void_type_usage_test/paren_use_in_conditional_assignment_left_generated: Crash

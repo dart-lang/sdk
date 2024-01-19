@@ -6,10 +6,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartdev/dartdev.dart';
 import 'package:dartdev/src/core.dart';
+import 'package:file/memory.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:unified_analytics/src/enums.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 /// A long [Timeout] is provided for tests that start a process on
 /// `bin/dartdev.dart` as the command is not compiled ahead of time, and each
@@ -32,7 +36,6 @@ void initGlobalState() {
 TestProject project(
     {String? mainSrc,
     String? analysisOptions,
-    bool logAnalytics = false,
     String name = TestProject._defaultProjectName,
     VersionConstraint? sdkConstraint,
     Map<String, dynamic>? pubspecExtras}) {
@@ -40,7 +43,6 @@ TestProject project(
       mainSrc: mainSrc,
       name: name,
       analysisOptions: analysisOptions,
-      logAnalytics: logAnalytics,
       sdkConstraint: sdkConstraint,
       pubspecExtras: pubspecExtras);
   addTearDown(() => testProject.dispose());
@@ -66,15 +68,12 @@ class TestProject {
 
   String get relativeFilePath => 'lib/main.dart';
 
-  final bool logAnalytics;
-
   Process? _process;
 
   TestProject({
     String? mainSrc,
     String? analysisOptions,
     this.name = _defaultProjectName,
-    this.logAnalytics = false,
     VersionConstraint? sdkConstraint,
     Map<String, dynamic>? pubspecExtras,
   }) {
@@ -85,7 +84,7 @@ class TestProject {
       JsonEncoder.withIndent('  ').convert(
         {
           'name': name,
-          'environment': {'sdk': sdkConstraint?.toString() ?? '^2.19.0'},
+          'environment': {'sdk': sdkConstraint?.toString() ?? '^3.0.0'},
           ...?pubspecExtras,
         },
       ),
@@ -158,10 +157,48 @@ class TestProject {
         ],
         workingDirectory: workingDir ?? dir.path,
         environment: {
-          if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
           'PUB_CACHE': pubCachePath,
         })
       ..then((p) => _process = p);
+  }
+
+  Future<FakeAnalytics> runLocalWithFakeAnalytics(
+    List<String> arguments, {
+    String? workingDir,
+  }) async {
+    final analytics = _createFakeAnalytics();
+
+    final originalDir = Directory.current;
+    Directory.current = dir;
+
+    final runner = DartdevRunner(arguments, analyticsOverride: analytics);
+    await runner.runCommand(runner.parse(arguments));
+
+    Directory.current = originalDir;
+    return analytics;
+  }
+
+  FakeAnalytics _createFakeAnalytics() {
+    final fs = MemoryFileSystem.test(style: FileSystemStyle.posix);
+    final homeDirectory = fs.directory('/');
+    final FakeAnalytics initialAnalytics = FakeAnalytics(
+      tool: DashTool.dartTool,
+      homeDirectory: homeDirectory,
+      dartVersion: 'dartVersion',
+      platform: DevicePlatform.linux,
+      fs: fs,
+      surveyHandler: SurveyHandler(homeDirectory: homeDirectory, fs: fs),
+    );
+    initialAnalytics.clientShowedMessage();
+
+    return FakeAnalytics(
+      tool: DashTool.dartTool,
+      homeDirectory: homeDirectory,
+      dartVersion: 'dartVersion',
+      platform: DevicePlatform.linux,
+      fs: fs,
+      surveyHandler: SurveyHandler(homeDirectory: homeDirectory, fs: fs),
+    );
   }
 
   String? _sdkRootPath;

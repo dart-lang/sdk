@@ -6,9 +6,7 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -27,6 +25,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -136,7 +135,7 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
   final UnitResult unitResult;
   final ChangeWorkspace workspace;
 
-  /// TODO(migration) Make it non-nullable, specialize "fix" context?
+  // TODO(migration): Make it non-nullable, specialize "fix" context?
   final DartFixContext? dartFixContext;
 
   /// A flag indicating whether the correction producers will be run in the
@@ -144,8 +143,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
   final bool applyingBulkFixes;
 
   final Diagnostic? diagnostic;
-
-  final TransformOverrideSet? overrideSet;
 
   final AstNode node;
 
@@ -160,7 +157,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
     this.diagnostic,
     required this.node,
     required this.token,
-    this.overrideSet,
     this.selectionOffset = -1,
     this.selectionLength = 0,
   })  : file = unitResult.path,
@@ -181,7 +177,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
     bool applyingBulkFixes = false,
     DartFixContext? dartFixContext,
     Diagnostic? diagnostic,
-    TransformOverrideSet? overrideSet,
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
@@ -202,7 +197,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
       applyingBulkFixes: applyingBulkFixes,
       dartFixContext: dartFixContext,
       diagnostic: diagnostic,
-      overrideSet: overrideSet,
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
     );
@@ -214,7 +208,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
     bool applyingBulkFixes = false,
     DartFixContext? dartFixContext,
     Diagnostic? diagnostic,
-    TransformOverrideSet? overrideSet,
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
@@ -233,7 +226,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
       applyingBulkFixes: applyingBulkFixes,
       dartFixContext: dartFixContext,
       diagnostic: diagnostic,
-      overrideSet: overrideSet,
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
     );
@@ -257,7 +249,7 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
 
 abstract class CorrectionProducerWithDiagnostic
     extends ResolvedCorrectionProducer {
-  /// TODO(migration) Consider providing it via constructor.
+  // TODO(migration): Consider providing it via constructor.
   @override
   Diagnostic get diagnostic => super.diagnostic!;
 }
@@ -289,6 +281,10 @@ abstract class ParsedCorrectionProducer
 /// the resolved AST.
 abstract class ResolvedCorrectionProducer
     extends CorrectionProducer<ResolvedUnitResult> {
+  AnalysisOptionsImpl get analysisOptions =>
+      sessionHelper.session.analysisContext
+          .getAnalysisOptionsForFile(unitResult.file) as AnalysisOptionsImpl;
+
   /// Return the type for the class `bool` from `dart:core`.
   DartType get coreTypeBool => unitResult.typeProvider.boolType;
 
@@ -339,6 +335,17 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  /// Return the extension type for the given [element].
+  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
+      ExtensionTypeElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    var node = result?.node;
+    if (node is ExtensionTypeDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
   LinterContext getLinterContext(path.Context pathContext) {
     return LinterContextImpl(
       [], // unused
@@ -347,7 +354,7 @@ abstract class ResolvedCorrectionProducer
       typeProvider,
       typeSystem as TypeSystemImpl,
       InheritanceManager3(), // unused
-      sessionHelper.session.analysisContext.analysisOptions,
+      analysisOptions,
       null,
       pathContext,
     );
@@ -501,7 +508,7 @@ abstract class ResolvedCorrectionProducer
 /// The behavior shared by [ResolvedCorrectionProducer] and [MultiCorrectionProducer].
 abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// The context used to produce corrections.
-  /// TODO(migration) Make it not `late`, require in constructor.
+  // TODO(migration): Make it not `late`, require in constructor.
   late CorrectionProducerContext<T> _context;
 
   /// The most deeply nested node that completely covers the highlight region of
@@ -516,14 +523,11 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// Return `true` if the fixes are being built for the bulk-fix request.
   bool get applyingBulkFixes => _context.applyingBulkFixes;
 
-  CodeStyleOptions get codeStyleOptions =>
-      sessionHelper.session.analysisContext.analysisOptions.codeStyleOptions;
-
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
   /// not exist.
   AstNode? get coveredNode {
-    // TODO(brianwilkerson) Consider renaming this to `coveringNode`.
+    // TODO(brianwilkerson): Consider renaming this to `coveringNode`.
     if (_coveredNode == null) {
       final diagnostic = this.diagnostic;
       if (diagnostic == null) {
@@ -547,8 +551,6 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   String get file => _context.file;
 
-  Flutter get flutter => Flutter.instance;
-
   /// See [CompilationUnitImpl.invalidNodes]
   List<AstNode> get invalidNodes {
     return (unit as CompilationUnitImpl).invalidNodes;
@@ -556,11 +558,6 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   AstNode get node => _context.node;
 
-  /// Return the set of overrides to be applied to the transform set when
-  /// running tests, or `null` if there are no overrides to apply.
-  TransformOverrideSet? get overrideSet => _context.overrideSet;
-
-  /// Return the resource provider used to access the file system.
   ResourceProvider get resourceProvider => unitResult.session.resourceProvider;
 
   int get selectionEnd => _context.selectionEnd;
@@ -570,6 +567,15 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   int get selectionOffset => _context.selectionOffset;
 
   AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
+
+  bool get strictCasts {
+    var file = _context.dartFixContext?.resolveResult.file;
+    // TODO(pq): can this ever happen?
+    if (file == null) return false;
+    var analysisOptions = _context.session.analysisContext
+        .getAnalysisOptionsForFile(file) as AnalysisOptionsImpl;
+    return analysisOptions.strictCasts;
+  }
 
   Token get token => _context.token;
 
@@ -588,6 +594,11 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// given [type].
   String displayStringForType(DartType type) =>
       type.getDisplayString(withNullability: _context.isNonNullableByDefault);
+
+  CodeStyleOptions getCodeStyleOptions(File file) =>
+      sessionHelper.session.analysisContext
+          .getAnalysisOptionsForFile(file)
+          .codeStyleOptions;
 
   /// Return the function body of the most deeply nested method or function that
   /// encloses the [node], or `null` if the node is not in a method or function.
@@ -704,7 +715,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 extension DartFileEditBuilderExtension on DartFileEditBuilder {
   /// Add edits to the [builder] to remove any parentheses enclosing the
   /// [expression].
-  // TODO(brianwilkerson) Consider moving this to DartFileEditBuilder.
+  // TODO(brianwilkerson): Consider moving this to DartFileEditBuilder.
   void removeEnclosingParentheses(Expression expression) {
     var precedence = getExpressionPrecedence(expression);
     while (expression.parent is ParenthesizedExpression) {

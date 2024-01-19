@@ -262,7 +262,7 @@ function selectEntryGroup(pageStart) {
       sink.write('<b>&lt;</b>');
       sink.writeln('</a></button>');
     }
-    // TODO(brianwilkerson) Add a text field for selecting the start index.
+    // TODO(brianwilkerson): Add a text field for selecting the start index.
     if (pageEnd == length) {
       sink.writeln('<button type="button" disabled><b>&gt;</b></button>');
     } else {

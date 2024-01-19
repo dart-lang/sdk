@@ -8,7 +8,7 @@
 /// You should only use these methods when the same effect cannot be achieved
 /// with `@JS()` annotations.
 ///
-/// {@category Web}
+/// {@category Web (Legacy)}
 library dart.js_util;
 
 // Examples can assume:

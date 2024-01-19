@@ -7,21 +7,24 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:yaml/yaml.dart';
 
 /// Produces [CodeAction]s from analysis options fixes.
 class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   AnalysisOptionsCodeActionsProducer(
     super.server,
-    super.path,
+    super.file,
     super.lineInfo, {
     required super.offset,
     required super.length,
     required super.shouldIncludeKind,
     required super.capabilities,
+    required super.analysisOptions,
   });
 
   @override
@@ -56,12 +59,17 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       return [];
     }
 
+    final contextRoot = session.analysisContext.contextRoot;
+    final package = contextRoot.workspace.findPackageFor(optionsFile.path);
+    final sdkVersionConstraint =
+        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
+
     final errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
       sourceFactory,
-      session.analysisContext.contextRoot.root.path,
-      session.analysisContext.analysisOptions.sdkVersionConstraint,
+      contextRoot.root.path,
+      sdkVersionConstraint,
     );
 
     final codeActions = <CodeActionWithPriority>[];

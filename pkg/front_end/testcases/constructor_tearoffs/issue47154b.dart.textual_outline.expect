@@ -4,5 +4,7 @@ class A {
 }
 
 X id<X>(X x) => x;
+
 X other<X>(X x) => throw '$x';
+
 void main() {}

@@ -20,4 +20,5 @@ extension Extension2<T extends num> on Class<T> {
 }
 
 main() {}
+
 expect(expected, actual) {}

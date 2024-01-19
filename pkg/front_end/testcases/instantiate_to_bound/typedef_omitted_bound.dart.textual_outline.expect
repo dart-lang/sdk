@@ -1,4 +1,5 @@
 typedef A<T>(T p);
+
 A a = throw '';
 
 class C {

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// File is compiled with checked in SDK, update [FfiNative]s to [Native] when
-// SDK is rolled.
-
 // ignore_for_file: camel_case_types
 // ignore_for_file: deprecated_member_use
 // ignore_for_file: non_constant_identifier_names
@@ -25,14 +22,12 @@ external int close(int fd);
 // void* mmap(void* addr, size_t length,
 //            int prot, int flags,
 //            int fd, off_t offset)
-@FfiNative<
-    Pointer<Uint8> Function(
-        Pointer<Uint8>, Size, Int, Int, Int, IntPtr)>("mmap")
+@Native<Pointer<Uint8> Function(Pointer<Uint8>, Size, Int, Int, Int, IntPtr)>()
 external Pointer<Uint8> mmap(
     Pointer<Uint8> address, int len, int prot, int flags, int fd, int offset);
 
 // int munmap(void *addr, size_t length)
-@Native<IntPtr Function(Pointer<Uint8> address, Size len)>(symbol: "munmap")
+@Native<IntPtr Function(Pointer<Uint8> address, Size len)>()
 external int munmap(Pointer<Uint8> address, int len);
 
 final DynamicLibrary processSymbols = DynamicLibrary.process();
@@ -130,20 +125,25 @@ const finalizerCode = <Abi, List<int>>{
 
 // We need to attach the finalizer which calls close() and munmap().
 final finalizerAddress = () {
+  // UBSAN will dereference callback-8 to get typeinfo to check for matching
+  // types at the call site for the finalizer callback. Make that slot
+  // addressable and leave it initialized to NULL.
+  final offset = 8;
+
   final Pointer<Uint8> finalizerStub = mmap(nullptr, kPageSize,
       kProtRead | kProtWrite, kMapPrivate | kMapAnon, -1, 0);
   finalizerStub
       .cast<Uint8>()
       .asTypedList(kPageSize)
-      .setAll(0, finalizerCode[Abi.current()]!);
+      .setAll(offset, finalizerCode[Abi.current()]!);
   if (mprotect(finalizerStub, kPageSize, kProtRead | kProtExec) != 0) {
     throw 'Failed to write executable code to the memory.';
   }
 
-  return finalizerStub.cast<Void>();
+  return finalizerStub.elementAt(offset).cast<Void>();
 }();
 
-class PeerData extends Struct {
+base class PeerData extends Struct {
   external Pointer<Void> close;
   external Pointer<Void> munmap;
   external Pointer<Void> free;

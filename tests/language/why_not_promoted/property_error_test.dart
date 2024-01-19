@@ -5,18 +5,18 @@
 class C {
   int? get i => null;
   //       ^
-  // [context 1] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 2] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 3] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 4] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 5] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 6] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 7] 'i' refers to a getter so it couldn't be promoted.
-  // [context 8] 'i' refers to a getter so it couldn't be promoted.
-  // [context 9] 'i' refers to a getter so it couldn't be promoted.
-  // [context 10] 'i' refers to a getter so it couldn't be promoted.
-  // [context 11] 'i' refers to a getter so it couldn't be promoted.
-  // [context 12] 'i' refers to a getter so it couldn't be promoted.
+  // [context 1] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 2] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 4] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 5] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 6] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 7] 'i' refers to a public property so it couldn't be promoted.
+  // [context 8] 'i' refers to a public property so it couldn't be promoted.
+  // [context 9] 'i' refers to a public property so it couldn't be promoted.
+  // [context 10] 'i' refers to a public property so it couldn't be promoted.
+  // [context 11] 'i' refers to a public property so it couldn't be promoted.
+  // [context 12] 'i' refers to a public property so it couldn't be promoted.
   int? get j => null;
 
   get_property_via_explicit_this() {

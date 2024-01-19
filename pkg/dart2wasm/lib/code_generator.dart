@@ -210,13 +210,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     if (member is Constructor) {
+      translator.membersBeingGenerated.add(member);
       if (reference.isConstructorBodyReference) {
-        return generateConstructorBody(reference);
+        generateConstructorBody(reference);
       } else if (reference.isInitializerReference) {
-        return generateInitializerList(reference);
+        generateInitializerList(reference);
+      } else {
+        generateConstructorAllocator(member);
       }
-
-      return generateConstructorAllocator(member);
+      translator.membersBeingGenerated.remove(member);
+      return;
     }
 
     if (member is Field) {
@@ -813,12 +816,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         // Dart body may have an implicit return null.
         b.ref_null(returnType.heapType.bottomType);
       } else {
-        // This point is unreachable, but the Wasm validator still expects the
-        // stack to contain a value matching the Wasm function return type.
-        b.block(const [], outputs);
         b.comment("Unreachable implicit return");
         b.unreachable();
-        b.end();
       }
     }
   }
@@ -1165,8 +1164,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Only emit the type test if the guard is not [Object].
       if (emitGuard) {
         b.local_get(thrownException);
-        types.emitTypeTest(
-            this, guard, translator.coreTypes.objectNonNullableRawType);
+        types.emitTypeCheck(
+            this, guard, translator.coreTypes.objectNonNullableRawType, catch_);
         b.i32_eqz();
         b.br_if(catchBlock);
       }
@@ -1223,7 +1222,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
       if (guard is InterfaceType) {
         return translator.hierarchy
-            .isSubtypeOf(translator.javaScriptErrorClass, guard.classNode);
+            .isSubInterfaceOf(translator.javaScriptErrorClass, guard.classNode);
       }
       if (guard is TypeParameterType) {
         return guardCanMatchJSException(guard.bound);
@@ -1294,7 +1293,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // execution after the finalizer (no throws, returns, or breaks).
     w.Label tryFinallyBlock = b.block();
 
-    // Create one block for each wrapping label
+    // Create one block for each wrapping label.
     for (final labelBlocks in breakFinalizers.values.toList().reversed) {
       labelBlocks.add(b.block());
     }
@@ -1306,29 +1305,36 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     w.Label tryBlock = b.try_();
     visitStatement(node.body);
+
     final bool mustHandleReturn =
         returnFinalizers.removeLast().mustHandleReturn;
-    b.catch_(translator.exceptionTag);
 
     // `break` statements in the current finalizer and the rest will not run
-    // the current finalizer, update the `break` targets
+    // the current finalizer, update the `break` targets.
     final removedBreakTargets = <LabeledStatement, w.Label>{};
     for (final breakFinalizerEntry in breakFinalizers.entries) {
       removedBreakTargets[breakFinalizerEntry.key] =
           breakFinalizerEntry.value.removeLast();
     }
 
-    // Run finalizer on exception
+    // Handle Dart exceptions.
+    b.catch_(translator.exceptionTag);
     visitStatement(node.finalizer);
     b.rethrow_(tryBlock);
-    b.end(); // end tryBlock.
 
-    // Run finalizer on normal execution (no breaks, throws, or returns)
+    // Handle JS exceptions.
+    b.catch_all();
+    visitStatement(node.finalizer);
+    b.rethrow_(tryBlock);
+
+    b.end(); // tryBlock
+
+    // Run finalizer on normal execution (no breaks, throws, or returns).
     visitStatement(node.finalizer);
     b.br(tryFinallyBlock);
-    b.end(); // end returnFinalizerBlock.
+    b.end(); // returnFinalizerBlock
 
-    // Run finalizer on `return`
+    // Run the finalizer on `return`.
     if (mustHandleReturn) {
       visitStatement(node.finalizer);
       if (returnFinalizers.isNotEmpty) {
@@ -1342,15 +1348,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
     }
 
-    // Generate finalizers for `break`s in the `try` block
+    // Generate finalizers for `break`s in the `try` block.
     for (final removedBreakTargetEntry in removedBreakTargets.entries) {
       b.end();
       visitStatement(node.finalizer);
       b.br(breakFinalizers[removedBreakTargetEntry.key]!.last);
     }
 
-    // Terminate `tryFinallyBlock`
-    b.end();
+    b.end(); // tryFinallyBlock
   }
 
   @override
@@ -1773,7 +1778,42 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         _lookupSuperTarget(node.interfaceTarget, setter: false).reference;
     w.FunctionType targetFunctionType =
         translator.functions.getFunctionType(target);
-    w.ValueType receiverType = targetFunctionType.inputs.first;
+    w.ValueType receiverType = targetFunctionType.inputs[0];
+
+    // When calling `==` and the argument is potentially nullable, check if the
+    // argument is `null`.
+    if (node.name.text == '==') {
+      assert(node.arguments.positional.length == 1);
+      assert(node.arguments.named.isEmpty);
+      final argument = node.arguments.positional[0];
+      if (dartTypeOf(argument).isPotentiallyNullable) {
+        w.Label resultBlock = b.block(const [], const [w.NumType.i32]);
+
+        w.ValueType argumentType = targetFunctionType.inputs[1];
+        // `==` arguments are non-nullable.
+        assert(argumentType.nullable == false);
+
+        final argumentNullBlock = b.block(const [], const []);
+
+        visitThis(receiverType);
+        wrap(argument, argumentType.withNullability(true));
+        b.br_on_null(argumentNullBlock);
+
+        final resultType = translator.outputOrVoid(call(target));
+        // `super ==` should return bool.
+        assert(resultType == w.NumType.i32);
+        b.br(resultBlock);
+
+        b.end(); // argumentNullBlock
+
+        b.i32_const(0); // false
+        b.br(resultBlock);
+
+        b.end(); // resultBlock
+        return w.NumType.i32;
+      }
+    }
+
     visitThis(receiverType);
     _visitArguments(node.arguments, target, 1);
     return translator.outputOrVoid(call(target));
@@ -1856,24 +1896,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         function.addLocal(translator.topInfo.nullableType);
     b.local_set(nullableReceiverLocal);
 
-    // Evaluate type arguments. Type argument list is growable as we may want
-    // to add default bounds when the callee has type parameters but no type
-    // arguments are passed.
-    makeList(InterfaceType(translator.typeClass, Nullability.nonNullable),
-        typeArguments.length, (elementType, elementIdx) {
-      translator.types.makeType(this, typeArguments[elementIdx]);
-    }, isGrowable: true);
+    // Evaluate type arguments.
     final typeArgsLocal = function.addLocal(
-        translator.classInfo[translator.growableListClass]!.nonNullableType);
+        makeArray(translator.typeArrayType, typeArguments.length,
+            (elementType, elementIdx) {
+      translator.types.makeType(this, typeArguments[elementIdx]);
+    }));
     b.local_set(typeArgsLocal);
 
     // Evaluate positional arguments
-    makeList(DynamicType(), positionalArguments.length,
+    final positionalArgsLocal = function.addLocal(makeArray(
+        translator.nullableObjectArrayType, positionalArguments.length,
         (elementType, elementIdx) {
       wrap(positionalArguments[elementIdx], elementType);
-    }, isGrowable: false);
-    final positionalArgsLocal = function.addLocal(
-        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    }));
     b.local_set(positionalArgsLocal);
 
     // Evaluate named arguments. The arguments need to be evaluated in the
@@ -1889,9 +1925,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
     namedArgumentLocals.sort((e1, e2) => e1.key.compareTo(e2.key));
 
-    // Create named argument list
-    makeList(DynamicType(), namedArguments.length * 2,
-        (elementType, elementIdx) {
+    // Create named argument array
+    final namedArgsLocal = function.addLocal(
+        makeArray(translator.nullableObjectArrayType, namedArguments.length * 2,
+            (elementType, elementIdx) {
       if (elementIdx % 2 == 0) {
         final name = namedArgumentLocals[elementIdx ~/ 2].key;
         final w.ValueType symbolValueType =
@@ -1902,9 +1939,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         final local = namedArgumentLocals[elementIdx ~/ 2].value;
         b.local_get(local);
       }
-    }, isGrowable: false);
-    final namedArgsLocal = function.addLocal(
-        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    }));
     b.local_set(namedArgsLocal);
 
     final nullBlock = b.block([], [translator.topInfo.nonNullableType]);
@@ -2837,8 +2872,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         node.expressions,
         InterfaceType(
             translator.coreTypes.stringClass, Nullability.nonNullable));
-    return translator
-        .outputOrVoid(call(translator.stringInterpolate.reference));
+    return translator.outputOrVoid(call(translator.options.jsCompatibility
+        ? translator.jsStringInterpolate.reference
+        : translator.stringInterpolate.reference));
   }
 
   @override
@@ -2930,6 +2966,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           (w.ValueType elementType, int i) => wrap(expressions[i], elementType),
           isGrowable: isGrowable);
 
+  w.ValueType makeArrayFromExpressions(
+      List<Expression> expressions, InterfaceType elementType) {
+    return makeArray(
+        translator.arrayTypeForDartType(elementType), expressions.length,
+        (w.ValueType type, int i) {
+      wrap(expressions[i], type);
+    });
+  }
+
+  w.ValueType makeArray(w.ArrayType arrayType, int length,
+      void Function(w.ValueType, int) generateItem) {
+    return translator.makeArray(function, arrayType, length, generateItem);
+  }
+
   @override
   w.ValueType visitMapLiteral(MapLiteral node, w.ValueType expectedType) {
     types.makeType(this, node.keyType);
@@ -2991,7 +3041,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitIsExpression(IsExpression node, w.ValueType expectedType) {
     wrap(node.operand, translator.topInfo.nullableType);
-    types.emitTypeTest(this, node.type, dartTypeOf(node.operand));
+    types.emitTypeCheck(this, node.type, dartTypeOf(node.operand), node);
     return w.NumType.i32;
   }
 
@@ -3008,7 +3058,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     // We lower an `as` expression to a type test, throwing a [TypeError] if
     // the type test fails.
-    types.emitTypeTest(this, node.type, dartTypeOf(node.operand));
+    types.emitTypeCheck(this, node.type, dartTypeOf(node.operand), node);
     b.br_if(asCheckBlock);
     b.local_get(operand);
     types.makeType(this, node.type);
@@ -3346,7 +3396,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Type argument list is either empty or have the right number of types
       // (checked by the forwarder).
       b.local_get(typeArgsLocal);
-      translator.getListLength(b);
+      b.array_len();
       b.i32_eqz();
       b.if_([], List.generate(memberTypeParams.length, (_) => typeType));
       // No type arguments passed, initialize with defaults
@@ -3358,9 +3408,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           typeParamIdx < memberTypeParams.length;
           typeParamIdx += 1) {
         b.local_get(typeArgsLocal);
-        translator.indexList(b, (b) => b.i32_const(typeParamIdx));
-        translator.convertType(
-            function, translator.topInfo.nullableType, typeType);
+        b.i32_const(typeParamIdx);
+        b.array_get(translator.typeArrayType);
       }
       b.end();
 
@@ -3405,7 +3454,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           param.name!,
           () {
             b.local_get(positionalArgsLocal);
-            translator.indexList(b, (b) => b.i32_const(positionalParamIdx));
+            b.i32_const(positionalParamIdx);
+            b.array_get(translator.nullableObjectArrayType);
           },
           () {
             types.makeType(this, param.type);
@@ -3439,8 +3489,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           param.name!,
           () {
             b.local_get(namedArgsLocal);
-            translator.indexList(b,
-                (b) => b.i32_const(mapNamedParameterToArrayIndex(param.name!)));
+            b.i32_const(mapNamedParameterToArrayIndex(param.name!));
+            b.array_get(translator.nullableObjectArrayType);
           },
           () {
             types.makeType(this, param.type);
@@ -3468,7 +3518,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     void pushArgument(w.Local listLocal, int listIdx, int wasmInputIdx) {
       b.local_get(listLocal);
-      translator.indexList(b, (b) => b.i32_const(listIdx));
+      b.i32_const(listIdx);
+      b.array_get(translator.nullableObjectArrayType);
       translator.convertType(function, translator.topInfo.nullableType,
           memberWasmInputs[wasmInputIdx]);
     }
@@ -3680,7 +3731,7 @@ class SwitchInfo {
             e is NullLiteral ||
             (e is ConstantExpression &&
                 (e.constant is C || e.constant is NullConstant) &&
-                (translator.hierarchy.isSubtypeOf(
+                (translator.hierarchy.isSubInterfaceOf(
                     translator.classForType(codeGen.dartTypeOf(e)),
                     switchExprClass))));
 
@@ -3711,7 +3762,9 @@ class SwitchInfo {
           .classInfo[translator.coreTypes.stringClass]!.repr.nonNullableType;
       nullableType = translator
           .classInfo[translator.coreTypes.stringClass]!.repr.nullableType;
-      compare = () => codeGen.call(translator.stringEquals.reference);
+      compare = () => codeGen.call(translator.options.jsCompatibility
+          ? translator.jsStringEquals.reference
+          : translator.stringEquals.reference);
     } else {
       // Object switch
       nonNullableType = translator.topInfo.nonNullableType;

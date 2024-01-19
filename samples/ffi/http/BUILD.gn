@@ -5,5 +5,7 @@
 shared_library("fake_http") {
   sources = [ "lib/fake_http.cc" ]
   include_dirs = [ "." ]
-  ldflags = [ "-rdynamic" ]
+  if (!is_win) {
+    ldflags = [ "-rdynamic" ]
+  }
 }

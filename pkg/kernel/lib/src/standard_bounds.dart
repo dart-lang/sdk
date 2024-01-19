@@ -486,8 +486,10 @@ mixin StandardBounds {
     }
 
     // DOWN(T1, T2) = Never otherwise.
-    return NeverType.fromNullability(intersectNullabilities(
-        type1.declaredNullability, type2.declaredNullability));
+    return NeverType.fromNullability(combineNullabilitiesForSubstitution(
+        Nullability.nonNullable,
+        intersectNullabilities(
+            type1.declaredNullability, type2.declaredNullability)));
   }
 
   DartType _getNullabilityObliviousStandardLowerBound(
@@ -676,6 +678,16 @@ mixin StandardBounds {
       return type1;
     }
 
+    if (type1 is IntersectionType) {
+      return _getNullabilityAwareIntersectionStandardUpperBound(
+          type1, type2, isNonNullableByDefault);
+    }
+
+    if (type2 is IntersectionType) {
+      return _getNullabilityAwareIntersectionStandardUpperBound(
+          type2, type1, isNonNullableByDefault);
+    }
+
     // UP(T1, T2) where NULL(T1) and NULL(T2) =
     //   T2 if MOREBOTTOM(T1, T2)
     //   T1 otherwise
@@ -780,18 +792,8 @@ mixin StandardBounds {
           type1, type2, isNonNullableByDefault);
     }
 
-    if (type1 is IntersectionType) {
-      return _getNullabilityAwareIntersectionStandardUpperBound(
-          type1, type2, isNonNullableByDefault);
-    }
-
     if (type2 is TypeParameterType) {
       return _getNullabilityAwareTypeParameterStandardUpperBound(
-          type2, type1, isNonNullableByDefault);
-    }
-
-    if (type2 is IntersectionType) {
-      return _getNullabilityAwareIntersectionStandardUpperBound(
           type2, type1, isNonNullableByDefault);
     }
 
@@ -925,31 +927,13 @@ mixin StandardBounds {
     }
 
     // UP(C<T0, ..., Tn>, C<S0, ..., Sn>) = C<R0,..., Rn> where Ri is UP(Ti, Si)
-    Class? cls;
-    ExtensionTypeDeclaration? extensionTypeDeclaration;
-    List<TypeParameter>? typeParameters;
-    List<DartType>? leftArguments;
-    List<DartType>? rightArguments;
-    if (type1 is InterfaceType && type2 is InterfaceType) {
-      if (type1.classNode == type2.classNode) {
-        cls = type1.classNode;
-        typeParameters = cls.typeParameters;
-        leftArguments = type1.typeArguments;
-        rightArguments = type2.typeArguments;
-      }
-    }
-    if (type1 is ExtensionType && type2 is ExtensionType) {
-      if (type1.extensionTypeDeclaration == type2.extensionTypeDeclaration) {
-        extensionTypeDeclaration = type1.extensionTypeDeclaration;
-        typeParameters = extensionTypeDeclaration.typeParameters;
-        leftArguments = type1.typeArguments;
-        rightArguments = type2.typeArguments;
-      }
-    }
-
-    if (typeParameters != null &&
-        leftArguments != null &&
-        rightArguments != null) {
+    if (type1 is TypeDeclarationType &&
+        type2 is TypeDeclarationType &&
+        type1.typeDeclarationReference == type2.typeDeclarationReference) {
+      TypeDeclaration typeDeclaration = type1.typeDeclaration;
+      List<TypeParameter> typeParameters = typeDeclaration.typeParameters;
+      List<DartType> leftArguments = type1.typeArguments;
+      List<DartType> rightArguments = type2.typeArguments;
       int n = typeParameters.length;
       List<DartType> typeArguments = new List<DartType>.of(leftArguments);
       for (int i = 0; i < n; ++i) {
@@ -970,32 +954,32 @@ mixin StandardBounds {
               isNonNullableByDefault: isNonNullableByDefault);
         }
       }
-      if (cls != null) {
-        return new InterfaceType(
-            cls,
-            uniteNullabilities(
-                type1.declaredNullability, type2.declaredNullability),
-            typeArguments);
-      } else {
-        return new ExtensionType(
-            extensionTypeDeclaration!,
-            uniteNullabilities(
-                type1.declaredNullability, type2.declaredNullability),
-            typeArguments);
+      switch (typeDeclaration) {
+        case Class():
+          return new InterfaceType(
+              typeDeclaration,
+              uniteNullabilities(
+                  type1.declaredNullability, type2.declaredNullability),
+              typeArguments);
+        case ExtensionTypeDeclaration():
+          return new ExtensionType(
+              typeDeclaration,
+              uniteNullabilities(
+                  type1.declaredNullability, type2.declaredNullability),
+              typeArguments);
       }
     }
 
     // UP(C0<T0, ..., Tn>, C1<S0, ..., Sk>)
     //   = least upper bound of two interfaces as in Dart 1.
-    return _getLegacyLeastUpperBound(type1, type2,
+    return _getLegacyLeastUpperBound(
+        type1 as TypeDeclarationType, type2 as TypeDeclarationType,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 
-  DartType _getLegacyLeastUpperBound(DartType type1, DartType type2,
+  DartType _getLegacyLeastUpperBound(
+      TypeDeclarationType type1, TypeDeclarationType type2,
       {required bool isNonNullableByDefault}) {
-    assert((type1 is InterfaceType || type1 is ExtensionType) &&
-        (type2 is InterfaceType || type2 is ExtensionType));
-
     if (type1 is InterfaceType && type2 is InterfaceType) {
       return hierarchy.getLegacyLeastUpperBound(type1, type2,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -1561,28 +1545,32 @@ mixin StandardBounds {
     //   otherwise UP(B1a, T2)
     //     where B1a is the greatest closure of B1 with respect to X1,
     //     as defined in [inference.md].
+
     if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
-      return type2.withDeclaredNullability(
-          uniteNullabilities(type1.declaredNullability, type2.nullability));
+      return type2.withDeclaredNullability(combineNullabilitiesForSubstitution(
+          type2.nullability,
+          uniteNullabilities(type1.declaredNullability, type2.nullability)));
     }
     if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
-      return type1.withDeclaredNullability(
-          uniteNullabilities(type1.declaredNullability, type2.nullability));
+      return type1.withDeclaredNullability(combineNullabilitiesForSubstitution(
+          type1.declaredNullability,
+          uniteNullabilities(type1.declaredNullability, type2.nullability)));
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
-            eliminationTargets: <StructuralParameter>{},
+            structuralEliminationTargets: {},
+            nominalEliminationTargets: {type1.parameter},
             bottomType: const NeverType.nonNullable(),
             topType: coreTypes.objectNullableRawType,
             topFunctionType: coreTypes.functionNonNullableRawType,
             unhandledTypeHandler: (type, recursor) => false);
-    return _getNullabilityAwareStandardUpperBound(
-            eliminator.eliminateToGreatest(type1.parameter.bound), type2,
-            isNonNullableByDefault: isNonNullableByDefault)
-        .withDeclaredNullability(uniteNullabilities(
-            type1.declaredNullability,
-            uniteNullabilities(
-                type1.parameter.bound.declaredNullability, type2.nullability)));
+    DartType result = _getNullabilityAwareStandardUpperBound(
+        eliminator.eliminateToGreatest(type1.parameter.bound), type2,
+        isNonNullableByDefault: isNonNullableByDefault);
+    return result.withDeclaredNullability(combineNullabilitiesForSubstitution(
+        result.declaredNullability,
+        uniteNullabilities(
+            type1.parameter.bound.declaredNullability, type2.nullability)));
   }
 
   DartType _getNullabilityAwareIntersectionStandardUpperBound(
@@ -1604,7 +1592,8 @@ mixin StandardBounds {
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
-            eliminationTargets: <StructuralParameter>{},
+            structuralEliminationTargets: {},
+            nominalEliminationTargets: {type1.left.parameter},
             bottomType: const NeverType.nonNullable(),
             topType: coreTypes.objectNullableRawType,
             topFunctionType: coreTypes.functionNonNullableRawType,

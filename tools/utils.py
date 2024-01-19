@@ -11,7 +11,8 @@ import contextlib
 import datetime
 from functools import total_ordering
 import glob
-import imp
+import importlib.util
+import importlib.machinery
 import json
 import os
 import platform
@@ -111,16 +112,29 @@ def GetBaseDir():
     return BASE_DIR
 
 
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname,
+                                                  filename,
+                                                  loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    # The module is always executed and not cached in sys.modules.
+    # Uncomment the following line to cache the module.
+    # sys.modules[module.__name__] = module
+    loader.exec_module(module)
+    return module
+
+
 def GetBotUtils(repo_path=DART_DIR):
     '''Dynamically load the tools/bots/bot_utils.py python module.'''
-    return imp.load_source(
-        'bot_utils', os.path.join(repo_path, 'tools', 'bots', 'bot_utils.py'))
+    return load_source('bot_utils',
+                       os.path.join(repo_path, 'tools', 'bots', 'bot_utils.py'))
 
 
 def GetMinidumpUtils(repo_path=DART_DIR):
     '''Dynamically load the tools/minidump.py python module.'''
-    return imp.load_source('minidump',
-                           os.path.join(repo_path, 'tools', 'minidump.py'))
+    return load_source('minidump',
+                       os.path.join(repo_path, 'tools', 'minidump.py'))
 
 
 @total_ordering
@@ -270,6 +284,8 @@ def HostArchitectures():
         return ['x86', 'ia32']
     if m in ['x64', 'x86-64', 'x86_64', 'amd64', 'AMD64']:
         return ['x64', 'x86', 'ia32']
+    if m in ['riscv64']:
+        return ['riscv64']
     raise Exception('Failed to determine host architectures for %s %s',
                     platform.machine(), platform.system())
 
@@ -291,7 +307,7 @@ def GuessCpus():
             subprocess.check_output(
                 '/usr/bin/hostinfo |'
                 ' grep "processors are logically available." |'
-                ' awk "{ print \$1 }"',
+                ' awk "{ print \\$1 }"',
                 shell=True))
     win_cpu_count = os.getenv("NUMBER_OF_PROCESSORS")
     if win_cpu_count:
@@ -382,11 +398,11 @@ def ReadVersionFile(version_file=None):
         return None
 
     channel = match_against('^CHANNEL ([A-Za-z0-9]+)$', content)
-    major = match_against('^MAJOR (\d+)$', content)
-    minor = match_against('^MINOR (\d+)$', content)
-    patch = match_against('^PATCH (\d+)$', content)
-    prerelease = match_against('^PRERELEASE (\d+)$', content)
-    prerelease_patch = match_against('^PRERELEASE_PATCH (\d+)$', content)
+    major = match_against('^MAJOR (\\d+)$', content)
+    minor = match_against('^MINOR (\\d+)$', content)
+    patch = match_against('^PATCH (\\d+)$', content)
+    prerelease = match_against('^PRERELEASE (\\d+)$', content)
+    prerelease_patch = match_against('^PRERELEASE_PATCH (\\d+)$', content)
 
     if (channel and major and minor and prerelease and prerelease_patch):
         return Version(channel, major, minor, patch, prerelease,
@@ -993,6 +1009,7 @@ def Main():
     print('IsWindows() -> ', IsWindows())
     print('GetGitRevision() -> ', GetGitRevision())
     print('GetGitTimestamp() -> ', GetGitTimestamp())
+    print('ReadVersionFile() -> ', ReadVersionFile())
 
 
 if __name__ == '__main__':

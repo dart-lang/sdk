@@ -11,7 +11,7 @@ static method propertyGet(Never never) → dynamic {
   Never v5 = let final Never #t9 = (let final Never #t10 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.noSuchMethod in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
 }
 static method propertySet(Never never) → dynamic {
-  core::int v1 = (let final Never #t11 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.foo = 42;
+  core::int v1 = (let final Never #t11 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).{Never}foo = 42;
 }
 static method methodInvocation(Never never, core::Invocation invocation) → dynamic {
   Never v1 = let final Never #t12 = (let final Never #t13 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.foo() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");

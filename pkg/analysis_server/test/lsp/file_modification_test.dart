@@ -145,7 +145,8 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     expect(notificationParams, isNotNull);
     expect(
       notificationParams.message,
-      contains('URI was not a valid file:// URI'),
+      contains(
+          "URI scheme 'http' is not supported. Allowed schemes are 'file'."),
     );
   }
 

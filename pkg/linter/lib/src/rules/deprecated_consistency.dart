@@ -99,7 +99,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement != null &&
         constructorElement.enclosingElement.hasDeprecated &&
         !constructorElement.hasDeprecated) {
-      rule.reportLint(node, errorCode: DeprecatedConsistency.constructorCode);
+      var nodeToAnnotate = node.name ?? node.returnType;
+      rule.reportLintForOffset(nodeToAnnotate.offset, nodeToAnnotate.length,
+          errorCode: DeprecatedConsistency.constructorCode);
     }
   }
 

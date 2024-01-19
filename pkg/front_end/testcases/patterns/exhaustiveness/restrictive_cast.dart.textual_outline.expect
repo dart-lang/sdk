@@ -1,0 +1,26 @@
+sealed class S {
+  bool get b;
+}
+
+class A implements S {
+  final bool b;
+  A(this.b);
+}
+
+class B implements S {
+  final bool b;
+  B(this.b);
+}
+
+class C implements A, B {
+  bool get b => false;
+}
+
+int? value = 1;
+
+int? method(S s) => switch (s) {
+      A(b: true) as A => 0,
+      B(b: true) as B => value,
+    };
+
+test() {}

@@ -1627,24 +1627,54 @@ class OutlineBuilder extends StackListenerImpl {
     bool inExtensionType =
         declarationContext == DeclarationContext.ExtensionType;
     if (formals != null) {
-      if (inExtensionType && formals.isEmpty) {
-        libraryBuilder.addProblem(
-            messageExpectedRepresentationField, charOffset, 1, uri);
-      }
-      if (inExtensionType && formals.length > 1) {
-        libraryBuilder.addProblem(
-            messageMultipleRepresentationFields, charOffset, 1, uri);
-      }
+      int requiredPositionalCount = 0;
+      int? firstNamedParameterOffset;
+      int? firstOptionalPositionalParameterOffset;
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
-        if (inExtensionType && formal.type is ImplicitTypeBuilder) {
-          libraryBuilder.addProblem(messageExpectedRepresentationType,
-              formal.charOffset, formal.name.length, formal.fileUri);
+        if (inExtensionType) {
+          TypeBuilder type = formal.type;
+          if (type is FunctionTypeBuilder &&
+              type.hasFunctionFormalParameterSyntax) {
+            libraryBuilder.addProblem(
+                // ignore: lines_longer_than_80_chars
+                messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
+                formal.charOffset,
+                formal.name.length,
+                formal.fileUri);
+          }
+          if (type is ImplicitTypeBuilder) {
+            libraryBuilder.addProblem(messageExpectedRepresentationType,
+                formal.charOffset, formal.name.length, formal.fileUri);
+            formal.type =
+                new InvalidTypeBuilderImpl(formal.fileUri, formal.charOffset);
+          }
+          if (Modifier.maskContainsActualModifiers(
+              // 'covariant' is reported in the parser.
+              Modifier.removeCovariantMask(
+                  // 'required' is reported in the parser.
+                  Modifier.removeRequiredMask(formal.modifiers)))) {
+            libraryBuilder.addProblem(messageRepresentationFieldModifier,
+                formal.charOffset, formal.name.length, formal.fileUri);
+          }
+          if (formal.isInitializingFormal) {
+            libraryBuilder.addProblem(
+                messageExtensionTypePrimaryConstructorWithInitializingFormal,
+                formal.charOffset,
+                formal.name.length,
+                formal.fileUri);
+          }
         }
-        if (inExtensionType &&
-            Modifier.maskContainsActualModifiers(formal.modifiers)) {
-          libraryBuilder.addProblem(messageRepresentationFieldModifier,
-              formal.charOffset, formal.name.length, formal.fileUri);
+
+        if (formal.isPositional) {
+          if (formal.isOptionalPositional) {
+            firstOptionalPositionalParameterOffset = formal.charOffset;
+          } else {
+            requiredPositionalCount++;
+          }
+        }
+        if (formal.isNamed) {
+          firstNamedParameterOffset = formal.charOffset;
         }
         libraryBuilder.addPrimaryConstructorField(
             // TODO(johnniwinther): Support annotations on annotations on fields
@@ -1656,6 +1686,27 @@ class OutlineBuilder extends StackListenerImpl {
             name: formal.name,
             charOffset: formal.charOffset);
         formals[i] = formal.forPrimaryConstructor(libraryBuilder);
+      }
+      if (inExtensionType) {
+        if (firstOptionalPositionalParameterOffset != null) {
+          libraryBuilder.addProblem(
+              messageOptionalParametersInExtensionTypeDeclaration,
+              firstOptionalPositionalParameterOffset,
+              1,
+              uri);
+        } else if (firstNamedParameterOffset != null) {
+          libraryBuilder.addProblem(
+              messageNamedParametersInExtensionTypeDeclaration,
+              firstNamedParameterOffset,
+              1,
+              uri);
+        } else if (requiredPositionalCount == 0) {
+          libraryBuilder.addProblem(
+              messageExpectedRepresentationField, charOffset, 1, uri);
+        } else if (formals.length > 1) {
+          libraryBuilder.addProblem(
+              messageMultipleRepresentationFields, charOffset, 1, uri);
+        }
       }
     }
 
@@ -2188,13 +2239,29 @@ class OutlineBuilder extends StackListenerImpl {
     }
     bool isStatic = (modifiers & staticMask) != 0;
     bool isConstructor = constructorName != null;
-    if (!isStatic &&
-        (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-                TypeParameterScopeKind.extensionDeclaration ||
-            libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-                TypeParameterScopeKind.inlineClassDeclaration ||
-            libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-                TypeParameterScopeKind.extensionTypeDeclaration)) {
+    bool cloneTypeVariablesFromEnclosingDeclaration;
+    switch (libraryBuilder.currentTypeParameterScopeBuilder.kind) {
+      case TypeParameterScopeKind.extensionDeclaration:
+      case TypeParameterScopeKind.extensionTypeDeclaration:
+        cloneTypeVariablesFromEnclosingDeclaration = !isStatic;
+      case TypeParameterScopeKind.library:
+      case TypeParameterScopeKind.classOrNamedMixinApplication:
+      case TypeParameterScopeKind.classDeclaration:
+      case TypeParameterScopeKind.mixinDeclaration:
+      case TypeParameterScopeKind.unnamedMixinApplication:
+      case TypeParameterScopeKind.namedMixinApplication:
+      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
+      case TypeParameterScopeKind.typedef:
+      case TypeParameterScopeKind.staticMethod:
+      case TypeParameterScopeKind.instanceMethod:
+      case TypeParameterScopeKind.constructor:
+      case TypeParameterScopeKind.topLevelMethod:
+      case TypeParameterScopeKind.factoryMethod:
+      case TypeParameterScopeKind.functionType:
+      case TypeParameterScopeKind.enumDeclaration:
+        cloneTypeVariablesFromEnclosingDeclaration = false;
+    }
+    if (cloneTypeVariablesFromEnclosingDeclaration) {
       TypeParameterScopeBuilder declaration =
           libraryBuilder.currentTypeParameterScopeBuilder;
       Map<NominalVariableBuilder, TypeBuilder>? substitution;
@@ -2721,6 +2788,15 @@ class OutlineBuilder extends StackListenerImpl {
         assert(last != null);
         formals = [last as FormalParameterBuilder];
       }
+
+      Token? tokenBeforeEnd = endToken.previous;
+      if (tokenBeforeEnd != null &&
+          optional(",", tokenBeforeEnd) &&
+          kind == MemberKind.PrimaryConstructor &&
+          declarationContext == DeclarationContext.ExtensionType) {
+        libraryBuilder.addProblem(messageRepresentationFieldTrailingComma,
+            tokenBeforeEnd.charOffset, 1, uri);
+      }
     } else if (count > 1) {
       Object? last = pop();
       count--;
@@ -2780,15 +2856,29 @@ class OutlineBuilder extends StackListenerImpl {
         }
       }
     }
-    if (formals == null &&
-        declarationContext == DeclarationContext.ExtensionType &&
-        kind == MemberKind.PrimaryConstructor) {
+    if (declarationContext == DeclarationContext.ExtensionType &&
+        kind == MemberKind.PrimaryConstructor &&
+        formals == null) {
       // In case of primary constructors of extension types, an error is
       // reported by the parser if the formals together with the parentheses
       // around them are missing. To distinguish that case from the case of the
       // formal parameters present, but lacking the representation field, we
       // pass the empty list further along instead of `null`.
       formals = const [];
+    } else if ((declarationContext == DeclarationContext.ExtensionType &&
+                kind == MemberKind.PrimaryConstructor ||
+            declarationContext ==
+                DeclarationContext.ExtensionTypeConstructor) &&
+        formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.isSuperInitializingFormal) {
+          libraryBuilder.addProblem(
+              messageExtensionTypeConstructorWithSuperFormalParameter,
+              formal.charOffset,
+              formal.name.length,
+              formal.fileUri);
+        }
+      }
     }
     push(beginToken.charOffset);
     push(formals ?? NullValues.FormalParameters);
@@ -3115,7 +3205,8 @@ class OutlineBuilder extends StackListenerImpl {
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
         uri,
-        functionToken.charOffset));
+        functionToken.charOffset,
+        hasFunctionFormalParameterSyntax: false));
   }
 
   @override
@@ -3136,7 +3227,8 @@ class OutlineBuilder extends StackListenerImpl {
         formals,
         libraryBuilder.nullableBuilderIfTrue(question != null),
         uri,
-        formalsOffset));
+        formalsOffset,
+        hasFunctionFormalParameterSyntax: true));
   }
 
   @override
@@ -3197,7 +3289,8 @@ class OutlineBuilder extends StackListenerImpl {
           formals,
           const NullabilityBuilder.omitted(),
           uri,
-          identifier.nameOffset);
+          identifier.nameOffset,
+          hasFunctionFormalParameterSyntax: true);
     } else {
       Object? type = pop(NullValues.TypeBuilder);
       typeVariables =
@@ -3571,70 +3664,6 @@ class OutlineBuilder extends StackListenerImpl {
     if (declarationContext == DeclarationContext.Enum) {
       reportIfNotEnabled(
           libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
-    }
-
-    // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilderBase>? typeParameters =
-        peek() as List<TypeVariableBuilderBase>?;
-
-    Map<String, TypeVariableBuilderBase>? typeVariablesByName;
-    if (typeParameters != null) {
-      for (TypeVariableBuilderBase builder in typeParameters) {
-        if (builder.bound != null) {
-          typeVariablesByName ??= <String, TypeVariableBuilderBase>{
-            for (TypeVariableBuilderBase builder in typeParameters)
-              builder.name: builder
-          };
-
-          // Find cycle: If there's no cycle we can at most step through all
-          // `typeParameters` (at which point the last builders bound will be
-          // null).
-          // If there is a cycle with `builder` 'inside' the steps to get back
-          // to it will also be bound by `typeParameters.length`.
-          // If there is a cycle without `builder` 'inside' we will just ignore
-          // it for now. It will be reported when processing one of the
-          // `builder`s that is in fact `inside` the cycle. This matches the
-          // cyclic class hierarchy error.
-          TypeVariableBuilderBase? bound = builder;
-          for (int steps = 0;
-              bound!.bound != null && steps < typeParameters.length;
-              ++steps) {
-            TypeName? typeName = bound.bound!.typeName;
-            bound = typeVariablesByName[typeName?.name];
-            if (bound == null || bound == builder) break;
-          }
-          if (bound == builder && bound!.bound != null) {
-            // Write out cycle.
-            List<String> via = <String>[];
-            TypeName? typeName = bound.bound!.typeName;
-            bound = typeVariablesByName[typeName?.name];
-            while (bound != builder) {
-              via.add(bound!.name);
-              TypeName? typeName = bound.bound!.typeName;
-              bound = typeVariablesByName[typeName?.name];
-            }
-            Message message = via.isEmpty
-                ? templateDirectCycleInTypeVariables.withArguments(builder.name)
-                : templateCycleInTypeVariables.withArguments(
-                    builder.name, via.join("', '"));
-            addProblem(message, builder.charOffset, builder.name.length);
-            builder.bound = new NamedTypeBuilderImpl(
-                new SyntheticTypeName(builder.name, builder.charOffset),
-                const NullabilityBuilder.omitted(),
-                fileUri: uri,
-                charOffset: builder.charOffset,
-                instanceTypeVariableAccess:
-                    //InstanceTypeVariableAccessState.Unexpected
-                    declarationContext.instanceTypeVariableAccessState)
-              ..bind(
-                  libraryBuilder,
-                  new InvalidTypeDeclarationBuilder(
-                      builder.name,
-                      message.withLocation(
-                          uri, builder.charOffset, builder.name.length)));
-          }
-        }
-      }
     }
 
     if (inConstructorName) {
@@ -4167,9 +4196,11 @@ extension on MemberKind {
       case MemberKind.TopLevelMethod:
       case MemberKind.ExtensionNonStaticMethod:
       case MemberKind.ExtensionStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
       case MemberKind.PrimaryConstructor:
         return false;
       case MemberKind.NonStaticMethod:
+      case MemberKind.ExtensionTypeNonStaticMethod:
       // These can be inferred but cannot hold parameters so the cases are
       // dead code:
       case MemberKind.NonStaticField:

@@ -562,6 +562,10 @@ void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
     Code& unoptimized_code = Code::Handle(function().unoptimized_code());
     if (unoptimized_code.IsNull()) {
+      if (function().ForceOptimize()) {
+        var_descriptors_ = Object::empty_var_descriptors().ptr();
+        return;
+      }
       Thread* thread = Thread::Current();
       Zone* zone = thread->zone();
       const Error& error = Error::Handle(
@@ -1502,7 +1506,6 @@ void Debugger::DeoptimizeWorld() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
   if (FLAG_trace_deoptimization) {
     THR_Print("Deopt for debugger\n");
   }
@@ -1524,8 +1527,6 @@ void Debugger::DeoptimizeWorld() {
 
   const intptr_t num_classes = class_table.NumCids();
   const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
-  // TODO(dartbug.com/36097): Need to stop other mutators running in same IG
-  // before deoptimizing the world.
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
     const intptr_t cid =
@@ -1542,26 +1543,26 @@ void Debugger::DeoptimizeWorld() {
           ASSERT(!function.IsNull());
           // Force-optimized functions don't have unoptimized code and can't
           // deoptimize. Their optimized codes are still valid.
-          if (function.ForceOptimize()) {
-            ASSERT(!function.HasImplicitClosureFunction());
-            continue;
-          }
-          if (function.HasOptimizedCode()) {
-            function.SwitchToUnoptimizedCode();
-          }
-          code = function.unoptimized_code();
-          if (!code.IsNull()) {
-            resetter.ResetSwitchableCalls(code);
-          }
-          // Also disable any optimized implicit closure functions.
-          if (function.HasImplicitClosureFunction()) {
-            function = function.ImplicitClosureFunction();
+          if (!function.ForceOptimize()) {
             if (function.HasOptimizedCode()) {
               function.SwitchToUnoptimizedCode();
             }
             code = function.unoptimized_code();
             if (!code.IsNull()) {
               resetter.ResetSwitchableCalls(code);
+            }
+          }
+          // Also disable any optimized implicit closure functions.
+          if (function.HasImplicitClosureFunction()) {
+            function = function.ImplicitClosureFunction();
+            if (!function.ForceOptimize()) {
+              if (function.HasOptimizedCode()) {
+                function.SwitchToUnoptimizedCode();
+              }
+              code = function.unoptimized_code();
+              if (!code.IsNull()) {
+                resetter.ResetSwitchableCalls(code);
+              }
             }
           }
         }
@@ -1571,20 +1572,46 @@ void Debugger::DeoptimizeWorld() {
 
   // Disable optimized closure functions.
   ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
-    if (function.HasOptimizedCode()) {
-      function.SwitchToUnoptimizedCode();
-    }
-    code = function.unoptimized_code();
-    if (!code.IsNull()) {
-      resetter.ResetSwitchableCalls(code);
+    if (!function.ForceOptimize()) {
+      if (function.HasOptimizedCode()) {
+        function.SwitchToUnoptimizedCode();
+      }
+      code = function.unoptimized_code();
+      if (!code.IsNull()) {
+        resetter.ResetSwitchableCalls(code);
+      }
     }
     return true;  // Continue iteration.
   });
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-void Debugger::NotifySingleStepping(bool value) const {
-  isolate_->set_single_step(value);
+void Debugger::RunWithStoppedDeoptimizedWorld(std::function<void()> fun) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // RELOAD_OPERATION_SCOPE is used here because is is guaranteed that
+  // isolates at reload safepoints hold no safepoint locks.
+  RELOAD_OPERATION_SCOPE(Thread::Current());
+  group_debugger()->isolate_group()->RunWithStoppedMutators([&]() {
+    DeoptimizeWorld();
+    fun();
+  });
+#endif
+}
+
+void Debugger::NotifySingleStepping(bool value) {
+  if (value) {
+    // Setting breakpoint requires unoptimized code, make sure we stop all
+    // isolates to prevent racing reoptimization.
+    RunWithStoppedDeoptimizedWorld([&] {
+      isolate_->set_single_step(value);
+      // Ensure other isolates in the isolate group keep
+      // unoptimized code unoptimized, won't attempt to optimize it.
+      group_debugger()->RegisterSingleSteppingDebugger(Thread::Current(), this);
+    });
+  } else {
+    isolate_->set_single_step(value);
+    group_debugger()->UnregisterSingleSteppingDebugger(Thread::Current(), this);
+  }
 }
 
 static ActivationFrame* CollectDartFrame(uword pc,
@@ -1895,7 +1922,12 @@ void Debugger::PauseException(const Instance& exc) {
   ClearCachedStackTraces();
 }
 
-// Helper to refine the resolved token pos.
+// Helper that refines the resolved token pos.
+//
+// If |requested_column| is specified, then |exact_token_pos| must be the exact
+// position where the user requested a column breakpoint to be set. If
+// |requested_column| is |-1|, |exact_token_pos| must be
+// |TokenPosition::kNoSource|.
 static void RefineBreakpointPos(const Script& script,
                                 TokenPosition pos,
                                 TokenPosition next_closest_token_position,
@@ -1905,8 +1937,11 @@ static void RefineBreakpointPos(const Script& script,
                                 TokenPosition exact_token_pos,
                                 TokenPosition* best_fit_pos,
                                 intptr_t* best_column,
-                                intptr_t* best_line,
-                                TokenPosition* best_token_pos) {
+                                intptr_t* best_line) {
+  ASSERT(
+      (requested_column == -1 && exact_token_pos == TokenPosition::kNoSource) ||
+      (requested_column > -1 && exact_token_pos != TokenPosition::kNoSource));
+
   intptr_t token_start_column = -1;
   intptr_t token_line = -1;
   if (requested_column >= 0) {
@@ -1914,14 +1949,19 @@ static void RefineBreakpointPos(const Script& script,
     TokenPosition end_of_line_pos = TokenPosition::kNoSource;
     script.GetTokenLocation(pos, &token_line, &token_start_column);
     script.TokenRangeAtLine(token_line, &ignored, &end_of_line_pos);
-    TokenPosition token_end_pos =
-        TokenPosition::Min(next_closest_token_position, end_of_line_pos);
+
+    TokenPosition token_end_pos = TokenPosition::Min(
+        TokenPosition::Deserialize(next_closest_token_position.Pos() - 1),
+        end_of_line_pos);
 
     if ((token_end_pos.IsReal() && exact_token_pos.IsReal() &&
          (token_end_pos < exact_token_pos)) ||
         (token_start_column > *best_column)) {
-      // Prefer the token with the lowest column number compatible
-      // with the requested column.
+      // We prefer the token with the lowest column number compatible with the
+      // requested column. The current token under consideration either ends
+      // before the requested column, and is thus incompatible with it, or
+      // has a higher column number than the best token we've found so far, so
+      // we reject the current token under consideration.
       return;
     }
   }
@@ -1931,11 +1971,6 @@ static void RefineBreakpointPos(const Script& script,
     *best_fit_pos = pos;
     *best_line = token_line;
     *best_column = token_start_column;
-    // best_token_pos should only be real when the column number is specified.
-    if (requested_column >= 0 && exact_token_pos.IsReal()) {
-      *best_token_pos = TokenPosition::Deserialize(
-          exact_token_pos.Pos() - (requested_column - *best_column));
-    }
   }
 }
 
@@ -1945,6 +1980,11 @@ static void RefineBreakpointPos(const Script& script,
 // an optional column (requested_column).  The range of tokens usually
 // represents one line of the program text, but can represent a larger
 // range on recursive calls.
+//
+// If |requested_column| is specified, then |exact_token_pos| must be the exact
+// position where the user requested a column breakpoint to be set. If
+// |requested_column| is |-1|, |exact_token_pos| must be
+// |TokenPosition::kNoSource|.
 //
 // The best fit is found in two passes.
 //
@@ -2001,6 +2041,9 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
                                           intptr_t requested_column,
                                           TokenPosition exact_token_pos) {
   ASSERT(!func.HasOptimizedCode());
+  ASSERT(
+      (requested_column == -1 && exact_token_pos == TokenPosition::kNoSource) ||
+      (requested_column > -1 && exact_token_pos != TokenPosition::kNoSource));
 
   requested_token_pos =
       TokenPosition::Max(requested_token_pos, func.token_pos());
@@ -2020,9 +2063,6 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
   TokenPosition best_fit_pos = TokenPosition::kMaxSource;
   intptr_t best_column = INT_MAX;
   intptr_t best_line = INT_MAX;
-  // best_token_pos is only set to a real position if a real exact_token_pos
-  // and a column number are provided.
-  TokenPosition best_token_pos = TokenPosition::kNoSource;
 
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
@@ -2051,7 +2091,7 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
     RefineBreakpointPos(script, pos, next_closest_token_position,
                         requested_token_pos, last_token_pos, requested_column,
                         exact_token_pos, &best_fit_pos, &best_column,
-                        &best_line, &best_token_pos);
+                        &best_line);
   }
 
   // Second pass (if we found a safe point in the first pass).  Find
@@ -2075,8 +2115,8 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
       const TokenPosition& pos = iter.TokenPos();
-      if (best_token_pos.IsReal()) {
-        if (pos != best_token_pos) {
+      if (requested_column >= 0) {
+        if (pos != best_fit_pos) {
           // Not an match for the requested column.
           continue;
         }
@@ -2432,6 +2472,10 @@ bool Debugger::FindBestFit(const Script& script,
   return false;
 }
 
+// If |requested_column| is specified, then |exact_token_pos| must be the exact
+// position where the user requested a column breakpoint to be set. If
+// |requested_column| is |-1|, |exact_token_pos| must be
+// |TokenPosition::kNoSource|.
 BreakpointLocation* Debugger::SetCodeBreakpoints(
     const GrowableHandlePtrArray<const Script>& scripts,
     TokenPosition token_pos,
@@ -2440,6 +2484,10 @@ BreakpointLocation* Debugger::SetCodeBreakpoints(
     intptr_t requested_column,
     TokenPosition exact_token_pos,
     const GrowableObjectArray& functions) {
+  ASSERT(
+      (requested_column == -1 && exact_token_pos == TokenPosition::kNoSource) ||
+      (requested_column > -1 && exact_token_pos != TokenPosition::kNoSource));
+
   Function& function = Function::Handle();
   function ^= functions.At(0);
   TokenPosition breakpoint_pos = ResolveBreakpointPos(
@@ -2526,14 +2574,6 @@ BreakpointLocation* Debugger::SetBreakpoint(
     }
   }
 
-  TokenPosition exact_token_pos = token_pos;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (token_pos != last_token_pos && requested_column >= 0) {
-    exact_token_pos =
-        FindExactTokenPosition(script, token_pos, requested_column);
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   if (!func.IsNull()) {
     // There may be more than one function object for a given function
     // in source code. There may be implicit closure functions, and
@@ -2550,10 +2590,22 @@ BreakpointLocation* Debugger::SetBreakpoint(
       // have already been compiled. We can resolve the breakpoint now.
       // If requested_column is larger than zero, [token_pos, last_token_pos]
       // governs one single line of code.
-      DeoptimizeWorld();
-      BreakpointLocation* loc =
-          SetCodeBreakpoints(scripts, token_pos, last_token_pos, requested_line,
-                             requested_column, exact_token_pos, code_functions);
+      TokenPosition exact_token_pos = TokenPosition::kNoSource;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (token_pos != last_token_pos && requested_column >= 0) {
+        exact_token_pos =
+            FindExactTokenPosition(script, token_pos, requested_column);
+      }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      BreakpointLocation* loc = nullptr;
+      // Ensure that code stays deoptimized (and background compiler disabled)
+      // until we have installed the breakpoint (at which point the compiler
+      // will not try to optimize it anymore).
+      RunWithStoppedDeoptimizedWorld([&] {
+        loc = SetCodeBreakpoints(scripts, token_pos, last_token_pos,
+                                 requested_line, requested_column,
+                                 exact_token_pos, code_functions);
+      });
       if (loc != nullptr) {
         return loc;
       }
@@ -2565,7 +2617,7 @@ BreakpointLocation* Debugger::SetBreakpoint(
   if (FLAG_verbose_debug) {
     intptr_t line_number = -1;
     intptr_t column_number = -1;
-    script.GetTokenLocation(exact_token_pos, &line_number, &column_number);
+    script.GetTokenLocation(token_pos, &line_number, &column_number);
     if (func.IsNull()) {
       OS::PrintErr(
           "Registering pending breakpoint for "
@@ -2580,11 +2632,10 @@ BreakpointLocation* Debugger::SetBreakpoint(
   }
   const String& script_url = String::Handle(script.url());
   BreakpointLocation* loc = GetBreakpointLocation(
-      script_url, exact_token_pos, requested_line, requested_column);
+      script_url, token_pos, requested_line, requested_column);
   if (loc == nullptr) {
-    loc =
-        new BreakpointLocation(this, scripts, exact_token_pos, exact_token_pos,
-                               requested_line, requested_column);
+    loc = new BreakpointLocation(this, scripts, token_pos, last_token_pos,
+                                 requested_line, requested_column);
     RegisterBreakpointLocation(loc);
   }
   return loc;
@@ -2890,7 +2941,16 @@ void GroupDebugger::NotifyCompilation(const Function& function) {
                                         location->debugger()->isolate());
 
       // Ensure the location is resolved for the original function.
-      location->EnsureIsResolved(function, location->token_pos());
+      TokenPosition exact_token_pos = TokenPosition::kNoSource;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (location->token_pos() != location->end_token_pos() &&
+          location->requested_column_number() >= 0) {
+        exact_token_pos = FindExactTokenPosition(
+            Script::Handle(location->script()), location->token_pos(),
+            location->requested_column_number());
+      }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      location->EnsureIsResolved(function, exact_token_pos);
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = location->breakpoints();
         while (bpt != nullptr) {
@@ -2981,7 +3041,6 @@ void GroupDebugger::Pause() {
 
 void Debugger::EnterSingleStepMode() {
   ResetSteppingFramePointer();
-  DeoptimizeWorld();
   NotifySingleStepping(true);
 }
 
@@ -3005,14 +3064,12 @@ void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
     // the isolate has been interrupted, but can happen in other cases
     // as well.  We need to deoptimize the world in case we are about
     // to call an optimized function.
-    DeoptimizeWorld();
     NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest - kStepInto\n");
     }
   } else if (resume_action_ == kStepOver) {
-    DeoptimizeWorld();
     NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     SetSyncSteppingFramePointer(stack_trace_);
@@ -3037,7 +3094,6 @@ void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
     }
 
     // Fall through to synchronous stepping.
-    DeoptimizeWorld();
     NotifySingleStepping(true);
     // Find topmost caller that is debuggable.
     for (intptr_t i = 1; i < stack_trace_->Length(); i++) {
@@ -3318,13 +3374,13 @@ bool Debugger::IsDebuggable(const Function& func) {
 
 void GroupDebugger::RegisterSingleSteppingDebugger(Thread* thread,
                                                    const Debugger* debugger) {
-  ASSERT(single_stepping_set_lock()->IsCurrentThreadWriter());
+  WriteRwLocker sl(Thread::Current(), single_stepping_set_lock());
   single_stepping_set_.Insert(debugger);
 }
 
 void GroupDebugger::UnregisterSingleSteppingDebugger(Thread* thread,
                                                      const Debugger* debugger) {
-  ASSERT(single_stepping_set_lock()->IsCurrentThreadWriter());
+  WriteRwLocker sl(Thread::Current(), single_stepping_set_lock());
   single_stepping_set_.Remove(debugger);
 }
 
@@ -3366,7 +3422,6 @@ bool GroupDebugger::IsDebugging(Thread* thread, const Function& function) {
 
 void Debugger::set_resume_action(ResumeAction resume_action) {
   auto thread = Thread::Current();
-  WriteRwLocker sl(thread, group_debugger()->single_stepping_set_lock());
   if (resume_action == kContinue) {
     group_debugger()->UnregisterSingleSteppingDebugger(thread, this);
   } else {

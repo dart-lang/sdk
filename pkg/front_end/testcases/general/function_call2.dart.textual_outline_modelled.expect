@@ -8,8 +8,13 @@ class _Closure2 {
 }
 
 late _Closure1 closure1;
+
 late _Closure2 closure2;
+
 main() {}
+
 test(_Closure1 foo, _Closure2 bar) {}
+
 var field1 = closure1();
+
 var field2 = closure2();

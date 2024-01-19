@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic {
-  () → core::Iterable<core::num> f = () → core::Iterable<core::num> sync* {
+  () → core::Iterable<core::num> f = () → core::Iterable<core::num> sync* /* emittedValueType= core::num */ {
     yield 1;
     yield*<core::num>[3, 4.0];
   };

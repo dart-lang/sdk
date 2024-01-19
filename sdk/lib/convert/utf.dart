@@ -345,16 +345,8 @@ final class Utf8Decoder extends Converter<List<int>, String> {
   ///
   /// If the [codeUnits] start with the encoding of a
   /// [unicodeBomCharacterRune], that character is discarded.
-  String convert(List<int> codeUnits, [int start = 0, int? end]) {
-    // Allow the implementation to intercept and specialize based on the type
-    // of codeUnits.
-    var result = _convertIntercepted(_allowMalformed, codeUnits, start, end);
-    if (result != null) {
-      return result;
-    }
-
-    return _Utf8Decoder(_allowMalformed).convertSingle(codeUnits, start, end);
-  }
+  String convert(List<int> codeUnits, [int start = 0, int? end]) =>
+      _Utf8Decoder(_allowMalformed).convertSingle(codeUnits, start, end);
 
   /// Starts a chunked conversion.
   ///
@@ -374,9 +366,6 @@ final class Utf8Decoder extends Converter<List<int>, String> {
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 
   external Converter<List<int>, T> fuse<T>(Converter<String, T> next);
-
-  external static String? _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int? end);
 }
 
 // UTF-8 constants.
@@ -578,26 +567,13 @@ class _Utf8Decoder {
       start = 0;
     }
 
-    String result = _convertRecursive(bytes, start, end, single);
+    String result = decodeGeneral(bytes, start, end, single);
     if (isErrorState(_state)) {
       String message = errorDescription(_state);
       _state = initial; // Ready for more input.
       throw FormatException(message, codeUnits, errorOffset + _charOrIndex);
     }
     return result;
-  }
-
-  String _convertRecursive(Uint8List bytes, int start, int end, bool single) {
-    // Chunk long strings to avoid a pathological case of JS repeated string
-    // concatenation.
-    if (end - start > 1000) {
-      int mid = (start + end) ~/ 2;
-      String s1 = _convertRecursive(bytes, start, mid, false);
-      if (isErrorState(_state)) return s1;
-      String s2 = _convertRecursive(bytes, mid, end, single);
-      return s1 + s2;
-    }
-    return decodeGeneral(bytes, start, end, single);
   }
 
   /// Flushes this decoder as if closed.

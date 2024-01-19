@@ -15,15 +15,19 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:yaml/yaml.dart';
 
@@ -103,12 +107,17 @@ class EditGetFixesHandler extends LegacyHandler
     await driver.applyPendingFileChanges();
     var session = driver.currentSession;
     var sourceFactory = driver.sourceFactory;
+    var analysisContext = session.analysisContext;
+    var package =
+        analysisContext.contextRoot.workspace.findPackageFor(optionsFile.path);
+    var sdkVersionConstraint =
+        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
     var errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
       sourceFactory,
-      session.analysisContext.contextRoot.root.path,
-      session.analysisContext.analysisOptions.sdkVersionConstraint,
+      analysisContext.contextRoot.root.path,
+      sdkVersionConstraint,
     );
     var options = _getOptions(sourceFactory, content);
     if (options == null) {
@@ -121,15 +130,21 @@ class EditGetFixesHandler extends LegacyHandler
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
+        // Options are not used in the analysis *of options* so associating
+        // an empty set is accurate if not ideal.
+        var analysisOptions = AnalysisOptionsImpl();
         var result = engine.ErrorsResultImpl(
           session: session,
-          path: file,
-          uri: Uri.file(file),
+          file: optionsFile,
+          content: content,
+          uri: optionsFile.toUri(),
           lineInfo: lineInfo,
           isAugmentation: false,
           isLibrary: true,
+          isMacroAugmentation: false,
           isPart: false,
           errors: errors,
+          analysisOptions: analysisOptions,
         );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
@@ -219,11 +234,18 @@ error.errorCode: ${error.errorCode}
     if (node is! YamlMap) {
       return errorFixesList;
     }
+
+    var fileResult = session.getFile(pubspecFile.path);
+    if (fileResult is! FileResult) {
+      return errorFixesList;
+    }
+
+    final analysisOptions = fileResult.analysisOptions;
     final errors = validatePubspec(
       contents: node,
       source: pubspecFile.createSource(),
       provider: resourceProvider,
-      analysisOptions: session.analysisContext.analysisOptions,
+      analysisOptions: analysisOptions,
     );
     for (var error in errors) {
       var generator =
@@ -232,15 +254,21 @@ error.errorCode: ${error.errorCode}
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
+        // TODO(pq): package:analyzer results are specific to *.dart files and we
+        // shouldn't use them to represent errors in non-Dart files.
+        // see: https://dart-review.googlesource.com/c/sdk/+/333588
         var result = engine.ErrorsResultImpl(
           session: session,
-          path: file,
-          uri: Uri.file(file),
+          file: pubspecFile,
+          content: content,
+          uri: pubspecFile.toUri(),
           lineInfo: lineInfo,
           isAugmentation: false,
           isLibrary: true,
+          isMacroAugmentation: false,
           isPart: false,
           errors: errors,
+          analysisOptions: analysisOptions,
         );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);

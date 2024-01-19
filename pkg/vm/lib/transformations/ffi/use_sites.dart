@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
+        messageFfiAddressOfMustBeNative,
         messageFfiCreateOfStructOrUnion,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
@@ -16,6 +17,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiNotStatic;
 
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+import 'package:front_end/src/fasta/names.dart' show unaryMinusName;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -27,19 +29,17 @@ import 'package:kernel/type_algebra.dart'
     show FunctionTypeInstantiator, Substitution;
 import 'package:kernel/type_environment.dart';
 
-import 'abi.dart' show wordSize;
+import 'definitions.dart' as definitions;
 import 'native_type_cfe.dart';
-import 'common.dart'
-    show
-        FfiStaticTypeError,
-        FfiTransformer,
-        NativeType,
-        nativeTypeSizes,
-        UNKNOWN,
-        WORD_SIZE;
+import 'native.dart' as native;
+import 'common.dart' show FfiStaticTypeError, FfiTransformer, NativeType;
 import 'finalizable.dart';
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
+///
+/// To reliably lower calls to methods like `sizeOf` and `Native.addressOf`,
+/// this requires that the [definitions] and the [native] transformer already
+/// ran on the libraries to transform.
 void transformLibraries(
     Component component,
     CoreTypes coreTypes,
@@ -106,9 +106,14 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   // callback.
   int callbackCount = 0;
 
+  // Used to create private top-level trampoline methods with unique names
+  // for each call.
+  int callCount = 0;
+
   @override
   TreeNode visitLibrary(Library node) {
     callbackCount = 0;
+    callCount = 0;
     return super.visitLibrary(node);
   }
 
@@ -176,12 +181,57 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
     final Member target = node.target;
     try {
+      if (target == abiSpecificIntegerArrayElemAt ||
+          target == abiSpecificIntegerArraySetElemAt) {
+        final pointer = node.arguments.positional[0];
+        final pointerType =
+            pointer.getStaticType(staticTypeContext!) as InterfaceType;
+        ensureNativeTypeValid(pointerType, pointer,
+            allowCompounds: true, allowInlineArray: true);
+
+        final typeArg = pointerType.typeArguments.single;
+        final nativeTypeCfe =
+            NativeTypeCfe(this, typeArg) as AbiSpecificNativeTypeCfe;
+
+        final arrayVar = VariableDeclaration("#array",
+            initializer: NullCheck(node.arguments.positional[0]),
+            type: InterfaceType(arrayClass, Nullability.nonNullable),
+            isSynthesized: true)
+          ..fileOffset = node.fileOffset;
+        final indexVar = VariableDeclaration("#index",
+            initializer: NullCheck(node.arguments.positional[1]),
+            type: coreTypes.intNonNullableRawType,
+            isSynthesized: true)
+          ..fileOffset = node.fileOffset;
+
+        return BlockExpression(
+          Block([
+            arrayVar,
+            indexVar,
+            ExpressionStatement(InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(arrayVar),
+              arrayCheckIndex.name,
+              Arguments([VariableGet(indexVar)]),
+              interfaceTarget: arrayCheckIndex,
+              functionType: arrayCheckIndex.getterType as FunctionType,
+            )),
+          ]),
+          abiSpecificLoadOrStoreExpression(
+            nativeTypeCfe,
+            typedDataBase: getArrayTypedDataBaseField(VariableGet(arrayVar)),
+            index: VariableGet(indexVar),
+            value: target == abiSpecificIntegerArraySetElemAt
+                ? node.arguments.positional.last
+                : null,
+            fileOffset: node.fileOffset,
+          ),
+        );
+      }
       if (target == abiSpecificIntegerPointerGetValue ||
           target == abiSpecificIntegerPointerSetValue ||
           target == abiSpecificIntegerPointerElemAt ||
-          target == abiSpecificIntegerPointerSetElemAt ||
-          target == abiSpecificIntegerArrayElemAt ||
-          target == abiSpecificIntegerArraySetElemAt) {
+          target == abiSpecificIntegerPointerSetElemAt) {
         final pointer = node.arguments.positional[0];
         final pointerType =
             pointer.getStaticType(staticTypeContext!) as InterfaceType;
@@ -194,19 +244,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         return abiSpecificLoadOrStoreExpression(
           nativeTypeCfe,
-          typedDataBase: (target == abiSpecificIntegerArrayElemAt ||
-                  target == abiSpecificIntegerArraySetElemAt)
-              ? getArrayTypedDataBaseField(node.arguments.positional[0])
-              : node.arguments.positional[0],
+          typedDataBase: node.arguments.positional[0],
           index: (target == abiSpecificIntegerPointerElemAt ||
-                  target == abiSpecificIntegerPointerSetElemAt ||
-                  target == abiSpecificIntegerArrayElemAt ||
-                  target == abiSpecificIntegerArraySetElemAt)
+                  target == abiSpecificIntegerPointerSetElemAt)
               ? node.arguments.positional[1]
               : null,
           value: (target == abiSpecificIntegerPointerSetValue ||
-                  target == abiSpecificIntegerPointerSetElemAt ||
-                  target == abiSpecificIntegerArraySetElemAt)
+                  target == abiSpecificIntegerPointerSetElemAt)
               ? node.arguments.positional.last
               : null,
           fileOffset: node.fileOffset,
@@ -232,9 +276,26 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         return _replaceSetRef(node);
       } else if (target == abiSpecificIntegerPointerElementAt ||
           target == structPointerElementAt ||
-          target == unionPointerElementAt) {
+          target == unionPointerElementAt ||
+          target == abiSpecificIntegerPointerPlusOperator ||
+          target == structPointerPlusOperator ||
+          target == unionPointerPlusOperator ||
+          target == abiSpecificIntegerPointerMinusOperator ||
+          target == structPointerMinusOperator ||
+          target == unionPointerMinusOperator) {
         final pointer = node.arguments.positional[0];
-        final index = node.arguments.positional[1];
+        final positiveOffset = node.arguments.positional[1];
+        final Expression offset;
+        if (target == abiSpecificIntegerPointerMinusOperator ||
+            target == structPointerMinusOperator ||
+            target == unionPointerMinusOperator) {
+          offset = InstanceInvocation(InstanceAccessKind.Instance,
+              positiveOffset, unaryMinusName, new Arguments([]),
+              interfaceTarget: coreTypes.intUnaryMinus,
+              functionType: coreTypes.intUnaryMinus.getterType as FunctionType);
+        } else {
+          offset = positiveOffset;
+        }
         final pointerType =
             pointer.getStaticType(staticTypeContext!) as InterfaceType;
         ensureNativeTypeValid(pointerType, pointer,
@@ -243,11 +304,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
-        Expression? inlineSizeOf = _inlineSizeOf(nativeType as InterfaceType);
+        Expression? inlineSizeOf =
+            this.inlineSizeOf(nativeType as InterfaceType);
         if (inlineSizeOf != null) {
           // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
           return InstanceInvocation(InstanceAccessKind.Instance, pointer,
-              offsetByMethod.name, Arguments([multiply(index, inlineSizeOf)]),
+              offsetByMethod.name, Arguments([multiply(offset, inlineSizeOf)]),
               interfaceTarget: offsetByMethod,
               functionType: Substitution.fromInterfaceType(pointerType)
                   .substituteType(offsetByMethod.getterType) as FunctionType);
@@ -279,7 +341,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             allowCompounds: true, allowVoid: true);
 
         if (nativeType is InterfaceType) {
-          Expression? inlineSizeOf = _inlineSizeOf(nativeType);
+          Expression? inlineSizeOf = this.inlineSizeOf(nativeType);
           if (inlineSizeOf != null) {
             return inlineSizeOf;
           }
@@ -289,31 +351,65 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             currentLibrary.nonNullable, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
 
-        ensureNativeTypeValid(nativeType, node);
-        ensureNativeTypeToDartType(nativeType, dartType, node);
         _ensureIsLeafIsConst(node);
         final isLeaf = getIsLeafBoolean(node) ?? false;
-        ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
-
+        ensureNativeTypeValid(nativeType, node);
+        ensureNativeTypeToDartType(
+          nativeType,
+          dartType,
+          node,
+          allowHandle: true, // Handle-specific errors emitted below.
+          allowTypedData: true, // TypedData-specific errors emitted below.
+        );
+        ensureLeafCallDoesNotUseHandles(
+          nativeType,
+          isLeaf,
+          reportErrorOn: node,
+        );
+        ensureOnlyLeafCallsUseTypedData(
+          node.arguments.types[0],
+          dartType,
+          isLeaf: isLeaf,
+          isCall: true,
+          reportErrorOn: node,
+        );
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         final dartType = node.arguments.types[1];
         final InterfaceType nativeType = InterfaceType(nativeFunctionClass,
             Nullability.nonNullable, [node.arguments.types[0]]);
 
-        ensureNativeTypeValid(nativeType, node);
-        ensureNativeTypeToDartType(nativeType, dartType, node);
         _ensureIsLeafIsConst(node);
-
         final isLeaf = getIsLeafBoolean(node) ?? false;
-        ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
 
+        ensureNativeTypeValid(nativeType, node);
+        ensureNativeTypeToDartType(
+          nativeType,
+          dartType,
+          node,
+          allowHandle: true, // Handle-specific errors emitted below.
+          allowTypedData: true, // TypedData-specific errors emitted below.
+        );
+        ensureLeafCallDoesNotUseHandles(
+          nativeType,
+          isLeaf,
+          reportErrorOn: node,
+        );
+        ensureOnlyLeafCallsUseTypedData(
+          node.arguments.types[0],
+          dartType,
+          isLeaf: isLeaf,
+          isCall: true,
+          reportErrorOn: node,
+        );
         final DartType nativeSignature = nativeType.typeArguments[0];
 
-        return buildAsFunctionInternal(
+        return _replaceAsFunction(
           functionPointer: node.arguments.positional[0],
+          pointerType: InterfaceType(
+              pointerClass, Nullability.nonNullable, [nativeType]),
           nativeSignature: nativeSignature,
-          dartSignature: dartType,
+          dartSignature: dartType as FunctionType,
           isLeaf: isLeaf,
           fileOffset: node.fileOffset,
         );
@@ -352,7 +448,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             .where((c) =>
                 c.superclass == structClass || c.superclass == unionClass)
             .toList();
-        return _invokeCompoundConstructors(replacement, compoundClasses);
+        return invokeCompoundConstructors(replacement, compoundClasses);
       } else if (target == allocateMethod) {
         final DartType nativeType = node.arguments.types[0];
 
@@ -361,7 +457,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         // Inline the body to get rid of a generic invocation of sizeOf.
         // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
-        Expression? sizeInBytes = _inlineSizeOf(nativeType as InterfaceType);
+        Expression? sizeInBytes = inlineSizeOf(nativeType as InterfaceType);
         if (sizeInBytes != null) {
           if (node.arguments.positional.length == 2) {
             sizeInBytes = multiply(node.arguments.positional[1], sizeInBytes);
@@ -377,6 +473,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               functionType: FunctionTypeInstantiator.instantiate(
                   allocateFunctionType, node.arguments.types));
         }
+      } else if (target == nativeAddressOf) {
+        return _replaceNativeAddressOf(node);
       }
     } on FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
@@ -387,32 +485,89 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return node;
   }
 
-  Expression _invokeCompoundConstructors(
+  /// Create Dart function which calls native code.
+  ///
+  /// Adds a native effect invoking a compound constructors if this is used
+  /// as return type.
+  Expression _replaceAsFunction({
+    required Expression functionPointer,
+    required DartType pointerType,
+    required DartType nativeSignature,
+    required FunctionType dartSignature,
+    required bool isLeaf,
+    required int fileOffset,
+  }) {
+    assert(dartSignature.namedParameters.isEmpty);
+    final functionPointerVarName = '#ffiTarget$callCount';
+    final closureName = '#ffiClosure$callCount';
+    ++callCount;
+
+    final pointerVar = VariableDeclaration(functionPointerVarName,
+        initializer: functionPointer, type: pointerType, isSynthesized: true);
+
+    final positionalParameters = [
+      for (int i = 0; i < dartSignature.positionalParameters.length; ++i)
+        VariableDeclaration(
+          'arg${i + 1}',
+          type: dartSignature.positionalParameters[i],
+        )
+    ];
+
+    final closure = FunctionDeclaration(
+        VariableDeclaration(closureName,
+            type: dartSignature, isSynthesized: true)
+          ..addAnnotation(ConstantExpression(
+              InstanceConstant(coreTypes.pragmaClass.reference, [], {
+            coreTypes.pragmaName.fieldReference:
+                StringConstant('vm:ffi:call-closure'),
+            coreTypes.pragmaOptions.fieldReference: InstanceConstant(
+              ffiCallClass.reference,
+              [nativeSignature],
+              {
+                ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf),
+              },
+            ),
+          }))),
+        FunctionNode(
+            Block([
+              for (final param in positionalParameters)
+                ExpressionStatement(StaticInvocation(
+                    nativeEffectMethod, Arguments([VariableGet(param)]))),
+              ReturnStatement(StaticInvocation(
+                  ffiCallMethod,
+                  Arguments([
+                    VariableGet(pointerVar),
+                  ], types: [
+                    dartSignature.returnType,
+                  ]))
+                ..fileOffset = fileOffset),
+            ]),
+            positionalParameters: positionalParameters,
+            requiredParameterCount: dartSignature.requiredParameterCount,
+            returnType: dartSignature.returnType)
+          ..fileOffset = fileOffset)
+      ..fileOffset = fileOffset;
+
+    final result = BlockExpression(
+        Block([
+          pointerVar,
+          closure,
+        ]),
+        VariableGet(closure.variable));
+
+    final possibleCompoundReturn = findCompoundReturnType(dartSignature);
+    if (possibleCompoundReturn != null) {
+      return invokeCompoundConstructor(result, possibleCompoundReturn);
+    }
+
+    return result;
+  }
+
+  Expression invokeCompoundConstructors(
           Expression nestedExpression, List<Class> compoundClasses) =>
       compoundClasses
           .distinct()
           .fold(nestedExpression, invokeCompoundConstructor);
-
-  Expression? _inlineSizeOf(InterfaceType nativeType) {
-    final Class nativeClass = nativeType.classNode;
-    final NativeType? nt = getType(nativeClass);
-    if (nt == null) {
-      // User-defined compounds.
-      final Procedure sizeOfGetter = nativeClass.procedures
-          .firstWhere((function) => function.name == Name('#sizeOf'));
-      return StaticGet(sizeOfGetter);
-    }
-    final int size = nativeTypeSizes[nt]!;
-    if (size == WORD_SIZE) {
-      return runtimeBranchOnLayout(wordSize);
-    }
-    if (size != UNKNOWN) {
-      return ConstantExpression(IntConstant(size),
-          InterfaceType(intClass, currentLibrary.nonNullable));
-    }
-    // Size unknown.
-    return null;
-  }
 
   // We need to replace calls to 'DynamicLibrary.lookupFunction' with explicit
   // Kernel, because we cannot have a generic call to 'asFunction' in its body.
@@ -421,10 +576,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   // 'lookupFunction' are constants, so by inlining the call to 'asFunction' at
   // the call-site, we ensure that there are no generic calls to 'asFunction'.
   Expression _replaceLookupFunction(StaticInvocation node) {
-    // The generated code looks like:
-    //
-    // _asFunctionInternal<DS, NS>(lookup<NativeFunction<NS>>(symbolName),
-    //     isLeaf)
     final DartType nativeSignature = node.arguments.types[0];
     final DartType dartSignature = node.arguments.types[1];
 
@@ -437,21 +588,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final FunctionType lookupFunctionType =
         libraryLookupMethod.getterType as FunctionType;
 
-    final Expression lookupResult = InstanceInvocation(
-        InstanceAccessKind.Instance,
-        node.arguments.positional[0],
-        libraryLookupMethod.name,
-        lookupArgs,
+    final lookupResult = InstanceInvocation(InstanceAccessKind.Instance,
+        node.arguments.positional[0], libraryLookupMethod.name, lookupArgs,
         interfaceTarget: libraryLookupMethod,
         functionType: FunctionTypeInstantiator.instantiate(
             lookupFunctionType, lookupTypeArgs));
 
     final isLeaf = getIsLeafBoolean(node) ?? false;
 
-    return buildAsFunctionInternal(
+    return _replaceAsFunction(
       functionPointer: lookupResult,
+      pointerType: lookupResult.functionType.returnType,
       nativeSignature: nativeSignature,
-      dartSignature: dartSignature,
+      dartSignature: dartSignature as FunctionType,
       isLeaf: isLeaf,
       fileOffset: node.fileOffset,
     );
@@ -654,7 +803,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     ensureNativeTypeValid(nativeType, node);
-    ensureNativeTypeToDartType(nativeType, dartType, node);
+    ensureNativeTypeToDartType(
+      nativeType,
+      dartType,
+      node,
+      allowTypedData: true, // TypedData-specific errors emitted below.
+    );
+    ensureOnlyLeafCallsUseTypedData(
+      node.arguments.types[0],
+      dartType,
+      isLeaf: false,
+      isCall: false,
+      reportErrorOn: node,
+    );
 
     final funcType = dartType as FunctionType;
 
@@ -748,14 +909,14 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         .map((t) => t.classNode)
         .where((c) => c.superclass == structClass || c.superclass == unionClass)
         .toList();
-    return _invokeCompoundConstructors(replacement, compoundClasses);
+    return invokeCompoundConstructors(replacement, compoundClasses);
   }
 
   Expression _replaceGetRef(StaticInvocation node) {
     final dartType = node.arguments.types[0];
     final clazz = (dartType as InterfaceType).classNode;
-    final constructor = clazz.constructors
-        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+    final referencedStruct = ReferencedCompoundSubtypeCfe(clazz);
+
     Expression pointer = NullCheck(node.arguments.positional[0]);
     if (node.arguments.positional.length == 2) {
       pointer = InstanceInvocation(
@@ -763,45 +924,50 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           pointer,
           offsetByMethod.name,
           Arguments([
-            multiply(node.arguments.positional[1], _inlineSizeOf(dartType)!)
+            multiply(node.arguments.positional[1], inlineSizeOf(dartType)!)
           ]),
           interfaceTarget: offsetByMethod,
           functionType:
               Substitution.fromPairs(pointerClass.typeParameters, [dartType])
                   .substituteType(offsetByMethod.getterType) as FunctionType);
     }
-    return ConstructorInvocation(constructor, Arguments([pointer]));
+
+    return referencedStruct.generateLoad(
+      dartType: dartType,
+      transformer: this,
+      typedDataBase: pointer,
+      offsetInBytes: ConstantExpression(IntConstant(0)),
+      fileOffset: node.fileOffset,
+    );
   }
 
   /// Replaces a `.ref=` or `[]=` on a compound pointer extension with a mem
   /// copy call.
   Expression _replaceSetRef(StaticInvocation node) {
     final target = node.arguments.positional[0]; // Receiver of extension
+    final referencedStruct = ReferencedCompoundSubtypeCfe(
+        (node.arguments.types[0] as InterfaceType).classNode);
 
-    final Expression source, targetOffset;
+    final Expression sourceStruct, targetOffset;
 
     if (node.arguments.positional.length == 3) {
       // []= call, args are (receiver, index, source)
-      source = getCompoundTypedDataBaseField(
-          node.arguments.positional[2], node.fileOffset);
+      sourceStruct = node.arguments.positional[2];
       targetOffset = multiply(node.arguments.positional[1],
-          _inlineSizeOf(node.arguments.types[0] as InterfaceType)!);
+          inlineSizeOf(node.arguments.types[0] as InterfaceType)!);
     } else {
       // .ref= call, args are (receiver, source)
-      source = getCompoundTypedDataBaseField(
-          node.arguments.positional[1], node.fileOffset);
+      sourceStruct = node.arguments.positional[1];
       targetOffset = ConstantExpression(IntConstant(0));
     }
 
-    return StaticInvocation(
-      memCopy,
-      Arguments([
-        target,
-        targetOffset,
-        source,
-        ConstantExpression(IntConstant(0)),
-        _inlineSizeOf(node.arguments.types[0] as InterfaceType)!,
-      ]),
+    return referencedStruct.generateStore(
+      sourceStruct,
+      dartType: node.arguments.types[0],
+      offsetInBytes: targetOffset,
+      typedDataBase: target,
+      transformer: this,
+      fileOffset: node.fileOffset,
     );
   }
 
@@ -811,14 +977,43 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final constructor = clazz.constructors
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
 
-    final typedDataBasePrime = typedDataBaseOffset(
-        getArrayTypedDataBaseField(NullCheck(node.arguments.positional[0])),
-        multiply(node.arguments.positional[1], _inlineSizeOf(dartType)!),
-        _inlineSizeOf(dartType)!,
-        dartType,
-        node.fileOffset);
+    final arrayVar = VariableDeclaration("#array",
+        initializer: NullCheck(node.arguments.positional[0]),
+        type: InterfaceType(arrayClass, Nullability.nonNullable),
+        isSynthesized: true)
+      ..fileOffset = node.fileOffset;
+    final indexVar = VariableDeclaration("#index",
+        initializer: NullCheck(node.arguments.positional[1]),
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
+      ..fileOffset = node.fileOffset;
 
-    return ConstructorInvocation(constructor, Arguments([typedDataBasePrime]));
+    return BlockExpression(
+      Block([
+        arrayVar,
+        indexVar,
+        ExpressionStatement(InstanceInvocation(
+          InstanceAccessKind.Instance,
+          VariableGet(arrayVar),
+          arrayCheckIndex.name,
+          Arguments([VariableGet(indexVar)]),
+          interfaceTarget: arrayCheckIndex,
+          functionType: arrayCheckIndex.getterType as FunctionType,
+        )),
+      ]),
+      ConstructorInvocation(
+        constructor,
+        Arguments([
+          typedDataBaseOffset(
+            getArrayTypedDataBaseField(VariableGet(arrayVar)),
+            multiply(VariableGet(indexVar), inlineSizeOf(dartType)!),
+            inlineSizeOf(dartType)!,
+            dartType,
+            node.fileOffset,
+          )
+        ]),
+      ),
+    );
   }
 
   /// Generates an expression that returns a new `Array<dartType>`.
@@ -834,7 +1029,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   /// Array #array = this!;
   /// int #index = index!;
   /// #array._checkIndex(#index);
-  /// int #singleElementSize = _inlineSizeOf<innermost(T)>();
+  /// int #singleElementSize = inlineSizeOf<innermost(T)>();
   /// int #elementSize = #array.nestedDimensionsFlattened * #singleElementSize;
   /// int #offset = #elementSize * #index;
   ///
@@ -856,7 +1051,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   /// Array #array = this!;
   /// int #index = index!;
   /// #array._checkIndex(#index);
-  /// int #singleElementSize = _inlineSizeOf<innermost(T)>();
+  /// int #singleElementSize = inlineSizeOf<innermost(T)>();
   /// int #elementSize = #array.nestedDimensionsFlattened * #singleElementSize;
   /// int #offset = #elementSize * #index;
   ///
@@ -879,7 +1074,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final singleElementSizeVar = VariableDeclaration("#singleElementSize",
-        initializer: _inlineSizeOf(elementType as InterfaceType),
+        initializer: inlineSizeOf(elementType as InterfaceType),
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true)
       ..fileOffset = node.fileOffset;
@@ -904,12 +1099,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       arrayVar,
       indexVar,
       ExpressionStatement(InstanceInvocation(
-          InstanceAccessKind.Instance,
-          VariableGet(arrayVar),
-          arrayCheckIndex.name,
-          Arguments([VariableGet(indexVar)]),
-          interfaceTarget: arrayCheckIndex,
-          functionType: arrayCheckIndex.getterType as FunctionType)),
+        InstanceAccessKind.Instance,
+        VariableGet(arrayVar),
+        arrayCheckIndex.name,
+        Arguments([VariableGet(indexVar)]),
+        interfaceTarget: arrayCheckIndex,
+        functionType: arrayCheckIndex.getterType as FunctionType,
+      )),
       singleElementSizeVar,
       elementSizeVar,
       offsetVar
@@ -989,7 +1185,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     ];
     final superClass = klass.superclass;
     for (final onlyDirectExtendsClass in onlyDirectExtendsClasses) {
-      if (hierarchy.isSubtypeOf(klass, onlyDirectExtendsClass)) {
+      if (hierarchy.isSubInterfaceOf(klass, onlyDirectExtendsClass)) {
         if (superClass == onlyDirectExtendsClass) {
           // Directly extending is fine.
           return null;
@@ -1027,6 +1223,70 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       // `lookupFunction`, which will shadow the above error.
       throw FfiStaticTypeError();
     }
+  }
+
+  /// Replaces calls to `Native.addressOf(x)` by looking up the `@Native`
+  /// annotation of `x` and rewriting the expression to use
+  /// `_addressOf(annotation)`, which is implemented in the VM.
+  ///
+  /// By implementing this in the VM, we can re-use the implementation used to
+  /// lookup addresses for `@Native` invocations. We could also replace the
+  /// call with an invocation to `Native._ffi_resolver_function` and wrap the
+  /// result in a `Pointer`. To support static linking of native functions in
+  /// the future, having the unresolved symbol in the assembly generated for
+  /// each call site in the VM will be necessary. So we're already doing this
+  /// in the VM today.
+  ///
+  /// The transformation works by looking up the resolved `@Native` annotation
+  /// left by the native transformer in a pragma. Looking for a `@Native`
+  /// annotation on the argument wouldn't work because it's removed by the
+  /// native transformer and because it requires context from the library to
+  /// resolve the asset id.
+  StaticInvocation _replaceNativeAddressOf(StaticInvocation node) {
+    final arg = node.arguments.positional.single;
+    final nativeType = node.arguments.types.single;
+
+    final potentiallyNativeTarget = switch (arg) {
+      ConstantExpression(constant: StaticTearOffConstant method) =>
+        method.target,
+      StaticGet(:var targetReference) => targetReference.asMember,
+      _ => null,
+    };
+    Constant? nativeAnnotation;
+
+    if (potentiallyNativeTarget != null) {
+      for (final annotation in potentiallyNativeTarget.annotations) {
+        if (annotation
+            case ConstantExpression(constant: final InstanceConstant c)) {
+          if (c.classNode == coreTypes.pragmaClass) {
+            final name = c.fieldValues[coreTypes.pragmaName.fieldReference];
+            if (name is StringConstant &&
+                name.value == native.FfiNativeTransformer.nativeMarker) {
+              nativeAnnotation =
+                  c.fieldValues[coreTypes.pragmaOptions.fieldReference]!;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (nativeAnnotation == null) {
+      diagnosticReporter.report(messageFfiAddressOfMustBeNative, arg.fileOffset,
+          1, node.location?.file);
+      return node;
+    }
+
+    ensureNativeTypeValid(nativeType, node,
+        allowCompounds: true, allowInlineArray: true);
+    ensureNativeTypeToDartType(
+        nativeType, arg.getStaticType(staticTypeContext!), node,
+        allowArray: true);
+
+    return StaticInvocation(
+      nativePrivateAddressOf,
+      Arguments([ConstantExpression(nativeAnnotation)], types: [nativeType]),
+    )..fileOffset = arg.fileOffset;
   }
 }
 

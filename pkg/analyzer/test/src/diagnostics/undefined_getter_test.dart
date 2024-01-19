@@ -11,7 +11,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedGetterTest);
-    defineReflectiveTests(UndefinedGetterWithoutNullSafetyTest);
   });
 }
 
@@ -407,18 +406,14 @@ mixin M {
   }
 
   test_nullMember_undefined() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 m() {
   Null _null;
   _null.foo;
 }
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 28, 3),
-        ], legacy: [
-          error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
-        ]));
+''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 28, 3),
+    ]);
   }
 
   test_object_call() async {
@@ -444,11 +439,13 @@ void f<X extends num, Y extends X>(Y y) {
   }
 
   test_propertyAccess_functionClass_call() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f(Function a) {
   return (a).call;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 30, 8),
+    ]);
   }
 
   test_propertyAccess_functionType_call() async {
@@ -464,17 +461,14 @@ void f(A a) {
   }
 
   test_static_conditionalAccess_defined() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 class A {
   static var x;
 }
 var a = A?.x;
-''',
-      expectedErrorsByNullability(nullable: [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 37, 2),
-      ], legacy: []),
-    );
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 37, 2),
+    ]);
   }
 
   test_static_definedInSuperclass() async {
@@ -514,18 +508,13 @@ main() {
   }
 
   test_typeLiteral_conditionalAccess() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 class A {}
 f() => A?.hashCode;
-''',
-      expectedErrorsByNullability(nullable: [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 19, 2),
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
-      ], legacy: [
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
-      ]),
-    );
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 19, 2),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
+    ]);
   }
 
   test_typeSubstitution_defined() async {
@@ -543,7 +532,3 @@ class B extends A<List> {
 ''');
   }
 }
-
-@reflectiveTest
-class UndefinedGetterWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, UndefinedGetterTestCases {}

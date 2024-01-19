@@ -8,7 +8,7 @@ abstract class C extends core::Object {
     ;
   abstract get _f1() → core::int?;
   abstract get _f2() → core::int?;
-  abstract set _f2(core::int? #externalFieldValue) → void;
+  abstract set _f2(synthesized core::int? #externalFieldValue) → void;
 }
 class D extends core::Object {
   final field core::int? _f1;

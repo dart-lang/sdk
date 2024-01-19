@@ -394,7 +394,7 @@ class WidgetCreatorTracker {
       }
     }
     // TODO(johnniwinther): Require the [_widgetFactoryClass] once the
-    //  `widgetFactory` is stably in flutter.
+    //  `widgetFactory` is stable in flutter.
     _foundClasses =
         foundWidgetClass && foundHasCreationLocationClass && foundLocationClass;
   }

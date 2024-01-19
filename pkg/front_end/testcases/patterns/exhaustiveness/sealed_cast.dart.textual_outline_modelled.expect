@@ -1,0 +1,16 @@
+class A extends M {}
+
+class B extends M {}
+
+class C extends M {}
+
+class D implements A, B {}
+
+main() {}
+
+method(M m) => switch (m) {
+      A() as B => 0,
+      B() => 1,
+    };
+
+sealed class M {}

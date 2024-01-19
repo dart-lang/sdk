@@ -94,14 +94,11 @@ class CiderCompletionComputer {
           var result = await _logger.runAsync('Compute suggestions', () async {
             var includedElementKinds = <ElementKind>{};
             var includedElementNames = <String>{};
-            var includedSuggestionRelevanceTags =
-                <IncludedSuggestionRelevanceTag>[];
 
             var manager = DartCompletionManager(
               budget: CompletionBudget(CompletionBudget.defaultDuration),
               includedElementKinds: includedElementKinds,
               includedElementNames: includedElementNames,
-              includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
             );
 
             return await manager.computeSuggestions(
@@ -169,8 +166,8 @@ class CiderCompletionComputer {
 
   /// Return suggestions from libraries imported into the [target].
   ///
-  /// TODO(scheglov) Implement show / hide combinators.
-  /// TODO(scheglov) Implement prefixes.
+  // TODO(scheglov): Implement show / hide combinators.
+  // TODO(scheglov): Implement prefixes.
   List<CompletionSuggestionBuilder> _importedLibrariesSuggestions({
     required LibraryElement target,
     required OperationPerformanceImpl performance,
@@ -196,10 +193,7 @@ class CiderCompletionComputer {
     performance.getDataInt('libraryCount').increment();
 
     var path = element.source.fullName;
-    var signature = _fileResolver.getLibraryLinkedSignature(
-      path: path,
-      performance: performance,
-    );
+    var signature = _fileResolver.getLibraryLinkedSignature(path);
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {

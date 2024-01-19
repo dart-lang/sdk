@@ -1,0 +1,11 @@
+extension type I(int id) {
+  void set id(int i) {}
+}
+
+extension type ET1(int id) {
+  void set id(int i) {}
+}
+
+extension type ET2(int id) implements I {}
+
+main() {}

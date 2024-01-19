@@ -1659,10 +1659,24 @@ class FragmentEmitter {
           : locals.find('_lazyOld', 'hunkHelpers.lazyOld');
       js.Expression staticFieldCode = field.code;
       if (staticFieldCode is js.Fun) {
+        // An arrow function `() => { ...; return e }` is smaller that
+        // `function(){ ...; return e }`, and has compatible semantics for the
+        // initializer expression thunk.
         js.Fun fun = staticFieldCode;
-        staticFieldCode = js.ArrowFunction(fun.params, fun.body,
-                asyncModifier: fun.asyncModifier)
-            .withInformationFrom(fun);
+        js.Node body = fun.body;
+        // Convert `() => { return e; }` into `() => e`.
+        if (body is js.Block) {
+          final statements = body.statements;
+          if (statements.length == 1) {
+            final first = statements.single;
+            if (first is js.Return && first.value != null) {
+              body = first.value!;
+            }
+          }
+        }
+        staticFieldCode =
+            js.ArrowFunction(fun.params, body, asyncModifier: fun.asyncModifier)
+                .withInformationFrom(fun);
       }
       js.Statement statement = js.js.statement("#(#, #, #, #);", [
         helper,
@@ -1799,25 +1813,27 @@ class FragmentEmitter {
   /// This global maps minified names for selected classes (some important
   /// core classes, and some native classes) to their unminified names.
   js.Property emitMangledGlobalNames() {
-    List<js.Property> names = [];
-
     CommonElements commonElements = _closedWorld.commonElements;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
-    List<ClassEntity> nativeClassesNeedingUnmangledName = [
+    List<ClassEntity> commonClassesNeedingUnmangledName = [
       commonElements.intClass,
       commonElements.doubleClass,
       commonElements.numClass,
       commonElements.stringClass,
       commonElements.boolClass,
       commonElements.nullClass,
-      commonElements.listClass
+      commonElements.listClass,
+      commonElements.objectClass,
+      commonElements.mapClass,
     ];
     // TODO(floitsch): this should probably be on a per-fragment basis.
-    nativeClassesNeedingUnmangledName.forEach((element) {
-      names.add(js.Property(
-          js.quoteName(_namer.className(element)), js.string(element.name)));
-    });
+
+    List<js.Property> names = [
+      for (final element in commonClassesNeedingUnmangledName)
+        js.Property(
+            js.quoteName(_namer.className(element)), js.string(element.name))
+    ];
 
     return js.Property(
         js.string(MANGLED_GLOBAL_NAMES), js.ObjectInitializer(names));

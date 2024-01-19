@@ -1,0 +1,9 @@
+class A {}
+
+class B implements A? {}
+
+extension type EIAliasNullable(A? _) implements F<A?> {}
+
+extension type EINullable(int? _) implements int? {}
+
+typedef F<T> = T;

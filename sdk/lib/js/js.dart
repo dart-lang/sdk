@@ -81,7 +81,7 @@
 ///
 ///     var jsArray = JsObject.jsify([1, 2, 3]);
 ///
-/// {@category Web}
+/// {@category Web (Legacy)}
 library dart.js;
 
 import 'dart:collection' show ListMixin;

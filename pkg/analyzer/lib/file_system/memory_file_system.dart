@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
@@ -614,7 +614,7 @@ abstract class _MemoryResource implements Resource {
   /// watcher.
   @override
   ResourceWatcher watch() {
-    final streamController = StreamController<WatchEvent>();
+    final streamController = StreamController<WatchEvent>.broadcast();
     final ready = Completer<void>();
 
     /// A helper that sets up the watcher that may be called synchronously
@@ -650,7 +650,7 @@ abstract class _MemoryResource implements Resource {
       setupWatcher();
     }
 
-    return ResourceWatcher(streamController.stream, ready.future);
+    return ResourceWatcher(streamController.stream, () => ready.future);
   }
 }
 

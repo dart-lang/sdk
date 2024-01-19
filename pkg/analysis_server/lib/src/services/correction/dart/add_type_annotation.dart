@@ -148,7 +148,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     }
     // Prepare the type.
     var type = parameter.declaredElement!.type;
-    // TODO(scheglov) If the parameter is in a method declaration, and if the
+    // TODO(scheglov): If the parameter is in a method declaration, and if the
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden
     // method.

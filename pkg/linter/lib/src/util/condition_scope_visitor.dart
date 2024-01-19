@@ -130,7 +130,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   ConditionScope? outerScope;
   final breakScope = BreakScope();
 
-  /// todo (pq): here and w/ getTrueExpressions, consider an empty iterable
+  // TODO(pq): here and w/ getTrueExpressions, consider an empty iterable
   Iterable<Expression>? getFalseExpressions(Iterable<Element?> elements) =>
       _getExpressions(elements, value: false);
 
@@ -350,7 +350,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
         return false;
       }
 
-      // todo(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
+      // TODO(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
       // ignore: deprecated_member_use_from_same_package
       for (var ref in condition.traverseNodesInDFS()) {
         if (ref is SimpleIdentifier) {

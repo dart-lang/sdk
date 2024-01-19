@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/builder_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /// Runs [macro] in the types phase and returns a  [MacroExecutionResult].
 Future<MacroExecutionResult> executeTypesMacro(
@@ -44,6 +44,8 @@ Future<MacroExecutionResult> executeTypesMacro(
                 target.identifier as IdentifierImpl, introspector));
       case (ExtensionDeclaration target, ExtensionTypesMacro macro):
         await macro.buildTypesForExtension(target, typeBuilder);
+      case (ExtensionTypeDeclaration target, ExtensionTypeTypesMacro macro):
+        await macro.buildTypesForExtensionType(target, typeBuilder);
       case (MixinDeclaration target, MixinTypesMacro macro):
         await macro.buildTypesForMixin(
             target,
@@ -99,33 +101,17 @@ Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
       case (Library target, LibraryDeclarationsMacro macro):
         await macro.buildDeclarationsForLibrary(target, topLevelBuilder);
       case (ClassDeclaration target, ClassDeclarationsMacro macro):
-        if (target is! IntrospectableClassDeclarationImpl) {
-          throw new ArgumentError(
-              'Class declarations annotated with a macro should be '
-              'introspectable in the declarations phase.');
-        }
         await macro.buildDeclarationsForClass(target, memberBuilder);
       case (EnumDeclaration target, EnumDeclarationsMacro macro):
-        if (target is! IntrospectableEnumDeclarationImpl) {
-          throw new ArgumentError(
-              'Enum declarations annotated with a macro should be '
-              'introspectable in the declarations phase.');
-        }
-
         await macro.buildDeclarationsForEnum(target, enumBuilder);
       case (ExtensionDeclaration target, ExtensionDeclarationsMacro macro):
-        if (target is! IntrospectableExtensionDeclarationImpl) {
-          throw new ArgumentError(
-              'Extension declarations annotated with a macro should be '
-              'introspectable in the declarations phase.');
-        }
         await macro.buildDeclarationsForExtension(target, memberBuilder);
+      case (
+          ExtensionTypeDeclaration target,
+          ExtensionTypeDeclarationsMacro macro
+        ):
+        await macro.buildDeclarationsForExtensionType(target, memberBuilder);
       case (MixinDeclaration target, MixinDeclarationsMacro macro):
-        if (target is! IntrospectableMixinDeclarationImpl) {
-          throw new ArgumentError(
-              'Mixin declarations annotated with a macro should be '
-              'introspectable in the declarations phase.');
-        }
         await macro.buildDeclarationsForMixin(target, memberBuilder);
       case (EnumValueDeclaration target, EnumValueDeclarationsMacro macro):
         await macro.buildDeclarationsForEnumValue(target, enumBuilder);
@@ -165,7 +151,7 @@ Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
       new VariableDefinitionBuilderImpl(
           target as VariableDeclaration, introspector);
   late TypeDefinitionBuilderImpl typeBuilder = builder =
-      new TypeDefinitionBuilderImpl(target as IntrospectableType, introspector);
+      new TypeDefinitionBuilderImpl(target as TypeDeclaration, introspector);
 
   // TODO(jakemac): More robust handling for unawaited async errors?
   try {
@@ -175,34 +161,19 @@ Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
             builder = new LibraryDefinitionBuilderImpl(target, introspector);
         await macro.buildDefinitionForLibrary(target, libraryBuilder);
       case (ClassDeclaration target, ClassDefinitionMacro macro):
-        if (target is! IntrospectableClassDeclaration) {
-          throw new ArgumentError(
-              'Class declarations annotated with a macro should be '
-              'introspectable in the definitions phase.');
-        }
         await macro.buildDefinitionForClass(target, typeBuilder);
       case (EnumDeclaration target, EnumDefinitionMacro macro):
-        if (target is! IntrospectableEnumDeclaration) {
-          throw new ArgumentError(
-              'Enum declarations annotated with a macro should be '
-              'introspectable in the definitions phase.');
-        }
         EnumDefinitionBuilderImpl enumBuilder =
             builder = new EnumDefinitionBuilderImpl(target, introspector);
         await macro.buildDefinitionForEnum(target, enumBuilder);
       case (ExtensionDeclaration target, ExtensionDefinitionMacro macro):
-        if (target is! IntrospectableExtensionDeclaration) {
-          throw new ArgumentError(
-              'Extension declarations annotated with a macro should be '
-              'introspectable in the definitions phase.');
-        }
         await macro.buildDefinitionForExtension(target, typeBuilder);
+      case (
+          ExtensionTypeDeclaration target,
+          ExtensionTypeDefinitionMacro macro
+        ):
+        await macro.buildDefinitionForExtensionType(target, typeBuilder);
       case (MixinDeclaration target, MixinDefinitionMacro macro):
-        if (target is! IntrospectableMixinDeclaration) {
-          throw new ArgumentError(
-              'Mixin declarations annotated with a macro should be '
-              'introspectable in the definitions phase.');
-        }
         await macro.buildDefinitionForMixin(target, typeBuilder);
       case (EnumValueDeclaration target, EnumValueDefinitionMacro macro):
         EnumValueDefinitionBuilderImpl enumValueBuilder = builder =

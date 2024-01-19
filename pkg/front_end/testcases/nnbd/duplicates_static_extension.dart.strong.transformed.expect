@@ -238,7 +238,7 @@ static method test() → dynamic {
             ^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static_extension.dart:86:14: Error: Can't use 'staticMethod' because it is declared more than once.
   (Extension.staticMethod)();
-             ^^^^^^^^^^^^"{dynamic}.call();
+             ^^^^^^^^^^^^"{dynamic}();
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static_extension.dart:87:13: Error: Can't use 'staticGetter' because it is declared more than once.
   Extension.staticGetter;
             ^^^^^^^^^^^^";

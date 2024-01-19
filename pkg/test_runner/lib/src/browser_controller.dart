@@ -408,8 +408,9 @@ class Chrome extends Browser {
         "--disable-blink-features=TimerThrottlingForBackgroundTabs",
         "--no-first-run",
         "--use-mock-keychain",
+        "--password-store=basic",
         "--user-data-dir=${userDir.path}",
-        "--js-flags=--experimental-wasm-gc",
+        "--js-flags=--experimental-wasm-imported-strings",
         url,
       ];
 

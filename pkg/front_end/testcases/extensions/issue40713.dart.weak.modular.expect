@@ -22,7 +22,7 @@ static extension-member method SafeAccess|get#safeFirst<T extends core::Object* 
 static method main() → dynamic {}
 static method test() → void {
   final core::List<dynamic>* list = <dynamic>[];
-  self::SafeAccess|get#safeFirst<dynamic>(list){dynamic}.call();
+  self::SafeAccess|get#safeFirst<dynamic>(list){dynamic}();
   final core::List<(core::int*) →* void>* list2 = <(core::int*) →* void>[];
   self::SafeAccess|get#safeFirst<(core::int*) →* void>(list2)(0){(core::int*) →* void};
 }

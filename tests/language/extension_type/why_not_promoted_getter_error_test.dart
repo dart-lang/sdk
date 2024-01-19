@@ -12,14 +12,14 @@
 extension type E(dynamic d) {
   int? get i1 => 0;
   //       ^^
-  // [context 1] 'i1' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 3] 'i1' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 5] 'i1' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 7] 'i1' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 9] 'i1' refers to a getter so it couldn't be promoted.
-  // [context 11] 'i1' refers to a getter so it couldn't be promoted.
-  // [context 13] 'i1' refers to a getter so it couldn't be promoted.
-  // [context 15] 'i1' refers to a getter so it couldn't be promoted.
+  // [context 1] 'i1' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'i1' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 5] 'i1' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 7] 'i1' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 9] 'i1' refers to a public property so it couldn't be promoted.
+  // [context 11] 'i1' refers to a public property so it couldn't be promoted.
+  // [context 13] 'i1' refers to a public property so it couldn't be promoted.
+  // [context 15] 'i1' refers to a public property so it couldn't be promoted.
   int? get _i2 => 0;
   //       ^^^
   // [context 2] '_i2' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field

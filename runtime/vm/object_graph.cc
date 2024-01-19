@@ -852,35 +852,34 @@ void HeapSnapshotWriter::Flush(bool last) {
   capacity_ = 0;
 }
 
-void HeapSnapshotWriter::SetupCountingPages() {
-  for (intptr_t i = 0; i < kMaxImagePages; i++) {
-    image_page_ranges_[i].base = 0;
-    image_page_ranges_[i].size = 0;
-  }
-  intptr_t next_offset = 0;
+void HeapSnapshotWriter::SetupImagePageBoundaries() {
+  MallocGrowableArray<ImagePageRange> ranges(4);
+
   Page* image_page =
       Dart::vm_isolate_group()->heap()->old_space()->image_pages_;
   while (image_page != nullptr) {
-    RELEASE_ASSERT(next_offset <= kMaxImagePages);
-    image_page_ranges_[next_offset].base = image_page->object_start();
-    image_page_ranges_[next_offset].size =
-        image_page->object_end() - image_page->object_start();
+    ImagePageRange range = {image_page->object_start(),
+                            image_page->object_end()};
+    ranges.Add(range);
     image_page = image_page->next();
-    next_offset++;
   }
   image_page = isolate_group()->heap()->old_space()->image_pages_;
   while (image_page != nullptr) {
-    RELEASE_ASSERT(next_offset <= kMaxImagePages);
-    image_page_ranges_[next_offset].base = image_page->object_start();
-    image_page_ranges_[next_offset].size =
-        image_page->object_end() - image_page->object_start();
+    ImagePageRange range = {image_page->object_start(),
+                            image_page->object_end()};
+    ranges.Add(range);
     image_page = image_page->next();
-    next_offset++;
   }
 
+  ranges.Sort(CompareImagePageRanges);
+  intptr_t image_page_count;
+  ranges.StealBuffer(&image_page_ranges_, &image_page_count);
+  image_page_hi_ = image_page_count - 1;
+}
+
+void HeapSnapshotWriter::SetupCountingPages() {
   Page* page = isolate_group()->heap()->old_space()->pages_;
   while (page != nullptr) {
-    page->forwarding_page();
     CountingPage* counting_page =
         reinterpret_cast<CountingPage*>(page->forwarding_page());
     ASSERT(counting_page != nullptr);
@@ -891,8 +890,17 @@ void HeapSnapshotWriter::SetupCountingPages() {
 
 bool HeapSnapshotWriter::OnImagePage(ObjectPtr obj) const {
   const uword addr = UntaggedObject::ToAddr(obj);
-  for (intptr_t i = 0; i < kMaxImagePages; i++) {
-    if ((addr - image_page_ranges_[i].base) < image_page_ranges_[i].size) {
+  intptr_t lo = 0;
+  intptr_t hi = image_page_hi_;
+  while (lo <= hi) {
+    intptr_t mid = (hi - lo + 1) / 2 + lo;
+    ASSERT(mid >= lo);
+    ASSERT(mid <= hi);
+    if (addr < image_page_ranges_[mid].start) {
+      hi = mid - 1;
+    } else if (addr >= image_page_ranges_[mid].end) {
+      lo = mid + 1;
+    } else {
       return true;
     }
   }
@@ -931,11 +939,6 @@ intptr_t HeapSnapshotWriter::GetObjectId(ObjectPtr obj) const {
     intptr_t id = thread()->heap()->GetObjectId(obj);
     ASSERT(id != 0);
     return id;
-  }
-
-  if (FLAG_write_protect_code && obj->IsInstructions() && !OnImagePage(obj)) {
-    // A non-writable alias mapping may exist for instruction pages.
-    obj = Page::ToWritable(obj);
   }
 
   CountingPage* counting_page = FindCountingPage(obj);
@@ -1622,6 +1625,7 @@ void HeapSnapshotWriter::Write() {
     }
   }
 
+  SetupImagePageBoundaries();
   SetupCountingPages();
 
   intptr_t num_isolates = 0;

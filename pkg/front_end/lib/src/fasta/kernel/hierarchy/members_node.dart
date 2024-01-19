@@ -432,7 +432,12 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       SourceProcedureBuilder declaredMember,
       Iterable<ClassMember> overriddenMembers) {
     assert(declaredMember.isSetter);
-    FormalParameterBuilder parameter = declaredMember.formals!.first;
+    List<FormalParameterBuilder>? formals = declaredMember.formals;
+    if (formals == null) {
+      // Erroneous case.
+      return;
+    }
+    FormalParameterBuilder parameter = formals.first;
     if (declaredMember.classBuilder == classBuilder &&
         parameter.type is InferableTypeBuilder) {
       DartType? inferredType;
@@ -1001,9 +1006,11 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           /// `Super.property2` is _not_ a subtype of the setter
           /// `Mixin.property1`.
           _membersBuilder.registerGetterSetterCheck(
-              classBuilder as SourceClassBuilder,
-              interfaceGetable,
-              interfaceSetable);
+              new DelayedClassGetterSetterCheck(
+                  classBuilder as SourceClassBuilder,
+                  name,
+                  interfaceGetable,
+                  interfaceSetable));
         }
       }
       overrides.collectOverrides(
@@ -2023,8 +2030,7 @@ class _SanitizedMember {
             canonicalMember: _mixedInMember,
             mixedInMember: _mixedInMember,
             noSuchMethodTarget: noSuchMethodTarget,
-            isProperty: _definingMember.isProperty,
-            forSetter: _definingMember.forSetter,
+            memberKind: _definingMember.memberKind,
             shouldModifyKernel: builder.shouldModifyKernel);
         builder._membersBuilder.registerMemberComputation(interfaceMember);
 
@@ -2058,8 +2064,7 @@ class _SanitizedMember {
               classBuilder, name,
               inheritedClassMember: _extendedMember,
               implementedInterfaceMember: interfaceMember,
-              forSetter: _definingMember.forSetter,
-              isProperty: _definingMember.isProperty);
+              memberKind: _definingMember.memberKind);
           builder._membersBuilder.registerMemberComputation(classMember);
           if (!classBuilder.isAbstract) {
             overrides.registerInheritedImplements(
@@ -2153,8 +2158,7 @@ class _SanitizedMember {
             // is the defining member.
             canonicalMember: _mixedInMember,
             mixedInMember: _mixedInMember,
-            isProperty: _definingMember.isProperty,
-            forSetter: _definingMember.forSetter,
+            memberKind: _definingMember.memberKind,
             shouldModifyKernel: builder.shouldModifyKernel);
         builder._membersBuilder.registerMemberComputation(interfaceMember);
 
@@ -2173,8 +2177,7 @@ class _SanitizedMember {
             classBuilder, name,
             inheritedClassMember: _mixedInMember,
             implementedInterfaceMember: interfaceMember,
-            forSetter: _definingMember.forSetter,
-            isProperty: _definingMember.isProperty);
+            memberKind: _definingMember.memberKind);
         builder._membersBuilder.registerMemberComputation(classMember);
 
         if (!classBuilder.isAbstract) {
@@ -2278,8 +2281,7 @@ class _SanitizedMember {
               // _because_ it is the defining member.
               canonicalMember: _declaredMember,
               noSuchMethodTarget: noSuchMethodTarget,
-              isProperty: _definingMember.isProperty,
-              forSetter: _definingMember.forSetter,
+              memberKind: _definingMember.memberKind,
               shouldModifyKernel: builder.shouldModifyKernel);
           builder._membersBuilder.registerMemberComputation(interfaceMember);
         }
@@ -2311,8 +2313,7 @@ class _SanitizedMember {
               classBuilder, name,
               inheritedClassMember: _extendedMember,
               implementedInterfaceMember: interfaceMember,
-              forSetter: _definingMember.forSetter,
-              isProperty: _definingMember.isProperty);
+              memberKind: _definingMember.memberKind);
           builder._membersBuilder.registerMemberComputation(classMember);
 
           if (!classBuilder.isAbstract && noSuchMethodTarget == null) {
@@ -2448,8 +2449,7 @@ class _SanitizedMember {
               classBuilder, name, interfaceMembers.toList(),
               superClassMember: _extendedMember,
               noSuchMethodTarget: noSuchMethodTarget,
-              isProperty: _definingMember.isProperty,
-              forSetter: _definingMember.forSetter,
+              memberKind: _definingMember.memberKind,
               shouldModifyKernel: builder.shouldModifyKernel);
           builder._membersBuilder.registerMemberComputation(interfaceMember);
         }
@@ -2493,8 +2493,7 @@ class _SanitizedMember {
               classBuilder, name,
               inheritedClassMember: _extendedMember,
               implementedInterfaceMember: interfaceMember,
-              isProperty: _definingMember.isProperty,
-              forSetter: _definingMember.forSetter);
+              memberKind: _definingMember.memberKind);
           builder._membersBuilder.registerMemberComputation(classMember);
           if (!classBuilder.isAbstract && noSuchMethodTarget == null) {
             ///    class Super {
@@ -2519,8 +2518,7 @@ class _SanitizedMember {
         interfaceMember = new SynthesizedInterfaceMember(
             classBuilder, name, [_extendedMember],
             superClassMember: _extendedMember,
-            isProperty: _definingMember.isProperty,
-            forSetter: _definingMember.forSetter,
+            memberKind: _definingMember.memberKind,
             shouldModifyKernel: builder.shouldModifyKernel);
         builder._membersBuilder.registerMemberComputation(interfaceMember);
 
@@ -2531,8 +2529,7 @@ class _SanitizedMember {
             classBuilder, name,
             inheritedClassMember: _extendedMember,
             implementedInterfaceMember: interfaceMember,
-            isProperty: _definingMember.isProperty,
-            forSetter: _definingMember.forSetter);
+            memberKind: _definingMember.memberKind);
         builder._membersBuilder.registerMemberComputation(classMember);
       }
     } else if (_implementedMembers != null) {
@@ -2589,8 +2586,7 @@ class _SanitizedMember {
           interfaceMember = new SynthesizedInterfaceMember(
               classBuilder, name, interfaceMembers.toList(),
               noSuchMethodTarget: noSuchMethodTarget,
-              isProperty: _definingMember.isProperty,
-              forSetter: _definingMember.forSetter,
+              memberKind: _definingMember.memberKind,
               shouldModifyKernel: builder.shouldModifyKernel);
           builder._membersBuilder.registerMemberComputation(interfaceMember);
         }

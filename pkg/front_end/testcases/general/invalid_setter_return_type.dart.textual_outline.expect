@@ -1,6 +1,9 @@
 int set setter1(_) {}
+
 dynamic set setter2(_) {}
+
 void set setter3(_) {}
+
 set setter4(_) {}
 
 class Class1 {

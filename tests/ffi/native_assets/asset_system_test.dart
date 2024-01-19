@@ -73,20 +73,9 @@ Future<void> selfInvokes() async {
 
 Future<void> runTests() async {
   testProcessOrSystem();
+  testProcessOrSystemViaAddressOf();
   testNonExistingFunction();
 }
-
-@FfiNative<Pointer Function(IntPtr)>('malloc')
-external Pointer posixMalloc(int size);
-
-@FfiNative<Void Function(Pointer)>('free')
-external void posixFree(Pointer pointer);
-
-@FfiNative<Pointer Function(Size)>('CoTaskMemAlloc')
-external Pointer winCoTaskMemAlloc(int cb);
-
-@FfiNative<Void Function(Pointer)>('CoTaskMemFree')
-external void winCoTaskMemFree(Pointer pv);
 
 @Native<Pointer Function(IntPtr)>()
 external Pointer malloc(int size);
@@ -102,18 +91,38 @@ external void CoTaskMemFree(Pointer pv);
 
 void testProcessOrSystem() {
   if (Platform.isWindows) {
-    final pointer = winCoTaskMemAlloc(8);
-    Expect.notEquals(nullptr, pointer);
-    winCoTaskMemFree(pointer);
     final pointer2 = CoTaskMemAlloc(8);
     Expect.notEquals(nullptr, pointer2);
     CoTaskMemFree(pointer2);
   } else {
-    final pointer = posixMalloc(8);
-    Expect.notEquals(nullptr, pointer);
-    posixFree(pointer);
     final pointer2 = malloc(8);
     Expect.notEquals(nullptr, pointer2);
     free(pointer2);
+  }
+}
+
+void testProcessOrSystemViaAddressOf() {
+  if (Platform.isWindows) {
+    final memAlloc =
+        Native.addressOf<NativeFunction<Pointer Function(Size)>>(CoTaskMemAlloc)
+            .asFunction<Pointer Function(int)>();
+    final memFree =
+        Native.addressOf<NativeFunction<Void Function(Pointer)>>(CoTaskMemFree)
+            .asFunction<void Function(Pointer)>();
+
+    final pointer = memAlloc(8);
+    Expect.notEquals(nullptr, pointer);
+    memFree(pointer);
+  } else {
+    final mallocViaAddrOf =
+        Native.addressOf<NativeFunction<Pointer Function(IntPtr)>>(malloc)
+            .asFunction<Pointer Function(int)>();
+    final freeViaAddrOf =
+        Native.addressOf<NativeFunction<Void Function(Pointer)>>(free)
+            .asFunction<void Function(Pointer)>();
+
+    final pointer = mallocViaAddrOf(8);
+    Expect.notEquals(nullptr, pointer);
+    freeViaAddrOf(pointer);
   }
 }

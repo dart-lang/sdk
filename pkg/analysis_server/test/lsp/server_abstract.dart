@@ -7,21 +7,26 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
+import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 import 'package:path/path.dart' as path;
@@ -68,6 +73,9 @@ abstract class AbstractLspAnalysisServerTest
 
   @override
   Stream<Message> get serverToClient => channel.serverToClient;
+
+  @override
+  ClientUriConverter get uriConverter => server.uriConverter;
 
   DiscoveredPluginInfo configureTestPlugin({
     plugin.ResponseResult? respondWith,
@@ -294,9 +302,6 @@ abstract class AbstractLspAnalysisServerTest
 analyzer:
   enable-experiment:
     - inline-class
-    - records
-    - patterns
-    - sealed-class
 ''');
 
     analysisOptionsUri = pathContext.toUri(analysisOptionsPath);
@@ -557,6 +562,18 @@ mixin ClientCapabilitiesHelperMixin {
         workspaceCapabilities, {'configuration': true});
   }
 
+  void setDartTextDocumentContentProviderSupport([bool supported = true]) {
+    // These are temporarily versioned with a suffix during dev so if we ship
+    // as an experiment (not LSP standard) without the suffix it will only be
+    // active for matching server/clients.
+    const key = dartExperimentalTextDocumentContentProviderKey;
+    if (supported) {
+      experimentalCapabilities[key] = true;
+    } else {
+      experimentalCapabilities.remove(key);
+    }
+  }
+
   void setDiagnosticCodeDescriptionSupport() {
     textDocumentCapabilities =
         extendTextDocumentCapabilities(textDocumentCapabilities, {
@@ -764,6 +781,9 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
     bool meta = false,
     bool pedantic = false,
     bool vector_math = false,
+    // TODO(dantup): Remove this flag when we no longer need to copy packages
+    //  for macro support.
+    bool temporaryMacroSupport = false,
   }) {
     if (config == null) {
       config = PackageConfigFileBuilder();
@@ -803,6 +823,32 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
       config.add(name: 'vector_math', rootPath: libFolder.parent.path);
     }
 
+    if (temporaryMacroSupport) {
+      final testPackagesRootPath = resourceProvider.convertPath('/packages');
+
+      final physical = PhysicalResourceProvider.INSTANCE;
+      final packageRoot =
+          physical.pathContext.normalize(package_root.packageRoot);
+
+      // Copy _fe_analyzer_shared from local SDK into the memory FS.
+      final testSharedFolder =
+          getFolder('$testPackagesRootPath/_fe_analyzer_shared');
+      physical
+          .getFolder(packageRoot)
+          .getChildAssumingFolder('_fe_analyzer_shared/lib/src/macros')
+          .copyTo(testSharedFolder.getChildAssumingFolder('lib/src'));
+      config.add(name: '_fe_analyzer_shared', rootPath: testSharedFolder.path);
+
+      // Copy dart_internal from local SDK into the memory FS.
+      final testInternalFolder =
+          getFolder('$testPackagesRootPath/dart_internal');
+      physical
+          .getFolder(packageRoot)
+          .getChildAssumingFolder('dart_internal')
+          .copyTo(testInternalFolder);
+      config.add(name: 'dart_internal', rootPath: testInternalFolder.path);
+    }
+
     var path = '$projectFolderPath/.dart_tool/package_config.json';
     var content = config.toContent(toUriStr: toUriStr);
     newFile(path, content);
@@ -812,13 +858,6 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
 mixin LspAnalysisServerTestMixin
     on LspRequestHelpersMixin, LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
-  static const positionMarker = '^';
-  static const rangeMarkerStart = '[[';
-  static const rangeMarkerEnd = ']]';
-  static const allMarkers = [positionMarker, rangeMarkerStart, rangeMarkerEnd];
-  static final allMarkersPattern =
-      RegExp(allMarkers.map(RegExp.escape).join('|'));
-
   /// A progress token used in tests where the client-provides the token, which
   /// should not be validated as being created by the server first.
   final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
@@ -847,12 +886,40 @@ mixin LspAnalysisServerTestMixin
   /// options explicitly.
   Map<String, Object?>? defaultInitializationOptions;
 
+  /// The current state of all diagnostics from the server.
+  ///
+  /// A file that has never had diagnostics will not be in the map. A file that
+  /// has ever had diagnostics will be in the map, even if the entry is an empty
+  /// list.
+  final diagnostics = <Uri, List<Diagnostic>>{};
+
+  /// A stream of [OpenUriParams] for any `dart/openUri` notifications.
+  Stream<DartTextDocumentContentDidChangeParams>
+      get dartTextDocumentContentDidChangeNotifications =>
+          notificationsFromServer
+              .where((notification) =>
+                  notification.method ==
+                  CustomMethods.dartTextDocumentContentDidChange)
+              .map((message) => DartTextDocumentContentDidChangeParams.fromJson(
+                  message.params as Map<String, Object?>));
+
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
   }
 
+  /// The experimental capabilities returned from the server during initialization.
+  Map<String, Object?> get experimentalServerCapabilities =>
+      serverCapabilities.experimental as Map<String, Object?>? ?? {};
+
+  /// A [Future] that completes with the first analysis after initialization.
+  Future<void> get initialAnalysis =>
+      initialized ? Future.value() : waitForAnalysisComplete();
+
   bool get initialized => _clientCapabilities != null;
+
+  /// The URI for the macro-generated contents for [mainFileUri].
+  Uri get mainFileMacroUri => mainFileUri.replace(scheme: macroClientUriScheme);
 
   /// A stream of [NotificationMessage]s from the server.
   Stream<NotificationMessage> get notificationsFromServer {
@@ -869,12 +936,24 @@ mixin LspAnalysisServerTestMixin
 
   path.Context get pathContext;
 
+  /// A stream of diagnostic notifications from the server.
+  Stream<PublishDiagnosticsParams> get publishedDiagnostics {
+    return notificationsFromServer
+        .where((notification) =>
+            notification.method == Method.textDocument_publishDiagnostics)
+        .map((notification) => PublishDiagnosticsParams.fromJson(
+            notification.params as Map<String, Object?>));
+  }
+
   /// A stream of [RequestMessage]s from the server.
   Stream<RequestMessage> get requestsFromServer {
     return serverToClient
         .where((m) => m is RequestMessage)
         .cast<RequestMessage>();
   }
+
+  /// The capabilities returned from the server during initialization.
+  ServerCapabilities get serverCapabilities => _serverCapabilities!;
 
   Stream<Message> get serverToClient;
 
@@ -1040,7 +1119,7 @@ mixin LspAnalysisServerTestMixin
       // an error it will still be handled as such when the future is later
       // awaited.
 
-      // TODO: Fix this static error.
+      // TODO(srawlins): Fix this static error.
       // ignore: body_might_complete_normally_catch_error
       outboundRequest.catchError((_) {});
     });
@@ -1100,6 +1179,10 @@ mixin LspAnalysisServerTestMixin
         await _handleProgress(notification);
       }
     });
+
+    // Track diagnostics from the server so tests can easily access the current
+    // state.
+    trackDiagnostics(diagnostics);
 
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
@@ -1232,14 +1315,6 @@ mixin LspAnalysisServerTestMixin
     return 0;
   }
 
-  Position positionFromMarker(String contents) =>
-      positionFromOffset(withoutRangeMarkers(contents).indexOf('^'), contents);
-
-  @override
-  Position positionFromOffset(int offset, String contents) {
-    return super.positionFromOffset(offset, withoutMarkers(contents));
-  }
-
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
   ///
@@ -1269,8 +1344,7 @@ mixin LspAnalysisServerTestMixin
         return configurationParams.items.map(
           (requestedConfig) {
             final uri = requestedConfig.scopeUri;
-            final path =
-                uri != null ? pathContext.fromUri(Uri.parse(uri)) : null;
+            final path = uri != null ? pathContext.fromUri(uri) : null;
             // Use the config the test provided for this path, or fall back to
             // global.
             return (folders != null ? folders[path] : null) ?? global;
@@ -1280,23 +1354,9 @@ mixin LspAnalysisServerTestMixin
     );
   }
 
-  /// Returns the range surrounded by `[[markers]]` in the provided string,
-  /// excluding the markers themselves (as well as position markers `^` from
-  /// the offsets).
-  Range rangeFromMarkers(String contents) {
-    final ranges = rangesFromMarkers(contents);
-    if (ranges.length == 1) {
-      return ranges.first;
-    } else if (ranges.isEmpty) {
-      throw 'Contents did not include a marked range';
-    } else {
-      throw 'Contents contained multiple ranges but only one was expected';
-    }
-  }
-
-  /// Returns the range of [pattern] in [content].
-  Range rangeOfPattern(String content, Pattern pattern) {
-    content = withoutMarkers(content);
+  /// Returns the range of [pattern] in [code].
+  Range rangeOfPattern(TestCode code, Pattern pattern) {
+    final content = code.code;
     final match = pattern.allMatches(content).first;
     return Range(
       start: positionFromOffset(match.start, content),
@@ -1304,9 +1364,18 @@ mixin LspAnalysisServerTestMixin
     );
   }
 
+  /// Returns the range of [searchText] in [code].
+  Range rangeOfString(TestCode code, String searchText) =>
+      rangeOfPattern(code, searchText);
+
   /// Returns the range of [searchText] in [content].
-  Range rangeOfString(String content, String searchText) =>
-      rangeOfPattern(content, searchText);
+  Range rangeOfStringInString(String content, String searchText) {
+    final match = searchText.allMatches(content).first;
+    return Range(
+      start: positionFromOffset(match.start, content),
+      end: positionFromOffset(match.end, content),
+    );
+  }
 
   /// Returns a [Range] that covers the entire of [content].
   Range rangeOfWholeContent(String content) {
@@ -1316,47 +1385,9 @@ mixin LspAnalysisServerTestMixin
     );
   }
 
-  /// Returns all ranges surrounded by `[[markers]]` in the provided string,
-  /// excluding the markers themselves (as well as position markers `^` from
-  /// the offsets).
-  List<Range> rangesFromMarkers(String content) {
-    Iterable<Range> rangesFromMarkersImpl(String content) sync* {
-      content = content.replaceAll(positionMarker, '');
-      final contentsWithoutMarkers = withoutMarkers(content);
-      var searchStartIndex = 0;
-      var offsetForEarlierMarkers = 0;
-      while (true) {
-        final startMarker = content.indexOf(rangeMarkerStart, searchStartIndex);
-        if (startMarker == -1) {
-          return; // Exit if we didn't find any more.
-        }
-        final endMarker = content.indexOf(rangeMarkerEnd, startMarker);
-        if (endMarker == -1) {
-          throw 'Found unclosed range starting at offset $startMarker';
-        }
-        yield Range(
-          start: positionFromOffset(
-              startMarker + offsetForEarlierMarkers, contentsWithoutMarkers),
-          end: positionFromOffset(
-              endMarker + offsetForEarlierMarkers - rangeMarkerStart.length,
-              contentsWithoutMarkers),
-        );
-        // Start the next search after this one, but remember to offset the future
-        // results by the lengths of these markers since they shouldn't affect the
-        // offsets.
-        searchStartIndex = endMarker;
-        offsetForEarlierMarkers -=
-            rangeMarkerStart.length + rangeMarkerEnd.length;
-      }
-    }
-
-    return rangesFromMarkersImpl(content).toList();
-  }
-
   /// Gets the range in [content] that beings with the string [prefix] and
   /// has a length matching [text].
   Range rangeStartingAtString(String content, String prefix, String text) {
-    content = withoutMarkers(content);
     final offset = content.indexOf(prefix);
     final end = offset + text.length;
     return Range(
@@ -1458,18 +1489,11 @@ mixin LspAnalysisServerTestMixin
 
   /// Records the latest diagnostics for each file in [latestDiagnostics].
   ///
-  /// [latestDiagnostics] maps from a file path to the set of current
-  /// diagnostics.
+  /// [latestDiagnostics] maps from a URI to the set of current diagnostics.
   StreamSubscription<PublishDiagnosticsParams> trackDiagnostics(
-      Map<String, List<Diagnostic>> latestDiagnostics) {
-    return notificationsFromServer
-        .where((notification) =>
-            notification.method == Method.textDocument_publishDiagnostics)
-        .map((notification) => PublishDiagnosticsParams.fromJson(
-            notification.params as Map<String, Object?>))
-        .listen((diagnostics) {
-      latestDiagnostics[pathContext.fromUri(diagnostics.uri)] =
-          diagnostics.diagnostics;
+      Map<Uri, List<Diagnostic>> latestDiagnostics) {
+    return publishedDiagnostics.listen((diagnostics) {
+      latestDiagnostics[diagnostics.uri] = diagnostics.diagnostics;
     });
   }
 
@@ -1544,18 +1568,10 @@ mixin LspAnalysisServerTestMixin
   }
 
   Future<List<Diagnostic>?> waitForDiagnostics(Uri uri) async {
-    PublishDiagnosticsParams? diagnosticParams;
-    await notificationsFromServer
-        .map<NotificationMessage?>((message) => message)
-        .firstWhere((message) {
-      if (message?.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams = PublishDiagnosticsParams.fromJson(
-            message!.params as Map<String, Object?>);
-        return diagnosticParams!.uri == uri;
-      }
-      return false;
-    }, orElse: () => null);
-    return diagnosticParams?.diagnostics;
+    return publishedDiagnostics
+        .where((params) => params.uri == uri)
+        .map<List<Diagnostic>?>((params) => params.diagnostics)
+        .firstWhere((_) => true, orElse: () => null);
   }
 
   Future<FlutterOutline> waitForFlutterOutline(Uri uri) async {
@@ -1585,15 +1601,6 @@ mixin LspAnalysisServerTestMixin
     });
     return outlineParams.outline;
   }
-
-  /// Removes markers like `[[` and `]]` and `^` that are used for marking
-  /// positions/ranges in strings to avoid hard-coding positions in tests.
-  String withoutMarkers(String contents) =>
-      contents.replaceAll(allMarkersPattern, '');
-
-  /// Removes range markers from strings to give accurate position offsets.
-  String withoutRangeMarkers(String contents) =>
-      contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 
   Future<void> _handleProgress(NotificationMessage request) async {
     final params =

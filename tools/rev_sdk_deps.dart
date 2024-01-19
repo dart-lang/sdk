@@ -88,20 +88,31 @@ void main(List<String> args) async {
   print('Revisions updated by `dart tools/rev_sdk_deps.dart`.');
   print('');
 
-  for (var entry in revDepsToCommits.entries) {
-    final dep = entry.key;
-    final commit = entry.value;
-
+  for (final MapEntry(key: dep, value: commit) in revDepsToCommits.entries) {
     final git = GitHelper(dep.relativePath);
 
-    var gitLog = await git.calculateUnsyncedCommits();
-    var currentHash = await gclient.getHash(dep);
+    final gitLog = await git.calculateUnsyncedCommits();
+    final currentHash = await gclient.getHash(dep);
 
-    // Construct the github diff URL.
-    print('${dep.name} (${dep.getGithubDiffUrl(currentHash, commit)}):');
+    final gitHubRepo = dep.gitHubRepoIdentifier;
 
-    // Print out the new commits.
-    print(gitLog.split('\n').map((l) => '  $l').join('\n').trimRight());
+    // Construct and print out the GitHub diff URL.
+    print('${dep.name} (${dep.gitHubDiffUrl(currentHash, commit)}):');
+
+    /// Qualify or wrap the GitHub issue references within [commitMessage].
+    String replaceHashReferences(String commitMessage) => commitMessage
+        .replaceAllMapped(
+          _mergeCommitPullRequestReference,
+          (m) => '($gitHubRepo#${m[1]})',
+        )
+        .replaceAllMapped(_issueHashReference, (m) => '`${m[0]}`');
+
+    // Format and print out the message header of each new commit.
+    final newCommitHeaders = [
+      for (final commitHeader in gitLog.split('\n'))
+        '  ${replaceHashReferences(commitHeader)}',
+    ];
+    print(newCommitHeaders.join('\n').trimRight());
 
     // Update the DEPS file.
     await gclient.setHash(dep, commit);
@@ -122,6 +133,20 @@ void main(List<String> args) async {
     }
   }
 }
+
+/// A regex that matches the final PR reference of a merge commit header.
+///
+/// Allows replacing the PR reference with a repository qualified reference,
+/// so that GitHub auto links to the correct repository instead of
+/// an irrelevant issue or PR on the SDK repository.
+final RegExp _mergeCommitPullRequestReference = RegExp(r'\(#?(\d+)\)$');
+
+/// A regex that matches any non-qualified issue or PR references
+/// within a commit message, such as `#123`.
+///
+/// Allows replacing or wrapping the potential issue or PR references so that
+/// GitHub doesn't autolink to an irrelevant issue or PR on the SDK repository.
+final RegExp _issueHashReference = RegExp(r'\B#\d+');
 
 // By convention, pinned deps are deps with an eol comment.
 Set<String> calculatePinnedDeps() {
@@ -266,32 +291,34 @@ class PackageDependency {
 
   String get relativePath => entry.substring('sdk/'.length);
 
-  String getGithubDiffUrl(String fromCommit, String toCommit) {
-    // https://github.com/dart-lang/<repo>/compare/<old>..<new>
-    final from = fromCommit.substring(0, 7);
-    final to = toCommit.substring(0, 7);
-
+  /// The identifier of the GitHub repository this dependency is from.
+  ///
+  /// For example: `dart-lang/test`.
+  String get gitHubRepoIdentifier {
     var repo = url.substring(url.lastIndexOf('/') + 1);
     if (repo.endsWith('git')) {
       repo = repo.substring(0, repo.length - '.git'.length);
     }
 
-    var org = 'dart-lang';
+    final String org;
     if (url.contains('/external/')) {
       // https://dart.googlesource.com/external/github.com/google/webdriver.dart.git
       final parts = url.split('/');
       org = parts[parts.length - 2];
+    } else {
+      org = 'dart-lang';
     }
 
-    // TODO(devoncarew): Eliminate this special-casing; see #48830.
-    const orgOverrides = {
-      'platform.dart': 'google',
-    };
-    if (orgOverrides.containsKey(repo)) {
-      org = orgOverrides[repo]!;
-    }
+    return '$org/$repo';
+  }
 
-    return 'https://github.com/$org/$repo/compare/$from..$to';
+  /// The URL of the GitHub comparison view between [fromCommit] and [toCommit].
+  Uri gitHubDiffUrl(String fromCommit, String toCommit) {
+    // https://github.com/dart-lang/<repo>/compare/<old>..<new>
+    final from = fromCommit.substring(0, 7);
+    final to = toCommit.substring(0, 7);
+
+    return Uri.https('github.com', '$gitHubRepoIdentifier/compare/$from..$to');
   }
 
   @override

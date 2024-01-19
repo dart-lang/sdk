@@ -32,15 +32,13 @@ class TranslatorOptions {
   bool exportAll = false;
   bool importSharedMemory = false;
   bool inlining = true;
+  bool jsCompatibility = false;
   bool nameSection = true;
   bool omitTypeChecks = false;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
-  // If the default value for [useStringref] is changed, also update the
-  // `sdk/bin/dart2wasm` script.
-  bool useStringref = false;
-  bool jsCompatibility = false;
+  bool verifyTypeChecks = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int> watchPoints = [];
@@ -84,6 +82,10 @@ class Translator with KernelNodes {
   /// [ClassInfoCollector].
   final Map<Class, ClassInfo> classInfo = {};
 
+  /// Internalized strings to move to the JS runtime
+  final List<String> internalizedStringsForJSRuntime = [];
+  final Map<String, w.Global> _internalizedStringGlobals = {};
+
   final Map<w.HeapType, ClassInfo> classForHeapType = {};
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
@@ -108,7 +110,8 @@ class Translator with KernelNodes {
   final Map<RecordShape, Class> recordClasses;
 
   // Caches for when identical source constructs need a common representation.
-  final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
+  final Map<w.StorageType, w.ArrayType> immutableArrayTypeCache = {};
+  final Map<w.StorageType, w.ArrayType> mutableArrayTypeCache = {};
   final Map<w.BaseFunction, w.Global> functionRefCache = {};
   final Map<Procedure, ClosureImplementation> tearOffFunctionCache = {};
 
@@ -118,11 +121,19 @@ class Translator with KernelNodes {
   late final ClassInfo closureInfo = classInfo[closureClass]!;
   late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
   late final ClassInfo recordInfo = classInfo[coreTypes.recordClass]!;
+  late final w.ArrayType typeArrayType =
+      arrayTypeForDartType(InterfaceType(typeClass, Nullability.nonNullable));
   late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
           .struct
           .fields[FieldIndex.listArray]
           .type as w.RefType)
       .heapType as w.ArrayType;
+  late final w.ArrayType nullableObjectArrayType =
+      arrayTypeForDartType(coreTypes.objectRawType(Nullability.nullable));
+  late final w.RefType typeArrayTypeRef =
+      w.RefType.def(typeArrayType, nullable: false);
+  late final w.RefType nullableObjectArrayTypeRef =
+      w.RefType.def(nullableObjectArrayType, nullable: false);
 
   /// Dart types that have specialized Wasm representations.
   late final Map<Class, w.StorageType> builtinTypes = {
@@ -161,8 +172,11 @@ class Translator with KernelNodes {
     boxedIntClass: boxedIntClass,
     boxedDoubleClass: boxedDoubleClass,
     boxedBoolClass: coreTypes.boolClass,
-    oneByteStringClass: stringBaseClass,
-    twoByteStringClass: stringBaseClass,
+    if (!options.jsCompatibility) ...{
+      oneByteStringClass: stringBaseClass,
+      twoByteStringClass: stringBaseClass
+    },
+    if (options.jsCompatibility) ...{jsStringClass: jsStringClass},
   };
 
   /// Type for vtable entries for dynamic calls. These entries are used in
@@ -173,13 +187,13 @@ class Translator with KernelNodes {
     w.RefType.def(closureLayouter.closureBaseStruct, nullable: false),
 
     // Type arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    typeArrayTypeRef,
 
     // Positional arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    nullableObjectArrayTypeRef,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[listBaseClass]!.nonNullableType,
+    nullableObjectArrayTypeRef,
   ], [
     topInfo.nullableType
   ]);
@@ -191,13 +205,13 @@ class Translator with KernelNodes {
     topInfo.nonNullableType,
 
     // Type arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    typeArrayTypeRef,
 
     // Positional arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    nullableObjectArrayTypeRef,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[listBaseClass]!.nonNullableType,
+    nullableObjectArrayTypeRef,
   ], [
     topInfo.nullableType
   ]);
@@ -474,7 +488,13 @@ class Translator with KernelNodes {
   w.ValueType translateType(DartType type) {
     w.StorageType wasmType = translateStorageType(type);
     if (wasmType is w.ValueType) return wasmType;
-    throw "Packed types are only allowed in arrays and fields";
+
+    // We represent the packed i8/i16 types as zero-extended i32 type.
+    // Dart code can currently only obtain them via loading from packed arrays
+    // and only use them for storing into packed arrays (there are no
+    // conversion or other operations on WasmI8/WasmI16).
+    if (wasmType is w.PackedType) return w.NumType.i32;
+    throw "Cannot translate $type to wasm type.";
   }
 
   bool _hasSuperclass(Class cls, Class superclass) {
@@ -565,7 +585,7 @@ class Translator with KernelNodes {
     }
     if (type is TypeParameterType) {
       return translateStorageType(nullable
-          ? type.bound.withDeclaredNullability(type.nullability)
+          ? type.bound.withDeclaredNullability(Nullability.nullable)
           : type.bound);
     }
     if (type is IntersectionType) {
@@ -605,7 +625,8 @@ class Translator with KernelNodes {
 
   w.ArrayType wasmArrayType(w.StorageType type, String name,
       {bool mutable = true}) {
-    return arrayTypeCache.putIfAbsent(
+    final cache = mutable ? mutableArrayTypeCache : immutableArrayTypeCache;
+    return cache.putIfAbsent(
         type,
         () => m.types.defineArray("Array<$name>",
             elementType: w.FieldType(type, mutable: mutable)));
@@ -972,19 +993,30 @@ class Translator with KernelNodes {
     final ClassInfo info = classInfo[cls]!;
     functions.allocateClass(info.classId);
     final w.ArrayType arrayType = listArrayType;
-    final w.ValueType elementType = arrayType.elementType.type.unpacked;
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     generateType(b);
     b.i64_const(length);
+    makeArray(function, arrayType, length, generateItem);
+    b.struct_new(info.struct);
+
+    return info.nonNullableType;
+  }
+
+  w.ValueType makeArray(w.FunctionBuilder function, w.ArrayType arrayType,
+      int length, void Function(w.ValueType, int) generateItem) {
+    final b = function.body;
+
+    final w.ValueType elementType = arrayType.elementType.type.unpacked;
+    final arrayTypeRef = w.RefType.def(arrayType, nullable: false);
+
     if (length > maxArrayNewFixedLength) {
       // Too long for `array.new_fixed`. Set elements individually.
       b.i32_const(length);
       b.array_new_default(arrayType);
       if (length > 0) {
-        final w.Local arrayLocal =
-            function.addLocal(w.RefType.def(arrayType, nullable: false));
+        final w.Local arrayLocal = function.addLocal(arrayTypeRef);
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
@@ -1000,21 +1032,15 @@ class Translator with KernelNodes {
       }
       b.array_new_fixed(arrayType, length);
     }
-    b.struct_new(info.struct);
-
-    return info.nonNullableType;
+    return arrayTypeRef;
   }
 
-  /// Indexes a Dart `List` on the stack.
+  /// Indexes a Dart `_ListBase` on the stack.
   void indexList(
       w.InstructionsBuilder b, void pushIndex(w.InstructionsBuilder b)) {
-    ClassInfo info = classInfo[listBaseClass]!;
-    w.ArrayType arrayType =
-        (info.struct.fields[FieldIndex.listArray].type as w.RefType).heapType
-            as w.ArrayType;
-    b.struct_get(info.struct, FieldIndex.listArray);
+    getListBaseArray(b);
     pushIndex(b);
-    b.array_get(arrayType);
+    b.array_get(nullableObjectArrayType);
   }
 
   /// Pushes a Dart `List`'s length onto the stack as `i32`.
@@ -1024,8 +1050,27 @@ class Translator with KernelNodes {
     b.i32_wrap_i64();
   }
 
+  /// Get the _ListBase._array field of type WasmArray<Object?>.
+  void getListBaseArray(w.InstructionsBuilder b) {
+    ClassInfo info = classInfo[listBaseClass]!;
+    b.struct_get(info.struct, FieldIndex.listArray);
+  }
+
   ClassInfo getRecordClassInfo(RecordType recordType) =>
       classInfo[recordClasses[RecordShape.fromType(recordType)]!]!;
+
+  w.Global getInternalizedStringGlobal(String s) {
+    w.Global? internalizedString = _internalizedStringGlobals[s];
+    if (internalizedString != null) {
+      return internalizedString;
+    }
+    final i = internalizedStringsForJSRuntime.length;
+    internalizedString = m.globals.import('s', '$i',
+        w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+    _internalizedStringGlobals[s] = internalizedString;
+    internalizedStringsForJSRuntime.add(s);
+    return internalizedString;
+  }
 }
 
 abstract class _FunctionGenerator {
@@ -1159,7 +1204,8 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
     // Push type arguments
     for (int typeIdx = 0; typeIdx < typeCount; typeIdx += 1) {
       b.local_get(typeArgsListLocal);
-      translator.indexList(b, (b) => b.i32_const(typeIdx));
+      b.i32_const(typeIdx);
+      b.array_get(translator.typeArrayType);
       translator.convertType(
           function, translator.topInfo.nullableType, targetInputs[inputIdx]);
       inputIdx += 1;
@@ -1170,16 +1216,18 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       if (posIdx < positionalRequired) {
         // Shape check passed, argument must be passed
         b.local_get(posArgsListLocal);
-        translator.indexList(b, (b) => b.i32_const(posIdx));
+        b.i32_const(posIdx);
+        b.array_get(translator.nullableObjectArrayType);
       } else {
         // Argument may be missing
         b.i32_const(posIdx);
         b.local_get(posArgsListLocal);
-        translator.getListLength(b);
+        b.array_len();
         b.i32_lt_u();
         b.if_([], [translator.topInfo.nullableType]);
         b.local_get(posArgsListLocal);
-        translator.indexList(b, (b) => b.i32_const(posIdx));
+        b.i32_const(posIdx);
+        b.array_get(translator.nullableObjectArrayType);
         b.else_();
         translator.constants.instantiateConstant(function, b,
             paramInfo.positional[posIdx]!, translator.topInfo.nullableType);
@@ -1205,7 +1253,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         .addLocal(translator.classInfo[translator.boxedIntClass]!.nullableType);
 
     for (String paramName in paramInfo.names) {
-      final Constant? paramInfoDefaultValue = paramInfo.named[paramName]!;
+      final Constant? paramInfoDefaultValue = paramInfo.named[paramName];
       final Expression? functionNodeDefaultValue =
           initializerForNamedParamInMember(paramName);
 
@@ -1223,12 +1271,15 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       if (functionNodeDefaultValue == null && paramInfoDefaultValue == null) {
         // Shape check passed, parameter must be passed
         b.local_get(namedArgsListLocal);
-        translator.indexList(b, (b) {
-          b.local_get(namedArgValueIndexLocal);
-          translator.convertType(
-              function, namedArgValueIndexLocal.type, w.NumType.i64);
-          b.i32_wrap_i64();
-        });
+        b.local_get(namedArgValueIndexLocal);
+        translator.convertType(
+            function, namedArgValueIndexLocal.type, w.NumType.i64);
+        b.i32_wrap_i64();
+        b.array_get(translator.nullableObjectArrayType);
+        translator.convertType(
+            function,
+            translator.nullableObjectArrayType.elementType.type.unpacked,
+            target.type.inputs[inputIdx]);
       } else {
         // Parameter may not be passed.
         b.local_get(namedArgValueIndexLocal);
@@ -1252,12 +1303,11 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         }
         b.else_(); // value index not null
         b.local_get(namedArgsListLocal);
-        translator.indexList(b, (b) {
-          b.local_get(namedArgValueIndexLocal);
-          translator.convertType(
-              function, namedArgValueIndexLocal.type, w.NumType.i64);
-          b.i32_wrap_i64();
-        });
+        b.local_get(namedArgValueIndexLocal);
+        translator.convertType(
+            function, namedArgValueIndexLocal.type, w.NumType.i64);
+        b.i32_wrap_i64();
+        b.array_get(translator.nullableObjectArrayType);
         b.end();
         translator.convertType(
             function, translator.topInfo.nullableType, targetInputs[inputIdx]);

@@ -39,7 +39,6 @@ namespace dart {
 
 #define Z (thread->zone())
 
-DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
 static ClassPtr CreateDummyClass(const String& class_name,
@@ -2818,44 +2817,6 @@ class CodeTestHelper {
     code.set_instructions(instructions);
   }
 };
-
-// Test for executability of generated instructions. The test crashes with a
-// segmentation fault when executing the writeable view.
-ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
-  extern void GenerateIncrement(compiler::Assembler * assembler);
-  compiler::ObjectPoolBuilder object_pool_builder;
-  compiler::Assembler _assembler_(&object_pool_builder);
-  GenerateIncrement(&_assembler_);
-  const Function& function = Function::Handle(CreateFunction("Test_Code"));
-  SafepointWriteRwLocker locker(thread,
-                                thread->isolate_group()->program_lock());
-  Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
-      function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
-  function.AttachCode(code);
-  Instructions& instructions = Instructions::Handle(code.instructions());
-  uword payload_start = code.PayloadStart();
-  const uword unchecked_offset = code.UncheckedEntryPoint() - code.EntryPoint();
-  EXPECT_EQ(instructions.ptr(), Instructions::FromPayloadStart(payload_start));
-  // Execute the executable view of the instructions (default).
-  Object& result =
-      Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
-  EXPECT_EQ(1, Smi::Cast(result).Value());
-  // Switch to the writeable but non-executable view of the instructions.
-  instructions ^= Page::ToWritable(instructions.ptr());
-  payload_start = instructions.PayloadStart();
-  EXPECT_EQ(instructions.ptr(), Instructions::FromPayloadStart(payload_start));
-  // Hook up Code and Instructions objects.
-  CodeTestHelper::SetInstructions(code, instructions, unchecked_offset);
-  function.AttachCode(code);
-  // Try executing the generated code, expected to crash.
-  result = DartEntry::InvokeFunction(function, Array::empty_array());
-  EXPECT_EQ(1, Smi::Cast(result).Value());
-  if (!FLAG_dual_map_code) {
-    // Since this test is expected to crash, crash if dual mapping of code
-    // is switched off.
-    FATAL("Test requires --dual-map-code; skip by forcing expected crash");
-  }
-}
 
 // Test for Embedded String object in the instructions.
 ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
@@ -5814,6 +5775,99 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
     Function& func_b = Function::Handle(GetFunction(class_a, "b"));
     EXPECT(!func_b.CanBeInlined());
   }
+}
+
+void SetBreakpoint(Dart_NativeArguments args) {
+  // Refers to the DeoptimizeFramesWhenSettingBreakpoint function below.
+  const int kBreakpointLine = 8;
+
+  // This will force deoptimization of functions on stack.
+  // Function on stack has to be optimized, since we want to trigger debuggers
+  // on-stack deoptimization flow when we set a breakpoint.
+  Dart_Handle result =
+      Dart_SetBreakpoint(NewString(TestCase::url()), kBreakpointLine);
+  EXPECT_VALID(result);
+}
+
+static Dart_NativeFunction SetBreakpointResolver(Dart_Handle name,
+                                                 int argument_count,
+                                                 bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != nullptr);
+  *auto_setup_scope = true;
+  const char* cstr = nullptr;
+  Dart_Handle result = Dart_StringToCString(name, &cstr);
+  EXPECT_VALID(result);
+  EXPECT_STREQ(cstr, "setBreakpoint");
+  return &SetBreakpoint;
+}
+
+TEST_CASE(DeoptimizeFramesWhenSettingBreakpoint) {
+  const char* kOriginalScript = "test() {}";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kOriginalScript, nullptr);
+  EXPECT_VALID(lib);
+  Dart_SetNativeResolver(lib, &SetBreakpointResolver, nullptr);
+
+  // Get unoptimized code for functions so they can be optimized.
+  Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, nullptr);
+  EXPECT_VALID(result);
+
+  // Launch second isolate so that running with stopped mutators during
+  // deoptimizattion requests a safepoint.
+  Dart_Isolate parent = Dart_CurrentIsolate();
+  Dart_ExitIsolate();
+  char* error = nullptr;
+  Dart_Isolate child = Dart_CreateIsolateInGroup(parent, "child",
+                                                 /*shutdown_callback=*/nullptr,
+                                                 /*cleanup_callback=*/nullptr,
+                                                 /*peer=*/nullptr, &error);
+  EXPECT_NE(nullptr, child);
+  EXPECT_EQ(nullptr, error);
+  Dart_ExitIsolate();
+  Dart_EnterIsolate(parent);
+
+  const char* kReloadScript =
+      R"(
+      @pragma("vm:external-name", "setBreakpoint")
+      external setBreakpoint();
+      baz() {}
+      test() {
+        if (true) {
+          setBreakpoint();
+        } else {
+          baz();   // this line gets a breakpoint
+        }
+      }
+      )";
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+
+  {
+    TransitionNativeToVM transition(thread);
+    const String& name = String::Handle(String::New(TestCase::url()));
+    const Library& vmlib =
+        Library::Handle(Library::LookupLibrary(thread, name));
+    EXPECT(!vmlib.IsNull());
+    Function& func_test = Function::Handle(GetFunction(vmlib, "test"));
+    Compiler::EnsureUnoptimizedCode(thread, func_test);
+    Compiler::CompileOptimizedFunction(thread, func_test);
+    func_test.set_unoptimized_code(Code::Handle(Code::null()));
+  }
+
+  result = Dart_Invoke(lib, NewString("test"), 0, nullptr);
+  EXPECT_VALID(result);
+
+  // Make sure child isolate finishes.
+  Dart_ExitIsolate();
+  Dart_EnterIsolate(child);
+  {
+    bool result =
+        Dart_RunLoopAsync(/*errors_are_fatal=*/true,
+                          /*on_error_port=*/0, /*on_exit_port=*/0, &error);
+    EXPECT_EQ(true, result);
+  }
+  EXPECT_EQ(nullptr, error);
+  Dart_EnterIsolate(parent);
 }
 
 ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {

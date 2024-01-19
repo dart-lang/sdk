@@ -1,4 +1,5 @@
 // @dart = 2.6
+
 import 'nsm_from_opt_in_lib.dart';
 
 abstract class A2 implements A {

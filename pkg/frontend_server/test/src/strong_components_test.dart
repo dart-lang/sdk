@@ -8,87 +8,87 @@ import 'package:test/test.dart';
 
 void main() {
   test('empty component', () {
-    final testComponent = Component(libraries: []);
+    final Component testComponent = new Component(libraries: []);
     final StrongComponents strongComponents =
-        StrongComponents(testComponent, {}, Uri.file('/c.dart'));
+        new StrongComponents(testComponent, {}, new Uri.file('/c.dart'));
     strongComponents.computeModules();
 
     expect(strongComponents.modules, {});
   });
 
   test('no circular imports', () {
-    final libraryA = Library(
-      Uri.file('/a.dart'),
-      fileUri: Uri.file('/a.dart'),
+    final Library libraryA = new Library(
+      new Uri.file('/a.dart'),
+      fileUri: new Uri.file('/a.dart'),
     );
-    final libraryB = Library(
-      Uri.file('/b.dart'),
-      fileUri: Uri.file('/b.dart'),
+    final Library libraryB = new Library(
+      new Uri.file('/b.dart'),
+      fileUri: new Uri.file('/b.dart'),
       dependencies: [
-        LibraryDependency.import(libraryA),
+        new LibraryDependency.import(libraryA),
       ],
     );
-    final libraryC = Library(
-      Uri.file('/c.dart'),
-      fileUri: Uri.file('/c.dart'),
+    final Library libraryC = new Library(
+      new Uri.file('/c.dart'),
+      fileUri: new Uri.file('/c.dart'),
       dependencies: [
-        LibraryDependency.import(libraryB),
+        new LibraryDependency.import(libraryB),
       ],
     );
-    final testComponent = Component(libraries: [
+    final Component testComponent = new Component(libraries: [
       libraryA,
       libraryB,
       libraryC,
     ]);
     final StrongComponents strongComponents =
-        StrongComponents(testComponent, {}, Uri.file('/c.dart'));
+        new StrongComponents(testComponent, {}, new Uri.file('/c.dart'));
     strongComponents.computeModules();
 
     expect(strongComponents.modules, {
-      Uri.file('/a.dart'): [libraryA],
-      Uri.file('/b.dart'): [libraryB],
-      Uri.file('/c.dart'): [libraryC],
+      new Uri.file('/a.dart'): [libraryA],
+      new Uri.file('/b.dart'): [libraryB],
+      new Uri.file('/c.dart'): [libraryC],
     });
     expect(strongComponents.moduleAssignment, {
-      Uri.file('/a.dart'): Uri.file('/a.dart'),
-      Uri.file('/b.dart'): Uri.file('/b.dart'),
-      Uri.file('/c.dart'): Uri.file('/c.dart'),
+      new Uri.file('/a.dart'): new Uri.file('/a.dart'),
+      new Uri.file('/b.dart'): new Uri.file('/b.dart'),
+      new Uri.file('/c.dart'): new Uri.file('/c.dart'),
     });
   });
 
   test('no circular imports with partial component', () {
-    final uriA = Uri.file('/a.dart');
-    final libraryA = Library(
+    final Uri uriA = new Uri.file('/a.dart');
+    final Library libraryA = new Library(
       uriA,
       fileUri: uriA,
     );
-    final uriB = Uri.file('/b.dart');
-    final libraryB = Library(
+    final Uri uriB = new Uri.file('/b.dart');
+    final Library libraryB = new Library(
       uriB,
       fileUri: uriB,
       dependencies: [
-        LibraryDependency.import(libraryA),
+        new LibraryDependency.import(libraryA),
       ],
     );
-    final uriC = Uri.file('/c.dart');
-    final libraryC = Library(
+    final Uri uriC = new Uri.file('/c.dart');
+    final Library libraryC = new Library(
       uriC,
       fileUri: uriC,
       dependencies: [
-        LibraryDependency.import(libraryB),
+        new LibraryDependency.import(libraryB),
       ],
     );
-    final partialA = Library(
+    final Library partialA = new Library(
       uriA,
       fileUri: uriA,
     );
-    final testComponent = Component(libraries: [
+    final Component testComponent = new Component(libraries: [
       libraryA,
       libraryB,
       libraryC,
     ]);
     final StrongComponents strongComponents =
-        StrongComponents(testComponent, {}, uriC);
+        new StrongComponents(testComponent, {}, uriC);
     strongComponents.computeModules({uriA: partialA});
 
     expect(strongComponents.modules, {
@@ -104,82 +104,82 @@ void main() {
   });
 
   test('circular imports are combined into single module', () {
-    final libraryA = Library(
-      Uri.file('/a.dart'),
-      fileUri: Uri.file('/a.dart'),
+    final Library libraryA = new Library(
+      new Uri.file('/a.dart'),
+      fileUri: new Uri.file('/a.dart'),
     );
-    final libraryB = Library(
-      Uri.file('/b.dart'),
-      fileUri: Uri.file('/b.dart'),
+    final Library libraryB = new Library(
+      new Uri.file('/b.dart'),
+      fileUri: new Uri.file('/b.dart'),
     );
     // induce circular import.
-    libraryB.dependencies.add(LibraryDependency.import(libraryA));
-    libraryA.dependencies.add(LibraryDependency.import(libraryB));
-    final libraryC = Library(
-      Uri.file('/c.dart'),
-      fileUri: Uri.file('/c.dart'),
+    libraryB.dependencies.add(new LibraryDependency.import(libraryA));
+    libraryA.dependencies.add(new LibraryDependency.import(libraryB));
+    final Library libraryC = new Library(
+      new Uri.file('/c.dart'),
+      fileUri: new Uri.file('/c.dart'),
       dependencies: [
-        LibraryDependency.import(libraryB),
+        new LibraryDependency.import(libraryB),
       ],
     );
-    final testComponent = Component(libraries: [
+    final Component testComponent = new Component(libraries: [
       libraryA,
       libraryB,
       libraryC,
     ]);
     final StrongComponents strongComponents =
-        StrongComponents(testComponent, {}, Uri.file('/c.dart'));
+        new StrongComponents(testComponent, {}, new Uri.file('/c.dart'));
     strongComponents.computeModules();
 
     expect(strongComponents.modules, {
       // The choice of module here is arbitrary, but should be consistent for
       // a given component.
-      Uri.file('/a.dart'): [libraryA, libraryB],
-      Uri.file('/c.dart'): [libraryC],
+      new Uri.file('/a.dart'): [libraryA, libraryB],
+      new Uri.file('/c.dart'): [libraryC],
     });
     expect(strongComponents.moduleAssignment, {
-      Uri.file('/a.dart'): Uri.file('/a.dart'),
-      Uri.file('/b.dart'): Uri.file('/a.dart'),
-      Uri.file('/c.dart'): Uri.file('/c.dart'),
+      new Uri.file('/a.dart'): new Uri.file('/a.dart'),
+      new Uri.file('/b.dart'): new Uri.file('/a.dart'),
+      new Uri.file('/c.dart'): new Uri.file('/c.dart'),
     });
   });
 
   test('does not index loaded, dart:, or unimported libraries', () {
-    final libraryLoaded = Library(
-      Uri.file('a.dart'),
-      fileUri: Uri.file('/a.dart'),
+    final Library libraryLoaded = new Library(
+      new Uri.file('a.dart'),
+      fileUri: new Uri.file('/a.dart'),
     );
-    final libraryDart = Library(
+    final Library libraryDart = new Library(
       Uri.parse('dart:foo'),
-      fileUri: Uri.file('/b.dart'),
+      fileUri: new Uri.file('/b.dart'),
     );
-    final libraryUnrelated = Library(
-      Uri.file('/z.dart'),
-      fileUri: Uri.file('/z.dart'),
+    final Library libraryUnrelated = new Library(
+      new Uri.file('/z.dart'),
+      fileUri: new Uri.file('/z.dart'),
     );
-    final libraryC = Library(
-      Uri.file('/c.dart'),
-      fileUri: Uri.file('/c.dart'),
+    final Library libraryC = new Library(
+      new Uri.file('/c.dart'),
+      fileUri: new Uri.file('/c.dart'),
       dependencies: [
-        LibraryDependency.import(libraryLoaded),
-        LibraryDependency.import(libraryDart),
+        new LibraryDependency.import(libraryLoaded),
+        new LibraryDependency.import(libraryDart),
       ],
     );
-    final testComponent = Component(libraries: [
+    final Component testComponent = new Component(libraries: [
       libraryLoaded,
       libraryDart,
       libraryUnrelated,
       libraryC,
     ]);
-    final StrongComponents strongComponents =
-        StrongComponents(testComponent, {libraryLoaded}, Uri.file('/c.dart'));
+    final StrongComponents strongComponents = new StrongComponents(
+        testComponent, {libraryLoaded}, new Uri.file('/c.dart'));
     strongComponents.computeModules();
 
     expect(strongComponents.modules, {
-      Uri.file('/c.dart'): [libraryC],
+      new Uri.file('/c.dart'): [libraryC],
     });
     expect(strongComponents.moduleAssignment, {
-      Uri.file('/c.dart'): Uri.file('/c.dart'),
+      new Uri.file('/c.dart'): new Uri.file('/c.dart'),
     });
   });
 }

@@ -7,4 +7,5 @@ class C extends A with B<num> {}
 mixin B<X> {
   X foo(X x);
 }
+
 void main() {}

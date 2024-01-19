@@ -15,6 +15,7 @@ import '../builder/function_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_member_builder.dart';
+import '../dill/dill_extension_type_member_builder.dart';
 import '../fasta_codes.dart';
 import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
@@ -61,6 +62,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   List<SourceFactoryBuilder>? _patches;
 
+  final MemberName _memberName;
+
   SourceFactoryBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -78,7 +81,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       AsyncMarker asyncModifier,
       NameScheme nameScheme,
       {String? nativeMethodName})
-      : super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+      : _memberName = nameScheme.getDeclaredName(name),
+        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedureInternal = new Procedure(
         dummyName,
@@ -106,6 +110,9 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       ?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     this.asyncModifier = asyncModifier;
   }
+
+  @override
+  Name get memberName => _memberName.name;
 
   @override
   DeclarationBuilder get declarationBuilder => super.declarationBuilder!;
@@ -330,6 +337,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   FreshTypeParameters? _tearOffTypeParameters;
 
+  bool _hasBeenCheckedAsRedirectingFactory = false;
+
   RedirectingFactoryBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -547,19 +556,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             _tearOffTypeParameters!,
             libraryBuilder));
       }
-      Map<TypeParameter, DartType> substitutionMap;
-      if (function.typeParameters.length == typeArguments.length) {
-        substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
-            function.typeParameters, typeArguments);
-      } else {
-        // Error case: Substitute type parameters with `dynamic`.
-        substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
-            function.typeParameters,
-            new List<DartType>.generate(function.typeParameters.length,
-                (int index) => const DynamicType()));
-      }
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          target!, _procedure, substitutionMap,
+          target!, _procedure,
           libraryBuilder: libraryBuilder, identicalSignatures: false));
     }
     if (isConst && isPatch) {
@@ -602,6 +600,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (targetBuilder == null) return null;
     if (targetBuilder is FunctionBuilder) {
       targetNode = targetBuilder.function;
+    } else if (targetBuilder is DillExtensionTypeFactoryBuilder) {
+      targetNode = targetBuilder.member.function!;
     } else if (targetBuilder is AmbiguousBuilder) {
       // Multiple definitions with the same name: An error has already been
       // issued.
@@ -609,7 +609,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       // https://dart-review.googlesource.com/c/sdk/+/85390/.
       return null;
     } else {
-      unhandled("${redirectionTarget.target}", "computeRedirecteeType",
+      unhandled("${targetBuilder.runtimeType}", "computeRedirecteeType",
           charOffset, fileUri);
     }
 
@@ -731,6 +731,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   @override
   void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {
+    if (_hasBeenCheckedAsRedirectingFactory) return;
+    _hasBeenCheckedAsRedirectingFactory = true;
+
     // Check that factory declaration is not cyclic.
     if (_isCyclicRedirectingFactory(this)) {
       libraryBuilder.addProblemForRedirectingFactory(
@@ -782,10 +785,25 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       return;
     }
 
+    Builder? redirectionTargetBuilder = redirectionTarget.target;
+    if (redirectionTargetBuilder is RedirectingFactoryBuilder) {
+      redirectionTargetBuilder._checkRedirectingFactory(typeEnvironment);
+      String? errorMessage = redirectionTargetBuilder
+          .function.redirectingFactoryTarget?.errorMessage;
+      if (errorMessage != null) {
+        setRedirectingFactoryError(errorMessage);
+      }
+    }
+
     // Redirection to generative enum constructors is forbidden and is reported
     // as an error elsewhere.
+    Builder? redirectionTargetParent = redirectionTarget.target?.parent;
+    bool redirectingTargetParentIsEnum = redirectionTargetParent is ClassBuilder
+        ? redirectionTargetParent.isEnum
+        : false;
     if (!((classBuilder?.cls.isEnum ?? false) &&
-        (redirectionTarget.target?.isConstructor ?? false))) {
+        (redirectionTarget.target?.isConstructor ?? false) &&
+        redirectingTargetParentIsEnum)) {
       // Check whether [redirecteeType] <: [factoryType].
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType,

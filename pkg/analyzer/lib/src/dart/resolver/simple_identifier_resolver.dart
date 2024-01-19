@@ -51,7 +51,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// @param accessor the accessor that the node resolved to
   /// @return the type that should be recorded for a node that resolved to the given accessor
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
     FunctionType functionType = accessor.type;
     if (accessor.isSetter) {
@@ -71,7 +71,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
   /// Return `true` if the given [node] is not a type literal.
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   bool _isExpressionIdentifier(Identifier node) {
     var parent = node.parent;
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
@@ -153,7 +153,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     // Otherwise, the node should be resolved.
     //
 
-    // TODO(scheglov) Special-case resolution of ForStatement, don't use this.
+    // TODO(scheglov): Special-case resolution of ForStatement, don't use this.
     var hasRead = true;
     var hasWrite = false;
     {
@@ -207,7 +207,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         [element.name],
       );
     } else if (element == null) {
-      // TODO(brianwilkerson) Recover from this error.
+      // TODO(brianwilkerson): Recover from this error.
       if (node.name == "await" && _resolver.enclosingFunction != null) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
@@ -292,7 +292,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         contextType: contextType);
   }
 
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   void _setExtensionIdentifierType(IdentifierImpl node) {
     if (node is SimpleIdentifierImpl && node.inDeclarationContext()) {
       return;

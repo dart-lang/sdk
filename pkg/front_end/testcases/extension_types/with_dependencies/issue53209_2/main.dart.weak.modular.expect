@@ -1,0 +1,40 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:7: Error: A class declaration must have a body, even if it is empty.
+// Try adding an empty body.
+// class A(String foo) {
+//       ^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:8: Error: Expected a declaration, but got '('.
+// class A(String foo) {
+//        ^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:16: Error: Expected ';' after this.
+// class A(String foo) {
+//                ^^^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:19: Error: Expected a declaration, but got ')'.
+// class A(String foo) {
+//                   ^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:21: Error: Expected a declaration, but got '{'.
+// class A(String foo) {
+//                     ^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:16: Error: Field 'foo' should be initialized because its type 'String' doesn't allow null.
+// class A(String foo) {
+//                ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+static field core::String foo;

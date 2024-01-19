@@ -45,6 +45,20 @@ void range1(int i) {
   if (0 <= i && i < 10) print(i);
 }
 
+/*member: noopAnd:function(a, b, c) {
+  return 100;
+}*/
+int noopAnd(int a, int b, int c) {
+  return (a < 10 && b < 10 && a == b && b == c && c == a) ? 100 : 100;
+}
+
+/*member: noopOr:function(a) {
+  return 100;
+}*/
+int noopOr(int a) {
+  return (a == 1 || a == 3 || a == 5 || a == 7 || a == 9) ? 100 : 100;
+}
+
 // Problem cases.
 //
 // Move the following cases above this comment when the code quality improves.
@@ -170,5 +184,7 @@ main() {
     range1(i);
     range2(i);
     range3(i, i);
+    noopAnd(i, 0 - i, i & 15);
+    noopOr(i);
   }
 }

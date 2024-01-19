@@ -271,7 +271,7 @@ class DevCompilerTarget extends Target {
         MapLiteral([
           for (var n in arguments.named)
             MapLiteralEntry(SymbolLiteral(n.name), n.value)
-        ], keyType: coreTypes.symbolLegacyRawType)
+        ], keyType: coreTypes.symbolNonNullableRawType)
       else
         NullLiteral(),
     ];
@@ -509,9 +509,7 @@ class _CovarianceTransformer extends RecursiveVisitor {
 List<Pattern> _allowedNativeTestPatterns = [
   'tests/dartdevc',
   'tests/web/native',
-  'tests/web_2/native',
   'tests/web/internal',
-  'tests/web_2/internal',
 ];
 
 bool allowedNativeTest(Uri uri) {

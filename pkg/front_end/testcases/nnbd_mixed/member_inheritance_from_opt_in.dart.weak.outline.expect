@@ -110,10 +110,10 @@ abstract class Interface extends core::Object {
   abstract method method7b({core::int a = 0, core::int? b = null}) → core::int;
   abstract method method8a(core::int? a, {core::int b = 0}) → core::int?;
   abstract method method8b({core::int? a = null, core::int b = 0}) → core::int?;
-  abstract method method9a(core::int a, {required core::int? b = null}) → core::int;
-  abstract method method9b({required core::int a = null, required core::int? b = null}) → core::int;
-  abstract method method10a(core::int? a, {required core::int b = null}) → core::int?;
-  abstract method method10b({required core::int? a = null, required core::int b = null}) → core::int?;
+  abstract method method9a(core::int a, {required core::int? b}) → core::int;
+  abstract method method9b({required core::int a, required core::int? b}) → core::int;
+  abstract method method10a(core::int? a, {required core::int b}) → core::int?;
+  abstract method method10b({required core::int? a, required core::int b}) → core::int?;
   abstract get getter1() → core::int?;
   abstract get getter2() → core::int;
   abstract get getter3() → core::int;
@@ -160,9 +160,9 @@ class Class extends core::Object {
     ;
   method method7b({core::int a = 0, core::int? b = null}) → core::int
     ;
-  method method9a(core::int a, {required core::int? b = null}) → core::int
+  method method9a(core::int a, {required core::int? b}) → core::int
     ;
-  method method9b({required core::int a = null, required core::int? b = null}) → core::int
+  method method9b({required core::int a, required core::int? b}) → core::int
     ;
   get getter1() → core::int
     ;

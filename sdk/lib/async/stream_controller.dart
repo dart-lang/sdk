@@ -134,8 +134,8 @@ abstract interface class StreamController<T> implements StreamSink<T> {
   /// listeners at the time when [add], [addError] or [close] is called.
   /// It is not allowed to call `add`, `addError`, or `close` before a previous
   /// call has returned. The controller does not have any internal queue of
-  /// events, and if there are no listeners at the time the event is added,
-  /// it will just be dropped, or, if it is an error, be reported as uncaught.
+  /// events, and if there are no listeners at the time the event or error is
+  /// added, it will just be dropped.
   ///
   /// Each listener subscription is handled independently,
   /// and if one pauses, only the pausing listener is affected.

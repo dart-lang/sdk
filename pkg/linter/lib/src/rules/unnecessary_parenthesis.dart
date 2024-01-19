@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -59,7 +60,7 @@ class UnnecessaryParenthesis extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.typeSystem);
     registry.addParenthesizedExpression(this, visitor);
   }
 }
@@ -82,8 +83,9 @@ class _ContainsFunctionExpressionVisitor extends UnifyingAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final TypeSystem typeSystem;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.typeSystem);
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -99,15 +101,48 @@ class _Visitor extends SimpleAstVisitor<void> {
           // Code like `(String).hashCode` is allowed.
           return;
         }
+
+        // Parentheses are required to stop null-aware shorting, which then
+        // allows an extension getter, which extends a nullable type, to be
+        // called on a `null` value.
+        var target = parent.propertyName.staticElement?.enclosingElement;
+        if (target is ExtensionElement &&
+            typeSystem.isNullable(target.extendedType)) {
+          return;
+        }
       } else if (parent is MethodInvocation) {
         var name = parent.methodName.name;
         if (name == 'noSuchMethod' || name == 'toString') {
           // Code like `(String).noSuchMethod()` is allowed.
           return;
         }
+
+        // Parentheses are required to stop null-aware shorting, which then
+        // allows an extension method, which extends a nullable type, to be
+        // called on a `null` value.
+        var target = parent.methodName.staticElement?.enclosingElement;
+        if (target is ExtensionElement &&
+            typeSystem.isNullable(target.extendedType)) {
+          return;
+        }
       } else if (parent is PostfixExpression &&
           parent.operator.type == TokenType.BANG) {
         return;
+      } else if (expression is IndexExpression && expression.isNullAware) {
+        if (parent is ConditionalExpression &&
+            identical(parent.thenExpression, node)) {
+          // In `a ? (b?[c]) : d`, the parentheses are necessary to prevent the
+          // second `?` from being interpreted as the start of a nested
+          // conditional expression (see
+          // https://github.com/dart-lang/linter/issues/4812).
+          return;
+        } else if (parent is MapLiteralEntry && identical(parent.key, node)) {
+          // In `{(a?[b]): c}`, the parentheses are necessary to prevent the
+          // second `?` from being interpreted as the start of a nested
+          // conditional expression (see
+          // https://github.com/dart-lang/linter/issues/4812).
+          return;
+        }
       }
       rule.reportLint(node);
       return;
@@ -225,7 +260,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      // TODO an API to the AST for better usage
+      // TODO(asashour): an API to the AST for better usage
       // Precedence isn't sufficient (e.g. PostfixExpression requires parenthesis)
       if (expression is PropertyAccess ||
           expression is ConstructorReference ||

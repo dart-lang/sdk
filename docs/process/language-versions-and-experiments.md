@@ -261,7 +261,7 @@ use `?` and `late` in their library today.
 
     ```yaml
     environment:
-      sdk: >=2.8.0-dev.0 <2.8.0
+      sdk: '>=2.8.0-dev.0 <2.8.0'
     ```
 
     *SDK min constraint:* You can require a higher dev release if you want. The

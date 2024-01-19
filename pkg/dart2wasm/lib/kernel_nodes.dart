@@ -12,17 +12,23 @@ mixin KernelNodes {
 
   late final LibraryIndex index = LibraryIndex(component, [
     "dart:_internal",
+    "dart:_js_helper",
+    "dart:_js_types",
+    "dart:_string",
+    "dart:_wasm",
     "dart:async",
     "dart:collection",
     "dart:core",
     "dart:ffi",
     "dart:typed_data",
-    "dart:_string",
-    "dart:_wasm",
   ]);
 
   // dart:_internal classes
   late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
+
+  // dart:_js_types classes
+  late final Class jsStringClass =
+      index.getClass("dart:_js_types", "JSStringImpl");
 
   // dart:collection classes
   late final Class hashFieldBaseClass =
@@ -59,10 +65,14 @@ mixin KernelNodes {
 
   // dart:core runtime type classes
   late final Class typeClass = index.getClass("dart:core", "_Type");
+  late final InterfaceType typeType =
+      InterfaceType(typeClass, Nullability.nonNullable);
   late final Class abstractFunctionTypeClass =
       index.getClass("dart:core", "_AbstractFunctionType");
   late final Class functionTypeClass =
       index.getClass("dart:core", "_FunctionType");
+  late final Field functionTypeTypeParameterDefaultsField =
+      index.getField("dart:core", "_FunctionType", "typeParameterDefaults");
   late final Class functionTypeParameterTypeClass =
       index.getClass("dart:core", "_FunctionTypeParameterType");
   late final Class futureOrTypeClass =
@@ -73,6 +83,14 @@ mixin KernelNodes {
       index.getClass("dart:core", "_InterfaceTypeParameterType");
   late final Class namedParameterClass =
       index.getClass("dart:core", "_NamedParameter");
+  late final Field namedParameterNameField =
+      index.getField("dart:core", "_NamedParameter", "name");
+  late final Field namedParameterTypeField =
+      index.getField("dart:core", "_NamedParameter", "type");
+  late final Field namedParameterIsRequiredField =
+      index.getField("dart:core", "_NamedParameter", "isRequired");
+  late final InterfaceType namedParameterType =
+      InterfaceType(namedParameterClass, Nullability.nonNullable);
   late final Class bottomTypeClass = index.getClass("dart:core", "_BottomType");
   late final Class topTypeClass = index.getClass("dart:core", "_TopType");
   late final Class stackTraceClass = index.getClass("dart:core", "StackTrace");
@@ -103,6 +121,8 @@ mixin KernelNodes {
       index.getProcedure("dart:async", "_Completer", "completeError");
   late final Procedure awaitHelper =
       index.getTopLevelProcedure("dart:async", "_awaitHelper");
+  late final Procedure awaitHelperWithTypeCheck =
+      index.getTopLevelProcedure("dart:async", "_awaitHelperWithTypeCheck");
   late final Procedure newAsyncSuspendState =
       index.getTopLevelProcedure("dart:async", "_newAsyncSuspendState");
 
@@ -111,6 +131,7 @@ mixin KernelNodes {
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");
 
   // dart:_wasm classes
+  late final Library wasmLibrary = index.getLibrary("dart:_wasm");
   late final Class wasmTypesBaseClass =
       index.getClass("dart:_wasm", "_WasmBase");
   late final wasmI8Class = index.getClass("dart:_wasm", "WasmI8");
@@ -133,16 +154,27 @@ mixin KernelNodes {
       index.getClass("dart:_wasm", "WasmFunction");
   late final Class wasmVoidClass = index.getClass("dart:_wasm", "WasmVoid");
   late final Class wasmTableClass = index.getClass("dart:_wasm", "WasmTable");
-  late final Class wasmObjectArrayClass =
-      index.getClass("dart:_wasm", "WasmObjectArray");
-  late final Field wasmObjectArrayValueField =
-      index.getField("dart:_wasm", "WasmObjectArray", "_value");
+  late final Class wasmArrayClass = index.getClass("dart:_wasm", "WasmArray");
+  late final Field wasmArrayValueField =
+      index.getField("dart:_wasm", "WasmArray", "_value");
 
   // dart:_internal procedures
   late final Procedure loadLibrary =
       index.getTopLevelProcedure("dart:_internal", "loadLibrary");
   late final Procedure checkLibraryIsLoaded =
       index.getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded");
+
+  // dart:_js_helper procedures
+  late final Procedure getInternalizedString =
+      index.getTopLevelProcedure("dart:_js_helper", "getInternalizedString");
+  late final Procedure areEqualInJS =
+      index.getTopLevelProcedure("dart:_js_helper", "areEqualInJS");
+
+  // dart:_js_types procedures
+  late final Procedure jsStringEquals =
+      index.getProcedure("dart:_js_types", "JSStringImpl", "==");
+  late final Procedure jsStringInterpolate =
+      index.getProcedure("dart:_js_types", "JSStringImpl", "interpolate");
 
   // dart:collection procedures
   late final Procedure mapFactory =
@@ -181,6 +213,8 @@ mixin KernelNodes {
       index.getProcedure("dart:_string", "StringBase", "==");
   late final Procedure stringInterpolate =
       index.getProcedure("dart:_string", "StringBase", "_interpolate");
+  late final Procedure truncDiv =
+      index.getProcedure("dart:core", "_BoxedInt", "_truncDiv");
 
   // dart:core invocation/exception procedures
   late final Procedure invocationGetterFactory =
@@ -229,6 +263,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_isSubtype");
   late final Procedure isTypeSubtype =
       index.getTopLevelProcedure("dart:core", "_isTypeSubtype");
+  late final Procedure verifyOptimizedTypeCheck =
+      index.getTopLevelProcedure("dart:core", "_verifyOptimizedTypeCheck");
   late final Procedure checkClosureShape =
       index.getTopLevelProcedure("dart:core", "_checkClosureShape");
   late final Procedure checkClosureType =
@@ -243,10 +279,14 @@ mixin KernelNodes {
   // dart:core dynamic invocation helper procedures
   late final Procedure getNamedParameterIndex =
       index.getTopLevelProcedure("dart:core", "_getNamedParameterIndex");
-  late final Procedure namedParameterListToMap =
-      index.getTopLevelProcedure("dart:core", "_namedParameterListToMap");
-  late final Procedure namedParameterMapToList =
-      index.getTopLevelProcedure("dart:core", "_namedParameterMapToList");
+  late final Procedure typeArgumentsToList =
+      index.getTopLevelProcedure("dart:core", "_typeArgumentsToList");
+  late final Procedure positionalParametersToList =
+      index.getTopLevelProcedure("dart:core", "_positionalParametersToList");
+  late final Procedure namedParametersToMap =
+      index.getTopLevelProcedure("dart:core", "_namedParametersToMap");
+  late final Procedure namedParameterMapToArray =
+      index.getTopLevelProcedure("dart:core", "_namedParameterMapToArray");
   late final Procedure listOf = index.getProcedure("dart:core", "_List", "of");
 
   // dart:_wasm procedures
@@ -258,4 +298,23 @@ mixin KernelNodes {
   // Debugging
   late final Procedure printToConsole =
       index.getTopLevelProcedure("dart:_internal", "printToConsole");
+
+  late final Map<Member, (Extension, ExtensionMemberDescriptor)>
+      _extensionCache = {};
+
+  (Extension, ExtensionMemberDescriptor) extensionOfMember(Member member) {
+    return _extensionCache.putIfAbsent(member, () {
+      assert(member.isExtensionMember);
+
+      final memberRef = member.reference;
+      for (final ext in member.enclosingLibrary.extensions) {
+        for (final descriptor in ext.memberDescriptors) {
+          if (memberRef == descriptor.memberReference) {
+            return (ext, descriptor);
+          }
+        }
+      }
+      throw 'Did not find extension for $member';
+    });
+  }
 }

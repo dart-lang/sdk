@@ -14,6 +14,6 @@ static method main() → dynamic {
   function f(dynamic x) → dynamic
     return x;
   let final self::A #t1 = a in block {
-    #t1.{self::A::add}(f){(dynamic) → dynamic}{dynamic}.call("WHAT");
+    #t1.{self::A::add}(f){(dynamic) → dynamic}{dynamic}("WHAT");
   } =>#t1;
 }

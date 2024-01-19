@@ -5,29 +5,17 @@
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../client/completion_driver_test.dart';
 import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(IsNoSuchMethodTest1);
-    defineReflectiveTests(IsNoSuchMethodTest2);
+    defineReflectiveTests(IsNoSuchMethodTest);
   });
 }
 
 @reflectiveTest
-class IsNoSuchMethodTest1 extends CompletionRelevanceTest
-    with IsNoSuchMethodTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class IsNoSuchMethodTest2 extends CompletionRelevanceTest
-    with IsNoSuchMethodTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class IsNoSuchMethodTest extends CompletionRelevanceTest
+    with IsNoSuchMethodTestCases {}
 
 mixin IsNoSuchMethodTestCases on CompletionRelevanceTest {
   Future<void> test_notSuper() async {

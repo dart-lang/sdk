@@ -10,6 +10,7 @@
 #include "bin/io_buffer.h"
 #include "bin/namespace.h"
 #include "bin/platform.h"
+#include "bin/typed_data_utils.h"
 #include "bin/utils.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
@@ -185,6 +186,14 @@ const char* DartUtils::GetNativeStringArgument(Dart_NativeArguments args,
   }
   ASSERT(cstring != nullptr);
   return cstring;
+}
+
+const char* DartUtils::GetNativeTypedDataArgument(Dart_NativeArguments args,
+                                                  intptr_t index) {
+  Dart_Handle handle = Dart_GetNativeArgument(args, index);
+  TypedDataScope data(handle);
+  ASSERT(data.type() == Dart_TypedData_kUint8);
+  return data.GetScopedCString();
 }
 
 Dart_Handle DartUtils::SetIntegerField(Dart_Handle handle,

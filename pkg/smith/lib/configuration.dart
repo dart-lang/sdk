@@ -1,6 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:convert';
 import 'dart:io';
 
 // READ ME! If you add a new field to this, make sure to add it to
@@ -121,6 +122,17 @@ class Configuration {
       words.add("dart_precompiled");
     }
     var optionsCopy = Map.of(optionsJson);
+
+    // Apply overrides from the global environment variable.
+    final configurationOverridesJson =
+        _platformEnvironment['TEST_CONFIGURATION_OVERRIDES'];
+    if (configurationOverridesJson != null) {
+      final optionsOverrides =
+          jsonDecode(configurationOverridesJson) as Map<String, dynamic>;
+      for (var e in optionsOverrides.entries) {
+        optionsCopy[e.key] = e.value;
+      }
+    }
 
     T? enumOption<T extends NamedEnum>(
         String option, List<String> allowed, T Function(String) parse) {
@@ -856,6 +868,7 @@ class Compiler extends NamedEnum {
       case Compiler.dart2wasm:
         return const [
           Runtime.none,
+          Runtime.jsshell,
           Runtime.d8,
           Runtime.chrome,
           Runtime.firefox,
@@ -1110,6 +1123,9 @@ class System extends NamedEnum {
   }
 }
 
+// TODO(rnystrom): NnbdMode.legacy can be removed now that opted out code is no
+// longer supported. This entire enum and the notion of "NNBD modes" can be
+// removed once it's no longer possible to run programs in unsound weak mode.
 /// What level of non-nullability support should be applied to the test files.
 class NnbdMode extends NamedEnum {
   /// "Opted out" legacy mode with no NNBD features allowed.
@@ -1147,3 +1163,13 @@ abstract class NamedEnum {
   @override
   String toString() => name;
 }
+
+final Map<String, String> _platformEnvironment = () {
+  try {
+    return Platform.environment;
+  } catch (_) {
+    // We might be running in the browser where Platform.environment just
+    // throws.
+    return const <String, String>{};
+  }
+}();

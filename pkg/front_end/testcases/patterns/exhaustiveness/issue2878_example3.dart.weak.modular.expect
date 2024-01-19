@@ -11,11 +11,12 @@ static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%>
   return block {
     core::List<core::List<self::subs::A%>> #t1;
     final synthesized core::List<self::subs::A%> #0#0 = list;
-    late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
+    synthesized core::int #0#1;
+    synthesized core::bool #0#1#isSet = false;
     #L1:
     {
       {
-        if(#0#1.{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t2 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t1 = <core::List<self::subs::A%>>[];
           break #L1;
         }
@@ -23,7 +24,9 @@ static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%>
       {
         hoisted self::subs::A% x;
         hoisted core::List<self::subs::A%> xs;
-        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t2 = x = #0#0.{core::List::[]}(0){(core::int) → self::subs::A%} in true) && (let final dynamic #t3 = xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::subs::A%>} in true)) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t3 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
+          x = #0#0.{core::List::[]}(0){(core::int) → self::subs::A%};
+          xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::subs::A%>};
           #t1 = block {
             final core::List<core::List<self::subs::A%>> #t4 = <core::List<self::subs::A%>>[];
             for (core::List<self::subs::A%> ys in self::subs<self::subs::A%>(xs))

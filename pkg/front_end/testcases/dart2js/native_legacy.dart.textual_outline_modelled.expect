@@ -61,13 +61,23 @@ class NativeClass {
 }
 
 external externalTopLevelFunction();
+
 external get externalTopLevelGetter;
+
 external set externalTopLevelSetter(_);
+
 get nativeTopLevelGetter native;
+
 get topLevelGetter => null;
+
 main() {}
+
 nativeTopLevelFunction() native;
+
 set nativeTopLevelSetter(_) native;
+
 set topLevelSetter(_) {}
+
 topLevelFunction() {}
+
 var topLevelField;

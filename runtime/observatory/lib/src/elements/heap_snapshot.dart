@@ -309,7 +309,6 @@ class SnapshotClassDiff {
     for (var classA in graphA.classes) {
       var classDiff = new SnapshotClassDiff();
       var qualifiedName = classA.qualifiedName;
-      var name = classA.name;
       classDiff._a = classA;
       var classB = classesB[qualifiedName];
       if (classB != null) {

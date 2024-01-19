@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -15,16 +16,16 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var named = flutter.findNamedExpression(node, 'child');
+    var named = Flutter.findNamedExpression(node, 'child');
     if (named == null) {
       return;
     }
 
     // child: widget
     var expression = named.expression;
-    if (flutter.isWidgetExpression(expression)) {
+    if (Flutter.isWidgetExpression(expression)) {
       await builder.addDartFileEdit(file, (builder) {
-        flutter.convertChildToChildren2(
+        Flutter.convertChildToChildren2(
             builder,
             expression,
             named,
@@ -41,7 +42,7 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
 
     // child: [widget1, widget2]
     if (expression is ListLiteral &&
-        expression.elements.every(flutter.isWidgetExpression)) {
+        expression.elements.every(Flutter.isWidgetExpression)) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(named.name), 'children:');
       });

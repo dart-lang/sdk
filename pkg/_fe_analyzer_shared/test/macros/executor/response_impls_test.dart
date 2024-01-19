@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/response_impls.dart';
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
-
-import 'package:_fe_analyzer_shared/src/macros/executor/response_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 void main() {
   group('MacroInstanceIdentifierImpl', () {
@@ -106,6 +105,14 @@ final Map<DeclarationKind, Map<Phase, MacroInstanceIdentifierImpl>>
         FakeExtensionDeclarationsMacro(), RemoteInstance.uniqueId),
     Phase.definitions: MacroInstanceIdentifierImpl(
         FakeExtensionDefinitionMacro(), RemoteInstance.uniqueId),
+  },
+  DeclarationKind.extensionType: {
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeExtensionTypeTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeExtensionTypeDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeExtensionTypeDefinitionMacro(), RemoteInstance.uniqueId),
   },
   DeclarationKind.field: {
     Phase.types: MacroInstanceIdentifierImpl(
@@ -230,6 +237,15 @@ class FakeExtensionDeclarationsMacro extends Fake
 
 class FakeExtensionDefinitionMacro extends Fake
     implements ExtensionDefinitionMacro {}
+
+class FakeExtensionTypeTypesMacro extends Fake
+    implements ExtensionTypeTypesMacro {}
+
+class FakeExtensionTypeDeclarationsMacro extends Fake
+    implements ExtensionTypeDeclarationsMacro {}
+
+class FakeExtensionTypeDefinitionMacro extends Fake
+    implements ExtensionTypeDefinitionMacro {}
 
 class FakeLibraryTypesMacro extends Fake implements LibraryTypesMacro {}
 

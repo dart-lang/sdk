@@ -7,6 +7,8 @@ import '../analyzer.dart';
 const _desc = r'Prefer using a boolean as the assert condition.';
 
 const _details = r'''
+NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
+
 **DO** use a boolean for assert conditions.
 
 Not using booleans in assert conditions can lead to code where it isn't clear
@@ -27,6 +29,7 @@ assert(() {
   return true;
 }());
 ```
+
 ''';
 
 class PreferBoolInAsserts extends LintRule {

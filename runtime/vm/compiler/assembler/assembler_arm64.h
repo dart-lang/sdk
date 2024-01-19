@@ -1753,7 +1753,7 @@ class Assembler : public AssemblerBase {
     ASSERT(value != result);
     compiler::Label done;
     sbfx(result, value, kSmiTagSize,
-         Utils::Minimum(static_cast<int>(32), compiler::target::kSmiBits));
+         Utils::Minimum(static_cast<intptr_t>(32), compiler::target::kSmiBits));
     BranchIfSmi(value, &done);
     LoadFieldFromOffset(result, value, compiler::target::Mint::value_offset(),
                         compiler::kFourBytes);
@@ -1787,11 +1787,6 @@ class Assembler : public AssemblerBase {
                    JumpDistance distance = kFarJump) override {
     tbz(label, reg, kSmiTag);
   }
-
-  void Branch(const Code& code,
-              Register pp,
-              ObjectPoolBuilderEntry::Patchability patchable =
-                  ObjectPoolBuilderEntry::kNotPatchable);
 
   void BranchLink(const Code& code,
                   ObjectPoolBuilderEntry::Patchability patchable =
@@ -2158,7 +2153,7 @@ class Assembler : public AssemblerBase {
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadUniqueObject(Register dst, const Object& obj);
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadImmediate(Register reg, int64_t imm);
+  void LoadImmediate(Register reg, int64_t imm) override;
   void LoadImmediate(Register reg, Immediate imm) {
     LoadImmediate(reg, imm.value());
   }
@@ -2172,6 +2167,11 @@ class Assembler : public AssemblerBase {
   //
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadWordFromPoolIndex(Register dst, intptr_t index, Register pp = PP);
+
+  // Store word to pool at the given offset.
+  //
+  // Note: clobbers TMP.
+  void StoreWordToPoolIndex(Register src, intptr_t index, Register pp = PP);
 
   void LoadDoubleWordFromPoolIndex(Register lower,
                                    Register upper,
@@ -2297,6 +2297,11 @@ class Assembler : public AssemblerBase {
                             Register temp_reg,
                             JumpDistance distance = JumpDistance::kFarJump);
 
+  void MaybeTraceAllocation(Register cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
                          Label* failure,
@@ -2359,6 +2364,11 @@ class Assembler : public AssemblerBase {
   //
   // See also above for the pc-relative call.
   void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
+
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale);
 
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
@@ -3114,6 +3124,8 @@ class Assembler : public AssemblerBase {
                              (static_cast<int32_t>(vn) << kVnShift);
     Emit(encoding);
   }
+
+  void BranchLink(intptr_t target_code_pool_index, CodeEntryKind entry_kind);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

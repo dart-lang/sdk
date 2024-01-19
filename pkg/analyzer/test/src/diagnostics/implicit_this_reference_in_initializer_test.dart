@@ -10,62 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplicitThisReferenceInInitializerTest);
-    defineReflectiveTests(
-        ImplicitThisReferenceInInitializerWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ImplicitThisReferenceInInitializerTest extends PubPackageResolutionTest
-    with ImplicitThisReferenceInInitializerTestCases {
-  test_class_field_late_invokeInstanceMethod() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  late int x = foo();
-  int foo() => 0;
-}
-''');
-  }
-
-  test_class_field_late_invokeStaticMethod() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  late int x = foo();
-  static int foo() => 0;
-}
-''');
-  }
-
-  test_class_field_late_readInstanceField() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int a = 0;
-  late int x = a;
-}
-''');
-  }
-
-  test_class_field_late_readStaticField() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  static int a = 0;
-  late int x = a;
-}
-''');
-  }
-
-  test_mixin_field_late_readInstanceField() async {
-    await assertNoErrorsInCode(r'''
-mixin M {
-  int a = 0;
-  late int x = a;
-}
-''');
-  }
-}
-
-mixin ImplicitThisReferenceInInitializerTestCases on PubPackageResolutionTest {
-  test_class_field_commentReference_prefixedIdentifier() async {
+class ImplicitThisReferenceInInitializerTest extends PubPackageResolutionTest {
+  test_class_fieldInitializer_commentReference_prefixedIdentifier() async {
     await assertNoErrorsInCode(r'''
 class A {
   int a = 0;
@@ -75,12 +25,48 @@ class A {
 ''');
   }
 
-  test_class_field_commentReference_simpleIdentifier() async {
+  test_class_fieldInitializer_commentReference_simpleIdentifier() async {
     await assertNoErrorsInCode(r'''
 class A {
   int a = 0;
   /// foo [a] bar
   int x = 1;
+}
+''');
+  }
+
+  test_class_fieldInitializer_late_invokeInstanceMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  late int x = foo();
+  int foo() => 0;
+}
+''');
+  }
+
+  test_class_fieldInitializer_late_invokeStaticMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  late int x = foo();
+  static int foo() => 0;
+}
+''');
+  }
+
+  test_class_fieldInitializer_late_readInstanceField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int a = 0;
+  late int x = a;
+}
+''');
+  }
+
+  test_class_fieldInitializer_late_readStaticField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int a = 0;
+  late int x = a;
 }
 ''');
   }
@@ -134,7 +120,7 @@ class B {
 ''');
   }
 
-  test_field2() async {
+  test_fieldInitializer() async {
     await assertErrorsInCode(r'''
 class A {
   final x = 0;
@@ -145,7 +131,18 @@ class A {
     ]);
   }
 
-  test_instanceVariableInitializer_nestedLocal() async {
+  test_fieldInitializer_functionReference() async {
+    await assertErrorsInCode(r'''
+class A {
+  void x<T>() {}
+  final y = x<int>;
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 39, 1),
+    ]);
+  }
+
+  test_fieldInitializer_nestedLocal() async {
     // Test that (1) does not prevent reporting an error at (2).
     await assertErrorsInCode(r'''
 class A {
@@ -185,6 +182,15 @@ class A {
 ''', [
       error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 27, 1),
     ]);
+  }
+
+  test_mixin_field_late_readInstanceField() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int a = 0;
+  late int x = a;
+}
+''');
   }
 
   test_prefixedIdentifier() async {
@@ -318,8 +324,3 @@ class A<T> {
 ''');
   }
 }
-
-@reflectiveTest
-class ImplicitThisReferenceInInitializerWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with ImplicitThisReferenceInInitializerTestCases, WithoutNullSafetyMixin {}

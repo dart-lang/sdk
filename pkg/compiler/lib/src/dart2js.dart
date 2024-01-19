@@ -14,9 +14,9 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import '../compiler_api.dart' as api;
 import 'commandline_options.dart';
 import 'common/ram_usage.dart';
+import 'compiler.dart' as defaultCompiler show Compiler;
 import 'io/mapped_file.dart';
 import 'options.dart' show CompilerOptions, Dart2JSStage, FeatureOptions;
-import 'compiler.dart' as defaultCompiler show Compiler;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -156,7 +156,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool? showWarnings;
   bool? showHints;
   bool? enableColors;
-  List<Uri>? sources;
   int? optimizationLevel;
   Uri? platformBinaries;
   Map<String, String> environment = Map<String, String>();
@@ -326,16 +325,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     return uris;
   }
 
-  void setModularAnalysisInputs(String argument) {
-    setUriList(Flags.readModularAnalysis, argument);
-  }
-
   void setDillDependencies(String argument) {
     setUriList(Flags.dillDependencies, argument);
-  }
-
-  void setSources(String argument) {
-    sources = setUriList(Flags.sources, argument);
   }
 
   void setDumpInfo(String argument) {
@@ -425,10 +416,9 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption('--library-root=.+', ignoreOption),
     _OneOption('--libraries-spec=.+', setLibrarySpecificationUri),
     _OneOption('${Flags.dillDependencies}=.+', setDillDependencies),
-    _OneOption('${Flags.sources}=.+', setSources),
-    _OneOption('${Flags.readModularAnalysis}=.+', setModularAnalysisInputs),
-    _OneOption('${Flags.writeModularAnalysis}=.+',
-        setDataUri(Flags.writeModularAnalysis)),
+    _OneOption('${Flags.sources}=.+', ignoreOption),
+    _OneOption('${Flags.readModularAnalysis}=.+', ignoreOption),
+    _OneOption('${Flags.writeModularAnalysis}=.+', ignoreOption),
     _OneOption('${Flags.readData}=.+', setDataUri(Flags.readData)),
     _OneOption('${Flags.writeData}=.+', setDataUri(Flags.writeData)),
     _OneOption(
@@ -551,6 +541,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption(Flags.experimentToBoolean, passThrough),
     _OneOption(Flags.experimentUnreachableMethodsThrow, passThrough),
     _OneOption(Flags.experimentCallInstrumentation, passThrough),
+    _OneOption(Flags.experimentNullSafetyChecks, passThrough),
     _OneOption(Flags.experimentNewRti, ignoreOption),
     _OneOption('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
@@ -650,10 +641,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     print("Compiler invoked from: '$invoker'");
   }
 
-  if (arguments.isEmpty &&
-      entryUri == null &&
-      inputDillUri == null &&
-      sources == null) {
+  if (arguments.isEmpty && entryUri == null && inputDillUri == null) {
     _helpAndFail('No Dart file specified.');
   }
 
@@ -681,12 +669,8 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   // Make [scriptName] a relative path.
-  String scriptName = sources == null
-      ? fe.relativizeUri(
-          Uri.base, inputDillUri ?? entryUri!, Platform.isWindows)
-      : sources!
-          .map((uri) => fe.relativizeUri(Uri.base, uri, Platform.isWindows))
-          .join(',');
+  String scriptName =
+      fe.relativizeUri(Uri.base, inputDillUri ?? entryUri!, Platform.isWindows);
 
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       featureOptions: features,
@@ -767,19 +751,15 @@ Future<api.CompilationResult> compile(List<String> argv,
       case Dart2JSStage.cfe:
       case Dart2JSStage.allFromDill:
       case Dart2JSStage.cfeFromDill:
-      case Dart2JSStage.modularAnalysis:
-      case Dart2JSStage.modularAnalysisFromDill:
-      case Dart2JSStage.closedWorld:
         final sourceCharCount =
             _formatCharacterCount(inputProvider.sourceBytesFromDill);
         inputName = 'input bytes ($sourceCharCount characters source)';
         inputSize = inputProvider.bytesRead;
         summary = 'Dart file $input ';
         break;
+      case Dart2JSStage.closedWorld:
       case Dart2JSStage.deferredLoadIds:
-        final sourceCharCount =
-            _formatCharacterCount(inputProvider.sourceBytesFromDill);
-        inputName = 'input bytes ($sourceCharCount characters source)';
+        inputName = 'input bytes';
         inputSize = inputProvider.bytesRead;
         summary = 'Dart file $input ';
         break;
@@ -847,28 +827,15 @@ Future<api.CompilationResult> compile(List<String> argv,
         String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
         summary += 'compiled to dill: ${output}.';
         break;
-      case Dart2JSStage.modularAnalysis:
-      case Dart2JSStage.modularAnalysisFromDill:
-        processName = 'Serialized';
-        outputName = 'bytes data';
-        outputSize = outputProvider.totalDataWritten;
-        String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
-        String dataOutput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataOutputUriForStage(compilerOptions.stage),
-            Platform.isWindows);
-        summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
-        break;
       case Dart2JSStage.closedWorld:
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
-        String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
         String dataOutput = fe.relativizeUri(
             Uri.base,
             compilerOptions.dataOutputUriForStage(compilerOptions.stage),
             Platform.isWindows);
-        summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
+        summary += 'serialized to data: ${dataOutput}.';
         break;
       case Dart2JSStage.deferredLoadIds:
         processName = 'Serialized';
@@ -1015,7 +982,8 @@ Usage: dart compile js [arguments] <dart entry point>
      -O2          Safe production-oriented optimizations (like minification).
      -O3          Potentially unsafe optimizations (see -h -v for details).
      -O4          More agressive unsafe optimizations (see -h -v for details).
-  ''');
+'''
+      .trim());
 }
 
 void verboseHelp() {
@@ -1398,28 +1366,4 @@ void batchMain(List<String> batchArguments) {
       subscription.resume();
     });
   });
-}
-
-// TODO(joshualitt): Clean up the combinatorial explosion of read strategies.
-// Right now only fromClosedWorld, fromDataAndClosedWorld, and
-// fromCodegenAndClosedWorldAndData are valid.
-enum ReadStrategy {
-  fromDart,
-  fromClosedWorld,
-  fromData,
-  fromDataAndClosedWorld,
-  fromCodegen,
-  fromCodegenAndClosedWorld,
-  fromCodegenAndData,
-  fromCodegenAndClosedWorldAndData,
-}
-
-enum WriteStrategy {
-  toKernel,
-  toKernelWithModularAnalysis,
-  toModularAnalysis,
-  toClosedWorld,
-  toData,
-  toCodegen,
-  toJs
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -37,7 +38,11 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
   /// How many levels deep the visitor is currently nested inside build methods.
   int _inFlutterBuildMethods = 0;
 
+  /// The path to the file being visited.
   String get path => _path;
+
+  /// The source code of the file.
+  String get source => _source;
 
   Token get startToken => _startToken;
 
@@ -77,20 +82,25 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
     log(nodeToString(node));
   }
 
+  /// Print the lines of code containing offsets [start] through [end].
+  void printRange(int start, int end) {
+    log(rangeToString(start, end));
+  }
+
   /// Print the line containing [token].
   void printToken(Token token) {
-    log(_rangeToString(token.offset, token.end));
+    printRange(token.offset, token.end);
   }
 
   /// Generate a nice string representation of [node] include file path and
   /// line information.
   String nodeToString(AstNode node) {
-    return _rangeToString(node.offset, node.end);
+    return rangeToString(node.offset, node.end);
   }
 
-  /// Generate a nice string representation of [node] include file path and
-  /// line information.
-  String _rangeToString(int start, int end) {
+  /// Generate a string with the file path and lines of source code
+  /// that contain the source character offsets from [start] to [end].
+  String rangeToString(int start, int end) {
     var startLine = lineInfo.getLocation(start).lineNumber;
     var endLine = lineInfo.getLocation(end).lineNumber;
 

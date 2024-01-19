@@ -15,8 +15,6 @@ main() {
 @reflectiveTest
 class AnnotateOverridesTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-  @override
   String get lintRule => 'annotate_overrides';
 
   test_class_fieldWithAnnotation() async {

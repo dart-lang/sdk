@@ -1,0 +1,14 @@
+var log;
+
+class C1 {
+  final int id;
+  C1.n1(this.id, [String s = "a"]) {}
+}
+
+extension type ET1(int id) {
+  ET1.n1(this.id, [String s = "b"]) {}
+}
+
+main() {}
+
+expect(expected, actual) {}

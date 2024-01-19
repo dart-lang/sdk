@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/generated/engine.dart' // ignore: implementation_imports
     show
         AnalysisErrorInfoImpl,
@@ -16,7 +17,7 @@ import 'package:analyzer/src/generated/engine.dart' // ignore: implementation_im
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
 import 'package:cli_util/cli_logging.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/formatter.dart';
+import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:path/path.dart' as path;
 
 import '../../test/mocks.dart';
@@ -79,10 +80,14 @@ class Driver {
 
       for (var context in collection.contexts) {
         // Add lints.
-        var options = context.analysisOptions as AnalysisOptionsImpl;
-        options.lintRules = context.analysisOptions.lintRules.toList();
-        lints.forEach(options.lintRules.add);
-        options.lint = true;
+        var allOptions =
+            (context as DriverBasedAnalysisContext).allAnalysisOptions;
+        for (var options in allOptions) {
+          options as AnalysisOptionsImpl;
+          options.lintRules = options.lintRules.toList();
+          lints.forEach(options.lintRules.add);
+          options.lint = true;
+        }
 
         for (var filePath in context.contextRoot.analyzedFiles()) {
           if (isDartFileName(filePath)) {

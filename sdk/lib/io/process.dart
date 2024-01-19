@@ -258,6 +258,10 @@ abstract interface class Process {
   /// A `Future` which completes with the exit code of the process
   /// when the process completes.
   ///
+  /// The exit code is not available for processes running with
+  /// [ProcessStartMode.detached] or [ProcessStartMode.detachedWithStdio] and
+  /// the getter will throw [StateError] if it is used.
+  ///
   /// The handling of exit codes is platform specific.
   ///
   /// On Linux and OS X a normal exit code will be a positive value in

@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 A a = throw '';
+
 DoubleLinkedQueue c = throw '';
 
 class A<T> {}

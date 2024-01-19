@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -19,45 +22,142 @@ class MacroElementsMerger {
   final Reference unitReference;
   final ast.CompilationUnit unitNode;
   final CompilationUnitElementImpl unitElement;
+  final LibraryAugmentationElementImpl augmentation;
 
   MacroElementsMerger({
     required this.partialUnits,
     required this.unitReference,
     required this.unitNode,
     required this.unitElement,
+    required this.augmentation,
   });
 
   void perform() {
+    _rewriteImportPrefixes();
     _mergeClasses();
+    _mergeFunctions();
     _mergeUnitPropertyAccessors();
     _mergeUnitVariables();
   }
 
   void _mergeClasses() {
     for (final partialUnit in partialUnits) {
+      final elementsToAdd = <ClassElementImpl>[];
       for (final element in partialUnit.element.classes) {
         final reference = element.reference!;
         final containerRef = element.isAugmentation
             ? unitReference.getChild('@classAugmentation')
             : unitReference.getChild('@class');
-        containerRef.addChildReference(element.name, reference);
+        final existingRef = containerRef[element.name];
+        if (existingRef == null) {
+          elementsToAdd.add(element);
+          containerRef.addChildReference(element.name, reference);
+        } else {
+          final existingElement = existingRef.element as ClassElementImpl;
+          if (existingElement.augmentation == element) {
+            existingElement.augmentation = null;
+          }
+          _mergeInstanceChildren(existingRef, existingElement, element);
+        }
       }
       unitElement.classes = [
         ...unitElement.classes,
-        ...partialUnit.element.classes,
+        ...elementsToAdd,
       ].toFixedList();
     }
+  }
 
-    for (final node in unitNode.declarations) {
-      if (node is ast.ClassDeclarationImpl) {
-        final nameToken = node.name;
-        final containerRef = node.augmentKeyword != null
-            ? unitReference.getChild('@classAugmentation')
-            : unitReference.getChild('@class');
-        final reference = containerRef[nameToken.lexeme]!;
-        final element = reference.element as ClassElementImpl;
-        element.nameOffset = nameToken.offset;
+  void _mergeFunctions() {
+    for (final partialUnit in partialUnits) {
+      final elementsToAdd = <FunctionElementImpl>[];
+      for (final element in partialUnit.element.functions) {
+        final reference = element.reference!;
+        final containerRef = element.isAugmentation
+            ? unitReference.getChild('@functionAugmentation')
+            : unitReference.getChild('@function');
+        final existingRef = containerRef[element.name];
+        if (existingRef == null) {
+          elementsToAdd.add(element);
+          containerRef.addChildReference(element.name, reference);
+        } else {
+          final existingElement = existingRef.element as FunctionElementImpl;
+          if (existingElement.augmentation == element) {
+            existingElement.augmentation = null;
+          }
+        }
       }
+      unitElement.functions = [
+        ...unitElement.functions,
+        ...elementsToAdd,
+      ].toFixedList();
+    }
+  }
+
+  void _mergeInstanceChildren(
+    Reference existingRef,
+    InstanceElementImpl existingElement,
+    InstanceElementImpl newElement,
+  ) {
+    for (final element in newElement.fields) {
+      final reference = element.reference!;
+      final containerRef = element.isAugmentation
+          ? existingRef.getChild('@fieldAugmentation')
+          : existingRef.getChild('@field');
+      containerRef.addChildReference(element.name, reference);
+    }
+    existingElement.fields = [
+      ...existingElement.fields,
+      ...newElement.fields,
+    ].toFixedList();
+
+    for (final element in newElement.accessors) {
+      final reference = element.reference!;
+      final containerRef = element.isGetter
+          ? element.isAugmentation
+              ? existingRef.getChild('@getterAugmentation')
+              : existingRef.getChild('@getter')
+          : element.isAugmentation
+              ? existingRef.getChild('@setterAugmentation')
+              : existingRef.getChild('@setter');
+      containerRef.addChildReference(element.name, reference);
+    }
+    existingElement.accessors = [
+      ...existingElement.accessors,
+      ...newElement.accessors,
+    ].toFixedList();
+
+    for (final element in newElement.methods) {
+      final reference = element.reference!;
+      final containerRef = element.isAugmentation
+          ? existingRef.getChild('@methodAugmentation')
+          : existingRef.getChild('@method');
+      containerRef.addChildReference(element.name, reference);
+    }
+    existingElement.methods = [
+      ...existingElement.methods,
+      ...newElement.methods,
+    ].toFixedList();
+
+    if (existingElement is InterfaceElementImpl &&
+        newElement is InterfaceElementImpl) {
+      if (newElement.interfaces.isNotEmpty) {
+        existingElement.interfaces = [
+          ...existingElement.interfaces,
+          ...newElement.interfaces,
+        ].toFixedList();
+      }
+
+      for (final element in newElement.constructors) {
+        final reference = element.reference!;
+        final containerRef = element.isAugmentation
+            ? existingRef.getChild('@constructorAugmentation')
+            : existingRef.getChild('@constructor');
+        containerRef.addChildReference(element.name, reference);
+      }
+      existingElement.constructors = [
+        ...existingElement.constructors,
+        ...newElement.constructors,
+      ].toFixedList();
     }
   }
 
@@ -73,19 +173,6 @@ class MacroElementsMerger {
         ...partialUnit.element.accessors,
       ].toFixedList();
     }
-
-    for (final node in unitNode.declarations) {
-      if (node is ast.TopLevelVariableDeclaration) {
-        for (final variable in node.variables.variables) {
-          final nameToken = variable.name;
-          final reference = containerRef[nameToken.lexeme]!;
-          final element = reference.element as PropertyAccessorElementImpl;
-          if (!element.isSynthetic) {
-            element.nameOffset = nameToken.offset;
-          }
-        }
-      }
-    }
   }
 
   void _mergeUnitVariables() {
@@ -100,16 +187,64 @@ class MacroElementsMerger {
         ...partialUnit.element.topLevelVariables,
       ].toFixedList();
     }
+  }
 
-    for (final node in unitNode.declarations) {
-      if (node is ast.TopLevelVariableDeclaration) {
-        for (final variable in node.variables.variables) {
-          final nameToken = variable.name;
-          final reference = containerRef[nameToken.lexeme]!;
-          final element = reference.element as TopLevelVariableElementImpl;
-          element.nameOffset = nameToken.offset;
+  void _rewriteImportPrefixes() {
+    final uriToPartialPrefixes = <Uri, List<PrefixElementImpl>>{};
+    for (final partialUnit in partialUnits) {
+      for (final import in partialUnit.container.libraryImports) {
+        final prefix = import.prefix?.element;
+        final importedLibrary = import.importedLibrary;
+        if (prefix != null && importedLibrary != null) {
+          final uri = importedLibrary.source.uri;
+          (uriToPartialPrefixes[uri] ??= []).add(prefix);
         }
       }
+    }
+
+    // The merged augmentation imports the same libraries, but with
+    // different prefixes. Prepare the mapping.
+    final partialPrefixToMerged =
+        Map<PrefixElementImpl, PrefixElementImpl>.identity();
+    for (final import in augmentation.libraryImports) {
+      final prefix = import.prefix?.element;
+      final importedLibrary = import.importedLibrary;
+      if (prefix != null && importedLibrary != null) {
+        final uri = importedLibrary.source.uri;
+        final partialPrefixes = uriToPartialPrefixes[uri];
+        if (partialPrefixes != null) {
+          for (final partialPrefix in partialPrefixes) {
+            partialPrefixToMerged[partialPrefix] = prefix;
+          }
+        }
+      }
+    }
+
+    // Rewrite import prefixes in constants.
+    final visitor = _RewriteImportPrefixes(partialPrefixToMerged);
+    for (final partialUnit in partialUnits) {
+      partialUnit.node.accept(visitor);
+    }
+  }
+}
+
+class _RewriteImportPrefixes extends RecursiveAstVisitor<void> {
+  final Map<PrefixElementImpl, PrefixElementImpl> partialPrefixToMerged;
+
+  _RewriteImportPrefixes(this.partialPrefixToMerged);
+
+  @override
+  void visitSimpleIdentifier(covariant ast.SimpleIdentifierImpl node) {
+    final mergedPrefix = partialPrefixToMerged[node.staticElement];
+    if (mergedPrefix != null) {
+      // The name may be different in the merged augmentation.
+      node.token = StringToken(
+        TokenType.IDENTIFIER,
+        mergedPrefix.name,
+        -1,
+      );
+      // The element is definitely different.
+      node.staticElement = mergedPrefix;
     }
   }
 }

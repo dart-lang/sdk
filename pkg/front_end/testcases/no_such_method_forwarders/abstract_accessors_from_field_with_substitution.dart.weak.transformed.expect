@@ -30,7 +30,7 @@ static method expectTypeError(() → dynamic callback) → void {
 static method main() → dynamic {
   self::B b = new self::B::•();
   self::expectTypeError(() → core::List<core::int>? => b.{self::B::foo}{core::List<core::int>?});
-  self::expectTypeError(() → core::List<dynamic> => (b as dynamic){dynamic}.foo = core::_GrowableList::•<dynamic>(0));
+  self::expectTypeError(() → core::List<dynamic> => (b as dynamic).{dynamic}foo = core::_GrowableList::•<dynamic>(0));
 }
 
 constants  {

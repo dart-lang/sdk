@@ -66,7 +66,7 @@ class AvoidSettersWithoutGetters extends LintRule {
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
     registry.addExtensionTypeDeclaration(this, visitor);
-    // todo(pq): consider visiting mixin declarations
+    // TODO(pq): consider visiting mixin declarations
   }
 }
 

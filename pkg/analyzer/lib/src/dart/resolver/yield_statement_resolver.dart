@@ -42,8 +42,8 @@ class YieldStatementResolver {
   ///
   /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
   ///
-  /// TODO(scheglov) This is duplicate
-  /// TODO(scheglov) Also in [BoolExpressionVerifier]
+  // TODO(scheglov): This is duplicate
+  // TODO(scheglov): Also in [BoolExpressionVerifier]
   bool _checkForUseOfVoidResult(Expression expression) {
     if (!identical(expression.staticType, VoidTypeImpl.instance)) {
       return false;
@@ -88,7 +88,8 @@ class YieldStatementResolver {
     var imposedReturnType = bodyContext.imposedType;
     if (imposedReturnType != null) {
       if (isYieldEach) {
-        if (!_typeSystem.isAssignableTo(impliedReturnType, imposedReturnType)) {
+        if (!_typeSystem.isAssignableTo(impliedReturnType, imposedReturnType,
+            strictCasts: _resolver.analysisOptions.strictCasts)) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
             expression,
@@ -104,7 +105,8 @@ class YieldStatementResolver {
         );
         if (imposedSequenceType != null) {
           var imposedValueType = imposedSequenceType.typeArguments[0];
-          if (!_typeSystem.isAssignableTo(expressionType, imposedValueType)) {
+          if (!_typeSystem.isAssignableTo(expressionType, imposedValueType,
+              strictCasts: _resolver.analysisOptions.strictCasts)) {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
               expression,
@@ -127,7 +129,8 @@ class YieldStatementResolver {
         requiredReturnType = _typeProvider.streamDynamicType;
       }
 
-      if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType)) {
+      if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType,
+          strictCasts: _resolver.analysisOptions.strictCasts)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
           expression,

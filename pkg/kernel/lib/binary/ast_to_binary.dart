@@ -17,6 +17,7 @@ import 'tag.dart';
 /// A [BinaryPrinter] can be used to write one file and must then be
 /// discarded.
 class BinaryPrinter implements Visitor<void>, BinarySink {
+  final VariableIndexer Function() _newVariableIndexer;
   VariableIndexer? _variableIndexer;
   LabelIndexer? _labelIndexer;
   SwitchCaseIndexer? _switchCaseIndexer;
@@ -67,11 +68,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       StringIndexer? stringIndexer,
       this.includeSources = true,
       this.includeSourceBytes = true,
-      this.includeOffsets = true})
+      this.includeOffsets = true,
+      VariableIndexer Function()? newVariableIndexerForTesting})
       : _mainSink = new BufferedSink(sink),
         _metadataSink = new BufferedSink(new BytesSink()),
         stringIndexer = stringIndexer ?? new StringIndexer(),
-        _constantIndexer = new ConstantIndexer() {
+        _constantIndexer = new ConstantIndexer(),
+        _newVariableIndexer =
+            newVariableIndexerForTesting ?? VariableIndexer.new {
     _sink = _mainSink;
   }
 
@@ -80,7 +84,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   int _getVariableIndex(VariableDeclaration variable) {
-    int? index = (_variableIndexer ??= new VariableIndexer())[variable];
+    int? index = (_variableIndexer ??= _newVariableIndexer())[variable];
     assert(index != null, "No index found for ${variable}");
     return index!;
   }
@@ -696,7 +700,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       _variableIndexer = null;
     }
     if (variableScope) {
-      _variableIndexer ??= new VariableIndexer();
+      _variableIndexer ??= _newVariableIndexer();
       _variableIndexer!.pushScope();
     }
   }
@@ -729,7 +733,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       _variableIndexer = null;
     }
     if (variableScope) {
-      _variableIndexer ??= new VariableIndexer();
+      _variableIndexer ??= _newVariableIndexer();
       _variableIndexer!.pushScope();
     }
   }
@@ -1326,7 +1330,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     assert(node.function.typeParameters.isEmpty);
     writeFunctionNode(node.function);
     // Parameters are in scope in the initializers.
-    _variableIndexer ??= new VariableIndexer();
+    _variableIndexer ??= _newVariableIndexer();
     _variableIndexer!.restoreScope(node.function.positionalParameters.length +
         node.function.namedParameters.length);
     writeNodeList(node.initializers);
@@ -1538,7 +1542,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
     writeNode(node.returnType);
-    writeOptionalNode(node.futureValueType);
+    writeOptionalNode(node.emittedValueType);
     RedirectingFactoryTarget? redirectingFactoryTarget =
         node.redirectingFactoryTarget;
     if (redirectingFactoryTarget == null) {
@@ -1737,6 +1741,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTypedefTearOff(TypedefTearOff node) {
     writeByte(Tag.TypedefTearOff);
+    writeOffset(node.fileOffset);
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.expression);
@@ -1763,6 +1768,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitDynamicInvocation(DynamicInvocation node) {
     writeByte(Tag.DynamicInvocation);
     writeByte(node.kind.index);
+    writeByte(node.flags);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
     writeName(node.name);
@@ -1886,6 +1892,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitNot(Not node) {
     writeByte(Tag.Not);
+    writeOffset(node.fileOffset);
     writeNode(node.operand);
   }
 
@@ -1908,6 +1915,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitLogicalExpression(LogicalExpression node) {
     writeByte(Tag.LogicalExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.left);
     writeByte(logicalOperatorIndex(node.operatorEnum));
     writeNode(node.right);
@@ -1916,6 +1924,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     writeByte(Tag.ConditionalExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.condition);
     writeNode(node.then);
     writeNode(node.otherwise);
@@ -2148,7 +2157,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.Let);
     writeOffset(node.fileOffset);
     VariableIndexer variableIndexer =
-        _variableIndexer ??= new VariableIndexer();
+        _variableIndexer ??= _newVariableIndexer();
     variableIndexer.pushScope();
     writeVariableDeclaration(node.variable);
     writeNode(node.body);
@@ -2158,8 +2167,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitBlockExpression(BlockExpression node) {
     writeByte(Tag.BlockExpression);
+    writeOffset(node.fileOffset);
     VariableIndexer variableIndexer =
-        _variableIndexer ??= new VariableIndexer();
+        _variableIndexer ??= _newVariableIndexer();
     variableIndexer.pushScope();
     writeNodeList(node.body.statements);
     writeNode(node.value);
@@ -2169,6 +2179,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitInstantiation(Instantiation node) {
     writeByte(Tag.Instantiation);
+    writeOffset(node.fileOffset);
     writeNode(node.expression);
     writeNodeList(node.typeArguments);
   }
@@ -2204,7 +2215,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitBlock(Block node) {
     VariableIndexer variableIndexer =
-        _variableIndexer ??= new VariableIndexer();
+        _variableIndexer ??= _newVariableIndexer();
     variableIndexer.pushScope();
     writeByte(Tag.Block);
     writeOffset(node.fileOffset);
@@ -2216,7 +2227,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitAssertBlock(AssertBlock node) {
     VariableIndexer variableIndexer =
-        _variableIndexer ??= new VariableIndexer();
+        _variableIndexer ??= _newVariableIndexer();
     variableIndexer.pushScope();
     writeByte(Tag.AssertBlock);
     writeNodeList(node.statements);
@@ -2289,7 +2300,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitForStatement(ForStatement node) {
     VariableIndexer variableIndexer =
-        _variableIndexer ??= new VariableIndexer();
+        _variableIndexer ??= _newVariableIndexer();
     variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
     writeOffset(node.fileOffset);
@@ -2303,7 +2314,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitForInStatement(ForInStatement node) {
     VariableIndexer variableIndexer =
-        _variableIndexer ??= new VariableIndexer();
+        _variableIndexer ??= _newVariableIndexer();
     variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
@@ -2383,7 +2394,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitCatch(Catch node) {
     // Note: there is no tag on Catch.
     VariableIndexer variableIndexer =
-        _variableIndexer ??= new VariableIndexer();
+        _variableIndexer ??= _newVariableIndexer();
     variableIndexer.pushScope();
     writeOffset(node.fileOffset);
     writeNode(node.guard);
@@ -2429,7 +2440,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.initializer);
     // Declare the variable after its initializer. It is not in scope in its
     // own initializer.
-    (_variableIndexer ??= new VariableIndexer()).declare(node);
+    (_variableIndexer ??= _newVariableIndexer()).declare(node);
   }
 
   void writeVariableDeclarationList(List<VariableDeclaration> nodes) {
@@ -3287,6 +3298,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitAuxiliaryConstantReference(AuxiliaryConstant node) {
     throw new UnsupportedError("serialization of auxiliary constant reference "
         "${node} (${node.runtimeType}).");
+  }
+
+  VariableIndexer? getVariableIndexerForTesting() {
+    return _variableIndexer;
+  }
+
+  TypeParameterIndexer getTypeParameterIndexerForTesting() {
+    return _typeParameterIndexer;
   }
 }
 

@@ -12,7 +12,6 @@ linter:
   rules:
     # Not enforced by the lints package at any version.
     - always_declare_return_types
-    - depend_on_referenced_packages
     - directives_ordering
     - prefer_single_quotes
     - prefer_relative_imports

@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -25,12 +25,12 @@ void periodicTask(_) {
 }
 
 void startTimer() {
-  new Timer.periodic(const Duration(milliseconds: 10), periodicTask);
+  Timer.periodic(const Duration(milliseconds: 10), periodicTask);
 }
 
 Future<void> waitForEvent(VmService service, String eventKind) {
   final completer = Completer<void>();
-  late final subscription;
+  late final StreamSubscription<Event> subscription;
   subscription = service.onDebugEvent.listen((Event event) {
     if (event.kind == eventKind) {
       subscription.cancel();

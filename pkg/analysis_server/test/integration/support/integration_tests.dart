@@ -249,6 +249,20 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest {
     });
   }
 
+  /// Returns the latest set of errors for the file.
+  ///
+  /// If there are no errors received from the server yet, waits for them.
+  /// Removes the set from the storage, so will wait again next time.
+  Future<List<AnalysisError>> waitForFileErrors(String path) async {
+    while (true) {
+      var result = currentAnalysisErrors.remove(path);
+      if (result != null) {
+        return result;
+      }
+      await pumpEventQueue();
+    }
+  }
+
   /// Write a source file with the given absolute [pathname] and [contents].
   ///
   /// If the file didn't previously exist, it is created.  If it did, it is

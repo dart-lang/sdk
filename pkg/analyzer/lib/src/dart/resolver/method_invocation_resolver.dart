@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
@@ -56,8 +55,6 @@ class MethodInvocationResolver with ScopeHelpers {
 
   final InvocationInferenceHelper _inferenceHelper;
 
-  final MigratableAstInfoProvider _migratableAstInfoProvider;
-
   /// The invocation being resolved.
   MethodInvocationImpl? _invocation;
 
@@ -65,8 +62,7 @@ class MethodInvocationResolver with ScopeHelpers {
   Name? _currentName;
 
   MethodInvocationResolver(
-    this._resolver,
-    this._migratableAstInfoProvider, {
+    this._resolver, {
     required InvocationInferenceHelper inferenceHelper,
   })  : _typeType = _resolver.typeProvider.typeType,
         _inheritance = _resolver.inheritance,
@@ -169,8 +165,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
-        _typeSystem.isNonNullableByDefault) {
+    if (node.isNullAware && _typeSystem.isNonNullableByDefault) {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
@@ -203,7 +198,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   bool _isCoreFunction(DartType type) {
-    // TODO(scheglov) Can we optimize this?
+    // TODO(scheglov): Can we optimize this?
     return type is InterfaceType && type.isDartCoreFunction;
   }
 
@@ -341,7 +336,7 @@ class MethodInvocationResolver with ScopeHelpers {
   Element? _resolveElement(
       InterfaceElement classElement, SimpleIdentifier propertyName) {
     final augmented = classElement.augmentedOfDeclaration;
-    // TODO(scheglov) Replace with class hierarchy.
+    // TODO(scheglov): Replace with class hierarchy.
     String name = propertyName.name;
     Element? element;
     if (propertyName.inSetterContext()) {
@@ -585,7 +580,7 @@ class MethodInvocationResolver with ScopeHelpers {
         return _rewriteAsFunctionExpressionInvocation(node, targetType,
             contextType: contextType);
       }
-      // TODO(scheglov) This is a questionable distinction.
+      // TODO(scheglov): This is a questionable distinction.
       if (element is PrefixElement) {
         _setInvalidTypeResolution(node,
             whyNotPromotedList: whyNotPromotedList, contextType: contextType);
@@ -758,7 +753,7 @@ class MethodInvocationResolver with ScopeHelpers {
       assert(name == FunctionElement.CALL_METHOD_NAME);
       _setResolution(node, callFunctionType, whyNotPromotedList,
           contextType: contextType);
-      // TODO(scheglov) Replace this with using FunctionType directly.
+      // TODO(scheglov): Replace this with using FunctionType directly.
       // Here was erase resolution that _setResolution() sets.
       nameNode.staticElement = null;
       nameNode.staticType = _dynamicType;
@@ -971,7 +966,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Inference is done in type analyzer, so inferred type arguments might be
   /// set later.
   ///
-  /// TODO(scheglov) when we do inference in this resolver, do we need this?
+  // TODO(scheglov): when we do inference in this resolver, do we need this?
   void _setExplicitTypeArgumentTypes() {
     var typeArgumentList = _invocation!.typeArguments;
     if (typeArgumentList != null) {
@@ -1000,7 +995,7 @@ class MethodInvocationResolver with ScopeHelpers {
   void _setResolution(MethodInvocationImpl node, DartType type,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
-    // TODO(scheglov) We need this for StaticTypeAnalyzer to run inference.
+    // TODO(scheglov): We need this for StaticTypeAnalyzer to run inference.
     // But it seems weird. Do we need to know the raw type of a function?!
     node.methodName.staticType = type;
 

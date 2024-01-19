@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -14,12 +12,12 @@ import 'package:path/path.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
+import '../dds_runner.dart';
 import '../experiments.dart';
 import '../generate_kernel.dart';
 import '../native_assets.dart';
 import '../resident_frontend_constants.dart';
 import '../resident_frontend_utils.dart';
-import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
 import 'compilation_server.dart';
@@ -61,6 +59,7 @@ class RunCommand extends DartdevCommand {
         help:
             'Enable faster startup times with the resident frontend compiler.\n'
             "See 'dart ${CompilationServerCommand.commandName} -h' for more information.",
+        hide: !verbose,
       )
       ..addOption(
         CompilationServerCommand.residentServerInfoFileFlag,
@@ -79,41 +78,58 @@ class RunCommand extends DartdevCommand {
         ..addOption(
           'observe',
           help: 'The observe flag is a convenience flag used to run a program '
-              'with a set of common options useful for debugging.',
+              'with a set of common options useful for debugging. '
+              'Run `dart help -v run` for details.',
           valueHelp: '[<port>[/<bind-address>]]',
         )
-        ..addOption('launch-dds', hide: true, help: 'Launch DDS.')
-        ..addSeparator(
-          'Options implied by --observe are currently:',
+        ..addFlag(
+          'enable-asserts',
+          help: 'Enable assert statements.',
         )
+        ..addOption(
+          'launch-dds',
+          hide: true,
+          help: 'Launch DDS.',
+        );
+
+      if (verbose) {
+        argParser.addSeparator(
+            verbose ? 'Options implied by --observe are currently:' : '');
+      }
+      argParser
         ..addOption(
           'enable-vm-service',
           help: 'Enables the VM service and listens on the specified port for '
               'connections (default port number is 8181, default bind address '
               'is localhost).',
           valueHelp: '[<port>[/<bind-address>]]',
+          hide: !verbose,
         )
         ..addFlag(
           'serve-devtools',
           help: 'Serves an instance of the Dart DevTools debugger and profiler '
               'via the VM service at <vm-service-uri>/devtools.',
           defaultsTo: true,
+          hide: !verbose,
         )
         ..addFlag(
           'pause-isolates-on-exit',
           help: 'Pause isolates on exit when '
               'running with --enable-vm-service.',
+          hide: !verbose,
         )
         ..addFlag(
           'pause-isolates-on-unhandled-exceptions',
           help: 'Pause isolates when an unhandled exception is encountered '
               'when running with --enable-vm-service.',
+          hide: !verbose,
         )
         ..addFlag(
           'warn-on-pause-with-no-debugger',
           help:
               'Print a warning when an isolate pauses with no attached debugger'
               ' when running with --enable-vm-service.',
+          hide: !verbose,
         )
         ..addOption(
           'timeline-streams',
@@ -122,25 +138,28 @@ class RunCommand extends DartdevCommand {
               'Debugger, Embedder, GC, Isolate, VM.\n'
               'Defaults to "Compiler, Dart, GC" when --observe is provided.',
           valueHelp: 'str1, str2, ...',
-        )
-        ..addSeparator(
-          'Other debugging options:',
-        )
+          hide: !verbose,
+        );
+
+      if (verbose) {
+        argParser.addSeparator('Other debugging options:');
+      }
+      argParser
         ..addFlag(
           'pause-isolates-on-start',
           help: 'Pause isolates on start when '
               'running with --enable-vm-service.',
+          hide: !verbose,
         )
-        ..addFlag(
-          'enable-asserts',
-          help: 'Enable assert statements.',
-        )
-        ..addOption('timeline-recorder',
-            help: 'Selects the timeline recorder to use.\n'
-                'Valid recorders include: none, ring, endless, startup, '
-                'systrace, file, callback, perfettofile.\n'
-                'Defaults to ring.',
-            valueHelp: 'recorder');
+        ..addOption(
+          'timeline-recorder',
+          help: 'Selects the timeline recorder to use.\n'
+              'Valid recorders include: none, ring, endless, startup, '
+              'systrace, file, callback, perfettofile.\n'
+              'Defaults to ring.',
+          valueHelp: 'recorder',
+          hide: !verbose,
+        );
     } else {
       argParser.addOption('timeline-recorder',
           help: 'Selects the timeline recorder to use.\n'
@@ -148,6 +167,8 @@ class RunCommand extends DartdevCommand {
               'Defaults to none.',
           valueHelp: 'recorder');
     }
+
+    argParser.addSeparator('Logging options:');
     argParser.addOption(
       'verbosity',
       help: 'Sets the verbosity level of the compilation.',
@@ -157,15 +178,14 @@ class RunCommand extends DartdevCommand {
     );
 
     if (verbose) {
-      argParser.addSeparator(
-        'Advanced options:',
-      );
+      argParser.addSeparator('Advanced options:');
     }
     argParser.addMultiOption(
       'define',
       abbr: 'D',
       valueHelp: 'key=value',
       help: 'Define an environment declaration.',
+      hide: !verbose,
     );
     if (!isProductMode) {
       argParser
@@ -284,16 +304,16 @@ class RunCommand extends DartdevCommand {
       // service intermediary which implements the VM service protocol and
       // provides non-VM specific extensions (e.g., log caching, client
       // synchronization).
-      _DebuggingSession debugSession;
+      DDSRunner debugSession;
       if (launchDds) {
-        debugSession = _DebuggingSession();
-        if (!await debugSession.start(
-          ddsHost,
-          ddsPort,
-          disableServiceAuthCodes,
-          launchDevTools,
-          debugDds,
-          enableServicePortFallback,
+        debugSession = DDSRunner();
+        if (!await debugSession.startForCurrentProcess(
+          ddsHost: ddsHost,
+          ddsPort: ddsPort,
+          disableServiceAuthCodes: disableServiceAuthCodes,
+          enableDevTools: launchDevTools,
+          debugDds: debugDds,
+          enableServicePortFallback: enableServicePortFallback,
         )) {
           return errorExitCode;
         }
@@ -306,8 +326,11 @@ class RunCommand extends DartdevCommand {
         return errorExitCode;
       }
     } else {
-      final (success, assets) =
-          await compileNativeAssetsJitYamlFile(verbose: verbose);
+      final runPackageName = getPackageForCommand(mainCommand);
+      final (success, assets) = await compileNativeAssetsJitYamlFile(
+        verbose: verbose,
+        runPackageName: runPackageName,
+      );
       if (!success) {
         log.stderr('Error: Compiling native assets failed.');
         return errorExitCode;
@@ -377,102 +400,44 @@ class RunCommand extends DartdevCommand {
   }
 }
 
-class _DebuggingSession {
-  Future<bool> start(
-    String host,
-    String port,
-    bool disableServiceAuthCodes,
-    bool enableDevTools,
-    bool debugDds,
-    bool enableServicePortFallback,
-  ) async {
-    final sdkDir = dirname(sdk.dart);
-    final fullSdk = sdkDir.endsWith('bin');
-    final devToolsBinaries =
-        fullSdk ? sdk.devToolsBinaries : absolute(sdkDir, 'devtools');
-    String snapshotName = fullSdk
-        ? sdk.ddsAotSnapshot
-        : absolute(sdkDir, 'gen', 'dds_aot.dart.snapshot');
-    String execName = sdk.dartAotRuntime;
-    if (!Sdk.checkArtifactExists(snapshotName)) {
-      // An AOT snapshot of dds is not available, we could
-      // be running on the ia32 platform so check for a regular
-      // kernel file being present.
-      snapshotName = fullSdk
-          ? sdk.ddsSnapshot
-          : absolute(sdkDir, 'gen', 'dds.dart.snapshot');
-      if (!Sdk.checkArtifactExists(snapshotName)) {
-        return false;
-      }
-      execName = sdk.dart;
+/// Keep in sync with [getExecutableForCommand].
+///
+/// Returns `null` if root package should be used.
+// TODO(https://github.com/dart-lang/pub/issues/4067): Don't duplicate logic.
+String? getPackageForCommand(String descriptor) {
+  final root = current;
+  var asPath = descriptor;
+  try {
+    asPath = Uri.parse(descriptor).toFilePath();
+  } catch (_) {
+    /// Here to get the same logic as[getExecutableForCommand].
+  }
+  final asDirectFile = join(root, asPath);
+  if (File(asDirectFile).existsSync()) {
+    return null; // root package.
+  }
+  if (!File(join(root, 'pubspec.yaml')).existsSync()) {
+    return null;
+  }
+  String package;
+  if (descriptor.contains(':')) {
+    final parts = descriptor.split(':');
+    if (parts.length > 2) {
+      return null;
     }
-    ServiceProtocolInfo serviceInfo = await Service.getInfo();
-    // Wait for VM service to publish its connection info.
-    while (serviceInfo.serverUri == null) {
-      await Future.delayed(Duration(milliseconds: 10));
-      serviceInfo = await Service.getInfo();
+    package = parts[0];
+    if (package.isEmpty) {
+      return null; // root package.
     }
-    final process = await Process.start(
-      execName,
-      [
-        if (debugDds) '--enable-vm-service=0',
-        snapshotName,
-        serviceInfo.serverUri.toString(),
-        host,
-        port,
-        disableServiceAuthCodes.toString(),
-        enableDevTools.toString(),
-        devToolsBinaries,
-        debugDds.toString(),
-        enableServicePortFallback.toString(),
-      ],
-      mode: ProcessStartMode.detachedWithStdio,
-    );
-    final completer = Completer<void>();
-    const devToolsMessagePrefix =
-        'The Dart DevTools debugger and profiler is available at:';
-    if (debugDds) {
-      late StreamSubscription stdoutSub;
-      stdoutSub = process.stdout.transform(utf8.decoder).listen((event) {
-        if (event.startsWith(devToolsMessagePrefix)) {
-          final ddsDebuggingUri = event.split(' ').last;
-          print(
-            'A DevTools debugger for DDS is available at: $ddsDebuggingUri',
-          );
-          stdoutSub.cancel();
-        }
-      });
-    }
-    late StreamSubscription stderrSub;
-    stderrSub = process.stderr.transform(utf8.decoder).listen((event) {
-      final result = json.decode(event) as Map<String, dynamic>;
-      final state = result['state'];
-      if (state == 'started') {
-        if (result.containsKey('devToolsUri')) {
-          final devToolsUri = result['devToolsUri'];
-          print('$devToolsMessagePrefix $devToolsUri');
-        }
-        stderrSub.cancel();
-        completer.complete();
-      } else {
-        stderrSub.cancel();
-        final error = result['error'] ?? event;
-        final stacktrace = result['stacktrace'] ?? '';
-        String message = 'Could not start the VM service: ';
-        if (error.contains('Failed to create server socket')) {
-          message += '$host:$port is already in use.\n';
-        } else {
-          message += '$error\n$stacktrace\n';
-        }
-        completer.completeError(message);
-      }
-    });
-    try {
-      await completer.future;
-      return true;
-    } catch (e) {
-      stderr.write(e);
-      return false;
+  } else {
+    package = descriptor;
+    if (package.isEmpty) {
+      return null; // root package.
     }
   }
+  if (package == 'test') {
+    // `dart run test` is expected to behave as `dart test`.
+    return null; // root package.
+  }
+  return package;
 }

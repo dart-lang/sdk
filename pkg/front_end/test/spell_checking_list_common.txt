@@ -735,11 +735,11 @@ cyan
 cycle
 cycles
 cyclic
+cyclicity
 dart
 dart2js
 dart2wasm
 dart2wasm_js_compatibility
-dart2wasm_stringref
 dartdevc
 data
 date
@@ -851,6 +851,7 @@ desugar
 desugared
 desugaring
 desugars
+detached
 detail
 detailed
 details
@@ -1059,6 +1060,7 @@ enumerations
 enums
 environment
 equal
+equalities
 equality
 equals
 equate
@@ -1652,6 +1654,7 @@ invalidated
 invalidates
 invalidating
 invalidation
+invariance
 invariant
 invariantly
 inversion
@@ -2024,6 +2027,7 @@ nested
 nesting
 net
 never
+nevertheless
 new
 newer
 newline
@@ -2470,6 +2474,7 @@ receive
 receiver
 recent
 recently
+recognition
 recognize
 recognized
 recognizes
@@ -2734,6 +2739,7 @@ semantic
 semantics
 semi
 semicolon
+semicolons
 send
 sending
 sends
@@ -2928,7 +2934,6 @@ stray
 stream
 strictly
 string
-stringref
 strings
 stripped
 strong
@@ -3286,6 +3291,7 @@ unserializable
 unsigned
 unsized
 unskip
+unsolvable
 unsorted
 unsoundness
 unspecified

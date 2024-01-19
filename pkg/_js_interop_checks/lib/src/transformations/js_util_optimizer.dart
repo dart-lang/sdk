@@ -274,25 +274,19 @@ class JsUtilOptimizer extends Transformer {
       [Expression? maybeReceiver]) {
     final target =
         shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
-    final isOperator = _extensionIndex.isOperator(node);
     final isInstanceInteropMember =
         _extensionIndex.isInstanceInteropMember(node);
     final name = _getMemberJSName(node);
     return (Arguments arguments, Expression invocation) {
       // Parameter `this` only exists for extension and extension type instance
-      // members. Operators take a `this` and an index.
+      // members.
       final positionalArgs = arguments.positional;
-      assert(positionalArgs.length ==
-          (isOperator
-              ? 2
-              : isInstanceInteropMember
-                  ? 1
-                  : 0));
+      assert(positionalArgs.length == (isInstanceInteropMember ? 1 : 0));
       // We clone the receiver as each invocation needs a fresh node.
       final receiver = maybeReceiver == null
           ? positionalArgs.first
           : _cloner.clone(maybeReceiver);
-      final property = isOperator ? positionalArgs[1] : StringLiteral(name);
+      final property = StringLiteral(name);
       return StaticInvocation(
           target,
           Arguments([receiver, property],
@@ -311,24 +305,18 @@ class JsUtilOptimizer extends Transformer {
   /// positional argument as the receiver for `js_util.setProperty`.
   _InvocationBuilder _getExternalSetterInvocationBuilder(Procedure node,
       [Expression? maybeReceiver]) {
-    final isOperator = _extensionIndex.isOperator(node);
     final isInstanceInteropMember =
         _extensionIndex.isInstanceInteropMember(node);
     final name = _getMemberJSName(node);
     return (Arguments arguments, Expression invocation) {
       // Parameter `this` only exists for extension and extension type instance
-      // members. Operators take a `this`, an index, and a value.
+      // members.
       final positionalArgs = arguments.positional;
-      assert(positionalArgs.length ==
-          (isOperator
-              ? 3
-              : isInstanceInteropMember
-                  ? 2
-                  : 1));
+      assert(positionalArgs.length == (isInstanceInteropMember ? 2 : 1));
       final receiver = maybeReceiver == null
           ? positionalArgs.first
           : _cloner.clone(maybeReceiver);
-      final property = isOperator ? positionalArgs[1] : StringLiteral(name);
+      final property = StringLiteral(name);
       final value = positionalArgs.last;
       return StaticInvocation(
           _setPropertyTarget,
@@ -389,14 +377,32 @@ class JsUtilOptimizer extends Transformer {
     final operator =
         _extensionIndex.getExtensionTypeDescriptor(node)?.name.text ??
             _extensionIndex.getExtensionDescriptor(node)?.name.text;
+
+    // TODO(srujzs): Support more operators for overloading using some
+    // combination of Dart-defineable operators and @JS renaming for the ones
+    // that are not renameable.
+    late Procedure target;
     switch (operator) {
       case '[]':
-        return _getExternalGetterInvocationBuilder(node, shouldTrustType);
+        target =
+            shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
+        break;
       case '[]=':
-        return _getExternalSetterInvocationBuilder(node);
+        target = _setPropertyTarget;
+        break;
       default:
-        throw 'External operator $operator is unsupported for static interop.';
+        throw UnimplementedError(
+            'External operator $operator is unsupported for static interop. ');
     }
+
+    return (Arguments arguments, Expression invocation) {
+      return StaticInvocation(
+          target,
+          Arguments(arguments.positional,
+              types: [invocation.getStaticType(_staticTypeContext)]))
+        ..fileOffset = invocation.fileOffset
+        ..parent = invocation.parent;
+    };
   }
 
   /// Returns a new [_InvocationBuilder] for the given [node] external
@@ -786,23 +792,27 @@ class ExtensionIndex {
   ///
   /// This currently allows the interface type to be:
   /// - all package:js classes
-  /// - dart:js_types types
+  /// - dart:js_interop types
   /// - @Native types that implement JavaScriptObject
+  /// - extension types that wrap any of the above
   bool isInteropExtensionType(ExtensionTypeDeclaration extensionType) {
     final reference = extensionType.reference;
     if (_interopExtensionTypeIndex.containsKey(reference)) {
       return _interopExtensionTypeIndex[reference]!;
     }
-    DartType repType = extensionType.declaredRepresentationType;
-    if (repType is ExtensionType) {
-      repType = repType.extensionTypeErasure;
+    // Check if this is an dart:js_interop JS type or recursively an extension
+    // type on one.
+    DartType repType = ExtensionType(extensionType, Nullability.nonNullable);
+    while (repType is ExtensionType) {
+      final declaration = repType.extensionTypeDeclaration;
+      if (declaration.enclosingLibrary.importUri.toString() ==
+          'dart:js_interop') {
+        return true;
+      }
+      repType = declaration.declaredRepresentationType;
     }
     if (repType is InterfaceType) {
       final cls = repType.classNode;
-      // TODO(srujzs): Note that dart:_js_types types currently use a custom
-      // lowering of @staticInterop. Once
-      // https://github.com/dart-lang/sdk/issues/52687 is handled, we should
-      // modify this if-check to handle the new representation.
       final javaScriptObject = _coreTypes.index
           .tryGetClass('dart:_interceptors', 'JavaScriptObject');
       if (hasStaticInteropAnnotation(cls) ||
@@ -953,7 +963,7 @@ class ExtensionIndex {
     } else if (type is ExtensionType) {
       return isInteropExtensionType(type.extensionTypeDeclaration);
     } else if (type is TypeParameterType) {
-      return isStaticInteropType(type.bound);
+      return isStaticInteropType(type.nonTypeVariableBound);
     }
     return false;
   }

@@ -14,7 +14,11 @@ class Subclass extends Class {
 }
 
 expect(expected, actual) {}
+
 int? initField() => 10;
+
 main() {}
+
 test1() {}
+
 test2() {}

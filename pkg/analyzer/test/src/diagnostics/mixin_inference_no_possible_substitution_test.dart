@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
-import '../dart/resolution/resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,29 +19,10 @@ main() {
 
 @reflectiveTest
 class MixinInferenceNoPossibleSubstitutionTest extends PubPackageResolutionTest
-    with MixinInferenceNoPossibleSubstitutionTestCases {
-  test_valid_nonNullableMixins_legacyApplication() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-class A<T> {}
+    with MixinInferenceNoPossibleSubstitutionTestCases {}
 
-mixin B<T> on A<T> {}
-mixin C<T> on A<T> {}
-''');
-
-    await assertNoErrorsInCode('''
-// @dart=2.8
-import 'a.dart';
-
-class D extends A<int> with B<int>, C {}
-''');
-
-    assertType(findNode.namedType('B<int>'), 'B<int*>*');
-    assertType(findNode.namedType('C {}'), 'C<int*>*');
-  }
-}
-
-mixin MixinInferenceNoPossibleSubstitutionTestCases on ResolutionTest {
+mixin MixinInferenceNoPossibleSubstitutionTestCases
+    on PubPackageResolutionTest {
   test_valid_single() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}

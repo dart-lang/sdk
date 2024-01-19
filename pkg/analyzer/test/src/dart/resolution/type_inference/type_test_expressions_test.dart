@@ -9,16 +9,12 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsNotTest);
-    defineReflectiveTests(IsNotWithoutNullSafetyTest);
     defineReflectiveTests(IsTest);
-    defineReflectiveTests(IsWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class IsNotTest extends PubPackageResolutionTest with IsNotTestCases {}
-
-mixin IsNotTestCases on PubPackageResolutionTest {
+class IsNotTest extends PubPackageResolutionTest {
   test_simple() async {
     await resolveTestCode('''
 void f(Object a) {
@@ -31,13 +27,7 @@ void f(Object a) {
 }
 
 @reflectiveTest
-class IsNotWithoutNullSafetyTest extends PubPackageResolutionTest
-    with IsNotTestCases, WithoutNullSafetyMixin {}
-
-@reflectiveTest
-class IsTest extends PubPackageResolutionTest with IsTestCases {}
-
-mixin IsTestCases on PubPackageResolutionTest {
+class IsTest extends PubPackageResolutionTest {
   test_simple() async {
     await resolveTestCode('''
 void f(Object a) {
@@ -48,7 +38,3 @@ void f(Object a) {
     assertType(findNode.simple('b)'), 'bool');
   }
 }
-
-@reflectiveTest
-class IsWithoutNullSafetyTest extends PubPackageResolutionTest
-    with IsTestCases, WithoutNullSafetyMixin {}

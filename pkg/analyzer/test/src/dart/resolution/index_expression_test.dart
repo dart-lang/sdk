@@ -151,7 +151,7 @@ MethodInvocation
 void f({a = b?[0]}) {}
 ''');
 
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49101
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
     assertResolvedNodeText(findNode.index('[0]'), r'''
 IndexExpression
   target: SimpleIdentifier

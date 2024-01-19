@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class Class {
   int field;
 }
@@ -22,4 +23,5 @@ extension GenericExtension<T> on GenericClass<T> {
 }
 
 main() {}
+
 expect(expected, actual) {}

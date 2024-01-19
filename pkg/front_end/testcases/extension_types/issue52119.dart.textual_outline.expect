@@ -5,8 +5,11 @@ extension type Foo._(int i) {
   Foo.named(int value, {required int subtract}) : i = value - subtract;
   Foo.erroneous() : this.unresolved();
 }
+
 extension type Bar<T>._(this.i) {
   Bar(T i) : this._(i);
 }
+
 main() {}
+
 expect(expected, actual) {}

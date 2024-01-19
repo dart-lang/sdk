@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/super_context.dart';
 
 /// Helper for resolving [BinaryExpression]s.
 class BinaryExpressionResolver {
@@ -83,7 +84,7 @@ class BinaryExpressionResolver {
   /// Set the static type of [node] to be the least upper bound of the static
   /// types [staticType1] and [staticType2].
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   void _analyzeLeastUpperBoundTypes(
       ExpressionImpl node, DartType staticType1, DartType staticType2,
       {required DartType? contextType}) {
@@ -271,6 +272,18 @@ class BinaryExpressionResolver {
     _resolver.analyzeExpression(node.leftOperand, null);
     var left = _resolver.popRewrite()!;
 
+    if (left is SuperExpressionImpl) {
+      if (SuperContext.of(left) != SuperContext.valid) {
+        _resolver.analyzeExpression(
+          node.rightOperand,
+          InvalidTypeImpl.instance,
+        );
+        _resolver.popRewrite();
+        node.staticType = InvalidTypeImpl.instance;
+        return;
+      }
+    }
+
     var operator = node.operator;
     _resolveUserDefinableElement(node, operator.lexeme);
 
@@ -378,7 +391,9 @@ class BinaryExpressionResolver {
     }
 
     var staticType = node.staticInvokeType?.returnType;
-    if (leftType is DynamicType) {
+    if (node.operator.type == TokenType.EQ_EQ) {
+      staticType = _typeSystem.typeProvider.boolType;
+    } else if (leftType is DynamicType) {
       staticType ??= DynamicTypeImpl.instance;
     } else {
       staticType ??= InvalidTypeImpl.instance;

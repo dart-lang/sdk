@@ -4,6 +4,22 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 
+/// The key in the client capabilities experimental object that enables the Dart
+/// TextDocumentContentProvider.
+///
+/// The presence of this key indicates that the client supports our
+/// (non-standard) way of using TextDocumentContentProvider. This will need to
+/// continue to be supported after switching to standard LSP support for some
+/// period to support outdated extensions.
+///
+/// This is current EXPERIMENTAL and has a suffix that will allow opting-in for
+/// dev/testing only if the Dart-Code and server versions match. This number
+/// will be increased if breaking changes to the API are made. The suffix should
+/// be removed here (and in Dart-Code) when work is complete and support is
+/// enabled by default in Dart-Code.
+const dartExperimentalTextDocumentContentProviderKey =
+    'supportsDartTextDocumentContentProviderEXP1';
+
 /// Wraps the client (editor) capabilities to improve performance.
 ///
 /// Sets transferred as arrays in JSON will be converted to Sets for faster
@@ -88,6 +104,7 @@ class LspClientCapabilities {
   final bool experimentalSnippetTextEdit;
   final Set<String> codeActionCommandParameterSupportedKinds;
   final bool supportsShowMessageRequest;
+  final bool supportsDartExperimentalTextDocumentContentProvider;
 
   factory LspClientCapabilities(ClientCapabilities raw) {
     final workspace = raw.workspace;
@@ -162,6 +179,8 @@ class LspClientCapabilities {
     final commandParameterSupportedKinds =
         _listToSet(commandParameterSupport['supportedKinds'] as List?)
             .cast<String>();
+    final supportsDartExperimentalTextDocumentContentProvider =
+        experimental[dartExperimentalTextDocumentContentProviderKey] != null;
 
     /// At the time of writing (2023-02-01) there is no official capability for
     /// supporting 'showMessageRequest' because LSP assumed all clients
@@ -208,6 +227,8 @@ class LspClientCapabilities {
       experimentalSnippetTextEdit: experimentalSnippetTextEdit,
       codeActionCommandParameterSupportedKinds: commandParameterSupportedKinds,
       supportsShowMessageRequest: supportsShowMessageRequest,
+      supportsDartExperimentalTextDocumentContentProvider:
+          supportsDartExperimentalTextDocumentContentProvider,
     );
   }
 
@@ -245,6 +266,7 @@ class LspClientCapabilities {
     required this.experimentalSnippetTextEdit,
     required this.codeActionCommandParameterSupportedKinds,
     required this.supportsShowMessageRequest,
+    required this.supportsDartExperimentalTextDocumentContentProvider,
   });
 
   /// Converts a list to a `Set`, returning null if the list is null.

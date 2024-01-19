@@ -67,16 +67,21 @@ class DartInlayHintComputer {
     ));
   }
 
-  /// Adds a type hint before [node] showing a label for type arguments [types].
+  /// Adds a type hint for [node] showing a label for type arguments [types].
+  ///
+  /// Hints will be added before the node unless [suffix] is `true`.
   ///
   /// If [types] is null or empty, no hints are added.
-  void _addTypeArgumentsPrefix(
-      SyntacticEntity nodeOrToken, List<DartType>? types) {
+  void _addTypeArguments(
+    SyntacticEntity nodeOrToken,
+    List<DartType>? types, {
+    bool suffix = false,
+  }) {
     if (types == null || types.isEmpty) {
       return;
     }
 
-    final offset = nodeOrToken.offset;
+    final offset = suffix ? nodeOrToken.end : nodeOrToken.offset;
     final position = toPosition(_lineInfo.getLocation(offset));
     final labelParts = <InlayHintLabelPart>[];
     _appendTypeArgumentParts(labelParts, types);
@@ -211,7 +216,8 @@ class DartInlayHintComputer {
   }
 
   /// Adds a Type hint for type arguments of [type] (if it has type arguments).
-  void _maybeAddTypeArguments(Token token, DartType? type) {
+  void _maybeAddTypeArguments(Token token, DartType? type,
+      {bool suffix = false}) {
     if (type is! ParameterizedType) {
       return;
     }
@@ -221,7 +227,7 @@ class DartInlayHintComputer {
       return;
     }
 
-    _addTypeArgumentsPrefix(token, typeArgumentTypes);
+    _addTypeArguments(token, typeArgumentTypes, suffix: suffix);
   }
 }
 
@@ -245,6 +251,21 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     // Call super last, to ensure parameter names are always added before
     // any other hints that may be produced (such as list literal Type hints).
     super.visitArgumentList(node);
+  }
+
+  @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    super.visitDeclaredIdentifier(node);
+
+    // Has explicit type.
+    if (node.type != null) {
+      return;
+    }
+
+    final declaration = node.declaredElement;
+    if (declaration != null) {
+      _computer._addTypePrefix(node.name, declaration.type);
+    }
   }
 
   @override
@@ -286,20 +307,6 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    super.visitInstanceCreationExpression(node);
-
-    // Has explicit type arguments.
-    if (node.constructorName.type.typeArguments != null) {
-      return;
-    }
-
-    final token = node.argumentList.leftParenthesis;
-    final type = node.staticType;
-    _computer._maybeAddTypeArguments(token, type);
-  }
-
-  @override
   void visitInvocationExpression(InvocationExpression node) {
     super.visitInvocationExpression(node);
 
@@ -308,7 +315,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    _computer._addTypeArgumentsPrefix(
+    _computer._addTypeArguments(
         node.argumentList.leftParenthesis, node.typeArgumentTypes);
   }
 
@@ -339,6 +346,20 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     if (declaration != null) {
       _computer._addTypePrefix(node.name, declaration.returnType);
     }
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    super.visitNamedType(node);
+
+    // Has explicit type arguments.
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    final token = node.endToken;
+    final type = node.type;
+    _computer._maybeAddTypeArguments(token, type, suffix: true);
   }
 
   @override

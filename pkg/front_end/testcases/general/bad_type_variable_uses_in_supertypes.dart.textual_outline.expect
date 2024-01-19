@@ -1,5 +1,7 @@
 typedef ContravariantUse<T> = Function(T);
+
 typedef InvariantUse<T> = T Function(T);
+
 mixin Empty {}
 
 mixin class A<T> {}
@@ -17,10 +19,15 @@ class Cc<T> implements A<ContravariantUse<T>> {}
 class Ci<T> implements A<InvariantUse<T>> {}
 
 class D<T> = Object with A<Function(T)>;
+
 class Dc<T> = Object with A<ContravariantUse<T>>;
+
 class Di<T> = Object with A<InvariantUse<T>>;
+
 class E<T> = A<Function(T)> with Empty;
+
 class Ec<T> = A<ContravariantUse<T>> with Empty;
+
 class Ei<T> = A<InvariantUse<T>> with Empty;
 
 class F<T> extends Object with A<Function(T)> {}

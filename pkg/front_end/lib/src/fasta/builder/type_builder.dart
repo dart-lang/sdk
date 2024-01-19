@@ -106,26 +106,40 @@ enum TypeUse {
   ///
   tearOffTypeArgument,
 
-  /// A type used in an extends, with or implements clause.
-  ///
-  /// For instance `X`, `Y`, `Z` in
-  ///
-  ///    class Class extends X with Y implements Z {}
-  ///
-  // TODO(johnniwinther): The probably enclosed the mixin on clause. Is this
-  // a correct handling wrt well-boundedness?
-  superType,
-
-  /// A type used in a with clause.
+  /// A type used in an extends clause.
   ///
   /// For instance `X` in
   ///
   ///    class Class extends X {}
   ///
+  classExtendsType,
+
+  /// A type used in an implements clause or a class or mixin.
+  ///
+  /// For instance `X` in
+  ///
+  ///    class Class implements X {}
+  ///
+  classImplementsType,
+
+  /// A type used in a with clause of a class.
+  ///
+  /// For instance `X` in
+  ///
+  ///    class Class with X {}
+  ///
   /// This type use creates an intermediate type used for mixin inference. The
   /// type is not check for well-boundedness and contains [UnknownType] where
   /// type arguments are omitted.
-  mixedInType,
+  classWithType,
+
+  /// A type used in the on clause of a mixin declaration.
+  ///
+  /// For instance `X` in
+  ///
+  ///    mixin Mixin on X {}
+  ///
+  mixinOnType,
 
   /// A type used in the on clause of an extension declaration.
   ///
@@ -134,6 +148,22 @@ enum TypeUse {
   ///    extension Extension on X {}
   ///
   extensionOnType,
+
+  /// A type used in an implements clause of an extension type.
+  ///
+  /// For instance `X` in
+  ///
+  ///    extension type ExtensionType(Y y) implements X {}
+  ///
+  extensionTypeImplementsType,
+
+  /// A type used as a representation type of an extension type.
+  ///
+  /// For instance `Y` in
+  ///
+  ///    extension type ExtensionType(Y y) implements X {}
+  ///
+  extensionTypeRepresentationType,
 
   /// A type used as the definition of a typedef.
   ///
@@ -381,7 +411,7 @@ sealed class TypeBuilder {
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy);
 
-  Supertype? buildSupertype(LibraryBuilder library);
+  Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse);
 
   Supertype? buildMixedInType(LibraryBuilder library);
 
@@ -444,6 +474,10 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   TypeBuilder get returnType;
   List<ParameterBuilder>? get formals;
   List<StructuralVariableBuilder>? get typeVariables;
+
+  /// If `true`, this function type was created using function formal parameter
+  /// syntax, like `f` in `method(int f()) { ... }`.
+  bool get hasFunctionFormalParameterSyntax;
 }
 
 abstract class InvalidTypeBuilder extends TypeBuilder {}

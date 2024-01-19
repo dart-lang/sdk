@@ -96,13 +96,13 @@ def main():
         parser = argparse.ArgumentParser()
         parser.add_argument('--input', help='Input template file.')
         parser.add_argument(
-            '--no_git_hash',
+            '--no-git-hash',
             action='store_true',
             default=False,
             help=('Don\'t try to call git to derive things like '
                   'git revision hash.'))
         parser.add_argument(
-            '--no_sdk_hash',
+            '--no-sdk-hash',
             action='store_true',
             default=False,
             help='Use null SDK hash to disable SDK verification in the VM')

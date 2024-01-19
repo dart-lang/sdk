@@ -111,7 +111,7 @@ class _Visitor extends SimpleAstVisitor {
       if (interfaceElement is! ClassElement) {
         return;
       }
-      var enumDescription = interfaceElement.asEnumLikeClass;
+      var enumDescription = interfaceElement.asEnumLikeClass();
       if (enumDescription == null) {
         return;
       }

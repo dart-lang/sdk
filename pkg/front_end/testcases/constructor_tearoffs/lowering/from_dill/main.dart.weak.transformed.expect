@@ -48,21 +48,21 @@ static method main() → dynamic {
   mai::Class1 c1a = f1a(){() → mai::Class1};
   self::expect(true, c1a is mai::Class1);
   dynamic f1b = #C1;
-  dynamic c1b = f1b{dynamic}.call();
+  dynamic c1b = f1b{dynamic}();
   self::expect(true, c1b is mai::Class1);
   self::expect(true, core::identical(f1a, f1b));
   () → mai::Class2 f2a = #C2;
   mai::Class2 c2a = f2a(){() → mai::Class2};
   self::expect(true, c2a is mai::Class2);
   dynamic f2b = #C2;
-  dynamic c2b = f2b{dynamic}.call();
+  dynamic c2b = f2b{dynamic}();
   self::expect(true, c2b is mai::Class2);
   self::expect(true, core::identical(f2a, f2b));
   () → mai::Class2 f2c = #C3;
   mai::Class2 c2c = f2c(){() → mai::Class2};
   self::expect(true, c2c is mai::Class2);
   dynamic f2d = #C3;
-  dynamic c2d = f2d{dynamic}.call();
+  dynamic c2d = f2d{dynamic}();
   self::expect(true, c2d is mai::Class2);
   self::expect(true, core::identical(f2c, f2d));
   (core::int) → mai::Class3 f3a = #C4;
@@ -78,10 +78,10 @@ Try removing the extra positional arguments.
        ^" in f3a{<inapplicable>}.(42, 87);
   };
   dynamic f3b = #C4;
-  dynamic c3b = f3b{dynamic}.call(87);
+  dynamic c3b = f3b{dynamic}(87);
   self::expect(87, c3b{dynamic}.field);
-  self::throws(() → dynamic => f3b{dynamic}.call());
-  self::throws(() → dynamic => f3b{dynamic}.call(42, 87));
+  self::throws(() → dynamic => f3b{dynamic}());
+  self::throws(() → dynamic => f3b{dynamic}(42, 87));
   <T extends core::Object? = dynamic>() → mai::Class4<T%> f4a = #C5;
   mai::Class4<dynamic> c4a = f4a<dynamic>(){() → mai::Class4<dynamic>};
   self::expect(true, c4a is mai::Class4<dynamic>);
@@ -104,10 +104,10 @@ Try removing the extra positional arguments.
        ^" in f4b{<inapplicable>}.<core::int>();
   };
   dynamic f4c = #C5;
-  dynamic c4d = f4c{dynamic}.call();
+  dynamic c4d = f4c{dynamic}();
   self::expect(true, c4d is mai::Class4<dynamic>);
   self::expect(false, c4d is mai::Class4<core::int>);
-  self::throws(() → dynamic => f4c{dynamic}.call<core::int, core::String>());
+  self::throws(() → dynamic => f4c{dynamic}<core::int, core::String>());
   <T extends core::Object? = dynamic>() → mai::Class4<T%> f4d = #C6;
   mai::Class4<dynamic> c4e = f4d<dynamic>(){() → mai::Class4<dynamic>};
   self::expect(true, c4e is mai::Class4<dynamic>);
@@ -130,10 +130,10 @@ Try removing the extra positional arguments.
        ^" in f4e{<inapplicable>}.<core::int>();
   };
   dynamic f4f = #C6;
-  dynamic c4h = f4f{dynamic}.call();
+  dynamic c4h = f4f{dynamic}();
   self::expect(true, c4h is mai::Class4<dynamic>);
   self::expect(false, c4h is mai::Class4<core::int>);
-  self::throws(() → dynamic => f4f{dynamic}.call<core::int, core::String>());
+  self::throws(() → dynamic => f4f{dynamic}<core::int, core::String>());
   <T extends core::num>() → mai::Class5<T> f5a = #C7;
   mai::Class5<core::num> c5a = f5a<core::num>(){() → mai::Class5<core::num>};
   self::expect(true, c5a is mai::Class5<core::num>);
@@ -148,14 +148,14 @@ Try removing the extra positional arguments.
        ^" in f5a{<inapplicable>}.<core::int, core::String>();
   };
   dynamic f5b = #C7;
-  dynamic c5c = f5b{dynamic}.call();
+  dynamic c5c = f5b{dynamic}();
   self::expect(true, c5c is mai::Class5<core::num>);
   self::expect(false, c5c is mai::Class5<core::int>);
-  dynamic c5d = f5b{dynamic}.call<core::int>();
+  dynamic c5d = f5b{dynamic}<core::int>();
   self::expect(true, c5d is mai::Class5<core::int>);
   self::expect(false, c5d is mai::Class5<core::double>);
-  self::throws(() → dynamic => f5b{dynamic}.call<core::String>());
-  self::throws(() → dynamic => f5b{dynamic}.call<core::int, core::String>());
+  self::throws(() → dynamic => f5b{dynamic}<core::String>());
+  self::throws(() → dynamic => f5b{dynamic}<core::int, core::String>());
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

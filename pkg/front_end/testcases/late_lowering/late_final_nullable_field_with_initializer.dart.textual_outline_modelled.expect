@@ -30,6 +30,9 @@ extension Extension<T> on Class<T> {
 }
 
 int? initLateTopLevelField1(int value) {}
+
 int? lateTopLevelField1Init;
+
 late final int? lateTopLevelField1 = initLateTopLevelField1(123);
+
 main() {}

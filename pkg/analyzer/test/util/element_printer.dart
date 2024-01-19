@@ -4,9 +4,10 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test/test.dart';
 
@@ -185,7 +186,7 @@ class ElementPrinter {
         return 'self';
       }
 
-      // TODO(scheglov) Make it precise again, after Windows.
+      // TODO(scheglov): Make it precise again, after Windows.
       if (libraryUriStr.startsWith('file:')) {
         return libraryUriStr.substring(libraryUriStr.lastIndexOf('/') + 1);
       }
@@ -253,11 +254,20 @@ class ElementPrinter {
         _sink.writelnWithIndent('isLegacy: true');
       }
 
-      var map = element.substitution.map;
-      if (map.isNotEmpty) {
-        var mapStr = _substitutionMapStr(map);
-        _sink.writelnWithIndent('substitution: $mapStr');
+      void writeSubstitution(String name, MapSubstitution substitution) {
+        var map = substitution.map;
+        if (map.isNotEmpty) {
+          var mapStr = _substitutionMapStr(map);
+          _sink.writelnWithIndent('$name: $mapStr');
+        }
       }
+
+      writeSubstitution(
+        'augmentationSubstitution',
+        element.augmentationSubstitution,
+      );
+
+      writeSubstitution('substitution', element.substitution);
 
       if (_configuration.withRedirectedConstructors) {
         if (element is ConstructorMember) {

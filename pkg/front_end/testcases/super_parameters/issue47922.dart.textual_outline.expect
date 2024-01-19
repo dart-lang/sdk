@@ -2,7 +2,9 @@ class A {
   final String foo;
   A(this.foo);
 }
+
 class B extends A {
   B(const super.foo);
 }
+
 main() {}

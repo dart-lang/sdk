@@ -9,7 +9,9 @@ test1(dynamic x) => switch (x) {
       Circle(radius: var r) when r > 0 => r * r * math.pi,
       _ => null
     };
+
 dynamic Function(dynamic)? captured;
+
 test2(dynamic x) => switch (x) {
       [int a, int b]
           when (captured = (x) {
@@ -23,6 +25,9 @@ test2(dynamic x) => switch (x) {
         captured!(a = b),
       _ => null
     };
+
 test3(dynamic x) {}
+
 main() {}
+
 expectEquals(x, y) {}

@@ -12,7 +12,9 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 Future<void> scheduleImplementedNotification(
     LegacyAnalysisServer server, Iterable<String> files) async {
@@ -41,8 +43,7 @@ void sendAnalysisNotificationAnalyzedFiles(LegacyAnalysisServer server) {
   _sendNotification(server, () {
     var analyzedFiles = server.driverMap.values
         .map((driver) => driver.knownFiles)
-        .expand((files) => files)
-        .toSet();
+        .flattenedToSet2;
 
     // Exclude *.yaml files because IDEA Dart plugin attempts to index
     // all the files in folders which contain analyzed files.

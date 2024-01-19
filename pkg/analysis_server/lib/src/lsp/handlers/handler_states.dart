@@ -15,10 +15,12 @@ import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folder
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion_resolve.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_dart_text_document_content_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color_presentation.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_document_link.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_exit.dart';
@@ -76,6 +78,7 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
     CompletionHandler.new,
     CompletionResolveHandler.new,
     DefinitionHandler.new,
+    DocumentLinkHandler.new,
     SuperHandler.new,
     ReferencesHandler.new,
     CodeActionHandler.new,
@@ -111,6 +114,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
   /// Generators for handlers that work with any [AnalysisServer].
   static const sharedHandlerGenerators =
       <_RequestHandlerGenerator<AnalysisServer>>[
+    DartTextDocumentContentProviderHandler.new,
     DocumentColorHandler.new,
     DocumentColorPresentationHandler.new,
     DocumentHighlightsHandler.new,

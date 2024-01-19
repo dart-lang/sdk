@@ -137,8 +137,20 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraphOfFfiTrampoline(const Function& function);
   FlowGraph* BuildGraphOfSyncFfiCallback(const Function& function);
   FlowGraph* BuildGraphOfAsyncFfiCallback(const Function& function);
-  FlowGraph* BuildGraphOfFfiNative(const Function& function);
 
+  // Resolves the address of a native symbol from the constant data of a
+  // vm:ffi:native pragma.
+  // Because it's used in optimized mode (as part of the implementation of
+  // @Native functions), it pushes the value as an unboxed value. This is safe
+  // to use in unoptimized mode too as long as the unboxed value is consumed
+  // immediately.
+  Fragment FfiNativeLookupAddress(const Instance& native);
+  Fragment FfiNativeLookupAddress(const Function& function);
+  // Expects target address on stack.
+  Fragment FfiCallFunctionBody(const Function& function,
+                               const FunctionType& c_signature,
+                               intptr_t first_argument_parameter_offset);
+  Fragment FfiNativeFunctionBody(const Function& function);
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
   Fragment LoadNativeArg(const compiler::ffi::CallbackMarshaller& marshaller,
@@ -146,6 +158,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
 
+  Fragment BuildTypedListGet(const Function& function, intptr_t view_cid);
+  Fragment BuildTypedListSet(const Function& function, intptr_t view_cid);
   Fragment BuildTypedDataMemMove(const Function& function,
                                  intptr_t element_size);
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
@@ -191,7 +205,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       bool receiver_is_not_smi = false,
       bool is_call_on_this = false);
 
-  Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller);
+  Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller,
+                   bool is_leaf);
 
   Fragment CCall(
       const compiler::ffi::NativeCallingConvention& native_calling_convention);
@@ -222,6 +237,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       const InferredTypeMetadata* result_type = nullptr,
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
+  Fragment CachableIdempotentCall(TokenPosition position,
+                                  const Function& target,
+                                  intptr_t argument_count,
+                                  const Array& argument_names,
+                                  intptr_t type_args_len = 0);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment StringInterpolate(TokenPosition position);
   Fragment ThrowTypeError();
@@ -333,6 +353,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // We pass in `variable` instead of on top of the stack so that we can have
   // multiple consecutive calls that keep only compound parts on the stack with
   // no compound parts in between.
+  Fragment LoadTail(LocalVariable* variable,
+                    intptr_t size,
+                    intptr_t offset_in_bytes,
+                    Representation representation);
   Fragment FfiCallConvertCompoundArgumentToNative(
       LocalVariable* variable,
       const compiler::ffi::BaseMarshaller& marshaller,
@@ -360,19 +384,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   // Loads the _typedDataBase field from a subclass of _Compound.
   Fragment LoadTypedDataBaseFromCompound();
-
-  // Breaks up a subclass of _Compound in multiple definitions and puts them on
-  // the stack.
-  //
-  // Takes in the _Compound as a local `variable` so that can be anywhere on
-  // the stack and this function can be called multiple times to leave only the
-  // results of this function on the stack without any _Compounds in between.
-  //
-  // The compound contents are heterogeneous, so pass in
-  // `representations` to know what representation to load.
-  Fragment CopyFromCompoundToStack(
-      LocalVariable* variable,
-      const GrowableArray<Representation>& representations);
 
   // Copy `definitions` into TypedData.
   //

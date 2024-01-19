@@ -1256,6 +1256,28 @@ void f() {
     assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma.max');
   }
 
+  Future<void> test_IMPORT_PREFIX_methodInvocation() async {
+    addTestFile('''
+import 'dart:math' as ma;
+void f() {
+  ma.max(1, 2);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma;');
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma.max');
+  }
+
+  Future<void> test_IMPORT_PREFIX_namedType() async {
+    addTestFile('''
+import 'dart:math' as math;
+void f(math.Random r) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'math;');
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'math.Random');
+  }
+
   Future<void> test_INSTANCE_FIELD() async {
     addTestFile('''
 class A {
@@ -1835,6 +1857,25 @@ void f() {
 ''');
   }
 
+  Future<void> test_record_field() async {
+    addTestFile(r'''
+void f((int, {int field1}) record) {
+  record.$1; // 1
+  record.field1; // 2
+  (1,).$1; // 3
+  (field1: 1).field1; // 4
+  (1,).notResolved;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, r'$1; // 1');
+    assertHasRegion(
+        HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'field1; // 2');
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, r'$1; // 3');
+    assertHasRegion(HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
+        'notResolved');
+  }
+
   Future<void> test_recordTypeAnnotation_named() async {
     addTestFile('''
 ({int f1, String f2})? r;
@@ -2215,7 +2256,7 @@ void f(Object o) {
         ? SourceRange(0, testCode.code.length)
         : testCode.ranges[index].sourceRange;
 
-    // TODO(scheglov) Apparently, we don't sort in the server.
+    // TODO(scheglov): Apparently, we don't sort in the server.
     var sortedRegions = regions.sortedBy<num>((e) => e.offset);
 
     var buffer = StringBuffer();
@@ -2301,7 +2342,8 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
         }
         if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
             c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-            c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+            c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0) ||
+            c == r'$'.codeUnitAt(0))) {
           break;
         }
         length++;

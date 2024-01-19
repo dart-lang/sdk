@@ -781,6 +781,39 @@ class A {
     );
   }
 
+  /// Ensure braces aren't over-escaped in snippet choices.
+  /// https://github.com/dart-lang/sdk/issues/54403
+  Future<void> test_snippets_createMissingOverrides_recordBraces() async {
+    const content = '''
+abstract class A {
+  void m(Iterable<({int a, int b})> r);
+}
+
+class ^B extends A {}
+''';
+
+    const expectedContent = r'''
+abstract class A {
+  void m(Iterable<({int a, int b})> r);
+}
+
+class B extends A {$0
+  @override
+  void m(${1|Iterable<({int a\, int b})>,Object|} ${2:r}) {
+    // TODO: implement m
+  }
+}
+''';
+
+    setSnippetTextEditSupport();
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('quickfix.create.missingOverrides'),
+      title: 'Create 1 missing override',
+    );
+  }
+
   Future<void>
       test_snippets_extractVariable_functionTypeNestedParameters() async {
     const content = '''

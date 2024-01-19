@@ -1,17 +1,20 @@
 # Dart
 
-## A client-optimized language for fast apps on any platform
+## An approachable, portable, and productive language for high-quality apps on any platform
 
 Dart is:
 
-  * **Optimized for UI**:
-  Develop with a programming language specialized around the needs of user interface creation.
-  
+  * **Approachable**:
+  Develop with a strongly typed programming language that is consistent,
+  concise, and offers modern language features like null safety and patterns.
+
+  * **Portable**:
+  Compile to ARM, x64, or RISC-V machine code for mobile, desktop, and backend.
+  Compile to JavaScript or WebAssembly for the web.
+
   * **Productive**:
   Make changes iteratively: use hot reload to see the result instantly in your running app.
-  
-  * **Fast on all platforms**:
-  Compile to ARM & x64 machine code for mobile, desktop, and backend. Or compile to JavaScript for the web.
+  Diagnose app issues using [DevTools](https://dart.dev/tools/dart-devtools).
 
 Dart's flexible compiler technology lets you run Dart code in different ways,
 depending on your target platform and goals:
@@ -19,7 +22,7 @@ depending on your target platform and goals:
   * **Dart Native**: For programs targeting devices (mobile, desktop, server, and more),
   Dart Native includes both a Dart VM with JIT (just-in-time) compilation and an
   AOT (ahead-of-time) compiler for producing machine code.
-  
+
   * **Dart Web**: For programs targeting the web, Dart Web includes both a development time
   compiler (dartdevc) and a production time compiler (dart2js).  
 

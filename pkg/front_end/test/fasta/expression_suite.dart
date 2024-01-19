@@ -40,6 +40,7 @@ import "package:kernel/ast.dart"
         Library,
         Member,
         Procedure,
+        TreeNode,
         TypeParameter;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/text/ast_to_text.dart' show Printer;
@@ -152,6 +153,10 @@ class TestCase {
 
   final String? methodName;
 
+  final int? offset;
+
+  final String? scriptUri;
+
   String expression;
 
   List<CompilationResult> results = [];
@@ -169,6 +174,8 @@ class TestCase {
       this.library,
       this.className,
       this.methodName,
+      this.offset,
+      this.scriptUri,
       this.expression);
 
   @override
@@ -266,6 +273,8 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
     Uri? library;
     String? className;
     String? methodName;
+    int? offset;
+    String? scriptUri;
     String? expression;
 
     dynamic maps = loadYamlNode(contents, sourceUrl: uri);
@@ -310,6 +319,11 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           isStaticMethod = value;
         } else if (key == "expression") {
           expression = value;
+        } else if (key == "offset") {
+          offset = value;
+        } else if (key == "scriptUri") {
+          Uri uri = entryPoint.resolveUri(Uri.parse(value as String));
+          scriptUri = uri.toString();
         } else {
           throw new UnsupportedError("Unknown key: ${key}");
         }
@@ -332,6 +346,8 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           library,
           className,
           methodName,
+          offset,
+          scriptUri,
           expression);
       tests.add(test);
     }
@@ -386,6 +402,8 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       className: test.className,
       methodName: test.methodName,
       isStatic: test.isStaticMethod,
+      scriptUri: test.scriptUri,
+      offset: test.offset ?? TreeNode.noOffset,
     );
     List<DiagnosticMessage> errors = context.takeErrors();
     test.results.add(new CompilationResult(compiledProcedure, errors));

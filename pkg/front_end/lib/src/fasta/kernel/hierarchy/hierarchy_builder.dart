@@ -112,35 +112,33 @@ class ClassHierarchyBuilder
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+  InterfaceType? getInterfaceTypeAsInstanceOfClass(
+      InterfaceType type, Class superclass,
       {required bool isNonNullableByDefault}) {
     if (type.classNode == superclass) return type;
-    return asSupertypeOf(type, superclass)!
-        .asInterfaceType
+    return asSupertypeOf(type, superclass)
+        ?.asInterfaceType
         .withDeclaredNullability(type.nullability);
   }
 
   @override
-  List<DartType>? getTypeArgumentsAsInstanceOf(
+  List<DartType>? getInterfaceTypeArgumentsAsInstanceOfClass(
       InterfaceType type, Class superclass) {
     if (type.classReference == superclass.reference) return type.typeArguments;
     return asSupertypeOf(type, superclass)?.typeArguments;
   }
 
   @override
-  bool isSubtypeOf(Class subtype, Class superclass) {
+  bool isSubInterfaceOf(Class subtype, Class superclass) {
     return getClassAsInstanceOf(subtype, superclass) != null;
   }
 
   InterfaceType _getLegacyLeastUpperBoundInternal(
-      /* InterfaceType | ExtensionType */ DartType type1,
-      /* InterfaceType | ExtensionType */ DartType type2,
+      TypeDeclarationType type1,
+      TypeDeclarationType type2,
       List<ClassHierarchyNode> supertypeNodes1,
       List<ClassHierarchyNode> supertypeNodes2,
       {required bool isNonNullableByDefault}) {
-    assert(type1 is InterfaceType || type1 is ExtensionType);
-    assert(type2 is InterfaceType || type2 is ExtensionType);
-
     Set<ClassHierarchyNode> supertypeNodesSet1 = supertypeNodes1.toSet();
     List<ClassHierarchyNode> common = <ClassHierarchyNode>[];
 
@@ -151,27 +149,10 @@ class ClassHierarchyBuilder
         continue;
       }
       if (supertypeNodesSet1.contains(node)) {
-        DartType candidate1;
-        if (type1 is InterfaceType) {
-          candidate1 = getTypeAsInstanceOf(type1, node.classBuilder.cls,
-              isNonNullableByDefault: isNonNullableByDefault);
-        } else {
-          type1 as ExtensionType;
-          candidate1 = getExtensionTypeAsInstanceOfClass(
-              type1, node.classBuilder.cls,
-              isNonNullableByDefault: isNonNullableByDefault)!;
-        }
-
-        DartType candidate2;
-        if (type2 is InterfaceType) {
-          candidate2 = getTypeAsInstanceOf(type2, node.classBuilder.cls,
-              isNonNullableByDefault: isNonNullableByDefault);
-        } else {
-          type2 as ExtensionType;
-          candidate2 = getExtensionTypeAsInstanceOfClass(
-              type2, node.classBuilder.cls,
-              isNonNullableByDefault: isNonNullableByDefault)!;
-        }
+        DartType candidate1 = getTypeAsInstanceOf(type1, node.classBuilder.cls,
+            isNonNullableByDefault: isNonNullableByDefault)!;
+        DartType candidate2 = getTypeAsInstanceOf(type2, node.classBuilder.cls,
+            isNonNullableByDefault: isNonNullableByDefault)!;
         if (candidate1 == candidate2) {
           common.add(node);
         }
@@ -193,18 +174,11 @@ class ClassHierarchyBuilder
     for (int i = 0; i < common.length - 1; i++) {
       ClassHierarchyNode node = common[i];
       if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
-        if (type1 is InterfaceType) {
-          return getTypeAsInstanceOf(type1, node.classBuilder.cls,
-                  isNonNullableByDefault: isNonNullableByDefault)
-              .withDeclaredNullability(
-                  uniteNullabilities(type1.nullability, type2.nullability));
-        } else {
-          type1 as ExtensionType;
-          return getExtensionTypeAsInstanceOfClass(type1, node.classBuilder.cls,
-                  isNonNullableByDefault: isNonNullableByDefault)!
-              .withDeclaredNullability(
-                  uniteNullabilities(type1.nullability, type2.nullability));
-        }
+        return getTypeAsInstanceOf(type1, node.classBuilder.cls,
+                    isNonNullableByDefault: isNonNullableByDefault)!
+                .withDeclaredNullability(
+                    uniteNullabilities(type1.nullability, type2.nullability))
+            as InterfaceType;
       } else {
         do {
           i++;
@@ -246,8 +220,8 @@ class ClassHierarchyBuilder
 
   @override
   InterfaceType getLegacyLeastUpperBoundFromSupertypeLists(
-      /* InterfaceType | ExtensionType */ DartType type1,
-      /* InterfaceType | ExtensionType */ DartType type2,
+      TypeDeclarationType type1,
+      TypeDeclarationType type2,
       List<InterfaceType> supertypes1,
       List<InterfaceType> supertypes2,
       {required bool isNonNullableByDefault}) {

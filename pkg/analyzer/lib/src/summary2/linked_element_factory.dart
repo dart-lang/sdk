@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:meta/meta.dart';
@@ -33,13 +35,14 @@ class LinkedElementFactory {
   AnalysisSessionImpl analysisSession;
   final Reference rootReference;
   final Map<Uri, LibraryReader> _libraryReaders = {};
-
+  final MacroSupport? macroSupport;
   bool isApplyingInformativeData = false;
 
   LinkedElementFactory(
     this.analysisContext,
     this.analysisSession,
     this.rootReference,
+    this.macroSupport,
   ) {
     ArgumentError.checkNotNull(analysisContext, 'analysisContext');
     ArgumentError.checkNotNull(analysisSession, 'analysisSession');
@@ -77,6 +80,26 @@ class LinkedElementFactory {
     addLibraries(bundle.libraryMap);
   }
 
+  /// Adds newly compiled kernel for a macro bundle.
+  void addKernelMacroBundle({
+    required KernelMacroSupport macroSupport,
+    required Uint8List kernelBytes,
+    required Set<Uri> libraries,
+  }) {
+    macroSupport.add(
+      kernelBytes: kernelBytes,
+      libraries: libraries,
+    );
+    // Check if elements of libraries are ready.
+    // This is the case when we have just linked them.
+    for (final uri in libraries) {
+      final element = rootReference['$uri']?.element;
+      if (element is LibraryElementImpl) {
+        _setMacroExecutorForLibrary(element);
+      }
+    }
+  }
+
   void addLibraries(Map<Uri, LibraryReader> libraries) {
     _libraryReaders.addAll(libraries);
   }
@@ -89,7 +112,7 @@ class LinkedElementFactory {
 
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference.reference);
-      // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/41212
+      // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/41212
       if (element == null) {
         throw StateError(
           '[No element]'
@@ -140,6 +163,7 @@ class LinkedElementFactory {
       librarySource: librarySource,
     );
     setLibraryTypeSystem(libraryElement);
+    _setMacroExecutorForLibrary(libraryElement);
     return libraryElement;
   }
 
@@ -180,7 +204,7 @@ class LinkedElementFactory {
     }
   }
 
-  /// TODO(scheglov) Why would this method return `null`?
+  // TODO(scheglov): Why would this method return `null`?
   Element? elementOfReference(Reference reference) {
     if (reference.element != null) {
       return reference.element;
@@ -244,6 +268,7 @@ class LinkedElementFactory {
     addToLogRing('[removeLibraries][uriSet: $uriSet][${StackTrace.current}]');
     for (final uri in uriSet) {
       _libraryReaders.remove(uri);
+      macroSupport?.removeLibrary(uri);
       final libraryReference = rootReference.removeChild('$uri');
       _disposeLibrary(libraryReference?.element);
     }
@@ -304,5 +329,11 @@ class LinkedElementFactory {
     if (libraryElement is LibraryElementImpl) {
       libraryElement.bundleMacroExecutor?.dispose();
     }
+  }
+
+  void _setMacroExecutorForLibrary(LibraryElementImpl element) {
+    final uri = element.source.uri;
+    final macroExecutor = macroSupport?.forLibrary(uri);
+    element.bundleMacroExecutor = macroExecutor;
   }
 }

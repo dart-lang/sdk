@@ -14,6 +14,7 @@ import '../compiler_api.dart' as api;
 import 'colors.dart' as colors;
 import 'common/metrics.dart';
 import 'io/source_file.dart';
+import 'util/output_util.dart';
 
 abstract class SourceFileByteReader {
   List<int> getBytes(String filename, {bool zeroTerminated = true});
@@ -62,7 +63,10 @@ abstract class SourceFileProvider implements api.CompilerInput {
     }
 
     registerUri(resourceUri);
-    if (!disableByteCache) {
+
+    // Source bytes can be empty when the dill has source content erased. In
+    // that case we should read the file contents from disk if we need them.
+    if (!disableByteCache && source.isNotEmpty) {
       _byteCache[resourceUri] = source;
     }
     sourceBytesFromDill += source.length;
@@ -92,6 +96,15 @@ abstract class SourceFileProvider implements api.CompilerInput {
       registerUri(uri);
     }
     return _sourceToFile(Uri.parse(relativizeUri(uri)), source, inputKind);
+  }
+
+  api.Input<List<int>>? _readFromFileSyncOrNull(
+      Uri uri, api.InputKind inputKind) {
+    try {
+      return _readFromFileSync(uri, inputKind);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
@@ -128,7 +141,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
           resourceUri, _byteCache[resourceUri]!, api.InputKind.UTF8);
     }
     return resourceUri.isScheme('file')
-        ? _readFromFileSync(resourceUri, api.InputKind.UTF8)
+        ? _readFromFileSyncOrNull(resourceUri, api.InputKind.UTF8)
         : null;
   }
 
@@ -367,9 +380,6 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
         }
         uri = out!.resolve('$name.$extension');
         break;
-      default:
-        onFailure('Unknown output type: $type');
-        throw StateError('unreachable');
     }
     return uri;
   }
@@ -396,36 +406,7 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
 
     allOutputFiles.add(fe.relativizeUri(Uri.base, uri, Platform.isWindows));
 
-    int charactersWritten = 0;
-
-    void writeStringSync(String data) {
-      // Write the data in chunks of 8kb, otherwise we risk running OOM.
-      int chunkSize = 8 * 1024;
-
-      int offset = 0;
-      while (offset < data.length) {
-        String chunk;
-        int cut = offset + chunkSize;
-        if (cut < data.length) {
-          // Don't break the string in the middle of a code point encoded as two
-          // surrogate pairs since `writeStringSync` will encode the unpaired
-          // surrogates as U+FFFD REPLACEMENT CHARACTER.
-          int lastCodeUnit = data.codeUnitAt(cut - 1);
-          if (_isLeadSurrogate(lastCodeUnit)) {
-            cut -= 1;
-          }
-          chunk = data.substring(offset, cut);
-        } else {
-          chunk = offset == 0 ? data : data.substring(offset);
-        }
-        output.writeStringSync(chunk);
-        offset += chunk.length;
-      }
-      charactersWritten += data.length;
-    }
-
-    void onDone() {
-      output.closeSync();
+    void onClose(int charactersWritten) {
       totalCharactersWritten += charactersWritten;
       if (isPrimaryOutput) {
         totalCharactersWrittenPrimary += charactersWritten;
@@ -435,10 +416,9 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
       }
     }
 
-    return _OutputSinkWrapper(writeStringSync, onDone);
+    return BufferedStringSinkWrapper(
+        FileStringOutputSink(output, onClose: onClose));
   }
-
-  static bool _isLeadSurrogate(int codeUnit) => (codeUnit & 0xFC00) == 0xD800;
 
   @override
   api.BinaryOutputSink createBinarySink(Uri uri) {
@@ -460,19 +440,11 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
       throw StateError('unreachable');
     }
 
-    int bytesWritten = 0;
-
-    void writeBytesSync(List<int> data, [int start = 0, int? end]) {
-      output.writeFromSync(data, start, end);
-      bytesWritten += (end ?? data.length) - start;
-    }
-
-    void onDone() {
-      output.closeSync();
+    void onClose(int bytesWritten) {
       totalDataWritten += bytesWritten;
     }
 
-    return _BinaryOutputSinkWrapper(writeBytesSync, onDone);
+    return FileBinaryOutputSink(output, onClose: onClose);
   }
 }
 
@@ -491,33 +463,6 @@ class RandomAccessBinaryOutputSink implements api.BinaryOutputSink {
   void close() {
     output.closeSync();
   }
-}
-
-class _OutputSinkWrapper extends api.OutputSink {
-  void Function(String) onAdd;
-  void Function() onClose;
-
-  _OutputSinkWrapper(this.onAdd, this.onClose);
-
-  @override
-  void add(String data) => onAdd(data);
-
-  @override
-  void close() => onClose();
-}
-
-class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
-  void Function(List<int>, [int, int?]) onWrite;
-  void Function() onClose;
-
-  _BinaryOutputSinkWrapper(this.onWrite, this.onClose);
-
-  @override
-  void add(List<int> data, [int start = 0, int? end]) =>
-      onWrite(data, start, end);
-
-  @override
-  void close() => onClose();
 }
 
 /// Adapter to integrate dart2js in bazel.

@@ -194,6 +194,55 @@ class C extends A {}
     expect(names, contains('C'));
   }
 
+  Future<void> test_class_extends_sameName_importPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class Foo {}
+''');
+
+    addTestFile('''
+import 'a.dart' as foo;
+class Foo extends foo.Foo {}
+''');
+    var items = await _getTypeHierarchy('oo {}');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Foo',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [2]
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Foo',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+    ]);
+  }
+
   Future<void> test_class_extendsTypeA() async {
     addTestFile('''
 class A {}
@@ -1467,17 +1516,6 @@ extension type E2(A it) implements E1 {}
         'classElement': {
           'kind': 'EXTENSION_TYPE',
           'name': 'E1',
-          'location': anything,
-          'flags': 0
-        },
-        'interfaces': [2],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'Object',
           'location': anything,
           'flags': 0
         },

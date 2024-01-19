@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -147,6 +148,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     // before initializing.
     setApplyEditSupport();
     setDocumentChangesSupport();
+    registerBuiltInProducers();
   }
 
   /// Initializes the server with some basic configuration and expects to find

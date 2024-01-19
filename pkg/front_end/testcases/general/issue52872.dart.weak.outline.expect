@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   field core::bool v1;
   field core::num v2;
-  constructor •(core::bool v1, {required core::num v2 = null}) → self::A
+  constructor •(core::bool v1, {required core::num v2}) → self::A
     ;
 }
 mixin class M1 extends core::Object {
@@ -14,7 +14,7 @@ mixin class M1 extends core::Object {
     ;
 }
 class C = self::A with self::M1 {
-  synthetic constructor •(core::bool v1, {required core::num v2 = null}) → self::C
+  synthetic constructor •(core::bool v1, {required core::num v2}) → self::C
     : super self::A::•(v1, v2: v2)
     ;
   mixin-super-stub get v2() → core::num

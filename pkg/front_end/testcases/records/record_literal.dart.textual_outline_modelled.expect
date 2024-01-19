@@ -3,4 +3,5 @@ class Class {
 }
 
 method() {}
+
 sorting() {}

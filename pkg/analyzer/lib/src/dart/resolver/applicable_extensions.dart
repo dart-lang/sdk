@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 
 class InstantiatedExtensionWithMember {
@@ -107,11 +108,10 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   List<InstantiatedExtensionWithoutMember> applicableTo({
     required LibraryElement targetLibrary,
     required DartType targetType,
+    required bool strictCasts,
   }) {
-    return map((e) => _NotInstantiatedExtensionWithoutMember(e)).applicableTo(
-      targetLibrary: targetLibrary,
-      targetType: targetType,
-    );
+    return map((e) => _NotInstantiatedExtensionWithoutMember(e))
+        .applicableTo(targetLibrary: targetLibrary, targetType: targetType);
   }
 
   List<_NotInstantiatedExtensionWithMember> hasMemberWithBaseName(
@@ -193,9 +193,17 @@ extension NotInstantiatedExtensionsExtensions<R>
       var freshTypes = getFreshTypeParameters(extension.typeParameters);
       var freshTypeParameters = freshTypes.freshTypeParameters;
       var rawExtendedType = freshTypes.substitute(extension.extendedType);
+      // Casts aren't relevant in extension applicability.
+      var typeSystemOperations =
+          TypeSystemOperations(typeSystem, strictCasts: false);
 
-      var inferrer = GenericInferrer(typeSystem, freshTypeParameters,
-          genericMetadataIsEnabled: genericMetadataIsEnabled);
+      var inferrer = GenericInferrer(
+        typeSystem,
+        freshTypeParameters,
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+        strictInference: false,
+        typeSystemOperations: typeSystemOperations,
+      );
       inferrer.constrainArgument(
         targetType,
         rawExtendedType,

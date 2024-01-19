@@ -8,4 +8,5 @@ extension E<U> on String {
   int? field7 = <E>() { E? x = null; return null; }<U>();
   Type field8 = U;
 }
+
 main() {}

@@ -13,5 +13,7 @@ extension Extension<T> on T {
 }
 
 main() {}
+
 test2<T extends Class>(T t2) {}
+
 test3<T>(T t3) {}

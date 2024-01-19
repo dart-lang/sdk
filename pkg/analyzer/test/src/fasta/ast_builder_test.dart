@@ -17,6 +17,56 @@ main() {
 
 @reflectiveTest
 class AstBuilderTest extends ParserDiagnosticsTest {
+  void test_class_abstract_final_base() {
+    var parseResult = parseStringWithErrors(r'''
+/// text
+abstract final base class A {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS, 18, 10),
+    ]);
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  abstractKeyword: abstract
+  baseKeyword: base
+  finalKeyword: final
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  void test_class_abstract_final_interface() {
+    var parseResult = parseStringWithErrors(r'''
+/// text
+abstract final interface class A {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS, 18, 15),
+    ]);
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  abstractKeyword: abstract
+  interfaceKeyword: interface
+  finalKeyword: final
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_class_abstract_sealed() {
     var parseResult = parseStringWithErrors(r'''
 /// text

@@ -4,7 +4,9 @@
 
 library fasta.class_hierarchy_builder;
 
+import 'package:front_end/src/fasta/source/source_extension_type_declaration_builder.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../../builder/declaration_builders.dart';
 import '../../messages.dart'
@@ -21,6 +23,179 @@ import '../forwarding_node.dart' show ForwardingNode;
 import '../member_covariance.dart';
 import 'members_builder.dart';
 
+/// The result of a member computation through [ClassMember].
+sealed class MemberResult {
+  /// Returns `true` if the member was declared as a field.
+  ///
+  /// This is used for messaging in error reporting.
+  bool get isDeclaredAsField;
+
+  /// Returns the full name of this member, i.e. the member name prefixed by
+  /// the name of its enclosing declaration.
+  String get fullName;
+
+  /// Returns the file offset for the declaration of this member.
+  ///
+  /// This is used for error reporting.
+  int get fileOffset;
+
+  /// Returns the file uri for the declaration of this member.
+  ///
+  /// This is used for error reporting.
+  Uri get fileUri;
+
+  /// Returns the type of this member as found through a receiver of static
+  /// type [thisType].
+  ///
+  /// The type depends of the kind of member: The type of a field is the field
+  /// type, the type of a getter is the return type, the type of a setter is
+  /// the parameter type and the type of a method is the tear-off type.
+  DartType getMemberType(
+      ClassMembersBuilder membersBuilder, TypeDeclarationType thisType);
+}
+
+class TypeDeclarationInstanceMemberResult implements MemberResult {
+  final Member member;
+  final ClassMemberKind kind;
+  @override
+  final bool isDeclaredAsField;
+
+  TypeDeclarationInstanceMemberResult(this.member, this.kind,
+      {required this.isDeclaredAsField})
+      : assert(
+            member.enclosingTypeDeclaration != null,
+            "Type declaration member without enclosing type "
+            "declaration $member.");
+
+  @override
+  String get fullName {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return '${origin.enclosingTypeDeclaration!.name}.${origin.name.text}';
+  }
+
+  @override
+  int get fileOffset {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return origin.fileOffset;
+  }
+
+  @override
+  Uri get fileUri {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return origin.fileUri;
+  }
+
+  @override
+  DartType getMemberType(
+      ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
+    DartType type = switch (kind) {
+      ClassMemberKind.Method => member.getterType,
+      ClassMemberKind.Getter => member.getterType,
+      ClassMemberKind.Setter => member.setterType,
+    };
+    TypeDeclaration typeDeclaration = member.enclosingTypeDeclaration!;
+    if (typeDeclaration.typeParameters.isNotEmpty) {
+      type = Substitution.fromPairs(
+              typeDeclaration.typeParameters,
+              membersBuilder.hierarchyBuilder.types
+                  .getTypeArgumentsAsInstanceOf(thisType, typeDeclaration)!)
+          .substituteType(type);
+    }
+    return type;
+  }
+}
+
+class StaticMemberResult implements MemberResult {
+  final Member member;
+  final ClassMemberKind kind;
+  @override
+  final bool isDeclaredAsField;
+  @override
+  final String fullName;
+
+  StaticMemberResult(this.member, this.kind,
+      {required this.isDeclaredAsField, required this.fullName});
+
+  @override
+  int get fileOffset {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return origin.fileOffset;
+  }
+
+  @override
+  Uri get fileUri {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return origin.fileUri;
+  }
+
+  @override
+  DartType getMemberType(
+      ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
+    return switch (kind) {
+      ClassMemberKind.Method => member.getterType,
+      ClassMemberKind.Getter => member.getterType,
+      ClassMemberKind.Setter => member.setterType,
+    };
+  }
+}
+
+class ExtensionTypeMemberResult implements MemberResult {
+  final ExtensionTypeDeclaration extensionTypeDeclaration;
+  final Member member;
+  final ClassMemberKind kind;
+  final Name name;
+  @override
+  final bool isDeclaredAsField;
+
+  ExtensionTypeMemberResult(
+      this.extensionTypeDeclaration, this.member, this.kind, this.name,
+      {required this.isDeclaredAsField})
+      : assert(member.isExtensionTypeMember);
+
+  @override
+  String get fullName {
+    return '${extensionTypeDeclaration.name}.${name.text}';
+  }
+
+  @override
+  int get fileOffset {
+    return member.fileOffset;
+  }
+
+  @override
+  Uri get fileUri {
+    return member.fileUri;
+  }
+
+  @override
+  DartType getMemberType(
+      ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
+    FunctionType type = member.getterType as FunctionType;
+    if (type.typeParameters.isNotEmpty) {
+      type = FunctionTypeInstantiator.instantiate(
+          type,
+          membersBuilder.hierarchyBuilder.types.getTypeArgumentsAsInstanceOf(
+              thisType, extensionTypeDeclaration)!);
+    }
+    switch (kind) {
+      case ClassMemberKind.Method:
+        // For methods [member] is the tear-off so the member type is the return
+        // type.
+        return type.returnType;
+      case ClassMemberKind.Getter:
+        return type.returnType;
+      case ClassMemberKind.Setter:
+        return type.positionalParameters[1];
+    }
+  }
+}
+
+enum ClassMemberKind {
+  Method,
+  Getter,
+  Setter,
+}
+
 abstract class ClassMember {
   Name get name;
   bool get isStatic;
@@ -32,6 +207,8 @@ abstract class ClassMember {
   bool get isConst;
   bool get forSetter;
 
+  ClassMemberKind get memberKind;
+
   /// Returns `true` if this member corresponds to a declaration in the source
   /// code.
   bool get isSourceDeclaration;
@@ -42,17 +219,35 @@ abstract class ClassMember {
   /// Computes the [Member] node resulting from this class member.
   Member getMember(ClassMembersBuilder membersBuilder);
 
+  /// Computes the tear off [Member] node resulting from this class member, if
+  /// this is different from the [Member] returned from [getMember].
+  ///
+  /// Returns `null` if this class member does not have a tear off.
+  Member? getTearOff(ClassMembersBuilder membersBuilder);
+
   /// Returns the member [Covariance] for this class member.
   Covariance getCovariance(ClassMembersBuilder membersBuilder);
+
+  // TODO(johnniwinther): Combine [getMemberResult] with [getMember],
+  // [getTearOff], and [getCovariance] and use for member type computation.
+  /// Computes the [MemberResult] node resulting from this class member.
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder);
 
   bool get isDuplicate;
   String get fullName;
   String get fullNameForErrors;
   DeclarationBuilder get declarationBuilder;
-  //ClassBuilder get classBuilder;
 
   /// Returns `true` if this class member is declared in Object from dart:core.
   bool isObjectMember(ClassBuilder objectClass);
+
+  /// If this member is declared in an extension type declaration.
+  ///
+  /// This includes explicit extension type members, static or instance, and
+  /// the representation field, but _not_ non-extension type members inherited
+  /// into the extension type declaration.
+  bool get isExtensionTypeMember;
+
   Uri get fileUri;
   int get charOffset;
 
@@ -146,13 +341,15 @@ abstract class SynthesizedMember extends ClassMember {
   final Name name;
 
   @override
-  final bool forSetter;
+  final ClassMemberKind memberKind;
+
+  SynthesizedMember(this.name, this.memberKind);
 
   @override
-  final bool isProperty;
+  bool get forSetter => memberKind == ClassMemberKind.Setter;
 
-  SynthesizedMember(this.name,
-      {required this.forSetter, required this.isProperty});
+  @override
+  bool get isProperty => memberKind != ClassMemberKind.Method;
 
   @override
   List<ClassMember> get declarations => throw new UnimplementedError();
@@ -195,6 +392,23 @@ abstract class SynthesizedMember extends ClassMember {
 
   @override
   void registerOverrideDependency(Set<ClassMember> overriddenMembers) {}
+
+  @override
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
+    return new TypeDeclarationInstanceMemberResult(
+        getMember(membersBuilder), memberKind,
+        isDeclaredAsField: false);
+  }
+
+  @override
+  bool get isExtensionTypeMember => false;
+
+  @override
+  Member? getTearOff(ClassMembersBuilder membersBuilder) {
+    // Ensure member is computed.
+    getMember(membersBuilder);
+    return null;
+  }
 }
 
 /// Class member for a set of interface members.
@@ -305,15 +519,14 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
       ClassMember? canonicalMember,
       ClassMember? mixedInMember,
       ClassMember? noSuchMethodTarget,
-      required bool isProperty,
-      required bool forSetter,
+      required ClassMemberKind memberKind,
       required bool shouldModifyKernel})
       : this._superClassMember = superClassMember,
         this._canonicalMember = canonicalMember,
         this._mixedInMember = mixedInMember,
         this._noSuchMethodTarget = noSuchMethodTarget,
         this._shouldModifyKernel = shouldModifyKernel,
-        super(name, isProperty: isProperty, forSetter: forSetter);
+        super(name, memberKind);
 
   @override
   bool get hasDeclarations => true;
@@ -373,6 +586,9 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
     }
 
     if (_shouldModifyKernel) {
+      SourceClassBuilder sourceClassBuilder =
+          classBuilder as SourceClassBuilder;
+      SourceLibraryBuilder libraryBuilder = sourceClassBuilder.libraryBuilder;
       ProcedureKind kind = ProcedureKind.Method;
       Member canonicalMember =
           combinedMemberSignature.canonicalMember!.getMember(membersBuilder);
@@ -384,30 +600,33 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
       }
 
       Procedure? stub = new ForwardingNode(
-              classBuilder as SourceClassBuilder,
+              libraryBuilder,
+              sourceClassBuilder,
+              sourceClassBuilder.cls,
+              sourceClassBuilder.indexedContainer,
               combinedMemberSignature,
               kind,
-              _superClassMember,
-              _mixedInMember,
-              _noSuchMethodTarget)
+              superClassMember: _superClassMember,
+              mixedInMember: _mixedInMember,
+              noSuchMethodTarget: _noSuchMethodTarget,
+              declarationIsMixinApplication:
+                  sourceClassBuilder.isMixinApplication)
           .finalize();
       if (stub != null) {
         assert(classBuilder.cls == stub.enclosingClass);
         assert(stub != canonicalMember);
         classBuilder.cls.addProcedure(stub);
-        SourceLibraryBuilder library =
-            classBuilder.libraryBuilder as SourceLibraryBuilder;
-        if (library.fieldNonPromotabilityInfo
+        if (libraryBuilder.fieldNonPromotabilityInfo
                 ?.individualPropertyReasons[canonicalMember]
             case var reason?) {
           // Transfer the non-promotability reason to the stub, so that accesses
           // to the stub will still cause the appropriate "why not promoted"
           // context message to be generated.
-          library.fieldNonPromotabilityInfo!.individualPropertyReasons[stub] =
-              reason;
+          libraryBuilder.fieldNonPromotabilityInfo!
+              .individualPropertyReasons[stub] = reason;
         }
         if (canonicalMember is Procedure) {
-          library.forwardersOrigins
+          libraryBuilder.forwardersOrigins
             ..add(stub)
             ..add(canonicalMember);
         }
@@ -521,9 +740,8 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   InheritedClassMemberImplementsInterface(this.classBuilder, Name name,
       {required this.inheritedClassMember,
       required this.implementedInterfaceMember,
-      required bool isProperty,
-      required bool forSetter})
-      : super(name, isProperty: isProperty, forSetter: forSetter);
+      required ClassMemberKind memberKind})
+      : super(name, memberKind);
 
   @override
   DeclarationBuilder get declarationBuilder => classBuilder;
@@ -689,10 +907,14 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
   Member? _member;
   Covariance? _covariance;
 
+  /// If `true`, a stub should be inserted, if needed.
+  final bool _shouldModifyKernel;
+
   SynthesizedNonExtensionTypeMember(
       this.extensionTypeDeclarationBuilder, Name name, this.declarations,
-      {required bool isProperty, required bool forSetter})
-      : super(name, isProperty: isProperty, forSetter: forSetter);
+      {required ClassMemberKind memberKind, required bool shouldModifyKernel})
+      : this._shouldModifyKernel = shouldModifyKernel,
+        super(name, memberKind);
 
   @override
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
@@ -728,6 +950,56 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       _member = declarations.first.getMember(membersBuilder);
       _covariance = declarations.first.getCovariance(membersBuilder);
       return;
+    }
+
+    if (_shouldModifyKernel) {
+      SourceExtensionTypeDeclarationBuilder
+          sourceExtensionTypeDeclarationBuilder =
+          extensionTypeDeclarationBuilder
+              as SourceExtensionTypeDeclarationBuilder;
+      SourceLibraryBuilder libraryBuilder =
+          sourceExtensionTypeDeclarationBuilder.libraryBuilder;
+      ExtensionTypeDeclaration extensionTypeDeclaration =
+          sourceExtensionTypeDeclarationBuilder.extensionTypeDeclaration;
+      ProcedureKind kind = ProcedureKind.Method;
+      Member canonicalMember =
+          combinedMemberSignature.canonicalMember!.getMember(membersBuilder);
+      if (combinedMemberSignature.canonicalMember!.isProperty) {
+        kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
+      } else if (canonicalMember is Procedure &&
+          canonicalMember.kind == ProcedureKind.Operator) {
+        kind = ProcedureKind.Operator;
+      }
+
+      Procedure? stub = new ForwardingNode(
+              libraryBuilder,
+              sourceExtensionTypeDeclarationBuilder,
+              extensionTypeDeclaration,
+              sourceExtensionTypeDeclarationBuilder.indexedContainer,
+              combinedMemberSignature,
+              kind,
+              declarationIsMixinApplication: false)
+          .finalize();
+      if (stub != null) {
+        assert(
+            extensionTypeDeclaration == stub.enclosingExtensionTypeDeclaration);
+        assert(stub != canonicalMember);
+        extensionTypeDeclaration.addProcedure(stub);
+        if (canonicalMember is Procedure) {
+          libraryBuilder.forwardersOrigins
+            ..add(stub)
+            ..add(canonicalMember);
+        }
+        _member = stub;
+        _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
+        assert(
+            _covariance ==
+                new Covariance.fromMember(_member!, forSetter: forSetter),
+            "Unexpected covariance for combined members signature "
+            "$_member. Found $_covariance, expected "
+            "${new Covariance.fromMember(_member!, forSetter: forSetter)}.");
+        return;
+      }
     }
 
     _member =

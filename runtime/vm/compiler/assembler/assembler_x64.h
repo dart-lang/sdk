@@ -811,7 +811,7 @@ class Assembler : public AssemblerBase {
 
   // Unlike movq this can affect the flags or use the constant pool.
   void LoadImmediate(Register reg, const Immediate& imm);
-  void LoadImmediate(Register reg, int64_t immediate) {
+  void LoadImmediate(Register reg, int64_t immediate) override {
     LoadImmediate(reg, Immediate(immediate));
   }
   void LoadSImmediate(FpuRegister dst, float immediate);
@@ -822,7 +822,11 @@ class Assembler : public AssemblerBase {
   void LoadIsolateGroup(Register dst);
   void LoadDispatchTable(Register dst);
   void LoadObject(Register dst, const Object& obj);
-  void LoadUniqueObject(Register dst, const Object& obj);
+  void LoadUniqueObject(
+      Register dst,
+      const Object& obj,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
@@ -1220,9 +1224,6 @@ class Assembler : public AssemblerBase {
     }
   }
 
-  void MsanUnpoison(Register base, intptr_t length_in_bytes);
-  void MsanUnpoison(Register base, Register length_in_bytes);
-
 #if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Address addr);
   void TsanStoreRelease(Address addr);
@@ -1355,6 +1356,11 @@ class Assembler : public AssemblerBase {
                             Register temp_reg = kNoRegister,
                             JumpDistance distance = JumpDistance::kFarJump);
 
+  void MaybeTraceAllocation(Register cid,
+                            Label* trace,
+                            Register temp_reg = kNoRegister,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
                          Label* failure,
@@ -1420,6 +1426,11 @@ class Assembler : public AssemblerBase {
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
 
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale);
+
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,
@@ -1473,12 +1484,22 @@ class Assembler : public AssemblerBase {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return target::IsSmi(object); }
 
+  void LoadWordFromPoolIndex(Register dst, intptr_t index);
+  void StoreWordToPoolIndex(Register src, intptr_t index);
+
  private:
   bool constant_pool_allowed_;
 
+  void CallCodeThroughPool(intptr_t target_code_pool_index,
+                           CodeEntryKind entry_kind);
+
   bool CanLoadFromObjectPool(const Object& object) const;
-  void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
-  void LoadWordFromPoolIndex(Register dst, intptr_t index);
+  void LoadObjectHelper(
+      Register dst,
+      const Object& obj,
+      bool is_unique,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
 
   void AluL(uint8_t modrm_opcode, Register dst, const Immediate& imm);
   void AluB(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);

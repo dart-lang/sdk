@@ -238,10 +238,7 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   final Map<String, TypeInformation> named;
 
   ArgumentsTypes(this.positional, Map<String, TypeInformation>? named)
-      : this.named = (named == null || named.isEmpty) ? const {} : named {
-    assert(this.positional.every((TypeInformation? type) => type != null));
-    assert(this.named.values.every((TypeInformation? type) => type != null));
-  }
+      : this.named = (named == null || named.isEmpty) ? const {} : named;
 
   ArgumentsTypes.empty()
       : positional = const [],
@@ -257,7 +254,7 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   String toString() => "{ positional = $positional, named = $named }";
 
   @override
-  bool operator ==(Object? other) {
+  bool operator ==(Object other) {
     if (other is! ArgumentsTypes) return false;
     if (positional.length != other.positional.length) return false;
     if (named.length != other.named.length) return false;

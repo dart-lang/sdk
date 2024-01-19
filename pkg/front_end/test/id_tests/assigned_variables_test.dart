@@ -27,7 +27,7 @@ Future<void> main(List<String> args) async {
           const AssignedVariablesDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
-class AssignedVariablesDataComputer extends DataComputer<_Data> {
+class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
   const AssignedVariablesDataComputer();
 
   @override
@@ -38,7 +38,7 @@ class AssignedVariablesDataComputer extends DataComputer<_Data> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<_Data>> actualMap,
       {bool? verbose}) {
     SourceMemberBuilder memberBuilder =

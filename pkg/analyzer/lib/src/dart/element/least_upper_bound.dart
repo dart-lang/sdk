@@ -41,10 +41,10 @@ class InterfaceLeastUpperBoundHelper {
   ///    be an upper bound, might (or might not) be least, and might
   ///    (or might not) be a well-formed type.
   ///
-  /// TODO(leafp): Use matchTypes or something similar here to handle the
-  ///  case where one of the types is a superclass (but not supertype) of
-  ///  the other, e.g. LUB(Iterable<double>, List<int>) = Iterable<num>
-  /// TODO(leafp): Figure out the right final algorithm and implement it.
+  // TODO(leafp): Use matchTypes or something similar here to handle the
+  // case where one of the types is a superclass (but not supertype) of
+  // the other, e.g. LUB(Iterable<double>, List<int>) = Iterable<num>
+  // TODO(leafp): Figure out the right final algorithm and implement it.
   InterfaceTypeImpl compute(InterfaceTypeImpl type1, InterfaceTypeImpl type2) {
     var nullability = _chooseNullability(type1, type2);
 
@@ -68,7 +68,7 @@ class InterfaceLeastUpperBoundHelper {
 
       var args = <DartType>[];
       for (int i = 0; i < args1.length; i++) {
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
         Variance parameterVariance =
             (params[i] as TypeParameterElementImpl).variance;
@@ -83,7 +83,7 @@ class InterfaceLeastUpperBoundHelper {
             return _computeLeastUpperBound(type1, type2)
                 .withNullability(nullability);
           }
-          // TODO (kallentu) : Fix asymmetric bounds behavior for invariant type
+          // TODO(kallentu): : Fix asymmetric bounds behavior for invariant type
           //  parameters.
           args.add(args1[i]);
         } else {
@@ -130,21 +130,8 @@ class InterfaceLeastUpperBoundHelper {
       return;
     }
 
-    final representationType = type.representationType;
-    if (representationType != null) {
-      // TODO(scheglov) See https://github.com/dart-lang/language/pull/3402
-      // When it lands, we might need to remove `Object` from the element
-      // interfaces, and return from the type interfaces.
-      final first = type.interfaces.singleOrNull;
-      if (first != null && first.isDartCoreObject) {
-        final replacement = typeSystem.isNonNullable(representationType)
-            ? typeSystem.objectNone
-            : typeSystem.objectQuestion;
-        if (set.add(replacement)) {
-          _addSuperinterfaces(set, replacement);
-        }
-        return;
-      }
+    if (type.element is ExtensionTypeElement) {
+      set.add(typeSystem.objectQuestion);
     }
 
     for (var interface in type.interfaces) {
@@ -240,6 +227,14 @@ class InterfaceLeastUpperBoundHelper {
         return type.nullabilitySuffix == NullabilitySuffix.none ? 1 : 0;
       }
     }
+
+    // Extension type without interfaces, implicit `Object?`
+    if (element is ExtensionTypeElement) {
+      if (element.interfaces.isEmpty) {
+        return 1;
+      }
+    }
+
     int longestPath = 0;
     try {
       visitedElements.add(element);
@@ -407,6 +402,40 @@ class LeastUpperBoundHelper {
       return T1;
     }
 
+    // UP(X1 & B1, T2)
+    if (T1 case TypeParameterTypeImpl(promotedBound: final B1?)) {
+      final X1 = T1.withoutPromotedBound;
+      // T2 if X1 <: T2
+      if (_typeSystem.isSubtypeOf(X1, T2)) {
+        return T2;
+      }
+      // otherwise X1 if T2 <: X1
+      if (_typeSystem.isSubtypeOf(T2, X1)) {
+        return X1;
+      }
+      // otherwise UP(B1a, T2)
+      //   where B1a is the greatest closure of B1 with respect to X1
+      final B1a = _typeSystem.greatestClosure(B1, [X1.element]);
+      return getLeastUpperBound(B1a, T2);
+    }
+
+    // UP(T1, X2 & B2)
+    if (T2 case TypeParameterTypeImpl(promotedBound: final B2?)) {
+      final X2 = T2.withoutPromotedBound;
+      // X2 if T1 <: X2
+      if (_typeSystem.isSubtypeOf(T1, X2)) {
+        return X2;
+      }
+      // otherwise T1 if X2 <: T1
+      if (_typeSystem.isSubtypeOf(X2, T1)) {
+        return T1;
+      }
+      // otherwise UP(T1, B2a)
+      //   where B2a is the greatest closure of B2 with respect to X2
+      final B2a = _typeSystem.greatestClosure(B2, [X2.element]);
+      return getLeastUpperBound(T1, B2a);
+    }
+
     var T1_isNull = _typeSystem.isNull(T1);
     var T2_isNull = _typeSystem.isNull(T2);
 
@@ -521,7 +550,6 @@ class LeastUpperBoundHelper {
     assert(T2_nullability == NullabilitySuffix.none);
 
     // UP(X1 extends B1, T2)
-    // UP(X1 & B1, T2)
     if (T1 is TypeParameterTypeImpl) {
       // T2 if X1 <: T2
       if (_typeSystem.isSubtypeOf(T1, T2)) {
@@ -539,11 +567,10 @@ class LeastUpperBoundHelper {
     }
 
     // UP(T1, X2 extends B2)
-    // UP(T1, X2 & B2)
     if (T2 is TypeParameterTypeImpl) {
       // X2 if T1 <: X2
       if (_typeSystem.isSubtypeOf(T1, T2)) {
-        // TODO(scheglov) How to get here?
+        // TODO(scheglov): How to get here?
         return T2;
       }
       // otherwise T1 if X2 <: T1

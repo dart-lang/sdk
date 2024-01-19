@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
@@ -26,7 +27,10 @@ import 'package:analyzer/src/generated/scope_helpers.dart';
 class NamedTypeResolver with ScopeHelpers {
   final LibraryElementImpl _libraryElement;
   final TypeSystemImpl typeSystem;
+  final TypeSystemOperations typeSystemOperations;
   final bool isNonNullableByDefault;
+  final bool strictCasts;
+  final bool strictInference;
 
   @override
   final ErrorReporter errorReporter;
@@ -59,7 +63,10 @@ class NamedTypeResolver with ScopeHelpers {
   bool hasErrorReported = false;
 
   NamedTypeResolver(
-      this._libraryElement, this.isNonNullableByDefault, this.errorReporter)
+      this._libraryElement, this.isNonNullableByDefault, this.errorReporter,
+      {required this.strictInference,
+      required this.strictCasts,
+      required this.typeSystemOperations})
       : typeSystem = _libraryElement.typeSystem;
 
   bool get _genericMetadataIsEnabled =>
@@ -179,6 +186,9 @@ class NamedTypeResolver with ScopeHelpers {
           declaredReturnType: element.thisType,
           contextReturnType: enclosingClass!.thisType,
           genericMetadataIsEnabled: _genericMetadataIsEnabled,
+          strictInference: strictInference,
+          strictCasts: strictCasts,
+          typeSystemOperations: typeSystemOperations,
         );
         var typeArguments = inferrer.chooseFinalTypes();
         return element.instantiate(

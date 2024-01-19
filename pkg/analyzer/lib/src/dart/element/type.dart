@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
@@ -142,7 +141,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   Map<String, DartType> get namedParameterTypes {
-    // TODO(brianwilkerson) This implementation breaks the contract because the
+    // TODO(brianwilkerson): This implementation breaks the contract because the
     //  parameters will not necessarily be returned in the order in which they
     //  were declared.
     Map<String, DartType> types = <String, DartType>{};
@@ -343,7 +342,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       TypeParameterElement p2 = params2[i];
       TypeParameterElementImpl pFresh =
           TypeParameterElementImpl.synthetic(p2.name);
-      ElementTypeProvider.current.freshTypeParameterCreated(pFresh, p2);
 
       var variableFresh = pFresh.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
@@ -666,17 +664,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  /// The instantiated representation type erasure, if [element] is an
-  /// extension type.
-  DartType? get representationTypeErasure {
-    if (element case ExtensionTypeElement element) {
-      final substitution = Substitution.fromInterfaceType(this);
-      final typeErasure = element.typeErasure;
-      return substitution.substituteType(typeErasure);
-    }
-    return null;
-  }
-
   @override
   InterfaceType? get superclass {
     var supertype = element.supertype;
@@ -767,12 +754,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   ConstructorElement? lookUpConstructor(
       String? constructorName, LibraryElement library) {
+    var augmented = element.augmented;
+    if (augmented == null) {
+      return null;
+    }
+
     // prepare base ConstructorElement
     ConstructorElement? constructorElement;
     if (constructorName == null) {
-      constructorElement = element.unnamedConstructor;
+      constructorElement = augmented.unnamedConstructor;
     } else {
-      constructorElement = element.getNamedConstructor(constructorName);
+      constructorElement = augmented.getNamedConstructor(constructorName);
     }
     // not found or not accessible
     if (constructorElement == null ||
@@ -916,6 +908,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       element: element,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
     );
   }
 
@@ -1216,6 +1209,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
       positionalFields: positionalFields,
       namedFields: namedFields,
       nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
     );
   }
 
@@ -1268,6 +1262,11 @@ abstract class TypeImpl implements DartType {
 
   /// Initialize a newly created type.
   TypeImpl({this.alias});
+
+  @override
+  DartType get extensionTypeErasure {
+    return const ExtensionTypeErasure().perform(this);
+  }
 
   @override
   bool get isBottom => false;
@@ -1347,11 +1346,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   String getDisplayString({
-    bool skipAllDynamicArguments = false,
     required bool withNullability,
   }) {
     var builder = ElementDisplayStringBuilder(
-      skipAllDynamicArguments: skipAllDynamicArguments,
       withNullability: withNullability,
     );
     appendTo(builder);
@@ -1444,6 +1441,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     Set<TypeParameterElement> seenTypes = {};
     TypeParameterType type = this;
     while (seenTypes.add(type.element)) {
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        return false;
+      }
       var bound = type.bound;
       if (bound is TypeParameterType) {
         type = bound;
@@ -1458,6 +1458,13 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String get name => element.name;
+
+  TypeParameterTypeImpl get withoutPromotedBound {
+    return TypeParameterTypeImpl(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
 
   @override
   bool operator ==(Object other) {

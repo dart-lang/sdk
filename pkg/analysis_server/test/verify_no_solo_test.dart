@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -9,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:test/test.dart';
 
@@ -18,7 +20,16 @@ void main() {
   });
 
   group('analyzer', () {
-    buildTests(packagePath: 'analyzer');
+    buildTests(
+      packagePath: 'analyzer',
+      analysisContextPredicate: (analysisContext) {
+        final root = analysisContext.contextRoot.root;
+        if (root.endsWithNames(['macro', 'single'])) {
+          return false;
+        }
+        return true;
+      },
+    );
   });
 
   group('analyzer_cli', () {
@@ -30,7 +41,10 @@ void main() {
   });
 }
 
-void buildTests({required String packagePath}) {
+void buildTests({
+  required String packagePath,
+  bool Function(AnalysisContext)? analysisContextPredicate,
+}) {
   var provider = PhysicalResourceProvider.INSTANCE;
   var pkgRootPath = provider.pathContext.normalize(packageRoot);
 
@@ -40,14 +54,18 @@ void buildTests({required String packagePath}) {
     includedPaths: <String>[testsPath],
     resourceProvider: provider,
   );
-  var contexts = collection.contexts;
-  if (contexts.length != 1) {
+
+  final singleAnalysisContext = collection.contexts
+      .where(analysisContextPredicate ?? (_) => true)
+      .toList()
+      .singleOrNull;
+  if (singleAnalysisContext == null) {
     fail('The directory $testsPath contains multiple analysis contexts.');
   }
 
   test('no @soloTest', () async {
     var failures = <String>[];
-    await buildTestsIn(contexts[0].currentSession, testsPath,
+    await buildTestsIn(singleAnalysisContext.currentSession, testsPath,
         provider.getFolder(testsPath), failures);
 
     if (failures.isNotEmpty) {

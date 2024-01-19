@@ -809,3 +809,11 @@ String extractJoinedIntermediateName(String name) {
 String createJoinedIntermediateName(String variableName, int index) {
   return '$variableName$joinedIntermediateInfix$index';
 }
+
+/// This turns Foo|bar into Foo.bar.
+///
+/// This only works for normal methods and operators, but for getters and
+/// setters.
+String? extractQualifiedNameFromExtensionMethodName(String? methodName) {
+  return methodName?.replaceFirst('|', '.');
+}

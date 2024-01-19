@@ -8,7 +8,7 @@ library;
 //
 import self as self;
 
-static method foo() → dynamic async /* futureValueType= dynamic */ {
+static method foo() → dynamic async /* emittedValueType= dynamic */ {
   invalid-type x;
   invalid-expression "Invalid iterable type in for-in";
 }

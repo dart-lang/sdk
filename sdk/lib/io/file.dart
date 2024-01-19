@@ -237,8 +237,8 @@ abstract interface class File implements FileSystemEntity {
   /// only if all directories in its path already exist.
   /// If [recursive] is `true`, all non-existing parent paths are created first.
   ///
-  /// If [exclusive] is `true` and to-be-created file already exists, this
-  /// operation completes the future with a [FileSystemException].
+  /// If [exclusive] is `true` and to-be-created file already exists, then
+  /// a [FileSystemException] is thrown.
   ///
   /// If [exclusive] is `false`, existing files are left untouched by
   /// [createSync]. Calling [createSync] on an existing file still might fail
@@ -301,6 +301,52 @@ abstract interface class File implements FileSystemEntity {
   /// removed first. If [newPath] identifies an existing directory the
   /// operation throws a [FileSystemException].
   File renameSync(String newPath);
+
+  /// Deletes this [File].
+  ///
+  /// If [recursive] is `false`:
+  ///
+  ///  * If [path] corresponds to a regular file, named pipe or socket, then
+  ///    that path is deleted. If [path] corresponds to a link, and that link
+  ///    resolves to a file, then the link at [path] will be deleted. In all
+  ///    other cases, [delete] completes with a [FileSystemException].
+  ///
+  /// If [recursive] is `true`:
+  ///
+  ///  * The [FileSystemEntity] at [path] is deleted regardless of type. If
+  ///    [path] corresponds to a file or link, then that file or link is
+  ///    deleted. If [path] corresponds to a directory, then it and all
+  ///    sub-directories and files in those directories are deleted. Links
+  ///    are not followed when deleting recursively. Only the link is deleted,
+  ///    not its target. This behavior allows [delete] to be used to
+  ///    unconditionally delete any file system object.
+  ///
+  /// If this [File] cannot be deleted, then [delete] completes with a
+  /// [FileSystemException].
+  Future<FileSystemEntity> delete({bool recursive = false});
+
+  /// Synchronously deletes this [File].
+  ///
+  /// If [recursive] is `false`:
+  ///
+  ///  * If [path] corresponds to a regular file, named pipe or socket, then
+  ///    that path is deleted. If [path] corresponds to a link, and that link
+  ///    resolves to a file, then the link at [path] will be deleted. In all
+  ///    other cases, [delete] throws a [FileSystemException].
+  ///
+  /// If [recursive] is `true`:
+  ///
+  ///  * The [FileSystemEntity] at [path] is deleted regardless of type. If
+  ///    [path] corresponds to a file or link, then that file or link is
+  ///    deleted. If [path] corresponds to a directory, then it and all
+  ///    sub-directories and files in those directories are deleted. Links
+  ///    are not followed when deleting recursively. Only the link is deleted,
+  ///    not its target. This behavior allows [delete] to be used to
+  ///    unconditionally delete any file system object.
+  ///
+  /// If this [File] cannot be deleted, then [delete] throws a
+  /// [FileSystemException].
+  void deleteSync({bool recursive = false});
 
   /// Copies this file.
   ///
@@ -450,6 +496,9 @@ abstract interface class File implements FileSystemEntity {
   /// is closed before signaling "done". If there are no writers attached
   /// to the pipe when it is opened, then [Stream.listen] will wait until
   /// a writer opens the pipe.
+  ///
+  /// Any errors opening or reading the file will appear as error events in
+  /// the returned [Stream].
   Stream<List<int>> openRead([int? start, int? end]);
 
   /// Creates a new independent [IOSink] for the file.
@@ -520,6 +569,11 @@ abstract interface class File implements FileSystemEntity {
   /// file if it already exists. In order to append the bytes to an existing
   /// file, pass [FileMode.append] as the optional mode parameter.
   ///
+  /// The elements of [bytes] should be integers in the range 0 to 255.
+  /// Any integer, which is not in that range, is converted to a byte before
+  /// being written. The conversion is equivalent to doing
+  /// `value.toUnsigned(8)`.
+  ///
   /// If the argument [flush] is set to `true`, the data written will be
   /// flushed to the file system before the returned future completes.
   Future<File> writeAsBytes(List<int> bytes,
@@ -532,6 +586,11 @@ abstract interface class File implements FileSystemEntity {
   /// By default [writeAsBytesSync] creates the file for writing and truncates
   /// the file if it already exists. In order to append the bytes to an existing
   /// file, pass [FileMode.append] as the optional mode parameter.
+  ///
+  /// The elements of [bytes] should be integers in the range 0 to 255.
+  /// Any integer, which is not in that range, is converted to a byte before
+  /// being written. The conversion is equivalent to doing
+  /// `value.toUnsigned(8)`.
   ///
   /// If the [flush] argument is set to `true` data written will be
   /// flushed to the file system before returning.
@@ -654,7 +713,7 @@ abstract interface class RandomAccessFile {
 
   /// Reads bytes into an existing [buffer].
   ///
-  /// Reads bytes and writes then into the range of [buffer]
+  /// Reads bytes and writes them into the range of [buffer]
   /// from [start] to [end].
   /// The [start] must be non-negative and no greater than [buffer].length.
   /// If [end] is omitted, it defaults to [buffer].length.

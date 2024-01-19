@@ -8,7 +8,9 @@ import 'package:vm_service/vm_service.dart';
 import 'common/test_helper.dart';
 
 class Foo {
+  @pragma('vm:entry-point')
   dynamic left;
+  @pragma('vm:entry-point')
   dynamic right;
 }
 
@@ -20,8 +22,8 @@ void script() {
   // Create 3 instances of Foo, with out-degrees
   // 0 (for b), 1 (for a), and 2 (for staticFoo).
   r = Foo();
-  var a = Foo();
-  var b = Foo();
+  final a = Foo();
+  final b = Foo();
   r.left = a;
   r.right = b;
   a.left = b;
@@ -32,24 +34,24 @@ void script() {
   lst[1] = List.filled(1234569, null);
 }
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
     final snapshotGraph = await HeapSnapshotGraph.getSnapshot(service, isolate);
-    expect(snapshotGraph.name, "main");
+    expect(snapshotGraph.name, 'main');
     expect(snapshotGraph.flags, isNotNull);
     expect(snapshotGraph.objects, isNotNull);
     expect(snapshotGraph.objects, isNotEmpty);
 
     int actualShallowSize = 0;
     int actualRefCount = 0;
-    snapshotGraph.objects.forEach((HeapSnapshotObject o) {
+    for (final o in snapshotGraph.objects) {
       // -1 is the CID used by the sentinel.
       expect(o.classId >= -1, isTrue);
       expect(o.data, isNotNull);
       expect(o.references, isNotNull);
       actualShallowSize += o.shallowSize;
       actualRefCount += o.references.length;
-    });
+    }
 
     // Some accounting differences in the VM result in the global shallow size
     // often being greater than the sum of the object shallow sizes.
@@ -59,28 +61,28 @@ var tests = <IsolateTest>[
 
     int actualExternalSize = 0;
     expect(snapshotGraph.externalProperties, isNotEmpty);
-    snapshotGraph.externalProperties.forEach((HeapSnapshotExternalProperty e) {
+    for (var e in snapshotGraph.externalProperties) {
       actualExternalSize += e.externalSize;
       expect(e.object >= 0, isTrue);
       expect(e.name, isNotNull);
-    });
+    }
     expect(snapshotGraph.externalSize, actualExternalSize);
 
     expect(snapshotGraph.classes, isNotEmpty);
-    snapshotGraph.classes.forEach((HeapSnapshotClass c) {
+    for (var c in snapshotGraph.classes) {
       expect(c.name, isNotNull);
       expect(c.libraryName, isNotNull);
       expect(c.libraryUri, isNotNull);
       expect(c.fields, isNotNull);
-    });
+    }
 
     // We have the class "Foo".
     int foosFound = 0;
     int fooClassId = -1;
     for (int i = 0; i < snapshotGraph.classes.length; i++) {
-      HeapSnapshotClass c = snapshotGraph.classes[i];
-      if (c.name == "Foo" &&
-          c.libraryUri.toString().endsWith("heap_snapshot_graph_test.dart")) {
+      final HeapSnapshotClass c = snapshotGraph.classes[i];
+      if (c.name == 'Foo' &&
+          c.libraryUri.toString().endsWith('heap_snapshot_graph_test.dart')) {
         foosFound++;
         fooClassId = i;
       }
@@ -89,22 +91,22 @@ var tests = <IsolateTest>[
 
     // It knows about "Foo" objects.
     foosFound = 0;
-    snapshotGraph.objects.forEach((HeapSnapshotObject o) {
-      if (o.classId == 0) return;
+    for (final o in snapshotGraph.objects) {
+      if (o.classId == 0) continue;
       if (o.classId == fooClassId) {
         foosFound++;
       }
-    });
+    }
     expect(foosFound, equals(3));
 
     // Check that we can get another snapshot.
     final snapshotGraph2 =
         await HeapSnapshotGraph.getSnapshot(service, isolate);
-    expect(snapshotGraph2.name, "main");
+    expect(snapshotGraph2.name, 'main');
   },
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'heap_snapshot_graph_test.dart',

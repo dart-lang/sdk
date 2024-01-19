@@ -81,6 +81,11 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  bool isPotentiallyNullable(DartType type) {
+    return type.nullability != Nullability.nonNullable;
+  }
+
+  @override
   bool isNullableObject(DartType type) {
     return type == _typeEnvironment.objectNullableRawType;
   }
@@ -136,12 +141,74 @@ class CfeTypeOperations implements TypeOperations<DartType> {
           Class declaringClass = member.enclosingClass!;
           if (declaringClass.typeParameters.isNotEmpty) {
             Substitution substitution = substitutions[declaringClass] ??=
-                Substitution.fromInterfaceType(
-                    _classHierarchy.getTypeAsInstanceOf(type, declaringClass,
+                Substitution.fromInterfaceType(_classHierarchy
+                    .getInterfaceTypeAsInstanceOfClass(type, declaringClass,
                         isNonNullableByDefault: true)!);
             fieldType = substitution.substituteType(fieldType);
           }
           fieldTypes[new NameKey(member.name.text)] = fieldType;
+        }
+      }
+      return fieldTypes;
+    } else if (type is ExtensionType) {
+      ExtensionTypeDeclaration extensionTypeDeclaration =
+          type.extensionTypeDeclaration;
+      Map<Key, DartType> fieldTypes = {};
+      for (TypeDeclarationType implementedType
+          in extensionTypeDeclaration.implements) {
+        Map<Key, DartType> implementedFieldTypes =
+            getFieldTypes(implementedType);
+        if (implementedType.typeDeclaration.typeParameters.isNotEmpty) {
+          Substitution substitution = Substitution.fromTypeDeclarationType(
+              _classHierarchy.getTypeAsInstanceOf(
+                  type, implementedType.typeDeclaration,
+                  isNonNullableByDefault: true)!);
+          for (MapEntry<Key, DartType> entry in implementedFieldTypes.entries) {
+            fieldTypes[entry.key] = substitution.substituteType(entry.value);
+          }
+        } else {
+          fieldTypes.addAll(implementedFieldTypes);
+        }
+      }
+      Substitution substitution = Substitution.fromExtensionType(type);
+      for (Procedure procedure in extensionTypeDeclaration.procedures) {
+        if (!procedure.isSetter) {
+          DartType fieldType =
+              substitution.substituteType(procedure.getterType);
+          fieldTypes[new NameKey(procedure.name.text)] = fieldType;
+        }
+      }
+      for (ExtensionTypeMemberDescriptor descriptor
+          in extensionTypeDeclaration.memberDescriptors) {
+        if (descriptor.isStatic) {
+          continue;
+        }
+        switch (descriptor.kind) {
+          case ExtensionTypeMemberKind.Method:
+            Procedure tearOff = descriptor.tearOffReference!.asProcedure;
+            FunctionType functionType = tearOff.getterType as FunctionType;
+            if (extensionTypeDeclaration.typeParameters.isNotEmpty) {
+              functionType = FunctionTypeInstantiator.instantiate(
+                  functionType, type.typeArguments);
+            }
+            fieldTypes[new NameKey(descriptor.name.text)] =
+                functionType.returnType;
+          case ExtensionTypeMemberKind.Getter:
+            Procedure member = descriptor.memberReference.asProcedure;
+            FunctionType functionType = member.getterType as FunctionType;
+            if (extensionTypeDeclaration.typeParameters.isNotEmpty) {
+              functionType = FunctionTypeInstantiator.instantiate(
+                  functionType, type.typeArguments);
+            }
+            fieldTypes[new NameKey(descriptor.name.text)] =
+                functionType.returnType;
+          case ExtensionTypeMemberKind.Field:
+          case ExtensionTypeMemberKind.Constructor:
+          case ExtensionTypeMemberKind.Factory:
+          case ExtensionTypeMemberKind.Setter:
+          case ExtensionTypeMemberKind.Operator:
+          case ExtensionTypeMemberKind.RedirectingFactory:
+            break;
         }
       }
       return fieldTypes;
@@ -186,13 +253,13 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType? getListElementType(DartType type) {
-    type = type.resolveTypeParameterType;
-    if (type is InterfaceType) {
-      InterfaceType? listType = _classHierarchy.getTypeAsInstanceOf(
-          type, _typeEnvironment.coreTypes.listClass,
-          isNonNullableByDefault: true);
-      if (listType != null) {
-        return listType.typeArguments[0];
+    type = type.nonTypeVariableBound;
+    if (type is TypeDeclarationType) {
+      List<DartType>? typeArguments =
+          _classHierarchy.getTypeArgumentsAsInstanceOf(
+              type, _typeEnvironment.coreTypes.listClass);
+      if (typeArguments != null) {
+        return typeArguments[0];
       }
     }
     return null;
@@ -200,8 +267,8 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType? getListType(DartType type) {
-    type = type.resolveTypeParameterType;
-    if (type is InterfaceType) {
+    type = type.nonTypeVariableBound;
+    if (type is TypeDeclarationType) {
       return _classHierarchy.getTypeAsInstanceOf(
           type, _typeEnvironment.coreTypes.listClass,
           isNonNullableByDefault: true);
@@ -211,13 +278,13 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType? getMapValueType(DartType type) {
-    type = type.resolveTypeParameterType;
-    if (type is InterfaceType) {
-      InterfaceType? mapType = _classHierarchy.getTypeAsInstanceOf(
-          type, _typeEnvironment.coreTypes.mapClass,
-          isNonNullableByDefault: true);
-      if (mapType != null) {
-        return mapType.typeArguments[1];
+    type = type.nonTypeVariableBound;
+    if (type is TypeDeclarationType) {
+      List<DartType>? typeArguments =
+          _classHierarchy.getTypeArgumentsAsInstanceOf(
+              type, _typeEnvironment.coreTypes.mapClass);
+      if (typeArguments != null) {
+        return typeArguments[1];
       }
     }
     return null;
@@ -243,6 +310,11 @@ class CfeTypeOperations implements TypeOperations<DartType> {
       return type.right;
     }
     return null;
+  }
+
+  @override
+  DartType getExtensionTypeErasure(DartType type) {
+    return type.extensionTypeErasure;
   }
 }
 
@@ -310,7 +382,7 @@ class CfeEnumOperations
   }
 
   @override
-  EnumValue getEnumElementValue(Field enumField) {
+  EnumValue? getEnumElementValue(Field enumField) {
     // Enum field initializers might not have been replaced by
     // [ConstantExpression]s. Either because we haven't visited them yet during
     // normal constant evaluation or because they are from outlines that are
@@ -320,7 +392,7 @@ class CfeEnumOperations
     StaticTypeContext context =
         new StaticTypeContext(enumField, _constantEvaluator.typeEnvironment);
     return constantToEnumValue(_constantEvaluator.coreTypes,
-        _constantEvaluator.evaluate(context, enumField.initializer!))!;
+        _constantEvaluator.evaluate(context, enumField.initializer!));
   }
 
   @override
@@ -394,9 +466,9 @@ class CfeSealedClassOperations
       Class subClass, covariant InterfaceType sealedClassType) {
     InterfaceType thisType = subClass.getThisType(
         _typeEnvironment.coreTypes, Nullability.nonNullable);
-    InterfaceType asSealedType = _typeEnvironment.hierarchy.getTypeAsInstanceOf(
-        thisType, sealedClassType.classNode,
-        isNonNullableByDefault: true)!;
+    InterfaceType asSealedType = _typeEnvironment.hierarchy
+        .getInterfaceTypeAsInstanceOfClass(thisType, sealedClassType.classNode,
+            isNonNullableByDefault: true)!;
     if (thisType.typeArguments.isEmpty) {
       return thisType;
     }
@@ -448,12 +520,18 @@ class CfeExhaustivenessCache
 }
 
 class PatternConverter with SpaceCreator<Pattern, DartType> {
+  final Version languageVersion;
   final CfeExhaustivenessCache cache;
   final StaticTypeContext context;
   final bool Function(Constant) hasPrimitiveEquality;
 
-  PatternConverter(this.cache, this.context,
+  PatternConverter(this.languageVersion, this.cache, this.context,
       {required this.hasPrimitiveEquality});
+
+  @override
+  bool hasLanguageVersion(int major, int minor) {
+    return languageVersion >= new Version(major, minor);
+  }
 
   @override
   Space dispatchPattern(Path path, StaticType contextType, Pattern pattern,
@@ -463,8 +541,20 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       Map<String, DartType> extensionPropertyTypes = {};
       for (NamedPattern field in pattern.fields) {
         properties[field.name] = field.pattern;
-        if (field.accessKind == ObjectAccessKind.Static) {
-          extensionPropertyTypes[field.name] = field.resultType!;
+        switch (field.accessKind) {
+          case ObjectAccessKind.Extension:
+          case ObjectAccessKind.ExtensionType:
+          case ObjectAccessKind.Direct:
+            extensionPropertyTypes[field.name] = field.resultType!;
+          case ObjectAccessKind.Object:
+          case ObjectAccessKind.Instance:
+          case ObjectAccessKind.RecordNamed:
+          case ObjectAccessKind.RecordIndexed:
+          case ObjectAccessKind.Dynamic:
+          case ObjectAccessKind.Never:
+          case ObjectAccessKind.Invalid:
+          case ObjectAccessKind.FunctionTearOff:
+          case ObjectAccessKind.Error:
         }
       }
       return createObjectSpace(path, contextType, pattern.requiredType,

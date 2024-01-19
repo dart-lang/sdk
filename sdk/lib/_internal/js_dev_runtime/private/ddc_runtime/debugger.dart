@@ -304,7 +304,7 @@ Object getObjectMetadata(@notNull Object object) {
   } else if (object is Function) {
     _set(result, 'runtimeKind', RuntimeObjectKind.function);
   } else if (object is RecordImpl) {
-    var shape = object.shape;
+    var shape = JS<Shape>('!', '#[#]', object, shapeProperty);
     var positionalCount = shape.positionals;
     var namedCount = shape.named?.length ?? 0;
     var length = positionalCount + namedCount;
@@ -316,8 +316,8 @@ Object getObjectMetadata(@notNull Object object) {
     if (_isRecordType(object)) {
       var elements = _recordTypeElementTypes(object);
       var length = _get(elements, 'length');
-      _set(result, 'libraryId', 'dart:_runtime');
-      _set(result, 'className', 'RecordType');
+      _set(result, 'libraryId', 'dart:core');
+      _set(result, 'className', 'Type');
       _set(result, 'runtimeKind', RuntimeObjectKind.recordType);
       _set(result, 'length', length);
     } else {
@@ -452,10 +452,10 @@ Object getTypeFields(@notNull Type type) {
 /// ```
 @notNull
 Object getRecordFields(@notNull RecordImpl record) {
-  var shape = record.shape;
+  var shape = JS<Shape>('!', '#[#]', record, shapeProperty);
   var positionalCount = shape.positionals;
   var named = shape.named?.toList();
-  var values = record.values;
+  var values = JS('!', '#[#]', record, valuesProperty);
 
   return _createJsObject({
     'positionalCount': positionalCount,

@@ -1,0 +1,5 @@
+extension type E1<X>(X it) {}
+
+typedef F<X> = X;
+
+extension type E2<X>(E1<F<E1<X>>> it) {}

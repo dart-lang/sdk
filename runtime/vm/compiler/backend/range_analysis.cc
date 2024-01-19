@@ -24,6 +24,35 @@ DECLARE_FLAG(bool, trace_constant_propagation);
 // Quick access to the locally defined zone() method.
 #define Z (zone())
 
+#if defined(DEBUG)
+static void CheckRangeForRepresentation(const Assert& assert,
+                                        const Instruction* instr,
+                                        const Range* range,
+                                        Representation rep) {
+  const Range other = Range::Full(rep);
+  if (!RangeUtils::IsWithin(range, &other)) {
+    assert.Fail(
+        "During range analysis for:\n  %s\n"
+        "expected range containing only %s-representable values, but got %s",
+        instr->ToCString(), RepresentationToCString(rep),
+        Range::ToCString(range));
+  }
+}
+
+#define ASSERT_VALID_RANGE_FOR_REPRESENTATION(instr, range, representation)    \
+  do {                                                                         \
+    CheckRangeForRepresentation(dart::Assert(__FILE__, __LINE__), instr,       \
+                                range, representation);                        \
+  } while (false)
+#else
+#define ASSERT_VALID_RANGE_FOR_REPRESENTATION(instr, range, representation)    \
+  do {                                                                         \
+    USE(instr);                                                                \
+    USE(range);                                                                \
+    USE(representation);                                                       \
+  } while (false)
+#endif
+
 void RangeAnalysis::Analyze() {
   CollectValues();
   InsertConstraints();
@@ -2072,6 +2101,30 @@ int64_t RangeBoundary::ConstantValue() const {
   return value_;
 }
 
+static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
+  switch (r) {
+    case kTagged:
+      return RangeBoundary::kRangeBoundarySmi;
+    case kUnboxedUint8:  // Overapproximate Uint8 as Int16.
+      return RangeBoundary::kRangeBoundaryInt16;
+    case kUnboxedInt32:
+    case kUnboxedUint16:  // Overapproximate Uint16 as Int32.
+      return RangeBoundary::kRangeBoundaryInt32;
+    case kUnboxedInt64:
+    case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
+      return RangeBoundary::kRangeBoundaryInt64;
+    default:
+      UNREACHABLE();
+      return RangeBoundary::kRangeBoundarySmi;
+  }
+}
+
+Range Range::Full(Representation rep) {
+  ASSERT(RepresentationUtils::IsUnboxedInteger(rep));
+  return Range(RangeBoundary::FromConstant(RepresentationUtils::MinValue(rep)),
+               RangeBoundary::FromConstant(RepresentationUtils::MaxValue(rep)));
+}
+
 bool Range::IsPositive() const {
   return OnlyGreaterThanOrEqualTo(0);
 }
@@ -2095,6 +2148,19 @@ bool Range::OnlyGreaterThanOrEqualTo(int64_t val) const {
 // Inclusive.
 bool Range::IsWithin(int64_t min_int, int64_t max_int) const {
   return OnlyGreaterThanOrEqualTo(min_int) && OnlyLessThanOrEqualTo(max_int);
+}
+
+bool Range::IsWithin(const Range* other) const {
+  auto const lower_bound = other->min().LowerBound();
+  auto const upper_bound = other->max().UpperBound();
+  if (lower_bound.IsNegativeInfinity()) {
+    if (upper_bound.IsPositiveInfinity()) return true;
+    return OnlyLessThanOrEqualTo(other->max().ConstantValue());
+  } else if (upper_bound.IsPositiveInfinity()) {
+    return OnlyGreaterThanOrEqualTo(other->min().ConstantValue());
+  } else {
+    return IsWithin(other->min().ConstantValue(), other->max().ConstantValue());
+  }
 }
 
 bool Range::Overlaps(int64_t min_int, int64_t max_int) const {
@@ -2577,6 +2643,12 @@ void Definition::InferRange(RangeAnalysis* analysis, Range* range) {
     // Only Smi and Mint supported.
     FATAL("Unsupported type in: %s", ToCString());
   }
+
+  // If the representation also gives us range information, then refine
+  // the range from the type by using the intersection of the two.
+  if (RepresentationUtils::IsUnboxedInteger(representation())) {
+    *range = Range::Full(representation()).Intersect(range);
+  }
 }
 
 static bool DependsOnSymbol(const RangeBoundary& a, Definition* symbol) {
@@ -2734,24 +2806,6 @@ void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   *range = result;
 }
 
-static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
-  switch (r) {
-    case kTagged:
-      return RangeBoundary::kRangeBoundarySmi;
-    case kUnboxedUint8:  // Overapproximate Uint8 as Int16.
-      return RangeBoundary::kRangeBoundaryInt16;
-    case kUnboxedInt32:
-    case kUnboxedUint16:  // Overapproximate Uint16 as Int32.
-      return RangeBoundary::kRangeBoundaryInt32;
-    case kUnboxedInt64:
-    case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
-      return RangeBoundary::kRangeBoundaryInt64;
-    default:
-      UNREACHABLE();
-      return RangeBoundary::kRangeBoundarySmi;
-  }
-}
-
 void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   switch (slot().kind()) {
     case Slot::Kind::kArray_length:
@@ -2855,7 +2909,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   case Slot::Kind::k##Class##_##Field:
       UNBOXED_NATIVE_NONADDRESS_SLOTS_LIST(UNBOXED_NATIVE_NONADDRESS_SLOT_CASE)
 #undef UNBOXED_NATIVE_NONADDRESS_SLOT_CASE
-      *range = Range::Full(RepresentationToRangeSize(slot().representation()));
+      *range = Range::Full(slot().representation());
       break;
 
 #define UNBOXED_NATIVE_ADDRESS_SLOT_CASE(Class, Untagged, Field, MayMove,      \
@@ -3073,91 +3127,79 @@ void ShiftIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* value_range = value()->definition()->range();
-  if (!Range::IsUnknown(value_range)) {
+  if (Range::IsUnknown(value_range)) {
+    *range = Range::Full(from_representation());
+  } else {
+    ASSERT_VALID_RANGE_FOR_REPRESENTATION(value()->definition(), value_range,
+                                          from_representation());
     *range = *value_range;
   }
 }
 
-void UnboxInt32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
-  if (value()->Type()->ToCid() == kSmiCid) {
-    const Range* value_range = analysis->GetSmiRange(value());
-    if (!Range::IsUnknown(value_range)) {
-      *range = *value_range;
-    }
-  } else if (RangeAnalysis::IsIntegerDefinition(value()->definition())) {
-    const Range* value_range = analysis->GetIntRange(value());
-    if (!Range::IsUnknown(value_range)) {
-      *range = *value_range;
-    }
-  } else if (value()->Type()->ToCid() == kSmiCid) {
-    *range = Range::Full(RangeBoundary::kRangeBoundarySmi);
-  } else {
-    *range = Range::Full(RangeBoundary::kRangeBoundaryInt32);
-  }
-}
+void UnboxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  auto* const value_range = value()->Type()->ToCid() == kSmiCid
+                                ? analysis->GetSmiRange(value())
+                                : value()->definition()->range();
+  const Range to_range = Range::Full(representation());
 
-void UnboxUint32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* value_range = nullptr;
-
-  if (value()->Type()->ToCid() == kSmiCid) {
-    value_range = analysis->GetSmiRange(value());
-  } else if (RangeAnalysis::IsIntegerDefinition(value()->definition())) {
-    value_range = analysis->GetIntRange(value());
-  } else {
-    *range = Range(RangeBoundary::FromConstant(0),
-                   RangeBoundary::FromConstant(kMaxUint32));
-    return;
-  }
-
-  if (!Range::IsUnknown(value_range)) {
-    if (value_range->IsPositive()) {
-      *range = *value_range;
-    } else {
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(kMaxUint32));
-    }
-  }
-}
-
-void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* value_range = value()->definition()->range();
-  if (value_range != nullptr) {
+  if (Range::IsUnknown(value_range)) {
+    *range = to_range;
+  } else if (value_range->IsWithin(&to_range)) {
     *range = *value_range;
-  } else if (!value()->definition()->IsInt64Definition() &&
-             (value()->definition()->Type()->ToCid() != kSmiCid)) {
-    *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
+  } else if (is_truncating()) {
+    // If truncating, then in most cases any non-representable values means
+    // no assumption can be made about the truncated value.
+    *range = to_range;
+  } else {
+    // When not truncating, then unboxing deoptimizes if the value is outside
+    // the range representation.
+    *range = value_range->Intersect(&to_range);
   }
+  ASSERT_VALID_RANGE_FOR_REPRESENTATION(this, range, representation());
 }
 
 void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged &&
-            (to() == kUnboxedIntPtr || to() == kUnboxedFfiIntPtr)) ||
-           ((from() == kUnboxedIntPtr || from() == kUnboxedFfiIntPtr) &&
-            to() == kUntagged));
-  } else {
-    ASSERT(from() == kUnboxedInt32 || from() == kUnboxedInt64 ||
-           from() == kUnboxedUint32);
-    ASSERT(to() == kUnboxedInt32 || to() == kUnboxedInt64 ||
-           to() == kUnboxedUint32);
-  }
+  ASSERT(to() != kUntagged);  // Not an integer-valued definition.
+  ASSERT(RepresentationUtils::IsUnboxedInteger(to()));
+  ASSERT(from() == kUntagged || RepresentationUtils::IsUnboxedInteger(from()));
 
-  const Range* value_range = value()->definition()->range();
-  if (Range::IsUnknown(value_range)) {
-    return;
-  }
+  const Range* const value_range = value()->definition()->range();
+  const Range to_range = Range::Full(to());
 
-  if (to() == kUnboxedUint32) {
-    // TODO(vegorov): improve range information for unboxing to Uint32.
-    *range =
-        Range(RangeBoundary::FromConstant(0),
-              RangeBoundary::FromConstant(static_cast<int64_t>(kMaxUint32)));
-  } else {
+  if (from() == kUntagged) {
+    ASSERT(value_range == nullptr);  // Not an integer-valued definition.
+    *range = to_range;
+  } else if (Range::IsUnknown(value_range)) {
+    *range = to_range;
+  } else if (RepresentationUtils::ValueSize(to()) >
+                 RepresentationUtils::ValueSize(from()) &&
+             (!RepresentationUtils::IsUnsigned(to()) ||
+              RepresentationUtils::IsUnsigned(from()))) {
+    // All signed unboxed ints of larger sizes can represent all values for
+    // signed or unsigned unboxed ints of smaller sizes, and all unsigned
+    // unboxed ints of larger sizes can represent all values for unsigned
+    // boxed ints of smaller sizes.
     *range = *value_range;
-    if (to() == kUnboxedInt32) {
-      range->Clamp(RangeBoundary::kRangeBoundaryInt32);
+  } else if (is_truncating()) {
+    // Either the bits are being reinterpreted (if the two representations
+    // are the same size) or a larger value is being truncated. That means
+    // we need to determine whether or not the value range lies within the
+    // range of numbers that have the same representation (modulo truncation).
+    const Range common_range = Range::Full(from()).Intersect(&to_range);
+    if (value_range->IsWithin(&common_range)) {
+      *range = *value_range;
+    } else {
+      // In most cases, if there are non-representable values, then no
+      // assumptions can be made about the converted value.
+      *range = to_range;
     }
+  } else {
+    // The conversion deoptimizes if the value is outside the range represented
+    // by to(), so we can just take the intersection.
+    *range = value_range->Intersect(&to_range);
   }
+
+  ASSERT_VALID_RANGE_FOR_REPRESENTATION(this, range, to());
 }
 
 void AssertAssignableInstr::InferRange(RangeAnalysis* analysis, Range* range) {

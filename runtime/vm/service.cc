@@ -522,15 +522,6 @@ static bool CheckDebuggerDisabled(Thread* thread, JSONStream* js) {
 #endif
 }
 
-static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
-  return true;
-#else
-  return false;
-#endif
-}
-
 static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {
   if (!FLAG_profiler) {
     js->PrintError(kFeatureDisabled, "Profiler is disabled.");
@@ -3643,26 +3634,32 @@ static intptr_t ParseJSONCollection(Thread* thread,
   intptr_t n = strlen(str);
   if (n < 2) {
     return -1;
+  } else if (n == 2) {
+    return 0;
   }
+  // The JSON string array looks like [abc, def]. There are no quotes around the
+  // strings, but there is a space after the comma. start points to the first
+  // character of the element. end points to the separator after the element
+  // (']' or ',').
   intptr_t start = 1;
   while (start < n) {
     intptr_t end = start;
-    while ((str[end + 1] != ',') && (str[end + 1] != ']')) {
-      end++;
+    while (end < n) {
+      const char c = str[end];
+      if (c == ',' || c == ']') {
+        break;
+      }
+      ++end;
     }
-    if (end == start) {
-      // Empty element
-      break;
-    }
-    add(&str[start], end - start + 1);
-    start = end + 3;
+    add(&str[start], end - start);
+    start = end + 2;
   }
   return 0;
 }
 
-static intptr_t ParseJSONArray(Thread* thread,
-                               const char* str,
-                               const GrowableObjectArray& elements) {
+intptr_t ParseJSONArray(Thread* thread,
+                        const char* str,
+                        const GrowableObjectArray& elements) {
   Zone* zone = thread->zone();
   return ParseJSONCollection(
       thread, str, [zone, &elements](const char* start, intptr_t length) {
@@ -3734,10 +3731,6 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   js->PrintError(kFeatureDisabled, "disabled in AOT mode and PRODUCT.");
 #else
-  if (CheckCompilerDisabled(thread, js)) {
-    return;
-  }
-
   char* reports_str = Utils::StrDup(js->LookupParam("reports"));
   const EnumListParameter* reports_parameter =
       static_cast<const EnumListParameter*>(get_source_report_params[1]);
@@ -3848,10 +3841,6 @@ static void ReloadSources(Thread* thread, JSONStream* js) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
 #else
-  if (CheckCompilerDisabled(thread, js)) {
-    return;
-  }
-
   IsolateGroup* isolate_group = thread->isolate_group();
   if (isolate_group->library_tag_handler() == nullptr) {
     js->PrintError(kFeatureDisabled,
@@ -5756,10 +5745,6 @@ static const MethodParameter* const set_trace_class_allocation_params[] = {
 };
 
 static void SetTraceClassAllocation(Thread* thread, JSONStream* js) {
-  if (CheckCompilerDisabled(thread, js)) {
-    return;
-  }
-
   const char* class_id = js->LookupParam("classId");
   const bool enable = BoolParameter::Parse(js->LookupParam("enable"));
   intptr_t cid = -1;

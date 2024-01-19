@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 
 /// A constraint on the type [parameter] that we're inferring.
 /// We require that `lower <: parameter <: upper`.
@@ -39,11 +40,14 @@ class TypeConstraintGatherer {
   final TypeSystemImpl _typeSystem;
   final Set<TypeParameterElement> _typeParameters = Set.identity();
   final List<TypeConstraint> _constraints = [];
+  final TypeSystemOperations _typeSystemOperations;
 
   TypeConstraintGatherer({
     required TypeSystemImpl typeSystem,
     required Iterable<TypeParameterElement> typeParameters,
-  }) : _typeSystem = typeSystem {
+    required TypeSystemOperations typeSystemOperations,
+  })  : _typeSystem = typeSystem,
+        _typeSystemOperations = typeSystemOperations {
     _typeParameters.addAll(typeParameters);
   }
 
@@ -95,12 +99,12 @@ class TypeConstraintGatherer {
   /// constraints is unchanged.
   bool trySubtypeMatch(DartType P, DartType Q, bool leftSchema) {
     // If `P` is `_` then the match holds with no constraints.
-    if (identical(P, UnknownInferredType.instance)) {
+    if (_typeSystemOperations.isUnknownType(P)) {
       return true;
     }
 
     // If `Q` is `_` then the match holds with no constraints.
-    if (identical(Q, UnknownInferredType.instance)) {
+    if (_typeSystemOperations.isUnknownType(Q)) {
       return true;
     }
 
@@ -432,7 +436,7 @@ class TypeConstraintGatherer {
     // And `C1` is `C02 + ... + Cn2 + C0`.
     // And `C2` is `C1` with each constraint replaced with its closure
     // with respect to `[Z0, ..., Zn]`.
-    // TODO(scheglov) do closure
+    // TODO(scheglov): do closure
 
     return true;
   }

@@ -10,7 +10,7 @@ static method propertyGet(Never never) → dynamic {
   Never v5 = never{Never}.noSuchMethod;
 }
 static method propertySet(Never never) → dynamic {
-  core::int v1 = never{Never}.foo = 42;
+  core::int v1 = never.{Never}foo = 42;
 }
 static method methodInvocation(Never never, core::Invocation invocation) → dynamic {
   Never v1 = never{Never}.foo();

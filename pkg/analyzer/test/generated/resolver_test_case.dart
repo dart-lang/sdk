@@ -103,7 +103,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
-    // TODO(brianwilkerson) If we start resolving function expressions, then
+    // TODO(brianwilkerson): If we start resolving function expressions, then
     // conditionally check to see whether the node was resolved correctly.
     //checkResolved(node, node.getElement(), FunctionElement.class);
   }
@@ -255,7 +255,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   }
 
   String _getFileName(AstNode? node) {
-    // TODO (jwren) there are two copies of this method, one here and one in
+    // TODO(jwren): there are two copies of this method, one here and one in
     // StaticTypeVerifier, they should be resolved into a single method
     if (node != null) {
       AstNode root = node.root;

@@ -526,28 +526,33 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
 
   @override
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
-    if (_isHostChecked) {
-      if (_useSdk) {
+    if (_useSdk) {
+      if (_isHostChecked) {
         throw "--host-checked and --use-sdk cannot be used together";
       }
-      // The script dart2wasm_developer is not included in the
-      // shipped SDK, that is the script is not installed in
-      // "$buildDir/dart-sdk/bin/"
-      return '$prefix/dart2wasm_developer$shellScriptExtension';
+      return '${_configuration.buildDirectory}/dart-sdk/bin/dart';
     }
-    if (_useSdk) {
-      prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
-    }
-    return '$prefix/dart2wasm$shellScriptExtension';
+    return 'pkg/dart2wasm/tool/compile_benchmark';
   }
 
   @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
+      if (_useSdk) ...[
+        'compile',
+        'wasm',
+      ] else ...[
+        if (_isHostChecked) '--compiler-asserts',
+      ],
       ...testFile.sharedOptions,
-      ..._configuration.sharedOptions,
+      if (_useSdk)
+        // `dart compile exe` doesn't support -D arguments atm
+        // http://dartbug.com/54675
+        ..._configuration.sharedOptions
+            .where((o) => !o.startsWith('-Dtest_runner'))
+      else
+        ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2wasmOptions,
       // The file being compiled is the last argument.
@@ -557,8 +562,11 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
 
   Command computeCompilationCommand(String outputFileName,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    arguments = arguments.toList();
-    arguments.add(outputFileName);
+    arguments = [
+      ...arguments,
+      if (_useSdk) '-o',
+      outputFileName,
+    ];
 
     var command = CompilationCommand(
         'dart2wasm',
@@ -601,13 +609,12 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       CommandArtifact? artifact) {
     final filename = artifact!.filename;
     final args = testFile.dartOptions;
+    final isD8 = runtimeConfiguration is D8RuntimeConfiguration;
     return [
-      '--experimental-wasm-gc',
-      '--experimental-wasm-type-reflection',
-      '--wasm-final-types',
-      '--wasm-disable-deprecated',
+      if (isD8) '--turboshaft-wasm',
+      if (isD8) '--experimental-wasm-imported-strings',
       'pkg/dart2wasm/bin/run_wasm.js',
-      '--',
+      if (isD8) '--',
       '${filename.substring(0, filename.lastIndexOf('.'))}.mjs',
       filename,
       ...testFile.sharedObjects
@@ -935,16 +942,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var exec = _configuration.genSnapshotPath;
     if (exec == null) {
       var gcc32 = "<does-not-exist>";
-      var gcc64 = "<does-not-exist>";
       var clang32 = "<does-not-exist>";
       var clang64 = "<does-not-exist>";
       if (Architecture.host == Architecture.x64) {
         gcc32 = "x86";
-        gcc64 = "x64";
         clang32 = "clang_x86";
         clang64 = "clang_x64";
       } else if (Architecture.host == Architecture.arm64) {
-        gcc64 = "arm64";
         clang64 = "clang_arm64";
       }
       if (_isAndroid) {
@@ -968,7 +972,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       } else if (_isRiscv32 && _configuration.useQemu) {
         exec = "$buildDir/$gcc32/gen_snapshot";
       } else if (_isRiscv64 && _configuration.useQemu) {
-        exec = "$buildDir/$gcc64/gen_snapshot";
+        exec = "$buildDir/$clang64/gen_snapshot";
       } else {
         exec = "$buildDir/gen_snapshot";
       }
@@ -987,13 +991,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ],
       if (_isAndroid && (_isArm || _isArmX64)) ...[
         '--no-sim-use-hardfp',
-        '--no-use-integer-division',
       ],
       if (_configuration.isMinified) '--obfuscate',
       ..._nnbdModeArgument(_configuration),
-      // The SIMARM precompiler assumes support for integer division, but the
-      // Qemu arm cpus do not support integer division.
-      if (_configuration.useQemu) '--no-use-integer-division',
       if (arguments.contains('--print-flow-graph-optimized'))
         '--redirect-isolate-log-to=$tempDir/out.il',
       if (arguments.contains('--print-flow-graph-optimized') &&

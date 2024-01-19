@@ -308,6 +308,10 @@ abstract class FileSystemEntity {
   /// ```
   /// since `Uri.resolve` removes `..` segments. This will result in the Windows
   /// behavior.
+  ///
+  /// On Windows, attempting to resolve a symbolic link where the link type
+  /// does not match the type of the resolved file system object will cause the
+  /// Future to complete with a [PathAccessException] error.
   Future<String> resolveSymbolicLinks() {
     return _File._dispatchWithNamespace(
         _IOService.fileResolveSymbolicLinks, [null, _rawPath]).then((response) {
@@ -343,6 +347,11 @@ abstract class FileSystemEntity {
   /// ```
   /// since `Uri.resolve` removes `..` segments. This will result in the Windows
   /// behavior.
+  ///
+  /// On Windows, a symbolic link is created as either a file link or a
+  /// directory link. Attempting to resolve such a symbolic link requires the
+  /// link type to match the type of the file system object that it points to,
+  /// otherwise it throws a [PathAccessException].
   String resolveSymbolicLinksSync() {
     var result = _resolveSymbolicLinks(_Namespace._namespace, _rawPath);
     _throwIfError(result, "Cannot resolve symbolic links", path);
@@ -379,37 +388,21 @@ abstract class FileSystemEntity {
 
   /// Deletes this [FileSystemEntity].
   ///
-  /// If the [FileSystemEntity] is a directory, and if [recursive] is `false`,
-  /// the directory must be empty. Otherwise, if [recursive] is true, the
-  /// directory and all sub-directories and files in the directories are
-  /// deleted. Links are not followed when deleting recursively. Only the link
-  /// is deleted, not its target.
+  /// The exact details vary according to the [FileSystemEntity]:
   ///
-  /// If [recursive] is true, the [FileSystemEntity] is deleted even if the type
-  /// of the [FileSystemEntity] doesn't match the content of the file system.
-  /// This behavior allows [delete] to be used to unconditionally delete any file
-  /// system object.
-  ///
-  /// Returns a `Future<FileSystemEntity>` that completes with this
-  /// [FileSystemEntity] when the deletion is done. If the [FileSystemEntity]
-  /// cannot be deleted, the future completes with an exception.
+  ///   * [Directory.delete]
+  ///   * [File.delete]
+  ///   * [Link.delete]
   Future<FileSystemEntity> delete({bool recursive = false}) =>
       _delete(recursive: recursive);
 
   /// Synchronously deletes this [FileSystemEntity].
   ///
-  /// If the [FileSystemEntity] is a directory, and if [recursive] is false,
-  /// the directory must be empty. Otherwise, if [recursive] is true, the
-  /// directory and all sub-directories and files in the directories are
-  /// deleted. Links are not followed when deleting recursively. Only the link
-  /// is deleted, not its target.
+  /// The exact details vary according to the [FileSystemEntity]:
   ///
-  /// If [recursive] is true, the [FileSystemEntity] is deleted even if the type
-  /// of the [FileSystemEntity] doesn't match the content of the file system.
-  /// This behavior allows [deleteSync] to be used to unconditionally delete any
-  /// file system object.
-  ///
-  /// Throws an exception if the [FileSystemEntity] cannot be deleted.
+  ///   * [Directory.deleteSync]
+  ///   * [File.deleteSync]
+  ///   * [Link.deleteSync]
   void deleteSync({bool recursive = false}) =>
       _deleteSync(recursive: recursive);
 
@@ -685,11 +678,15 @@ abstract class FileSystemEntity {
 
   /// Synchronously finds the type of file system object that a path points to.
   ///
-  /// Returns [FileSystemEntityType.link] only if [followLinks] is `false` and if
-  /// [path] points to a link.
-  ///
   /// Returns [FileSystemEntityType.notFound] if [path] does not point to a file
   /// system object or if any other error occurs in looking up the path.
+  ///
+  /// If [path] points to a link and [followLinks] is `true` then the result
+  /// will be for the file system object that the link points to. If that
+  /// object does not exist then the result will be
+  /// [FileSystemEntityType.notFound]. If [path] points to a link and
+  /// [followLinks] is `false` then the result will be
+  /// [FileSystemEntityType.link].
   static FileSystemEntityType typeSync(String path, {bool followLinks = true}) {
     return _getTypeSync(_toUtf8Array(path), followLinks);
   }
@@ -837,7 +834,11 @@ abstract class FileSystemEntity {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(path, "path");
     if (Platform.isWindows) {
-      while (path.length > 1 &&
+      // "C:" and "C:\" are semantically different on Windows and only "C:\" is an
+      // absolute path.
+      // See https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
+      final minimumCharToNotTrim = _isAbsolute(path) ? 3 : 1;
+      while (path.length > minimumCharToNotTrim &&
           (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {
         path = path.substring(0, path.length - 1);
       }

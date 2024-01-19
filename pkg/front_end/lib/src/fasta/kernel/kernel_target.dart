@@ -335,7 +335,10 @@ class KernelTarget extends TargetImplementation {
       loader.resolveParts();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
-      NeededPrecompilations? result = loader.computeMacroDeclarations();
+      NeededPrecompilations? result =
+          context.options.globalFeatures.macros.isEnabled
+              ? loader.computeMacroDeclarations()
+              : null;
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.unknownComputeNeededPrecompilations);
@@ -530,7 +533,8 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_checkRedirectingFactories);
-      loader.checkRedirectingFactories(sortedSourceClassBuilders);
+      loader.checkRedirectingFactories(
+          sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_finishSynthesizedParameters);
@@ -849,7 +853,7 @@ class KernelTarget extends TargetImplementation {
       if (proc.isFactory) return;
     }
 
-    IndexedContainer? indexedClass = builder.referencesFromIndexed;
+    IndexedContainer? indexedClass = builder.indexedContainer;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -907,7 +911,7 @@ class KernelTarget extends TargetImplementation {
       installForwardingConstructors(supertype);
     }
 
-    IndexedContainer? indexedClass = builder.referencesFromIndexed;
+    IndexedContainer? indexedClass = builder.indexedContainer;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -1060,8 +1064,7 @@ class KernelTarget extends TargetImplementation {
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
-        new DelayedDefaultValueCloner(
-            superConstructor, constructor, substitutionMap,
+        new DelayedDefaultValueCloner(superConstructor, constructor,
             libraryBuilder: libraryBuilder);
 
     TypeDependency? typeDependency;
@@ -1618,7 +1621,7 @@ class KernelTarget extends TargetImplementation {
         VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
     assert(allowVerificationErrorForTesting || errors.isEmpty,
-        "Verification errors found.");
+        "Verification errors found: $errors");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {

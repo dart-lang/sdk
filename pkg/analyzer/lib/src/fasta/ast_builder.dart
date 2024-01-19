@@ -68,6 +68,7 @@ import 'package:analyzer/src/fasta/doc_comment_builder.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -100,7 +101,7 @@ class AstBuilder extends StackListener {
   ///
   /// This is being replaced by the @native(...) annotation.
   //
-  // TODO(danrubel) Move this flag to a better location
+  // TODO(danrubel): Move this flag to a better location
   // and should only be true if either:
   // * The current library is a platform library
   // * The current library has an import that uses the scheme "dart-ext".
@@ -739,9 +740,9 @@ class AstBuilder extends StackListener {
     }
   }
 
-  /// TODO(scheglov) We should not do this.
-  /// Ideally, we should not test parsing pieces of class, and instead parse
-  /// the whole unit, and extract pieces that we need to validate.
+  // TODO(scheglov): We should not do this.
+  // Ideally, we should not test parsing pieces of class, and instead parse
+  // the whole unit, and extract pieces that we need to validate.
   _ClassDeclarationBuilder createFakeClassDeclarationBuilder(String className) {
     return _classLikeBuilder = _ClassDeclarationBuilder(
       comment: null,
@@ -914,7 +915,6 @@ class AstBuilder extends StackListener {
             ),
           ),
         );
-        break;
       case Assert.Initializer:
         push(
           AssertInitializerImpl(
@@ -926,7 +926,6 @@ class AstBuilder extends StackListener {
             rightParenthesis: leftParenthesis.endGroup!,
           ),
         );
-        break;
       case Assert.Statement:
         push(
           AssertStatementImpl(
@@ -939,7 +938,6 @@ class AstBuilder extends StackListener {
             semicolon: semicolon,
           ),
         );
-        break;
     }
   }
 
@@ -1603,7 +1601,7 @@ class AstBuilder extends StackListener {
       Token beginToken,
       Token endToken) {
     if (staticToken == null) {
-      // TODO(danrubel) Decide how to handle instance field declarations
+      // TODO(danrubel): Decide how to handle instance field declarations
       // within extensions. They are invalid and the parser has already reported
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
@@ -1634,23 +1632,46 @@ class AstBuilder extends StackListener {
       Token typeKeyword, Token endToken) {
     final implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
-    final representation = pop(const NullValue<RepresentationDeclarationImpl>())
+    var representation = pop(const NullValue<RepresentationDeclarationImpl>())
         as RepresentationDeclarationImpl?;
     final constKeyword = pop() as Token?;
 
     if (enableInlineClass) {
       final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
-      if (representation != null) {
-        // TODO(scheglov): Handle missing primary constructor.
-        declarations.add(
-          builder.build(
-            typeKeyword: typeKeyword,
-            constKeyword: constKeyword,
-            representation: representation,
-            implementsClause: implementsClause,
-          ),
+      if (representation == null) {
+        var leftParenthesis = parser.rewriter.insertParens(builder.name, true);
+        var typeName = leftParenthesis.next!;
+        var rightParenthesis = leftParenthesis.endGroup!;
+        var fieldName = parser.rewriter.insertSyntheticIdentifier(typeName);
+        representation = RepresentationDeclarationImpl(
+          constructorName: null,
+          leftParenthesis: leftParenthesis,
+          fieldMetadata: [],
+          fieldType: NamedTypeImpl(
+              importPrefix: null,
+              name2: typeName,
+              question: null,
+              typeArguments: null),
+          fieldName: fieldName,
+          rightParenthesis: rightParenthesis,
         );
       }
+      // Check for extension type name conflict.
+      var representationName = representation.fieldName;
+      if (representationName.lexeme == builder.name.lexeme) {
+        errorReporter.errorReporter?.reportErrorForToken(
+          ParserErrorCode.MEMBER_WITH_CLASS_NAME,
+          representationName,
+        );
+      }
+      declarations.add(
+        builder.build(
+          typeKeyword: typeKeyword,
+          constKeyword: constKeyword,
+          representation: representation,
+          implementsClause: implementsClause,
+        ),
+      );
     } else {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.inline_class,
@@ -1789,16 +1810,7 @@ class AstBuilder extends StackListener {
         startToken: requiredKeyword,
       );
     }
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/53324
-    // If the issue fixed, we can remove this from the analyzer.
-    if (_classLikeBuilder is _ExtensionTypeDeclarationBuilder &&
-        covariantKeyword != null) {
-      errorReporter.errorReporter?.reportErrorForToken(
-        ParserErrorCode.EXTRANEOUS_MODIFIER,
-        covariantKeyword,
-        [covariantKeyword.lexeme],
-      );
-    }
+
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
@@ -2823,7 +2835,6 @@ class AstBuilder extends StackListener {
             typeArguments: null,
             question: null,
           );
-          break;
       }
       if (firstFormalParameter.keyword case final keyword?) {
         if (keyword.keyword != Keyword.CONST) {
@@ -3022,7 +3033,7 @@ class AstBuilder extends StackListener {
     final expression = RethrowExpressionImpl(
       rethrowKeyword: rethrowToken,
     );
-    // TODO(scheglov) According to the specification, 'rethrow' is a statement.
+    // TODO(scheglov): According to the specification, 'rethrow' is a statement.
     push(
       ExpressionStatementImpl(
         expression: expression,
@@ -3069,7 +3080,7 @@ class AstBuilder extends StackListener {
     debugEvent("SwitchBlock");
 
     var membersList = popTypedList2<List<SwitchMemberImpl>>(caseCount);
-    var members = membersList.expand((members) => members).toList();
+    var members = membersList.flattenedToList2;
 
     Set<String> labels = <String>{};
     for (var member in members) {
@@ -3469,7 +3480,7 @@ class AstBuilder extends StackListener {
         optional('extends', extendsOrSuper) ||
         optional('super', extendsOrSuper));
 
-    // TODO (kallentu): Implement variance behaviour for the analyzer.
+    // TODO(kallentu): Implement variance behaviour for the analyzer.
     assert(variance == null ||
         optional('in', variance) ||
         optional('out', variance) ||
@@ -3764,7 +3775,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       push(NullValues.ExtendsClause);
-      // TODO(brianwilkerson) Consider (a) extending `ExtendsClause` to accept
+      // TODO(brianwilkerson): Consider (a) extending `ExtendsClause` to accept
       //  any type annotation for recovery purposes, and (b) extending the
       //  parser to parse a generic function type at this location.
       if (supertype != null) {
@@ -3914,7 +3925,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("EmptyFunctionBody");
 
-    // TODO(scheglov) Change the parser to not produce these modifiers.
+    // TODO(scheglov): Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
     push(
@@ -4802,7 +4813,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("NativeFunctionBody");
 
-    // TODO(danrubel) Change the parser to not produce these modifiers.
+    // TODO(danrubel): Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
     push(
@@ -5102,7 +5113,7 @@ class AstBuilder extends StackListener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
+    // TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
     } else if (message.code == codeBuiltInIdentifierInDeclaration) {
@@ -5183,7 +5194,7 @@ class AstBuilder extends StackListener {
 
     final directive = directives.last as ImportDirectiveImpl;
 
-    // TODO(scheglov) This code would be easier if we used one object.
+    // TODO(scheglov): This code would be easier if we used one object.
     var mergedAsKeyword = directive.asKeyword;
     var mergedPrefix = directive.prefix;
     if (directive.asKeyword == null && asKeyword != null) {
@@ -5545,7 +5556,7 @@ class AstBuilder extends StackListener {
   }
 
   List<CollectionElementImpl> popCollectionElements(int count) {
-    // TODO(scheglov) Not efficient.
+    // TODO(scheglov): Not efficient.
     final elements = <CollectionElementImpl>[];
     for (int index = count - 1; index >= 0; --index) {
       var element = pop();
@@ -5568,7 +5579,7 @@ class AstBuilder extends StackListener {
     return tailList.whereNotNull().toList();
   }
 
-  /// TODO(scheglov) This is probably not optimal.
+  // TODO(scheglov): This is probably not optimal.
   List<T> popTypedList2<T>(int count) {
     var result = <T>[];
     for (var i = 0; i < count; i++) {
@@ -5658,6 +5669,19 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
           messageConstConstructorWithBody, bodyToken, bodyToken);
     }
+
+    if (modifiers?.externalKeyword != null) {
+      for (final formalParameter in parameters.parameters) {
+        final notDefault = formalParameter.notDefault;
+        if (notDefault is FieldFormalParameterImpl) {
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
+            notDefault.thisKeyword,
+          );
+        }
+      }
+    }
+
     var constructor = ConstructorDeclarationImpl(
       comment: comment,
       metadata: metadata,

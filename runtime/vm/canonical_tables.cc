@@ -24,8 +24,14 @@ bool MetadataMapTraits::IsMatch(const Object& a, const Object& b) {
     const String& name_b = String::Handle(Class::Cast(b).Name());
     return name_a.Equals(name_b);
   } else if (a.IsFunction() && b.IsFunction()) {
-    const String& name_a = String::Handle(Function::Cast(a).name());
-    const String& name_b = String::Handle(Function::Cast(b).name());
+    const auto& func_a = Function::Cast(a);
+    const auto& func_b = Function::Cast(b);
+    if (func_a.IsNonImplicitClosureFunction() ||
+        func_b.IsNonImplicitClosureFunction()) {
+      return a.ptr() == b.ptr();
+    }
+    const String& name_a = String::Handle(func_a.name());
+    const String& name_b = String::Handle(func_b.name());
     if (!name_a.Equals(name_b)) {
       return false;
     }

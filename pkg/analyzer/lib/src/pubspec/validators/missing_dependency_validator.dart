@@ -6,7 +6,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:yaml/yaml.dart';
@@ -74,6 +74,12 @@ class MissingDependencyValidator {
     final devDependencies =
         getDeclaredDependencies(PubspecField.DEV_DEPENDENCIES_FIELD);
 
+    final packageName =
+        contents.nodes[PubspecField.NAME_FIELD]?.value.toString();
+    // Ensure that the package itself is not listed as a dependency.
+    usedDeps.remove(packageName);
+    usedDevDeps.remove(packageName);
+
     var availableDeps = [
       if (dependencies.isNotEmpty)
         for (var dep in dependencies.entries) dep.key.toString()
@@ -95,7 +101,7 @@ class MissingDependencyValidator {
       }
     }
     for (var name in usedDevDeps) {
-      if (!availableDevDeps.contains(name)) {
+      if (!availableDevDeps.contains(name) && !availableDeps.contains(name)) {
         addDevDeps.add(name);
       }
     }

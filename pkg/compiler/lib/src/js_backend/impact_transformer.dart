@@ -56,7 +56,6 @@ class CodegenImpactTransformer {
   DartTypes get _dartTypes => _closedWorld.dartTypes;
 
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
-    assert((type as dynamic) != null);
     if (_dartTypes.isTopType(type)) return;
 
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);
@@ -105,7 +104,20 @@ class CodegenImpactTransformer {
           _closedWorld.outputUnitData.registerConstantDeferredUse(
               constantUse.value as DeferredGlobalConstantValue);
           break;
-        default:
+        case ConstantValueKind.BOOL:
+        case ConstantValueKind.DOUBLE:
+        case ConstantValueKind.DUMMY_INTERCEPTOR:
+        case ConstantValueKind.FUNCTION:
+        case ConstantValueKind.INT:
+        case ConstantValueKind.INTERCEPTOR:
+        case ConstantValueKind.JAVASCRIPT_OBJECT:
+        case ConstantValueKind.JS_NAME:
+        case ConstantValueKind.LATE_SENTINEL:
+        case ConstantValueKind.NULL:
+        case ConstantValueKind.RECORD:
+        case ConstantValueKind.STRING:
+        case ConstantValueKind.TYPE:
+        case ConstantValueKind.UNREACHABLE:
           break;
       }
     }
@@ -175,6 +187,9 @@ class CodegenImpactTransformer {
         case AsyncMarker.ASYNC_STAR:
           _impacts.asyncStarBody
               .registerImpact(transformed, _elementEnvironment);
+          break;
+        case AsyncMarker.SYNC:
+          // No implicit impacts.
           break;
       }
     }

@@ -43,7 +43,6 @@ namespace dart {
 #define LARGE_RESERVATIONS_MAY_FAIL
 #endif
 
-DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
 #if defined(DART_TARGET_OS_LINUX)
@@ -189,46 +188,6 @@ void VirtualMemory::Init() {
                                     compressed_heap_->size());
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
-#if defined(DUAL_MAPPING_SUPPORTED)
-// Perf is Linux-specific and the flags aren't defined in Product.
-#if defined(DART_TARGET_OS_LINUX) && !defined(PRODUCT)
-  // Perf interacts strangely with memfds, leading it to sometimes collect
-  // garbled return addresses.
-  if (FLAG_generate_perf_events_symbols || FLAG_generate_perf_jitdump) {
-    LOG_INFO(
-        "Dual code mapping disabled to generate perf events or jitdump.\n");
-    FLAG_dual_map_code = false;
-    return;
-  }
-#endif
-
-  // Detect dual mapping exec permission limitation on some platforms,
-  // such as on docker containers, and disable dual mapping in this case.
-  // Also detect for missing support of memfd_create syscall.
-  if (FLAG_dual_map_code) {
-    intptr_t size = PageSize();
-    intptr_t alignment = kPageSize;
-    bool executable = true;
-    bool compressed = false;
-    VirtualMemory* vm =
-        AllocateAligned(size, alignment, executable, compressed, "memfd-test");
-    if (vm == nullptr) {
-      LOG_INFO("memfd_create not supported; disabling dual mapping of code.\n");
-      FLAG_dual_map_code = false;
-      return;
-    }
-    void* region = reinterpret_cast<void*>(vm->region_.start());
-    void* alias = reinterpret_cast<void*>(vm->alias_.start());
-    if (region == alias ||
-        mprotect(region, size, PROT_READ) != 0 ||  // Remove PROT_WRITE.
-        mprotect(alias, size, PROT_READ | PROT_EXEC) != 0) {  // Add PROT_EXEC.
-      LOG_INFO("mprotect fails; disabling dual mapping of code.\n");
-      FLAG_dual_map_code = false;
-    }
-    delete vm;
-  }
-#endif  // defined(DUAL_MAPPING_SUPPORTED)
-
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   FILE* fp = fopen("/proc/sys/vm/max_map_count", "r");
   if (fp != nullptr) {
@@ -260,58 +219,6 @@ void VirtualMemory::Cleanup() {
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
-bool VirtualMemory::DualMappingEnabled() {
-  return FLAG_dual_map_code;
-}
-
-#if defined(DUAL_MAPPING_SUPPORTED)
-// Do not leak file descriptors to child processes.
-#if !defined(MFD_CLOEXEC)
-#define MFD_CLOEXEC 0x0001U
-#endif
-
-// Wrapper to call memfd_create syscall.
-static inline int memfd_create(const char* name, unsigned int flags) {
-#if !defined(__NR_memfd_create)
-  errno = ENOSYS;
-  return -1;
-#else
-  return syscall(__NR_memfd_create, name, flags);
-#endif
-}
-
-static void* MapAligned(void* hint,
-                        int fd,
-                        int prot,
-                        intptr_t size,
-                        intptr_t alignment,
-                        intptr_t allocated_size) {
-  ASSERT(size <= allocated_size);
-  void* address =
-      Map(hint, allocated_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  if (address == MAP_FAILED) {
-    return nullptr;
-  }
-
-  const uword base = reinterpret_cast<uword>(address);
-  const uword aligned_base = Utils::RoundUp(base, alignment);
-
-  // Guarantee the alignment by mapping at a fixed address inside the above
-  // mapping. Overlapping region will be automatically discarded in the above
-  // mapping. Manually discard non-overlapping regions.
-  address = Map(reinterpret_cast<void*>(aligned_base), size, prot,
-                MAP_SHARED | MAP_FIXED, fd, 0);
-  if (address == MAP_FAILED) {
-    Unmap(base, base + allocated_size);
-    return nullptr;
-  }
-  ASSERT(address == reinterpret_cast<void*>(aligned_base));
-  Unmap(base, aligned_base);
-  Unmap(aligned_base + size, base + allocated_size);
-  return address;
-}
-#endif  // defined(DUAL_MAPPING_SUPPORTED)
-
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
@@ -320,9 +227,6 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
   // changed to executable via VirtualMemory::Protect.
-  //
-  // If FLAG_dual_map_code is active, the executable mapping will be mapped RX
-  // immediately and never changes protection until it is eventually unmapped.
   ASSERT(Utils::IsAligned(size, PageSize()));
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, PageSize()));
@@ -361,53 +265,6 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
   const intptr_t allocated_size = size + alignment - PageSize();
-#if defined(DUAL_MAPPING_SUPPORTED)
-  const bool dual_mapping =
-      is_executable && FLAG_write_protect_code && FLAG_dual_map_code;
-  if (dual_mapping) {
-    int fd = memfd_create(name, MFD_CLOEXEC);
-    if (fd == -1) {
-      int error = errno;
-      if (error != ENOMEM) {
-        const int kBufferSize = 1024;
-        char error_buf[kBufferSize];
-        FATAL("memfd_create failed: %d (%s)", error,
-              Utils::StrError(error, error_buf, kBufferSize));
-      }
-      return nullptr;
-    }
-    if (ftruncate(fd, size) == -1) {
-      close(fd);
-      return nullptr;
-    }
-    const int region_prot = PROT_READ | PROT_WRITE;
-    void* region_ptr =
-        MapAligned(nullptr, fd, region_prot, size, alignment, allocated_size);
-    if (region_ptr == nullptr) {
-      close(fd);
-      return nullptr;
-    }
-    // The mapping will be RX and stays that way until it will eventually be
-    // unmapped.
-    MemoryRegion region(region_ptr, size);
-    // DUAL_MAPPING_SUPPORTED is false in DART_TARGET_OS_MACOS and hence support
-    // for MAP_JIT is not required here.
-    const int alias_prot = PROT_READ | PROT_EXEC;
-    void* hint = reinterpret_cast<void*>(&Dart_Initialize);
-    void* alias_ptr =
-        MapAligned(hint, fd, alias_prot, size, alignment, allocated_size);
-    close(fd);
-    if (alias_ptr == nullptr) {
-      const uword region_base = reinterpret_cast<uword>(region_ptr);
-      Unmap(region_base, region_base + size);
-      return nullptr;
-    }
-    ASSERT(region_ptr != alias_ptr);
-    MemoryRegion alias(alias_ptr, size);
-    return new VirtualMemory(region, alias, region);
-  }
-#endif  // defined(DUAL_MAPPING_SUPPORTED)
-
   const int prot =
       PROT_READ | PROT_WRITE |
       ((is_executable && !FLAG_write_protect_code) ? PROT_EXEC : 0);
@@ -430,6 +287,18 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   }
   void* address =
       GenericMapAligned(hint, prot, size, alignment, allocated_size, map_flags);
+#if defined(DART_HOST_OS_LINUX)
+  // On WSL 1 trying to allocate memory close to the binary by supplying a hint
+  // fails with ENOMEM for unclear reason. Some reports suggest that this might
+  // be related to the alignment of the hint but aligning it by 64Kb does not
+  // make the issue go away in our experiments. Instead just retry without any
+  // hint.
+  if (address == nullptr && hint != nullptr &&
+      Utils::IsWindowsSubsystemForLinux()) {
+    address = GenericMapAligned(nullptr, prot, size, alignment, allocated_size,
+                                map_flags);
+  }
+#endif
   if (address == nullptr) {
     return nullptr;
   }
@@ -504,10 +373,6 @@ VirtualMemory::~VirtualMemory() {
 #endif  // defined(DART_COMPRESSED_POINTERS)
   if (vm_owns_region()) {
     Unmap(reserved_.start(), reserved_.end());
-    const intptr_t alias_offset = AliasOffset();
-    if (alias_offset != 0) {
-      Unmap(reserved_.start() + alias_offset, reserved_.end() + alias_offset);
-    }
   }
 }
 

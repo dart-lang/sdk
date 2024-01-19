@@ -23,7 +23,7 @@ testCompoundLoadAndStore() {
   reference.a = count;
 
   for (var j = 1; j < count; j++) {
-    final foo = foos.elementAt(j);
+    final foo = foos + j;
     foo.ref = reference;
   }
 

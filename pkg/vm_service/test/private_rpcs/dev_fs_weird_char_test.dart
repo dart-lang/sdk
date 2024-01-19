@@ -30,28 +30,40 @@ final tests = <VMTest>[
     }
 
     // Write the file.
-    result = await callMethod(service, '_writeDevFSFile', args: {
-      'fsName': fsId,
-      'path': filePath,
-      'fileContents': fileContents,
-    });
+    result = await callMethod(
+      service,
+      '_writeDevFSFile',
+      args: {
+        'fsName': fsId,
+        'path': filePath,
+        'fileContents': fileContents,
+      },
+    );
     expectSuccess(result);
 
     // Read the file back.
-    result = await callMethod(service, '_readDevFSFile', args: {
-      'fsName': fsId,
-      'path': filePath,
-    });
-    if (result case {'type': 'FSFile', 'fileContents': String contents}) {
+    result = await callMethod(
+      service,
+      '_readDevFSFile',
+      args: {
+        'fsName': fsId,
+        'path': filePath,
+      },
+    );
+    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
       expect(contents, fileContents);
     } else {
       invalidResponse(result);
     }
 
     // List all the files in the file system.
-    result = await callMethod(service, '_listDevFSFiles', args: {
-      'fsName': fsId,
-    });
+    result = await callMethod(
+      service,
+      '_listDevFSFiles',
+      args: {
+        'fsName': fsId,
+      },
+    );
     if (result
         case {
           'type': 'FSFileList',
@@ -63,9 +75,13 @@ final tests = <VMTest>[
     }
 
     // Delete DevFS.
-    result = await callMethod(service, '_deleteDevFS', args: {
-      'fsName': fsId,
-    });
+    result = await callMethod(
+      service,
+      '_deleteDevFS',
+      args: {
+        'fsName': fsId,
+      },
+    );
     expectSuccess(result);
   },
 ];

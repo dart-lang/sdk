@@ -31,7 +31,7 @@ void main() {
   //     handler = ExecutionDomainHandler(server, server.executionContext);
   //   });
   //
-  //  // TODO(brianwilkerson) Re-enable these tests if we re-enable the
+  //  // `TODO`(brianwilkerson) Re-enable these tests if we re-enable the
   //  // execution.mapUri request.
 //    group('mapUri', () {
 //      String contextId;
@@ -160,7 +160,7 @@ class ExecutionDomainTest extends PubPackageAnalysisServerTest {
   Future<void> test_deleteNonExistentContext() async {
     var request = ExecutionDeleteContextParams('13').toRequest('0');
     var response = await handleSuccessfulRequest(request);
-    // TODO(brianwilkerson) It isn't currently specified to be an error if a
+    // TODO(brianwilkerson): It isn't currently specified to be an error if a
     // client attempts to delete a context that doesn't exist. Should it be?
 //        expect(response, isResponseFailure('0'));
     expect(response, isResponseSuccess('0'));
@@ -197,7 +197,7 @@ void contextFunction() {
 //        contains(
 //            predicate<CompletionSuggestion>((s) => s.completion == 'foo')));
 
-    // TODO(brianwilkerson) Restore the expectations above (and delete the line
+    // TODO(brianwilkerson): Restore the expectations above (and delete the line
     // below) after the functionality has been re-enabled.
     expect(result.suggestions, isEmpty);
   }

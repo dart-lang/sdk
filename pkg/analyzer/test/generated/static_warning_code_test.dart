@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class StaticWarningCodeTest extends PubPackageResolutionTest {
-  // TODO(brianwilkerson) Figure out what to do with the rest of these tests.
+  // TODO(brianwilkerson): Figure out what to do with the rest of these tests.
   //  The names do not correspond to diagnostic codes, so it isn't clear what
   //  they're testing.
   test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation() async {

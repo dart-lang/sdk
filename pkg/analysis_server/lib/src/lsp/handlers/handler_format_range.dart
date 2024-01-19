@@ -65,7 +65,7 @@ class FormatRangeRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => DocumentRangeFormattingRegistrationOptions(
-        documentSelector: [dartFiles], // This is currently Dart-specific
+        documentSelector: dartFiles, // This is currently Dart-specific
       );
 
   @override

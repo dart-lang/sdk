@@ -4,6 +4,9 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
+import 'package:analysis_server/src/lsp/test_macros.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -20,7 +23,14 @@ void main() {
 }
 
 @reflectiveTest
-class DefinitionTest extends AbstractLspAnalysisServerTest {
+class DefinitionTest extends AbstractLspAnalysisServerTest with TestMacros {
+  @override
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
+    ..enabledExperiments = [
+      ...super.serverOptions.enabledExperiments,
+      EnableString.macros,
+    ];
+
   Future<void> test_acrossFiles() async {
     final mainContents = '''
     import 'referenced.dart';
@@ -364,7 +374,7 @@ foo(int m) {
     expect(loc.targetRange, equals(referencedCode.range.range));
     expect(
       loc.targetSelectionRange,
-      equals(rangeOfString(referencedCode.code, 'add')),
+      equals(rangeOfString(referencedCode, 'add')),
     );
   }
 
@@ -410,8 +420,98 @@ foo(int m) {
     expect(loc.targetRange, equals(referencedCode.range.range));
     expect(
       loc.targetSelectionRange,
-      equals(rangeOfString(referencedCode.code, 'foo')),
+      equals(rangeOfString(referencedCode, 'foo')),
     );
+  }
+
+  Future<void> test_macro_macroGeneratedFileToUserFile() async {
+    writePackageConfig(projectFolderPath, temporaryMacroSupport: true);
+
+    setLocationLinkSupport(); // To verify the full set of ranges.
+    setDartTextDocumentContentProviderSupport();
+    newFile(
+        join(projectFolderPath, 'lib', 'with_foo.dart'), withFooMethodMacro);
+
+    final code = TestCode.parse('''
+import 'with_foo.dart';
+
+f() {
+  A().foo();
+}
+
+@WithFoo()
+class A {
+  /*[0*/void /*[1*/bar/*1]*/() {}/*0]*/
+}
+''');
+
+    await initialize();
+    await Future.wait([
+      openFile(mainFileUri, code.code),
+      waitForAnalysisComplete(),
+    ]);
+
+    // Find the location of the call to bar() in the macro file so we can
+    // invoke Definition on it.
+    var macroResponse = await getDartTextDocumentContent(mainFileMacroUri);
+    var macroContent = macroResponse!.content!;
+    var barInvocationRange = rangeOfStringInString(macroContent, 'bar');
+
+    // Invoke Definition in the macro file at the location of the call back to
+    // the main file.
+    var locations = await getDefinitionAsLocationLinks(
+        mainFileMacroUri, barInvocationRange.start);
+    var location = locations.single;
+
+    // Check the origin selection range covers the text we'd expected in the
+    // generated file.
+    expect(
+        getTextForRange(macroContent, location.originSelectionRange!), 'bar');
+
+    // And the target matches our original file.
+    expect(location.targetUri, mainFileUri);
+    expect(location.targetRange, code.ranges[0].range);
+    expect(location.targetSelectionRange, code.ranges[1].range);
+  }
+
+  Future<void> test_macro_userFileToMacroGeneratedFile() async {
+    writePackageConfig(projectFolderPath, temporaryMacroSupport: true);
+
+    // TODO(dantup): Consider making LocationLink the default for tests (with
+    //  some specific tests for Location) because  it's what VS Code uses and
+    //  has more fields to verify.
+    setLocationLinkSupport(); // To verify the full set of ranges.
+    setDartTextDocumentContentProviderSupport();
+    newFile(
+        join(projectFolderPath, 'lib', 'with_foo.dart'), withFooMethodMacro);
+
+    final code = TestCode.parse('''
+import 'with_foo.dart';
+
+f() {
+  A().[!foo^!]();
+}
+
+@WithFoo()
+class A {}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var locations =
+        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+    var location = locations.single;
+
+    expect(location.originSelectionRange, code.range.range);
+    expect(location.targetUri, mainFileMacroUri);
+
+    // To verify the other ranges, fetch the content for the file and check
+    // those substrings are as expected.
+    var macroResponse = await getDartTextDocumentContent(location.targetUri);
+    var macroContent = macroResponse!.content!;
+    expect(getTextForRange(macroContent, location.targetRange),
+        'void foo() {bar();}');
+    expect(getTextForRange(macroContent, location.targetSelectionRange), 'foo');
   }
 
   Future<void> test_nonDartFile() async {
@@ -472,7 +572,7 @@ foo(int m) {
     expect(loc.targetRange, equals(partCode.range.range));
     expect(
       loc.targetSelectionRange,
-      equals(rangeOfString(partCode.code, 'add')),
+      equals(rangeOfString(partCode, 'add')),
     );
   }
 

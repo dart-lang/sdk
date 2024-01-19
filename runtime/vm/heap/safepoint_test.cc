@@ -387,7 +387,7 @@ class CheckinTask : public StateMachineTask {
 
 // Test that mutators will not check-in to "deopt safepoint operations" at
 // at places where the mutator cannot depot (which is indicated by the
-// Thread::runtime_call_kind_ value).
+// [Thread::runtime_call_deopt_ability_] value).
 #if !defined(PRODUCT)
 ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
   auto isolate_group = thread->isolate_group();

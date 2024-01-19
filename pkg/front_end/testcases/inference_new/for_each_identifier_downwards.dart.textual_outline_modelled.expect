@@ -1,6 +1,7 @@
 library test;
 
 A aTopLevel = throw '';
+
 T f<T>() => throw '';
 
 class A {}
@@ -12,4 +13,5 @@ class C {
 }
 
 main() {}
+
 void set aTopLevelSetter(A value) {}

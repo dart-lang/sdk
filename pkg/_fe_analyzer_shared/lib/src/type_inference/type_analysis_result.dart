@@ -288,10 +288,10 @@ class ObjectPatternResult<Type extends Object, Error> {
 }
 
 /// Container for the result of running type analysis on a pattern assignment.
-class PatternAssignmentAnalysisResult<Type extends Object>
-    extends SimpleTypeAnalysisResult<Type> {
+class PatternAssignmentAnalysisResult<Type extends Object,
+    TypeSchema extends Object> extends SimpleTypeAnalysisResult<Type> {
   /// The type schema of the pattern on the left hand size of the assignment.
-  final Type patternSchema;
+  final TypeSchema patternSchema;
 
   PatternAssignmentAnalysisResult({
     required this.patternSchema,
@@ -301,9 +301,10 @@ class PatternAssignmentAnalysisResult<Type extends Object>
 
 /// Container for the result of running type analysis on a pattern variable
 /// declaration.
-class PatternVariableDeclarationAnalysisResult<Type extends Object> {
+class PatternVariableDeclarationAnalysisResult<Type extends Object,
+    TypeSchema extends Object> {
   /// The type schema of the pattern on the left hand size of the declaration.
-  final Type patternSchema;
+  final TypeSchema patternSchema;
 
   /// The type of the initializer expression.
   final Type initializerType;

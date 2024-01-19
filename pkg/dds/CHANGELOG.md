@@ -1,3 +1,31 @@
+# 3.1.2
+- Improved error handling for serving static DevTools assets.
+- Updated `devtools_shared` constraint to ^6.0.3.
+- [DAP] The error message shown when global evaluation is unavailable been improved.
+- [DAP] Error messages shown on the client no longer contain verbose stack traces (although they are still included in the JSON payloads).
+- [DAP] `stackTraceRequest` now returns an empty stack instead of throwing if called for a thread that has exited.
+- [DAP] Fixed an issue that could cause a crash during shutdown if an isolate was being resumed.
+
+# 3.1.1
+- Updated `vm_service` constraint to ^14.0.0.
+
+# 3.1.0+1
+Hot-fix release of changes in 3.1.2 without the changes in 3.1.1
+
+- Improved error handling for serving static DevTools assets.
+- Updated `devtools_shared` constraint to ^6.0.3.
+- [DAP] The error message shown when global evaluation is unavailable been improved.
+- [DAP] Error messages shown on the client no longer contain verbose stack traces (although they are still included in the JSON payloads).
+- [DAP] `stackTraceRequest` now returns an empty stack instead of throwing if called for a thread that has exited.
+- [DAP] Fixed an issue that could cause a crash during shutdown if an isolate was being resumed.
+
+# 3.1.0
+- Updated `devtools_shared` to ^6.0.0.
+- Updated `vm_service` to ^13.0.0.
+
+# 3.0.0
+- **Breaking change:** change type of `DartDebugAdapter.vmService` from `VmServiceInterface` to `VmService`.
+
 # 2.11.1
 - [DAP] `restartFrameRequest` is now supported for frames up until the first async boundary (that are not also the top frame).
 - Update `vm_service` version to >=11.0.0 <13.0.0.

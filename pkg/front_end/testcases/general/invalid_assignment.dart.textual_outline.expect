@@ -3,4 +3,5 @@ class A {
 }
 
 test(int? i, String s, A a) {}
+
 main() {}

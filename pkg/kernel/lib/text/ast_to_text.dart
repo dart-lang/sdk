@@ -169,7 +169,8 @@ String debugVariableDeclarationName(VariableDeclaration node) {
 
 String debugNodeToString(Node node) {
   StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: globalDebuggingNames).writeNode(node);
+  new Printer(buffer, showOffsets: true, syntheticNames: globalDebuggingNames)
+      .writeNode(node);
   return '$buffer';
 }
 
@@ -382,10 +383,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   String getMemberReference(Member node) {
     String name = getMemberName(node).text;
-    Class? enclosingClass = node.enclosingClass;
-    if (enclosingClass != null) {
-      String className = getClassReference(enclosingClass);
-      return '$className::$name';
+    GenericDeclaration? enclosingDeclaration = node.enclosingTypeDeclaration;
+    if (enclosingDeclaration is Class) {
+      String declarationName = getClassReference(enclosingDeclaration);
+      return '$declarationName::$name';
+    } else if (enclosingDeclaration is ExtensionTypeDeclaration) {
+      String declarationName =
+          getExtensionTypeDeclarationReference(enclosingDeclaration);
+      return '$declarationName::$name';
     } else {
       String library = getLibraryReference(node.enclosingLibrary);
       return '$library::$name';
@@ -784,9 +789,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     if (function.asyncMarker != AsyncMarker.Sync) {
       writeSpaced(getAsyncMarkerKeyword(function.asyncMarker));
     }
-    if (function.futureValueType != null) {
-      writeSpaced("/* futureValueType=");
-      writeNode(function.futureValueType);
+    if (function.emittedValueType != null) {
+      writeSpaced("/* emittedValueType=");
+      writeNode(function.emittedValueType);
       writeSpaced("*/");
     }
     if (function.dartAsyncMarker != AsyncMarker.Sync &&
@@ -1188,7 +1193,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isForwardingStub, 'forwarding-stub');
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
     writeModifier(node.isExtensionMember, 'extension-member');
-    writeModifier(node.isExtensionTypeMember, 'inline-class-member');
+    writeModifier(node.isExtensionTypeMember, 'extension-type-member');
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
       case ProcedureStubKind.AbstractForwardingStub:
@@ -1524,16 +1529,16 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void _writeDynamicAccessKind(DynamicAccessKind kind) {
     switch (kind) {
       case DynamicAccessKind.Dynamic:
-        writeSymbol('{dynamic}.');
+        writeSymbol('{dynamic}');
         break;
       case DynamicAccessKind.Never:
-        writeSymbol('{Never}.');
+        writeSymbol('{Never}');
         break;
       case DynamicAccessKind.Invalid:
-        writeSymbol('{<invalid>}.');
+        writeSymbol('{<invalid>}');
         break;
       case DynamicAccessKind.Unresolved:
-        writeSymbol('{<unresolved>}.');
+        writeSymbol('{<unresolved>}');
         break;
     }
   }
@@ -1542,9 +1547,12 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void visitDynamicInvocation(DynamicInvocation node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
-    writeName(
-      node.name,
-    );
+    if (!node.isImplicitCall) {
+      writeSymbol('.');
+      writeName(
+        node.name,
+      );
+    }
     writeNode(node.arguments);
   }
 
@@ -1586,7 +1594,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void _writeInstanceAccessKind(InstanceAccessKind kind) {
     switch (kind) {
       case InstanceAccessKind.Instance:
+        break;
       case InstanceAccessKind.Object:
+        writeSymbol('{<object>}.');
         break;
       case InstanceAccessKind.Inapplicable:
         writeSymbol('{<inapplicable>}.');
@@ -2115,6 +2125,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void visitDynamicGet(DynamicGet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
+    writeSymbol('.');
     writeName(node.name);
   }
 
@@ -2150,6 +2161,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitDynamicSet(DynamicSet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.');
     _writeDynamicAccessKind(node.kind);
     writeName(node.name);
     writeSpaced('=');

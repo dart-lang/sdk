@@ -20,5 +20,7 @@ class Uninitialized {
 }
 
 int? initializedTopLevel = 4;
+
 int? uninitializedTopLevel;
+
 main() {}

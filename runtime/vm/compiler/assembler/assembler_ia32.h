@@ -812,7 +812,7 @@ class Assembler : public AssemblerBase {
     cmpl(reg, Immediate(immediate));
   }
 
-  void LoadImmediate(Register reg, int32_t immediate) {
+  void LoadImmediate(Register reg, int32_t immediate) override {
     if (immediate == 0) {
       xorl(reg, reg);
     } else {
@@ -1017,6 +1017,11 @@ class Assembler : public AssemblerBase {
                             intptr_t class_id,
                             Register scratch,
                             Label* is_smi);
+
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale);
 
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,

@@ -1,5 +1,7 @@
 T id<T>(T t) => t;
+
 typedef IntFn = int Function(int);
+
 typedef TFn = T Function<T>(T);
 
 abstract class CompareBase {
@@ -12,4 +14,5 @@ class Compare extends CompareBase {
 }
 
 test1(CompareBase x) {}
+
 main() {}

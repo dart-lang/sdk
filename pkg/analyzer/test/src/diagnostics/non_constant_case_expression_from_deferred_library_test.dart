@@ -90,11 +90,9 @@ const int c = 0;
       case _Variant.nullSafe:
         expectedErrorCode = CompileTimeErrorCode
             .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
-        break;
       case _Variant.patterns:
         expectedErrorCode =
             CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
-        break;
     }
 
     await assertErrorsInCode('''
@@ -121,11 +119,9 @@ class A {}
       case _Variant.nullSafe:
         expectedErrorCode = CompileTimeErrorCode
             .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
-        break;
       case _Variant.patterns:
         expectedErrorCode =
             CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
-        break;
     }
 
     await assertErrorsInCode('''

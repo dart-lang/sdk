@@ -123,6 +123,20 @@ class NameScheme {
     }
   }
 
+  static String createProcedureNameForTesting(
+      {required ContainerName? containerName,
+      required ContainerType containerType,
+      required bool isStatic,
+      required ProcedureKind kind,
+      required String name}) {
+    return _createProcedureName(
+        containerName: containerName,
+        containerType: containerType,
+        isStatic: isStatic,
+        kind: kind,
+        name: name);
+  }
+
   static String _createProcedureName(
       {required ContainerName? containerName,
       required ContainerType containerType,
@@ -177,6 +191,15 @@ class NameScheme {
             libraryName, containerName!, name,
             isTearOff: isTearOff);
     }
+  }
+
+  /// Returns the [MemberName] corresponding to the declared member, i.e. the
+  /// name of the member without any applied lowering.
+  MemberName getDeclaredName(String name) {
+    // TODO(johnniwinther): Add a helper method for `isPrivate`.
+    return name.startsWith('_')
+        ? new PrivateMemberName(libraryName, name)
+        : new PublicMemberName(name);
   }
 }
 

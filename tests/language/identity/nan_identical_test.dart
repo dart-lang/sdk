@@ -20,6 +20,22 @@ double createOtherNAN() {
 }
 
 main() {
+  if (webNumbers) {
+    // (1) The web compilers elect to generate smaller, faster code for
+    // `identical` using `===`, with the result that `identical(NaN, NaN)` is
+    // false.
+    //
+    // (2) In JavaScript different NaN values are treated the same by
+    // `Object.is`, and can only be distinguished by writing the bits into typed
+    // data, making it costly to compare NaN values.
+
+    // Validate current behaviour so we will be alerted if (1) changes.
+    Expect.isFalse(checkIdentical(double.nan, -double.nan));
+    Expect.isFalse(checkIdentical(double.nan, double.nan));
+    Expect.isFalse(checkIdentical(-double.nan, -double.nan));
+    return;
+  }
+
   var otherNAN = createOtherNAN();
   for (int i = 0; i < 100; i++) {
     Expect.isFalse(checkIdentical(double.nan, -double.nan));

@@ -5,7 +5,6 @@
 library kernel.type_algebra;
 
 import 'ast.dart';
-import 'core_types.dart';
 import 'src/find_type_visitor.dart';
 import 'src/replacement_visitor.dart';
 
@@ -75,7 +74,7 @@ bool containsTypeVariable(DartType type, Set<TypeParameter> variables,
       .visit(type);
 }
 
-/// Returns true if [type] contains a reference to any of the given [variables].
+/// Returns true if [type] contains a reference to any of the given [parameters]
 ///
 /// [unhandledTypeHandler] is a helper function invoked on unknown implementers
 /// of [DartType].  Its arguments are the unhandled type and the function that
@@ -84,12 +83,12 @@ bool containsTypeVariable(DartType type, Set<TypeParameter> variables,
 /// unhandled implementer of [DartType] is encountered.
 ///
 /// It is an error to call this with a [type] that contains a [FunctionType]
-/// that declares one of the parameters in [variables].
+/// that declares one of the parameters in [parameters].
 bool containsStructuralTypeVariable(
-    DartType type, Set<StructuralParameter> variables,
+    DartType type, Set<StructuralParameter> parameters,
     {DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler}) {
-  if (variables.isEmpty) return false;
-  return new _StructuralParameterOccurrenceVisitor(variables,
+  if (parameters.isEmpty) return false;
+  return new _StructuralParameterOccurrenceVisitor(parameters,
           unhandledTypeHandler: unhandledTypeHandler)
       .visit(type);
 }
@@ -480,6 +479,14 @@ abstract class Substitution {
         supertype.classNode.typeParameters, supertype.typeArguments));
   }
 
+  /// Returns the [Substitution] for the type parameters on the type declaration
+  /// of [type] with the type arguments provided in [type].
+  static Substitution fromTypeDeclarationType(TypeDeclarationType type) {
+    if (type.typeArguments.isEmpty) return _NullSubstitution.instance;
+    return fromMap(new Map<TypeParameter, DartType>.fromIterables(
+        type.typeDeclaration.typeParameters, type.typeArguments));
+  }
+
   /// Substitutes the type parameters on the class of [type] with the
   /// type arguments provided in [type].
   static Substitution fromInterfaceType(InterfaceType type) {
@@ -516,11 +523,11 @@ abstract class Substitution {
         new Map<TypeParameter, DartType>.fromIterables(parameters, types));
   }
 
-  /// Substitutes the type parameters on the class with bottom or dynamic,
-  /// depending on the covariance of its use.
-  static Substitution bottomForClass(Class class_) {
-    if (class_.typeParameters.isEmpty) return _NullSubstitution.instance;
-    return new _ClassBottomSubstitution(class_);
+  /// Substitutes the type parameters on the type declaration with bottom or
+  /// dynamic, depending on the covariance of its use.
+  static Substitution bottomForTypeDeclaration(TypeDeclaration declaration) {
+    if (declaration.typeParameters.isEmpty) return _NullSubstitution.instance;
+    return new _TypeDeclarationBottomSubstitution(declaration);
   }
 
   /// Substitutes covariant uses of [class_]'s type parameters with the upper
@@ -717,14 +724,14 @@ class _TopSubstitutor extends _TypeSubstitutor {
   }
 }
 
-class _ClassBottomSubstitution extends Substitution {
-  final Class class_;
+class _TypeDeclarationBottomSubstitution extends Substitution {
+  final GenericDeclaration declaration;
 
-  _ClassBottomSubstitution(this.class_);
+  _TypeDeclarationBottomSubstitution(this.declaration);
 
   @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
-    if (parameter.declaration == class_) {
+    if (parameter.declaration == declaration) {
       return upperBound ? const NeverType.nonNullable() : const DynamicType();
     }
     return null;
@@ -1884,8 +1891,8 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
 /// Some types are nullable even without the application of the nullable type
 /// constructor at the top level, for example, Null or FutureOr<int?>.
 // TODO(cstefantsova): Remove [coreTypes] parameter when NullType is landed.
-DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
-  return type.accept1(const _NullabilityConstructorUnwrapper(), coreTypes);
+DartType unwrapNullabilityConstructor(DartType type) {
+  return type.accept(const _NullabilityConstructorUnwrapper());
 }
 
 /// Implementation of [unwrapNullabilityConstructor] as a visitor.
@@ -1894,81 +1901,79 @@ DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
 /// new implementation of [DartType] visible at compile time.
 // TODO(cstefantsova): Remove CoreTypes as the second argument when NullType is
 // landed.
-class _NullabilityConstructorUnwrapper
-    implements DartTypeVisitor1<DartType, CoreTypes> {
+class _NullabilityConstructorUnwrapper implements DartTypeVisitor<DartType> {
   const _NullabilityConstructorUnwrapper();
 
   @override
-  DartType visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
+  DartType visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
         "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override
-  DartType visitDynamicType(DynamicType node, CoreTypes coreTypes) => node;
+  DartType visitDynamicType(DynamicType node) => node;
 
   @override
-  DartType visitFunctionType(FunctionType node, CoreTypes coreTypes) {
+  DartType visitFunctionType(FunctionType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitRecordType(RecordType node, CoreTypes coreTypes) {
+  DartType visitRecordType(RecordType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitFutureOrType(FutureOrType node, CoreTypes coreTypes) {
+  DartType visitFutureOrType(FutureOrType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitInterfaceType(InterfaceType node, CoreTypes coreTypes) {
+  DartType visitInterfaceType(InterfaceType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitExtensionType(ExtensionType node, CoreTypes coreTypes) {
+  DartType visitExtensionType(ExtensionType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitInvalidType(InvalidType node, CoreTypes coreTypes) => node;
+  DartType visitInvalidType(InvalidType node) => node;
 
   @override
-  DartType visitNeverType(NeverType node, CoreTypes coreTypes) {
+  DartType visitNeverType(NeverType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitNullType(NullType node, CoreTypes coreTypes) => node;
+  DartType visitNullType(NullType node) => node;
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node, CoreTypes coreTypes) {
+  DartType visitTypeParameterType(TypeParameterType node) {
     return node.withDeclaredNullability(
         TypeParameterType.computeNullabilityFromBound(node.parameter));
   }
 
   @override
-  DartType visitStructuralParameterType(
-      StructuralParameterType node, CoreTypes coreTypes) {
+  DartType visitStructuralParameterType(StructuralParameterType node) {
     return node.withDeclaredNullability(
         StructuralParameterType.computeNullabilityFromBound(node.parameter));
   }
 
   @override
-  DartType visitIntersectionType(IntersectionType node, CoreTypes coreTypes) {
+  DartType visitIntersectionType(IntersectionType node) {
     // Intersection types don't have their own nullabilities.
     return node;
   }
 
   @override
-  DartType visitTypedefType(TypedefType node, CoreTypes coreTypes) {
+  DartType visitTypedefType(TypedefType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitVoidType(VoidType node, CoreTypes coreTypes) => node;
+  DartType visitVoidType(VoidType node) => node;
 }
 
 abstract class NullabilityAwareTypeVariableEliminatorBase
@@ -1986,6 +1991,8 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
   bool containsTypeVariablesToEliminate(DartType type);
 
   bool isStructuralVariableToEliminate(StructuralParameter typeParameter);
+
+  bool isNominalVariableToEliminate(TypeParameter typeParameter);
 
   /// Returns a subtype of [type] for all variables to be eliminated.
   DartType eliminateToLeast(DartType type) {
@@ -2035,7 +2042,15 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
 
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
-    return getTypeParameterReplacement(variance);
+    if (isNominalVariableToEliminate(node.parameter)) {
+      return getTypeParameterReplacement(variance);
+    }
+    return super.visitTypeParameterType(node, variance);
+  }
+
+  @override
+  DartType? visitIntersectionType(IntersectionType node, int variance) {
+    return visitTypeParameterType(node.left, variance);
   }
 
   @override
@@ -2061,11 +2076,13 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
 /// https://github.com/dart-lang/language/pull/957
 class NullabilityAwareTypeVariableEliminator
     extends NullabilityAwareTypeVariableEliminatorBase {
-  final Set<StructuralParameter> eliminationTargets;
+  final Set<StructuralParameter> structuralEliminationTargets;
+  final Set<TypeParameter> nominalEliminationTargets;
   final DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler;
 
   NullabilityAwareTypeVariableEliminator(
-      {required this.eliminationTargets,
+      {required this.structuralEliminationTargets,
+      required this.nominalEliminationTargets,
       required DartType bottomType,
       required DartType topType,
       required DartType topFunctionType,
@@ -2077,13 +2094,20 @@ class NullabilityAwareTypeVariableEliminator
 
   @override
   bool containsTypeVariablesToEliminate(DartType type) {
-    return containsStructuralTypeVariable(type, eliminationTargets,
-        unhandledTypeHandler: unhandledTypeHandler);
+    return containsStructuralTypeVariable(type, structuralEliminationTargets,
+            unhandledTypeHandler: unhandledTypeHandler) ||
+        containsTypeVariable(type, nominalEliminationTargets,
+            unhandledTypeHandler: unhandledTypeHandler);
   }
 
   @override
   bool isStructuralVariableToEliminate(StructuralParameter typeParameter) {
-    return eliminationTargets.contains(typeParameter);
+    return structuralEliminationTargets.contains(typeParameter);
+  }
+
+  @override
+  bool isNominalVariableToEliminate(TypeParameter typeParameter) {
+    return nominalEliminationTargets.contains(typeParameter);
   }
 }
 
@@ -2130,6 +2154,12 @@ class NullabilityAwareFreeTypeVariableEliminator
   @override
   bool isStructuralVariableToEliminate(StructuralParameter typeParameter) {
     return !_boundVariables.contains(typeParameter);
+  }
+
+  @override
+  bool isNominalVariableToEliminate(TypeParameter typeParameter) {
+    // All nominal type variables are considered free in a type term.
+    return true;
   }
 }
 
@@ -2412,4 +2442,33 @@ DartType _updateNestedFutureOrNullability(
   } else {
     return typeToUpdate.withDeclaredNullability(updatedNullability);
   }
+}
+
+/// Returns true if [type] is a bottom type
+///
+/// Some examples of bottom types are `Never`, `X` where `X extends Never`, and
+/// `X & Never`.
+///
+/// For the definition of BOTTOM see the following:
+/// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
+bool isBottom(DartType type) {
+  if (type is InterfaceType) return false;
+  if (type is InvalidType) return false;
+
+  // BOTTOM(Never) is true.
+  if (type is NeverType && type.nullability == Nullability.nonNullable) {
+    return true;
+  }
+
+  // BOTTOM(X&T) is true iff BOTTOM(T).
+  if (type is IntersectionType && type.isPotentiallyNonNullable) {
+    return isBottom(type.right);
+  }
+
+  // BOTTOM(X extends T) is true iff BOTTOM(T).
+  if (type is TypeParameterType && type.isPotentiallyNonNullable) {
+    return isBottom(type.parameter.bound);
+  }
+
+  return false;
 }

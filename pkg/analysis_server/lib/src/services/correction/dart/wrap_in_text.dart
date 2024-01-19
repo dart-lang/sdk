@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -24,7 +25,7 @@ class WrapInText extends ResolvedCorrectionProducer {
     if (context == null) {
       return;
     }
-    if (!flutter.isWidgetType(context.parameterElement.type)) {
+    if (!Flutter.isWidgetType(context.parameterElement.type)) {
       return;
     }
 

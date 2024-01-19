@@ -11,7 +11,6 @@
 
 #include <platform/globals.h>
 
-#include "platform/assert.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
@@ -109,15 +108,32 @@ class BaseMarshaller : public ZoneAllocated {
   // Recurses into VarArgs if needed.
   AbstractTypePtr CType(intptr_t arg_index) const;
 
-  // Requires boxing or unboxing.
+  AbstractTypePtr DartType(intptr_t arg_index) const;
+
+  // The Dart and C Type is Pointer.
+  //
+  // Requires boxing or unboxing the Pointer object to int.
   bool IsPointer(intptr_t arg_index) const {
+    if (IsHandle(arg_index) || IsTypedData(arg_index)) {
+      return false;
+    }
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
            kPointerCid;
   }
+
+  // The C type is Handle.
+  //
+  // Requires passing the pointer to the Dart object in a handle.
   bool IsHandle(intptr_t arg_index) const {
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
            kFfiHandleCid;
   }
+
+  // The Dart type is a TypedData and C Type is Pointer.
+  //
+  // Requires unboxing the typed data to an int address.
+  bool IsTypedData(intptr_t arg_index) const;
+
   bool IsBool(intptr_t arg_index) const {
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
            kFfiBoolCid;
@@ -137,16 +153,27 @@ class BaseMarshaller : public ZoneAllocated {
     return native_calling_convention_.contains_varargs();
   }
 
+  // Note that the Dart arguments are indexed starting at
+  // `dart_signature_params_start_at()`.
+  //
+  // Closures created by `asFunction` have the pointer as first parameter.
+  // `@Native`s don't have an implicit first parameter.
   const Function& dart_signature() const { return dart_signature_; }
+  intptr_t dart_signature_params_start_at() const {
+    return dart_signature_params_start_at_;
+  }
+  const FunctionType& c_signature() const { return c_signature_; }
   StringPtr function_name() const { return dart_signature_.name(); }
 
  protected:
   BaseMarshaller(Zone* zone,
                  const Function& dart_signature,
+                 intptr_t dart_signature_params_start_at,
                  const FunctionType& c_signature,
                  const NativeCallingConvention& native_calling_convention)
       : zone_(zone),
         dart_signature_(dart_signature),
+        dart_signature_params_start_at_(dart_signature_params_start_at),
         c_signature_(c_signature),
         native_calling_convention_(native_calling_convention) {}
 
@@ -156,6 +183,7 @@ class BaseMarshaller : public ZoneAllocated {
   // Contains the function pointer as argument #0.
   // The Dart signature is used for the function and argument names.
   const Function& dart_signature_;
+  const intptr_t dart_signature_params_start_at_;
   const FunctionType& c_signature_;
   const NativeCallingConvention& native_calling_convention_;
 };
@@ -164,14 +192,18 @@ class CallMarshaller : public BaseMarshaller {
  public:
   static CallMarshaller* FromFunction(Zone* zone,
                                       const Function& function,
+                                      intptr_t function_params_start_at,
+                                      const FunctionType& c_signature,
                                       const char** error);
 
   CallMarshaller(Zone* zone,
                  const Function& dart_signature,
+                 intptr_t dart_signature_params_start_at,
                  const FunctionType& c_signature,
                  const NativeCallingConvention& native_calling_convention)
       : BaseMarshaller(zone,
                        dart_signature,
+                       dart_signature_params_start_at,
                        c_signature,
                        native_calling_convention) {}
 
@@ -182,8 +214,8 @@ class CallMarshaller : public BaseMarshaller {
 
   // Allocate a TypedData before the FfiCall and pass it into the FfiCall so
   // that it can be populated in assembly.
-  bool PassTypedData() const;
-  intptr_t TypedDataSizeInBytes() const;
+  bool ReturnsCompound() const;
+  intptr_t CompoundReturnSizeInBytes() const;
 
   // We allocate space for PointerToMemory arguments and PointerToMemory return
   // locations on the stack. This is faster than allocation ExternalTypedData.
@@ -211,6 +243,7 @@ class CallbackMarshaller : public BaseMarshaller {
                      const NativeLocations& callback_locs)
       : BaseMarshaller(zone,
                        dart_signature,
+                       /*dart_signature_params_start_at=*/0,
                        c_signature,
                        native_calling_convention),
         callback_locs_(callback_locs) {}

@@ -241,14 +241,17 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
                                    compiler::Label* done,
                                    compiler::Label* copy_forwards) {
   const bool reversed = copy_forwards != nullptr;
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                         (unboxed_inputs() ? 0 : kSmiTagShift);
+#if defined(USING_MEMORY_SANITIZER)
+  __ PushPair(length_reg, dest_reg);
+#endif
   if (reversed) {
     // Verify that the overlap actually exists by checking to see if
     // dest_start < src_end.
     if (!unboxed_inputs()) {
       __ ExtendNonNegativeSmi(length_reg);
     }
-    const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
-                           (unboxed_inputs() ? 0 : kSmiTagShift);
     if (shift < 0) {
       __ add(TMP, src_reg, compiler::Operand(length_reg, ASR, -shift));
     } else {
@@ -285,6 +288,19 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   __ subs(length_reg, length_reg, compiler::Operand(loop_subtract),
           compiler::kObjectBytes);
   __ b(&loop, NOT_ZERO);
+
+#if defined(USING_MEMORY_SANITIZER)
+  __ PopPair(length_reg, dest_reg);
+  if (!unboxed_inputs()) {
+    __ ExtendNonNegativeSmi(length_reg);
+  }
+  if (shift < 0) {
+    __ AsrImmediate(length_reg, length_reg, -shift);
+  } else {
+    __ LslImmediate(length_reg, length_reg, shift);
+  }
+  __ MsanUnpoison(dest_reg, length_reg);
+#endif
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
@@ -725,6 +741,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     ASSERT(destination.IsStackSlot());
     ASSERT(tmp != kNoRegister);
     const intptr_t dest_offset = destination.ToStackSlotOffset();
+    compiler::OperandSize operand_size = compiler::kWordBytes;
     if (representation() == kUnboxedInt32 ||
         representation() == kUnboxedUint32 ||
         representation() == kUnboxedInt64) {
@@ -734,6 +751,11 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       } else {
         __ LoadImmediate(tmp, value);
       }
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ LoadImmediate(tmp, float_bits);
+      operand_size = compiler::kFourBytes;
     } else {
       ASSERT(representation() == kTagged);
       if (value_.IsNull()) {
@@ -744,7 +766,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
         __ LoadObject(tmp, value_);
       }
     }
-    __ StoreToOffset(tmp, destination.base_reg(), dest_offset);
+    __ StoreToOffset(tmp, destination.base_reg(), dest_offset, operand_size);
   }
 }
 
@@ -1400,27 +1422,22 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs & ~(1 << SP),
                                      kAbiVolatileFpuRegs);
     __ mov(temp1, SP);
-    __ PushRegisters(kVolatileRegisterSet);
+    SPILLS_LR_TO_FRAME(__ PushRegisters(kVolatileRegisterSet));
 
     // Outgoing arguments passed on the stack to the foreign function.
-    __ mov(R0, temp1);
-    __ LoadImmediate(R1, stack_space);
-    __ CallCFunction(
-        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+    __ MsanUnpoison(temp1, stack_space);
 
     // Incoming Dart arguments to this trampoline are potentially used as local
     // handles.
-    __ mov(R0, is_leaf_ ? FPREG : saved_fp_or_sp);
-    __ LoadImmediate(R1, (kParamEndSlotFromFp + InputCount()) * kWordSize);
-    __ CallCFunction(
-        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+    __ MsanUnpoison(is_leaf_ ? FPREG : saved_fp_or_sp,
+                    (kParamEndSlotFromFp + InputCount()) * kWordSize);
 
     // Outgoing arguments passed by register to the foreign function.
     __ LoadImmediate(R0, InputCount());
     __ CallCFunction(compiler::Address(
         THR, kMsanUnpoisonParamRuntimeEntry.OffsetFromThread()));
 
-    __ PopRegisters(kVolatileRegisterSet);
+    RESTORES_LR_FROM_FRAME(__ PopRegisters(kVolatileRegisterSet));
   }
 #endif
 
@@ -1870,24 +1887,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
-  ConstantInstr* constant = value->definition()->AsConstant();
-  if ((constant == nullptr) || !constant->value().IsSmi()) {
-    return false;
-  }
-  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
-  const intptr_t scale = Instance::ElementSizeFor(cid);
-  const int64_t offset =
-      index * scale +
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
-  if (!Utils::IsInt(32, offset)) {
-    return false;
-  }
-  return compiler::Address::CanHoldOffset(
-      static_cast<int32_t>(offset), compiler::Address::Offset,
-      compiler::Address::OperandSizeFor(cid));
-}
-
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -1895,11 +1894,13 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    locs->set_in(1, Location::RequiresRegister());
-  }
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
+  locs->set_in(1, can_be_constant
+                      ? Location::Constant(index()->definition()->AsConstant())
+                      : Location::RequiresRegister());
   if ((representation() == kUnboxedFloat) ||
       (representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
@@ -2070,11 +2071,13 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    locs->set_in(1, Location::RequiresRegister());
-  }
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
+  locs->set_in(1, can_be_constant
+                      ? Location::Constant(index()->definition()->AsConstant())
+                      : Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
 
   switch (class_id()) {
@@ -2272,6 +2275,37 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+
+#if defined(USING_MEMORY_SANITIZER)
+  if (index.IsRegister()) {
+    __ ComputeElementAddressForRegIndex(TMP, IsExternal(), class_id(),
+                                        index_scale(), index_unboxed_, array,
+                                        index.reg());
+  } else {
+    __ ComputeElementAddressForIntIndex(TMP, IsExternal(), class_id(),
+                                        index_scale(), array,
+                                        Smi::Cast(index.constant()).Value());
+  }
+  intptr_t length_in_bytes;
+  if (IsTypedDataBaseClassId(class_id_)) {
+    length_in_bytes = compiler::TypedDataElementSizeInBytes(class_id_);
+  } else {
+    switch (class_id_) {
+      case kArrayCid:
+        length_in_bytes = compiler::target::kWordSize;
+        break;
+      case kOneByteStringCid:
+        length_in_bytes = 1;
+        break;
+      case kTwoByteStringCid:
+        length_in_bytes = 2;
+        break;
+      default:
+        FATAL("Unknown cid: %" Pd, class_id_);
+    }
+  }
+  __ MsanUnpoison(TMP, length_in_bytes);
+#endif
 }
 
 static void LoadValueCid(FlowGraphCompiler* compiler,
@@ -3868,13 +3902,13 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
+  const bool needs_temp = op_kind() != MethodRecognizer::kDouble_getIsNaN;
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      op_kind() == MethodRecognizer::kDouble_getIsInfinite ? 1 : 0;
+  const intptr_t kNumTemps = needs_temp ? 1 : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+  if (needs_temp) {
     summary->set_temp(0, Location::RequiresRegister());
   }
   summary->set_out(0, Location::RequiresRegister());
@@ -3886,18 +3920,36 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   ASSERT(compiler->is_optimizing());
   const VRegister value = locs()->in(0).fpu_reg();
   const bool is_negated = kind() != Token::kEQ;
-  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
-    __ fcmpd(value, value);
-    return is_negated ? VC : VS;
-  } else {
-    ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
-    const Register temp = locs()->temp(0).reg();
-    __ vmovrd(temp, value, 0);
-    // Mask off the sign.
-    __ AndImmediate(temp, temp, 0x7FFFFFFFFFFFFFFFLL);
-    // Compare with +infinity.
-    __ CompareImmediate(temp, 0x7FF0000000000000LL);
-    return is_negated ? NE : EQ;
+
+  switch (op_kind()) {
+    case MethodRecognizer::kDouble_getIsNaN: {
+      __ fcmpd(value, value);
+      return is_negated ? VC : VS;
+    }
+    case MethodRecognizer::kDouble_getIsInfinite: {
+      const Register temp = locs()->temp(0).reg();
+      __ vmovrd(temp, value, 0);
+      // Mask off the sign.
+      __ AndImmediate(temp, temp, 0x7FFFFFFFFFFFFFFFLL);
+      // Compare with +infinity.
+      __ CompareImmediate(temp, 0x7FF0000000000000LL);
+      return is_negated ? NE : EQ;
+    }
+    case MethodRecognizer::kDouble_getIsNegative: {
+      const Register temp = locs()->temp(0).reg();
+      compiler::Label not_zero;
+      __ fcmpdz(value);
+      // If it's NaN, it's not negative.
+      __ b(is_negated ? labels.true_label : labels.false_label, VS);
+      __ b(&not_zero, NOT_EQUAL);
+      // Check for negative zero with a signed comparison.
+      __ fmovrd(temp, value);
+      __ CompareImmediate(temp, 0);
+      __ Bind(&not_zero);
+      return is_negated ? GE : LT;
+    }
+    default:
+      UNREACHABLE();
   }
 }
 

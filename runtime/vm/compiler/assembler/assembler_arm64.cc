@@ -434,6 +434,34 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
   }
 }
 
+void Assembler::StoreWordToPoolIndex(Register src,
+                                     intptr_t index,
+                                     Register pp) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(src != pp);
+  Operand op;
+  // PP is _un_tagged on ARM64.
+  const uint32_t offset = target::ObjectPool::element_offset(index);
+  const uint32_t upper20 = offset & 0xfffff000;
+  if (Address::CanHoldOffset(offset)) {
+    str(src, Address(pp, offset));
+  } else if (Operand::CanHold(upper20, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    const uint32_t lower12 = offset & 0x00000fff;
+    ASSERT(Address::CanHoldOffset(lower12));
+    add(TMP, pp, op);
+    str(src, Address(TMP, lower12));
+  } else {
+    const uint16_t offset_low = Utils::Low16Bits(offset);
+    const uint16_t offset_high = Utils::High16Bits(offset);
+    movz(TMP, Immediate(offset_low), 0);
+    if (offset_high != 0) {
+      movk(TMP, Immediate(offset_high), 1);
+    }
+    str(src, Address(pp, TMP));
+  }
+}
+
 void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
                                             Register upper,
                                             intptr_t index) {
@@ -699,14 +727,18 @@ void Assembler::LoadQImmediate(VRegister vd, simd128_value_t immq) {
   LoadQFromOffset(vd, PP, offset);
 }
 
-void Assembler::Branch(const Code& target,
-                       Register pp,
-                       ObjectPoolBuilderEntry::Patchability patchable) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index, pp);
-  ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  br(TMP);
+void Assembler::BranchLink(intptr_t target_code_pool_index,
+                           CodeEntryKind entry_kind) {
+  CLOBBERS_LR({
+    // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+    // We don't actually use CODE_REG in the callee and caller might
+    // be using CODE_REG for a live value (e.g. a value that is alive
+    // across invocation of a shared stub like the one we use for
+    // allocating Mint boxes).
+    const Register code_reg = FLAG_precompiled_mode ? LR : CODE_REG;
+    LoadWordFromPoolIndex(code_reg, target_code_pool_index);
+    Call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
+  });
 }
 
 void Assembler::BranchLink(
@@ -716,8 +748,7 @@ void Assembler::BranchLink(
     ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   const intptr_t index = object_pool_builder().FindObject(
       ToObject(target), patchable, snapshot_behavior);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
@@ -725,8 +756,7 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           CodeEntryKind entry_kind) {
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::AddImmediate(Register dest,
@@ -2020,6 +2050,23 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                  kUnsignedByte);
   cbnz(trace, temp_reg);
 }
+
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  ASSERT(temp_reg != cid);
+  LoadIsolateGroup(temp_reg);
+  ldr(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  ldr(temp_reg,
+      Address(temp_reg,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddRegisters(temp_reg, cid);
+  LoadFromOffset(temp_reg, temp_reg,
+                 target::ClassTable::AllocationTracingStateSlotOffsetFor(0),
+                 kUnsignedByte);
+  cbnz(trace, temp_reg);
+}
 #endif  // !PRODUCT
 
 void Assembler::TryAllocateObject(intptr_t cid,
@@ -2142,6 +2189,20 @@ void Assembler::GenerateUnRelocatedPcRelativeTailCall(
   PcRelativeTailCallPattern pattern(buffer_.contents() + buffer_.Size() -
                                     PcRelativeTailCallPattern::kLengthInBytes);
   pattern.set_distance(offset_into_target);
+}
+
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
+  if (!Utils::IsInt(32, offset)) {
+    return false;
+  }
+  return Address::CanHoldOffset(static_cast<int32_t>(offset), Address::Offset,
+                                Address::OperandSizeFor(cid));
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

@@ -1423,6 +1423,19 @@ class UntaggedFunction : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
+enum class InstantiationMode : uint8_t {
+  // Must instantiate the type arguments normally.
+  kNeedsInstantiation,
+  // The type arguments are already instantiated.
+  kIsInstantiated,
+  // Use the instantiator type arguments that would be used to instantiate
+  // the default type arguments, as instantiating produces the same result.
+  kSharesInstantiatorTypeArguments,
+  // Use the function type arguments that would be used to instantiate
+  // the default type arguments, as instantiating produces the same result.
+  kSharesFunctionTypeArguments,
+};
+
 class UntaggedClosureData : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ClosureData);
@@ -1435,37 +1448,21 @@ class UntaggedClosureData : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ClosurePtr, closure)
   VISIT_TO(closure)
 
-  enum class DefaultTypeArgumentsKind : uint8_t {
-    // Only here to make sure it's explicitly set appropriately.
-    kInvalid = 0,
-    // Must instantiate the default type arguments before use.
-    kNeedsInstantiation,
-    // The default type arguments are already instantiated.
-    kIsInstantiated,
-    // Use the instantiator type arguments that would be used to instantiate
-    // the default type arguments, as instantiating produces the same result.
-    kSharesInstantiatorTypeArguments,
-    // Use the function type arguments that would be used to instantiate
-    // the default type arguments, as instantiating produces the same result.
-    kSharesFunctionTypeArguments,
-  };
-
   // kernel_to_il.cc assumes we can load the untagged value and box it in a Smi.
-  static_assert(sizeof(DefaultTypeArgumentsKind) * kBitsPerByte <=
+  static_assert(sizeof(InstantiationMode) * kBitsPerByte <=
                     compiler::target::kSmiBits,
-                "Default type arguments kind must fit in a Smi");
+                "Instantiation mode must fit in a Smi");
 
   static constexpr uint8_t kNoAwaiterLinkDepth = 0xFF;
 
   AtomicBitFieldContainer<uint32_t> packed_fields_;
 
-  using PackedDefaultTypeArgumentsKind =
-      BitField<decltype(packed_fields_), DefaultTypeArgumentsKind, 0, 8>;
-  using PackedAwaiterLinkDepth =
-      BitField<decltype(packed_fields_),
-               uint8_t,
-               PackedDefaultTypeArgumentsKind::kNextBit,
-               8>;
+  using PackedInstantiationMode =
+      BitField<decltype(packed_fields_), InstantiationMode, 0, 8>;
+  using PackedAwaiterLinkDepth = BitField<decltype(packed_fields_),
+                                          uint8_t,
+                                          PackedInstantiationMode::kNextBit,
+                                          8>;
   using PackedAwaiterLinkIndex = BitField<decltype(packed_fields_),
                                           uint8_t,
                                           PackedAwaiterLinkDepth::kNextBit,
@@ -1503,10 +1500,7 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
   // Check 'callback_target_' to determine if this is a callback or not.
   int32_t callback_id_;
 
-  // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
-  bool is_leaf_;
-
-  // The kind of trampoline this is. See FfiFunctionKind.
+  // The kind of trampoline this is. See FfiCallbackKind.
   uint8_t ffi_function_kind_;
 };
 
@@ -2877,14 +2871,35 @@ class UntaggedClosure : public UntaggedInstance {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
 
-  // No instance fields should be declared before the following fields whose
-  // offsets must be identical in Dart and C++.
-
   // The following fields are also declared in the Dart source of class
-  // _Closure.
+  // _Closure, and so must be the first fields in the object and must appear
+  // in the same order, so the offsets are identical in Dart and C++.
+  //
+  // Note that the type of a closure is defined by instantiating the
+  // signature of the closure function with the instantiator, function, and
+  // delayed (if non-empty) type arguments stored in the closure value.
+
+  // Stores the instantiator type arguments provided when the closure was
+  // created.
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
   VISIT_FROM(instantiator_type_arguments)
+  // Stores the function type arguments provided for any generic parent
+  // functions when the closure was created.
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
+  // If this field contains the empty type argument vector, then the closure
+  // value is generic.
+  //
+  // To create a new closure that is a specific type instantiation of a generic
+  // closure, a copy of the closure is created where the empty type argument
+  // vector in this field is replaced with the vector of local type arguments.
+  // The resulting closure value is not generic, and so an attempt to provide
+  // type arguments when invoking the new closure value is treated the same as
+  // calling any other non-generic function with unneeded type arguments.
+  //
+  // If the signature for the closure function has no local type parameters,
+  // the only guarantee about this field is that it never contains the empty
+  // type arguments vector. Thus, only this field need be inspected to
+  // determine whether a given closure value is generic.
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
   COMPRESSED_POINTER_FIELD(FunctionPtr, function)
   COMPRESSED_POINTER_FIELD(ContextPtr, context)
@@ -2898,29 +2913,6 @@ class UntaggedClosure : public UntaggedInstance {
   ONLY_IN_PRECOMPILED(uword entry_point_);
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-
-  // Note that instantiator_type_arguments_, function_type_arguments_ and
-  // delayed_type_arguments_ are used to instantiate the signature of function_
-  // when this closure is involved in a type test. In other words, these fields
-  // define the function type of this closure instance.
-  //
-  // function_type_arguments_ and delayed_type_arguments_ may also be used when
-  // invoking the closure. Whereas the source frontend will save a copy of the
-  // function's type arguments in the closure's context and only use the
-  // function_type_arguments_ field for type tests, the kernel frontend will use
-  // the function_type_arguments_ vector here directly.
-  //
-  // If this closure is generic, it can be invoked with function type arguments
-  // that will be processed in the prolog of the closure function_. For example,
-  // if the generic closure function_ has a generic parent function, the
-  // passed-in function type arguments get concatenated to the function type
-  // arguments of the parent that are found in the context_.
-  //
-  // delayed_type_arguments_ is used to support the partial instantiation
-  // feature. When this field is set to any value other than
-  // Object::empty_type_arguments(), the types in this vector will be passed as
-  // type arguments to the closure when invoked. In this case there may not be
-  // any type arguments passed directly (or NSM will be invoked instead).
 
   friend class UnitDeserializationRoots;
 };

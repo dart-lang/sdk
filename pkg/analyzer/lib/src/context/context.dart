@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -30,25 +31,15 @@ class AnalysisContextImpl implements AnalysisContext {
     required this.sourceFactory,
   }) : _analysisOptions = analysisOptions;
 
+  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   @override
   AnalysisOptionsImpl get analysisOptions {
     return _analysisOptions;
   }
 
-  /// TODO(scheglov) Remove it, exists only for Cider.
+  // TODO(scheglov): Remove it, exists only for Cider.
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
     _analysisOptions = analysisOptions;
-
-    // TODO() remove this method as well
-    _typeSystemLegacy?.updateOptions(
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
-    );
-
-    _typeSystemNonNullableByDefault?.updateOptions(
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
-    );
   }
 
   bool get hasTypeProvider {
@@ -79,6 +70,9 @@ class AnalysisContextImpl implements AnalysisContext {
     _typeSystemNonNullableByDefault = null;
   }
 
+  @override
+  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) => _analysisOptions;
+
   void setTypeProviders({
     required TypeProviderImpl legacy,
     required TypeProviderImpl nonNullableByDefault,
@@ -90,15 +84,11 @@ class AnalysisContextImpl implements AnalysisContext {
 
     _typeSystemLegacy = TypeSystemImpl(
       isNonNullableByDefault: false,
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
       typeProvider: legacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       isNonNullableByDefault: true,
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
       typeProvider: nonNullableByDefault,
     );
 

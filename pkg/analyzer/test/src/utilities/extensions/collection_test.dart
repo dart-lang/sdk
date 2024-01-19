@@ -8,8 +8,52 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(IterableExtensionTest);
+    defineReflectiveTests(IterableIterableExtensionTest);
+    defineReflectiveTests(IterableMapEntryExtensionTest);
     defineReflectiveTests(ListExtensionTest);
+    defineReflectiveTests(MapExtensionTest);
   });
+}
+
+@reflectiveTest
+class IterableExtensionTest {
+  test_whereNotType() {
+    expect(<Object>['0', 1, '2'].whereNotType<int>(), ['0', '2']);
+  }
+}
+
+@reflectiveTest
+class IterableIterableExtensionTest {
+  test_flattenedToList() {
+    expect(
+      [
+        [0],
+        [1, 2],
+        [3, 3]
+      ].flattenedToList2,
+      [0, 1, 2, 3, 3],
+    );
+  }
+
+  test_flattenedToSet() {
+    expect(
+      [
+        [0, 0],
+        [1, 2, 1],
+        [3, 3]
+      ].flattenedToSet2,
+      {0, 1, 2, 3},
+    );
+  }
+}
+
+@reflectiveTest
+class IterableMapEntryExtensionTest {
+  test_mapFromEntries() {
+    final entries = [MapEntry('foo', 0), MapEntry('bar', 1)];
+    expect(entries.mapFromEntries, {'foo': 0, 'bar': 1});
+  }
 }
 
 @reflectiveTest
@@ -33,12 +77,34 @@ class ListExtensionTest {
     expect([0, 1].elementAtOrNull2(2), isNull);
   }
 
+  test_endsWith() {
+    expect([0, 1, 2].endsWith([]), isTrue);
+
+    expect([0, 1, 2].endsWith([2]), isTrue);
+    expect([0, 1, 2].endsWith([1]), isFalse);
+    expect([0, 1, 2].endsWith([0]), isFalse);
+
+    expect([0, 1, 2].endsWith([1, 2]), isTrue);
+    expect([0, 1, 2].endsWith([0, 2]), isFalse);
+
+    expect([0, 1, 2].endsWith([0, 1, 2]), isTrue);
+    expect([0, 1, 2].endsWith([0, 0, 2]), isFalse);
+
+    expect([0, 1, 2].endsWith([-1, 0, 1, 2]), isFalse);
+  }
+
   test_nextOrNull() {
     var elements = [0, 1, 2];
     expect(elements.nextOrNull(0), 1);
     expect(elements.nextOrNull(1), 2);
     expect(elements.nextOrNull(2), null);
     expect(elements.nextOrNull(3), null);
+  }
+
+  test_removeLastOrNull() {
+    expect([0, 1, 2].removeLastOrNull(), 2);
+    expect([0].removeLastOrNull(), 0);
+    expect(<int>[].removeLastOrNull(), isNull);
   }
 
   test_stablePartition() {
@@ -57,6 +123,14 @@ class ListExtensionTest {
     expect([0, 1].withoutLast, [0]);
     expect([0].withoutLast, <int>[]);
     expect(<int>[].withoutLast, <int>[]);
+  }
+}
+
+@reflectiveTest
+class MapExtensionTest {
+  test_firstKey() {
+    expect({0: 1, 2: 3}.firstKey, 0);
+    expect(<int, int>{}.firstKey, isNull);
   }
 }
 

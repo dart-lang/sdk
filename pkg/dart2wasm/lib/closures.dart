@@ -570,24 +570,13 @@ class ClosureLayouter extends RecursiveVisitor {
     b.struct_get(
         instantiationContextStruct, FieldIndex.instantiationContextInner);
 
-    // Push types, as list
-    translator.makeList(
-        function,
-        (b) {
-          translator.constants.instantiateConstant(
-              function,
-              b,
-              TypeLiteralConstant(
-                  InterfaceType(translator.typeClass, Nullability.nonNullable)),
-              translator.types.nonNullableTypeType);
-        },
-        typeCount,
+    // Push types
+    translator.makeArray(function, translator.typeArrayType, typeCount,
         (elementType, elementIdx) {
-          b.local_get(instantiationContextLocal);
-          b.struct_get(instantiationContextStruct,
-              FieldIndex.instantiationContextTypeArgumentsBase + elementIdx);
-        },
-        isGrowable: true);
+      b.local_get(instantiationContextLocal);
+      b.struct_get(instantiationContextStruct,
+          FieldIndex.instantiationContextTypeArgumentsBase + elementIdx);
+    });
 
     b.local_get(posArgsListLocal);
     b.local_get(namedArgsListLocal);
@@ -664,21 +653,11 @@ class ClosureLayouter extends RecursiveVisitor {
     b.local_get(preciseClosure);
     b.struct_get(genericClosureStruct, FieldIndex.closureRuntimeType);
 
-    // Put type arguments into a `List<_Type>`.
-    ClassInfo listInfo = translator.classInfo[translator.fixedLengthListClass]!;
-    translator.functions.allocateClass(listInfo.classId);
-    Constant typeConstant = TypeLiteralConstant(
-        InterfaceType(translator.typeClass, Nullability.nonNullable));
-    b.i32_const(listInfo.classId);
-    b.i32_const(initialIdentityHash);
-    translator.constants
-        .instantiateConstant(instantiationFunction, b, typeConstant, typeType);
-    b.i64_const(typeCount);
+    // Put type arguments into a `WasmArray<_Type>`.
     for (int i = 0; i < typeCount; i++) {
       b.local_get(typeParam(i));
     }
-    b.array_new_fixed(translator.listArrayType, typeCount);
-    b.struct_new(listInfo.struct);
+    b.array_new_fixed(translator.typeArrayType, typeCount);
 
     // Call [_TypeUniverse.substituteFunctionTypeArgument].
     b.call(translator.functions
@@ -1061,7 +1040,8 @@ class Closures {
           context.struct =
               m.types.defineStruct("<${constructor}-constructor-body-context>");
         } else {
-          context.struct = m.types.defineStruct("<context>");
+          context.struct =
+              m.types.defineStruct("<context ${context.owner.location}>");
         }
       }
     }

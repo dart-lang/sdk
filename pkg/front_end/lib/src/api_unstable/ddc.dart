@@ -2,75 +2,51 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
+    show SerializationMode;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
-
 import 'package:kernel/class_hierarchy.dart';
-
 import 'package:kernel/kernel.dart' show Component, Library;
-
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
-
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
-
 import '../api_prototype/file_system.dart' show FileSystem;
-
 import '../api_prototype/kernel_generator.dart' show CompilerResult;
-
 import '../api_prototype/standard_file_system.dart' show StandardFileSystem;
-
-import '../base/processed_options.dart' show ProcessedOptions;
-
 import '../base/nnbd_mode.dart' show NnbdMode;
-
+import '../base/processed_options.dart' show ProcessedOptions;
 import '../kernel_generator_impl.dart' show generateKernel;
-
 import 'compiler_state.dart' show InitializedCompilerState;
-
 import 'modular_incremental_compilation.dart' as modular
     show initializeIncrementalCompiler;
-
 import 'util.dart' show equalLists, equalMaps;
 
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage;
-
 export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 export '../api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
-
 export '../api_prototype/experimental_flags.dart'
     show ExperimentalFlag, parseExperimentalFlag;
-
 export '../api_prototype/kernel_generator.dart' show kernelForModule;
-
 export '../api_prototype/lowering_predicates.dart';
-
 export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
-
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
-
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
-
-export '../fasta/ticker.dart' show Ticker;
-export '../base/processed_options.dart' show ProcessedOptions;
-
 export '../base/nnbd_mode.dart' show NnbdMode;
-
+export '../base/processed_options.dart' show ProcessedOptions;
 export '../fasta/compiler_context.dart' show CompilerContext;
-
+export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 export '../fasta/incremental_compiler.dart' show IncrementalCompiler;
-
 export '../fasta/kernel/constructor_tearoff_lowering.dart'
     show isTearOffLowering;
-
+export '../fasta/ticker.dart' show Ticker;
 export '../fasta/type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;
-
 export 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
 
@@ -80,11 +56,13 @@ class DdcResult {
   final List<Component> additionalDills;
   final ClassHierarchy classHierarchy;
   final Set<Library>? neededDillLibraries;
+  late final Set<Library> librariesFromDill = _computeLibrariesFromDill();
+  late final Component compiledLibraries = _computeCompiledLibraries();
 
   DdcResult(this.component, this.sdkSummary, this.additionalDills,
       this.classHierarchy, this.neededDillLibraries);
 
-  Set<Library> computeLibrariesFromDill() {
+  Set<Library> _computeLibrariesFromDill() {
     Set<Library> librariesFromDill = new Set<Library>();
 
     for (Component c in additionalDills) {
@@ -100,6 +78,18 @@ class DdcResult {
 
     return librariesFromDill;
   }
+
+  Component _computeCompiledLibraries() {
+    Component compiledLibraries = new Component(
+        nameRoot: component.root, uriToSource: component.uriToSource)
+      ..setMainMethodAndMode(null, false, component.mode);
+    for (Library lib in component.libraries) {
+      if (!librariesFromDill.contains(lib)) {
+        compiledLibraries.libraries.add(lib);
+      }
+    }
+    return compiledLibraries;
+  }
 }
 
 InitializedCompilerState initializeCompiler(
@@ -114,7 +104,9 @@ InitializedCompilerState initializeCompiler(
     {FileSystem? fileSystem,
     Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
     Map<String, String>? environmentDefines,
-    required NnbdMode nnbdMode}) {
+    required NnbdMode nnbdMode,
+    List<String>? precompiledMacros,
+    String? macroSerializationMode}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
@@ -141,7 +133,11 @@ InitializedCompilerState initializeCompiler(
     ..target = target
     ..fileSystem = fileSystem ?? StandardFileSystem.instance
     ..environmentDefines = environmentDefines
-    ..nnbdMode = nnbdMode;
+    ..nnbdMode = nnbdMode
+    ..precompiledMacros = precompiledMacros
+    ..macroSerializationMode = macroSerializationMode == null
+        ? null
+        : new SerializationMode.fromOption(macroSerializationMode);
   if (explicitExperimentalFlags != null) {
     options.explicitExperimentalFlags = explicitExperimentalFlags;
   }

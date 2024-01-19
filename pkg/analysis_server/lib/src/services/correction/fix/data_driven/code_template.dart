@@ -112,6 +112,8 @@ class TemplateContext {
           parent.parent is ConstructorName &&
           parent.parent?.parent is InstanceCreationExpression) {
         return parent.parent?.parent;
+      } else if (parent is PrefixedIdentifier) {
+        return parent;
       }
     } else if (node is TypeArgumentList) {
       var parent = node.parent;

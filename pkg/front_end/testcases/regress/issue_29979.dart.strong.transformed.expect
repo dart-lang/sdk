@@ -13,5 +13,5 @@ static method test() → dynamic {
     function f() → Null {}
   } =>invalid-expression "pkg/front_end/testcases/regress/issue_29979.dart:6:4: Error: A function expression can't have a name.
   (f() {})();
-   ^"){dynamic}.call();
+   ^"){dynamic}();
 }

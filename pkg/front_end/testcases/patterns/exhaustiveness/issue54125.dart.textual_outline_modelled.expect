@@ -1,0 +1,17 @@
+class MyModelExpectingABoolean implements Model {
+  MyModelExpectingABoolean(bool value);
+}
+
+class MyModelExpectingAString implements Model {
+  MyModelExpectingAString(String value);
+}
+
+final Map<String, dynamic> json = {
+  'someKey': 'In some cases, this field could also be a boolean',
+};
+
+interface class Model {}
+
+void test1() {}
+
+void test2() {}

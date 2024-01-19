@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,23 +32,6 @@ void f() async {}
   test_function_sync_block_dynamic() async {
     await assertNoErrorsInCode('''
 dynamic f() {}
-''');
-  }
-
-  test_function_sync_block_Never() async {
-    noSoundNullSafety = false;
-    newFile('$testPackageLibPath/a.dart', r'''
-Never foo() {
-  throw 0;
-}
-''');
-    await assertNoErrorsInCode(r'''
-// @dart = 2.8
-import 'a.dart';
-
-int f() {
-  foo();
-}
 ''');
   }
 

@@ -296,14 +296,13 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
     NeededPrecompilations? neededPrecompilations,
     ProcessedOptions options) async {
   if (neededPrecompilations != null) {
-    if (enableMacros) {
+    if (options.globalFeatures.macros.isEnabled) {
       // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
       // the compiler options for the precompilation.
       if (options.rawOptionsForTesting.macroTarget != null) {
         // TODO(johnniwinther): Assert that some works has been done.
         // TODO(johnniwinther): Stop in case of compile-time errors.
-        return await _compileMacros(
-            neededPrecompilations, options.rawOptionsForTesting);
+        return await _compileMacros(neededPrecompilations, options);
       }
     } else {
       throw new UnsupportedError('Macro precompilation is not supported');
@@ -314,22 +313,27 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
 
 Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
     NeededPrecompilations neededPrecompilations,
-    CompilerOptions options) async {
-  assert(options.macroSerializer != null);
+    ProcessedOptions options) async {
+  CompilerOptions rawOptions = options.rawOptionsForTesting;
+  assert(rawOptions.macroSerializer != null);
   CompilerOptions precompilationOptions = new CompilerOptions();
-  precompilationOptions.target = options.macroTarget;
+  precompilationOptions.target = rawOptions.macroTarget;
   precompilationOptions.explicitExperimentalFlags =
-      options.explicitExperimentalFlags;
+      rawOptions.explicitExperimentalFlags;
   // TODO(johnniwinther): What is the right environment when it isn't passed
   // by the caller? Dart2js calls the CFE without an environment, but it's
   // macros likely need them.
   precompilationOptions.environmentDefines = options.environmentDefines ?? {};
-  precompilationOptions.packagesFileUri = options.packagesFileUri;
+  precompilationOptions.packagesFileUri =
+      await options.resolvePackagesFileUri();
   MultiMacroExecutor macroExecutor = precompilationOptions.macroExecutor =
-      options.macroExecutor ??= new MultiMacroExecutor();
+      rawOptions.macroExecutor ??= new MultiMacroExecutor();
   // TODO(johnniwinther): What if sdk root isn't set? How do we then get the
   // right sdk?
   precompilationOptions.sdkRoot = options.sdkRoot;
+  precompilationOptions.sdkSummary = options.sdkSummary;
+  precompilationOptions.librariesSpecificationUri =
+      options.librariesSpecificationUri;
 
   Map<String, Map<String, List<String>>> macroDeclarations = {};
   neededPrecompilations.macroDeclarations
@@ -346,7 +350,7 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
     ..fileSystem = new HybridFileSystem(fs, options.fileSystem);
   CompilerResult? compilerResult =
       await kernelForProgramInternal(uri, precompilationOptions);
-  Uri precompiledUri = await options.macroSerializer!
+  Uri precompiledUri = await options.rawOptionsForTesting.macroSerializer!
       .createUriForComponent(compilerResult!.component!);
   Set<Uri> macroLibraries =
       neededPrecompilations.macroDeclarations.keys.toSet();

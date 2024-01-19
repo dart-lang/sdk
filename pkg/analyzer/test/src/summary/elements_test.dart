@@ -296,7 +296,7 @@ library
           constructors
             ConstructorMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1129,7 +1129,7 @@ library
             self::@class::A::@field::foo1
             FieldMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
           constructors
             self::@class::A::@constructor::new
           accessors
@@ -1137,10 +1137,10 @@ library
             self::@class::A::@setter::foo1
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1379,14 +1379,14 @@ library
             self::@class::A::@field::foo1
             FieldMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
           constructors
             self::@class::A::@constructor::new
           accessors
             self::@class::A::@getter::foo1
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -2332,7 +2332,7 @@ library
           methods
             MethodMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
-              substitution: {T2: T}
+              augmentationSubstitution: {T2: T}
             self::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
@@ -2385,7 +2385,7 @@ library
           methods
             MethodMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              substitution: {T2: T}
+              augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -2760,6 +2760,151 @@ library
                 id: setter_2
                 variable: field_0
                 augmentationTarget: self::@class::A::@setter::foo1
+''');
+  }
+
+  test_constructors_augment2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment A.named();
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+class A {
+  A.named();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @56
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          named @64
+            periodOffset: 63
+            nameEnd: 69
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+        augmented
+          constructors
+            self::@augmentation::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+            constructors
+              augment named @59
+                periodOffset: 58
+                nameEnd: 64
+                augmentationTarget: self::@class::A::@constructor::named
+                augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
+    package:test/b.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+            constructors
+              augment named @59
+                periodOffset: 58
+                nameEnd: 64
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+''');
+  }
+
+  test_constructors_augment_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  A.named();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          named @39
+            periodOffset: 38
+            nameEnd: 44
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+        augmented
+          constructors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              augment named @59
+                periodOffset: 58
+                nameEnd: 64
+                augmentationTarget: self::@class::A::@constructor::named
+''');
+  }
+
+  test_constructors_augment_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  A();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          @37
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+        augmented
+          constructors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              augment @57
+                augmentationTarget: self::@class::A::@constructor::new
 ''');
   }
 
@@ -3297,6 +3442,108 @@ library
                 bound: A<dynamic>
                 defaultType: A<dynamic>
             augmentationTarget: self::@class::A
+''');
+  }
+
+  test_supertype_fromAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class B<T2> extends A<T2> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T> {}
+class B<T1> {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @45
+        typeParameters
+          covariant T1 @47
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::B
+        supertype: A<T1>
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::new
+              substitution: {T: T1}
+        augmented
+          constructors
+            self::@class::B::@constructor::new
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class B @43
+            typeParameters
+              covariant T2 @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::B
+''');
+  }
+
+  test_supertype_fromAugmentation2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class C extends A {}
+''');
+
+    // `extends B` should be ignored, we already have `extends A`
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment class C extends B {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+class A {}
+class B {}
+class C {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @56
+        constructors
+          synthetic @-1
+      class B @67
+        constructors
+          synthetic @-1
+      class C @78
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::C
+        supertype: A
+        constructors
+          synthetic @-1
+            superConstructor: self::@class::A::@constructor::new
+        augmented
+          constructors
+            self::@class::C::@constructor::new
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class C @43
+            augmentationTarget: self::@class::C
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::C
+    package:test/b.dart
+      definingUnit
+        classes
+          augment class C @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::C
 ''');
   }
 
@@ -9933,8 +10180,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @32
             type: int
@@ -10462,8 +10707,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @32
             type: int
@@ -11895,8 +12138,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -24038,8 +24279,6 @@ library
         representation: self::@extensionType::E::@def::0::@field::it
         primaryConstructor: self::@extensionType::E::@def::0::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             reference: self::@extensionType::E::@def::0::@field::it
@@ -24060,8 +24299,6 @@ library
         representation: self::@extensionType::E::@def::1::@field::it
         primaryConstructor: self::@extensionType::E::@def::1::@constructor::new
         typeErasure: double
-        interfaces
-          Object
         fields
           final it @52
             reference: self::@extensionType::E::@def::1::@field::it
@@ -25710,8 +25947,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @32
             type: int
@@ -26064,8 +26299,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @32
             type: int
@@ -30282,6 +30515,16 @@ library
             type: Future<dynamic>
         returnType: void
 ''');
+  }
+
+  test_import_hide_offsetEnd() async {
+    var library = await buildLibrary('''
+import "dart:math" hide e, pi;
+''');
+    var import = library.libraryImports[0];
+    var combinator = import.combinators[0] as HideElementCombinator;
+    expect(combinator.offset, 19);
+    expect(combinator.end, 29);
   }
 
   test_import_invalidUri_metadata() async {
@@ -39696,8 +39939,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @32
             type: int
@@ -39832,8 +40073,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @32
             type: int
@@ -45750,7 +45989,7 @@ typedef void F(int a, b, [int c, d]);
 ''');
     var F = library.definingCompilationUnit.typeAliases.single;
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    // TODO(scheglov) Use better textual presentation with all information.
+    // TODO(scheglov): Use better textual presentation with all information.
     expect(function.parameters[0].hasImplicitType, false);
     expect(function.parameters[1].hasImplicitType, true);
     expect(function.parameters[2].hasImplicitType, false);
@@ -46242,39 +46481,29 @@ void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
 ''');
   }
 
-  test_typedef_nonFunction_aliasElement_recordType() async {
+  test_typedef_nonFunction_aliasElement_recordType_generic() async {
     var library = await buildLibrary(r'''
-typedef A1 = (int, String);
-typedef A2<T, U> = (T, U);
-void f1(A1 a) {}
-void f2(A2<int, String> a) {}
+typedef A<T, U> = (T, U);
+void f(A<int, String> a) {}
 ''');
 
     checkElementText(library, r'''
 library
   definingUnit
     typeAliases
-      A1 @8
-        aliasedType: (int, String)
-      A2 @36
+      A @8
         typeParameters
-          covariant T @39
+          covariant T @10
             defaultType: dynamic
-          covariant U @42
+          covariant U @13
             defaultType: dynamic
         aliasedType: (T, U)
     functions
-      f1 @60
+      f @31
         parameters
-          requiredPositional a @66
+          requiredPositional a @48
             type: (int, String)
-              alias: self::@typeAlias::A1
-        returnType: void
-      f2 @77
-        parameters
-          requiredPositional a @96
-            type: (int, String)
-              alias: self::@typeAlias::A2
+              alias: self::@typeAlias::A
                 typeArguments
                   int
                   String
@@ -48609,8 +48838,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @27
             type: int
@@ -48642,8 +48869,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::named
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @27
             codeOffset: 23
@@ -48682,8 +48907,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
-        interfaces
-          Object
         fields
           final it @21
             type: num
@@ -48721,8 +48944,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
-        interfaces
-          Object
         fields
           final it @21
             type: num
@@ -48760,8 +48981,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
-        interfaces
-          Object
         fields
           final it @21
             type: num
@@ -48810,8 +49029,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             codeOffset: 17
@@ -48849,8 +49066,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @30
             type: int
@@ -48882,8 +49097,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -48918,8 +49131,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -48954,8 +49165,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -48990,8 +49199,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @43
             metadata
@@ -49031,8 +49238,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -49160,8 +49365,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
-        interfaces
-          Object
         fields
           final it @21
             type: num
@@ -49222,8 +49425,6 @@ library
         representation: self::@extensionType::X::@field::it
         primaryConstructor: self::@extensionType::X::@constructor::new
         typeErasure: int?
-        interfaces
-          Object?
         fields
           final it @22
             type: int?
@@ -49250,8 +49451,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: T
-        interfaces
-          Object?
         fields
           final it @22
             type: T
@@ -49314,8 +49513,6 @@ library
         representation: self::@extensionType::A::@field::_it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int?
-        interfaces
-          Object?
         fields
           final promotable _it @22
             type: int?
@@ -49357,8 +49554,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @43
             type: int
@@ -49390,8 +49585,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -49423,8 +49616,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -49460,8 +49651,6 @@ library
         representation: self::@extensionType::A::@field::<empty>
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
-        interfaces
-          Object?
         fields
           final <empty> @17
             codeOffset: 17
@@ -49501,8 +49690,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @34
             type: int
@@ -49528,8 +49715,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -49562,8 +49747,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
-        interfaces
-          Object?
         fields
           final it @19
             type: InvalidType
@@ -49574,8 +49757,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: InvalidType
-        interfaces
-          Object?
         fields
           final it @46
             type: InvalidType
@@ -49601,8 +49782,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
-        interfaces
-          Object?
         fields
           final it @19
             type: B
@@ -49613,8 +49792,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: InvalidType
-        interfaces
-          Object?
         fields
           final it @52
             type: InvalidType
@@ -49638,8 +49815,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
-        interfaces
-          Object?
         fields
           final it @19
             type: InvalidType
@@ -49665,8 +49840,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -49677,8 +49850,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int Function(int)
-        interfaces
-          Object
         fields
           final it @62
             type: A Function(A)
@@ -49707,8 +49878,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: T
-        interfaces
-          Object?
         fields
           final it @22
             type: T
@@ -49719,8 +49888,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: double
-        interfaces
-          Object
         fields
           final it @57
             type: A<double>
@@ -49746,8 +49913,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -49758,8 +49923,6 @@ library
         representation: self::@extensionType::B::@field::it
         primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: List<int>
-        interfaces
-          Object
         fields
           final it @54
             type: List<A>
@@ -49783,8 +49946,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
-        interfaces
-          Object
         fields
           final it @21
             type: int
@@ -49813,8 +49974,6 @@ library
         representation: self::@extensionType::A::@field::it
         primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: Map<T, U>
-        interfaces
-          Object
         fields
           final it @45
             type: Map<T, U>
@@ -49957,6 +50116,70 @@ class MixinAugmentationKeepLinkingTest extends ElementsBaseTest
 }
 
 mixin MixinAugmentationMixin on ElementsBaseTest {
+  test_allSupertypes() async {
+    final library = await buildLibrary(r'''
+mixin M {}
+class A with M {}
+''');
+
+    configuration
+      ..withAllSupertypes = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @17
+        supertype: Object
+        mixins
+          M
+        allSupertypes
+          M
+          Object
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        allSupertypes
+          Object
+''');
+  }
+
+  test_allSupertypes_hasSuperclassConstraints() async {
+    final library = await buildLibrary(r'''
+class A {}
+mixin M on A {}
+class B with M {}
+''');
+
+    configuration
+      ..withAllSupertypes = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        allSupertypes
+          Object
+      class B @33
+        supertype: Object
+        mixins
+          M
+        allSupertypes
+          A
+          M
+          Object
+    mixins
+      mixin M @17
+        superclassConstraints
+          A
+        allSupertypes
+          A
+          Object
+''');
+  }
+
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -50635,16 +50858,16 @@ library
             self::@mixin::A::@field::foo1
             FieldMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
           accessors
             self::@mixin::A::@getter::foo1
             self::@mixin::A::@setter::foo1
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -50781,12 +51004,12 @@ library
             self::@mixin::A::@field::foo1
             FieldMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
           accessors
             self::@mixin::A::@getter::foo1
             PropertyAccessorMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-              substitution: {T2: T1}
+              augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -51420,7 +51643,7 @@ library
           methods
             MethodMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
-              substitution: {T2: T}
+              augmentationSubstitution: {T2: T}
             self::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
@@ -51473,7 +51696,7 @@ library
           methods
             MethodMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
-              substitution: {T2: T}
+              augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -51814,6 +52037,42 @@ library
 ''');
   }
 
+  test_augmented_superclassConstraints_fromAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A on B {}
+class B {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmented
+          superclassConstraints
+            B
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @59
+            constructors
+              synthetic @-1
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            superclassConstraints
+              B
+''');
+  }
+
   test_augmented_superclassConstraints_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -52000,8 +52259,6 @@ library
     mixins
       mixin B @32
         augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::B
-        superclassConstraints
-          Object
         methods
           foo @38
             parameters
@@ -52010,7 +52267,6 @@ library
             returnType: int
         augmented
           superclassConstraints
-            Object
             A
           methods
             self::@mixin::B::@method::foo
