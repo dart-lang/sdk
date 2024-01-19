@@ -156,7 +156,7 @@ vars = {
   "leak_tracker_rev": "4a5b077739886f61bd6dc11c78865ef487c917c2",
   "lints_rev": "3810f8b3dc3205cfaa4ccc0054b021e68046d851",
   "logging_rev": "4d35a4e02b9237bd794378413e7ce3deb52ffcaf",
-  "markdown_rev": "7fdfa557dc29e00c94bb637a34869e67d57fdb26",
+  "markdown_rev": "7602f9f17d25702c11991380ebc7853ccdc42f7a",
   "matcher_rev": "d9cf4f69e3f557718ab5be042dd5503afcacac51",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "ca9f059d2334bb2657683e0a7f5949817cb4b0e6",
