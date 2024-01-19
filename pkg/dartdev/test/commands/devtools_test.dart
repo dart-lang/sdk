@@ -111,7 +111,12 @@ void devtools() {
     Process? process;
 
     setUp(() {
-      targetProject = project(
+      // NOTE: we don't use `project()` here since it registers a tear-down
+      // which can be called before the target process is killed. This can be
+      // problematic on Windows, which won't let us delete directories while a
+      // process is actively accessing it. Manually disposing the projects is
+      // the easiest way to work around this.
+      targetProject = TestProject(
         mainSrc: '''
 Future<void> main() async {
   while (true) {
@@ -120,7 +125,7 @@ Future<void> main() async {
 }
 ''',
       );
-      p = project();
+      p = TestProject();
     });
 
     tearDown(() {
@@ -128,6 +133,8 @@ Future<void> main() async {
       process?.kill();
       targetProjectInstance = null;
       process = null;
+      targetProject.dispose();
+      p.dispose();
     });
 
     Future<String> startTargetProject({
