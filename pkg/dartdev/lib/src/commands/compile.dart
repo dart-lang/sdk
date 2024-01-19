@@ -10,7 +10,6 @@ import 'package:dart2native/generate.dart';
 import 'package:dart2wasm/generate_wasm.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
-import 'package:front_end/src/api_unstable/vm.dart' as fe;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
@@ -559,9 +558,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       options.translatorOptions.importSharedMemory = true;
       options.translatorOptions.sharedMemoryMaxPages = maxPages;
     }
-    // Enable inline classes.
-    // TODO: Remove this when inline classe ship.
-    options.feExperimentalFlags = {fe.ExperimentalFlag.inlineClass: true};
 
     int result;
     try {
