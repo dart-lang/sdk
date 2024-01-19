@@ -5541,6 +5541,9 @@ abstract class InstanceInvocationExpression extends InvocationExpression {
 }
 
 class DynamicInvocation extends InstanceInvocationExpression {
+  // Must match serialized bit positions.
+  static const int FlagImplicitCall = 1 << 0;
+
   final DynamicAccessKind kind;
 
   @override
@@ -5552,9 +5555,23 @@ class DynamicInvocation extends InstanceInvocationExpression {
   @override
   Arguments arguments;
 
+  int flags = 0;
+
   DynamicInvocation(this.kind, this.receiver, this.name, this.arguments) {
     receiver.parent = this;
     arguments.parent = this;
+  }
+
+  /// If `true` this is an implicit call to 'call'. For instance
+  ///
+  ///    method(dynamic d) {
+  ///      d(); // Implicit call.
+  ///      d.call(); // Explicit call.
+  ///
+  bool get isImplicitCall => flags & FlagImplicitCall != 0;
+
+  void set isImplicitCall(bool value) {
+    flags = value ? (flags | FlagImplicitCall) : (flags & ~FlagImplicitCall);
   }
 
   @override
@@ -5609,8 +5626,10 @@ class DynamicInvocation extends InstanceInvocationExpression {
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver,
         minimumPrecedence: astToText.Precedence.PRIMARY);
-    printer.write('.');
-    printer.writeName(name);
+    if (!isImplicitCall) {
+      printer.write('.');
+      printer.writeName(name);
+    }
     printer.writeArguments(arguments);
   }
 }

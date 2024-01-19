@@ -3798,7 +3798,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               node.name,
               unevaluatedArguments(
                   positionalArguments, {}, node.arguments.types))
-            ..fileOffset = node.fileOffset);
+            ..fileOffset = node.fileOffset
+            ..flags = node.flags);
     }
 
     return _handleInvocation(node, node.name, receiver, positionalArguments,

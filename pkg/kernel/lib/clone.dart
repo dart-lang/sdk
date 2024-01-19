@@ -751,7 +751,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitDynamicInvocation(DynamicInvocation node) {
     return new DynamicInvocation(
-        node.kind, clone(node.receiver), node.name, clone(node.arguments));
+        node.kind, clone(node.receiver), node.name, clone(node.arguments))
+      ..flags = node.flags;
   }
 
   @override

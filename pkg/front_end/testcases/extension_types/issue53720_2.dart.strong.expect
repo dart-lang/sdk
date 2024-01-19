@@ -67,7 +67,7 @@ static method test() → void {
   invalid-expression "pkg/front_end/testcases/extension_types/issue53720_2.dart:22:6: Error: The setter 'm1' isn't defined for the class 'E2'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'm1'.
   e2.m1 = 10; // Compile-time error.
-     ^^" in e2{<unresolved>}.m1 = 10;
+     ^^" in e2.{<unresolved>}m1 = 10;
   self::E2|set#m2(e2, 10);
   invalid-expression "pkg/front_end/testcases/extension_types/issue53720_2.dart:24:6: Error: The method 'm2' isn't defined for the class 'E2'.
 Try correcting the name to the name of an existing method, or defining a method named 'm2'.
