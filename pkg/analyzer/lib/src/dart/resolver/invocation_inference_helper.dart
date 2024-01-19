@@ -83,13 +83,17 @@ class InvocationInferenceHelper {
     var typeName = constructorName.type;
     var typeElement = typeName.element;
     if (typeElement is InterfaceElement) {
+      var augmented = typeElement.augmented;
+      if (augmented == null) {
+        return null;
+      }
       typeParameters = typeElement.typeParameters;
       var constructorIdentifier = constructorName.name;
       if (constructorIdentifier == null) {
-        rawElement = typeElement.unnamedConstructor;
+        rawElement = augmented.unnamedConstructor;
       } else {
         var name = constructorIdentifier.name;
-        rawElement = typeElement.getNamedConstructor(name);
+        rawElement = augmented.getNamedConstructor(name);
         if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
           rawElement = null;
         }
