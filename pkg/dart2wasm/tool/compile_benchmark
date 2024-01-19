@@ -30,6 +30,9 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 SDK_DIR="$(cd "${PROG_DIR}/../../.." ; pwd -P)"
 
+# Use same binaryen flags as `dart compile exe`
+BINARYEN_FLAGS="$(sed -n '/binaryenFlags =/,/end of binaryenFlags/ p' $SDK_DIR/pkg/dartdev/lib/src/commands/compile.dart  | sed  '1d' | sed '$d' | tr '\n' ' ')"
+
 # Locate build directory, containing executables, snapshots and platform dill.
 if [[ `uname` == 'Darwin' ]]; then
   OUT_DIR="$SDK_DIR/xcodebuild"
@@ -62,7 +65,7 @@ function measure_size() {
 dart2wasm_command=("$DART2WASM" "$1" "$2" $COMPILE_FLAGS)
 
 # Keep in sync with sdk/bin/dart2wasm.
-binaryen_command=("$BINARYEN" -all --closed-world -tnh --type-unfinalizing -O3 --type-ssa --gufa -O3 --type-merging -O1 --type-finalizing "$2" -o "$2")
+binaryen_command=("$BINARYEN" $BINARYEN_FLAGS "$2" -o "$2")
 
 if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
   measure ${dart2wasm_command[@]}

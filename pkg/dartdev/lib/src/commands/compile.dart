@@ -21,6 +21,28 @@ import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
 
+// The unique place where we store dart2wasm binaryen flags.
+//
+// Other uses (e.g. in shell scripts) will grep in this file for the flags. So
+// please keep it as a simple multi-line string of flags.
+final List<String> binaryenFlags = '''
+  --all-features
+  --closed-world
+  --traps-never-happen
+  --type-unfinalizing
+  -O3
+  --type-ssa
+  --gufa
+  -O3
+  --type-merging
+  -O1
+  --type-finalizing
+''' // end of binaryenFlags
+    .split('\n')
+    .map((line) => line.trim())
+    .where((line) => line.isNotEmpty)
+    .toList();
+
 const int compileErrorExitCode = 64;
 
 class Option {
@@ -394,10 +416,14 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
   final String optimizer = path.join(
       binDir.path, 'utils', Platform.isWindows ? 'wasm-opt.exe' : 'wasm-opt');
-  String optimizerFlags(bool outputNames) =>
-      '-all --closed-world -tnh --type-unfinalizing -O3 --type-ssa'
-      ' --gufa -O3 --type-merging -O1 --type-finalizing'
-      '${outputNames ? ' -g' : ''}';
+  String optimizerFlags(bool outputNames) {
+    final flags = [
+      ...binaryenFlags,
+      if (outputNames) '-g',
+    ];
+    return flags.join(' ');
+  }
+
   static const String unoptExtension = '.unopt';
 
   CompileWasmCommand({bool verbose = false})

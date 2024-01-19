@@ -24,6 +24,9 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 SDK_DIR="$(cd "${PROG_DIR}/../.." ; pwd -P)"
 
+# Use same binaryen flags as `dart compile exe`
+BINARYEN_FLAGS="$(sed -n '/binaryenFlags =/,/end of binaryenFlags/ p' $SDK_DIR/pkg/dartdev/lib/src/commands/compile.dart  | sed  '1d' | sed '$d' | tr '\n' ' ')"
+
 # Locate build directory, containing executables, snapshots and platform dill.
 if [[ `uname` == 'Darwin' ]]; then
   OUT_DIR="$SDK_DIR/xcodebuild"
@@ -127,7 +130,6 @@ set -e
 "$DART_PRECOMPILED_RUNTIME" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "$SDK_ARG" "$PLATFORM_ARG" "${ARGS[@]}"
 
 if [[ "$OPTIMIZED" == 1 ]]; then
-    # Keep optimization parameters after `-g` in sync with pkg/dart2wasm/tool/compile_benchmark.
-    # Last argument must be the .wasm file.
-    "$BIN_DIR"/wasm-opt -g -all --closed-world -tnh --type-unfinalizing -O3 --type-ssa --gufa -O3 --type-merging -O1 --type-finalizing "${ARGS[-1]}" -o "${ARGS[-1]}"
+  # Keep the name section by passing `-g`.
+  "$BIN_DIR"/wasm-opt -g $BINARYEN_FLAGS "${ARGS[-1]}" -o "${ARGS[-1]}"
 fi
