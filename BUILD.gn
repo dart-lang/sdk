@@ -188,7 +188,6 @@ if (is_fuchsia) {
       ]
       resource_files = [
         ".dart_tool/package_config.json",
-        "pkg/testing/test/hello_test.dart",
         "tools/addlatexhash.dart",
       ]
       resource_dirs = [
