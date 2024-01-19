@@ -148,8 +148,8 @@ class CompletionResolveHandler
             final autoImportDisplayUri = libraryUri.isScheme('file')
                 // Compute the relative path and then put into a URI so the display
                 // always uses forward slashes (as a URI) regardless of platform.
-                ? pathContext.toUri(pathContext.relative(
-                    pathContext.fromUri(libraryUri),
+                ? uriConverter.toClientUri(pathContext.relative(
+                    uriConverter.fromClientUri(libraryUri),
                     from: pathContext.dirname(file),
                   ))
                 : libraryUri;

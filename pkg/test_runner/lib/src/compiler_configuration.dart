@@ -526,28 +526,33 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
 
   @override
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
-    if (_isHostChecked) {
-      if (_useSdk) {
+    if (_useSdk) {
+      if (_isHostChecked) {
         throw "--host-checked and --use-sdk cannot be used together";
       }
-      // The script dart2wasm_developer is not included in the
-      // shipped SDK, that is the script is not installed in
-      // "$buildDir/dart-sdk/bin/"
-      return '$prefix/dart2wasm_developer$shellScriptExtension';
+      return '${_configuration.buildDirectory}/dart-sdk/bin/dart';
     }
-    if (_useSdk) {
-      prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
-    }
-    return '$prefix/dart2wasm$shellScriptExtension';
+    return 'pkg/dart2wasm/tool/compile_benchmark';
   }
 
   @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
+      if (_useSdk) ...[
+        'compile',
+        'wasm',
+      ] else ...[
+        if (_isHostChecked) '--compiler-asserts',
+      ],
       ...testFile.sharedOptions,
-      ..._configuration.sharedOptions,
+      if (_useSdk)
+        // `dart compile exe` doesn't support -D arguments atm
+        // http://dartbug.com/54675
+        ..._configuration.sharedOptions
+            .where((o) => !o.startsWith('-Dtest_runner'))
+      else
+        ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2wasmOptions,
       // The file being compiled is the last argument.
@@ -557,8 +562,11 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
 
   Command computeCompilationCommand(String outputFileName,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    arguments = arguments.toList();
-    arguments.add(outputFileName);
+    arguments = [
+      ...arguments,
+      if (_useSdk) '-o',
+      outputFileName,
+    ];
 
     var command = CompilationCommand(
         'dart2wasm',

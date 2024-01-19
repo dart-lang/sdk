@@ -38,7 +38,7 @@ static method escape(dynamic x) → void {
   x == null ?{dynamic} x = "" : null;
   x == null ?{dynamic} x = 45 : null;
   if(!(x is core::int) && !(x is core::String)) {
-    x{dynamic}.field = 45;
+    x.{dynamic}field = 45;
   }
 }
 static method main() → dynamic {

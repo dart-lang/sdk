@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 /// declarations that are in scope at the completion location.
 class DeclarationHelper {
   /// The regular expression used to detect an unused identifier (a sequence of
-  /// one or more underscodes with no other characters).
+  /// one or more underscores with no other characters).
   static final RegExp UnusedIdentifier = RegExp(r'^_+$');
 
   /// The completion request being processed.
@@ -349,6 +349,39 @@ class DeclarationHelper {
           }
         }
       }
+    }
+  }
+
+  /// Add any static members defined by the given [element].
+  void addStaticMembersOfElement(Element element) {
+    if (element is TypeAliasElement) {
+      var aliasedType = element.aliasedType;
+      if (aliasedType is InterfaceType) {
+        element = aliasedType.element;
+      }
+    }
+    switch (element) {
+      case EnumElement():
+        _addStaticMembers(
+            accessors: element.accessors,
+            constructors: const [],
+            containingElement: element,
+            fields: element.fields,
+            methods: element.methods);
+      case ExtensionElement():
+        _addStaticMembers(
+            accessors: element.accessors,
+            constructors: const [],
+            containingElement: element,
+            fields: element.fields,
+            methods: element.methods);
+      case InterfaceElement():
+        _addStaticMembers(
+            accessors: element.accessors,
+            constructors: element.constructors,
+            containingElement: element,
+            fields: element.fields,
+            methods: element.methods);
     }
   }
 
@@ -838,6 +871,54 @@ class DeclarationHelper {
         includeSetters: true);
   }
 
+  /// Add the static [accessors], [constructors], [fields], and [methods]
+  /// defined by the [containingElement].
+  void _addStaticMembers(
+      {required List<PropertyAccessorElement> accessors,
+      required List<ConstructorElement> constructors,
+      required Element containingElement,
+      required List<FieldElement> fields,
+      required List<MethodElement> methods}) {
+    for (var accessor in accessors) {
+      if (accessor.isStatic &&
+          !accessor.isSynthetic &&
+          accessor.isVisibleIn(request.libraryElement)) {
+        _suggestProperty(accessor, containingElement);
+      }
+    }
+    for (var field in fields) {
+      if (field.isStatic &&
+          (!field.isSynthetic ||
+              (containingElement is EnumElement && field.name == 'values')) &&
+          field.isVisibleIn(request.libraryElement)) {
+        if (field.isEnumConstant) {
+          var suggestion =
+              EnumConstantSuggestion(null, field, includeEnumName: false);
+          collector.addSuggestion(suggestion);
+        } else {
+          _suggestField(field, containingElement);
+        }
+      }
+    }
+    if (!mustBeAssignable) {
+      var allowNonFactory =
+          containingElement is ClassElement && !containingElement.isAbstract;
+      for (var constructor in constructors) {
+        if (constructor.name.isNotEmpty &&
+            constructor.isVisibleIn(request.libraryElement) &&
+            (allowNonFactory || constructor.isFactory)) {
+          _suggestConstructor(constructor,
+              hasClassName: true, importData: null);
+        }
+      }
+      for (var method in methods) {
+        if (method.isStatic && method.isVisibleIn(request.libraryElement)) {
+          _suggestMethod(method, containingElement);
+        }
+      }
+    }
+  }
+
   /// Adds suggestions for any top-level declarations that are visible within
   /// the [library].
   void _addTopLevelDeclarations(LibraryElement library) {
@@ -1098,7 +1179,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the enum constant represented by the [element].
-  /// The [prefix] is the prefix by which the element is imported.
+  /// The [importData] should be provided if the enum is imported.
   void _suggestStaticField(FieldElement element, ImportData? importData) {
     if (!element.isStatic ||
         (mustBeAssignable && !(element.isFinal || element.isConst)) ||

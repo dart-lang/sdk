@@ -464,7 +464,7 @@ class FlowAnalysisResult {
 
 /// CFE-specific implementation of [FlowAnalysisOperations].
 class OperationsCfe
-    implements TypeAnalyzerOperations<VariableDeclaration, DartType> {
+    implements TypeAnalyzerOperations<VariableDeclaration, DartType, DartType> {
   final TypeEnvironment typeEnvironment;
 
   final Nullability nullability;
@@ -724,6 +724,11 @@ class OperationsCfe
   bool isError(DartType type) => type is InvalidType;
 
   @override
+  bool isTypeSchemaSatisfied(
+          {required DartType typeSchema, required DartType type}) =>
+      isSubtypeOf(type, typeSchema);
+
+  @override
   bool isUnknownType(DartType type) => type is UnknownType;
 
   @override
@@ -732,15 +737,21 @@ class OperationsCfe
   }
 
   @override
-  DartType iterableType(DartType elementType) {
+  DartType iterableTypeSchema(DartType elementTypeSchema) {
     return new InterfaceType(typeEnvironment.coreTypes.iterableClass,
-        Nullability.nonNullable, <DartType>[elementType]);
+        Nullability.nonNullable, <DartType>[elementTypeSchema]);
   }
 
   @override
   DartType listType(DartType elementType) {
     return new InterfaceType(typeEnvironment.coreTypes.listClass,
         Nullability.nonNullable, <DartType>[elementType]);
+  }
+
+  @override
+  DartType listTypeSchema(DartType elementTypeSchema) {
+    return new InterfaceType(typeEnvironment.coreTypes.listClass,
+        Nullability.nonNullable, <DartType>[elementTypeSchema]);
   }
 
   @override
@@ -755,10 +766,25 @@ class OperationsCfe
   }
 
   @override
+  DartType makeTypeSchemaNullable(DartType typeSchema) =>
+      typeSchema.withDeclaredNullability(Nullability.nullable);
+
+  @override
   DartType mapType({required DartType keyType, required DartType valueType}) {
     return new InterfaceType(typeEnvironment.coreTypes.mapClass,
         Nullability.nonNullable, <DartType>[keyType, valueType]);
   }
+
+  @override
+  DartType mapTypeSchema(
+      {required DartType keyTypeSchema, required DartType valueTypeSchema}) {
+    return new InterfaceType(typeEnvironment.coreTypes.mapClass,
+        Nullability.nonNullable, <DartType>[keyTypeSchema, valueTypeSchema]);
+  }
+
+  @override
+  DartType? matchIterableTypeSchema(DartType typeSchema) =>
+      matchIterableType(typeSchema);
 
   @override
   DartType? matchListType(DartType type) {
@@ -852,15 +878,31 @@ class OperationsCfe
   }
 
   @override
-  DartType streamType(DartType elementType) {
+  DartType recordTypeSchema(
+          {required List<DartType> positional,
+          required List<shared.NamedType<DartType>> named}) =>
+      recordType(positional: positional, named: named);
+
+  @override
+  DartType streamTypeSchema(DartType elementTypeSchema) {
     return new InterfaceType(typeEnvironment.coreTypes.streamClass,
-        Nullability.nonNullable, <DartType>[elementType]);
+        Nullability.nonNullable, <DartType>[elementTypeSchema]);
   }
 
   @override
   DartType extensionTypeErasure(DartType type) {
     return type.extensionTypeErasure;
   }
+
+  @override
+  DartType typeSchemaGlb(DartType typeSchema1, DartType typeSchema2) =>
+      glb(typeSchema1, typeSchema2);
+
+  @override
+  bool typeSchemaIsDynamic(DartType typeSchema) => typeSchema is DynamicType;
+
+  @override
+  DartType typeToSchema(DartType type) => type;
 }
 
 /// Type inference results used for testing.

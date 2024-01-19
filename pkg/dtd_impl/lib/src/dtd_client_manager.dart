@@ -15,4 +15,14 @@ class DTDClientManager extends ClientManager {
     super.addClient(client);
     client.done.then((_) => removeClient(client));
   }
+
+  /// Finds a client that has [service] registered to it.
+  Client? findClientThatOwnsService(String service) {
+    for (final client in clients) {
+      if (client.services.keys.any((k) => k.startsWith('$service.'))) {
+        return client;
+      }
+    }
+    return null;
+  }
 }

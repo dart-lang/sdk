@@ -3023,7 +3023,7 @@ class _InterfacePrinter {
     String name,
     Map<Name, List<ExecutableElement>> map,
   ) {
-    final isEmpty = map.values.flattenedToList.where((element) {
+    final isEmpty = map.values.flattenedToList2.where((element) {
       if (_configuration.withObjectMembers) return true;
       return !element.isObjectMember;
     }).isEmpty;

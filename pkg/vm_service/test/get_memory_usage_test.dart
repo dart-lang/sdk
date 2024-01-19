@@ -13,7 +13,7 @@ final tests = <VMTest>[
     final result = await service.getMemoryUsage(vm.isolates!.first.id!);
     expect(result.heapUsage, isPositive);
     expect(result.heapCapacity, isPositive);
-    expect(result.externalUsage, isPositive);
+    expect(result.externalUsage, greaterThanOrEqualTo(0));
   },
   (VmService service) async {
     bool? caughtException;

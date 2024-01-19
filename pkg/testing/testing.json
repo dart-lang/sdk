@@ -5,21 +5,6 @@
 
   "packages": "../../.dart_tool/package_config.json",
 
-  "suites": [
-    {
-      "name": "dart_vm",
-      "kind": "Chain",
-      "source": "package:testing/dart_vm_suite.dart",
-      "path": "test/",
-      "status": "test/dart_vm_suite.status",
-      "pattern": [
-        "\\.dart$"
-      ],
-      "exclude": [
-      ]
-    }
-  ],
-
   "analyze": {
     "options": "analysis_options.yaml",
 

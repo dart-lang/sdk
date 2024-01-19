@@ -41,165 +41,138 @@ t5a() {
 }
 
 t6a() {
-  try {} on F<Class<ConcreteClass>> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on F<Class<ConcreteClass>> catch (e) {}
 }
 
 t7a() {
-  try {} on F<Object> catch (e) {
-    // Error
-  }
+  // Error
+  try {} on F<Object> catch (e) {}
 }
 
 t8a() {
-  try {} on F<int> catch (e) {
-    // Error
-  }
+  // Error
+  try {} on F<int> catch (e) {}
 }
 
 s1a() {
-  try {} on G catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G catch (e) {}
 }
 
 s2a() {
-  try {} on G<dynamic> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<dynamic> catch (e) {}
 }
 
 s3a() {
-  try {} on G<Class> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<Class> catch (e) {}
 }
 
 s4a() {
-  try {} on G<Class<dynamic>> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<Class<dynamic>> catch (e) {}
 }
 
 s5a() {
-  try {} on G<ConcreteClass> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<ConcreteClass> catch (e) {}
 }
 
 s6a() {
-  try {} on G<Class<ConcreteClass>> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<Class<ConcreteClass>> catch (e) {}
 }
 
 s7a() {
-  try {} on G<Object> catch (e) {
-    // Error
-  }
+  // Error
+  try {} on G<Object> catch (e) {}
 }
 
 s8a() {
-  try {} on G<int> catch (e) {
-    // Error
-  }
+  // Error
+  try {} on G<int> catch (e) {}
 }
 
 t1b() {
-  try {} on F catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on F catch (e) {}
 }
 
 t2b() {
-  try {} on F<dynamic> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on F<dynamic> catch (e) {}
 }
 
 t3b() {
-  try {} on F<Class> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on F<Class> catch (e) {}
 }
 
 t4b() {
-  try {} on F<Class<dynamic>> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on F<Class<dynamic>> catch (e) {}
 }
 
 t5b() {
-  try {} on F<ConcreteClass> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on F<ConcreteClass> catch (e) {}
 }
 
 t6b() {
-  try {} on F<Class<ConcreteClass>> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on F<Class<ConcreteClass>> catch (e) {}
 }
 
 t7b() {
-  try {} on F<Object> catch (e) {
-    // Error
-  }
+  // Error
+  try {} on F<Object> catch (e) {}
 }
 
 t8b() {
-  try {} on F<int> catch (e) {
-    // Error
-  }
+  // Error
+  try {} on F<int> catch (e) {}
 }
 
 s1b() {
-  try {} on G catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G catch (e) {}
 }
 
 s2b() {
-  try {} on G<dynamic> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<dynamic> catch (e) {}
 }
 
 s3b() {
-  try {} on G<Class> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<Class> catch (e) {}
 }
 
 s4b() {
-  try {} on G<Class<dynamic>> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<Class<dynamic>> catch (e) {}
 }
 
 s5b() {
-  try {} on G<ConcreteClass> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<ConcreteClass> catch (e) {}
 }
 
 s6b() {
-  try {} on G<Class<ConcreteClass>> catch (e) {
-    // Ok
-  }
+  // Ok
+  try {} on G<Class<ConcreteClass>> catch (e) {}
 }
 
 s7b() {
-  try {} on G<Object> catch (e) {
-    // Error
-  }
+  // Error
+  try {} on G<Object> catch (e) {}
 }
 
 s8b() {
-  try {} on G<int> catch (e) {
-    // Error
-  }
+  // Error
+  try {} on G<int> catch (e) {}
 }
 
 main() {}

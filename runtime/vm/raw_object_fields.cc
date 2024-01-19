@@ -147,7 +147,6 @@ namespace dart {
   F(Closure, instantiator_type_arguments_)                                     \
   F(Closure, function_type_arguments_)                                         \
   F(Closure, delayed_type_arguments_)                                          \
-  F(Closure, default_type_arguments_)                                          \
   F(Closure, function_)                                                        \
   F(Closure, context_)                                                         \
   F(Closure, hash_)                                                            \

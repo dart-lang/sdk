@@ -116,6 +116,7 @@ stderr     : ${result.stderr}''';
 
 enum Runtime {
   aot,
+  appjit,
   jit,
 }
 
@@ -255,13 +256,28 @@ Future<void> compileAndRun({
     runtime: runtime,
   );
 
-  if (runtime == Runtime.jit) {
-    await runDart(scriptUri: outDillUri, arguments: runArguments);
-  } else {
-    final snapshotUri = tempUri.resolve('out.snapshot');
-    await runGenSnapshot(dillUri: outDillUri, outputUri: snapshotUri);
-    await runDartAotRuntime(
-        aotSnapshotUri: snapshotUri, arguments: runArguments);
+  switch (runtime) {
+    case Runtime.aot:
+      final snapshotUri = tempUri.resolve('out.snapshot');
+      await runGenSnapshot(dillUri: outDillUri, outputUri: snapshotUri);
+      await runDartAotRuntime(
+          aotSnapshotUri: snapshotUri, arguments: runArguments);
+    case Runtime.appjit:
+      final outJitUri = tempUri.resolve('out.jit');
+      await runDart(
+        toolArgs: [
+          '--snapshot-kind=app-jit',
+          '--snapshot=${outJitUri.toFilePath()}',
+        ],
+        scriptUri: outDillUri,
+        arguments: runArguments,
+      );
+      await runDart(
+        scriptUri: outJitUri,
+        arguments: runArguments,
+      );
+    case Runtime.jit:
+      await runDart(scriptUri: outDillUri, arguments: runArguments);
   }
 }
 

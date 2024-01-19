@@ -10,9 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryTypeCheckFalseTest);
-    defineReflectiveTests(UnnecessaryTypeCheckFalseWithoutNullSafetyTest);
     defineReflectiveTests(UnnecessaryTypeCheckTrueTest);
-    defineReflectiveTests(UnnecessaryTypeCheckTrueWithoutNullSafetyTest);
   });
 }
 
@@ -130,24 +128,13 @@ void f<T>(T a) {
   }
 
   test_typeParameter_isNot_object() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 12),
-      ],
-    );
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T>(T a) {
   a is! Object;
 }
-''', expectedErrors);
+''');
   }
 }
-
-@reflectiveTest
-class UnnecessaryTypeCheckFalseWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, UnnecessaryTypeCheckFalseTestCases {}
 
 @reflectiveTest
 class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest
@@ -293,21 +280,10 @@ void f<T>(T a) {
   }
 
   test_typeParameter_is_object() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 11),
-      ],
-    );
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T>(T a) {
   a is Object;
 }
-''', expectedErrors);
+''');
   }
 }
-
-@reflectiveTest
-class UnnecessaryTypeCheckTrueWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, UnnecessaryTypeCheckTrueTestCases {}

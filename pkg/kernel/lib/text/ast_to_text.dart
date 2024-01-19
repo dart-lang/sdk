@@ -1529,16 +1529,16 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void _writeDynamicAccessKind(DynamicAccessKind kind) {
     switch (kind) {
       case DynamicAccessKind.Dynamic:
-        writeSymbol('{dynamic}.');
+        writeSymbol('{dynamic}');
         break;
       case DynamicAccessKind.Never:
-        writeSymbol('{Never}.');
+        writeSymbol('{Never}');
         break;
       case DynamicAccessKind.Invalid:
-        writeSymbol('{<invalid>}.');
+        writeSymbol('{<invalid>}');
         break;
       case DynamicAccessKind.Unresolved:
-        writeSymbol('{<unresolved>}.');
+        writeSymbol('{<unresolved>}');
         break;
     }
   }
@@ -1547,9 +1547,12 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void visitDynamicInvocation(DynamicInvocation node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
-    writeName(
-      node.name,
-    );
+    if (!node.isImplicitCall) {
+      writeSymbol('.');
+      writeName(
+        node.name,
+      );
+    }
     writeNode(node.arguments);
   }
 
@@ -2122,6 +2125,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void visitDynamicGet(DynamicGet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
+    writeSymbol('.');
     writeName(node.name);
   }
 
@@ -2157,6 +2161,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitDynamicSet(DynamicSet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.');
     _writeDynamicAccessKind(node.kind);
     writeName(node.name);
     writeSpaced('=');

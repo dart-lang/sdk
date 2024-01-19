@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:dartdev/src/sdk.dart';
 import 'package:logging/logging.dart';
 import 'package:native_assets_builder/native_assets_builder.dart';
-import 'package:native_assets_cli/native_assets_cli.dart';
+import 'package:native_assets_cli/native_assets_cli_internal.dart';
 
 import 'core.dart';
 

@@ -142,7 +142,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get completeFunctionCalls =>
       _settings['completeFunctionCalls'] as bool? ?? false;
 
-  /// A flag for enabling interaactive refactors flagged as experimental.
+  /// A flag for enabling interactive refactors flagged as experimental.
   ///
   /// This flag is likely to be used by both analysis server developers (working
   /// on new refactors) and users that want to test/provide feedback for

@@ -7,7 +7,8 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:native_assets_cli/native_assets_cli.dart' show CCompilerConfig;
+import 'package:native_assets_cli/native_assets_cli_internal.dart'
+    show CCompilerConfig;
 import 'package:smith/configuration.dart';
 import 'package:smith/smith.dart';
 

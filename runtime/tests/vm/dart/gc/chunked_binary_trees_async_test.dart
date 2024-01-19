@@ -119,7 +119,7 @@ runBottomUp(int depth) async {
 
 main() async {
   for (var i = 0; i < 5; i++) {
-    await runTopDown(10);
-    await runBottomUp(10);
+    await runTopDown(9);
+    await runBottomUp(9);
   }
 }

@@ -2634,6 +2634,9 @@ variable is defined._
 _'{0}' can't be used to name both a type variable and the extension in which the
 type variable is defined._
 
+_'{0}' can't be used to name both a type variable and the extension type in
+which the type variable is defined._
+
 _'{0}' can't be used to name both a type variable and the mixin in which the
 type variable is defined._
 
@@ -2665,6 +2668,9 @@ class C<T> {}
 _'{0}' can't be used to name both a type variable and a member in this class._
 
 _'{0}' can't be used to name both a type variable and a member in this enum._
+
+_'{0}' can't be used to name both a type variable and a member in this extension
+type._
 
 _'{0}' can't be used to name both a type variable and a member in this
 extension._

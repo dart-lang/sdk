@@ -167,7 +167,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitInstanceCreation(
       InstanceCreationExpression expression, FunctionExpression node) {
-    if (expression.isConst) return;
+    if (expression.isConst || expression.constructorName.type.isDeferred) {
+      return;
+    }
 
     var arguments = expression.argumentList.arguments;
     var parameters = node.parameters?.parameters ?? <FormalParameter>[];

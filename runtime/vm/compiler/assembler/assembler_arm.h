@@ -1493,7 +1493,11 @@ class Assembler : public AssemblerBase {
   // These are separate assembler macros so we can avoid a dependent load too
   // nearby the load of the table address.
   void LoadAllocationTracingStateAddress(Register dest, intptr_t cid);
+  void LoadAllocationTracingStateAddress(Register dest, Register cid);
 
+  // If true is returned, then the out parameter [need_base] signifies whether
+  // a register is needed for storing the array base (which should be passed
+  // as the [temp] parameter to ElementAddressForIntIndex).
   static bool AddressCanHoldConstantIndex(const Object& constant,
                                           bool is_load,
                                           bool is_external,
@@ -1568,6 +1572,11 @@ class Assembler : public AssemblerBase {
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
+  void MaybeTraceAllocation(Register cid,
                             Label* trace,
                             Register temp_reg,
                             JumpDistance distance = JumpDistance::kFarJump);

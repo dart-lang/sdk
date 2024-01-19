@@ -18,6 +18,7 @@ import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
@@ -30,7 +31,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:collection/collection.dart';
-import 'package:path/path.dart' as path;
 
 const languageSourceName = 'dart';
 
@@ -109,13 +109,13 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
 
 /// Create a [WorkspaceEdit] that renames [oldPath] to [newPath].
 WorkspaceEdit createRenameEdit(
-    path.Context pathContext, String oldPath, String newPath) {
+    ClientUriConverter uriConverter, String oldPath, String newPath) {
   final changes =
       <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
   final rename = RenameFile(
-    oldUri: pathContext.toUri(oldPath),
-    newUri: pathContext.toUri(newPath),
+    oldUri: uriConverter.toClientUri(oldPath),
+    newUri: uriConverter.toClientUri(newPath),
   );
 
   final renameUnion =
@@ -549,7 +549,7 @@ lsp.LocationLink? navigationTargetToLocationLink(
 }
 
 lsp.Diagnostic pluginToDiagnostic(
-  path.Context pathContext,
+  ClientUriConverter uriConverter,
   server.LineInfo? Function(String) getLineInfo,
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
@@ -560,7 +560,7 @@ lsp.Diagnostic pluginToDiagnostic(
   if (contextMessages != null && contextMessages.isNotEmpty) {
     relatedInformation = contextMessages
         .map((message) => pluginToDiagnosticRelatedInformation(
-            pathContext, getLineInfo, message))
+            uriConverter, getLineInfo, message))
         .whereNotNull()
         .toList();
   }
@@ -598,11 +598,11 @@ lsp.Diagnostic pluginToDiagnostic(
 }
 
 lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
-    path.Context pathContext,
+    ClientUriConverter uriConverter,
     server.LineInfo? Function(String) getLineInfo,
     plugin.DiagnosticMessage message) {
   final file = message.location.file;
-  final uri = pathContext.toUri(file);
+  final uri = uriConverter.toClientUri(file);
   final lineInfo = getLineInfo(file);
   // We shouldn't get context messages for something we can't get a LineInfo for
   // but if we did, it's better to omit the context than fail to send the errors.
@@ -1075,14 +1075,14 @@ lsp.CompletionItem toCompletionItem(
 }
 
 lsp.Diagnostic toDiagnostic(
-  path.Context pathContext,
+  ClientUriConverter uriConverter,
   server.ResolvedUnitResult result,
   server.AnalysisError error, {
   required Set<lsp.DiagnosticTag> supportedTags,
   required bool clientSupportsCodeDescription,
 }) {
   return pluginToDiagnostic(
-    pathContext,
+    uriConverter,
     (_) => result.lineInfo,
     server.newAnalysisError_fromEngine(result, error),
     supportedTags: supportedTags,
@@ -1166,14 +1166,14 @@ List<lsp.DocumentHighlight> toHighlights(
       .map((occurrence) => occurrence.offsets.map((offset) =>
           lsp.DocumentHighlight(
               range: toRange(lineInfo, offset, occurrence.length))))
-      .flattenedToSet
+      .flattenedToSet2
       .toList();
 }
 
-lsp.Location toLocation(path.Context pathContext, server.Location location,
-        server.LineInfo lineInfo) =>
+lsp.Location toLocation(ClientUriConverter uriConverter,
+        server.Location location, server.LineInfo lineInfo) =>
     lsp.Location(
-      uri: pathContext.toUri(location.file),
+      uri: uriConverter.toClientUri(location.file),
       range: toRange(
         lineInfo,
         location.offset,
@@ -1529,10 +1529,10 @@ typedef CompletionDetail = ({
   /// native deprecated tag.
   String detail,
 
-  /// Truncated parameters. Similate to [truncatedSignature] but does not
+  /// Truncated parameters. Similar to [truncatedSignature] but does not
   /// include return types. Used in clients that cannot format signatures
   /// differently and is appended immediately after the completion label. The
-  /// return type is ommitted to reduce noise because this text is not subtle.
+  /// return type is omitted to reduce noise because this text is not subtle.
   String truncatedParams,
 
   /// A signature with truncated params. Used for showing immediately after

@@ -6,73 +6,73 @@ library;
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   try {} on F<Object> catch (e) {
+//   try {} on F<Object> catch (e) {}
 //             ^
 // pkg/front_end/testcases/general/bounds_catch.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends Class<X>> = X;
 //           ^
 //
-// pkg/front_end/testcases/general/bounds_catch.dart:56:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+// pkg/front_end/testcases/general/bounds_catch.dart:55:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   try {} on F<int> catch (e) {
+//   try {} on F<int> catch (e) {}
 //             ^
 // pkg/front_end/testcases/general/bounds_catch.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends Class<X>> = X;
 //           ^
 //
-// pkg/front_end/testcases/general/bounds_catch.dart:98:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+// pkg/front_end/testcases/general/bounds_catch.dart:90:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   try {} on G<Object> catch (e) {
+//   try {} on G<Object> catch (e) {}
 //             ^
 // pkg/front_end/testcases/general/bounds_catch.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
 // class G<X extends Class<X>> {}
 //         ^
 //
-// pkg/front_end/testcases/general/bounds_catch.dart:104:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+// pkg/front_end/testcases/general/bounds_catch.dart:95:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   try {} on G<int> catch (e) {
+//   try {} on G<int> catch (e) {}
 //             ^
 // pkg/front_end/testcases/general/bounds_catch.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
 // class G<X extends Class<X>> {}
 //         ^
 //
-// pkg/front_end/testcases/general/bounds_catch.dart:146:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+// pkg/front_end/testcases/general/bounds_catch.dart:130:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   try {} on F<Object> catch (e) {
+//   try {} on F<Object> catch (e) {}
 //             ^
 // pkg/front_end/testcases/general/bounds_catch.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends Class<X>> = X;
 //           ^
 //
-// pkg/front_end/testcases/general/bounds_catch.dart:152:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+// pkg/front_end/testcases/general/bounds_catch.dart:135:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   try {} on F<int> catch (e) {
+//   try {} on F<int> catch (e) {}
 //             ^
 // pkg/front_end/testcases/general/bounds_catch.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends Class<X>> = X;
 //           ^
 //
-// pkg/front_end/testcases/general/bounds_catch.dart:194:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+// pkg/front_end/testcases/general/bounds_catch.dart:170:13: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   try {} on G<Object> catch (e) {
+//   try {} on G<Object> catch (e) {}
 //             ^
 // pkg/front_end/testcases/general/bounds_catch.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
 // class G<X extends Class<X>> {}
 //         ^
 //
-// pkg/front_end/testcases/general/bounds_catch.dart:200:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+// pkg/front_end/testcases/general/bounds_catch.dart:175:13: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_catch.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   try {} on G<int> catch (e) {
+//   try {} on G<int> catch (e) {}
 //             ^
 // pkg/front_end/testcases/general/bounds_catch.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
 // class G<X extends Class<X>> {}

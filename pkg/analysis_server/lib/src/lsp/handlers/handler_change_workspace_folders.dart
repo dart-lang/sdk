@@ -47,7 +47,7 @@ class ChangeWorkspaceFoldersHandler
   List<String> _convertWorkspaceFolders(List<WorkspaceFolder> folders) {
     return folders
         .where((wf) => wf.uri.isScheme('file'))
-        .map((wf) => pathContext.fromUri(wf.uri))
+        .map((wf) => uriConverter.fromClientUri(wf.uri))
         .toList();
   }
 }

@@ -45,7 +45,7 @@ testNonNullable(A a, B b, C c_dynamic, C<int> c_int, C<String> c_string, D d) {
   c_int == c_dynamic; // error
   c_int == c_int; // ok
   c_int == c_string; // error
-  c_int == d; // ok}
+  c_int == d; // ok
 
   c_string == a; // error
   c_string == b; // error
@@ -96,7 +96,7 @@ testNullable(
   c_int == c_dynamic; // ok or error ?
   c_int == c_int; // ok
   c_int == c_string; // ok or error ?
-  c_int == d; // ok}
+  c_int == d; // ok
 
   c_string == a; // ok or error ?
   c_string == b; // ok or error ?

@@ -43,7 +43,7 @@ void sendAnalysisNotificationAnalyzedFiles(LegacyAnalysisServer server) {
   _sendNotification(server, () {
     var analyzedFiles = server.driverMap.values
         .map((driver) => driver.knownFiles)
-        .flattenedToSet;
+        .flattenedToSet2;
 
     // Exclude *.yaml files because IDEA Dart plugin attempts to index
     // all the files in folders which contain analyzed files.

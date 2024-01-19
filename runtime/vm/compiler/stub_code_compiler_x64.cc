@@ -2085,6 +2085,13 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
     Label slow_case;
     const Register kNewTopReg = R9;
 
+#if !defined(PRODUCT)
+    {
+      const Register kCidRegister = RSI;
+      __ ExtractClassIdFromTags(kCidRegister, AllocateObjectABI::kTagsReg);
+      __ MaybeTraceAllocation(kCidRegister, &slow_case, TMP);
+    }
+#endif
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     {

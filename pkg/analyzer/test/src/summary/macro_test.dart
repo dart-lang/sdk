@@ -105,11 +105,19 @@ class A1 {}
 
 @DeclarationsIntrospectConstructors('A1')
 class A2 {}
+
+@DeclarationsIntrospectConstructors('A1')
+@DeclarationsIntrospectConstructors('A2')
+class A3 {}
 ''');
 
     configuration
       ..withConstructors = false
       ..withMetadata = false;
+
+    // Note, the errors are also reported when introspecting `A1` and `A2`
+    // during running macro applications on `A3`, because we know that
+    // `A1` and `A2` declarations are incomplete.
     checkElementText(library, r'''
 library
   imports
@@ -119,14 +127,57 @@ library
       class A1 @70
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
-          components
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A1
-              annotationIndex: 0
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A2
-              annotationIndex: 0
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
       class A2 @125
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+      class A3 @222
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 1
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
 ''');
   }
 
@@ -197,6 +248,10 @@ class A1 {}
 
 @DeclarationsIntrospectFields('A1')
 class A2 {}
+
+@DeclarationsIntrospectFields('A1')
+@DeclarationsIntrospectFields('A2')
+class A3 {}
 ''');
 
     configuration
@@ -211,14 +266,57 @@ library
       class A1 @64
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
-          components
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A1
-              annotationIndex: 0
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A2
-              annotationIndex: 0
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
       class A2 @113
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+      class A3 @198
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 1
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
 ''');
   }
 
@@ -288,6 +386,10 @@ class A1 {}
 
 @DeclarationsIntrospectMethods('A1')
 class A2 {}
+
+@DeclarationsIntrospectMethods('A1')
+@DeclarationsIntrospectMethods('A2')
+class A3 {}
 ''');
 
     configuration
@@ -302,14 +404,57 @@ library
       class A1 @65
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
-          components
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A1
-              annotationIndex: 0
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A2
-              annotationIndex: 0
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
       class A2 @115
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+      class A3 @202
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 1
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A1
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A1
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A1
 ''');
   }
 
@@ -337,17 +482,47 @@ library
   definingUnit
     classes
       class A1 @65
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A3
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A3
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
       class A2 @115
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
-          components
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A2
-              annotationIndex: 0
-            DeclarationsIntrospectionCycleComponent
-              element: self::@class::A3
-              annotationIndex: 0
+            annotationIndex: 0
+            introspectedElement: self::@class::A3
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A3
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A3
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
       class A3 @165
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+            annotationIndex: 0
+            introspectedElement: self::@class::A2
+            components
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A2
+                annotationIndex: 0
+                introspectedElement: self::@class::A3
+              DeclarationsIntrospectionCycleComponent
+                element: self::@class::A3
+                annotationIndex: 0
+                introspectedElement: self::@class::A2
 ''');
   }
 
@@ -4000,6 +4175,119 @@ class MacroExampleTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
+  test_jsonSerializable() async {
+    _addExampleMacro('json_serializable.dart');
+
+    final library = await buildLibrary(r'''
+import 'json_serializable.dart';
+
+@JsonSerializable()
+class A {
+  final int foo;
+  final int bar;
+}
+''');
+
+    configuration
+      ..withReferences = true
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/json_serializable.dart
+  definingUnit
+    reference: self
+    classes
+      class A @60
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        fields
+          final foo @76
+            reference: self::@class::A::@field::foo
+            type: int
+          final bar @93
+            reference: self::@class::A::@field::bar
+            type: int
+        accessors
+          synthetic get foo @-1
+            reference: self::@class::A::@getter::foo
+            returnType: int
+          synthetic get bar @-1
+            reference: self::@class::A::@getter::bar
+            returnType: int
+        augmented
+          fields
+            self::@class::A::@field::bar
+            self::@class::A::@field::foo
+          constructors
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+          accessors
+            self::@class::A::@getter::bar
+            self::@class::A::@getter::foo
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/json_serializable.dart' as prefix0;
+import 'dart:core' as prefix1;
+
+augment class A {
+  @prefix0.FromJson()
+  A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json);
+  @prefix0.ToJson()
+  prefix1.Map<prefix1.String, prefix1.Object?> toJson();
+  augment A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json, )  : this.foo = json["foo"] as prefix1.int,
+this.bar = json["bar"] as prefix1.int{}
+  augment prefix1.Map<prefix1.String, prefix1.Object?> toJson()  => {
+    'foo': this.foo,
+    'bar': this.bar,
+  };
+}
+---
+      imports
+        package:test/json_serializable.dart as prefix0 @78
+        dart:core as prefix1 @109
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @133
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            constructors
+              fromJson @163
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+                periodOffset: 162
+                nameEnd: 171
+                parameters
+                  requiredPositional json @217
+                    type: Map<String, Object?>
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+              augment fromJson @313
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+                periodOffset: 312
+                nameEnd: 321
+                parameters
+                  requiredPositional json @367
+                    type: Map<String, Object?>
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+            methods
+              abstract toJson @291
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+                returnType: Map<String, Object?>
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+              augment toJson @512
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+                returnType: Map<String, Object?>
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+''');
+  }
+
   test_observable() async {
     _addExampleMacro('observable.dart');
 
@@ -5217,6 +5505,160 @@ extension type A
     it
       flags: hasFinal
       type: int
+''');
+  }
+
+  test_functionType_formalParameters_namedOptional_simpleFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, {int? b, int? c}) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, {int? b}, {int? c})
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_namedRequired_simpleFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, {required int b, required int c}) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, {required int b}, {required int c})
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_positionalOptional_simpleFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, [int b, int c]) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, [int b], [int c])
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_positionalOptional_simpleFormalParameter_noName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, [int, int]) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, [int ], [int ])
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_positionalRequired_simpleFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a, double b) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int a, double b)
+  returnType: void
+''');
+  }
+
+  test_functionType_formalParameters_positionalRequired_simpleFormalParameter_noName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int, double) t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function(int , double )
+  returnType: void
+''');
+  }
+
+  test_functionType_nullable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function()? t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function()?
+  returnType: void
+''');
+  }
+
+  test_functionType_returnType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function() t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function()
+  returnType: void
+''');
+  }
+
+  test_functionType_returnType_omitted() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(Function() t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: dynamic Function()
+  returnType: void
+''');
+  }
+
+  @SkippedTest(issue: 'https://github.com/dart-lang/language/issues/3559')
+  test_functionType_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function<T, U extends num>() t) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
 ''');
   }
 

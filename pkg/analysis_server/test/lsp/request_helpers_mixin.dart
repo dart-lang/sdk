@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
@@ -76,6 +77,13 @@ mixin LspEditHelpersMixin {
     final indexedEdits = changes.mapIndexed(TextEditWithIndex.new).toList();
     indexedEdits.sort(TextEditWithIndex.compare);
     return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
+  }
+
+  /// Returns the text for [range] in [content].
+  String getTextForRange(String content, Range range) {
+    var lineInfo = LineInfo.fromContent(content);
+    var sourceRange = toSourceRange(lineInfo, range).result;
+    return content.substring(sourceRange.offset, sourceRange.end);
   }
 }
 
@@ -247,6 +255,15 @@ mixin LspRequestHelpersMixin {
         await expectSuccessfulResponseTo(request, CompletionList.fromJson);
     _assertMinimalCompletionListPayload(completions);
     return completions;
+  }
+
+  Future<DartTextDocumentContent?> getDartTextDocumentContent(Uri uri) {
+    final request = makeRequest(
+      CustomMethods.dartTextDocumentContent,
+      DartTextDocumentContentParams(uri: uri),
+    );
+    return expectSuccessfulResponseTo(
+        request, DartTextDocumentContent.fromJson);
   }
 
   Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
@@ -822,6 +839,8 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
 
   String get projectFolderPath;
 
+  ClientUriConverter get uriConverter;
+
   /// A function to get the current contents of a file to apply edits.
   String? getCurrentFileContent(Uri uri);
 
@@ -835,5 +854,5 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
   /// Formats a path relative to the project root always using forward slashes.
   ///
   /// This is used in the text format for comparing edits.
-  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
+  String relativeUri(Uri uri) => relativePath(uriConverter.fromClientUri(uri));
 }

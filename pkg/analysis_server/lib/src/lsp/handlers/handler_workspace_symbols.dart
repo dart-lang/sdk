@@ -102,7 +102,7 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
       declaration.codeLength,
     );
     final location = Location(
-      uri: pathContext.toUri(filePath),
+      uri: uriConverter.toClientUri(filePath),
       range: range,
     );
 

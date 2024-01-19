@@ -1373,8 +1373,11 @@ class Class : public Object {
   }
 
   // Returns a canonicalized vector of the type parameters instantiated
-  // to bounds. If non-generic, the empty type arguments vector is returned.
-  TypeArgumentsPtr InstantiateToBounds(Thread* thread) const;
+  // to bounds (e.g., the type arguments used if no TAV is provided for class
+  // instantiation).
+  //
+  // If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr DefaultTypeArguments(Zone* zone) const;
 
   // If this class is parameterized, each instance has a type_arguments field.
   static constexpr intptr_t kNoTypeArguments = -1;
@@ -3219,18 +3222,22 @@ class Function : public Object {
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
-  using DefaultTypeArgumentsKind =
-      UntaggedClosureData::DefaultTypeArgumentsKind;
-
   // Returns a canonicalized vector of the type parameters instantiated
-  // to bounds. If non-generic, the empty type arguments vector is returned.
-  TypeArgumentsPtr InstantiateToBounds(
-      Thread* thread,
-      DefaultTypeArgumentsKind* kind_out = nullptr) const;
+  // to bounds (e.g., the local type arguments that are used if no TAV is
+  // provided when the function is invoked).
+  //
+  // If the function is owned by a generic class or has any generic parent
+  // functions, then the returned vector may require instantiation, see
+  // default_type_arguments_instantiation_mode() for Closure functions
+  // or TypeArguments::GetInstantiationMode() otherwise.
+  //
+  // If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr DefaultTypeArguments(Zone* zone) const;
 
   // Only usable for closure functions.
-  DefaultTypeArgumentsKind default_type_arguments_kind() const;
-  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
+  InstantiationMode default_type_arguments_instantiation_mode() const;
+  void set_default_type_arguments_instantiation_mode(
+      InstantiationMode value) const;
 
   // Enclosing outermost function of this local function.
   FunctionPtr GetOutermostFunction() const;
@@ -4233,10 +4240,6 @@ class Function : public Object {
     kTearOff,
     kLength,
   };
-  // Given the provided defaults type arguments, determines which
-  // DefaultTypeArgumentsKind applies.
-  DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
-      const TypeArguments& defaults) const;
 
   void set_ic_data_array(const Array& value) const;
   void set_name(const String& value) const;
@@ -4286,10 +4289,7 @@ class ClosureData : public Object {
     return OFFSET_OF(UntaggedClosureData, packed_fields_);
   }
 
-  using DefaultTypeArgumentsKind =
-      UntaggedClosureData::DefaultTypeArgumentsKind;
-  using PackedDefaultTypeArgumentsKind =
-      UntaggedClosureData::PackedDefaultTypeArgumentsKind;
+  using PackedInstantiationMode = UntaggedClosureData::PackedInstantiationMode;
 
   static constexpr uint8_t kNoAwaiterLinkDepth =
       UntaggedClosureData::kNoAwaiterLinkDepth;
@@ -4313,8 +4313,15 @@ class ClosureData : public Object {
   }
   void set_implicit_static_closure(const Closure& closure) const;
 
-  DefaultTypeArgumentsKind default_type_arguments_kind() const;
-  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
+  static InstantiationMode DefaultTypeArgumentsInstantiationMode(
+      ClosureDataPtr ptr) {
+    return ptr->untag()->packed_fields_.Read<PackedInstantiationMode>();
+  }
+  InstantiationMode default_type_arguments_instantiation_mode() const {
+    return DefaultTypeArgumentsInstantiationMode(ptr());
+  }
+  void set_default_type_arguments_instantiation_mode(
+      InstantiationMode value) const;
 
   static ClosureDataPtr New();
 
@@ -8586,6 +8593,22 @@ class TypeArguments : public Instance {
   TypeArgumentsPtr ConcatenateTypeParameters(Zone* zone,
                                              const TypeArguments& other) const;
 
+  // Returns an InstantiationMode for this type argument vector, which
+  // specifies whether the type argument vector requires instantiation and
+  // shortcuts to instantiate the vector when possible.
+  //
+  // If [function] is provided, any function type arguments used in the type
+  // arguments vector are assumed to be bound by the function or its parent
+  // functions.
+  //
+  // If [class] is provided, any class type arguments used in the type arguments
+  // vector are assumed to be bound by that class. If [function] is provided
+  // but [class] is not, then the owning class of the function is retrieved
+  // and used.
+  InstantiationMode GetInstantiationMode(Zone* zone,
+                                         const Function* function = nullptr,
+                                         const Class* cls = nullptr) const;
+
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
     return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
@@ -12441,16 +12464,6 @@ class Closure : public Instance {
   }
   static intptr_t delayed_type_arguments_offset() {
     return OFFSET_OF(UntaggedClosure, delayed_type_arguments_);
-  }
-
-  TypeArgumentsPtr default_type_arguments() const {
-    return untag()->default_type_arguments();
-  }
-  void set_default_type_arguments(const TypeArguments& args) const {
-    untag()->set_default_type_arguments(args.ptr());
-  }
-  static intptr_t default_type_arguments_offset() {
-    return OFFSET_OF(UntaggedClosure, default_type_arguments_);
   }
 
   FunctionPtr function() const { return untag()->function(); }

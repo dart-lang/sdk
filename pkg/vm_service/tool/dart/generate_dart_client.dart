@@ -74,8 +74,9 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
       ));
     });
     _outstandingRequests.clear();
-    if (_disposeHandler != null) {
-      await _disposeHandler!();
+    final handler = _disposeHandler;
+    if (handler != null) {
+      await handler();
     }
     if (!_onDoneCompleter.isCompleted) {
       _onDoneCompleter.complete();

@@ -10,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapKeyTypeNotAssignableTest);
-    defineReflectiveTests(MapKeyTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(MapKeyTypeNotAssignableWithStrictCastsTest);
   });
 }
@@ -99,22 +98,20 @@ var v = const <int, bool>{a : true};
   }
 
   test_const_intNull_dynamic() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 50, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 const dynamic a = null;
 var v = const <int, bool>{a : true};
-''', errors);
+''', [
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 50, 1),
+    ]);
   }
 
   test_const_intNull_value() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 4),
-    ], legacy: []);
     await assertErrorsInCode('''
 var v = const <int, bool>{null : true};
-''', errors);
+''', [
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 4),
+    ]);
   }
 
   test_const_intString_dynamic() async {
@@ -233,17 +230,6 @@ var v = <int, String>{...{'a': 'a'}};
     await assertNoErrorsInCode('''
 dynamic a = 'a';
 var v = <int, String>{...{a: 'a'}};
-''');
-  }
-}
-
-@reflectiveTest
-class MapKeyTypeNotAssignableWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MapKeyTypeNotAssignableTestCases {
-  test_nonConst_spread_intNum() async {
-    await assertNoErrorsInCode('''
-var v = <int, int>{...<num, num>{1: 1}};
 ''');
   }
 }

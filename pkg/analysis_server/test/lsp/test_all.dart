@@ -18,6 +18,8 @@ import 'code_actions_source_test.dart' as code_actions_source;
 import 'completion_dart_test.dart' as completion_dart;
 import 'completion_yaml_test.dart' as completion_yaml;
 import 'configuration_test.dart' as configuration;
+import 'dart_text_document_content_provider_test.dart'
+    as dart_text_document_content_provider;
 import 'definition_test.dart' as definition;
 import 'diagnostic_test.dart' as diagnostic;
 import 'document_changes_test.dart' as document_changes;
@@ -69,6 +71,7 @@ void main() {
     completion_dart.main();
     completion_yaml.main();
     configuration.main();
+    dart_text_document_content_provider.main();
     definition.main();
     diagnostic.main();
     document_changes.main();

@@ -656,6 +656,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the type variable
+  static const CompileTimeErrorCode
+      CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE = CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    "'{0}' can't be used to name both a type variable and the extension type "
+        "in which the type variable is defined.",
+    correctionMessage:
+        "Try renaming either the type variable or the extension.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the type variable
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
@@ -688,6 +701,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try renaming either the type variable or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the type variable
+  static const CompileTimeErrorCode
+      CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE =
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    "'{0}' can't be used to name both a type variable and a member in this "
+        "extension type.",
+    correctionMessage: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
   );
 
   ///  Parameters:
@@ -3013,6 +3039,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
     "The element type '{0}' can't be assigned to the list type '{1}'.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the introspected declaration
+  static const CompileTimeErrorCode
+      MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE = CompileTimeErrorCode(
+    'MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE',
+    "The declaration '{0}' can't be introspected because there is a cycle of "
+        "macro applications.",
+    correctionMessage:
+        "Try removing one or more macro applications to break the cycle.",
   );
 
   ///  Parameters:

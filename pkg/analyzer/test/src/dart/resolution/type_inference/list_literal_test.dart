@@ -48,36 +48,24 @@ List<String> a = [];
   }
 
   test_context_noTypeArgs_noElements_typeParameter() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 39, 2),
-      ],
-      legacy: [
-        error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 39, 2),
-      ],
-    );
     await assertErrorsInCode('''
 class A<E extends List<int>> {
   E a = [];
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 39, 2),
+    ]);
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 2),
-      ],
-      legacy: [
-        error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 43, 2),
-      ],
-    );
     await assertErrorsInCode('''
 class A<E extends List<dynamic>> {
   E a = [];
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 2),
+    ]);
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
@@ -381,13 +369,7 @@ void f(Null a) {
   var v = [...?a];
 }
 ''');
-    assertType(
-      findNode.listLiteral('['),
-      typeStringByNullability(
-        nullable: 'List<Never>',
-        legacy: 'List<Null>',
-      ),
-    );
+    assertType(findNode.listLiteral('['), 'List<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_null2() async {
@@ -413,25 +395,13 @@ void f<T extends Never>(T a) async {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNull() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 85, 1),
-      ],
-    );
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 void f<T extends Null>(T a) async {
   // ignore:unused_local_variable
   var v = [...?a];
 }
-''', expectedErrors);
-    assertType(
-      findNode.listLiteral('['),
-      typeStringByNullability(
-        nullable: 'List<Never>',
-        legacy: 'List<dynamic>',
-      ),
-    );
+''');
+    assertType(findNode.listLiteral('['), 'List<Never>');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_implementsIterable() async {

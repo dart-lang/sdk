@@ -73,6 +73,9 @@ abstract class ContextManager {
   /// Returns owners of files.
   OwnedFiles get ownedFiles;
 
+  /// Disposes and cleans up any analysis contexts.
+  Future<void> dispose();
+
   /// Return the existing analysis context that should be used to analyze the
   /// given [path], or `null` if the [path] is not analyzed in any of the
   /// created analysis contexts.
@@ -283,6 +286,11 @@ class ContextManagerImpl implements ContextManager {
   @override
   OwnedFiles get ownedFiles {
     return _collection?.ownedFiles ?? OwnedFiles();
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _destroyAnalysisContexts();
   }
 
   @override
@@ -588,20 +596,15 @@ class ContextManagerImpl implements ContextManager {
           _watchBlazeFilesIfNeeded(rootFolder, driver);
 
           for (var file in analysisContext.contextRoot.analyzedFiles()) {
-            if (file_paths.isAndroidManifestXml(pathContext, file)) {
+            if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
+              var package =
+                  analysisContext.contextRoot.workspace.findPackageFor(file);
+              _analyzeAnalysisOptionsYaml(driver, package, file);
+            } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
               _analyzeAndroidManifestXml(driver, file);
             } else if (file_paths.isDart(pathContext, file)) {
               driver.addFile(file);
             }
-          }
-
-          var optionsFile = analysisContext.contextRoot.optionsFile;
-
-          if (optionsFile != null &&
-              analysisContext.contextRoot.isAnalyzed(optionsFile.path)) {
-            var package = analysisContext.contextRoot.workspace
-                .findPackageFor(optionsFile.path);
-            _analyzeAnalysisOptionsYaml(driver, package, optionsFile.path);
           }
 
           var packageName = rootFolder.shortName;
@@ -732,6 +735,7 @@ class ContextManagerImpl implements ContextManager {
     watcherSubscriptions.clear();
 
     final collection = _collection;
+    _collection = null;
     if (collection != null) {
       for (final analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
@@ -799,8 +803,7 @@ class ContextManagerImpl implements ContextManager {
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
         file_paths.isBlazeBuild(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
-        isPubspec ||
-        false) {
+        isPubspec) {
       _createAnalysisContexts().then((_) {
         if (isPubspec) {
           if (type == ChangeType.REMOVE) {

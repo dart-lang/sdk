@@ -43,7 +43,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
     }).doWork();
 
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNull);
+    expect(diagnostics[mainFileUri], isNull);
   }
 
   Future<void> test_pausesRequestQueue() async {

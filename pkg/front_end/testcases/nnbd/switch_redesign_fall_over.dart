@@ -15,8 +15,9 @@ bar() {}
 foo(int x, bool b) {
   switch (x) {
     // The only statement in the following case block doesn't complete normally
-    // for any of its possible execution paths, so it's not a compile-time
-    // error, even though the statement is not one of the list of statement that
+    // for any of its possible execution paths,
+    // so it's not a compile-time error, even though the statement is not one
+    // of the list of statement that
     // should end any case block in pre-NNBD state.
     case 42:
       b ? throw "hest" : throw "fisk";

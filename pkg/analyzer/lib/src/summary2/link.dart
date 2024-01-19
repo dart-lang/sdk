@@ -323,7 +323,7 @@ class Linker {
   }
 
   Future<void> _executeMacroDeclarationsPhase({
-    required Element? targetElement,
+    required ElementImpl? targetElement,
   }) async {
     while (true) {
       var hasProgress = false;

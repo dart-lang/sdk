@@ -82,11 +82,14 @@ class LibraryAnalyzer {
   final LibraryVerificationContext _libraryVerificationContext =
       LibraryVerificationContext();
   final TestingData? _testingData;
+  final TypeSystemOperations _typeSystemOperations;
 
   LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
       this._libraryElement, this._inheritance, this._library, this._pathContext,
-      {TestingData? testingData})
-      : _testingData = testingData;
+      {TestingData? testingData,
+      required TypeSystemOperations typeSystemOperations})
+      : _testingData = testingData,
+        _typeSystemOperations = typeSystemOperations;
 
   TypeProviderImpl get _typeProvider => _libraryElement.typeProvider;
 
@@ -149,20 +152,16 @@ class LibraryAnalyzer {
           _libraryElement, file.source, _typeProvider, errorListener,
           nameScope: _libraryElement.scope));
 
-      // TODO(pq): precache options in file state and fetch them from there
-      var analysisOptions = _libraryElement.context
-          .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
-
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-          _typeSystem, _testingData != null, _libraryElement.featureSet,
-          strictCasts: analysisOptions.strictCasts);
+          _testingData != null, _libraryElement.featureSet,
+          typeSystemOperations: _typeSystemOperations);
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting!);
 
       var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
           file.source, _typeProvider, errorListener,
           featureSet: _libraryElement.featureSet,
-          analysisOptions: analysisOptions,
+          analysisOptions: _library.file.analysisOptions,
           flowAnalysisHelper: flowAnalysisHelper);
 
       var nodeToResolve = node?.thisOrAncestorMatching((e) {
@@ -412,7 +411,8 @@ class LibraryAnalyzer {
         _typeProvider,
         _inheritance,
         _libraryVerificationContext,
-        _analysisOptions);
+        _analysisOptions,
+        typeSystemOperations: _typeSystemOperations);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
@@ -802,19 +802,15 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    // TODO(pq): precache options in file state and fetch them from there
-    var analysisOptions = _libraryElement.context
-        .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
-
     FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-        _typeSystem, _testingData != null, unit.featureSet,
-        strictCasts: analysisOptions.strictCasts);
+        _testingData != null, unit.featureSet,
+        typeSystemOperations: _typeSystemOperations);
     _testingData?.recordFlowAnalysisDataForTesting(
         file.uri, flowAnalysisHelper.dataForTesting!);
 
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
-        analysisOptions: analysisOptions,
+        analysisOptions: _library.file.analysisOptions,
         featureSet: unit.featureSet,
         flowAnalysisHelper: flowAnalysisHelper));
   }

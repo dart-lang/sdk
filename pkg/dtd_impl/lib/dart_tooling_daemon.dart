@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dart_service_protocol_shared/dart_service_protocol_shared.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -74,21 +73,21 @@ class DartToolingDaemon {
   late final DTDStreamManager streamManager;
 
   /// Manages the connected clients of the current [DartToolingDaemon] service.
-  late final ClientManager clientManager;
+  late final DTDClientManager clientManager;
 
   final bool _ipv6;
   late HttpServer _server;
+  final List<dtd.DTDConnection> _auxilliaryServices = [];
   final bool _shouldLogRequests;
 
   /// The uri of the current [DartToolingDaemon] service.
   Uri? get uri => _uri;
   Uri? _uri;
 
-  Future<void> _startService() async {
+  Future<void> _startService({required int port}) async {
     final host =
         (_ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4)
             .host;
-    var port = 0;
 
     // Start the DTD server. Run in an error Zone to ensure that asynchronous
     // exceptions encountered during request handling are handled, as exceptions
@@ -135,16 +134,27 @@ class DartToolingDaemon {
   /// Set [ipv6] to true to have the service use ipv6 instead of ipv4.
   ///
   /// Set [shouldLogRequests] to true to enable logging.
-  static Future<DartToolingDaemon> startService({
+  static Future<DartToolingDaemon?> startService(
+    List<String> args, {
     bool ipv6 = false,
     bool shouldLogRequests = false,
+    int port = 0,
   }) async {
+    final argParser = DartToolingDaemonOptions.createArgParser();
+    final results = argParser.parse(args);
+    if (results.wasParsed(DartToolingDaemonOptions.train.name)) {
+      return null;
+    }
     final dtd = DartToolingDaemon._(
       ipv6: ipv6,
       shouldLogRequests: shouldLogRequests,
     );
-    await dtd._startService();
+    await dtd._startService(port: port);
     await dtd._startAuxilliaryServices();
+
+    print(
+      'The Dart Tooling Daemon is listening on ${dtd.uri?.host}:${dtd.uri?.port}',
+    );
     return dtd;
   }
 
@@ -184,6 +194,15 @@ class DartToolingDaemon {
   Future<void> _startAuxilliaryServices() async {
     final fileService = await dtd.DartToolingDaemon.connect(_uri!);
     await DTDFileService.register(fileService);
+    _auxilliaryServices.add(fileService);
+  }
+
+  Future<void> close() async {
+    for (var e in _auxilliaryServices) {
+      await e.close();
+    }
+    await clientManager.shutdown();
+    await _server.close(force: true);
   }
 }
 

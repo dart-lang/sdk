@@ -13,7 +13,7 @@ static method foo({dynamic fisk = #C1}) → dynamic {
   core::print(fisk);
 }
 static method caller(dynamic f) → dynamic {
-  f{dynamic}.call();
+  f{dynamic}();
 }
 static method main() → dynamic {
   core::int i = 0;

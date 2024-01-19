@@ -54,7 +54,7 @@ vars = {
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "b5126f0bd51ea0819df8d5c362574f951a564940",
+  "co19_rev": "dadc1781676fe5562917ac6bc5ea38da64abe76a",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "f048a4a853e3062056d39c3db100acdde42f16d6",
@@ -77,7 +77,7 @@ vars = {
   "clang_version": "git_revision:b3a9e8f7c0afb00147ab6c6a6ad426de149420dd",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:e4702d7409069c4f12d45ea7b7f0890717ca3f4b",
+  "gn_version": "git_revision:5d76868385b81d6c4fb3256240a2ce449c37b5ee",
 
   "reclient_version": "git_revision:f3883c2237b0eb9cc9524cb571b5ab8378f257e4",
 
@@ -140,7 +140,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "8b1f24a8475a0116757172cd9acca4acbf87d973", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "3ce64a3d7da6702a4342bdfd0723b750fddeb35a", # https://github.com/dart-lang/dartdoc/issues/3562
+  "dartdoc_rev": "b04c9c127fea5f3fdf600aa205f50d81d1c779c5", # https://github.com/dart-lang/dartdoc/issues/3562
   "ecosystem_rev": "1e2785d6900b4d709a31f4c669381dc340cad605",
   "ffi_rev": "c926657618443ff4821411ede01684096b503f84",
   "file_rev": "cd3a9324f6483f313ba1f0f3ff382ea4e6982ef2",
@@ -156,12 +156,12 @@ vars = {
   "leak_tracker_rev": "4a5b077739886f61bd6dc11c78865ef487c917c2",
   "lints_rev": "3810f8b3dc3205cfaa4ccc0054b021e68046d851",
   "logging_rev": "4d35a4e02b9237bd794378413e7ce3deb52ffcaf",
-  "markdown_rev": "7fdfa557dc29e00c94bb637a34869e67d57fdb26",
+  "markdown_rev": "7602f9f17d25702c11991380ebc7853ccdc42f7a",
   "matcher_rev": "d9cf4f69e3f557718ab5be042dd5503afcacac51",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "ca9f059d2334bb2657683e0a7f5949817cb4b0e6",
   "mockito_rev": "e15e00086ed20f3175b2e677fd11611be4fa8e8e",
-  "native_rev": "14f6da1d58d23bb0b726e703dd92827a5dafeceb",
+  "native_rev": "153811080d9020c894c4e820053d2ede79ca9012",
   "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
   "path_rev": "57a049cff2e2be7a302dd9683b2b194c6d06e2d4",
   "pool_rev": "4c490001446d8ba3d361b99d8befd6a4f61abc7a",
@@ -188,9 +188,9 @@ vars = {
   "usage_rev": "e99690ae6d5fa9ec24ac5218bcd3621e8e3ae8a9",
   "vector_math_rev": "38a00c35575b71a095903467141e5ee60c94d011",
   "watcher_rev": "66cd694ffb7ee6e09ff0cde6c9f788aa47ee1a23",
-  "web_rev": "020ef3729a10a1969b98c2b99b9894c81a953440",
+  "web_rev": "d17fdd2b6ddec289920d02a3df92c3368f0a0e50",
   "web_socket_channel_rev": "5241175e7c66271850d6e75fb9ec90068f9dd3c4", # https://github.com/dart-lang/sdk/issues/54165
-  "webdev_rev": "c08a65c93c8504af27bf9169d17037e6abf3cd9c",
+  "webdev_rev": "f32fdc48f0ae7cb7fa8088233fd69e2ed30af457",
   "webdriver_rev": "2c1b6f8b9d684caf62d72bb327c24f738a4e7455",
   "webkit_inspection_protocol_rev": "667c55e6f65638592768e0325b75420e39b01d2e",
   "yaml_rev": "509fd72c0910746bf25db9c7d890b4c47c286a8c",
@@ -206,7 +206,7 @@ vars = {
   "download_chrome": False,
   "chrome_tag": "119.0.6045.9", # Beta version with WasmGC final encodings.
   "download_firefox": False,
-  "firefox_tag": "120.0",
+  "firefox_tag": "121.0.1",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,

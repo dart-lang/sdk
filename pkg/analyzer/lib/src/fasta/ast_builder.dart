@@ -1656,6 +1656,14 @@ class AstBuilder extends StackListener {
           rightParenthesis: rightParenthesis,
         );
       }
+      // Check for extension type name conflict.
+      var representationName = representation.fieldName;
+      if (representationName.lexeme == builder.name.lexeme) {
+        errorReporter.errorReporter?.reportErrorForToken(
+          ParserErrorCode.MEMBER_WITH_CLASS_NAME,
+          representationName,
+        );
+      }
       declarations.add(
         builder.build(
           typeKeyword: typeKeyword,
@@ -3072,7 +3080,7 @@ class AstBuilder extends StackListener {
     debugEvent("SwitchBlock");
 
     var membersList = popTypedList2<List<SwitchMemberImpl>>(caseCount);
-    var members = membersList.flattenedToList;
+    var members = membersList.flattenedToList2;
 
     Set<String> labels = <String>{};
     for (var member in members) {

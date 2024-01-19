@@ -1,17 +1,30 @@
 ## 3.4.0
 
+### Tools
+
+#### Pub
+
+- Dependency resolution will now surface if a dependency is affected by a
+  security advisory, unless the advisory is listed under a
+  `ignored_advisories` section in the `pubspec.yaml` file.
+  To learn more about pub's support for security advisories,
+  visit [dart.dev/go/pub-security-advisories][pub-security-advisories].
+
+[pub-security-advisories]: https://dart.dev/go/pub-security-advisories
+
 ## 3.3.0
 
 ### Language
 
 - **Breaking Change** [#54056][]: The rules for private field promotion have
   been changed so that an abstract getter is considered promotable if there are
-  no conflicting declarations (i.e., there are no non-final fields, external
-  fields, concrete getters, or `noSuchMethod` forwarding getters with the same
-  name in the same library). This makes the implementation more consistent and
-  allows type promotion in a few rare scenarios where it wasn't prevoiusly
-  allowed. It is unlikely, but this change could in principle cause a breakage
-  by changing an inferred type in a way that breaks later code. For example:
+  no conflicting declarations. There are no conflicting declarations if
+  there are no non-final fields, external fields, concrete getters, or
+  `noSuchMethod` forwarding getters with the same name in the same library.
+  This makes the implementation more consistent and allows
+  type promotion in a few rare scenarios where it wasn't previously allowed.
+  It is unlikely, but this change could cause a breakage by changing
+  an inferred type in a way that breaks later code. For example:
 
   ```dart
   class A {
@@ -30,21 +43,25 @@
   }
   ```
 
-  Affected code can be fixed by adding an explicit type annotation (e.g., in the
-  above example `var x` can be changed to `int? x`).
+  Affected code can be fixed by adding an explicit type annotation.
+  For example, in the above snippet, `var x` can be changed to `int? x`.
 
   It's also possible that some continuous integration configurations might fail
   if they have been configured to treat warnings as errors, because the expanded
   type promotion could lead to one of the following warnings:
 
-  - unnecessary_non_null_assertion
-  - unnecessary_cast
-  - invalid_null_aware_operator
+  - `unnecessary_non_null_assertion`
+  - `unnecessary_cast`
+  - `invalid_null_aware_operator`
 
   These warnings can be addressed in the usual way, by removing the unnecessary
-  operation in the first two cases, or changing `?.` to `.` in the second case.
+  operation in the first two cases, or changing `?.` to `.` in the third case.
+
+  To learn more about other rules surrounding type promotion,
+  check out the guide on [Fixing type promotion failures][].
 
 [#54056]: https://github.com/dart-lang/sdk/issues/54056
+[Fixing type promotion failures]: https://dart.dev/tools/non-promotion-reasons
 
 ### Libraries
 
@@ -58,15 +75,6 @@
 - In addition to functions, `@Native` can now be used on fields.
 - Allow taking the address of native functions and fields via
   `Native.addressOf`.
-
-#### `dart:nativewrappers`
-
-- **Breaking Change** [#51896][]: The NativeWrapperClasses are marked `base` so
-  that none of their subtypes can be implemented. Implementing subtypes can lead
-  to crashes when passing such native wrapper to a native call, as it will try to
-  unwrap a native field that doesn't exist.
-
-[#51896]: https://github.com/dart-lang/sdk/issues/51896
 
 #### `dart:js_interop`
 
@@ -91,11 +99,11 @@
 - Add `importModule` to allow users to dynamically import modules using the JS
   `import()` expression.
 
+[#52687]: https://github.com/dart-lang/sdk/issues/52687
+
 #### `dart:js_interop_unsafe`
 
 - Add `has` helper to make `hasProperty` calls more concise.
-
-[#52687]: https://github.com/dart-lang/sdk/issues/52687
 
 #### `dart:typed_data`
 
@@ -105,10 +113,10 @@
 
   ```dart
   Uint8List data = ...
-  final readOnlyView = UnmodifableUint8ListView(data);
+  final readOnlyView = UnmodifiableUint8ListView(data);
   ```
 
-  use the new `asUnmodifiableView()` method:
+  use the new `asUnmodifiableView()` methods:
 
   ```dart
   Uint8List data = ...
@@ -119,7 +127,16 @@
   of typed data so the native and web platforms can use different strategies
   for ensuring typed data has good performance.
 
-  The deprecated types will be removed in the next Dart version.
+  The deprecated types will be removed in a future Dart version.
+
+#### `dart:nativewrappers`
+
+- **Breaking Change** [#51896][]: The NativeWrapperClasses are marked `base` so
+  that none of their subtypes can be implemented. Implementing subtypes can lead
+  to crashes when passing such native wrapper to a native call, as it will try
+  to unwrap a native field that doesn't exist.
+
+[#51896]: https://github.com/dart-lang/sdk/issues/51896
 
 ### Tools
 
@@ -176,11 +193,11 @@ This is a patch release that:
 
 - Disallows final fields to be used in a constant context during analysis
   (issue [#54232][]).
-- Upgrades Dart DevTools to version 2.28.4 (issue [#54213][])
+- Upgrades Dart DevTools to version 2.28.4 (issue [#54213][]).
 - Fixes new AOT snapshots in the SDK failing with SIGILL in ARM
   environments that don't support the integer division
   instructions or x86-64 environments that don't support
-  SSE4.1  (issue [#54215][]).
+  SSE4.1 (issue [#54215][]).
 
 [#54232]: https://github.com/dart-lang/sdk/issues/54232
 [#54213]: https://github.com/dart-lang/sdk/issues/54213
@@ -191,10 +208,10 @@ This is a patch release that:
 This is a patch release that:
 
 - Adjusts the nullablity computations in the implementation of the
-  upper bound algorithm in the CFE (issue [#53999][]).
+  upper bound algorithm in the compiler frontend (issue [#53999][]).
 
 - Fixes missing closure code completion entries for function parameters
-  (issue [#54112][]) for LSP-based editors like VS Code.
+  for LSP-based editors like VS Code (issue [#54112][]).
 
 [#53999]: https://github.com/dart-lang/sdk/issues/53999
 [#54112]: https://github.com/dart-lang/sdk/issues/54112
@@ -206,14 +223,15 @@ This is a patch release that:
 - Fixes the left/mobile sidebar being empty on non-class pages
   in documentation generated with `dart doc` (issue [#54073][]).
 
-- Fixes a JSON array parsing bug that causes seg fault when --coverage is used.
-  This bug has been reported by flutter customers here
-  https://github.com/flutter/flutter/issues/124145 (issue [#54059][])
+- Fixes a JSON array parsing bug that causes a segmentation fault when
+  `flutter test` is invoked with the `--coverage` flag
+  (SDK issue [#54059][], Flutter issue [#124145][]).
 
-- Upgrades Dart DevTools to version 2.28.3 (issue [#54085][])
+- Upgrades Dart DevTools to version 2.28.3 (issue [#54085][]).
 
 [#54073]: https://github.com/dart-lang/sdk/issues/54073
 [#54059]: https://github.com/dart-lang/sdk/issues/54059
+[#124145]: https://github.com/flutter/flutter/issues/124145
 [#54085]: https://github.com/dart-lang/sdk/issues/54085
 
 ## 3.2.0 - 2023-11-15
@@ -372,7 +390,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   JavaScript's `globalThis` as the global context. This is relevant to things
   like external top-level members or external constructors, as this is the root
   context we expect those members to reside in. Historically, this was not the
-  case in Dart2JS and DDC. We used either `self` or DDC's `global` in non-static
+  case in dart2js and DDC. We used either `self` or DDC's `global` in non-static
   interop APIs with `package:js`. So, static interop APIs will now use one of
   those global contexts. Functionally, this should matter in only a very small
   number of cases, like when using older browser versions. `dart:js_interop`'s
@@ -380,7 +398,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   context used in the lowerings.
 - **Breaking Change on Types of `dart:js_interop` External APIs**:
   External JS interop APIs when using `dart:js_interop` are restricted to a set
-  of allowed types. Namely, this include the primitive types like `String`, JS
+  of allowed types. Namely, this includes the primitive types like `String`, JS
   types from `dart:js_interop`, and other static interop types (either through
   `@staticInterop` or extension types).
 - **Breaking Change on `dart:js_interop` `isNull` and `isUndefined`**:
@@ -460,7 +478,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 #### Pub
 
 - New option `dart pub upgrade --tighten` which will update dependencies' lower
-  bounds in pubspec.yaml to match the current version.
+  bounds in `pubspec.yaml` to match the current version.
 - The commands `dart pub get`/`add`/`upgrade` will now show if a dependency
   changed between direct, dev and transitive dependency.
 - The command `dart pub upgrade` no longer shows unchanged dependencies.
@@ -471,7 +489,7 @@ This is a patch release that:
 
 - Fixes an issue affecting Dart compiled to JavaScript running in Node.js 21. A
   change in Node.js 21 affected the Dart Web compiler runtime. This patch
-  release accomodates for those changes (issue #53810).
+  release accommodates for those changes (issue #53810).
 
 [#53810]: https://github.com/dart-lang/sdk/issues/53810
 

@@ -2139,17 +2139,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else {
         typeVariablesByName[tv.name] = tv;
         if (owner is TypeDeclarationBuilder) {
+          // Only classes and extension types and type variables can't have the
+          // same name. See
+          // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
+          // [#54602](https://github.com/dart-lang/sdk/issues/54602).
           switch (owner) {
             case ClassBuilder():
-              // Only classes and type variables can't have the same name. See
-              // [#29555](https://github.com/dart-lang/sdk/issues/29555).
+            case ExtensionBuilder():
+            case ExtensionTypeDeclarationBuilder():
               if (tv.name == owner.name) {
                 addProblem(messageTypeVariableSameNameAsEnclosing,
                     tv.charOffset, tv.name.length, fileUri);
               }
-            case ExtensionBuilder():
-            case ExtensionTypeDeclarationBuilder():
-            // TODO(johnniwinther): Should an error be reported here?
             case TypeAliasBuilder():
             case NominalVariableBuilder():
             case StructuralVariableBuilder():

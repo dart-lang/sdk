@@ -352,7 +352,7 @@ class TransformSetParser {
     if (firstEntry == null) {
       if (required) {
         var validKeysList =
-            translators.keys.flattenedToList.quotedAndCommaSeparatedWithOr;
+            translators.keys.flattenedToList2.quotedAndCommaSeparatedWithOr;
         _reportError(TransformSetErrorCode.missingOneOfMultipleKeys, errorNode,
             [validKeysList]);
       }

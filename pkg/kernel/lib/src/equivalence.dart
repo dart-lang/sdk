@@ -2712,6 +2712,9 @@ class EquivalenceStrategy {
     if (!checkDynamicInvocation_arguments(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkDynamicInvocation_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkDynamicInvocation_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -7082,6 +7085,11 @@ class EquivalenceStrategy {
   bool checkDynamicInvocation_arguments(EquivalenceVisitor visitor,
       DynamicInvocation node, DynamicInvocation other) {
     return visitor.checkNodes(node.arguments, other.arguments, 'arguments');
+  }
+
+  bool checkDynamicInvocation_flags(EquivalenceVisitor visitor,
+      DynamicInvocation node, DynamicInvocation other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
   bool checkInvocationExpression_fileOffset(EquivalenceVisitor visitor,

@@ -2,37 +2,37 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:9:6: Error: Conflicts with type variable 'values'.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:10:6: Error: Conflicts with type variable 'values'.
 // enum E2<values> {
 //      ^^^^^^
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:9:9: Context: This is the type variable.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:10:9: Context: This is the type variable.
 // enum E2<values> {
 //         ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:14:3: Error: Conflicts with type variable 'element'.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:15:3: Error: Conflicts with type variable 'element'.
 //   element; // Error.
 //   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:13:9: Context: This is the type variable.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:14:9: Context: This is the type variable.
 // enum E3<element> {
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:17:6: Error: The name 'values' is not a valid name for an enum. Try using a different name.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:18:6: Error: The name 'values' is not a valid name for an enum. Try using a different name.
 // enum values { // Error.
 //      ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:33:16: Error: A concrete instance member named '==' can't be inherited from 'SuperclassWithEquals' in a class that implements 'Enum'.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:34:16: Error: A concrete instance member named '==' can't be inherited from 'SuperclassWithEquals' in a class that implements 'Enum'.
 // abstract class A1 extends SuperclassWithEquals implements Enum {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:35:16: Error: A concrete instance member named 'hashCode' can't be inherited from 'SuperclassWithHashCode' in a class that implements 'Enum'.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:36:16: Error: A concrete instance member named 'hashCode' can't be inherited from 'SuperclassWithHashCode' in a class that implements 'Enum'.
 // abstract class A2 extends SuperclassWithHashCode implements Enum {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:37:16: Error: A concrete instance member named 'values' can't be inherited from 'SuperclassWithValues' in a class that implements 'Enum'.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:38:16: Error: A concrete instance member named 'values' can't be inherited from 'SuperclassWithValues' in a class that implements 'Enum'.
 // abstract class A3 extends SuperclassWithValues implements Enum {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:18:3: Error: Couldn't find constructor 'values'.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:19:3: Error: Couldn't find constructor 'values'.
 //   element;
 //   ^
 //
@@ -112,10 +112,10 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:5:6 -> ListConstant(const <E1*>[const E1{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:6:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:9:6 -> ListConstant(const <E2<dynamic>*>[const E2<dynamic>{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:10:3 -> InstanceConstant(const E2<dynamic>{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:13:6 -> ListConstant(const <E3<dynamic>*>[const E3<dynamic>{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:14:3 -> InstanceConstant(const E3<dynamic>{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:17:6 -> ListConstant(const <values*>[const values{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:18:3 -> InstanceConstant(const values{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:10:6 -> ListConstant(const <E2<dynamic>*>[const E2<dynamic>{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:11:3 -> InstanceConstant(const E2<dynamic>{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:14:6 -> ListConstant(const <E3<dynamic>*>[const E3<dynamic>{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:15:3 -> InstanceConstant(const E3<dynamic>{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:18:6 -> ListConstant(const <values*>[const values{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:19:3 -> InstanceConstant(const values{_Enum.index: 0, _Enum._name: "element"})
 Extra constant evaluation: evaluated: 28, effectively constant: 8

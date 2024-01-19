@@ -25,6 +25,8 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -36,6 +38,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
@@ -212,6 +215,14 @@ abstract class AnalysisServer {
   /// the last idle state.
   final Set<String> filesResolvedSinceLastIdle = {};
 
+  /// A converter to change incoming client URIs into analyzer file references
+  /// (and back).
+  ClientUriConverter uriConverter;
+
+  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
+  /// are associated (can fix).
+  final Map<ProducerGenerator, Set<String>> producerGeneratorsForLintRules;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -227,8 +238,11 @@ abstract class AnalysisServer {
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
+        uriConverter =
+            ClientUriConverter.noop(baseResourceProvider.pathContext),
         pubApi = PubApi(instrumentationService, httpClient,
-            Platform.environment['PUB_HOSTED_URL']) {
+            Platform.environment['PUB_HOSTED_URL']),
+        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap() {
     // We can only spawn processes (eg. to run pub commands) when backed by
     // a real file system, otherwise we may try to run commands in folders that
     // don't really exist. If processRunner was supplied, it's likely a mock
@@ -721,7 +735,6 @@ abstract class AnalysisServer {
   /// analyzed.
   void reportAnalysisAnalytics() {
     var packagesFileMap = <String, File?>{};
-    var optionsFileMap = <String, File?>{};
     var immediateFileCount = 0;
     var immediateFileLineCount = 0;
     var transitiveFileCount = 0;
@@ -735,7 +748,6 @@ abstract class AnalysisServer {
       var contextRoot = driver.analysisContext?.contextRoot;
       if (contextRoot != null) {
         packagesFileMap[rootPath] = contextRoot.packagesFile;
-        optionsFileMap[rootPath] = contextRoot.optionsFile;
       }
       var fileSystemState = driver.fsState;
       for (var fileState in fileSystemState.knownFiles) {
@@ -760,20 +772,15 @@ abstract class AnalysisServer {
     var styleCounts = [
       0, // neither
       0, // only packages
-      0, // only options
-      0, // both
+      0, // only options -- (No longer incremented. Options files do not imply unique contexts.)
+      0, // both -- (No longer incremented. Options files do not imply unique contexts.)
     ];
     var packagesFiles = <File>{};
-    var optionsFiles = <File>{};
     for (var rootPath in rootPaths) {
       var packagesFile = packagesFileMap[rootPath];
       var hasUniquePackageFile =
           packagesFile != null && packagesFiles.add(packagesFile);
-      var optionsFile = optionsFileMap[rootPath];
-      var hasUniqueOptionsFile =
-          optionsFile != null && optionsFiles.add(optionsFile);
-      var style =
-          (hasUniquePackageFile ? 1 : 0) + (hasUniqueOptionsFile ? 2 : 0);
+      var style = hasUniquePackageFile ? 1 : 0;
       styleCounts[style]++;
     }
 
@@ -854,6 +861,7 @@ abstract class AnalysisServer {
 
     pubPackageService.shutdown();
     surveyManager?.shutdown();
+    await contextManager.dispose();
     await analyticsManager.shutdown();
   }
 

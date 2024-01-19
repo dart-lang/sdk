@@ -363,7 +363,7 @@ class LibraryBuilder {
   /// of interfaces declared in other libraries that, and we have not run yet
   /// declarations phase macro applications for them.
   Future<MacroDeclarationsPhaseStepResult> executeMacroDeclarationsPhase({
-    required Element? targetElement,
+    required ElementImpl? targetElement,
   }) async {
     final macroApplier = linker.macroApplier;
     if (macroApplier == null) {
@@ -460,7 +460,7 @@ class LibraryBuilder {
     }
 
     final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      _macroResults.flattenedToList,
+      _macroResults.flattenedToList2,
     );
     if (augmentationCode == null) {
       return;

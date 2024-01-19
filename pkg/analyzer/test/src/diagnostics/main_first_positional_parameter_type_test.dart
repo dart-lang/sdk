@@ -10,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MainFirstPositionalParameterTest);
-    defineReflectiveTests(MainFirstPositionalParameterWithoutNullSafetyTest);
   });
 }
 
@@ -41,9 +40,9 @@ mixin MainFirstPositionalParameterTestCases on PubPackageResolutionTest {
     await resolveTestCode('''
 void main([List<int> args = const []]) {}
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE, 11, 9),
-    ], legacy: []));
+    ]);
   }
 
   test_positionalRequired_dynamic() async {
@@ -56,9 +55,9 @@ void main(dynamic args) {}
     await resolveTestCode('''
 void main(void args()) {}
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE, 10, 11),
-    ], legacy: []));
+    ]);
   }
 
   test_positionalRequired_iterableOfString() async {
@@ -71,9 +70,9 @@ void main(Iterable<String> args) {}
     await resolveTestCode('''
 void main(List<int> args) {}
 ''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+    assertErrorsInResult([
       error(CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE, 10, 9),
-    ], legacy: []));
+    ]);
   }
 
   test_positionalRequired_listOfString() async {
@@ -88,8 +87,3 @@ void main(Object args) {}
 ''');
   }
 }
-
-@reflectiveTest
-class MainFirstPositionalParameterWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MainFirstPositionalParameterTestCases {}

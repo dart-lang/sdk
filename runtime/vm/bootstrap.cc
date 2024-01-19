@@ -72,7 +72,7 @@ static void Finish(Thread* thread) {
 
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.
-  ASSERT_EQUAL(fields.Length(), 7);
+  ASSERT_EQUAL(fields.Length(), 6);
   field ^= fields.At(0);
   ASSERT_EQUAL(field.HostOffset(),
                Closure::instantiator_type_arguments_offset());
@@ -81,12 +81,10 @@ static void Finish(Thread* thread) {
   field ^= fields.At(2);
   ASSERT_EQUAL(field.HostOffset(), Closure::delayed_type_arguments_offset());
   field ^= fields.At(3);
-  ASSERT_EQUAL(field.HostOffset(), Closure::default_type_arguments_offset());
-  field ^= fields.At(4);
   ASSERT_EQUAL(field.HostOffset(), Closure::function_offset());
-  field ^= fields.At(5);
+  field ^= fields.At(4);
   ASSERT_EQUAL(field.HostOffset(), Closure::context_offset());
-  field ^= fields.At(6);
+  field ^= fields.At(5);
   ASSERT_EQUAL(field.HostOffset(), Closure::hash_offset());
 #endif  // defined(DEBUG)
 

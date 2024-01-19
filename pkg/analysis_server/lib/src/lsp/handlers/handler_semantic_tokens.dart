@@ -66,7 +66,7 @@ abstract class AbstractSemanticTokensHandler<T>
 
       return toSourceRangeNullable(lineInfo, range).mapResult((range) async {
         final serverTokens = await getServerResult(path, range);
-        final pluginHighlightRegions = getPluginResults(path).flattenedToList;
+        final pluginHighlightRegions = getPluginResults(path).flattenedToList2;
 
         if (token.isCancellationRequested) {
           return cancelled();

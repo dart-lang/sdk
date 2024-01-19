@@ -12,6 +12,8 @@ import 'package:kernel/type_environment.dart';
 
 import '../names.dart' show callName;
 
+import 'type_inference_engine.dart';
+
 import 'type_schema.dart';
 
 import 'type_schema_environment.dart';
@@ -25,18 +27,24 @@ abstract class TypeConstraintGatherer {
 
   final bool isNonNullableByDefault;
 
+  final OperationsCfe _typeOperations;
+
   /// Creates a [TypeConstraintGatherer] which is prepared to gather type
   /// constraints for the given [typeParameters].
   TypeConstraintGatherer.subclassing(
       Iterable<StructuralParameter> typeParameters,
-      {required this.isNonNullableByDefault})
-      : _parametersToConstrain = typeParameters.toList();
+      {required this.isNonNullableByDefault,
+      required OperationsCfe typeOperations})
+      : _parametersToConstrain = typeParameters.toList(),
+        _typeOperations = typeOperations;
 
   factory TypeConstraintGatherer(TypeSchemaEnvironment environment,
       Iterable<StructuralParameter> typeParameters,
-      {required bool isNonNullableByDefault}) {
+      {required bool isNonNullableByDefault,
+      required OperationsCfe typeOperations}) {
     return new TypeSchemaConstraintGatherer(environment, typeParameters,
-        isNonNullableByDefault: isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault,
+        typeOperations: typeOperations);
   }
 
   CoreTypes get coreTypes;
@@ -419,10 +427,10 @@ abstract class TypeConstraintGatherer {
     if (p is InvalidType || q is InvalidType) return false;
 
     // If P is _ then the match holds with no constraints.
-    if (p is UnknownType) return true;
+    if (_typeOperations.isUnknownType(p)) return true;
 
     // If Q is _ then the match holds with no constraints.
-    if (q is UnknownType) return true;
+    if (_typeOperations.isUnknownType(q)) return true;
 
     // If P is a type variable X in L, then the match holds:
     //
@@ -1178,9 +1186,11 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
 
   TypeSchemaConstraintGatherer(
       this.environment, Iterable<StructuralParameter> typeParameters,
-      {required bool isNonNullableByDefault})
+      {required bool isNonNullableByDefault,
+      required OperationsCfe typeOperations})
       : super.subclassing(typeParameters,
-            isNonNullableByDefault: isNonNullableByDefault);
+            isNonNullableByDefault: isNonNullableByDefault,
+            typeOperations: typeOperations);
 
   @override
   CoreTypes get coreTypes => environment.coreTypes;

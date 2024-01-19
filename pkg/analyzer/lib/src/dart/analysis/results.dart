@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
 
 abstract class AnalysisResultImpl implements AnalysisResult {
   @override
@@ -69,9 +70,16 @@ class ErrorsResultImpl implements ErrorsResult {
   @override
   File file;
 
+  @override
+  final String content;
+
+  @override
+  final AnalysisOptions analysisOptions;
+
   ErrorsResultImpl({
     required this.session,
     required this.file,
+    required this.content,
     required this.uri,
     required this.lineInfo,
     required this.isAugmentation,
@@ -79,6 +87,7 @@ class ErrorsResultImpl implements ErrorsResult {
     required this.isMacroAugmentation,
     required this.isPart,
     required this.errors,
+    required this.analysisOptions,
   });
 
   @override
@@ -87,6 +96,9 @@ class ErrorsResultImpl implements ErrorsResult {
 
 class FileResultImpl extends AnalysisResultImpl implements FileResult {
   final FileState fileState;
+
+  @override
+  final String content;
 
   @override
   final LineInfo lineInfo;
@@ -103,10 +115,14 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   FileResultImpl({
     required super.session,
     required this.fileState,
-  })  : lineInfo = fileState.lineInfo,
+  })  : content = fileState.content,
+        lineInfo = fileState.lineInfo,
         isAugmentation = fileState.kind is AugmentationFileKind,
         isLibrary = fileState.kind is LibraryFileKind,
         isPart = fileState.kind is PartFileKind;
+
+  @override
+  AnalysisOptions get analysisOptions => fileState.analysisOptions;
 
   @override
   File get file => fileState.resource;
@@ -173,9 +189,6 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
 
 class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   @override
-  final String content;
-
-  @override
   final CompilationUnit unit;
 
   @override
@@ -186,7 +199,7 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
     required super.fileState,
     required this.unit,
     required this.errors,
-  }) : content = fileState.content;
+  });
 }
 
 class ParseStringResultImpl implements ParseStringResult {
@@ -310,9 +323,6 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 class ResolvedUnitResultImpl extends FileResultImpl
     implements ResolvedUnitResult {
   @override
-  final String content;
-
-  @override
   final CompilationUnit unit;
 
   @override
@@ -321,7 +331,6 @@ class ResolvedUnitResultImpl extends FileResultImpl
   ResolvedUnitResultImpl({
     required super.session,
     required super.fileState,
-    required this.content,
     required this.unit,
     required this.errors,
   });

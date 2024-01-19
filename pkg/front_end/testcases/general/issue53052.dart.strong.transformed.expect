@@ -28,7 +28,7 @@ static method main() → dynamic async /* emittedValueType= dynamic */ {
 static method expectThrows(dynamic f) → dynamic {
   core::bool hasThrown = true;
   try {
-    f{dynamic}.call();
+    f{dynamic}();
     hasThrown = false;
   }
   on core::Object catch(final core::Object e) {
@@ -40,7 +40,7 @@ static method expectThrows(dynamic f) → dynamic {
 static method expectAsyncThrows(dynamic f) → dynamic async /* emittedValueType= dynamic */ {
   core::bool hasThrown = true;
   try {
-    await f{dynamic}.call() /* runtimeCheckType= asy::Future<dynamic> */ ;
+    await f{dynamic}() /* runtimeCheckType= asy::Future<dynamic> */ ;
     hasThrown = false;
   }
   on core::Object catch(final core::Object e) {

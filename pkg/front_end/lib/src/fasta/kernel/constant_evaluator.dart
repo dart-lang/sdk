@@ -1714,24 +1714,26 @@ class ConstantsTransformer extends RemovingTransformer {
             fileOffset: TreeNode.noOffset);
       }
     }
-    List<Statement> replacementStatements = [
-      ...node.patternGuard.pattern.declaredVariables,
-      ...matchingCache.declarations,
-    ];
-    replacementStatements.add(createIfStatement(condition, then,
-        otherwise: node.otherwise, fileOffset: node.fileOffset));
 
-    Statement result;
-    if (replacementStatements.length > 1) {
+    List<Statement> cacheVariables = [...matchingCache.declarations];
+    Iterable<Statement> declarations =
+        node.patternGuard.pattern.declaredVariables;
+    Statement ifStatement;
+    if (declarations.isNotEmpty) {
       // If we need local declarations, create a new block to avoid naming
       // collision with declarations in the same parent block.
-      result = createBlock(replacementStatements, fileOffset: node.fileOffset);
+      ifStatement = createBlock([
+        ...declarations,
+        createIfStatement(condition, then,
+            otherwise: node.otherwise, fileOffset: node.fileOffset)
+      ], fileOffset: node.fileOffset);
     } else {
-      result = replacementStatements.single;
+      ifStatement = createIfStatement(condition, then,
+          otherwise: node.otherwise, fileOffset: node.fileOffset);
     }
-    // TODO(johnniwinther): Avoid this work-around for [getFileUri].
-    result.parent = node.parent;
-    return transform(result);
+    return transform(createBlock([...cacheVariables, ifStatement],
+        fileOffset: node.fileOffset)
+      ..parent = node.parent);
   }
 
   @override
@@ -1839,8 +1841,8 @@ class ConstantsTransformer extends RemovingTransformer {
           typeEnvironment, replacementStatements,
           effects: effects);
       replacementStatements = [
-        ...node.pattern.declaredVariables,
         ...matchingCache.declarations,
+        ...node.pattern.declaredVariables,
         ...replacementStatements,
         ...effects,
       ];
@@ -1852,8 +1854,8 @@ class ConstantsTransformer extends RemovingTransformer {
           inCacheInitializer: false);
 
       replacementStatements = [
-        ...node.pattern.declaredVariables,
         ...matchingCache.declarations,
+        ...node.pattern.declaredVariables,
         // TODO(cstefantsova): Provide a better diagnostic message.
         createIfStatement(
             createNot(readMatchingExpression),
@@ -3796,7 +3798,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               node.name,
               unevaluatedArguments(
                   positionalArguments, {}, node.arguments.types))
-            ..fileOffset = node.fileOffset);
+            ..fileOffset = node.fileOffset
+            ..flags = node.flags);
     }
 
     return _handleInvocation(node, node.name, receiver, positionalArguments,

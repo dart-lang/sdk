@@ -298,11 +298,13 @@ static method testUnresolved(dynamic o) → dynamic {
       throw new core::StateError::•("Pattern matching error");
   }
   {
-    hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type) {
-      field = #2#0{invalid-type}{<invalid>}.field;
-      {}
+    {
+      hoisted invalid-type field;
+      if(#2#0 is invalid-type) {
+        field = #2#0{invalid-type}{<invalid>}.field;
+        {}
+      }
     }
   }
   #L1:
@@ -355,11 +357,13 @@ static method testNonType(dynamic o) → dynamic {
       throw new core::StateError::•("Pattern matching error");
   }
   {
-    hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type) {
-      field = #2#0{invalid-type}{<invalid>}.field;
-      {}
+    {
+      hoisted invalid-type field;
+      if(#2#0 is invalid-type) {
+        field = #2#0{invalid-type}{<invalid>}.field;
+        {}
+      }
     }
   }
   #L3:
@@ -412,11 +416,13 @@ static method testExtension(dynamic o) → dynamic {
       throw new core::StateError::•("Pattern matching error");
   }
   {
-    hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type) {
-      field = #2#0{invalid-type}{<invalid>}.field;
-      {}
+    {
+      hoisted invalid-type field;
+      if(#2#0 is invalid-type) {
+        field = #2#0{invalid-type}{<invalid>}.field;
+        {}
+      }
     }
   }
   #L5:
@@ -469,11 +475,13 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
       throw new core::StateError::•("Pattern matching error");
   }
   {
-    hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type) {
-      field = #2#0{invalid-type}{<invalid>}.field;
-      {}
+    {
+      hoisted invalid-type field;
+      if(#2#0 is invalid-type) {
+        field = #2#0{invalid-type}{<invalid>}.field;
+        {}
+      }
     }
   }
   #L7:
@@ -526,11 +534,13 @@ static method testPrefixedNonType(dynamic o) → dynamic {
       throw new core::StateError::•("Pattern matching error");
   }
   {
-    hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type) {
-      field = #2#0{invalid-type}{<invalid>}.field;
-      {}
+    {
+      hoisted invalid-type field;
+      if(#2#0 is invalid-type) {
+        field = #2#0{invalid-type}{<invalid>}.field;
+        {}
+      }
     }
   }
   #L9:
@@ -583,11 +593,13 @@ static method testPrefixedExtension(dynamic o) → dynamic {
       throw new core::StateError::•("Pattern matching error");
   }
   {
-    hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type) {
-      field = #2#0{invalid-type}{<invalid>}.field;
-      {}
+    {
+      hoisted invalid-type field;
+      if(#2#0 is invalid-type) {
+        field = #2#0{invalid-type}{<invalid>}.field;
+        {}
+      }
     }
   }
   #L11:
@@ -640,11 +652,13 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
       throw new core::StateError::•("Pattern matching error");
   }
   {
-    hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type) {
-      field = #2#0{invalid-type}{<invalid>}.field;
-      {}
+    {
+      hoisted invalid-type field;
+      if(#2#0 is invalid-type) {
+        field = #2#0{invalid-type}{<invalid>}.field;
+        {}
+      }
     }
   }
   #L13:
@@ -697,11 +711,13 @@ static method testMemberAccess(dynamic o) → dynamic {
       throw new core::StateError::•("Pattern matching error");
   }
   {
-    hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type) {
-      field = #2#0{invalid-type}{<invalid>}.field;
-      {}
+    {
+      hoisted invalid-type field;
+      if(#2#0 is invalid-type) {
+        field = #2#0{invalid-type}{<invalid>}.field;
+        {}
+      }
     }
   }
   #L15:

@@ -2447,6 +2447,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       d.ReadFromTo(lib);
       lib->untag()->native_entry_resolver_ = nullptr;
       lib->untag()->native_entry_symbol_resolver_ = nullptr;
+      lib->untag()->ffi_native_resolver_ = nullptr;
       lib->untag()->index_ = d.Read<int32_t>();
       lib->untag()->num_imports_ = d.Read<uint16_t>();
       lib->untag()->load_state_ = d.Read<int8_t>();

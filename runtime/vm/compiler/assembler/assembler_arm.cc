@@ -3590,6 +3590,28 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   MaybeTraceAllocation(temp_reg, trace);
 }
 
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  LoadAllocationTracingStateAddress(temp_reg, cid);
+  MaybeTraceAllocation(temp_reg, trace);
+}
+
+void Assembler::LoadAllocationTracingStateAddress(Register dest, Register cid) {
+  ASSERT(dest != kNoRegister);
+  ASSERT(dest != TMP);
+
+  LoadIsolateGroup(dest);
+  ldr(dest, Address(dest, target::IsolateGroup::class_table_offset()));
+  ldr(dest,
+      Address(dest,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddScaled(cid, cid, TIMES_1,
+            target::ClassTable::AllocationTracingStateSlotOffsetFor(0));
+  AddRegisters(dest, cid);
+}
+
 void Assembler::LoadAllocationTracingStateAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
@@ -3738,6 +3760,7 @@ bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
                                             intptr_t cid,
                                             intptr_t index_scale,
                                             bool* needs_base) {
+  ASSERT(needs_base != nullptr);
   if ((cid == kTypedDataInt32x4ArrayCid) ||
       (cid == kTypedDataFloat32x4ArrayCid) ||
       (cid == kTypedDataFloat64x2ArrayCid)) {
@@ -3751,18 +3774,12 @@ bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
       (is_external ? 0
                    : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
   const int64_t offset = index * index_scale + offset_base;
-  if (!Utils::MagnitudeIsUint(12, offset)) {
-    return false;
-  }
+  ASSERT(Utils::IsInt(32, offset));
   if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
-    if (needs_base != nullptr) {
-      *needs_base = false;
-    }
+    *needs_base = false;
     return true;
   }
-
-  if (needs_base != nullptr &&
-      Address::CanHoldImmediateOffset(is_load, cid, offset - offset_base)) {
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset - offset_base)) {
     *needs_base = true;
     return true;
   }

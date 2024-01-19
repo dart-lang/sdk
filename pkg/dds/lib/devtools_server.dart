@@ -23,6 +23,8 @@ import 'src/utils/console.dart';
 class DevToolsServer {
   static const protocolVersion = '1.2.0';
   static const defaultTryPorts = 10;
+  static const defaultDdsHost = '127.0.0.1';
+  static const defaultDdsPort = 0;
   static const commandDescription =
       'Open DevTools (optionally connecting to an existing application).';
 
@@ -33,6 +35,8 @@ class DevToolsServer {
   static const argAppSizeBase = 'app-size-base';
   static const argAppSizeTest = 'app-size-test';
   static const argHeadlessMode = 'headless';
+  static const argDdsHost = 'dds-host';
+  static const argDdsPort = 'dds-port';
   static const argDebugMode = 'debug';
   static const argLaunchBrowser = 'launch-browser';
   static const argMachine = 'machine';
@@ -144,7 +148,27 @@ class DevToolsServer {
         defaultsTo: DevToolsServer.defaultTryPorts.toString(),
         valueHelp: 'count',
         help: 'The number of ascending ports to try binding to before failing '
-            'with an error. ',
+            'with an error.',
+        hide: !verbose,
+      )
+      ..addOption(
+        argDdsHost,
+        defaultsTo: DevToolsServer.defaultDdsHost,
+        valueHelp: 'bind-address',
+        help:
+            "The address the Dart Development Service (DDS) should attempt to "
+            "bind to if a DDS instance isn't active and a VM service URI is "
+            "provided.",
+        hide: !verbose,
+      )
+      ..addOption(
+        argDdsPort,
+        defaultsTo: DevToolsServer.defaultDdsPort.toString(),
+        valueHelp: 'port',
+        help:
+            "The address the Dart Development Service (DDS) should attempt to "
+            "bind to if a DDS instance isn't active and a VM service URI is "
+            "provided.",
         hide: !verbose,
       )
       ..addFlag(

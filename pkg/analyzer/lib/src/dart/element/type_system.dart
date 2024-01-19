@@ -32,6 +32,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -688,6 +689,7 @@ class TypeSystemImpl implements TypeSystem {
     FunctionType fnType, {
     ErrorReporter? errorReporter,
     AstNode? errorNode,
+    required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
     required bool strictInference,
     required bool strictCasts,
@@ -705,7 +707,7 @@ class TypeSystemImpl implements TypeSystem {
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
-        strictCasts: strictCasts);
+        typeSystemOperations: typeSystemOperations);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
@@ -1586,6 +1588,7 @@ class TypeSystemImpl implements TypeSystem {
     List<TypeParameterElement> typeParameters,
     List<DartType> srcTypes,
     List<DartType> destTypes, {
+    required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
     required bool strictInference,
     required bool strictCasts,
@@ -1593,7 +1596,7 @@ class TypeSystemImpl implements TypeSystem {
     var inferrer = GenericInferrer(this, typeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
-        strictCasts: strictCasts);
+        typeSystemOperations: typeSystemOperations);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
       inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
@@ -1875,6 +1878,7 @@ class TypeSystemImpl implements TypeSystem {
     bool isConst = false,
     required bool strictInference,
     required bool strictCasts,
+    required TypeSystemOperations typeSystemOperations,
   }) {
     // Create a GenericInferrer that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
@@ -1885,7 +1889,7 @@ class TypeSystemImpl implements TypeSystem {
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
-        strictCasts: strictCasts);
+        typeSystemOperations: typeSystemOperations);
 
     if (contextReturnType != null) {
       if (isConst) {

@@ -230,22 +230,28 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
   }
 
   test_getFile_library() async {
-    var a = newFile('$testPackageLibPath/a.dart', '');
+    var content = 'class A {}';
+    var a = newFile('$testPackageLibPath/a.dart', content);
 
     var session = contextFor(testFile).currentSession;
     var file = session.getFileValid(a);
     expect(file.path, a.path);
     expect(file.uri.toString(), 'package:test/a.dart');
+    expect(file.content, content);
+    expect(file.isLibrary, isTrue);
     expect(file.isPart, isFalse);
   }
 
   test_getFile_part() async {
-    var a = newFile('$testPackageLibPath/a.dart', 'part of lib;');
+    var content = 'part of lib;';
+    var a = newFile('$testPackageLibPath/a.dart', content);
 
     var session = contextFor(testFile).currentSession;
     var file = session.getFileValid(a);
     expect(file.path, a.path);
     expect(file.uri.toString(), 'package:test/a.dart');
+    expect(file.content, content);
+    expect(file.isLibrary, isFalse);
     expect(file.isPart, isTrue);
   }
 

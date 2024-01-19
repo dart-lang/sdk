@@ -2353,6 +2353,28 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
 }
 
 #ifndef PRODUCT
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  if (temp_reg == kNoRegister) {
+    temp_reg = TMP;
+  }
+  ASSERT(temp_reg != cid);
+  LoadIsolateGroup(temp_reg);
+  movq(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+
+  movq(temp_reg,
+       Address(temp_reg,
+               target::ClassTable::allocation_tracing_state_table_offset()));
+  cmpb(Address(temp_reg, cid, TIMES_1,
+               target::ClassTable::AllocationTracingStateSlotOffsetFor(0)),
+       Immediate(0));
+  // We are tracing for this class, jump to the trace label which will use
+  // the allocation stub.
+  j(NOT_ZERO, trace, distance);
+}
+
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
                                      Register temp_reg,

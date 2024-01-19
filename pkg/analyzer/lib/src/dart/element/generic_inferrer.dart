@@ -107,10 +107,9 @@ class GenericInferrer {
       this.errorNode,
       required this.genericMetadataIsEnabled,
       required bool strictInference,
-      required bool strictCasts})
+      required TypeSystemOperations typeSystemOperations})
       : _strictInference = strictInference,
-        _typeSystemOperations =
-            TypeSystemOperations(_typeSystem, strictCasts: strictCasts) {
+        _typeSystemOperations = typeSystemOperations {
     if (errorReporter != null) {
       assert(errorNode != null);
     }
@@ -498,7 +497,7 @@ class GenericInferrer {
         .values
         .where((l) =>
             l.every((c) => c.isSatisfiedBy(_typeSystem, inferred)) == expected)
-        .flattenedToList;
+        .flattenedToList2;
 
     String unsatisfied = _formatConstraints(isSatisfied(false));
     String satisfied = _formatConstraints(isSatisfied(true));

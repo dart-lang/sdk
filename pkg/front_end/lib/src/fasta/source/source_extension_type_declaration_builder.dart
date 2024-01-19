@@ -191,16 +191,21 @@ class SourceExtensionTypeDeclarationBuilder
           }
         } else if (interface is InterfaceType) {
           if (interface.isPotentiallyNullable) {
-            errorMessage =
-                templateSuperExtensionTypeIsNullableAliased.withArguments(
-                    typeBuilder.fullNameForErrors,
-                    interface,
-                    libraryBuilder.isNonNullableByDefault);
-            if (aliasBuilder != null) {
-              errorContext = [
-                messageTypedefCause.withLocation(
-                    aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
-              ];
+            if (typeBuilder.nullabilityBuilder.isNullable) {
+              errorMessage = templateNullableInterfaceError
+                  .withArguments(typeBuilder.fullNameForErrors);
+            } else {
+              errorMessage =
+                  templateSuperExtensionTypeIsNullableAliased.withArguments(
+                      typeBuilder.fullNameForErrors,
+                      interface,
+                      libraryBuilder.isNonNullableByDefault);
+              if (aliasBuilder != null) {
+                errorContext = [
+                  messageTypedefCause.withLocation(
+                      aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                ];
+              }
             }
           } else {
             Class cls = interface.classNode;

@@ -29,6 +29,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
@@ -305,7 +306,7 @@ class LspAnalysisServer extends AnalysisServer {
             // Dart settings for each workspace folder.
             for (final folder in folders)
               ConfigurationItem(
-                scopeUri: pathContext.toUri(folder),
+                scopeUri: uriConverter.toClientUri(folder),
                 section: 'dart',
               ),
             // Global Dart settings. This comes last to simplify matching up the
@@ -362,7 +363,7 @@ class LspAnalysisServer extends AnalysisServer {
   OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
       String path) {
     return OptionalVersionedTextDocumentIdentifier(
-        uri: pathContext.toUri(path), version: getDocumentVersion(path));
+        uri: uriConverter.toClientUri(path), version: getDocumentVersion(path));
   }
 
   @override
@@ -380,6 +381,14 @@ class LspAnalysisServer extends AnalysisServer {
     _clientCapabilities = LspClientCapabilities(capabilities);
     _clientInfo = clientInfo;
     _initializationOptions = LspInitializationOptions(initializationOptions);
+
+    /// Enable virtual file support.
+    var supportsVirtualFiles = _clientCapabilities
+            ?.supportsDartExperimentalTextDocumentContentProvider ??
+        false;
+    if (supportsVirtualFiles) {
+      uriConverter = ClientUriConverter.withVirtualFileSupport(pathContext);
+    }
 
     performanceAfterStartup = ServerPerformance();
     performance = performanceAfterStartup!;
@@ -621,7 +630,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
     final params = PublishClosingLabelsParams(
-        uri: pathContext.toUri(path), labels: labels);
+        uri: uriConverter.toClientUri(path), labels: labels);
     final message = NotificationMessage(
       method: CustomMethods.publishClosingLabels,
       params: params,
@@ -643,7 +652,7 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     final params = PublishDiagnosticsParams(
-        uri: pathContext.toUri(path), diagnostics: errors);
+        uri: uriConverter.toClientUri(path), diagnostics: errors);
     final message = NotificationMessage(
       method: Method.textDocument_publishDiagnostics,
       params: params,
@@ -654,7 +663,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
     final params = PublishFlutterOutlineParams(
-        uri: pathContext.toUri(path), outline: outline);
+        uri: uriConverter.toClientUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishFlutterOutline,
       params: params,
@@ -664,8 +673,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishOutline(String path, Outline outline) {
-    final params =
-        PublishOutlineParams(uri: pathContext.toUri(path), outline: outline);
+    final params = PublishOutlineParams(
+        uri: uriConverter.toClientUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishOutline,
       params: params,
@@ -890,6 +899,7 @@ class LspAnalysisServer extends AnalysisServer {
       channel.close();
     }));
     unawaited(_pluginChangeSubscription?.cancel());
+    _pluginChangeSubscription = null;
   }
 
   /// There was an error related to the socket from which messages are being
@@ -1156,6 +1166,24 @@ class LspServerContextManagerCallbacks
     if (analysisServer.suppressAnalysisResults) {
       return;
     }
+
+    // If this is a virtual file, we need to notify the client that it's been
+    // updated.
+    var lspUri = analysisServer.uriConverter.toClientUri(result.path);
+    if (!lspUri.isScheme('file')) {
+      // TODO(dantup): Should we do any kind of tracking here to avoid sending
+      //  lots of notifications if there aren't actual changes?
+      // TODO(dantup): We may be able to skip sending this if the file is not
+      //  open (priority) depending on the response to
+      //  https://github.com/microsoft/vscode/issues/202017
+      var message = NotificationMessage(
+        method: CustomMethods.dartTextDocumentContentDidChange,
+        params: DartTextDocumentContentDidChangeParams(uri: lspUri),
+        jsonrpc: jsonRpcVersion,
+      );
+      analysisServer.sendNotification(message);
+    }
+
     super.handleFileResult(result);
   }
 

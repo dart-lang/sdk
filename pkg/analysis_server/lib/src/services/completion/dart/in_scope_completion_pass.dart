@@ -90,8 +90,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var selection = state.selection;
     var coveringNode = selection.coveringNode;
     var beginToken = coveringNode.beginToken;
-    if (!beginToken.isKeywordOrIdentifier ||
-        !selection.isCoveredByToken(beginToken)) {
+    if (!beginToken.isKeywordOrIdentifier) {
+      // The parser will occasionally recover by using a non-identifier token as
+      // if it were an identifier. In such cases we don't want to return the
+      // `SimpleIdentifier`, we want to move up the AST as if it had been an
+      // identifier token.
+      if (coveringNode is! SimpleIdentifier) {
+        return coveringNode;
+      }
+    }
+    if (!selection.isCoveredByToken(beginToken)) {
       return coveringNode;
     }
     var child = coveringNode;
@@ -1181,6 +1189,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       } else if (element is VariableElement) {
         type = element.type;
       } else {
+        if (element is InterfaceElement || element is ExtensionElement) {
+          declarationHelper().addStaticMembersOfElement(element!);
+        }
         return;
       }
       declarationHelper().addInstanceMembersOfType(type);
@@ -1332,9 +1343,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     if ((node.isCascaded && offset == operator.offset + 1) ||
         (offset >= operator.end && offset <= node.methodName.end)) {
-      var type = node.realTarget?.staticType;
+      var target = node.realTarget;
+      var type = target?.staticType;
       if (type != null) {
         _forMemberAccess(node, node.parent, type);
+      }
+      if ((type == null || type.isDartCoreType) &&
+          target is Identifier &&
+          (!node.isCascaded || offset == operator.offset + 1)) {
+        var element = target.staticElement;
+        if (element is InterfaceElement || element is ExtensionTypeElement) {
+          declarationHelper().addStaticMembersOfElement(element!);
+        }
       }
     }
   }
@@ -1519,6 +1539,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var type = target.staticType;
       if (type != null) {
         _forMemberAccess(node, node.parent, type);
+      } else {
+        var element = target.staticElement;
+        if (element != null) {
+          var parent = node.parent;
+          var mustBeAssignable =
+              parent is AssignmentExpression && node == parent.leftHandSide;
+          declarationHelper(mustBeAssignable: mustBeAssignable)
+              .addStaticMembersOfElement(element);
+        }
       }
     }
   }
@@ -1533,7 +1562,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (offset <= node.operator.offset) {
+    var operator = node.operator;
+    if (offset <= operator.offset) {
       // We will only get here if the target is a `SimpleIdentifier`, in which
       // case the user is attempting to complete that identifier.
       _forExpression(node);
@@ -1551,6 +1581,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type != null) {
         _forMemberAccess(node, parent, type,
             onlySuper: target is SuperExpression);
+      }
+      if ((type == null || type.isDartCoreType) &&
+          target is Identifier &&
+          (!node.isCascaded || offset == operator.offset + 1)) {
+        var element = target.staticElement;
+        if (element is InterfaceElement || element is ExtensionTypeElement) {
+          declarationHelper().addStaticMembersOfElement(element!);
+        }
       }
     }
   }
@@ -2116,7 +2154,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Add the suggestions that are approriate at the beginning of an annotation.
+  /// Add the suggestions that are appropriate at the beginning of an annotation.
   void _forAnnotation(AstNode node) {
     declarationHelper(mustBeConstant: true).addLexicalDeclarations(node);
   }
@@ -2289,7 +2327,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         return false;
       }
       // Ideally we'd visit the preceding member in order to avoid duplicating
-      // code, but the offset will be past where the parser inserted sythetic
+      // code, but the offset will be past where the parser inserted synthetic
       // tokens, preventing that from working.
       switch (precedingMember) {
         // TODO(brianwilkerson): Add support for other kinds of declarations.
@@ -2320,7 +2358,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       // Ideally we'd visit the preceding member in order to avoid
       // duplicating code, but the offset will be past where the parser
-      // inserted sythetic tokens, preventing that from working.
+      // inserted synthetic tokens, preventing that from working.
       switch (precedingStatement) {
         // TODO(brianwilkerson): Add support for other kinds of declarations.
         case IfStatement declaration:
@@ -2387,7 +2425,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         .addLexicalDeclarations(node);
   }
 
-  /// Adds the suggestions that are approriate for the name of a pattern field.
+  /// Adds the suggestions that are appropriate for the name of a pattern field.
   void _forPatternFieldName(PatternFieldName node) {
     var pattern = node.parent?.parent;
     if (pattern is DartPattern) {
@@ -2395,7 +2433,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Adds the suggestions that are approriate for the name of a pattern field.
+  /// Adds the suggestions that are appropriate for the name of a pattern field.
   void _forPatternFieldNameInPattern(DartPattern? pattern) {
     if (pattern is ObjectPattern) {
       declarationHelper(mustBeNonVoid: true).addGetters(
@@ -2479,7 +2517,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       CompilationUnit unit, AstNode precedingMember) {
     // Ideally we'd visit the preceding member in order to avoid duplicating
     // code, but in some cases the offset will be past where the parser inserted
-    // sythetic tokens, preventing that from working.
+    // synthetic tokens, preventing that from working.
     switch (precedingMember) {
       // TODO(brianwilkerson): Add support for other kinds of declarations.
       case ClassDeclaration declaration:

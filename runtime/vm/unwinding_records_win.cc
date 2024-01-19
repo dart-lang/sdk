@@ -8,10 +8,10 @@
 
 #include "platform/unwinding_records.h"
 
-#if defined(DART_HOST_OS_WINDOWS) &&                                           \
-    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
-
 namespace dart {
+
+#if (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&      \
+    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
 
 static void InitUnwindingRecord(intptr_t offset,
                                 CodeRangeUnwindingRecord* record,
@@ -90,6 +90,7 @@ static void InitUnwindingRecord(intptr_t offset,
 #else
 #error What architecture?
 #endif
+  record->magic = kUnwindingRecordMagic;
 }
 
 const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
@@ -99,6 +100,11 @@ const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
   InitUnwindingRecord(offset, record, offset);
   return target_buffer;
 }
+
+#endif  // (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS))
+
+#if defined(DART_HOST_OS_WINDOWS) &&                                           \
+    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
 
 // Special exception-unwinding records are put at the end of executable
 // page on Windows for 64-bit applications.
@@ -118,6 +124,7 @@ void UnwindingRecords::RegisterExecutablePage(Page* page) {
       new (reinterpret_cast<uint8_t*>(page->memory_->start()) +
            unwinding_record_offset) CodeRangeUnwindingRecord();
   InitUnwindingRecord(unwinding_record_offset, record, page->memory_->size());
+  RELEASE_ASSERT(record->magic == kUnwindingRecordMagic);
   DWORD status = function(
       /*DynamicTable=*/&record->dynamic_table,
       /*FunctionTable=*/record->runtime_function,
@@ -141,9 +148,10 @@ void UnwindingRecords::UnregisterExecutablePage(Page* page) {
       reinterpret_cast<CodeRangeUnwindingRecord*>(
           reinterpret_cast<uint8_t*>(page->memory_->start()) +
           unwinding_record_offset);
+  RELEASE_ASSERT(record->magic == kUnwindingRecordMagic);
   function(record->dynamic_table);
 }
 
-}  // namespace dart
-
 #endif  // defined(DART_HOST_OS_WINDOWS)
+
+}  // namespace dart

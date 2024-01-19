@@ -35,7 +35,7 @@ class SemanticTokenLegendLookup {
             .followedBy(CustomSemanticTokenTypes.values))
         .toList();
     _usedTokenModifiers = Set.of(highlightRegionTokenModifiers
-            .values.flattenedToList
+            .values.flattenedToList2
             .followedBy(CustomSemanticTokenModifiers.values))
         .toList();
 

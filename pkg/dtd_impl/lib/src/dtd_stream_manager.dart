@@ -31,11 +31,8 @@ class DTDStreamManager extends StreamManager {
       stream,
       <String, dynamic>{
         'streamId': stream,
-        'event': {
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-          'eventData': eventData,
-          'eventKind': eventKind,
-        },
+        'eventKind': eventKind,
+        'eventData': eventData,
       },
     );
   }

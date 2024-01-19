@@ -42,7 +42,7 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
       /// Checks whether an Occurrence offset/length spans the requested
       /// offset.
       ///
-      /// It's possible multiple occurences might match because some nodes
+      /// It's possible multiple occurrences might match because some nodes
       /// such as object destructuring might match multiple elements (for
       /// example the object getter and a declared variable).
       bool spansRequestedPosition(int offset, int length) {

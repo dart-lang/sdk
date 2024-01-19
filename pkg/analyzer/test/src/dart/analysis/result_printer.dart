@@ -10,6 +10,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test/test.dart';
 
@@ -43,9 +44,8 @@ class DriverEventsPrinter {
   }
 
   void _writeErrorsEvent(GetErrorsEvent event) {
-    sink.writelnWithIndent('[future] getErrors');
+    _writeGetEvent(event);
     sink.withIndent(() {
-      sink.writelnWithIndent('name: ${event.name}');
       _writeErrorsResult(event.result);
     });
   }
@@ -82,6 +82,8 @@ class DriverEventsPrinter {
         _writeGetCachedResolvedUnit(event);
       case GetErrorsEvent():
         _writeErrorsEvent(event);
+      case GetIndexEvent():
+        _writeIndexEvent(event);
       case GetLibraryByUriEvent():
         _writeGetLibraryByUriEvent(event);
       case GetResolvedLibraryEvent():
@@ -102,9 +104,8 @@ class DriverEventsPrinter {
   }
 
   void _writeGetCachedResolvedUnit(GetCachedResolvedUnitEvent event) {
-    sink.writelnWithIndent('[future] getCachedResolvedUnit');
+    _writeGetEvent(event);
     sink.withIndent(() {
-      sink.writelnWithIndent('name: ${event.name}');
       if (event.result case final result?) {
         _writeResolvedUnitResult(result);
       } else {
@@ -113,40 +114,40 @@ class DriverEventsPrinter {
     });
   }
 
+  void _writeGetEvent(GetDriverEvent event) {
+    sink.writelnWithIndent('[future] ${event.methodName} ${event.name}');
+  }
+
   void _writeGetLibraryByUriEvent(GetLibraryByUriEvent event) {
-    sink.writelnWithIndent('[future] getLibraryByUri');
+    _writeGetEvent(event);
     sink.withIndent(() {
-      sink.writelnWithIndent('name: ${event.name}');
       _writeLibraryElementResult(event.result);
     });
   }
 
   void _writeGetResolvedLibrary(GetResolvedLibraryEvent event) {
-    sink.writelnWithIndent('[future] getResolvedLibrary');
+    _writeGetEvent(event);
     sink.withIndent(() {
-      sink.writelnWithIndent('name: ${event.name}');
       _writeResolvedLibraryResult(event.result);
     });
   }
 
   void _writeGetResolvedLibraryByUri(GetResolvedLibraryByUriEvent event) {
-    sink.writelnWithIndent('[future] getResolvedLibraryByUri');
+    _writeGetEvent(event);
     sink.withIndent(() {
-      sink.writelnWithIndent('name: ${event.name}');
       _writeResolvedLibraryResult(event.result);
     });
   }
 
   void _writeGetResolvedUnit(GetResolvedUnitEvent event) {
-    sink.writelnWithIndent('[future] getResolvedUnit');
+    _writeGetEvent(event);
     sink.withIndent(() {
-      sink.writelnWithIndent('name: ${event.name}');
       _writeResolvedUnitResult(event.result);
     });
   }
 
   void _writeGetUnitElementEvent(GetUnitElementEvent event) {
-    sink.writelnWithIndent('[future] getUnitElement');
+    _writeGetEvent(event);
     sink.withIndent(() {
       final result = event.result;
       switch (result) {
@@ -154,6 +155,17 @@ class DriverEventsPrinter {
           _writeUnitElementResult(result);
         default:
           throw UnimplementedError('${result.runtimeType}');
+      }
+    });
+  }
+
+  void _writeIndexEvent(GetIndexEvent event) {
+    _writeGetEvent(event);
+    sink.withIndent(() {
+      if (event.result case var result?) {
+        sink.writeElements('strings', result.strings, (str) {
+          sink.writelnWithIndent(str);
+        });
       }
     });
   }
@@ -208,31 +220,26 @@ class DriverEventsPrinter {
   void _writeResultStreamEvent(ResultStreamEvent event) {
     final object = event.object;
     switch (object) {
-      case events.ComputeAnalysis():
-        if (!configuration.withOperations) {
-          return;
-        }
-        sink.writelnWithIndent('[operation] computeAnalysisResult');
+      case events.AnalyzeFile():
+        sink.writelnWithIndent('[operation] analyzeFile');
         sink.withIndent(() {
           final file = object.file.resource;
           sink.writelnWithIndent('file: ${file.posixPath}');
           final libraryFile = object.library.file.resource;
           sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
-      case events.ComputeResolvedLibrary():
-        if (!configuration.withOperations) {
-          return;
-        }
-        sink.writelnWithIndent('[operation] computeResolvedLibrary');
-        sink.withIndent(() {
-          final fileState = object.library.file;
-          final file = fileState.resource;
-          sink.writelnWithIndent('library: ${file.posixPath}');
-        });
       case ErrorsResult():
         sink.writelnWithIndent('[stream]');
         sink.withIndent(() {
           _writeErrorsResult(object);
+        });
+      case events.GetErrorsFromBytes():
+        sink.writelnWithIndent('[operation] getErrorsFromBytes');
+        sink.withIndent(() {
+          final file = object.file.resource;
+          sink.writelnWithIndent('file: ${file.posixPath}');
+          final libraryFile = object.library.file.resource;
+          sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
       case ResolvedUnitResult():
         sink.writelnWithIndent('[stream]');
@@ -283,86 +290,122 @@ class DriverEventsPrinter {
 }
 
 class DriverEventsPrinterConfiguration {
-  var withOperations = false;
   var libraryConfiguration = ResolvedLibraryResultPrinterConfiguration();
   var unitElementConfiguration = UnitElementPrinterConfiguration();
 }
 
 /// The result of `getCachedResolvedUnit`.
-final class GetCachedResolvedUnitEvent extends DriverEvent {
-  final String name;
+final class GetCachedResolvedUnitEvent extends GetDriverEvent {
   final SomeResolvedUnitResult? result;
 
   GetCachedResolvedUnitEvent({
-    required this.name,
+    required super.name,
     required this.result,
   });
+
+  @override
+  String get methodName => 'getCachedResolvedUnit';
+}
+
+sealed class GetDriverEvent extends DriverEvent {
+  final String name;
+
+  GetDriverEvent({
+    required this.name,
+  });
+
+  String get methodName;
 }
 
 /// The result of `getErrors`.
-final class GetErrorsEvent extends DriverEvent {
-  final String name;
+final class GetErrorsEvent extends GetDriverEvent {
   final SomeErrorsResult result;
 
   GetErrorsEvent({
-    required this.name,
+    required super.name,
     required this.result,
   });
+
+  @override
+  String get methodName => 'getErrors';
+}
+
+/// The result of `getIndex`.
+final class GetIndexEvent extends GetDriverEvent {
+  final AnalysisDriverUnitIndex? result;
+
+  GetIndexEvent({
+    required super.name,
+    required this.result,
+  });
+
+  @override
+  String get methodName => 'getIndex';
 }
 
 /// The result of `getLibraryByUri`.
-final class GetLibraryByUriEvent extends DriverEvent {
-  final String name;
+final class GetLibraryByUriEvent extends GetDriverEvent {
   final SomeLibraryElementResult result;
 
   GetLibraryByUriEvent({
-    required this.name,
+    required super.name,
     required this.result,
   });
+
+  @override
+  String get methodName => 'getLibraryByUri';
 }
 
 /// The result of `getResolvedLibraryByUri`.
-final class GetResolvedLibraryByUriEvent extends DriverEvent {
-  final String name;
+final class GetResolvedLibraryByUriEvent extends GetDriverEvent {
   final SomeResolvedLibraryResult result;
 
   GetResolvedLibraryByUriEvent({
-    required this.name,
+    required super.name,
     required this.result,
   });
+
+  @override
+  String get methodName => 'getResolvedLibraryByUri';
 }
 
 /// The result of `getResolvedLibrary`.
-final class GetResolvedLibraryEvent extends DriverEvent {
-  final String name;
+final class GetResolvedLibraryEvent extends GetDriverEvent {
   final SomeResolvedLibraryResult result;
 
   GetResolvedLibraryEvent({
-    required this.name,
+    required super.name,
     required this.result,
   });
+
+  @override
+  String get methodName => 'getResolvedLibrary';
 }
 
 /// The result of `getResolvedUnit`.
-final class GetResolvedUnitEvent extends DriverEvent {
-  final String name;
+final class GetResolvedUnitEvent extends GetDriverEvent {
   final SomeResolvedUnitResult result;
 
   GetResolvedUnitEvent({
-    required this.name,
+    required super.name,
     required this.result,
   });
+
+  @override
+  String get methodName => 'getResolvedUnit';
 }
 
 /// The result of `getUnitElement`.
-final class GetUnitElementEvent extends DriverEvent {
-  final String name;
+final class GetUnitElementEvent extends GetDriverEvent {
   final SomeUnitElementResult result;
 
   GetUnitElementEvent({
-    required this.name,
+    required super.name,
     required this.result,
   });
+
+  @override
+  String get methodName => 'getUnitElement';
 }
 
 class IdProvider {

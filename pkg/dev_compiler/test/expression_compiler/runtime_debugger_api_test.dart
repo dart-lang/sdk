@@ -350,21 +350,7 @@ void runSharedTests(
             'runtimeKind': 'list',
             'length': 3,
           });
-      // Old type system incorrectly returns 'dart:_interceptors|List<int>'
-    }, skip: !setup.canaryFeatures);
-
-    test('getObjectMetadata (List) (old types)', () async {
-      await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(list)',
-          expectedResult: {
-            'className': 'List<int>',
-            'libraryId': 'dart:_interceptors',
-            'runtimeKind': 'list',
-            'length': 3,
-          });
-      // Old type system incorrectly returns 'dart:_interceptors|List<int>'
-    }, skip: setup.canaryFeatures);
+    });
 
     test('getObjectMetadata (Map)', () async {
       await driver.checkRuntimeInFrame(
@@ -538,15 +524,33 @@ void runSharedTests(
     });
 
     test('getObjectMetadata (Record type)', () async {
+      var typeName = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP',
+        expression: 'recordType.toString()',
+      );
+      expect(typeName, '(int, int, {String name})');
+
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression: 'dart.getObjectMetadata(recordType)',
           expectedResult: {
-            'className': 'RecordType',
-            'libraryId': 'dart:_runtime',
+            'className': 'Type',
+            'libraryId': 'dart:core',
             'runtimeKind': 'recordType',
             'length': 3,
           });
+
+      await driver.checkInFrame(
+        breakpointId: 'BP',
+        expression: 'record is Record',
+        expectedResult: 'true',
+      );
+
+      await driver.checkInFrame(
+        breakpointId: 'BP',
+        expression: 'recordType is Type',
+        expectedResult: 'true',
+      );
     });
 
     test('getObjectFieldNames (object)', () async {

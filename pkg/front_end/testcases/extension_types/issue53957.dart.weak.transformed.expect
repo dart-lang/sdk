@@ -18,11 +18,13 @@ static extension-type-member method Ext|get#value(lowered final self::Ext /* = c
   return 42;
 static method main() → void {
   {
-    hoisted core::int value;
     final synthesized self::Ext /* = core::Object? */ #0#0 = self::Ext|constructor#("");
-    if(true) {
-      value = self::Ext|get#value(#0#0);
-      core::print(value);
+    {
+      hoisted core::int value;
+      if(true) {
+        value = self::Ext|get#value(#0#0);
+        core::print(value);
+      }
     }
   }
 }

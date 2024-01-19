@@ -1423,6 +1423,19 @@ class UntaggedFunction : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
+enum class InstantiationMode : uint8_t {
+  // Must instantiate the type arguments normally.
+  kNeedsInstantiation,
+  // The type arguments are already instantiated.
+  kIsInstantiated,
+  // Use the instantiator type arguments that would be used to instantiate
+  // the default type arguments, as instantiating produces the same result.
+  kSharesInstantiatorTypeArguments,
+  // Use the function type arguments that would be used to instantiate
+  // the default type arguments, as instantiating produces the same result.
+  kSharesFunctionTypeArguments,
+};
+
 class UntaggedClosureData : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ClosureData);
@@ -1435,37 +1448,21 @@ class UntaggedClosureData : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ClosurePtr, closure)
   VISIT_TO(closure)
 
-  enum class DefaultTypeArgumentsKind : uint8_t {
-    // Only here to make sure it's explicitly set appropriately.
-    kInvalid = 0,
-    // Must instantiate the default type arguments before use.
-    kNeedsInstantiation,
-    // The default type arguments are already instantiated.
-    kIsInstantiated,
-    // Use the instantiator type arguments that would be used to instantiate
-    // the default type arguments, as instantiating produces the same result.
-    kSharesInstantiatorTypeArguments,
-    // Use the function type arguments that would be used to instantiate
-    // the default type arguments, as instantiating produces the same result.
-    kSharesFunctionTypeArguments,
-  };
-
   // kernel_to_il.cc assumes we can load the untagged value and box it in a Smi.
-  static_assert(sizeof(DefaultTypeArgumentsKind) * kBitsPerByte <=
+  static_assert(sizeof(InstantiationMode) * kBitsPerByte <=
                     compiler::target::kSmiBits,
-                "Default type arguments kind must fit in a Smi");
+                "Instantiation mode must fit in a Smi");
 
   static constexpr uint8_t kNoAwaiterLinkDepth = 0xFF;
 
   AtomicBitFieldContainer<uint32_t> packed_fields_;
 
-  using PackedDefaultTypeArgumentsKind =
-      BitField<decltype(packed_fields_), DefaultTypeArgumentsKind, 0, 8>;
-  using PackedAwaiterLinkDepth =
-      BitField<decltype(packed_fields_),
-               uint8_t,
-               PackedDefaultTypeArgumentsKind::kNextBit,
-               8>;
+  using PackedInstantiationMode =
+      BitField<decltype(packed_fields_), InstantiationMode, 0, 8>;
+  using PackedAwaiterLinkDepth = BitField<decltype(packed_fields_),
+                                          uint8_t,
+                                          PackedInstantiationMode::kNextBit,
+                                          8>;
   using PackedAwaiterLinkIndex = BitField<decltype(packed_fields_),
                                           uint8_t,
                                           PackedAwaiterLinkDepth::kNextBit,
@@ -2904,10 +2901,6 @@ class UntaggedClosure : public UntaggedInstance {
   // type arguments vector. Thus, only this field need be inspected to
   // determine whether a given closure value is generic.
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
-  // Stores an instantiated to bounds version of the local type parameters
-  // (if any). This field is retrieved when a generic closure is called
-  // without providing type arguments.
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, default_type_arguments)
   COMPRESSED_POINTER_FIELD(FunctionPtr, function)
   COMPRESSED_POINTER_FIELD(ContextPtr, context)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)

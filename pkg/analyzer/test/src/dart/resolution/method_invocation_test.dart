@@ -203,17 +203,15 @@ MethodInvocation
   }
 
   test_clamp_double_context_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 T f<T>() => throw Error();
 g(double a) {
   h(a.clamp(f(), f()));
 }
 h(int x) {}
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 17),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 17),
+    ]);
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -482,17 +480,15 @@ MethodInvocation
   }
 
   test_clamp_int_context_double() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 T f<T>() => throw Error();
 g(int a) {
   h(a.clamp(f(), f()));
 }
 h(double x) {}
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 17),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 17),
+    ]);
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -981,15 +977,11 @@ MethodInvocation
   }
 
   test_clamp_int_int_int_from_cascade() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 f(int a, int b, int c) {
   a..clamp(b, c).isEven;
 }
-''',
-        expectedErrorsByNullability(nullable: [], legacy: [
-          error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 6),
-        ]));
+''');
 
     var node = findNode.methodInvocation('clamp');
     assertResolvedNodeText(node, r'''
@@ -1108,15 +1100,13 @@ MethodInvocation
   }
 
   test_clamp_int_never_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 f(int a, Never b, int c) {
   a.clamp(b, c);
 }
-''',
-        expectedErrorsByNullability(nullable: [
-          error(WarningCode.DEAD_CODE, 40, 3),
-        ], legacy: []));
+''', [
+      error(WarningCode.DEAD_CODE, 40, 3),
+    ]);
 
     var node = findNode.methodInvocation('clamp');
     assertResolvedNodeText(node, r'''
@@ -1150,18 +1140,14 @@ MethodInvocation
   }
 
   test_clamp_never_int_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 f(Never a, int b, int c) {
   a.clamp(b, c);
 }
-''',
-        expectedErrorsByNullability(nullable: [
-          error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
-          error(WarningCode.DEAD_CODE, 36, 7),
-        ], legacy: [
-          error(CompileTimeErrorCode.UNDEFINED_METHOD, 31, 5),
-        ]));
+''', [
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
+      error(WarningCode.DEAD_CODE, 36, 7),
+    ]);
 
     var node = findNode.methodInvocation('clamp');
     assertResolvedNodeText(node, r'''
@@ -1195,8 +1181,7 @@ MethodInvocation
   }
 
   test_clamp_other_context_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 abstract class A {
   num clamp(String x, String y);
 }
@@ -1205,10 +1190,9 @@ g(A a) {
   h(a.clamp(f(), f()));
 }
 h(int x) {}
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 94, 17),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 94, 17),
+    ]);
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -2653,20 +2637,15 @@ main() {
   }
 
   test_error_undefinedMethod_typeLiteral_conditional() async {
-    await assertErrorsInCode(
-      r'''
+    await assertErrorsInCode(r'''
 class A {}
 main() {
   A?.toString();
 }
-''',
-      expectedErrorsByNullability(nullable: [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 23, 2),
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
-      ], legacy: [
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
-      ]),
-    );
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 23, 2),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
+    ]);
   }
 
   test_error_unqualifiedReferenceToNonLocalStaticMember_method() async {

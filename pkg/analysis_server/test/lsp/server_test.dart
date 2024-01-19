@@ -107,7 +107,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       ]),
     );
 
-    expect(diagnostics[mainFilePath]!.single.code, 'undefined_class');
+    expect(diagnostics[mainFileUri]!.single.code, 'undefined_class');
   }
 
   Future<void> test_capturesLatency_afterStartup() async {
@@ -181,7 +181,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
         Uri.parse(mainFileUri.toString() + r'###***\\\///:::.dart'),
       ),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'File URI did not contain a valid file path')),
+          message: 'URI does not contain a valid file path')),
     );
   }
 
@@ -200,7 +200,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await expectLater(
       getHover(missingDriveLetterFileUri, startOfDocPos),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI was not an absolute file path (missing drive letter)')),
+          message:
+              'URI does not contain an absolute file path (missing drive letter)')),
     );
   }
 
@@ -210,7 +211,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await expectLater(
       getHover(relativeFileUri, startOfDocPos),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI was not a valid file:// URI')),
+          message:
+              "URI scheme 'foo' is not supported. Allowed schemes are 'file'.")),
     );
   }
 
@@ -222,7 +224,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       // The pathContext.toUri() above translates to a non-file:// URI of just
       // 'a/b.dart' so will get the not-file-scheme error message.
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI was not a valid file:// URI')),
+          message: 'URI is not a valid file:// URI')),
     );
   }
 

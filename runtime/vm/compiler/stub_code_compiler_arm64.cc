@@ -2155,6 +2155,16 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
   {
     Label slow_case;
 
+#if !defined(PRODUCT)
+    {
+      const Register kTraceAllocationTempReg = R8;
+      const Register kCidRegister = R9;
+      __ ExtractClassIdFromTags(kCidRegister, AllocateObjectABI::kTagsReg);
+      __ MaybeTraceAllocation(kCidRegister, &slow_case,
+                              kTraceAllocationTempReg);
+    }
+#endif
+
     const Register kNewTopReg = R3;
 
     // Bump allocation.

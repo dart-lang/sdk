@@ -10,7 +10,6 @@ import 'package:dart2native/generate.dart';
 import 'package:dart2wasm/generate_wasm.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
-import 'package:front_end/src/api_unstable/vm.dart' as fe;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
@@ -20,6 +19,28 @@ import '../native_assets.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
+
+// The unique place where we store dart2wasm binaryen flags.
+//
+// Other uses (e.g. in shell scripts) will grep in this file for the flags. So
+// please keep it as a simple multi-line string of flags.
+final List<String> binaryenFlags = '''
+  --all-features
+  --closed-world
+  --traps-never-happen
+  --type-unfinalizing
+  -O3
+  --type-ssa
+  --gufa
+  -O3
+  --type-merging
+  -O1
+  --type-finalizing
+''' // end of binaryenFlags
+    .split('\n')
+    .map((line) => line.trim())
+    .where((line) => line.isNotEmpty)
+    .toList();
 
 const int compileErrorExitCode = 64;
 
@@ -394,11 +415,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
   final String optimizer = path.join(
       binDir.path, 'utils', Platform.isWindows ? 'wasm-opt.exe' : 'wasm-opt');
-  String optimizerFlags(bool outputNames) =>
-      '-all --closed-world -tnh --type-unfinalizing -O3 --type-ssa'
-      ' --gufa -O3 --type-merging -O1 --type-finalizing'
-      '${outputNames ? ' -g' : ''}';
-  static const String unoptExtension = '.unopt';
 
   CompileWasmCommand({bool verbose = false})
       : super(commandName, help, verbose, hidden: !verbose) {
@@ -512,6 +528,14 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       outputFile = '$inputWithoutDart.wasm';
     }
 
+    if (!outputFile.endsWith('.wasm')) {
+      log.stderr(
+          'Error: The output file "$outputFile" does not end with ".wasm"');
+      return 255;
+    }
+    final outputFileBasename =
+        outputFile.substring(0, outputFile.length - '.wasm'.length);
+
     final options = WasmCompilerOptions(
       mainUri: Uri.file(path.absolute(sourcePath)),
       outputFile: outputFile,
@@ -534,9 +558,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       options.translatorOptions.importSharedMemory = true;
       options.translatorOptions.sharedMemoryMaxPages = maxPages;
     }
-    // Enable inline classes.
-    // TODO: Remove this when inline classe ship.
-    options.feExperimentalFlags = {fe.ExperimentalFlag.inlineClass: true};
 
     int result;
     try {
@@ -556,15 +577,20 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     }
 
     if (args['optimize']) {
-      final unoptFile = outputFile + unoptExtension;
-      final flags = optimizerFlags(args['name-section']);
+      final unoptFile = '$outputFileBasename.unopt.wasm';
       File(outputFile).renameSync(unoptFile);
+
+      final flags = [
+        ...binaryenFlags,
+        if (args['name-section']) '-g',
+      ];
+
       if (verbose) {
         log.stdout('Optimizing output with: $optimizer $flags');
       }
       final processResult = Process.runSync(
         optimizer,
-        [...flags.split(' '), '-o', outputFile, unoptFile],
+        [...flags, '-o', outputFile, unoptFile],
       );
       if (processResult.exitCode != 0) {
         log.stderr('Error: Wasm compilation failed while optimizing output');
@@ -573,8 +599,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       }
     }
 
-    final mjsFile =
-        '${options.outputFile.substring(0, options.outputFile.lastIndexOf('.'))}.mjs';
+    final mjsFile = '$outputFileBasename.mjs';
     log.stdout(
         "Generated wasm module '$outputFile', and JS init file '$mjsFile'.");
     return result;

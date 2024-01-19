@@ -20,6 +20,7 @@ import '../../type_inference/standard_bounds.dart'
     show TypeSchemaStandardBounds;
 import '../../type_inference/type_constraint_gatherer.dart'
     show TypeConstraintGatherer;
+import '../../type_inference/type_inference_engine.dart';
 import '../../type_inference/type_schema.dart';
 import '../../type_inference/type_schema_environment.dart' show TypeConstraint;
 import 'hierarchy_builder.dart';
@@ -498,9 +499,11 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
 
   TypeBuilderConstraintGatherer(
       this.hierarchy, Iterable<StructuralParameter> typeParameters,
-      {required bool isNonNullableByDefault})
+      {required bool isNonNullableByDefault,
+      required OperationsCfe typeOperations})
       : super.subclassing(typeParameters,
-            isNonNullableByDefault: isNonNullableByDefault);
+            isNonNullableByDefault: isNonNullableByDefault,
+            typeOperations: typeOperations);
 
   @override
   CoreTypes get coreTypes => hierarchy.coreTypes;

@@ -57,10 +57,17 @@ class OptionsMapEntry {
 
 // TODO(pq): make private when no longer referenced.
 class SharedOptionsOptionsMap extends AnalysisOptionsMap {
-  /// The [entries] list is empty but that's OK. We'll always just return
-  /// the shared options.
   final AnalysisOptionsImpl sharedOptions;
-  SharedOptionsOptionsMap(this.sharedOptions);
+  SharedOptionsOptionsMap(this.sharedOptions) {
+    var optionsFile = sharedOptions.file;
+    // If there's an associated file, create an entry so that we can display it
+    // in the diagnostics page.
+    if (optionsFile != null) {
+      add(optionsFile.parent, sharedOptions);
+    }
+  }
   @override
-  AnalysisOptionsImpl getOptions(File file) => sharedOptions;
+  AnalysisOptionsImpl getOptions(File file) =>
+      // No need to lookup. There's only one shared set of options.
+      sharedOptions;
 }

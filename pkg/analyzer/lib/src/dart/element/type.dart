@@ -754,12 +754,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   ConstructorElement? lookUpConstructor(
       String? constructorName, LibraryElement library) {
+    var augmented = element.augmented;
+    if (augmented == null) {
+      return null;
+    }
+
     // prepare base ConstructorElement
     ConstructorElement? constructorElement;
     if (constructorName == null) {
-      constructorElement = element.unnamedConstructor;
+      constructorElement = augmented.unnamedConstructor;
     } else {
-      constructorElement = element.getNamedConstructor(constructorName);
+      constructorElement = augmented.getNamedConstructor(constructorName);
     }
     // not found or not accessible
     if (constructorElement == null ||

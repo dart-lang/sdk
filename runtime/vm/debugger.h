@@ -626,6 +626,8 @@ class GroupDebugger {
   bool HasBreakpoint(Thread* thread, const Function& function);
   bool IsDebugging(Thread* thread, const Function& function);
 
+  IsolateGroup* isolate_group() { return isolate_group_; }
+
  private:
   IsolateGroup* isolate_group_;
 
@@ -793,7 +795,8 @@ class Debugger {
                    TokenPosition last_token_pos,
                    Function* best_fit);
   void DeoptimizeWorld();
-  void NotifySingleStepping(bool value) const;
+  void RunWithStoppedDeoptimizedWorld(std::function<void()> fun);
+  void NotifySingleStepping(bool value);
   BreakpointLocation* SetCodeBreakpoints(
       const GrowableHandlePtrArray<const Script>& scripts,
       TokenPosition token_pos,

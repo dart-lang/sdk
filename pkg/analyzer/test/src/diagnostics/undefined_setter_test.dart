@@ -10,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedSetterTest);
-    defineReflectiveTests(UndefinedSetterWithoutNullSafetyTest);
   });
 }
 
@@ -212,17 +211,14 @@ f(var a) {
   }
 
   test_static_conditionalAccess_defined() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 class A {
   static var x;
 }
 f() { A?.x = 1; }
-''',
-      expectedErrorsByNullability(nullable: [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2),
-      ], legacy: []),
-    );
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2),
+    ]);
   }
 
   test_static_definedInSuperclass() async {
@@ -275,7 +271,3 @@ f(C c) {
     ]);
   }
 }
-
-@reflectiveTest
-class UndefinedSetterWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, UndefinedSetterTestCases {}

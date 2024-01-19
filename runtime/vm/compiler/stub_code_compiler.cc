@@ -1222,9 +1222,6 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_delayed_type_arguments());
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                            AllocateClosureABI::kResultReg,
-                            Slot::Closure_default_type_arguments());
     __ StoreToSlotNoBarrier(AllocateClosureABI::kFunctionReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_function());

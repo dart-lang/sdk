@@ -2664,7 +2664,7 @@ void f() { }
   @FailingTest(reason: 'https://github.com/Dart-Code/Dart-Code/issues/4794')
   Future<void> test_prefixed_enumMember() async {
     // If the first character of the enum member is typed (`self.MyEnum.o^`)
-    // this test passes. Without any charactres typed (`self.MyEnum.^`) the
+    // this test passes. Without any characters typed (`self.MyEnum.^`) the
     // dotTarget on the completion is `null`. The containingNode is a
     // ConstructorName.
     final content = '''

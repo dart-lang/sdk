@@ -2577,6 +2577,7 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kDynamicInvocation:
       ReadByte();        // read kind.
+      ReadByte();        // read flags.
       ReadPosition();    // read position.
       SkipExpression();  // read receiver.
       SkipName();        // read name.

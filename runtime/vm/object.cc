@@ -3122,7 +3122,7 @@ TypePtr Class::RareType() const {
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   const auto& inst_to_bounds =
-      TypeArguments::Handle(zone, InstantiateToBounds(thread));
+      TypeArguments::Handle(zone, DefaultTypeArguments(zone));
   ASSERT(inst_to_bounds.ptr() != Object::empty_type_arguments().ptr());
   auto& type = Type::Handle(
       zone, Type::New(*this, inst_to_bounds, Nullability::kNonNullable));
@@ -3716,13 +3716,11 @@ intptr_t Class::NumTypeArguments() const {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-TypeArgumentsPtr Class::InstantiateToBounds(Thread* thread) const {
-  const auto& type_params =
-      TypeParameters::Handle(thread->zone(), type_parameters());
-  if (type_params.IsNull()) {
+TypeArgumentsPtr Class::DefaultTypeArguments(Zone* zone) const {
+  if (type_parameters() == TypeParameters::null()) {
     return Object::empty_type_arguments().ptr();
   }
-  return type_params.defaults();
+  return TypeParameters::Handle(zone, type_parameters()).defaults();
 }
 
 ClassPtr Class::SuperClass(ClassTable* class_table /* = nullptr */) const {
@@ -4515,7 +4513,9 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   if (changed) {
     auto class_table = isolate_group->class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
+#ifdef TARGET_ARCH_IA32
     DisableAllocationStub();
+#endif
   }
 #else
   UNREACHABLE();
@@ -6939,6 +6939,28 @@ TypeArgumentsPtr TypeArguments::ConcatenateTypeParameters(
   return result.ptr();
 }
 
+InstantiationMode TypeArguments::GetInstantiationMode(Zone* zone,
+                                                      const Function* function,
+                                                      const Class* cls) const {
+  if (IsNull() || IsInstantiated()) {
+    return InstantiationMode::kIsInstantiated;
+  }
+  if (function != nullptr) {
+    if (CanShareFunctionTypeArguments(*function)) {
+      return InstantiationMode::kSharesFunctionTypeArguments;
+    }
+    if (cls == nullptr) {
+      cls = &Class::Handle(zone, function->Owner());
+    }
+  }
+  if (cls != nullptr) {
+    if (CanShareInstantiatorTypeArguments(*cls)) {
+      return InstantiationMode::kSharesInstantiatorTypeArguments;
+    }
+  }
+  return InstantiationMode::kNeedsInstantiation;
+}
+
 StringPtr TypeArguments::Name() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
@@ -8270,65 +8292,29 @@ void Function::set_parent_function(const Function& value) const {
   ClosureData::Cast(obj).set_parent_function(value);
 }
 
-TypeArgumentsPtr Function::InstantiateToBounds(
-    Thread* thread,
-    DefaultTypeArgumentsKind* kind_out) const {
+TypeArgumentsPtr Function::DefaultTypeArguments(Zone* zone) const {
   if (type_parameters() == TypeParameters::null()) {
-    if (kind_out != nullptr) {
-      *kind_out = DefaultTypeArgumentsKind::kIsInstantiated;
-    }
     return Object::empty_type_arguments().ptr();
   }
-  auto& type_params = TypeParameters::Handle(thread->zone(), type_parameters());
-  auto& result = TypeArguments::Handle(thread->zone(), type_params.defaults());
-  if (kind_out != nullptr) {
-    if (IsClosureFunction()) {
-      *kind_out = default_type_arguments_kind();
-    } else {
-      // We just return is/is not instantiated if the value isn't cached, as
-      // the other checks may be more overhead at runtime than just doing the
-      // instantiation.
-      *kind_out = result.IsNull() || result.IsInstantiated()
-                      ? DefaultTypeArgumentsKind::kIsInstantiated
-                      : DefaultTypeArgumentsKind::kNeedsInstantiation;
-    }
-  }
-  return result.ptr();
+  return TypeParameters::Handle(zone, type_parameters()).defaults();
 }
 
-Function::DefaultTypeArgumentsKind Function::default_type_arguments_kind()
-    const {
+InstantiationMode Function::default_type_arguments_instantiation_mode() const {
+  if (!IsClosureFunction()) {
+    UNREACHABLE();
+  }
+  return ClosureData::DefaultTypeArgumentsInstantiationMode(
+      ClosureData::RawCast(data()));
+}
+
+void Function::set_default_type_arguments_instantiation_mode(
+    InstantiationMode value) const {
   if (!IsClosureFunction()) {
     UNREACHABLE();
   }
   const auto& closure_data = ClosureData::Handle(ClosureData::RawCast(data()));
   ASSERT(!closure_data.IsNull());
-  return closure_data.default_type_arguments_kind();
-}
-
-void Function::set_default_type_arguments_kind(
-    Function::DefaultTypeArgumentsKind value) const {
-  if (!IsClosureFunction()) {
-    UNREACHABLE();
-  }
-  const auto& closure_data = ClosureData::Handle(ClosureData::RawCast(data()));
-  ASSERT(!closure_data.IsNull());
-  closure_data.set_default_type_arguments_kind(value);
-}
-
-Function::DefaultTypeArgumentsKind Function::DefaultTypeArgumentsKindFor(
-    const TypeArguments& value) const {
-  if (value.IsNull() || value.IsInstantiated()) {
-    return DefaultTypeArgumentsKind::kIsInstantiated;
-  }
-  if (value.CanShareFunctionTypeArguments(*this)) {
-    return DefaultTypeArgumentsKind::kSharesFunctionTypeArguments;
-  }
-  const auto& cls = Class::Handle(Owner());
-  if (value.CanShareInstantiatorTypeArguments(cls)) {
-    return DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments;
-  }
-  return DefaultTypeArgumentsKind::kNeedsInstantiation;
+  closure_data.set_default_type_arguments_instantiation_mode(value);
 }
 
 // Enclosing outermost function of this local function.
@@ -8675,13 +8661,13 @@ void Function::SetSignature(const FunctionType& value) const {
   set_signature(value);
   ASSERT(NumImplicitParameters() == value.num_implicit_parameters());
   if (IsClosureFunction() && value.IsGeneric()) {
+    Zone* zone = Thread::Current()->zone();
     const TypeParameters& type_params =
-        TypeParameters::Handle(value.type_parameters());
+        TypeParameters::Handle(zone, value.type_parameters());
     const TypeArguments& defaults =
-        TypeArguments::Handle(type_params.defaults());
-    auto kind = DefaultTypeArgumentsKindFor(defaults);
-    ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
-    set_default_type_arguments_kind(kind);
+        TypeArguments::Handle(zone, type_params.defaults());
+    auto mode = defaults.GetInstantiationMode(zone, this);
+    set_default_type_arguments_instantiation_mode(mode);
   }
 }
 
@@ -9573,24 +9559,23 @@ static TypeArgumentsPtr RetrieveFunctionTypeArguments(
   } else if (!has_delayed_type_args) {
     // We have no explicitly provided function type arguments, so instantiate
     // the type parameters to bounds or replace as appropriate.
-    Function::DefaultTypeArgumentsKind kind;
-    function_type_args = function.InstantiateToBounds(thread, &kind);
-    switch (kind) {
-      case Function::DefaultTypeArgumentsKind::kInvalid:
-        // We shouldn't hit the invalid case.
-        UNREACHABLE();
-        break;
-      case Function::DefaultTypeArgumentsKind::kIsInstantiated:
+    function_type_args = function.DefaultTypeArguments(zone);
+    auto const mode =
+        function.IsClosureFunction()
+            ? function.default_type_arguments_instantiation_mode()
+            : function_type_args.GetInstantiationMode(zone, &function);
+    switch (mode) {
+      case InstantiationMode::kIsInstantiated:
         // Nothing left to do.
         break;
-      case Function::DefaultTypeArgumentsKind::kNeedsInstantiation:
+      case InstantiationMode::kNeedsInstantiation:
         function_type_args = function_type_args.InstantiateAndCanonicalizeFrom(
             instantiator_type_args, parent_type_args);
         break;
-      case Function::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments:
+      case InstantiationMode::kSharesInstantiatorTypeArguments:
         function_type_args = instantiator_type_args.ptr();
         break;
-      case Function::DefaultTypeArgumentsKind::kSharesFunctionTypeArguments:
+      case InstantiationMode::kSharesFunctionTypeArguments:
         function_type_args = parent_type_args.ptr();
         break;
     }
@@ -11669,18 +11654,9 @@ void FunctionType::set_num_implicit_parameters(intptr_t value) const {
   untag()->packed_parameter_counts_.Update<PackedNumImplicitParameters>(value);
 }
 
-ClosureData::DefaultTypeArgumentsKind ClosureData::default_type_arguments_kind()
-    const {
-  return untag()
-      ->packed_fields_
-      .Read<UntaggedClosureData::PackedDefaultTypeArgumentsKind>();
-}
-
-void ClosureData::set_default_type_arguments_kind(
-    DefaultTypeArgumentsKind value) const {
-  untag()
-      ->packed_fields_
-      .Update<UntaggedClosureData::PackedDefaultTypeArgumentsKind>(value);
+void ClosureData::set_default_type_arguments_instantiation_mode(
+    InstantiationMode value) const {
+  untag()->packed_fields_.Update<PackedInstantiationMode>(value);
 }
 
 Function::AwaiterLink ClosureData::awaiter_link() const {
@@ -26339,34 +26315,6 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
       instantiator_type_arguments.ptr());
   result.untag()->set_function_type_arguments(function_type_arguments.ptr());
   result.untag()->set_delayed_type_arguments(delayed_type_arguments.ptr());
-  // Cache instantiating the local type parameters to bounds. For non-generic
-  // closures, we just leave the field as its null initialization.
-  if (function.IsGeneric()) {
-    auto* const thread = Thread::Current();
-    Function::DefaultTypeArgumentsKind kind;
-    auto& default_type_args = TypeArguments::Handle(
-        thread->zone(), function.InstantiateToBounds(thread, &kind));
-    switch (kind) {
-      case Function::DefaultTypeArgumentsKind::kInvalid:
-        // We shouldn't hit the invalid case.
-        UNREACHABLE();
-        break;
-      case Function::DefaultTypeArgumentsKind::kIsInstantiated:
-        // Nothing left to do.
-        break;
-      case Function::DefaultTypeArgumentsKind::kNeedsInstantiation:
-        default_type_args = default_type_args.InstantiateAndCanonicalizeFrom(
-            instantiator_type_arguments, function_type_arguments);
-        break;
-      case Function::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments:
-        default_type_args = instantiator_type_arguments.ptr();
-        break;
-      case Function::DefaultTypeArgumentsKind::kSharesFunctionTypeArguments:
-        default_type_args = function_type_arguments.ptr();
-        break;
-    }
-    result.untag()->set_default_type_arguments(default_type_args.ptr());
-  }
   result.untag()->set_function(function.ptr());
   result.untag()->set_context(context.ptr());
 #if defined(DART_PRECOMPILED_RUNTIME)

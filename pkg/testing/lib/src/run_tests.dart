@@ -71,7 +71,8 @@ class CommandLine {
         .map((String option) => option.substring(configPrefix.length))
         .toList();
     if (configurationPaths.length > 1) {
-      return fail("Only one --config option is supported");
+      fail("Only one --config option is supported");
+      return null;
     }
     String configurationPath;
     if (configurationPaths.length == 1) {
@@ -94,17 +95,18 @@ class CommandLine {
           }).toList();
           switch (candidates.length) {
             case 0:
-              return fail("Couldn't locate: '$configurationPath'.");
+              fail("Couldn't locate: '$configurationPath'.");
+              return null;
 
             case 1:
               configurationPath = candidates.single.path;
               break;
 
             default:
-              return fail(
-                  "Usage: run_tests.dart [$configPrefix=configuration_file]\n"
+              fail("Usage: run_tests.dart [$configPrefix=configuration_file]\n"
                   "Where configuration_file is one of:\n  "
                   "${candidates.map((file) => file.path).join('\n  ')}");
+              return null;
           }
         }
       }
@@ -114,7 +116,8 @@ class CommandLine {
     Uri? configuration =
         await Isolate.resolvePackageUri(Uri.base.resolve(configurationPath));
     if (configuration == null || !await File.fromUri(configuration).exists()) {
-      return fail("Couldn't locate: '$configurationPath'.");
+      fail("Couldn't locate: '$configurationPath'.");
+      return null;
     }
     return configuration;
   }
@@ -134,38 +137,40 @@ class CommandLine {
   }
 }
 
-fail(String message) {
+void fail(String message) {
   print(message);
   io.exitCode = 1;
   return null;
 }
 
-main(List<String> arguments) => withErrorHandling(() async {
-      CommandLine cl = CommandLine.parse(arguments);
-      if (cl.verbose) {
-        enableVerboseOutput();
+Future<void> main(List<String> arguments) {
+  return withErrorHandling(() async {
+    CommandLine cl = CommandLine.parse(arguments);
+    if (cl.verbose) {
+      enableVerboseOutput();
+    }
+    Map<String, String> environment = cl.environment;
+    Uri? configuration = await cl.configuration;
+    if (configuration == null) return;
+    if (!isVerbose) {
+      print("Use --verbose to display more details.");
+    }
+    TestRoot root = await TestRoot.fromUri(configuration);
+    SuiteRunner runner = SuiteRunner(
+        root.suites, environment, cl.selectors, cl.selectedSuites, cl.skip);
+    String? program = await runner.generateDartProgram();
+    bool hasAnalyzerSuites = await runner.analyze(root.packages);
+    Stopwatch sw = Stopwatch()..start();
+    if (program == null) {
+      if (!hasAnalyzerSuites) {
+        fail("No tests configured.");
       }
-      Map<String, String> environment = cl.environment;
-      Uri? configuration = await cl.configuration;
-      if (configuration == null) return;
-      if (!isVerbose) {
-        print("Use --verbose to display more details.");
-      }
-      TestRoot root = await TestRoot.fromUri(configuration);
-      SuiteRunner runner = SuiteRunner(
-          root.suites, environment, cl.selectors, cl.selectedSuites, cl.skip);
-      String? program = await runner.generateDartProgram();
-      bool hasAnalyzerSuites = await runner.analyze(root.packages);
-      Stopwatch sw = Stopwatch()..start();
-      if (program == null) {
-        if (!hasAnalyzerSuites) {
-          fail("No tests configured.");
-        }
-      } else {
-        await runProgram(program, root.packages);
-      }
-      print("Running tests took: ${sw.elapsed}.");
-    });
+    } else {
+      await runProgram(program, root.packages);
+    }
+    print("Running tests took: ${sw.elapsed}.");
+  });
+}
 
 Future<void> runTests(Map<String, Function> tests) =>
     withErrorHandling<void>(() async {

@@ -126,7 +126,6 @@
   FIELD(Class, host_type_arguments_field_offset_in_words_offset)               \
   NOT_IN_PRODUCT(FIELD(ClassTable, allocation_tracing_state_table_offset))     \
   FIELD(Closure, context_offset)                                               \
-  FIELD(Closure, default_type_arguments_offset)                                \
   FIELD(Closure, delayed_type_arguments_offset)                                \
   FIELD(Closure, function_offset)                                              \
   FIELD(Closure, function_type_arguments_offset)                               \

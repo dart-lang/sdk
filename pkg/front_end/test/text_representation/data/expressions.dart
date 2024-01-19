@@ -241,6 +241,9 @@ exprGenericInvocation2b(Class variable) =>
 /*member: exprDynamicInvocation:variable.method1()*/
 exprDynamicInvocation(variable) => variable.method1();
 
+/*member: exprDynamicInvocationImplicitCall:variable()*/
+exprDynamicInvocationImplicitCall(variable) => variable();
+
 /*normal|limited.member: exprObjectInvocation:variable.{Object.toString}()*/
 /*verbose.member: exprObjectInvocation:variable.{dart.core::Object.toString}()*/
 exprObjectInvocation(variable) => variable.toString();

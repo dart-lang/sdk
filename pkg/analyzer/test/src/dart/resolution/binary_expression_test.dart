@@ -1563,17 +1563,15 @@ BinaryExpression
   }
 
   test_plus_num_context_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 T f<T>() => throw Error();
 g(num a) {
   h(a + f());
 }
 h(int x) {}
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
+    ]);
 
     final node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -1594,8 +1592,7 @@ MethodInvocation
   }
 
   test_plus_other_context_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 abstract class A {
   num operator+(String x);
 }
@@ -1604,10 +1601,9 @@ g(A a) {
   h(a + f());
 }
 h(int x) {}
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
+    ]);
 
     final node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''

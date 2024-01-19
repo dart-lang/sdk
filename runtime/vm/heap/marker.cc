@@ -36,12 +36,14 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         work_list_(marking_stack),
         deferred_work_list_(deferred_marking_stack),
         marked_bytes_(0),
-        marked_micros_(0) {}
+        marked_micros_(0),
+        concurrent_(true) {}
   ~MarkingVisitorBase() { ASSERT(delayed_.IsEmpty()); }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
   int64_t marked_micros() const { return marked_micros_; }
   void AddMicros(int64_t micros) { marked_micros_ += micros; }
+  void set_concurrent(bool value) { concurrent_ = value; }
 
 #ifdef DEBUG
   constexpr static const char* const kName = "Marker";
@@ -98,6 +100,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
           size = ProcessWeakArray(static_cast<WeakArrayPtr>(raw_obj));
         } else if (class_id == kFinalizerEntryCid) {
           size = ProcessFinalizerEntry(static_cast<FinalizerEntryPtr>(raw_obj));
+        } else if (sync && concurrent_ && class_id == kSuspendStateCid) {
+          // Shape changing is not compatible with concurrent marking.
+          deferred_work_list_.Push(raw_obj);
+          size = raw_obj->untag()->HeapSize();
         } else {
           size = raw_obj->untag()->VisitPointersNonvirtual(this);
         }
@@ -149,6 +155,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
           size = ProcessWeakArray(static_cast<WeakArrayPtr>(raw_obj));
         } else if (class_id == kFinalizerEntryCid) {
           size = ProcessFinalizerEntry(static_cast<FinalizerEntryPtr>(raw_obj));
+        } else if (sync && concurrent_ && class_id == kSuspendStateCid) {
+          // Shape changing is not compatible with concurrent marking.
+          deferred_work_list_.Push(raw_obj);
+          size = raw_obj->untag()->HeapSize();
         } else {
           if ((class_id == kArrayCid) || (class_id == kImmutableArrayCid)) {
             size = raw_obj->untag()->HeapSize();
@@ -459,6 +469,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   GCLinkedLists delayed_;
   uintptr_t marked_bytes_;
   int64_t marked_micros_;
+  bool concurrent_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitorBase);
 };
@@ -732,6 +743,7 @@ class ParallelMarkTask : public ThreadPool::Task {
 
       // Phase 1: Iterate over roots and drain marking stack in tasks.
       num_busy_->fetch_add(1u);
+      visitor_->set_concurrent(false);
       marker_->IterateRoots(visitor_);
 
       visitor_->ProcessDeferredMarking();
@@ -1086,6 +1098,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       // Mark everything on main thread.
       UnsyncMarkingVisitor visitor(isolate_group_, page_space, &marking_stack_,
                                    &deferred_marking_stack_);
+      visitor.set_concurrent(false);
       ResetSlices();
       IterateRoots(&visitor);
       visitor.ProcessDeferredMarking();

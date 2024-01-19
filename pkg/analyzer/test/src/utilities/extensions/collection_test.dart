@@ -12,6 +12,7 @@ main() {
     defineReflectiveTests(IterableIterableExtensionTest);
     defineReflectiveTests(IterableMapEntryExtensionTest);
     defineReflectiveTests(ListExtensionTest);
+    defineReflectiveTests(MapExtensionTest);
   });
 }
 
@@ -30,7 +31,7 @@ class IterableIterableExtensionTest {
         [0],
         [1, 2],
         [3, 3]
-      ].flattenedToList,
+      ].flattenedToList2,
       [0, 1, 2, 3, 3],
     );
   }
@@ -41,7 +42,7 @@ class IterableIterableExtensionTest {
         [0, 0],
         [1, 2, 1],
         [3, 3]
-      ].flattenedToSet,
+      ].flattenedToSet2,
       {0, 1, 2, 3},
     );
   }
@@ -100,6 +101,12 @@ class ListExtensionTest {
     expect(elements.nextOrNull(3), null);
   }
 
+  test_removeLastOrNull() {
+    expect([0, 1, 2].removeLastOrNull(), 2);
+    expect([0].removeLastOrNull(), 0);
+    expect(<int>[].removeLastOrNull(), isNull);
+  }
+
   test_stablePartition() {
     expect(
       [0, 1, 2, 3, 4, 5].stablePartition((e) => e.isEven),
@@ -116,6 +123,14 @@ class ListExtensionTest {
     expect([0, 1].withoutLast, [0]);
     expect([0].withoutLast, <int>[]);
     expect(<int>[].withoutLast, <int>[]);
+  }
+}
+
+@reflectiveTest
+class MapExtensionTest {
+  test_firstKey() {
+    expect({0: 1, 2: 3}.firstKey, 0);
+    expect(<int, int>{}.firstKey, isNull);
   }
 }
 

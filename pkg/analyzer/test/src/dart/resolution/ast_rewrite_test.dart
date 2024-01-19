@@ -540,6 +540,68 @@ ImplicitCallReference
   staticType: void Function(int)
 ''');
   }
+
+  test_simpleIdentifier_typeAlias() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call() {}
+}
+typedef B = A;
+Function f(B b) => b;
+''');
+
+    final node = findNode.implicitCallReference('b;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: A
+      alias: self::@typeAlias::B
+  staticElement: self::@class::A::@method::call
+  staticType: void Function()
+''');
+  }
+
+  test_simpleIdentifier_typeVariable() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call() {}
+}
+Function f<X extends A>(X x) => x;
+''');
+
+    final node = findNode.implicitCallReference('x;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: X
+  staticElement: self::@class::A::@method::call
+  staticType: void Function()
+''');
+  }
+
+  test_simpleIdentifier_typeVariable2() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call() {}
+}
+Function f<X extends A, Y extends X>(Y y) => y;
+''');
+
+    final node = findNode.implicitCallReference('y;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: y
+    staticElement: self::@function::f::@parameter::y
+    staticType: Y
+  staticElement: self::@class::A::@method::call
+  staticType: void Function()
+''');
+  }
 }
 
 @reflectiveTest

@@ -59,13 +59,21 @@ final class EnumConstantSuggestion extends ImportableSuggestion {
   /// The element on which the suggestion is based.
   final FieldElement element;
 
+  /// Whether the name of the enum should be included in the completion.
+  final bool includeEnumName;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  EnumConstantSuggestion(super.importData, this.element);
+  EnumConstantSuggestion(super.importData, this.element,
+      {this.includeEnumName = true});
 
   @override
   String get completion {
-    var enclosingElement = element.enclosingElement;
-    return '$completionPrefix${enclosingElement.name}.${element.name}';
+    if (includeEnumName) {
+      var enclosingElement = element.enclosingElement;
+      return '$completionPrefix${enclosingElement.name}.${element.name}';
+    } else {
+      return element.name;
+    }
   }
 }
 
@@ -223,7 +231,7 @@ final class KeywordSuggestion extends CandidateSuggestion {
 
   /// Return a newly created candidate suggestion to suggest the [keyword]
   /// followed by the [annotatedText]. The annotated text is used in cases where
-  /// there is boilerplace that always follows the keyword that should also be
+  /// there is boilerplate that always follows the keyword that should also be
   /// suggested.
   ///
   /// If the annotated text contains a caret (`^`), then the completion will use
@@ -518,9 +526,13 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
         libraryUriStr = null;
       case EnumConstantSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
-        suggestEnumConstant(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
+        if (suggestion.includeEnumName) {
+          libraryUriStr = suggestion.libraryUriStr;
+          suggestEnumConstant(suggestion.element, prefix: suggestion.prefix);
+          libraryUriStr = null;
+        } else {
+          suggestField(suggestion.element, inheritanceDistance: 0.0);
+        }
       case ExtensionSuggestion():
         libraryUriStr = suggestion.libraryUriStr;
         suggestExtension(suggestion.element, prefix: suggestion.prefix);

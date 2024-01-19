@@ -17,16 +17,16 @@ class C extends core::Object {
     this.{self::C::f}(){() → void};
     this.{self::C::g}{() → void}(){() → void};
     this.{self::C::g}{() → void}(){() → void};
-    this.{self::C::h}{dynamic}{dynamic}.call();
-    this.{self::C::h}{dynamic}{dynamic}.call();
+    this.{self::C::h}{dynamic}{dynamic}();
+    this.{self::C::h}{dynamic}{dynamic}();
   }
 }
 static method test(self::C c, () → void f, dynamic d) → void {
   c.{self::C::f}(){() → void};
   f(){() → void};
-  d{dynamic}.call();
+  d{dynamic}();
   d{dynamic}.f();
   c.{self::C::g}{() → void}(){() → void};
-  c.{self::C::h}{dynamic}{dynamic}.call();
+  c.{self::C::h}{dynamic}{dynamic}();
 }
 static method main() → dynamic {}

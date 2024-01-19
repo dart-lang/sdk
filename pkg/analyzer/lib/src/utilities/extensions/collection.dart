@@ -27,14 +27,14 @@ extension IterableIterableExtension<T> on Iterable<Iterable<T>> {
   /// At the moment of writing, this method is `2.75` times faster than
   /// `expand((e) => e)`, and `3.5` faster than `flattened` from
   /// `package:collection`.
-  List<T> get flattenedToList {
+  List<T> get flattenedToList2 {
     return [
       for (final elements in this) ...elements,
     ];
   }
 
   /// Elements of each iterable in this iterable.
-  Set<T> get flattenedToSet {
+  Set<T> get flattenedToSet2 {
     return {
       for (final elements in this) ...elements,
     };
@@ -92,6 +92,13 @@ extension ListExtension<E> on List<E> {
     }
   }
 
+  E? removeLastOrNull() {
+    if (isNotEmpty) {
+      return removeLast();
+    }
+    return null;
+  }
+
   /// Returns a new list with all elements of the target, arranged such that
   /// all elements for which the [predicate] specified returns `true` come
   /// before those for which the [predicate] returns `false`. The partitioning
@@ -107,6 +114,18 @@ extension ListExtension<E> on List<E> {
 extension ListQueueExtension<T> on ListQueue<T> {
   T? removeFirstOrNull() {
     return isNotEmpty ? removeFirst() : null;
+  }
+}
+
+extension MapExtension<K, V> on Map<K, V> {
+  K? get firstKey {
+    return keys.firstOrNull;
+  }
+}
+
+extension MapOfListValuesExtension<K, V> on Map<K, List<V>> {
+  void add(K key, V value) {
+    (this[key] ??= []).add(value);
   }
 }
 

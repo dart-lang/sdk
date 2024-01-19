@@ -4,4 +4,4 @@
 
 import "package:testing/src/run_tests.dart" as run_tests;
 
-main(List<String> arguments) => run_tests.main(arguments);
+Future<void> main(List<String> arguments) => run_tests.main(arguments);

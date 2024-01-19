@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
@@ -241,10 +242,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   late final TypeArgumentsVerifier _typeArgumentsVerifier;
   late final ConstructorFieldsVerifier _constructorFieldsVerifier;
   late final ReturnTypeVerifier _returnTypeVerifier;
+  final TypeSystemOperations typeSystemOperations;
 
   /// Initialize a newly created error verifier.
   ErrorVerifier(this.errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.libraryVerificationContext, this.options)
+      this._inheritanceManager, this.libraryVerificationContext, this.options,
+      {required this.typeSystemOperations})
       : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
@@ -713,6 +716,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _checkForBuiltInIdentifierAsName(node.name,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME);
+      _checkForConflictingExtensionTypeTypeVariableErrorCodes(element);
 
       _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForRepeatedType(node.implementsClause?.interfaces,
@@ -2214,6 +2218,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkForConflictingExtensionTypeTypeVariableErrorCodes(
+    ExtensionTypeElementImpl element,
+  ) {
+    for (var typeParameter in element.typeParameters) {
+      var name = typeParameter.name;
+      // name is same as the name of the enclosing class
+      if (element.name == name) {
+        errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
+            typeParameter,
+            [name]);
+      }
+      // check members
+      if (element.getNamedConstructor(name) != null ||
+          element.getMethod(name) != null ||
+          element.getGetter(name) != null ||
+          element.getSetter(name) != null) {
+        errorReporter.reportErrorForElement(
+            CompileTimeErrorCode
+                .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
+            typeParameter,
+            [name]);
+      }
+    }
+  }
+
   /// Verify all conflicts between type variable and enclosing extension.
   ///
   /// See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION], and
@@ -2773,6 +2803,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             genericMetadataIsEnabled: true,
             strictInference: options.strictInference,
             strictCasts: options.strictCasts,
+            typeSystemOperations: typeSystemOperations,
           );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);
@@ -5914,8 +5945,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // TODO(scheglov): implement
           throw UnimplementedError();
         case DeclarationsIntrospectionCycleDiagnostic():
-          // TODO(scheglov): implement
-          throw UnimplementedError();
+          var messages = diagnostic.components.map<DiagnosticMessage>(
+            (component) {
+              var target = _macroAnnotationNameIdentifier(
+                element: component.element,
+                annotationIndex: component.annotationIndex,
+              );
+              var introspectedName = component.introspectedElement.name;
+              return DiagnosticMessageImpl(
+                filePath: component.element.source!.fullName,
+                length: target.length,
+                message:
+                    "The macro application introspects '$introspectedName'.",
+                offset: target.offset,
+                url: null,
+              );
+            },
+          ).toList();
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+            _macroAnnotationNameIdentifier(
+              element: element,
+              annotationIndex: diagnostic.annotationIndex,
+            ),
+            [diagnostic.introspectedElement.name!],
+            messages,
+          );
         case ExceptionMacroDiagnostic():
           // TODO(scheglov): implement
           throw UnimplementedError();
@@ -6016,6 +6071,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     return fields.toList();
+  }
+
+  static SimpleIdentifier _macroAnnotationNameIdentifier({
+    required ElementImpl element,
+    required int annotationIndex,
+  }) {
+    var annotation = element.metadata[annotationIndex];
+    annotation as ElementAnnotationImpl;
+    var annotationNode = annotation.annotationAst;
+    var fullName = annotationNode.name;
+    if (fullName is PrefixedIdentifierImpl) {
+      return fullName.identifier;
+    } else {
+      return fullName as SimpleIdentifierImpl;
+    }
   }
 }
 

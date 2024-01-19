@@ -42,6 +42,16 @@ class MacroResolutionTest extends PubPackageResolutionTest {
       '$testPackageLibPath/diagnostic.dart',
       getMacroCode('diagnostic.dart'),
     );
+
+    newFile(
+      '$testPackageLibPath/order.dart',
+      getMacroCode('order.dart'),
+    );
+
+    newFile(
+      '$testPackageLibPath/json_serializable.dart',
+      getMacroCode('example/json_serializable.dart'),
+    );
   }
 
   test_declareType_class() async {
@@ -83,6 +93,186 @@ class A {}
           'package:test/a.dart',
           'unresolved',
           'MyMacro',
+        ],
+      ),
+    ]);
+  }
+
+  test_diagnostic_cycle_class_constructorsOf() async {
+    // Note, the errors are also reported when introspecting `A1` and `A2`
+    // during running macro applications on `A3`, because we know that
+    // `A1` and `A2` declarations are incomplete.
+    await assertErrorsInCode('''
+import 'order.dart';
+
+@DeclarationsIntrospectConstructors('A2')
+class A1 {}
+
+@DeclarationsIntrospectConstructors('A1')
+class A2 {}
+
+@DeclarationsIntrospectConstructors('A1')
+@DeclarationsIntrospectConstructors('A2')
+class A3 {}
+''', [
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        23,
+        34,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 34),
+          message('/home/test/lib/test.dart', 78, 34)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        78,
+        34,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 34),
+          message('/home/test/lib/test.dart', 78, 34)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        133,
+        34,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 34),
+          message('/home/test/lib/test.dart', 78, 34)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        175,
+        34,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 34),
+          message('/home/test/lib/test.dart', 78, 34)
+        ],
+      ),
+    ]);
+  }
+
+  test_diagnostic_cycle_class_fieldsOf() async {
+    // Note, the errors are also reported when introspecting `A1` and `A2`
+    // during running macro applications on `A3`, because we know that
+    // `A1` and `A2` declarations are incomplete.
+    await assertErrorsInCode('''
+import 'order.dart';
+
+@DeclarationsIntrospectFields('A2')
+class A1 {}
+
+@DeclarationsIntrospectFields('A1')
+class A2 {}
+
+@DeclarationsIntrospectFields('A1')
+@DeclarationsIntrospectFields('A2')
+class A3 {}
+''', [
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        23,
+        28,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 28),
+          message('/home/test/lib/test.dart', 72, 28)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        72,
+        28,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 28),
+          message('/home/test/lib/test.dart', 72, 28)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        121,
+        28,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 28),
+          message('/home/test/lib/test.dart', 72, 28)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        157,
+        28,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 28),
+          message('/home/test/lib/test.dart', 72, 28)
+        ],
+      ),
+    ]);
+  }
+
+  test_diagnostic_cycle_class_methodsOf() async {
+    // Note, the errors are also reported when introspecting `A1` and `A2`
+    // during running macro applications on `A3`, because we know that
+    // `A1` and `A2` declarations are incomplete.
+    await assertErrorsInCode('''
+import 'order.dart';
+
+@DeclarationsIntrospectMethods('A2')
+class A1 {}
+
+@DeclarationsIntrospectMethods('A1')
+class A2 {}
+
+@DeclarationsIntrospectMethods('A1')
+@DeclarationsIntrospectMethods('A2')
+class A3 {}
+''', [
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        23,
+        29,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 29),
+          message('/home/test/lib/test.dart', 73, 29)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        73,
+        29,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 29),
+          message('/home/test/lib/test.dart', 73, 29)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        123,
+        29,
+        messageContains: ["'A1'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 29),
+          message('/home/test/lib/test.dart', 73, 29)
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
+        160,
+        29,
+        messageContains: ["'A2'"],
+        contextMessages: [
+          message('/home/test/lib/test.dart', 23, 29),
+          message('/home/test/lib/test.dart', 73, 29)
         ],
       ),
     ]);
@@ -285,6 +475,27 @@ class A {}
         ],
       ),
     ]);
+  }
+
+  @FailingTest(reason: r'''
+CompileTimeErrorCode.UNDEFINED_METHOD [77, 8, "The method 'fromJson' isn't defined for the type 'User'.", "Try correcting the name to the name of an existing method, or defining a method named 'fromJson'."]
+CompileTimeErrorCode.FINAL_NOT_INITIALIZED [141, 3, "The final variable 'age' must be initialized.", "Try initializing the variable."]
+CompileTimeErrorCode.FINAL_NOT_INITIALIZED [161, 4, "The final variable 'name' must be initialized.", "Try initializing the variable."]
+''')
+  test_example_jsonSerializable() async {
+    await assertNoErrorsInCode(r'''
+import 'json_serializable.dart';
+
+void f(Map<String, Object?> json) {
+  User.fromJson(json);
+}
+
+@JsonSerializable()
+class User {
+  final int age;
+  final String name;
+}
+''');
   }
 
   test_getResolvedLibrary_macroAugmentation_hasErrors() async {
