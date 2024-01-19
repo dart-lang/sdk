@@ -26,7 +26,8 @@ class UnwindingRecordsPlatform : public AllStatic {
   static void* GetDeleteGrowableFunctionTableFunc();
 };
 
-#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64)
+#if (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&      \
+    defined(TARGET_ARCH_X64)
 
 #pragma pack(push, 1)
 //
@@ -104,7 +105,8 @@ struct CodeRangeUnwindingRecord {
 
 #pragma pack(pop)
 
-#elif defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_ARM64)
+#elif (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&    \
+    defined(TARGET_ARCH_ARM64)
 
 #pragma pack(push, 1)
 
@@ -237,7 +239,7 @@ struct CodeRangeUnwindingRecord {
 
 #pragma pack(pop)
 
-#endif  // defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64)
+#endif  // (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS))
 
 }  // namespace dart
 

@@ -15,12 +15,14 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -128,6 +130,9 @@ class EditGetFixesHandler extends LegacyHandler
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
+        // Options are not used in the analysis *of options* so associating
+        // an empty set is accurate if not ideal.
+        var analysisOptions = AnalysisOptionsImpl();
         var result = engine.ErrorsResultImpl(
           session: session,
           file: optionsFile,
@@ -139,6 +144,7 @@ class EditGetFixesHandler extends LegacyHandler
           isMacroAugmentation: false,
           isPart: false,
           errors: errors,
+          analysisOptions: analysisOptions,
         );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
@@ -228,8 +234,13 @@ error.errorCode: ${error.errorCode}
     if (node is! YamlMap) {
       return errorFixesList;
     }
-    final analysisOptions =
-        session.analysisContext.getAnalysisOptionsForFile(pubspecFile);
+
+    var fileResult = session.getFile(pubspecFile.path);
+    if (fileResult is! FileResult) {
+      return errorFixesList;
+    }
+
+    final analysisOptions = fileResult.analysisOptions;
     final errors = validatePubspec(
       contents: node,
       source: pubspecFile.createSource(),
@@ -257,6 +268,7 @@ error.errorCode: ${error.errorCode}
           isMacroAugmentation: false,
           isPart: false,
           errors: errors,
+          analysisOptions: analysisOptions,
         );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);

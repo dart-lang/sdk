@@ -264,6 +264,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.factoryKeyword, suffix: ' ');

@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 
 typedef StaticOptions = DartTextDocumentContentProviderRegistrationOptions?;
 
@@ -38,11 +39,8 @@ class DartTextDocumentContentProviderHandler extends SharedMessageHandler<
     }
 
     return pathOfUri(uri).mapResult((filePath) async {
-      var result = await server.getResolvedUnit(filePath);
-      var content = result?.content;
-      // TODO(dantup): Switch to this once implemented to avoid resolved result.
-      // var file = server.getAnalysisDriver(filePath)?.getFileSync(filePath);
-      // var content = file is FileResult ? file.file.readAsStringSync() : null;
+      var file = server.getAnalysisDriver(filePath)?.getFileSync(filePath);
+      var content = file is FileResult ? file.content : null;
 
       return success(DartTextDocumentContent(content: content));
     });

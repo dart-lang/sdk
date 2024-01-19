@@ -25,6 +25,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.length,
     required super.shouldIncludeKind,
     required super.capabilities,
+    required super.analysisOptions,
   }) : driver = server.getAnalysisDriver(file.path);
 
   @override

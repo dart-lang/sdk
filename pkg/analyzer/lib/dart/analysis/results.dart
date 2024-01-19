@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -84,6 +85,9 @@ abstract class ErrorsResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileResult implements SomeFileResult, AnalysisResult {
+  /// The analysis options for this file.
+  AnalysisOptions get analysisOptions;
+
   /// The latest read content of [file], the same that was used to compute
   /// other properties of this result.
   String get content;

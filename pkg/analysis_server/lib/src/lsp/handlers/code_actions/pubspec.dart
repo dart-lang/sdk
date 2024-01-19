@@ -21,6 +21,7 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.length,
     required super.shouldIncludeKind,
     required super.capabilities,
+    required super.analysisOptions,
   });
 
   @override
@@ -54,9 +55,7 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
       contents: node,
       source: pubspecFile.createSource(),
       provider: resourceProvider,
-      analysisOptions: server.contextManager
-          .getContextFor(path)
-          ?.getAnalysisOptionsForFile(pubspecFile),
+      analysisOptions: analysisOptions,
     );
 
     final codeActions = <CodeActionWithPriority>[];
