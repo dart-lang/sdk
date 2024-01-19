@@ -28,7 +28,7 @@ Future runGuarded(
 
   Completer completer = Completer();
 
-  handleUncaughtError(error, StackTrace stackTrace) {
+  void handleUncaughtError(error, StackTrace stackTrace) {
     StdoutLogger().logUncaughtError(error, stackTrace);
     if (!completer.isCompleted) {
       completer.completeError(error, stackTrace);
