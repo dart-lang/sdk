@@ -93,11 +93,11 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:29:10: Error: The setter 'getter' isn't defined for the class 'InlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
     this.getter = 42; // Error, should not resolve to extension method.
-         ^^^^^^" in #this{<unresolved>}.getter = 42;
+         ^^^^^^" in #this.{<unresolved>}getter = 42;
   invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:30:5: Error: The setter 'getter' isn't defined for the class 'InlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
     getter = 42; // Error, should not resolve to extension method.
-    ^^^^^^" in #this{<unresolved>}.getter = 42;
+    ^^^^^^" in #this.{<unresolved>}getter = 42;
   core::int i1 = self::InlineClass|method(#this);
   core::int i2 = self::InlineClass|method(#this);
   core::num j1 = self::InlineClass|genericMethod<core::num>(#this, 0);
@@ -151,7 +151,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:74:6: Error: The setter 'getter' isn't defined for the class 'InlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
   ic.getter = 42; // Error, should not resolve to extension method.
-     ^^^^^^" in ic{<unresolved>}.getter = 42;
+     ^^^^^^" in ic.{<unresolved>}getter = 42;
   core::int i = self::InlineClass|method(ic);
   core::num j = self::InlineClass|genericMethod<core::num>(ic, 0);
   core::int k = self::InlineClass|genericMethod<core::int>(ic, 0);

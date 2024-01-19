@@ -2391,6 +2391,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(name != equalsName);
     Expression expression = new DynamicInvocation(
         DynamicAccessKind.Dynamic, receiver, name, arguments)
+      ..isImplicitCall = isImplicitCall
       ..fileOffset = fileOffset;
     return createNullAwareExpressionInferenceResult(
         result.inferredType, result.applyResult(expression), nullAwareGuards);
@@ -2741,6 +2742,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // the parameters.
       expression = new DynamicInvocation(
           DynamicAccessKind.Dynamic, receiver, methodName, arguments)
+        ..isImplicitCall = isImplicitCall
         ..fileOffset = fileOffset;
     } else if (result.isInapplicable) {
       // This was a method invocation whose arguments didn't match

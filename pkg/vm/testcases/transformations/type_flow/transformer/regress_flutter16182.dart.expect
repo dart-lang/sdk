@@ -59,7 +59,7 @@ class B2 extends self::B2Base {
     : super self::B2Base::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:18,getterSelectorId:19]  method doSuperCall() → void {
-    [@vm.direct-call.metadata=#lib::A2.call] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::A2] super.{self::B2Base::aa2}{dynamic}.call(1, 2, 3, 4, 5, new self::T2::•());
+    [@vm.direct-call.metadata=#lib::A2.call] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::A2] super.{self::B2Base::aa2}{dynamic}(1, 2, 3, 4, 5, new self::T2::•());
   }
 }
 class T3 extends core::Object {

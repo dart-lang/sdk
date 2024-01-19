@@ -54,9 +54,9 @@ static method testInferred() → dynamic {
         ^" in "" as{TypeError} core::int){(core::int) → self::Class1};
   };
   dynamic f1b = #C1;
-  dynamic c1b = f1b{dynamic}.call(0);
+  dynamic c1b = f1b{dynamic}(0);
   self::expect(true, c1b is self::Class1);
-  self::throws(() → dynamic => f1b{dynamic}.call(""));
+  self::throws(() → dynamic => f1b{dynamic}(""));
   (core::int) → self::Class2 f2a = #C2;
   self::expect(true, f2a is (core::int) → self::Class2);
   self::expect(false, f2a is (core::String) → self::Class2);
@@ -68,9 +68,9 @@ static method testInferred() → dynamic {
         ^" in "" as{TypeError} core::int){(core::int) → self::Class2};
   };
   dynamic f2b = #C2;
-  dynamic c2b = f2b{dynamic}.call(0);
+  dynamic c2b = f2b{dynamic}(0);
   self::expect(true, c2b is self::Class2);
-  self::throws(() → dynamic => f2b{dynamic}.call(""));
+  self::throws(() → dynamic => f2b{dynamic}(""));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

@@ -125,12 +125,12 @@ static extension-member method Extension|tearOffs(lowered final self::Class #thi
   tearOffNamed(value: value){({value: dynamic}) → dynamic};
 }
 static extension-member method Extension|getterCalls(lowered final self::Class #this, dynamic value) → dynamic {
-  self::Extension|get#tearOffGetterNoArgs(#this){dynamic}.call();
-  self::Extension|get#tearOffGetterRequired(#this){dynamic}.call(value);
-  self::Extension|get#tearOffGetterOptional(#this){dynamic}.call();
-  self::Extension|get#tearOffGetterOptional(#this){dynamic}.call(value);
-  self::Extension|get#tearOffGetterNamed(#this){dynamic}.call();
-  self::Extension|get#tearOffGetterNamed(#this){dynamic}.call(value: value);
+  self::Extension|get#tearOffGetterNoArgs(#this){dynamic}();
+  self::Extension|get#tearOffGetterRequired(#this){dynamic}(value);
+  self::Extension|get#tearOffGetterOptional(#this){dynamic}();
+  self::Extension|get#tearOffGetterOptional(#this){dynamic}(value);
+  self::Extension|get#tearOffGetterNamed(#this){dynamic}();
+  self::Extension|get#tearOffGetterNamed(#this){dynamic}(value: value);
 }
 static extension-member method Extension|get#getterCalls(lowered final self::Class #this) → (dynamic) → dynamic
   return (dynamic value) → dynamic => self::Extension|getterCalls(#this, value);
@@ -246,27 +246,27 @@ static extension-member method GenericExtension|tearOffs<T extends core::Object?
 static extension-member method GenericExtension|get#tearOffs<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#tearOffs::T%> #this) → <S extends self::GenericExtension|get#tearOffs::T% = dynamic>(S%) → dynamic
   return <S extends self::GenericExtension|get#tearOffs::T% = dynamic>(S% value) → dynamic => self::GenericExtension|tearOffs<self::GenericExtension|get#tearOffs::T%, S%>(#this, value);
 static extension-member method GenericExtension|getterCalls<T extends core::Object? = dynamic, S extends self::GenericExtension|getterCalls::T% = dynamic>(lowered final self::GenericClass<self::GenericExtension|getterCalls::T%> #this, self::GenericExtension|getterCalls::S% value) → dynamic {
-  self::GenericExtension|get#tearOffGetterNoArgs<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call();
-  self::GenericExtension|get#tearOffGetterRequired<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call(value);
-  self::GenericExtension|get#tearOffGetterOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call();
-  self::GenericExtension|get#tearOffGetterOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call(value);
-  self::GenericExtension|get#tearOffGetterNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call();
-  self::GenericExtension|get#tearOffGetterNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call(value: value);
-  self::GenericExtension|get#tearOffGetterGenericRequired<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call(value);
-  self::GenericExtension|get#tearOffGetterGenericRequired<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::T%>(value);
-  self::GenericExtension|get#tearOffGetterGenericRequired<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::S%>(value);
-  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call();
-  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::T%>();
-  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::S%>();
-  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call(value);
-  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::T%>(value);
-  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::S%>(value);
-  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call();
-  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::T%>();
-  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::S%>();
-  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call(value: value);
-  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::T%>(value: value);
-  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}.call<self::GenericExtension|getterCalls::S%>(value: value);
+  self::GenericExtension|get#tearOffGetterNoArgs<self::GenericExtension|getterCalls::T%>(#this){dynamic}();
+  self::GenericExtension|get#tearOffGetterRequired<self::GenericExtension|getterCalls::T%>(#this){dynamic}(value);
+  self::GenericExtension|get#tearOffGetterOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}();
+  self::GenericExtension|get#tearOffGetterOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}(value);
+  self::GenericExtension|get#tearOffGetterNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}();
+  self::GenericExtension|get#tearOffGetterNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}(value: value);
+  self::GenericExtension|get#tearOffGetterGenericRequired<self::GenericExtension|getterCalls::T%>(#this){dynamic}(value);
+  self::GenericExtension|get#tearOffGetterGenericRequired<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::T%>(value);
+  self::GenericExtension|get#tearOffGetterGenericRequired<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::S%>(value);
+  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}();
+  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::T%>();
+  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::S%>();
+  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}(value);
+  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::T%>(value);
+  self::GenericExtension|get#tearOffGetterGenericOptional<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::S%>(value);
+  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}();
+  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::T%>();
+  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::S%>();
+  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}(value: value);
+  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::T%>(value: value);
+  self::GenericExtension|get#tearOffGetterGenericNamed<self::GenericExtension|getterCalls::T%>(#this){dynamic}<self::GenericExtension|getterCalls::S%>(value: value);
 }
 static extension-member method GenericExtension|get#getterCalls<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#getterCalls::T%> #this) → <S extends self::GenericExtension|get#getterCalls::T% = dynamic>(S%) → dynamic
   return <S extends self::GenericExtension|get#getterCalls::T% = dynamic>(S% value) → dynamic => self::GenericExtension|getterCalls<self::GenericExtension|get#getterCalls::T%, S%>(#this, value);

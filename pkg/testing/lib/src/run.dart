@@ -133,7 +133,7 @@ Future<void> runProgram(String program, Uri packages) async {
   await for (var _ in exitPort) {
     exitPort.close();
   }
-  subscription.cancel();
+  await subscription.cancel();
   return error == null
       ? null
       : Future.error(error![0], StackTrace.fromString(error![1]));

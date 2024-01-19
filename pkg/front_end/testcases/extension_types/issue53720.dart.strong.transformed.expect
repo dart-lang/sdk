@@ -43,5 +43,5 @@ static method test() → void {
   invalid-expression "pkg/front_end/testcases/extension_types/issue53720.dart:14:9: Error: The setter 'm' isn't defined for the class 'E2'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'm'.
   E2(1).m = 10; /* Error */
-        ^" in self::E2|constructor#(1){<unresolved>}.m = 10;
+        ^" in self::E2|constructor#(1).{<unresolved>}m = 10;
 }

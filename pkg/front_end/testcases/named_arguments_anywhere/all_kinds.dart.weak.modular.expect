@@ -58,9 +58,9 @@ static method test(dynamic d, core::Function f, self::A a) → dynamic {
   new self::A::•(1, 2, z: 3);
   let final core::int #t19 = 1 in let final core::int #t20 = 2 in new self::A::•(#t19, 3, z: #t20);
   let final core::int #t21 = 1 in new self::A::•(2, 3, z: #t21);
-  d{dynamic}.call(1, 2, z: 3);
-  let final core::int #t22 = 1 in let final core::int #t23 = 2 in d{dynamic}.call(#t22, 3, z: #t23);
-  let final core::int #t24 = 1 in d{dynamic}.call(2, 3, z: #t24);
+  d{dynamic}(1, 2, z: 3);
+  let final core::int #t22 = 1 in let final core::int #t23 = 2 in d{dynamic}(#t22, 3, z: #t23);
+  let final core::int #t24 = 1 in d{dynamic}(2, 3, z: #t24);
   f(1, 2, z: 3);
   let final core::int #t25 = 1 in let final core::int #t26 = 2 in f(#t25, 3, z: #t26);
   let final core::int #t27 = 1 in f(2, 3, z: #t27);

@@ -14,8 +14,7 @@ import 'suite.dart' show Suite;
 
 import '../testing.dart' show FileBasedTestDescription, TestDescription;
 
-import 'test_dart/status_file_parser.dart'
-    show readTestExpectations, TestExpectations;
+import 'status_file_parser.dart' show readTestExpectations, TestExpectations;
 
 import 'zone_helper.dart' show runGuarded;
 
@@ -105,8 +104,8 @@ abstract class ChainContext {
         .where((s) => s.endsWith('...'))
         .map((s) => s.substring(0, s.length - 3))
         .toList();
-    TestExpectations expectations = await readTestExpectations(
-        <String>[suite.statusFile!.toFilePath()], {}, expectationSet);
+    TestExpectations expectations = readTestExpectations(
+        <String>[suite.statusFile!.toFilePath()], expectationSet);
     Stream<TestDescription> stream = list(suite);
     List<TestDescription> descriptions = await stream.toList();
     descriptions.sort();
@@ -240,7 +239,7 @@ abstract class ChainContext {
         print("${suite.name}/${description.shortName}: ${result.outcome}");
       });
     }
-    postRun();
+    await postRun();
   }
 
   Stream<TestDescription> list(Chain suite) async* {
@@ -358,10 +357,6 @@ class Result<O> {
 
   void addLog(String log) {
     logs.add(log);
-  }
-
-  Result<O> copyWithOutcome(Expectation outcome) {
-    return Result<O>(output, outcome, error, trace: trace)..logs.addAll(logs);
   }
 
   Result<O2> copyWithOutput<O2>(O2 output) {

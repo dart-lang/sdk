@@ -89,19 +89,19 @@ static method useClosure15() → void {
   [@vm.inferred-type.metadata=!? (receiver not int)] #C2(42){(dynamic) → void};
 }
 static method useClosure21([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure1)] dynamic func) → void {
-  [@vm.inferred-type.metadata=!? (receiver not int)] func{dynamic}.call(42);
+  [@vm.inferred-type.metadata=!? (receiver not int)] func{dynamic}(42);
 }
 static method useClosure22([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure2)] dynamic func) → void {
-  [@vm.inferred-type.metadata=!? (receiver not int)] func{dynamic}.call(42);
+  [@vm.inferred-type.metadata=!? (receiver not int)] func{dynamic}(42);
 }
 static method useClosure23([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 0 in #lib::C.instanceMethod)] dynamic func) → void {
-  [@vm.inferred-type.metadata=!? (receiver not int)] func{dynamic}.call(42);
+  [@vm.inferred-type.metadata=!? (receiver not int)] func{dynamic}(42);
 }
 static method useClosure24() → void {
-  [@vm.inferred-type.metadata=!? (receiver not int)] #C1{dynamic}.call(42);
+  [@vm.inferred-type.metadata=!? (receiver not int)] #C1{dynamic}(42);
 }
 static method useClosure25() → void {
-  [@vm.inferred-type.metadata=!? (receiver not int)] #C2{dynamic}.call(42);
+  [@vm.inferred-type.metadata=!? (receiver not int)] #C2{dynamic}(42);
 }
 static method main() → void {
   self::useClosure11([@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure1)] self::createClosure1() as{TypeError,ForDynamic} (dynamic) → void);

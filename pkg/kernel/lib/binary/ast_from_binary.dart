@@ -2557,10 +2557,12 @@ class BinaryBuilder {
 
   Expression _readDynamicInvocation() {
     DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int flags = readByte();
     int offset = readOffset();
     return new DynamicInvocation(
         kind, readExpression(), readName(), readArguments())
-      ..fileOffset = offset;
+      ..fileOffset = offset
+      ..flags = flags;
   }
 
   Expression _readFunctionInvocation() {

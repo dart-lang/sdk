@@ -41,14 +41,14 @@ static method main() → dynamic {
           baba{self::You}.{self::You::float} = 4.5;
         }
         try {
-          (baba as dynamic){dynamic}.push = 6.7;
+          (baba as dynamic).{dynamic}push = 6.7;
           baba is self::You || (throw "Fail!");
         }
         on core::TypeError catch(no-exception-var) {
           baba is self::Me || (throw "Fail!");
         }
         try {
-          (baba as dynamic){dynamic}.float = 8.9;
+          (baba as dynamic).{dynamic}float = 8.9;
           baba is self::You || (throw "Fail!");
         }
         on core::TypeError catch(no-exception-var) {
