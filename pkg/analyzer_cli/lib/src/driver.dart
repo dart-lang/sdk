@@ -139,6 +139,8 @@ class Driver implements CommandLineStarter {
       _analyzedFileCount += analysisDriver!.knownFiles.length;
     }
 
+    await _analysisContextProvider.dispose();
+
     if (options.perfReport != null) {
       var json = makePerfReport(
           startTime, currentTimeMillis, options, _analyzedFileCount, stats);
@@ -510,6 +512,7 @@ class _AnalysisContextProvider {
   CommandLineOptions? _commandLineOptions;
   late List<String> _pathList;
 
+  final List<AnalysisContextCollectionImpl> _toDispose = [];
   final Map<Folder, DriverBasedAnalysisContext?> _folderContexts = {};
   AnalysisContextCollectionImpl? _collection;
   DriverBasedAnalysisContext? _analysisContext;
@@ -578,9 +581,19 @@ class _AnalysisContextProvider {
       updateAnalysisOptions2: _updateAnalysisOptions,
       fileContentCache: _fileContentCache,
     );
+    _toDispose.add(_collection!);
 
     _setContextForPath(path);
     _folderContexts[folder] = _analysisContext;
+  }
+
+  Future<void> dispose() async {
+    _collection = null;
+    var toDispose = _toDispose.toList();
+    _toDispose.clear();
+    for (var collection in toDispose) {
+      await collection.dispose();
+    }
   }
 
   void setCommandLineOptions(
