@@ -188,7 +188,7 @@ vars = {
   "usage_rev": "e99690ae6d5fa9ec24ac5218bcd3621e8e3ae8a9",
   "vector_math_rev": "38a00c35575b71a095903467141e5ee60c94d011",
   "watcher_rev": "66cd694ffb7ee6e09ff0cde6c9f788aa47ee1a23",
-  "web_rev": "020ef3729a10a1969b98c2b99b9894c81a953440",
+  "web_rev": "d17fdd2b6ddec289920d02a3df92c3368f0a0e50",
   "web_socket_channel_rev": "5241175e7c66271850d6e75fb9ec90068f9dd3c4", # https://github.com/dart-lang/sdk/issues/54165
   "webdev_rev": "f32fdc48f0ae7cb7fa8088233fd69e2ed30af457",
   "webdriver_rev": "2c1b6f8b9d684caf62d72bb327c24f738a4e7455",
