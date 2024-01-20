@@ -92,6 +92,37 @@ class Printer implements NodeVisitor<void> {
   int _charCount = 0;
   bool inForInit = false;
   bool atStatementBegin = false;
+
+  // The JavaScript grammar has two sets of related productions for property
+  // accesses - for MemberExpression and CallExpression.  A subset of
+  // productions that illustrate the two sets:
+  //
+  //     MemberExpression :
+  //         PrimaryExpression
+  //         MemberExpression . IdentifierName
+  //         new MemberExpression Arguments
+  //         ...
+  //
+  //     CallExpression :
+  //         MemberExpression Arguments
+  //         CallExpression Arguments
+  //         CallExpression . IdentifierName
+  //         ...
+  //
+  // This means that a call can be in the 'function' part of another call, but
+  // not in the 'function' part of a `new` expression. When printing a `new`
+  // expression, a call in the 'function' part needs to be in parentheses to
+  // ensure that the arguments of the call are not mistaken for the arguments of
+  // the enclosing `new` expression.
+  //
+  // We handle the difference in required parenthesization by making the
+  // required precedence of the receiver of an access be context-dependent.
+  // Both "MemberExpression . IdentifierName" and "CallExpression
+  // . IdentifierName" are represented as a PropertyAccess AST node. The context
+  // is tracked by [inNewTarget], which is true only during the printing of
+  // the 'function' part of a NewExpression.
+  bool inNewTarget = false;
+
   bool pendingSemicolon = false;
   bool pendingSpace = false;
 
@@ -680,9 +711,11 @@ class Printer implements NodeVisitor<void> {
                 (node is NamedFunction ||
                     node is FunctionExpression ||
                     node is ObjectInitializer));
+    final savedInForInit = inForInit;
     if (needsParentheses) {
       inForInit = false;
       atStatementBegin = false;
+      inNewTarget = false;
       out('(');
       visit(node);
       out(')');
@@ -691,6 +724,7 @@ class Printer implements NodeVisitor<void> {
       atStatementBegin = newAtStatementBegin;
       visit(node);
     }
+    inForInit = savedInForInit;
   }
 
   @override
@@ -857,12 +891,16 @@ class Printer implements NodeVisitor<void> {
   @override
   void visitNew(New node) {
     out('new ');
+    final savedInNewTarget = inNewTarget;
+    inNewTarget = true;
     visitNestedExpression(node.target, LEFT_HAND_SIDE,
         newInForInit: inForInit, newAtStatementBegin: false);
     out('(');
+    inNewTarget = false;
     visitCommaSeparated(node.arguments, ASSIGNMENT,
         newInForInit: false, newAtStatementBegin: false);
     out(')');
+    inNewTarget = savedInNewTarget;
   }
 
   @override
@@ -955,9 +993,14 @@ class Printer implements NodeVisitor<void> {
         rightPrecedenceRequirement = UNARY;
         break;
       case '**':
-        // 'a ** b ** c' parses as 'a ** (b ** c)', so the left must have higher
-        // precedence.
-        leftPrecedenceRequirement = UNARY;
+        // Exponentiation associates to the right, so `a ** b ** c` parses as `a
+        // ** (b ** c)`. To generate the appropriate output, the left has a
+        // higher precedence than the current node. The next precedence level
+        // ([UNARY]), is skipped as the left hand side of an exponentiation
+        // operator [must be an UPDATE
+        // expression](https://tc39.es/ecma262/#sec-exp-operator).  Skipping
+        // [UNARY] avoids printing `-1 ** 2`, which is a syntax error.
+        leftPrecedenceRequirement = UPDATE;
         rightPrecedenceRequirement = EXPONENTIATION;
         break;
       default:
@@ -1068,7 +1111,8 @@ class Printer implements NodeVisitor<void> {
 
   @override
   void visitAccess(PropertyAccess access) {
-    visitNestedExpression(access.receiver, CALL,
+    final precedence = inNewTarget ? LEFT_HAND_SIDE : CALL;
+    visitNestedExpression(access.receiver, precedence,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
 
     Node selector = _undefer(access.selector);
@@ -1093,6 +1137,7 @@ class Printer implements NodeVisitor<void> {
     }
 
     out('[');
+    inNewTarget = false;
     visitNestedExpression(access.selector, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out(']');
