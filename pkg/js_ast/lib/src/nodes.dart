@@ -1739,6 +1739,9 @@ class New extends Call {
 
   @override
   New _clone() => New(target, arguments);
+
+  @override
+  int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
 class Binary extends Expression {
