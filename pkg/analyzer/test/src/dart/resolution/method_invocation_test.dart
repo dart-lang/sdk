@@ -5067,6 +5067,93 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_super_classAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+augment class B {
+  void bar() {
+    super.foo();
+  }
+}
+''');
+
+    await resolveFile2(b);
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_super_classAugmentation_noDeclaration() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  void foo() {}
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+augment class B {
+  void bar() {
+    super.foo(0);
+  }
+}
+''');
+
+    await resolveFile2(b);
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: InvalidType
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
   test_hasReceiver_super_getter() async {
     await assertNoErrorsInCode(r'''
 class A {
