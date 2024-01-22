@@ -187,7 +187,6 @@ abstract class ImpactRegistry {
   void registerFieldNode(ir.Field node);
   void registerExternalProcedureNode(ir.Procedure node);
   void registerForeignStaticInvocationNode(ir.StaticInvocation node);
-  void registerSwitchStatementNode(ir.SwitchStatement node);
   void registerConstSymbolConstructorInvocationNode();
 }
 
