@@ -67,6 +67,20 @@ const jsRuntimeBlobPart2JSCM = r'''
 ''';
 
 const jsRuntimeBlobPart3 = r'''
+    // Prints to the console
+    function printToConsole(value) {
+      if (typeof console == "object" && typeof console.log != "undefined") {
+        console.log(value);
+        return;
+      }
+      if (typeof print == "function") {
+        print(value);
+        return;
+      }
+
+      throw "Unable to print message: " + js;
+    }
+
     // Converts a Dart List to a JS array. Any Dart objects will be converted, but
     // this will be cheap for JSValues.
     function arrayFromDartList(constructor, list) {
@@ -96,7 +110,7 @@ const jsRuntimeBlobPart3 = r'''
     }
 
     if (WebAssembly.String === undefined) {
-        console.log("WebAssembly.String is undefined, adding polyfill");
+        printToConsole("WebAssembly.String is undefined, adding polyfill");
         WebAssembly.String = {
             "charCodeAt": (s, i) => s.charCodeAt(i),
             "compare": (s1, s2) => {

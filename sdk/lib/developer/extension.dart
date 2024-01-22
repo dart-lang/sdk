@@ -142,6 +142,7 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
 @pragma("vm:idempotent")
+@Since('2.18')
 external bool get extensionStreamHasListener;
 
 /// Post an event of [eventKind] with payload of [eventData] to the "Extension"
@@ -151,7 +152,8 @@ external bool get extensionStreamHasListener;
 /// Override [stream] to set the destination stream that the event should be
 /// posted to. The [stream] may not start with an underscore or be a core VM
 /// Service stream.
-void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
+void postEvent(String eventKind, Map eventData,
+    {@Since('3.0 ') String stream = 'Extension'}) {
   const destinationStreamKey = '__destinationStream';
   // Keep protected streams in sync with `streams_` in runtime/vm/service.cc
   // `Extension` is the only stream that should not be protected here.

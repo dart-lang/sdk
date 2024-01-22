@@ -411,9 +411,9 @@ static bool IsImplicitFunction(const Function& func) {
   return false;
 }
 
-bool GroupDebugger::HasCodeBreakpointInFunction(const Function& func) {
-  auto thread = Thread::Current();
-  ReadRwLocker sl(thread, code_breakpoints_lock());
+bool GroupDebugger::HasCodeBreakpointInFunctionUnsafe(const Function& func) {
+  DEBUG_ASSERT(code_breakpoints_lock()->IsCurrentThreadReader() ||
+               Thread::Current()->IsInStoppedMutatorsScope());
   CodeBreakpoint* cbpt = code_breakpoints_;
   while (cbpt != nullptr) {
     if (func.ptr() == cbpt->function()) {
@@ -424,9 +424,20 @@ bool GroupDebugger::HasCodeBreakpointInFunction(const Function& func) {
   return false;
 }
 
+bool GroupDebugger::HasCodeBreakpointInFunction(const Function& func) {
+  auto thread = Thread::Current();
+  // Don't need to worry about the lock if mutators are stopped.
+  if (thread->IsInStoppedMutatorsScope()) {
+    return HasCodeBreakpointInFunctionUnsafe(func);
+  } else {
+    SafepointReadRwLocker sl(thread, code_breakpoints_lock());
+    return HasCodeBreakpointInFunctionUnsafe(func);
+  }
+}
+
 bool GroupDebugger::HasBreakpointInCode(const Code& code) {
   auto thread = Thread::Current();
-  ReadRwLocker sl(thread, code_breakpoints_lock());
+  SafepointReadRwLocker sl(thread, code_breakpoints_lock());
   CodeBreakpoint* cbpt = code_breakpoints_;
   while (cbpt != nullptr) {
     if (code.ptr() == cbpt->code_) {
@@ -1376,9 +1387,9 @@ BreakpointLocation* CodeBreakpoint::FindBreakpointForDebugger(
 
 GroupDebugger::GroupDebugger(IsolateGroup* isolate_group)
     : isolate_group_(isolate_group),
-      code_breakpoints_lock_(new RwLock()),
+      code_breakpoints_lock_(new SafepointRwLock()),
       code_breakpoints_(nullptr),
-      breakpoint_locations_lock_(new RwLock()),
+      breakpoint_locations_lock_(new SafepointRwLock()),
       single_stepping_set_lock_(new RwLock()),
       needs_breakpoint_cleanup_(false) {}
 
@@ -1424,8 +1435,8 @@ void Debugger::Shutdown() {
     return;
   }
   {
-    WriteRwLocker sl(Thread::Current(),
-                     group_debugger()->breakpoint_locations_lock());
+    SafepointWriteRwLocker sl(Thread::Current(),
+                              group_debugger()->breakpoint_locations_lock());
     while (breakpoint_locations_ != nullptr) {
       BreakpointLocation* loc = breakpoint_locations_;
       group_debugger()->UnlinkCodeBreakpoints(loc);
@@ -2184,8 +2195,11 @@ bool BreakpointLocation::EnsureIsResolved(const Function& target_function,
   return true;
 }
 
-void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
-                                         BreakpointLocation* loc) {
+void GroupDebugger::MakeCodeBreakpointAtUnsafe(const Function& func,
+                                               BreakpointLocation* loc) {
+  DEBUG_ASSERT(Thread::Current()->IsInStoppedMutatorsScope() ||
+               code_breakpoints_lock()->IsCurrentThreadWriter());
+
   ASSERT(loc->token_pos().IsReal());
   ASSERT((loc != nullptr) && loc->IsResolved());
   ASSERT(!func.HasOptimizedCode());
@@ -2211,7 +2225,6 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
   }
 
   uword lowest_pc = code.PayloadStart() + lowest_pc_offset;
-  WriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
   CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
   if (code_bpt == nullptr) {
     // No code breakpoint for this code exists; create one.
@@ -2237,6 +2250,17 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
   }
   if (loc->AnyEnabled()) {
     code_bpt->Enable();
+  }
+}
+
+void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
+                                         BreakpointLocation* loc) {
+  auto thread = Thread::Current();
+  if (thread->IsInStoppedMutatorsScope()) {
+    MakeCodeBreakpointAtUnsafe(func, loc);
+  } else {
+    SafepointWriteRwLocker sl(thread, code_breakpoints_lock());
+    MakeCodeBreakpointAtUnsafe(func, loc);
   }
 }
 
@@ -2645,7 +2669,7 @@ BreakpointLocation* Debugger::SetBreakpoint(
 // associated with the breakpoint location loc.
 void GroupDebugger::SyncBreakpointLocation(BreakpointLocation* loc) {
   bool any_enabled = loc->AnyEnabled();
-  WriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
+  SafepointWriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
   CodeBreakpoint* cbpt = code_breakpoints_;
   while (cbpt != nullptr) {
     if (cbpt->HasBreakpointLocation(loc)) {
@@ -3033,7 +3057,7 @@ void Debugger::Pause(ServiceEvent* event) {
 }
 
 void GroupDebugger::Pause() {
-  WriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
+  SafepointWriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
   if (needs_breakpoint_cleanup_) {
     RemoveUnlinkedCodeBreakpoints();
   }
@@ -3384,19 +3408,34 @@ void GroupDebugger::UnregisterSingleSteppingDebugger(Thread* thread,
   single_stepping_set_.Remove(debugger);
 }
 
-bool GroupDebugger::HasBreakpoint(Thread* thread, const Function& function) {
-  {
-    ReadRwLocker(thread, breakpoint_locations_lock());
-    // Check if function has any breakpoints.
-    String& url = String::Handle(thread->zone());
-    for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
-      BreakpointLocation* location = breakpoint_locations_.At(i);
-      url = location->url();
-      if (FunctionOverlaps(function, url, location->token_pos(),
-                           location->end_token_pos())) {
-        return true;
-      }
+bool GroupDebugger::HasBreakpointUnsafe(Thread* thread,
+                                        const Function& function) {
+  DEBUG_ASSERT(thread->IsInStoppedMutatorsScope() ||
+               breakpoint_locations_lock()->IsCurrentThreadReader());
+  // Check if function has any breakpoints.
+  String& url = String::Handle(thread->zone());
+  for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
+    BreakpointLocation* location = breakpoint_locations_.At(i);
+    url = location->url();
+    if (FunctionOverlaps(function, url, location->token_pos(),
+                         location->end_token_pos())) {
+      return true;
     }
+  }
+  return false;
+}
+
+bool GroupDebugger::HasBreakpoint(Thread* thread, const Function& function) {
+  bool hasBreakpoint = false;
+  // Don't need to worry about the lock if mutators are stopped.
+  if (thread->IsInStoppedMutatorsScope()) {
+    hasBreakpoint = HasBreakpointUnsafe(thread, function);
+  } else {
+    SafepointReadRwLocker sl(thread, breakpoint_locations_lock());
+    hasBreakpoint = HasBreakpointUnsafe(thread, function);
+  }
+  if (hasBreakpoint) {
+    return true;
   }
 
   // TODO(aam): do we have to iterate over both code breakpoints and
@@ -3573,8 +3612,8 @@ ErrorPtr Debugger::PauseBreakpoint() {
   BreakpointLocation* bpt_location = nullptr;
   const char* cbpt_tostring = nullptr;
   {
-    ReadRwLocker cbl(Thread::Current(),
-                     group_debugger()->code_breakpoints_lock());
+    SafepointReadRwLocker cbl(Thread::Current(),
+                              group_debugger()->code_breakpoints_lock());
     CodeBreakpoint* cbpt = nullptr;
     bpt_location = group_debugger()->GetBreakpointLocationFor(
         this, top_frame->pc(), &cbpt);
@@ -3822,7 +3861,7 @@ void Debugger::NotifyDoneLoading() {
 // TODO(hausner): Could potentially make this faster by checking
 // whether the call target at pc is a debugger stub.
 bool GroupDebugger::HasActiveBreakpoint(uword pc) {
-  ReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
+  SafepointReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
   CodeBreakpoint* cbpt = GetCodeBreakpoint(pc);
   return (cbpt != nullptr) && (cbpt->IsEnabled());
 }
@@ -3843,7 +3882,7 @@ BreakpointLocation* GroupDebugger::GetBreakpointLocationFor(
     uword breakpoint_address,
     CodeBreakpoint** pcbpt) {
   ASSERT(pcbpt != nullptr);
-  ReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
+  SafepointReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
   *pcbpt = code_breakpoints_;
   while (*pcbpt != nullptr) {
     if ((*pcbpt)->pc() == breakpoint_address) {
@@ -3863,7 +3902,7 @@ void GroupDebugger::RegisterCodeBreakpoint(CodeBreakpoint* cbpt) {
 }
 
 CodePtr GroupDebugger::GetPatchedStubAddress(uword breakpoint_address) {
-  ReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
+  SafepointReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
   CodeBreakpoint* cbpt = GetCodeBreakpoint(breakpoint_address);
   if (cbpt != nullptr) {
     return cbpt->OrigStubAddress();
@@ -3873,8 +3912,8 @@ CodePtr GroupDebugger::GetPatchedStubAddress(uword breakpoint_address) {
 }
 
 bool Debugger::SetBreakpointState(Breakpoint* bpt, bool enable) {
-  WriteRwLocker sl(Thread::Current(),
-                   group_debugger()->breakpoint_locations_lock());
+  SafepointWriteRwLocker sl(Thread::Current(),
+                            group_debugger()->breakpoint_locations_lock());
   if (bpt->is_enabled() != enable) {
     if (FLAG_verbose_debug) {
       OS::PrintErr("Setting breakpoint %" Pd " to state: %s\n", bpt->id(),
@@ -3890,8 +3929,8 @@ bool Debugger::SetBreakpointState(Breakpoint* bpt, bool enable) {
 // Remove and delete the source breakpoint bpt and its associated
 // code breakpoints.
 void Debugger::RemoveBreakpoint(intptr_t bp_id) {
-  WriteRwLocker sl(Thread::Current(),
-                   group_debugger()->breakpoint_locations_lock());
+  SafepointWriteRwLocker sl(Thread::Current(),
+                            group_debugger()->breakpoint_locations_lock());
   if (RemoveBreakpointFromTheList(bp_id, &breakpoint_locations_)) {
     return;
   }
@@ -3966,7 +4005,8 @@ bool Debugger::RemoveBreakpointFromTheList(intptr_t bp_id,
 }
 
 void GroupDebugger::RegisterBreakpointLocation(BreakpointLocation* location) {
-  ASSERT(breakpoint_locations_lock()->IsCurrentThreadWriter());
+  DEBUG_ASSERT(breakpoint_locations_lock()->IsCurrentThreadWriter() ||
+               Thread::Current()->IsInStoppedMutatorsScope());
   breakpoint_locations_.Add(location);
 }
 
@@ -3986,7 +4026,7 @@ void GroupDebugger::UnregisterBreakpointLocation(BreakpointLocation* location) {
 // should be hit before it gets deleted.
 void GroupDebugger::UnlinkCodeBreakpoints(BreakpointLocation* bpt_location) {
   ASSERT(bpt_location != nullptr);
-  WriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
+  SafepointWriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
   CodeBreakpoint* curr_bpt = code_breakpoints_;
   while (curr_bpt != nullptr) {
     if (curr_bpt->FindAndDeleteBreakpointLocation(bpt_location)) {
@@ -4000,7 +4040,8 @@ void GroupDebugger::UnlinkCodeBreakpoints(BreakpointLocation* bpt_location) {
 // Remove and delete unlinked code breakpoints, i.e. breakpoints that
 // are not associated with a breakpoint location.
 void GroupDebugger::RemoveUnlinkedCodeBreakpoints() {
-  ASSERT(code_breakpoints_lock()->IsCurrentThreadWriter());
+  DEBUG_ASSERT(code_breakpoints_lock()->IsCurrentThreadWriter() ||
+               Thread::Current()->IsInStoppedMutatorsScope());
   CodeBreakpoint* prev_bpt = nullptr;
   CodeBreakpoint* curr_bpt = code_breakpoints_;
   while (curr_bpt != nullptr) {
@@ -4125,13 +4166,25 @@ BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
   return loc;
 }
 
-void Debugger::RegisterBreakpointLocation(BreakpointLocation* loc) {
-  WriteRwLocker sl(Thread::Current(),
-                   group_debugger()->breakpoint_locations_lock());
+void Debugger::RegisterBreakpointLocationUnsafe(BreakpointLocation* loc) {
+  DEBUG_ASSERT(
+      group_debugger()->breakpoint_locations_lock()->IsCurrentThreadWriter() ||
+      Thread::Current()->IsInStoppedMutatorsScope());
   ASSERT(loc->next() == nullptr);
   loc->set_next(breakpoint_locations_);
   breakpoint_locations_ = loc;
   group_debugger()->RegisterBreakpointLocation(loc);
+}
+
+void Debugger::RegisterBreakpointLocation(BreakpointLocation* loc) {
+  auto thread = Thread::Current();
+  if (thread->IsInStoppedMutatorsScope()) {
+    RegisterBreakpointLocationUnsafe(loc);
+  } else {
+    SafepointWriteRwLocker sl(thread,
+                              group_debugger()->breakpoint_locations_lock());
+    RegisterBreakpointLocationUnsafe(loc);
+  }
 }
 
 #endif  // !PRODUCT
