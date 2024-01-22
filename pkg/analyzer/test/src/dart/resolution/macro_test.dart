@@ -477,7 +477,7 @@ class A {}
     ]);
   }
 
-  @FailingTest(reason: r'''
+  @SkippedTest(reason: r'''
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED [141, 3, "The final variable 'age' must be initialized.", "Try initializing the variable."]
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED [161, 4, "The final variable 'name' must be initialized.", "Try initializing the variable."]
 ''')

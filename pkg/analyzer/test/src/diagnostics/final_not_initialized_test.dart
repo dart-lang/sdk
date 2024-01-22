@@ -92,6 +92,24 @@ abstract class A {
     ]);
   }
 
+  test_class_field_unnamedConstructor_augmentationDeclares_constructorInitializer() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class C {
+  C() : f = 2;
+}
+''');
+
+    await assertNoErrorsInCode('''
+import augment 'a.dart';
+
+class C {
+  final int f;
+}
+''');
+  }
+
   test_class_field_unnamedConstructor_constructorInitializer() async {
     await assertNoErrorsInCode('''
 class C {

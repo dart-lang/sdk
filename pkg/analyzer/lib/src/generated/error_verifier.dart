@@ -468,7 +468,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _checkForConflictingClassMembers();
       _constructorFieldsVerifier.enterClass(node, declarationElement);
-      _checkForFinalNotInitializedInClass(members);
+      _checkForFinalNotInitializedInClass(element, members);
       _checkForBadFunctionUse(
         superclass: node.extendsClause?.superclass,
         withClause: node.withClause,
@@ -635,7 +635,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       _constructorFieldsVerifier.enterEnum(node, element);
-      _checkForFinalNotInitializedInClass(node.members);
+      _checkForFinalNotInitializedInClass(element, node.members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, element);
@@ -677,12 +677,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var element = node.declaredElement!;
     _enclosingExtension = element;
     _duplicateDefinitionVerifier.checkExtension(node);
     _checkForConflictingExtensionTypeVariableErrorCodes();
-    _checkForFinalNotInitializedInClass(node.members);
+    _checkForFinalNotInitializedInClass(element, node.members);
 
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
@@ -1100,7 +1100,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       _checkForConflictingClassMembers();
-      _checkForFinalNotInitializedInClass(members);
+      _checkForFinalNotInitializedInClass(element, members);
       _checkForMainFunction1(node.name, declarationElement);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _reportMacroDiagnostics(element, node.metadata);
@@ -3224,18 +3224,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
   /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
-  void _checkForFinalNotInitializedInClass(List<ClassMember> members) {
-    for (ClassMember classMember in members) {
-      if (classMember is ConstructorDeclaration) {
-        if (_isNonNullableByDefault) {
-          if (classMember.factoryKeyword == null) {
-            return;
-          }
-        } else {
+  void _checkForFinalNotInitializedInClass(
+    InstanceElementImpl container,
+    List<ClassMember> members,
+  ) {
+    if (container is InterfaceElementImpl) {
+      var augmented = container.augmented;
+      if (augmented == null) {
+        return;
+      }
+
+      for (var constructor in augmented.constructors) {
+        if (constructor.isGenerative && !constructor.isSynthetic) {
           return;
         }
       }
     }
+
     for (ClassMember classMember in members) {
       if (classMember is FieldDeclaration) {
         var fields = classMember.fields;
