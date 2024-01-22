@@ -904,6 +904,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Extension methods can't be used in constant expressions.",
   );
 
+  static const CompileTimeErrorCode CONST_EVAL_EXTENSION_TYPE_METHOD =
+      CompileTimeErrorCode(
+    'CONST_EVAL_EXTENSION_TYPE_METHOD',
+    "Extension type methods can't be used in constant expressions.",
+  );
+
   static const CompileTimeErrorCode CONST_EVAL_FOR_ELEMENT =
       CompileTimeErrorCode(
     'CONST_EVAL_FOR_ELEMENT',

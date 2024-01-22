@@ -977,6 +977,35 @@ const v2 = v1 + v1;
     _assertNull(result);
   }
 
+  test_visitBinaryExpression_extensionType() async {
+    await assertErrorsInCode('''
+extension type const A(int it) {
+  int operator +(Object other) => 0;
+}
+
+const v1 = A(1);
+const v2 = v1 + 2;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 101, 6),
+    ]);
+    final result = _topLevelVar('v2');
+    _assertNull(result);
+  }
+
+  test_visitBinaryExpression_extensionType_implementsInt() async {
+    await assertNoErrorsInCode('''
+extension type const A(int it) implements int {}
+
+const v1 = A(1);
+const v2 = v1 + 2;
+''');
+    final result = _topLevelVar('v2');
+    assertDartObjectText(result, r'''
+int 3
+  variable: self::@variable::v2
+''');
+  }
+
   test_visitBinaryExpression_gt_int_int() async {
     await assertNoErrorsInCode('''
 const c = 2 > 3;
@@ -2520,6 +2549,35 @@ const v2 = -v1;
     ]);
     final result = _topLevelVar('v2');
     _assertNull(result);
+  }
+
+  test_visitPrefixExpression_extensionType() async {
+    await assertErrorsInCode('''
+extension type const A(int it) {
+  int operator -() => 0;
+}
+
+const v1 = A(1);
+const v2 = -v1;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 89, 3),
+    ]);
+    final result = _topLevelVar('v2');
+    _assertNull(result);
+  }
+
+  test_visitPrefixExpression_extensionType_implementsInt() async {
+    await assertNoErrorsInCode('''
+extension type const A(int it) implements int {}
+
+const v1 = A(1);
+const v2 = -v1;
+''');
+    final result = _topLevelVar('v2');
+    assertDartObjectText(result, r'''
+int -1
+  variable: self::@variable::v2
+''');
   }
 
   test_visitPrefixExpression_logicalNot() async {
@@ -4233,6 +4291,35 @@ const b = B('');
         ],
       ),
     ]);
+  }
+
+  test_visitPropertyAccess_length_extensionType() async {
+    await assertErrorsInCode('''
+extension type const A(String it) {
+  int get length => 0;
+}
+
+const v1 = A('');
+const v2 = v1.length;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 91, 9),
+    ]);
+    final result = _topLevelVar('v2');
+    _assertNull(result);
+  }
+
+  test_visitPropertyAccess_length_extensionType_implementsString() async {
+    await assertNoErrorsInCode('''
+extension type const A(String it) implements String {}
+
+const v1 = A('abc');
+const v2 = v1.length;
+''');
+    final result = _topLevelVar('v2');
+    assertDartObjectText(result, r'''
+int 3
+  variable: self::@variable::v2
+''');
   }
 
   test_visitPropertyAccess_length_unresolvedType() async {

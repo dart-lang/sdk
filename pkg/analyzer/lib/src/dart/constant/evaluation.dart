@@ -645,9 +645,19 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitBinaryExpression(BinaryExpression node) {
-    if (node.staticElement?.enclosingElement is ExtensionElement) {
-      return InvalidConstant.forEntity(
-          node, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
+    var operatorElement = node.staticElement;
+    var operatorContainer = operatorElement?.enclosingElement;
+    switch (operatorContainer) {
+      case ExtensionElement():
+        return InvalidConstant.forEntity(
+          node,
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
+        );
+      case ExtensionTypeElement():
+        return InvalidConstant.forEntity(
+          node,
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD,
+        );
     }
 
     TokenType operatorType = node.operator.type;
@@ -1148,13 +1158,24 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitPrefixExpression(PrefixExpression node) {
+    var operatorElement = node.staticElement;
+    var operatorContainer = operatorElement?.enclosingElement;
+    switch (operatorContainer) {
+      case ExtensionElement():
+        return InvalidConstant.forEntity(
+          node,
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
+        );
+      case ExtensionTypeElement():
+        return InvalidConstant.forEntity(
+          node,
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD,
+        );
+    }
+
     var operand = evaluateConstant(node.operand);
     if (operand is! DartObjectImpl) {
       return operand;
-    }
-    if (node.staticElement?.enclosingElement is ExtensionElement) {
-      return InvalidConstant.forEntity(
-          node, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
     }
     if (node.operator.type == TokenType.BANG) {
       return _dartObjectComputer.logicalNot(node, operand);
@@ -1621,9 +1642,19 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// an error, and `null` otherwise.
   Constant? _evaluatePropertyAccess(DartObjectImpl targetResult,
       SimpleIdentifier identifier, AstNode errorNode) {
-    if (identifier.staticElement?.enclosingElement is ExtensionElement) {
-      return InvalidConstant.forEntity(
-          errorNode, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
+    var propertyElement = identifier.staticElement;
+    var propertyContainer = propertyElement?.enclosingElement;
+    switch (propertyContainer) {
+      case ExtensionElement():
+        return InvalidConstant.forEntity(
+          errorNode,
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
+        );
+      case ExtensionTypeElement():
+        return InvalidConstant.forEntity(
+          errorNode,
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD,
+        );
     }
 
     var targetType = targetResult.type;
