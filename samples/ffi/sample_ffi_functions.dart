@@ -197,7 +197,7 @@ main() {
     Pointer<Int64> p2 = calloc(2);
     p2.value = 42;
     p2[1] = 1000;
-    print((p2 + 1).address.toRadixString(16));
+    print(p2.elementAt(1).address.toRadixString(16));
     print(p2[1]);
     Pointer<Int64> result = assign1337Index1(p2);
     print(p2[1]);

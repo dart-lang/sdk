@@ -56,8 +56,8 @@ void testStructAllocate() {
 /// allocates coordinates consecutively in c memory
 void testStructFromAddress() {
   Pointer<Coordinate> c1 = calloc(3);
-  Pointer<Coordinate> c2 = c1 + 1;
-  Pointer<Coordinate> c3 = c1 + 2;
+  Pointer<Coordinate> c2 = c1.elementAt(1);
+  Pointer<Coordinate> c3 = c1.elementAt(2);
   c1.ref
     ..x = 10.0
     ..y = 10.0

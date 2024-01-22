@@ -321,6 +321,11 @@ extension Int8Pointer on Pointer<Int8> {
   /// being stored, and the 8-bit value is sign-extended when it is loaded.
   external void operator []=(int index, int value);
 
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Int8> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Int8>() * index);
+
   /// A pointer to the [offset]th [Int8] after this one.
   ///
   /// Returns a pointer to the [Int8] whose address is
@@ -392,6 +397,11 @@ extension Int16Pointer on Pointer<Int16> {
   ///
   /// The [address] must be 2-byte aligned.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Int16> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Int16>() * index);
 
   /// A pointer to the [offset]th [Int16] after this one.
   ///
@@ -467,6 +477,11 @@ extension Int32Pointer on Pointer<Int32> {
   /// The [address] must be 4-byte aligned.
   external void operator []=(int index, int value);
 
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Int32> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Int32>() * index);
+
   /// A pointer to the [offset]th [Int32] after this one.
   ///
   /// Returns a pointer to the [Int32] whose address is
@@ -531,6 +546,11 @@ extension Int64Pointer on Pointer<Int64> {
   ///
   /// The [address] must be 8-byte aligned.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Int64> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Int64>() * index);
 
   /// A pointer to the [offset]th [Int64] after this one.
   ///
@@ -599,6 +619,11 @@ extension Uint8Pointer on Pointer<Uint8> {
   /// A Dart integer is truncated to 8 bits (as if by `.toUnsigned(8)`) before
   /// being stored, and the 8-bit value is zero-extended when it is loaded.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Uint8> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Uint8>() * index);
 
   /// A pointer to the [offset]th [Uint8] after this one.
   ///
@@ -671,6 +696,11 @@ extension Uint16Pointer on Pointer<Uint16> {
   ///
   /// The [address] must be 2-byte aligned.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Uint16> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Uint16>() * index);
 
   /// A pointer to the [offset]th [Uint16] after this one.
   ///
@@ -746,6 +776,11 @@ extension Uint32Pointer on Pointer<Uint32> {
   /// The [address] must be 4-byte aligned.
   external void operator []=(int index, int value);
 
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Uint32> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Uint32>() * index);
+
   /// A pointer to the [offset]th [Uint32] after this one.
   ///
   /// Returns a pointer to the [Uint32] whose address is
@@ -810,6 +845,11 @@ extension Uint64Pointer on Pointer<Uint64> {
   ///
   /// The [address] must be 8-byte aligned.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Uint64> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Uint64>() * index);
 
   /// A pointer to the [offset]th [Uint64] after this one.
   ///
@@ -885,6 +925,11 @@ extension FloatPointer on Pointer<Float> {
   /// The [address] must be 4-byte aligned.
   external void operator []=(int index, double value);
 
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Float> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Float>() * index);
+
   /// A pointer to the [offset]th [Float] after this one.
   ///
   /// Returns a pointer to the [Float] whose address is
@@ -950,6 +995,11 @@ extension DoublePointer on Pointer<Double> {
   /// The [address] must be 8-byte aligned.
   external void operator []=(int index, double value);
 
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Double> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Double>() * index);
+
   /// A pointer to the [offset]th [Double] after this one.
   ///
   /// Returns a pointer to the [Double] whose address is
@@ -1009,6 +1059,11 @@ extension BoolPointer on Pointer<Bool> {
 
   /// The bool at `address + sizeOf<Bool>() * index`.
   external void operator []=(int index, bool value);
+
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<Bool> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Bool>() * index);
 
   /// A pointer to the [offset]th [Bool] after this one.
   ///
@@ -1160,6 +1215,10 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   /// platforms the [address] must be 8-byte aligned.
   external void operator []=(int index, Pointer<T> value);
 
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  external Pointer<Pointer<T>> elementAt(int index);
+
   /// A pointer to the [offset]th [Pointer<T>] after this one.
   ///
   /// Returns a pointer to the [Pointer<T>] whose address is
@@ -1217,6 +1276,10 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   /// This extension method must be invoked on a receiver of type `Pointer<T>`
   /// where `T` is a compile-time constant type.
   external void operator []=(int index, T value);
+
+  /// Pointer arithmetic (takes element size into account)
+  @Deprecated('Use operator + instead')
+  external Pointer<T> elementAt(int index);
 
   /// A pointer to the [offset]th [T] after this one.
   ///
@@ -1276,6 +1339,10 @@ extension UnionPointer<T extends Union> on Pointer<T> {
   /// where `T` is a compile-time constant type.
   external void operator []=(int index, T value);
 
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  external Pointer<T> elementAt(int index);
+
   /// A pointer to the [offset]th [T] after this one.
   ///
   /// Returns a pointer to the [T] whose address is
@@ -1314,6 +1381,10 @@ extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
 
   /// The integer at `address + sizeOf<T>() * index`.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  external Pointer<T> elementAt(int index);
 
   /// A pointer to the [offset]th [T] after this one.
   ///

@@ -224,6 +224,10 @@ $platform$truncate$alignment  external $dartType operator [](int index);
   /// The $property at `address + sizeOf<$nativeType>() * index`.
 $platform$truncate$alignment  external void operator []=(int index, $dartType value);
 
+  /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
+  Pointer<$nativeType> elementAt(int index) => Pointer.fromAddress(address + sizeOf<$nativeType>() * index);
+
   /// A pointer to the [offset]th [$nativeType] after this one.
   ///
   /// Returns a pointer to the [$nativeType] whose address is

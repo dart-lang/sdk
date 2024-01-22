@@ -17,7 +17,9 @@ void main() {
   for (int i = 0; i < 100; i++) {
     testStructAllocate();
     testStructFromAddress();
+    testStructFromAddressWithOperator();
     testStructIndexedAccess();
+    testStructIndexedAccessWithOperator();
     testStructWithNulls();
     testTypeTest();
     testUtf8();
@@ -57,6 +59,35 @@ void testStructAllocate() {
 /// Allocates coordinates consecutively in c memory.
 void testStructFromAddress() {
   Pointer<Coordinate> c1 = calloc(3);
+  Pointer<Coordinate> c2 = c1.elementAt(1);
+  Pointer<Coordinate> c3 = c1.elementAt(2);
+  c1.ref
+    ..x = 10.0
+    ..y = 10.0
+    ..next = c3;
+  c2.ref
+    ..x = 20.0
+    ..y = 20.0
+    ..next = c1;
+  c3.ref
+    ..x = 30.0
+    ..y = 30.0
+    ..next = c2;
+
+  Coordinate currentCoordinate = c1.ref;
+  Expect.equals(10.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(30.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(20.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(10.0, currentCoordinate.x);
+
+  calloc.free(c1);
+}
+
+void testStructFromAddressWithOperator() {
+  Pointer<Coordinate> c1 = calloc(3);
   Pointer<Coordinate> c2 = c1 + 1;
   Pointer<Coordinate> c3 = c1 + 2;
   c1.ref
@@ -86,6 +117,33 @@ void testStructFromAddress() {
 
 /// Allocates coordinates consecutively in c memory.
 void testStructIndexedAccess() {
+  Pointer<Coordinate> cs = calloc(3);
+  cs[0]
+    ..x = 10.0
+    ..y = 10.0
+    ..next = cs.elementAt(2);
+  cs[1]
+    ..x = 20.0
+    ..y = 20.0
+    ..next = cs;
+  cs[2]
+    ..x = 30.0
+    ..y = 30.0
+    ..next = cs.elementAt(1);
+
+  Coordinate currentCoordinate = cs.ref;
+  Expect.equals(10.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(30.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(20.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(10.0, currentCoordinate.x);
+
+  calloc.free(cs);
+}
+
+void testStructIndexedAccessWithOperator() {
   Pointer<Coordinate> cs = calloc(3);
   cs[0]
     ..x = 10.0

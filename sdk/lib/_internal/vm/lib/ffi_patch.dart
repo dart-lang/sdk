@@ -1095,6 +1095,10 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   Pointer<T> operator [](int index) => _loadPointer(this, _intPtrSize * index);
 
   @patch
+  Pointer<Pointer<T>> elementAt(int index) =>
+      Pointer.fromAddress(address + _intPtrSize * index);
+
+  @patch
   Pointer<Pointer<T>> operator +(int offset) =>
       Pointer.fromAddress(address + _intPtrSize * offset);
 
@@ -1126,6 +1130,10 @@ extension StructPointer<T extends Struct> on Pointer<T> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch
+  Pointer<T> elementAt(int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
   Pointer<T> operator +(int offset) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
@@ -1150,6 +1158,10 @@ extension UnionPointer<T extends Union> on Pointer<T> {
 
   @patch
   void operator []=(int index, T value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> elementAt(int index) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch
@@ -1178,6 +1190,10 @@ extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
 
   @patch
   void operator []=(int index, int value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> elementAt(int index) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch

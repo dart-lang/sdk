@@ -398,7 +398,7 @@ void testNativeFunctionPointer() {
   Pointer<Int64> result = assign1337Index1(p2);
   Expect.equals(1337, result.value);
   Expect.equals(1337, p2[1]);
-  Expect.equals((p2 + 1).address, result.address);
+  Expect.equals(p2.elementAt(1).address, result.address);
   calloc.free(p2);
 }
 

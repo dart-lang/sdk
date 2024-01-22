@@ -67,7 +67,7 @@ void testPointerFromPointer() {
 
 void testPointerPointerArithmetic() {
   Pointer<Int64> p = calloc(2);
-  Pointer<Int64> p2 = p + 1;
+  Pointer<Int64> p2 = p.elementAt(1);
   p2.value = 100;
   Pointer<Int64> p3 = p.offsetBy(8);
   Expect.equals(100, p3.value);
@@ -83,13 +83,13 @@ void testPointerPointerArithmetic() {
 
 void testPointerPointerArithmeticSizes() {
   Pointer<Int64> p = calloc(2);
-  Pointer<Int64> p2 = p + 1;
+  Pointer<Int64> p2 = p.elementAt(1);
   int addr = p.address;
   Expect.equals(addr + 8, p2.address);
   calloc.free(p);
 
   Pointer<Int32> p3 = calloc(2);
-  Pointer<Int32> p4 = p3 + 1;
+  Pointer<Int32> p4 = p3.elementAt(1);
   addr = p3.address;
   Expect.equals(addr + 4, p4.address);
   calloc.free(p3);
@@ -439,7 +439,7 @@ void testDynamicInvocation() {
     final int i = p.value;
   });
   Expect.throws(() => p.value = 1);
-  Expect.throws(() => p + 5);
+  Expect.throws(() => p.elementAt(5));
   Expect.throws(() => p += 5);
   final int addr = p.address;
   final Pointer<Int16> p2 = p.cast<Int16>();
