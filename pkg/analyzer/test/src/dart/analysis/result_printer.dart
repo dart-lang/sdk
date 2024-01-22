@@ -242,6 +242,9 @@ class DriverEventsPrinter {
           sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
       case ResolvedUnitResult():
+        if (!configuration.withStreamResolvedUnitResults) {
+          return;
+        }
         sink.writelnWithIndent('[stream]');
         sink.withIndent(() {
           _writeResolvedUnitResult(object);
@@ -292,6 +295,7 @@ class DriverEventsPrinter {
 class DriverEventsPrinterConfiguration {
   var libraryConfiguration = ResolvedLibraryResultPrinterConfiguration();
   var unitElementConfiguration = UnitElementPrinterConfiguration();
+  var withStreamResolvedUnitResults = true;
 }
 
 /// The result of `getCachedResolvedUnit`.
