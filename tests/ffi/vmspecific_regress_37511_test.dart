@@ -32,7 +32,6 @@ final List<Function()> functionsToTest = [
   () => highAddressPointer.cast<Double>(),
   () => Pointer.fromAddress(highAddressPointer.address),
   () => highAddressPointer.address,
-  () => highAddressPointer.elementAt(1),
   () => highAddressPointer + 1,
   () => highAddressPointer.offsetBy(1),
   () => highAddressPointer.asTypedList(1),

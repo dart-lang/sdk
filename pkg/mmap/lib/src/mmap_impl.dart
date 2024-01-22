@@ -140,7 +140,7 @@ final finalizerAddress = () {
     throw 'Failed to write executable code to the memory.';
   }
 
-  return finalizerStub.elementAt(offset).cast<Void>();
+  return (finalizerStub + offset).cast<Void>();
 }();
 
 base class PeerData extends Struct {

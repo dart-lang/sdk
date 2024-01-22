@@ -2135,7 +2135,7 @@ class PointerUint8x02 extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
+    p2 = p1 + 1;
   }
 
   @override
@@ -2168,7 +2168,7 @@ class PointerUint8x02Native extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
+    p2 = p1 + 1;
   }
 
   @override
@@ -2201,7 +2201,7 @@ class PointerUint8x02NativeLeaf extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
+    p2 = p1 + 1;
   }
 
   @override
@@ -2238,9 +2238,9 @@ class PointerUint8x04 extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
-    p3 = p1.elementAt(2);
-    p4 = p1.elementAt(3);
+    p2 = p1 + 1;
+    p3 = p1 + 2;
+    p4 = p1 + 3;
   }
 
   @override
@@ -2275,9 +2275,9 @@ class PointerUint8x04Native extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
-    p3 = p1.elementAt(2);
-    p4 = p1.elementAt(3);
+    p2 = p1 + 1;
+    p3 = p1 + 2;
+    p4 = p1 + 3;
   }
 
   @override
@@ -2312,9 +2312,9 @@ class PointerUint8x04NativeLeaf extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
-    p3 = p1.elementAt(2);
-    p4 = p1.elementAt(3);
+    p2 = p1 + 1;
+    p3 = p1 + 2;
+    p4 = p1 + 3;
   }
 
   @override
@@ -2358,15 +2358,15 @@ class PointerUint8x10 extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
-    p3 = p1.elementAt(2);
-    p4 = p1.elementAt(3);
-    p5 = p1.elementAt(4);
-    p6 = p1.elementAt(5);
-    p7 = p1.elementAt(6);
-    p8 = p1.elementAt(7);
-    p9 = p1.elementAt(8);
-    p10 = p1.elementAt(9);
+    p2 = p1 + 1;
+    p3 = p1 + 2;
+    p4 = p1 + 3;
+    p5 = p1 + 4;
+    p6 = p1 + 5;
+    p7 = p1 + 6;
+    p8 = p1 + 7;
+    p9 = p1 + 8;
+    p10 = p1 + 9;
   }
 
   @override
@@ -2416,15 +2416,15 @@ class PointerUint8x10Native extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
-    p3 = p1.elementAt(2);
-    p4 = p1.elementAt(3);
-    p5 = p1.elementAt(4);
-    p6 = p1.elementAt(5);
-    p7 = p1.elementAt(6);
-    p8 = p1.elementAt(7);
-    p9 = p1.elementAt(8);
-    p10 = p1.elementAt(9);
+    p2 = p1 + 1;
+    p3 = p1 + 2;
+    p4 = p1 + 3;
+    p5 = p1 + 4;
+    p6 = p1 + 5;
+    p7 = p1 + 6;
+    p8 = p1 + 7;
+    p9 = p1 + 8;
+    p10 = p1 + 9;
   }
 
   @override
@@ -2474,15 +2474,15 @@ class PointerUint8x10NativeLeaf extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
-    p3 = p1.elementAt(2);
-    p4 = p1.elementAt(3);
-    p5 = p1.elementAt(4);
-    p6 = p1.elementAt(5);
-    p7 = p1.elementAt(6);
-    p8 = p1.elementAt(7);
-    p9 = p1.elementAt(8);
-    p10 = p1.elementAt(9);
+    p2 = p1 + 1;
+    p3 = p1 + 2;
+    p4 = p1 + 3;
+    p5 = p1 + 4;
+    p6 = p1 + 5;
+    p7 = p1 + 6;
+    p8 = p1 + 7;
+    p9 = p1 + 8;
+    p10 = p1 + 9;
   }
 
   @override
@@ -2536,25 +2536,25 @@ class PointerUint8x20 extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
-    p3 = p1.elementAt(2);
-    p4 = p1.elementAt(3);
-    p5 = p1.elementAt(4);
-    p6 = p1.elementAt(5);
-    p7 = p1.elementAt(6);
-    p8 = p1.elementAt(7);
-    p9 = p1.elementAt(8);
-    p10 = p1.elementAt(9);
-    p11 = p1.elementAt(10);
-    p12 = p1.elementAt(11);
-    p13 = p1.elementAt(12);
-    p14 = p1.elementAt(13);
-    p15 = p1.elementAt(14);
-    p16 = p1.elementAt(15);
-    p17 = p1.elementAt(16);
-    p18 = p1.elementAt(17);
-    p19 = p1.elementAt(18);
-    p20 = p1.elementAt(19);
+    p2 = p1 + 1;
+    p3 = p1 + 2;
+    p4 = p1 + 3;
+    p5 = p1 + 4;
+    p6 = p1 + 5;
+    p7 = p1 + 6;
+    p8 = p1 + 7;
+    p9 = p1 + 8;
+    p10 = p1 + 9;
+    p11 = p1 + 10;
+    p12 = p1 + 11;
+    p13 = p1 + 12;
+    p14 = p1 + 13;
+    p15 = p1 + 14;
+    p16 = p1 + 15;
+    p17 = p1 + 16;
+    p18 = p1 + 17;
+    p19 = p1 + 18;
+    p20 = p1 + 19;
   }
 
   @override
@@ -2625,25 +2625,25 @@ class PointerUint8x20Native extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
-    p3 = p1.elementAt(2);
-    p4 = p1.elementAt(3);
-    p5 = p1.elementAt(4);
-    p6 = p1.elementAt(5);
-    p7 = p1.elementAt(6);
-    p8 = p1.elementAt(7);
-    p9 = p1.elementAt(8);
-    p10 = p1.elementAt(9);
-    p11 = p1.elementAt(10);
-    p12 = p1.elementAt(11);
-    p13 = p1.elementAt(12);
-    p14 = p1.elementAt(13);
-    p15 = p1.elementAt(14);
-    p16 = p1.elementAt(15);
-    p17 = p1.elementAt(16);
-    p18 = p1.elementAt(17);
-    p19 = p1.elementAt(18);
-    p20 = p1.elementAt(19);
+    p2 = p1 + 1;
+    p3 = p1 + 2;
+    p4 = p1 + 3;
+    p5 = p1 + 4;
+    p6 = p1 + 5;
+    p7 = p1 + 6;
+    p8 = p1 + 7;
+    p9 = p1 + 8;
+    p10 = p1 + 9;
+    p11 = p1 + 10;
+    p12 = p1 + 11;
+    p13 = p1 + 12;
+    p14 = p1 + 13;
+    p15 = p1 + 14;
+    p16 = p1 + 15;
+    p17 = p1 + 16;
+    p18 = p1 + 17;
+    p19 = p1 + 18;
+    p20 = p1 + 19;
   }
 
   @override
@@ -2714,25 +2714,25 @@ class PointerUint8x20NativeLeaf extends FfiBenchmarkBase {
   @override
   void setup() {
     p1 = calloc(N + 1);
-    p2 = p1.elementAt(1);
-    p3 = p1.elementAt(2);
-    p4 = p1.elementAt(3);
-    p5 = p1.elementAt(4);
-    p6 = p1.elementAt(5);
-    p7 = p1.elementAt(6);
-    p8 = p1.elementAt(7);
-    p9 = p1.elementAt(8);
-    p10 = p1.elementAt(9);
-    p11 = p1.elementAt(10);
-    p12 = p1.elementAt(11);
-    p13 = p1.elementAt(12);
-    p14 = p1.elementAt(13);
-    p15 = p1.elementAt(14);
-    p16 = p1.elementAt(15);
-    p17 = p1.elementAt(16);
-    p18 = p1.elementAt(17);
-    p19 = p1.elementAt(18);
-    p20 = p1.elementAt(19);
+    p2 = p1 + 1;
+    p3 = p1 + 2;
+    p4 = p1 + 3;
+    p5 = p1 + 4;
+    p6 = p1 + 5;
+    p7 = p1 + 6;
+    p8 = p1 + 7;
+    p9 = p1 + 8;
+    p10 = p1 + 9;
+    p11 = p1 + 10;
+    p12 = p1 + 11;
+    p13 = p1 + 12;
+    p14 = p1 + 13;
+    p15 = p1 + 14;
+    p16 = p1 + 15;
+    p17 = p1 + 16;
+    p18 = p1 + 17;
+    p19 = p1 + 18;
+    p20 = p1 + 19;
   }
 
   @override

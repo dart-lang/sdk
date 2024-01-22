@@ -71,15 +71,15 @@ void testFunctionWithStructArray({bool isLeaf = false}) {
   Coordinate c3 = coordinateArray[2];
   c1.x = 10.0;
   c1.y = 10.0;
-  c1.next = coordinateArray.elementAt(2);
+  c1.next = coordinateArray + 2;
   c2.x = 20.0;
   c2.y = 20.0;
-  c2.next = coordinateArray.elementAt(0);
+  c2.next = coordinateArray + 0;
   c3.x = 30.0;
   c3.y = 30.0;
-  c3.next = coordinateArray.elementAt(1);
+  c3.next = coordinateArray + 1;
 
-  Coordinate result = f1(coordinateArray.elementAt(0)).ref;
+  Coordinate result = f1(coordinateArray).ref;
   Expect.approxEquals(20.0, result.x);
   Expect.approxEquals(20.0, result.y);
 
@@ -114,18 +114,18 @@ void testFunctionWithVeryLargeStruct({bool isLeaf = false}) {
     struct.k = 1024;
     struct.smallLastField = 1;
   }
-  vls1.parent = vlsArray.elementAt(1);
+  vls1.parent = vlsArray + 1;
   vls1.numChildren = 2;
-  vls1.children = vlsArray.elementAt(0);
-  vls2.parent = vlsArray.elementAt(1);
+  vls1.children = vlsArray;
+  vls2.parent = vlsArray + 1;
   vls2.parent = nullptr;
   vls2.numChildren = 0;
   vls2.children = nullptr;
 
-  int result = f(vlsArray.elementAt(0));
+  int result = f(vlsArray);
   Expect.equals(2051, result);
 
-  result = f(vlsArray.elementAt(1));
+  result = f(vlsArray + 1);
   Expect.equals(2048, result);
 
   calloc.free(vlsArray);
