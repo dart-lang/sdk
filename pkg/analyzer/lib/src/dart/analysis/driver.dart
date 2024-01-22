@@ -2182,7 +2182,9 @@ class AnalysisDriverScheduler {
   Stream<Object> get events => _events;
 
   /// Return `true` if we are currently analyzing code.
-  bool get isAnalyzing => _hasFilesToAnalyze;
+  bool get isAnalyzing {
+    return _statusSupport.currentStatus == AnalysisStatus.ANALYZING;
+  }
 
   bool get isStarted => _started;
 
@@ -2231,17 +2233,6 @@ class AnalysisDriverScheduler {
     }
     _started = true;
     _run();
-  }
-
-  /// Usually we transition status to analyzing only if there are files to
-  /// analyze. However when used in the server, there are rare cases when
-  /// analysis roots don't have any Dart files, but for consistency we still
-  /// want to get status to transition to analysis, and back to idle.
-  void transitionToAnalyzingToIdleIfNoFilesToAnalyze() {
-    if (!_hasFilesToAnalyze) {
-      _statusSupport.transitionToAnalyzing();
-      _statusSupport.transitionToIdle();
-    }
   }
 
   /// Return a future that will be completed the next time the status is idle.
