@@ -327,7 +327,7 @@ namespace dart {
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb98ea6c2)                          \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0xec1745d2)       \
   V(::, get:has63BitSmis, Has63BitSmis, 0xf60ccb11)                            \
-  V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfaa5db24)\
+  V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfaa5dee5)\
   V(_Smi, get:hashCode, Smi_hashCode, 0x75d240f2)                              \
   V(_Mint, get:hashCode, Mint_hashCode, 0x75d240f2)                            \
   V(_Double, get:hashCode, Double_hashCode, 0x75d244b3)                        \
