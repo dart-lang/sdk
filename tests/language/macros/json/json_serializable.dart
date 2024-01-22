@@ -29,7 +29,8 @@ macro class JsonSerializable implements ClassDeclarationsMacro {
     var mapStringObject = NamedTypeAnnotationCode(
       name: map, typeArguments: [string, object.asNullable]);
 
-    // TODO: This only works
+    // TODO: This only works because the macro file lives right next to the file
+    // it is applied to.
     var jsonSerializableUri =
         clazz.library.uri.resolve('json_serializable.dart');
 
@@ -63,23 +64,38 @@ macro class FromJson implements ConstructorDefinitionMacro {
     // TODO: Validate we are running on a valid fromJson constructor.
 
     // TODO: support extending other classes.
-    final clazz = (await builder.typeDeclarationOf(constructor.definingType))
+    var clazz = (await builder.typeDeclarationOf(constructor.definingType))
         as ClassDeclaration;
-    var string = NamedTypeAnnotationCode(
-        name: await builder.resolveIdentifier(_dartCore, 'String'));
+    var superclass = clazz.superclass;
+    var superclassHasFromJson = false;
     var object = NamedTypeAnnotationCode(
         name: await builder.resolveIdentifier(_dartCore, 'Object'));
+    if (superclass != null &&
+        !await (await builder.resolve(
+                NamedTypeAnnotationCode(name: superclass.identifier)))
+            .isExactly(await builder.resolve(object))) {
+      var superclassDeclaration = await builder.typeDeclarationOf(superclass.identifier);
+      var superclassConstructors = await builder.constructorsOf(superclassDeclaration);
+      for (var constructor in superclassConstructors) {
+        if (constructor.identifier.name == 'fromJson') {
+          // TODO: Validate this is a valid fromJson constructor.
+          superclassHasFromJson = true;
+          break;
+        }
+      }
+      if (!superclassHasFromJson) {
+        throw UnsupportedError(
+          'Serialization of classes that extend other classes is only '
+          'supported if those classes have a valid '
+          '`fromJson(Map<String, Object?> json)` constructor.');
+      }
+    }
+
+    var string = NamedTypeAnnotationCode(
+        name: await builder.resolveIdentifier(_dartCore, 'String'));
     var mapStringObject = NamedTypeAnnotationCode(
         name: await builder.resolveIdentifier(_dartCore, 'Map'),
         typeArguments: [string, object.asNullable]);
-    if (clazz.superclass != null &&
-        !await (await builder.resolve(
-                NamedTypeAnnotationCode(name: clazz.superclass!.identifier)))
-            .isExactly(await builder.resolve(object))) {
-      throw UnsupportedError(
-          'Serialization of classes that extend other classes is not supported.');
-    }
-
     var fields = await builder.fieldsOf(clazz);
     var jsonParam = constructor.positionalParameters.single.identifier;
     builder.augment(initializers: [
@@ -89,6 +105,12 @@ macro class FromJson implements ConstructorDefinitionMacro {
           ' = ',
           await _convertFieldFromJson(
             field, jsonParam, builder, mapStringObject),
+        ]),
+      if (superclassHasFromJson)
+        RawCode.fromParts([
+          'super.fromJson(',
+          jsonParam,
+          ')',
         ]),
     ]);
   }
@@ -157,17 +179,34 @@ macro class ToJson implements MethodDefinitionMacro {
         as ClassDeclaration;
     var object = await builder.resolve(NamedTypeAnnotationCode(
         name: await builder.resolveIdentifier(_dartCore, 'Object')));
-    if (clazz.superclass != null &&
+    var superclass = clazz.superclass;
+    var superclassHasToJson = false;
+    if (superclass != null &&
         !await (await builder.resolve(
-                NamedTypeAnnotationCode(name: clazz.superclass!.identifier)))
+                NamedTypeAnnotationCode(name: superclass.identifier)))
             .isExactly(object)) {
-      throw UnsupportedError(
-          'Serialization of classes that extend other classes is not supported.');
+      var superclassDeclaration = await builder.typeDeclarationOf(superclass.identifier);
+      var superclassMethods = await builder.methodsOf(superclassDeclaration);
+      for (var method in superclassMethods) {
+        if (method.identifier.name == 'toJson') {
+          // TODO: Validate this is a valid toJson method.
+          superclassHasToJson = true;
+          break;
+        }
+      }
+      if (!superclassHasToJson) {
+        throw UnsupportedError(
+          'Serialization of classes that extend other classes is only '
+          'supported if those classes have a valid '
+          '`Map<String, Object?> toJson()` method.');
+      }
     }
 
     var fields = await builder.fieldsOf(clazz);
     builder.augment(FunctionBodyCode.fromParts([
       ' => {',
+      // TODO: Avoid the extra copying here.
+      if (superclassHasToJson) '\n    ...super.toJson(),',
       for (var field in fields)
         RawCode.fromParts([
           '\n    \'',
@@ -190,7 +229,7 @@ macro class ToJson implements MethodDefinitionMacro {
           'Only fields with named types are allowed on serializable classes, '
           'but `${field.identifier.name}` was not a named type.');
     }
-    var fieldTypeDecl = await builder.declarationOf(fieldType.identifier);
+    var fieldTypeDecl = await builder.typeDeclarationOf(fieldType.identifier);
     while (fieldTypeDecl is TypeAliasDeclaration) {
       var aliasedType = fieldTypeDecl.aliasedType;
       if (aliasedType is! NamedTypeAnnotation) {
