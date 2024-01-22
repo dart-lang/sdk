@@ -87,8 +87,9 @@ fasta:                Compile using CFE for errors, but do not run.
         help: '''Where the tests should be run.
 vm:               Run Dart code on the standalone Dart VM.
 dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
-d8:               Run JavaScript from the command line using v8.
-jsshell:          Run JavaScript from the command line using Firefox js-shell.
+d8:               Run JavaScript from the command line using Chrome's v8.
+jsc:              Run JavaScript from the command line using Safari/WebKit's jsc.
+jsshell:          Run JavaScript from the command line using Firefox's js-shell.
 
 firefox:
 chrome:
