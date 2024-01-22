@@ -11,10 +11,10 @@
 /// functionality like the conversion functions e.g. `toJS` and not runtime
 /// mechanisms like type checks and casts.
 ///
-/// **WARNING**:
-/// This library is still a work in progress. As such, JS types, allowed syntax,
-/// semantics, and functionality may all change, so avoid using this library in
-/// production.
+/// > [!Important]
+/// > This library is still a work in progress. As such, JS types, allowed
+/// > syntax, semantics, and functionality may all change, so avoid using this
+/// > library in production.
 ///
 /// {@category Web}
 library dart.js_interop;
