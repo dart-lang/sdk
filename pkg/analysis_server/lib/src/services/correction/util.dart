@@ -128,7 +128,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
 
   // If still at the beginning of the file, skip shebang and line comments.
   {
-    var desc = libUtils.getInsertDescTop();
+    var desc = libUtils.getInsertionLocationTop();
     var offset = desc.offset;
     for (var i = 0; i < uriList.length; i++) {
       var importUri = uriList[i];
@@ -620,13 +620,13 @@ class CorrectionUtils {
   /// Returns the indentation with the given level.
   String getIndent(int level) => repeat('  ', level);
 
-  /// Returns a [InsertDesc] describing where to insert an ignore_for_file
+  /// Returns a description of the place in which to insert an `ignore_for_file`
   /// comment.
   ///
-  /// When an existing ignore_for_file comment is found, this returns the start
-  /// of the following line, although calling code may choose to fold into the
-  /// previous line.
-  CorrectionUtils_InsertDesc getInsertDescIgnoreForFile() {
+  /// When an existing `ignore_for_file` comment is found, this returns the
+  /// start of the following line, although calling code may choose to fold
+  /// into the previous line.
+  InsertionLocation getInsertionLocationIgnoreForFile() {
     var offset = 0;
     var insertEmptyLineBefore = false;
     var insertEmptyLineAfter = false;
@@ -669,20 +669,16 @@ class CorrectionUtils {
       }
     }
 
-    var desc = CorrectionUtils_InsertDesc();
-    desc.offset = insertOffset;
-    if (insertEmptyLineBefore) {
-      desc.prefix = endOfLine;
-    }
-    if (insertEmptyLineAfter) {
-      desc.suffix = endOfLine;
-    }
-    return desc;
+    return InsertionLocation(
+      prefix: insertEmptyLineBefore ? endOfLine : '',
+      offset: insertOffset,
+      suffix: insertEmptyLineAfter ? endOfLine : '',
+    );
   }
 
-  /// Returns a [InsertDesc] describing where to insert a new directive or a
+  /// Returns a description of the place in which to insert a new directive or a
   /// top-level declaration at the top of the file.
-  CorrectionUtils_InsertDesc getInsertDescTop() {
+  InsertionLocation getInsertionLocationTop() {
     // skip leading line comments
     var offset = 0;
     var insertEmptyLineBefore = false;
@@ -727,16 +723,11 @@ class CorrectionUtils {
     if (insertLine.trim().isNotEmpty) {
       insertEmptyLineAfter = true;
     }
-    // fill InsertDesc
-    var desc = CorrectionUtils_InsertDesc();
-    desc.offset = offset;
-    if (insertEmptyLineBefore) {
-      desc.prefix = endOfLine;
-    }
-    if (insertEmptyLineAfter) {
-      desc.suffix = endOfLine;
-    }
-    return desc;
+    return InsertionLocation(
+      prefix: insertEmptyLineBefore ? endOfLine : '',
+      offset: offset,
+      suffix: insertEmptyLineAfter ? endOfLine : '',
+    );
   }
 
   /// Skips whitespace characters and single EOL on the right from [index].
@@ -1087,7 +1078,7 @@ class CorrectionUtils {
       offset = leftBracket.end;
       suffix = getLinePrefix(switchKeyword.offset);
     }
-    return InsertionLocation(prefix, offset, suffix);
+    return InsertionLocation(prefix: prefix, offset: offset, suffix: suffix);
   }
 
   InsertionLocation prepareEnumNewConstructorLocation(
@@ -1100,26 +1091,26 @@ class CorrectionUtils {
         .lastOrNull;
     if (targetMember != null) {
       return InsertionLocation(
-        endOfLine + endOfLine + indent,
-        targetMember.end,
-        '',
+        prefix: endOfLine + endOfLine + indent,
+        offset: targetMember.end,
+        suffix: '',
       );
     }
 
     var semicolon = enumDeclaration.semicolon;
     if (semicolon != null) {
       return InsertionLocation(
-        endOfLine + endOfLine + indent,
-        semicolon.end,
-        '',
+        prefix: endOfLine + endOfLine + indent,
+        offset: semicolon.end,
+        suffix: '',
       );
     }
 
     var lastConstant = enumDeclaration.constants.last;
     return InsertionLocation(
-      ';$endOfLine$endOfLine$indent',
-      lastConstant.end,
-      '',
+      prefix: ';$endOfLine$endOfLine$indent',
+      offset: lastConstant.end,
+      suffix: '',
     );
   }
 
@@ -1143,14 +1134,20 @@ class CorrectionUtils {
     // After the last target member.
     if (targetMember != null) {
       return InsertionLocation(
-          endOfLine + endOfLine + indent, targetMember.end, '');
+        prefix: endOfLine + endOfLine + indent,
+        offset: targetMember.end,
+        suffix: '',
+      );
     }
     // At the beginning of the class.
     var suffix = members.isNotEmpty || isClassWithEmptyBody(declaration)
         ? endOfLine
         : '';
     return InsertionLocation(
-        endOfLine + indent, _getLeftBracket(declaration)!.end, suffix);
+      prefix: endOfLine + indent,
+      offset: _getLeftBracket(declaration)!.end,
+      suffix: suffix,
+    );
   }
 
   InsertionLocation? prepareNewConstructorLocation(
@@ -1215,7 +1212,7 @@ class CorrectionUtils {
       prefix = endOfLine + linePrefix;
       suffix = '';
     }
-    return InsertionLocation(prefix, last.end, suffix);
+    return InsertionLocation(prefix: prefix, offset: last.end, suffix: suffix);
   }
 
   /// Returns the source with indentation changed from [oldIndent] to
@@ -1593,19 +1590,17 @@ class CorrectionUtils {
   }
 }
 
-/// Describes where to insert new directive or top-level declaration.
-class CorrectionUtils_InsertDesc {
-  int offset = 0;
-  String prefix = '';
-  String suffix = '';
-}
-
+/// Describes where to insert new text.
 class InsertionLocation {
   final String prefix;
   final int offset;
   final String suffix;
 
-  InsertionLocation(this.prefix, this.offset, this.suffix);
+  InsertionLocation({
+    required this.prefix,
+    required this.offset,
+    required this.suffix,
+  });
 }
 
 /// Utilities to work with [Token]s.
