@@ -27715,7 +27715,8 @@ class SelectElement extends HtmlElement {
       var options = this.options.where((o) => o.selected).toList();
       return new UnmodifiableListView(options);
     } else {
-      return [this.options[this.selectedIndex!]];
+      var i = this.selectedIndex!;
+      return i < 0 ? [] : [this.options[i]];
     }
   }
 }
