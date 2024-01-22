@@ -38,6 +38,10 @@ _VM_PATHS = _CFE_PATHS + [
     "sdk/lib/_http/.+",
     "sdk/lib/_internal/vm.+",
 
+    # Dependencies that are copied into the SDK repo: can change without changing DEPS.
+    "third_party/double-conversion/.+",
+    "third_party/fallback_root_certificates/.+",
+
     # Tests that run on VM builders
     "pkg/vm_service/.+",
 ]
