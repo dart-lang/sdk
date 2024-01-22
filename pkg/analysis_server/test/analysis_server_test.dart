@@ -162,12 +162,14 @@ class X extends A with M {}
     config.add(name: 'bar', rootPath: barLibFolder.parent.path);
     writePackageConfig(projectPackageConfigFile, config);
 
-    // Allow the server to catch up with everything.
-    await pumpEventQueue(times: 5000);
-    await server.onAnalysisComplete;
-
-    // Expect both errors are gone.
-    expect(await getUriNotExistErrors(), hasLength(0));
+    // Eventually the errors are gone.
+    while (true) {
+      var errors = await getUriNotExistErrors();
+      if (errors.isEmpty) {
+        break;
+      }
+      await pumpEventQueue(times: 5000);
+    }
   }
 
   Future<void> test_serverStatusNotifications_hasFile() async {

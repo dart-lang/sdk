@@ -407,41 +407,46 @@ class DuplicateDefinitionVerifier {
     final staticSetters = elementContext.staticSetters;
 
     for (ClassMember member in members) {
-      if (member is ConstructorDeclaration) {
-        if (member.returnType.name != declarationElement.name) {
-          // [member] is erroneous; do not count it as a possible duplicate.
-          continue;
-        }
-        var name = member.name?.lexeme ?? '';
-        if (name == 'new') {
-          name = '';
-        }
-        if (!constructorNames.add(name)) {
-          if (name.isEmpty) {
-            _errorReporter.reportErrorForName(
-                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, member);
-          } else {
-            _errorReporter.reportErrorForName(
-                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, member,
-                arguments: [name]);
+      switch (member) {
+        case ConstructorDeclaration():
+          // Augmentations are not declarations, can have multiple.
+          if (member.augmentKeyword != null) {
+            continue;
           }
-        }
-      } else if (member is FieldDeclaration) {
-        for (VariableDeclaration field in member.fields.variables) {
+          if (member.returnType.name != declarationElement.name) {
+            // [member] is erroneous; do not count it as a possible duplicate.
+            continue;
+          }
+          var name = member.name?.lexeme ?? '';
+          if (name == 'new') {
+            name = '';
+          }
+          if (!constructorNames.add(name)) {
+            if (name.isEmpty) {
+              _errorReporter.reportErrorForName(
+                  CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, member);
+            } else {
+              _errorReporter.reportErrorForName(
+                  CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, member,
+                  arguments: [name]);
+            }
+          }
+        case FieldDeclaration():
+          for (VariableDeclaration field in member.fields.variables) {
+            _checkDuplicateIdentifier(
+              member.isStatic ? staticGetters : instanceGetters,
+              field.name,
+              element: field.declaredElement!,
+              setterScope: member.isStatic ? staticSetters : instanceSetters,
+            );
+          }
+        case MethodDeclaration():
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
-            field.name,
-            element: field.declaredElement!,
+            member.name,
+            element: member.declaredElement!,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
-        }
-      } else if (member is MethodDeclaration) {
-        _checkDuplicateIdentifier(
-          member.isStatic ? staticGetters : instanceGetters,
-          member.name,
-          element: member.declaredElement!,
-          setterScope: member.isStatic ? staticSetters : instanceSetters,
-        );
       }
     }
 

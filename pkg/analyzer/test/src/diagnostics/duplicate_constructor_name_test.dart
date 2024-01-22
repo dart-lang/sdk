@@ -26,6 +26,81 @@ class C {
     ]);
   }
 
+  test_class_augmentation_augments() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  A.named();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A.named();
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
+  test_class_augmentation_augments2() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  A.named();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A.named();
+  augment A.named();
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
+  test_class_augmentation_declares() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  A.named();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  A.named();
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 50, 7),
+    ]);
+  }
+
   test_enum() async {
     await assertErrorsInCode(r'''
 enum E {

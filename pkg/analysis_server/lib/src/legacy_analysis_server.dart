@@ -748,7 +748,6 @@ class LegacyAnalysisServer extends AnalysisServer {
         throw RequestFailure(Response.unsupportedFeature(
             requestId, e.message ?? 'Unsupported feature.'));
       }
-      analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
     } finally {
       completer.complete();
     }

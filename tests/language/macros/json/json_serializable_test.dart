@@ -12,25 +12,35 @@ void main() {
   var rogerJson = {
     'age': 5,
     'name': 'Roger',
+  };
+  var roger = User.fromJson(rogerJson);
+  Expect.equals(roger.age, 5);
+  Expect.equals(roger.name, 'Roger');
+  Expect.deepEquals(roger.toJson(), rogerJson);
+
+  var rogerAccountJson = {
+    ...rogerJson,
     'login': {
       'username': 'roger1',
       'password': 'theGoat',
     },
   };
-
-  var roger = User.fromJson(rogerJson);
-  Expect.equals(roger.age, 5);
-  Expect.equals(roger.name, 'Roger');
-  Expect.equals(roger.login.username, 'roger1');
-  Expect.equals(roger.login.password, 'theGoat');
-
-  Expect.deepEquals(roger.toJson(), rogerJson);
+  var rogerAccount = UserAccount.fromJson(rogerAccountJson);
+  Expect.equals(rogerAccount.age, 5);
+  Expect.equals(rogerAccount.name, 'Roger');
+  Expect.equals(rogerAccount.login.username, 'roger1');
+  Expect.equals(rogerAccount.login.password, 'theGoat');
+  Expect.deepEquals(rogerAccount.toJson(), rogerAccountJson);
 }
 
 @JsonSerializable()
 class User {
   final int age;
   final String name;
+}
+
+@JsonSerializable()
+class UserAccount extends User {
   final Login login;
 }
 
