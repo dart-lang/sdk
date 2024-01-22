@@ -2187,7 +2187,7 @@ class AnalysisDriverScheduler {
 
   /// Return `true` if we are currently analyzing code.
   bool get isAnalyzing {
-    return _statusSupport.currentStatus == AnalysisStatus.ANALYZING;
+    return _statusSupport.currentStatus.isAnalyzing;
   }
 
   bool get isStarted => _started;
