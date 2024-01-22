@@ -478,7 +478,6 @@ class A {}
   }
 
   @FailingTest(reason: r'''
-CompileTimeErrorCode.UNDEFINED_METHOD [77, 8, "The method 'fromJson' isn't defined for the type 'User'.", "Try correcting the name to the name of an existing method, or defining a method named 'fromJson'."]
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED [141, 3, "The final variable 'age' must be initialized.", "Try initializing the variable."]
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED [161, 4, "The final variable 'name' must be initialized.", "Try initializing the variable."]
 ''')
