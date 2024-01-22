@@ -7,7 +7,6 @@ convert/chunked_conversion_utf88_test: Slow, Pass
 convert/utf85_test: Slow, Pass
 developer/metrics_num_test: Skip # Because of an int / double type test.
 developer/timeline_test: Skip # Not supported
-html/async_test: SkipByDesign
 html/custom/document_register_basic_test: Slow, Pass
 html/custom/document_register_type_extensions_test/construction: Slow, Pass
 html/custom/document_register_type_extensions_test/registration: Slow, Pass
