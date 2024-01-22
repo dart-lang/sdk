@@ -2192,10 +2192,6 @@ class AnalysisDriverScheduler {
 
   bool get isStarted => _started;
 
-  /// Return the stream that produces [AnalysisStatus] events.
-  @Deprecated('Use events instead')
-  Stream<AnalysisStatus> get status => _statusSupport.stream;
-
   /// Return `true` if there is a driver with a file to analyze.
   bool get _hasFilesToAnalyze {
     for (final driver in _drivers) {
