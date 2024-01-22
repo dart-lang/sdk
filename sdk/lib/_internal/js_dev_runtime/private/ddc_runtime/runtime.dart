@@ -236,6 +236,13 @@ final List<Object> _cacheMaps = JS('!', '[]');
 @notNull
 final List<void Function()> resetFields = JS('', '[]');
 
+/// A map of module ids (names) to the local const value cache in that module.
+///
+/// This is populated on module load and each cache is cleared during
+/// [hotRestart].
+@notNull
+final JSArray<Object?> moduleConstCaches = JS('!', 'new Map()');
+
 /// A counter to track each time [hotRestart] is invoked. This is used to ensure
 /// that pending callbacks that were created on a previous iteration (e.g. a
 /// timer callback or a DOM callback) will not execute when they get invoked.
@@ -254,8 +261,16 @@ void hotRestart() {
   resetFields.clear();
   for (var m in _cacheMaps) JS('', '#.clear()', m);
   _cacheMaps.clear();
+  // TODO(nshahan) Verify _nullComparisonSet isn't used with the new type system
+  // and delete.
   JS('', '#.clear()', _nullComparisonSet);
+  JS('', '#.clear()', constants);
+  JS('', '#.clear()', constantLists);
+  JS('', '#.clear()', constantSets);
   JS('', '#.clear()', constantMaps);
+
+  JS('', '#.forEach((value) => value.fill(void 0))', moduleConstCaches);
+
   if (!_ddcDeferredLoading) {
     JS('', '#.clear()', deferredImports);
   }
