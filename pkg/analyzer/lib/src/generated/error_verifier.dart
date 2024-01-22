@@ -207,6 +207,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// in the scope of a class.
   InterfaceElement? _enclosingClass;
 
+  /// The augmented view on [_enclosingClass].
+  AugmentedInterfaceElement? _enclosingClassAugmented;
+
   /// The element of the extension being visited, or `null` if we are not
   /// in the scope of an extension.
   ExtensionElement? _enclosingExtension;
@@ -435,7 +438,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    var outerClass = _enclosingClass;
     try {
       final element = node.declaredElement!;
       final augmented = element.augmented;
@@ -447,6 +449,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
+      _enclosingClassAugmented = augmented;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
@@ -489,7 +492,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     } finally {
       _isInNativeClass = false;
       _constructorFieldsVerifier.leaveClass();
-      _enclosingClass = outerClass;
+      _enclosingClass = null;
+      _enclosingClassAugmented = null;
     }
   }
 
@@ -497,7 +501,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitClassTypeAlias(ClassTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    var outerClassElement = _enclosingClass;
     try {
       _enclosingClass = node.declaredElement as ClassElementImpl;
       _checkClassInheritance(
@@ -512,7 +515,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
-      _enclosingClass = outerClassElement;
+      _enclosingClass = null;
+      _enclosingClassAugmented = null;
     }
     super.visitClassTypeAlias(node);
   }
@@ -618,7 +622,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    var outerClass = _enclosingClass;
     try {
       var element = node.declaredElement as EnumElementImpl;
       _enclosingClass = element;
@@ -649,7 +652,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       super.visitEnumDeclaration(node);
     } finally {
       _constructorFieldsVerifier.leaveClass();
-      _enclosingClass = outerClass;
+      _enclosingClass = null;
+      _enclosingClassAugmented = null;
     }
   }
 
@@ -703,7 +707,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    var outerClass = _enclosingClass;
     try {
       final element = node.declaredElement!;
       final augmented = element.augmented;
@@ -713,6 +716,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
+      _enclosingClassAugmented = augmented;
 
       _checkForBuiltInIdentifierAsName(node.name,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME);
@@ -747,7 +751,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       super.visitExtensionTypeDeclaration(node);
     } finally {
       _constructorFieldsVerifier.leaveClass();
-      _enclosingClass = outerClass;
+      _enclosingClass = null;
+      _enclosingClassAugmented = null;
     }
   }
 
@@ -1074,7 +1079,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     // TODO(scheglov): Verify for all mixin errors.
-    var outerClass = _enclosingClass;
     try {
       final element = node.declaredElement!;
       final augmented = element.augmented;
@@ -1084,6 +1088,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
+      _enclosingClassAugmented = augmented;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkMixin(node);
@@ -1107,7 +1112,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
-      _enclosingClass = outerClass;
+      _enclosingClass = null;
+      _enclosingClassAugmented = null;
     }
   }
 
@@ -4219,7 +4225,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForNoDefaultSuperConstructorImplicit(
       ClassDeclaration declaration) {
     // do nothing if there is explicit constructor
-    List<ConstructorElement> constructors = _enclosingClass!.constructors;
+    var constructors = _enclosingClassAugmented!.constructors;
     if (!constructors[0].isSynthetic) {
       return;
     }
