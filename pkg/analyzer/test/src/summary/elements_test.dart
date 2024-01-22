@@ -4217,7 +4217,59 @@ library
 ''');
   }
 
-  test_augmentation_importScope_prefixed() async {
+  test_augmentation_importScope_prefixed_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+
+@prefix.A()
+void f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        functions
+          f @74
+            metadata
+              Annotation
+                atSign: @ @57
+                name: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: prefix @58
+                    staticElement: self::@augmentation::package:test/b.dart::@prefix::prefix
+                    staticType: null
+                  period: . @64
+                  identifier: SimpleIdentifier
+                    token: A @65
+                    staticElement: package:test/a.dart::@class::A
+                    staticType: null
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @66
+                  rightParenthesis: ) @67
+                element: package:test/a.dart::@class::A::@constructor::new
+            returnType: void
+''');
+  }
+
+  test_augmentation_importScope_prefixed_typeAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');

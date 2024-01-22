@@ -477,16 +477,32 @@ class A {}
     ]);
   }
 
-  @SkippedTest(reason: r'''
-CompileTimeErrorCode.FINAL_NOT_INITIALIZED [141, 3, "The final variable 'age' must be initialized.", "Try initializing the variable."]
-CompileTimeErrorCode.FINAL_NOT_INITIALIZED [161, 4, "The final variable 'name' must be initialized.", "Try initializing the variable."]
+  @FailingTest(reason: r'''
+ResolvedLibraryResult #0
+  element: package:test/test.dart
+  units
+    ResolvedUnitResult #1
+      path: /home/test/lib/test.dart
+      uri: package:test/test.dart
+      flags: exists isLibrary
+      errors
+        169 +3 FINAL_NOT_INITIALIZED
+        189 +4 FINAL_NOT_INITIALIZED
+    ResolvedUnitResult #2
+      path: /home/test/lib/test.macro.dart
+      uri: package:test/test.macro.dart
+      flags: exists isAugmentation isMacroAugmentation
+      errors
+        317 +13 DUPLICATE_CONSTRUCTOR
+        164 +4 FINAL_NOT_INITIALIZED_CONSTRUCTOR
 ''')
   test_example_jsonSerializable() async {
-    await assertNoErrorsInCode(r'''
+    newFile(testFile.path, r'''
 import 'json_serializable.dart';
 
 void f(Map<String, Object?> json) {
-  User.fromJson(json);
+  var user = User.fromJson(json);
+  user.toJson();
 }
 
 @JsonSerializable()
@@ -494,6 +510,23 @@ class User {
   final int age;
   final String name;
 }
+''');
+
+    final session = contextFor(testFile).currentSession;
+    final result = await session.getResolvedLibrary(testFile.path);
+
+    assertResolvedLibraryResultText(result, r'''
+ResolvedLibraryResult #0
+  element: package:test/test.dart
+  units
+    ResolvedUnitResult #1
+      path: /home/test/lib/test.dart
+      uri: package:test/test.dart
+      flags: exists isLibrary
+    ResolvedUnitResult #2
+      path: /home/test/lib/test.macro.dart
+      uri: package:test/test.macro.dart
+      flags: exists isAugmentation isMacroAugmentation
 ''');
   }
 
