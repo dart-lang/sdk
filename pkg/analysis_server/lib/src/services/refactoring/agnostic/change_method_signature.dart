@@ -1080,7 +1080,7 @@ class _SignatureUpdater {
   }
 }
 
-extension _AstNodeExtension on AstNode {
+extension on AstNode {
   AstNode? get declaration {
     final self = this;
     if (self is FunctionExpression) {

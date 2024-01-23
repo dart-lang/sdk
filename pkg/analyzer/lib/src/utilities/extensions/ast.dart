@@ -68,3 +68,17 @@ extension AstNodeExtension on AstNode {
     return previousNode;
   }
 }
+
+extension AstNodeNullableExtension on AstNode? {
+  List<ClassMember> get classMembers {
+    final self = this;
+    return switch (self) {
+      ClassDeclaration() => self.members,
+      EnumDeclaration() => self.members,
+      ExtensionDeclaration() => self.members,
+      ExtensionTypeDeclaration() => self.members,
+      MixinDeclaration() => self.members,
+      _ => throw UnimplementedError('(${self.runtimeType}) $self'),
+    };
+  }
+}
