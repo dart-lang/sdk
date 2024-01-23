@@ -5,22 +5,35 @@
 import 'dart:async';
 
 /// The status of analysis.
-class AnalysisStatus {
-  static const IDLE = AnalysisStatus._(false);
-  static const ANALYZING = AnalysisStatus._(true);
+sealed class AnalysisStatus {
+  const AnalysisStatus._();
 
-  final bool _analyzing;
+  bool get isAnalyzing;
 
-  const AnalysisStatus._(this._analyzing);
+  bool get isIdle => !isAnalyzing;
+}
 
-  /// Return `true` if the scheduler is analyzing.
-  bool get isAnalyzing => _analyzing;
+final class AnalysisStatusAnalyzing extends AnalysisStatus {
+  /// Will complete when we switch to [AnalysisStatusIdle].
+  final Completer<void> _idleCompleter = Completer<void>();
 
-  /// Return `true` if the scheduler is idle.
-  bool get isIdle => !_analyzing;
+  AnalysisStatusAnalyzing._() : super._();
 
   @override
-  String toString() => _analyzing ? 'analyzing' : 'idle';
+  bool get isAnalyzing => true;
+
+  @override
+  String toString() => 'analyzing';
+}
+
+final class AnalysisStatusIdle extends AnalysisStatus {
+  const AnalysisStatusIdle._() : super._();
+
+  @override
+  bool get isAnalyzing => false;
+
+  @override
+  String toString() => 'idle';
 }
 
 /// [Monitor] can be used to wait for a signal.
@@ -54,11 +67,7 @@ class StatusSupport {
   final _statusController = StreamController<AnalysisStatus>();
 
   /// The last status sent to the [stream].
-  AnalysisStatus _currentStatus = AnalysisStatus.IDLE;
-
-  /// If non-null, a completer which should be completed on the next transition
-  /// to idle.
-  Completer<void>? _idleCompleter;
+  AnalysisStatus _currentStatus = const AnalysisStatusIdle._();
 
   StatusSupport({
     required StreamController<Object> eventsController,
@@ -70,35 +79,40 @@ class StatusSupport {
   /// Return the stream that produces [AnalysisStatus] events.
   Stream<AnalysisStatus> get stream => _statusController.stream;
 
-  /// If the current status is not [AnalysisStatus.ANALYZING] yet, set the
+  /// If the current status is not [AnalysisStatusAnalyzing] yet, set the
   /// current status to it, and send it to the stream.
   void transitionToAnalyzing() {
-    if (_currentStatus != AnalysisStatus.ANALYZING) {
-      _idleCompleter = Completer<void>();
-      _currentStatus = AnalysisStatus.ANALYZING;
-      _eventsController.add(AnalysisStatus.ANALYZING);
-      _statusController.add(AnalysisStatus.ANALYZING);
+    if (_currentStatus is AnalysisStatusIdle) {
+      var newStatus = AnalysisStatusAnalyzing._();
+      _currentStatus = newStatus;
+      _eventsController.add(newStatus);
+      _statusController.add(newStatus);
     }
   }
 
-  /// If the current status is not [AnalysisStatus.IDLE] yet, set the
+  /// If the current status is not [AnalysisStatusIdle] yet, set the
   /// current status to it, and send it to the stream.
   void transitionToIdle() {
-    if (_currentStatus != AnalysisStatus.IDLE) {
-      _currentStatus = AnalysisStatus.IDLE;
-      _eventsController.add(AnalysisStatus.IDLE);
-      _statusController.add(AnalysisStatus.IDLE);
-      // TODO(scheglov): Use separate status classes?
-      _idleCompleter!.complete();
-      _idleCompleter = null;
+    if (_currentStatus case AnalysisStatusAnalyzing status) {
+      var newStatus = const AnalysisStatusIdle._();
+      _currentStatus = newStatus;
+      _eventsController.add(newStatus);
+      _statusController.add(newStatus);
+      status._idleCompleter.complete();
     }
   }
 
-  /// Return a future that will be completed the next time the status is idle.
+  /// If the current status is [AnalysisStatusIdle], returns the future that
+  /// will complete immediately.
   ///
-  /// If the status is currently idle, the returned future will be signaled
-  /// immediately.
+  /// If the current status is [AnalysisStatusAnalyzing], returns the future
+  /// that will complete when the status changes to [AnalysisStatusIdle].
   Future<void> waitForIdle() {
-    return _idleCompleter?.future ?? Future<void>.value();
+    switch (_currentStatus) {
+      case AnalysisStatusIdle():
+        return Future<void>.value();
+      case AnalysisStatusAnalyzing status:
+        return status._idleCompleter.future;
+    }
   }
 }

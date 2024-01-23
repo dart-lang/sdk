@@ -182,6 +182,22 @@ class TypeSystemImpl implements TypeSystem {
       return left.isDartCoreFunction || left.isDartCoreObject;
     }
 
+    // FutureOr<T> = T || Future<T>
+    // So, we attempt to match both to the right.
+    if (left.isDartAsyncFutureOr) {
+      final base = futureOrBase(left);
+      final future = typeProvider.futureType(base);
+      return canBeSubtypeOf(base, right) || canBeSubtypeOf(future, right);
+    }
+
+    // FutureOr<T> = T || Future<T>
+    // So, we attempt to match both to the left.
+    if (right.isDartAsyncFutureOr) {
+      final base = futureOrBase(right);
+      final future = typeProvider.futureType(base);
+      return canBeSubtypeOf(left, base) || canBeSubtypeOf(left, future);
+    }
+
     if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
       final leftElement = left.element;
       final rightElement = right.element;
@@ -190,22 +206,6 @@ class TypeSystemImpl implements TypeSystem {
       if (left.isDartCoreInt && right.isDartCoreDouble ||
           left.isDartCoreDouble && right.isDartCoreInt) {
         return true;
-      }
-
-      // FutureOr<T> = T || Future<T>
-      // So, we attempt to match both to the right.
-      if (left.isDartAsyncFutureOr) {
-        final base = futureOrBase(left);
-        final future = typeProvider.futureType(base);
-        return canBeSubtypeOf(base, right) || canBeSubtypeOf(future, right);
-      }
-
-      // FutureOr<T> = T || Future<T>
-      // So, we attempt to match both to the left.
-      if (right.isDartAsyncFutureOr) {
-        final base = futureOrBase(right);
-        final future = typeProvider.futureType(base);
-        return canBeSubtypeOf(left, base) || canBeSubtypeOf(left, future);
       }
 
       bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {

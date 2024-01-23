@@ -42,11 +42,6 @@ enum MessageKind {
   WRONG_ARGUMENT_FOR_JS_FIRST,
   WRONG_ARGUMENT_FOR_JS_SECOND,
   WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
-  // TODO(32557): Remove these when issue 32557 is fixed.
-  SWITCH_CASE_FORBIDDEN,
-  SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
-  SWITCH_CASE_TYPES_NOT_EQUAL,
-  SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
 }
 
 /// A message template for an error, warning, hint or info message generated
@@ -215,20 +210,6 @@ Please include the following information:
     MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS: MessageTemplate(
         MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS,
         "Native non-instance members are only allowed in native classes."),
-
-    // TODO(32557): Remove these when issue 32557 is fixed.
-    MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS: MessageTemplate(
-        MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
-        "'case' expression type '#{type}' overrides 'operator =='."),
-    MessageKind.SWITCH_CASE_FORBIDDEN: MessageTemplate(
-        MessageKind.SWITCH_CASE_FORBIDDEN,
-        "'case' expression may not be of type '#{type}'."),
-    MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL: MessageTemplate(
-        MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
-        "'case' expressions do not all have type '#{type}'."),
-    MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE: MessageTemplate(
-        MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
-        "'case' expression of type '#{type}'."),
   }; // End of TEMPLATES.
 
   @override

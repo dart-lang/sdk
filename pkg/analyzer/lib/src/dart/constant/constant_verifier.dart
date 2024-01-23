@@ -622,6 +622,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     ErrorCode errorCode = error.errorCode;
     if (identical(
             errorCode, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD) ||
+        identical(
+            errorCode, CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD) ||
         identical(errorCode, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT) ||
         identical(
             errorCode, CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION) ||

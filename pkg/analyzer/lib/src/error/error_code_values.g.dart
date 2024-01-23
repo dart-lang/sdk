@@ -122,6 +122,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_DEFERRED_CLASS,
   CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE,
   CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
+  CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD,
   CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT,
   CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION,
   CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
