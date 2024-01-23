@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
-// Derived from tests/web_2/constant_folding_test
+// Derived from tests/web/constant_folding_test
 
 import "package:expect/expect.dart";
 
@@ -20,7 +18,7 @@ void main() {
 }
 
 /*member: jsEquals:calls=[Expect_equals(3),Expect_equals(3),get$isNegative(1),get$isNegative(1),toString$0(1),toString$0(1)],params=3*/
-void jsEquals(expected, actual, [String reason = null]) {
+void jsEquals(expected, actual, [String reason = ""]) {
   if (expected is num && actual is num) {
     if (expected.isNaN && actual.isNaN) return;
   }

@@ -33,7 +33,6 @@ Future<CompiledOutput> compileWithSerialization(
         entryPoint: entryPoint,
         memorySourceFiles: memorySourceFiles,
         outputProvider: outputProvider,
-        unsafeToTouchSourceFiles: true,
         options: options);
     Expect.isTrue(result.isSuccess);
     outputProvider.binaryOutputMap.forEach((fileName, binarySink) {
@@ -94,7 +93,6 @@ Future<CompiledOutput> compileWithoutSerialization(
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      unsafeToTouchSourceFiles: true,
       outputProvider: outputProvider,
       options: [...options, '--out=$jsOutUri']);
   Expect.isTrue(result.isSuccess);

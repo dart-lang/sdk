@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*class: A1:implicit=[A1]*/
 class A1 {}
 
@@ -47,36 +45,36 @@ class F2 {}
 class F3 {}
 
 // Calls to this imply a check of the passed type arguments.
-/*member: topLevelMethod1:explicit=[topLevelMethod1.T*],needsArgs,selectors=[Selector(call, call, arity=2, named=[a1], types=1)],test*/
+/*member: topLevelMethod1:explicit=[topLevelMethod1.T],needsArgs,selectors=[Selector(call, call, arity=2, named=[a1], types=1)],test*/
 bool topLevelMethod1<T>(T t, {a1}) => t is T;
 
 // Calls to this does _not_ imply a check of the passed type arguments.
-/*spec.member: topLevelMethod2:explicit=[topLevelMethod2.T*],needsArgs,selectors=[Selector(call, call, arity=2, named=[a2], types=1)],test*/
+/*spec.member: topLevelMethod2:explicit=[topLevelMethod2.T],needsArgs,selectors=[Selector(call, call, arity=2, named=[a2], types=1)],test*/
 T topLevelMethod2<T>(T t, {a2}) => t;
 
 class Class {
   // Calls to this imply a check of the passed type arguments.
-  /*member: Class.instanceMethod1:explicit=[instanceMethod1.S*],needsArgs,selectors=[Selector(call, call, arity=2, named=[b1], types=1),Selector(call, instanceMethod1, arity=2, named=[b1], types=1)],test*/
+  /*member: Class.instanceMethod1:explicit=[instanceMethod1.S],needsArgs,selectors=[Selector(call, call, arity=2, named=[b1], types=1),Selector(call, instanceMethod1, arity=2, named=[b1], types=1)],test*/
   bool instanceMethod1<S>(S s, {b1}) => s is S;
 
   // Calls to this does _not_ imply a check of the passed type arguments.
-  /*spec.member: Class.instanceMethod2:explicit=[instanceMethod2.S*],needsArgs,selectors=[Selector(call, call, arity=2, named=[b2], types=1),Selector(call, instanceMethod2, arity=2, named=[b2], types=1)],test*/
+  /*spec.member: Class.instanceMethod2:explicit=[instanceMethod2.S],needsArgs,selectors=[Selector(call, call, arity=2, named=[b2], types=1),Selector(call, instanceMethod2, arity=2, named=[b2], types=1)],test*/
   S instanceMethod2<S>(S s, {b2}) => s;
 }
 
 main() {
   // Calls to this imply a check of the passed type arguments.
-  /*explicit=[localFunction1.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)],test*/
+  /*explicit=[localFunction1.U],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)],test*/
   bool localFunction1<U>(U u, {c1}) => u is U;
 
   // Calls to this does _not_ imply a check of the passed type arguments.
-  /*spec.explicit=[localFunction2.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c2], types=1)],test*/
+  /*spec.explicit=[localFunction2.U],needsArgs,selectors=[Selector(call, call, arity=2, named=[c2], types=1)],test*/
   U localFunction2<U>(U u, {c2}) => u;
 
   // Calls to this does _not_ imply a check of the passed type arguments. A
   // call to the .call function on this will, though, since it has the same
   // signature as [localFunction1] which needs its type arguments.
-  /*spec.explicit=[localFunction3.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)],test*/
+  /*spec.explicit=[localFunction3.U],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)],test*/
   localFunction3<U>(U u, {c1}) => u;
 
   var c = Class();

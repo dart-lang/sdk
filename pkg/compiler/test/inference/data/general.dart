@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: returnNum1:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
 returnNum1(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
@@ -356,7 +354,7 @@ testIf2(/*[null|subclass=Object]*/ a) {
   return c;
 }
 
-/*member: returnAsString:[null|exact=JSString]*/
+/*member: returnAsString:[exact=JSString]*/
 returnAsString() {
   return topLevelGetter() as String;
 }
@@ -369,7 +367,7 @@ returnIntAsNum() {
 
 typedef int Foo();
 
-/*member: returnAsTypedef:[null|subclass=Closure]*/
+/*member: returnAsTypedef:[subclass=Closure]*/
 returnAsTypedef() {
   return topLevelGetter() as Foo;
 }
@@ -560,8 +558,8 @@ testDoWhile2() {
   return a;
 }
 
-/*member: flag:Value([null|exact=JSBool], value: true)*/
-bool flag; // late
+/*member: _#flag:[exact=_Cell]*/
+late bool /*Value([exact=JSBool], value: true)*/ /*update: [exact=_Cell]*/ flag;
 
 /*member: testDoWhile3:Value([exact=JSBool], value: false)*/
 testDoWhile3() {
@@ -599,7 +597,7 @@ testSpecialization2() {
   // Make [a] a captured variable. This should disable receiver
   // specialization on [a].
   (
-      /*[null|exact=JSString]*/
+      /*[exact=JSString]*/
       () => a.toString())();
   a - 42;
   return a;
@@ -900,7 +898,7 @@ main() {
   testDoWhile2();
   testDoWhile3();
   testDoWhile4();
-  A() /*invoke: [null|subclass=A]*/ == null;
+  A() /*invoke: [subclass=A]*/ == null;
   A()
     .. /*invoke: [exact=A]*/ returnInt1()
     .. /*invoke: [exact=A]*/ returnInt2()

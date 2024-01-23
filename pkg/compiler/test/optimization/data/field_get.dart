@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 main() {
   method1(new Class1a());
   method2(new Class2a());
@@ -17,7 +15,7 @@ main() {
 
 class Class1a {
   @pragma('dart2js:noElision')
-  int field1;
+  int? field1;
 }
 
 /*member: method1:FieldGet=[name=Class1a.field1]*/
@@ -28,7 +26,7 @@ method1(Class1a c) {
 
 class Class2a {
   @pragma('dart2js:noElision')
-  int field2;
+  int? field2;
 }
 
 class Class2b extends Class2a {}
@@ -40,12 +38,12 @@ method2(Class2a c) {
 }
 
 class Class3a {
-  int field3;
+  int? field3;
 }
 
 class Class3b implements Class3a {
   int get field3 => 42;
-  set field3(int _) {}
+  set field3(int? _) {}
 }
 
 @pragma('dart2js:noInline')
@@ -54,11 +52,11 @@ method3(Class3a c) {
 }
 
 class Class4a {
-  int field4;
+  int? field4;
 }
 
 class Class4b implements Class4a {
-  int field4;
+  int? field4;
 }
 
 @pragma('dart2js:noInline')
@@ -68,11 +66,11 @@ method4(Class4a c) {
 
 class Class5a {
   @pragma('dart2js:noElision')
-  int Function() field5;
+  int Function()? field5;
 }
 
-/*member: method5:FieldCall=[name=Class5a.field5]*/
+/*member: method5:FieldGet=[name=Class5a.field5],SsaLateFieldOptimizer.post=[HFieldGet=1],SsaLateFieldOptimizer.pre=[HFieldGet=1]*/
 @pragma('dart2js:noInline')
 method5(Class5a c) {
-  return c.field5();
+  return c.field5!();
 }

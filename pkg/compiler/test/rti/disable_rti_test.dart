@@ -44,7 +44,7 @@ main() {
 
 method<T>() {
   local1() {}
-  local2(T t) {}
+  local2(T? t) {}
   local3<S>(S s) {}
 
   local1();

@@ -8,7 +8,7 @@ import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
   foo(b) {
-    var a = b ? [1,2,3] : null;
+    dynamic a = b ? [1,2,3] : null;
     print(a.first);
   }
 """;

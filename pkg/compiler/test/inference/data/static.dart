@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   simpleStaticCall();
@@ -207,7 +205,7 @@ String _method5() => '';
 /*member: _field5:[subclass=Closure]*/
 String Function() _field5 = _method5;
 
-/*member: invokeStaticTypedFieldTearOff:[null|exact=JSString]*/
+/*member: invokeStaticTypedFieldTearOff:[exact=JSString]*/
 invokeStaticTypedFieldTearOff() => _field5();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -250,7 +248,7 @@ int Function() _field7 = _method6;
 /*member: _getter3:[subclass=Closure]*/
 int Function() get _getter3 => _field7;
 
-/*member: invokeStaticTypedGetterTearOff:[null|subclass=JSInt]*/
+/*member: invokeStaticTypedGetterTearOff:[subclass=JSInt]*/
 invokeStaticTypedGetterTearOff() => _getter3();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -275,10 +273,10 @@ invokeStaticGenericMethod2() => _method4('');
 /*member: _getter2:[subclass=Closure]*/
 T Function<T>(T) get _getter2 => _method4;
 
-/*member: invokeStaticGenericGetter1:[null|subclass=JSInt]*/
+/*member: invokeStaticGenericGetter1:[subclass=JSInt]*/
 invokeStaticGenericGetter1() => _getter2(0);
 
-/*member: invokeStaticGenericGetter2:[null|exact=JSString]*/
+/*member: invokeStaticGenericGetter2:[exact=JSString]*/
 invokeStaticGenericGetter2() => _getter2('');
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -289,8 +287,8 @@ invokeStaticGenericGetter2() => _getter2('');
 /*member: _field4:[subclass=Closure]*/
 T Function<T>(T) _field4 = _method4;
 
-/*member: invokeStaticGenericField1:[null|subclass=JSInt]*/
+/*member: invokeStaticGenericField1:[subclass=JSInt]*/
 invokeStaticGenericField1() => _field4(0);
 
-/*member: invokeStaticGenericField2:[null|exact=JSString]*/
+/*member: invokeStaticGenericField2:[exact=JSString]*/
 invokeStaticGenericField2() => _field4('');

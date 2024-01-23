@@ -7,8 +7,6 @@
 
 // dart2jsOptions=--null-assertions
 
-// @dart=2.19
-
 import '52276_lib.dart';
 
 main() => callFoo();

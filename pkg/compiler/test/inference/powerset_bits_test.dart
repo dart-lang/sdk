@@ -58,8 +58,7 @@ main() {
     checkBits('b', powersetBitsDomain.boolValue);
     checkBits('c', powersetBitsDomain.boolValue);
     checkBits('d', powersetBitsDomain.boolValue);
-    checkBits(
-        'e', powersetBitsDomain.falseValue | powersetBitsDomain.nullValue);
+    checkBits('e', powersetBitsDomain.falseValue);
   }
 
   asyncTest(() async {

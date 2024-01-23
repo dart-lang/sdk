@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'package:compiler/src/util/testing.dart';
 
@@ -22,21 +20,23 @@ class FutureMock<T> implements Future<T> {
   FutureMock(this.value);
 
   @override
-  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()}) => null;
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) => this;
 
   @override
-  Stream<T> asStream() => null;
+  Stream<T> asStream() => const Stream.empty();
 
   @override
-  Future<T> whenComplete(FutureOr action()) => null;
+  Future<T> whenComplete(FutureOr action()) => this;
 
   @override
-  Future<T> catchError(Function onError, {bool test(bool test(Object error))}) {
-    return null;
+  Future<T> catchError(Function onError,
+      {bool test(bool test(Object error))?}) {
+    return this;
   }
 
   @override
-  Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError}) => null;
+  Future<S> then<S>(FutureOr<S> onValue(T value), {Function? onError}) =>
+      Future.value(onValue(value));
 }
 
 @pragma('dart2js:noInline')

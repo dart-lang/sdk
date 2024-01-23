@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class1 {
   T method<T>(T t) => t;
 }
 
 class Class2<T> {
   @pragma('dart2js:noInline')
-  S method<S extends T>() => null;
+  S? method<S extends T>() => null;
 }
 
 main() {
@@ -27,7 +25,7 @@ genericMethod1(c) {
 
 genericMethod2(c) {
   if (/*dynamic*/ c is! Class1) return;
-  /*Class1*/ c. /*invoke: [Class1]->dynamic*/ method('').length;
+  /*Class1*/ c. /*invoke: [Class1]->String*/ method('').length;
 }
 
 genericMethod3() {

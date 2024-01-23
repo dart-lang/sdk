@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class {}
 
 class SubClass extends Class {
@@ -80,10 +78,10 @@ main() {
  type=[
   inst:Closure,
   inst:JSBool,
-  is:SubClass*,
-  param:Class*]
+  is:SubClass,
+  param:Class?]
 */
-positiveTyped(Class cls) {
+positiveTyped(Class? cls) {
   if (cls is SubClass) cls.method();
 }
 
@@ -128,7 +126,7 @@ positiveTyped(Class cls) {
  type=[
   inst:Closure,
   inst:JSBool,
-  is:SubClass*]
+  is:SubClass]
 */
 positiveDynamic(dynamic cls) {
   if (cls is SubClass) cls.method();
@@ -175,7 +173,7 @@ positiveDynamic(dynamic cls) {
  type=[
   inst:Closure,
   inst:JSBool,
-  is:SubClass*]
+  is:SubClass]
 */
 negativeDynamic(dynamic cls) {
   if (cls is! SubClass) return;
@@ -207,9 +205,52 @@ dynamicToHashCode(dynamic cls) {
   cls.hashCode;
 }
 
-/*member: dynamicToNoSuchMethod:dynamic=[Object.noSuchMethod(1)],type=[inst:JSNull]*/
+/*member: dynamicToNoSuchMethod:
+ dynamic=[Object.noSuchMethod(1)],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  impl:Invocation,
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull]
+*/
 dynamicToNoSuchMethod(dynamic cls) {
-  cls.noSuchMethod(null);
+  cls.noSuchMethod(null as dynamic);
 }
 
 /*member: dynamicToNoSuchMethodWrong:dynamic=[call(0),noSuchMethod(0)]*/

@@ -8,7 +8,7 @@ import '../helpers/compiler_helper.dart';
 
 const String TEST1 = r"""
 main() {
-  var a = [42, null];
+  var a = <dynamic>[42, null];
   return a[0] + 42;
 }
 """;
@@ -32,7 +32,7 @@ main() {
 
 const String TEST4 = r"""
 main() {
-  var a = List.filled(42, null);
+  var a = List<dynamic>.filled(42, null);
   a[a.length - 1] = 42;
   return 42 + a[0];
 }

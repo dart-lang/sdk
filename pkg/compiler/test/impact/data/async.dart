@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:
  static=[
   testAnonymousAsync(0),
@@ -243,7 +241,7 @@ testAnonymousAsyncStar() {
   findType(1),
   instanceType(1)],
  type=[
-  impl:Stream<dynamic>*,
+  impl:Stream<dynamic>,
   inst:Closure,
   inst:JSBool,
   inst:JSNull,
@@ -303,8 +301,8 @@ testAsyncForIn(o) async {
   findType(1),
   instanceType(1)],
  type=[
-  impl:Stream<dynamic>*,
-  impl:int*,
+  impl:Stream<dynamic>,
+  impl:int,
   inst:Closure,
   inst:JSBool,
   inst:JSNull,

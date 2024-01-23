@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class {
-  Class next;
+  Class? next;
 }
 
 class GenericClass<T> {
-  GenericClass next;
+  GenericClass<T>? next;
 }
 
 main() {
@@ -47,14 +45,14 @@ while2(dynamic c) {
   }
 }
 
-whileNext(Class c) {
+whileNext(Class? c) {
   while (/*Class*/ c != null) {
     c = /*Class*/ c.next;
   }
   return /*Class*/ c;
 }
 
-whileNextGeneric(GenericClass<int> c) {
+whileNextGeneric(GenericClass<int>? c) {
   while (/*GenericClass<int>*/ c != null) {
     c = /*GenericClass<int>*/ c.next;
   }
@@ -63,25 +61,25 @@ whileNextGeneric(GenericClass<int> c) {
 
 class Class1<T> {
   whileNext1() {
-    bool b;
-    GenericClass<T> c;
-    while (/*bool*/ b) {
+    bool? b;
+    GenericClass<T>? c;
+    while (/*bool*/ b!) {
       if (/*bool*/ b) {
-        GenericClass<T> next = /*GenericClass<T>*/ c.next;
+        GenericClass<T>? next = /*GenericClass<T>*/ c!.next;
         c = /*GenericClass<T>*/ next;
       } else {
-        c = /*GenericClass<T>*/ c.next;
+        c = /*GenericClass<T>*/ c!.next;
       }
     }
     return /*GenericClass<T>*/ c;
   }
 
   whileNext2() {
-    bool b;
-    GenericClass<T> c;
+    bool? b;
+    GenericClass<T>? c;
     while (/*GenericClass<T>*/ c != null) {
-      if (/*bool*/ b) {
-        GenericClass<T> next = /*GenericClass<T>*/ c.next;
+      if (/*bool*/ b!) {
+        GenericClass<T>? next = /*GenericClass<T>*/ c.next;
         c = /*GenericClass<T>*/ next;
       } else {
         c = /*GenericClass<T>*/ c.next;
@@ -91,14 +89,14 @@ class Class1<T> {
   }
 
   whileNext3() {
-    bool b;
-    GenericClass<T> c;
+    bool? b;
+    GenericClass<T>? c;
     while (/*GenericClass<T>*/ c == null) {
-      if (/*bool*/ b) {
-        GenericClass<T> next = /*Null*/ c.next;
+      if (/*bool*/ b!) {
+        GenericClass<T>? next = /*GenericClass<T>*/ c!.next;
         c = /*GenericClass<T>*/ next;
       } else {
-        c = /*Null*/ c.next;
+        c = /*GenericClass<T>*/ c!.next;
       }
     }
     return /*GenericClass<T>*/ c;

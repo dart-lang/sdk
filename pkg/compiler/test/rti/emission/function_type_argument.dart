@@ -2,18 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: C:checkedInstance,checks=[],instance,typeArgument*/
-/*prod.class: C:checks=[],instance,typeArgument*/
+/*class: C:checkedInstance,checks=[],instance,typeArgument*/
 class C {
   call(int i) {}
 }
 
-/*spec.class: D:checkedInstance,checks=[],instance,typeArgument*/
-/*prod.class: D:checks=[],instance,typeArgument*/
+/*class: D:checkedInstance,checks=[],instance,typeArgument*/
 class D {
   call(double i) {}
 }

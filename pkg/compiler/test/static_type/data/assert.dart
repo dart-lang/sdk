@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class {
-  Class next;
+  Class? next;
 }
 
 main() {
@@ -19,28 +17,28 @@ main() {
   assert8(null);
 }
 
-assert1(Class c) {
+assert1(Class? c) {
   assert(/*Class*/ c != null);
-  /*Class*/ c.next;
+  /*Class*/ c!.next;
 }
 
-assert2(Class c) {
+assert2(Class? c) {
   assert(/*Class*/ c == null);
-  /*Class*/ c.next;
+  /*Class*/ c!.next;
 }
 
-assert3(Class c) {
-  bool b;
+assert3(Class? c) {
+  bool? b;
   assert(/*Class*/ c != null);
-  if (/*bool*/ b) return;
-  /*Class*/ c.next;
+  if (/*bool*/ b!) return;
+  /*Class*/ c!.next;
 }
 
-assert4(Class c) {
-  bool b;
+assert4(Class? c) {
+  bool? b;
   assert(/*Class*/ c == null);
-  if (/*bool*/ b) return;
-  /*Class*/ c.next;
+  if (/*bool*/ b!) return;
+  /*Class*/ c!.next;
 }
 
 assert5(dynamic c) {
@@ -54,15 +52,15 @@ assert6(dynamic c) {
 }
 
 assert7(dynamic c) {
-  bool b;
+  bool? b;
   assert(/*dynamic*/ c is Class);
-  if (/*bool*/ b) return;
+  if (/*bool*/ b!) return;
   /*dynamic*/ c.next;
 }
 
 assert8(dynamic c) {
-  bool b;
+  bool? b;
   assert(/*dynamic*/ c is! Class);
-  if (/*bool*/ b) return;
+  if (/*bool*/ b!) return;
   /*dynamic*/ c.next;
 }

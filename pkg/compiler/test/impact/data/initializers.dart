@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:
  static=[
   testDefaultValuesNamed(0),
@@ -70,7 +68,7 @@ main() {
  type=[
   inst:Closure,
   inst:JSBool,
-  param:bool*]
+  param:bool]
 */
 testDefaultValuesPositional([bool value = false]) {}
 
@@ -114,7 +112,7 @@ testDefaultValuesPositional([bool value = false]) {}
  type=[
   inst:Closure,
   inst:JSBool,
-  param:bool*]
+  param:bool]
 */
 testDefaultValuesNamed({bool value = false}) {}
 
@@ -228,7 +226,7 @@ class ClassInstanceFieldWithInitializer {
    type=[
     inst:Closure,
     inst:JSBool,
-    param:bool*]
+    param:bool]
   */
   var field = false;
 }
@@ -279,9 +277,9 @@ class ClassInstanceFieldTyped {
     inst:Closure,
     inst:JSBool,
     inst:JSNull,
-    param:int*]
+    param:int?]
   */
-  int field;
+  int? field;
 }
 
 /*member: testInstanceFieldTyped:static=[ClassInstanceFieldTyped.(0)]*/
@@ -354,7 +352,7 @@ class ClassGeneric<T> {
     inst:JSFixedArray<dynamic>,
     inst:JSMutableArray<dynamic>,
     inst:JSUnmodifiableArray<dynamic>,
-    param:ClassGeneric.T*]
+    param:ClassGeneric.T]
   */
   ClassGeneric(T arg);
 }

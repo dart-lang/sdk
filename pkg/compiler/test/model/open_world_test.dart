@@ -26,7 +26,7 @@ library lib;
 
 import 'package:js/js.dart';
 
-class A {}
+mixin class A {}
 class A1 extends A {}
 class A2 extends A1 {}
 
@@ -34,7 +34,7 @@ class B implements A {}
 class B1 extends B {}
 
 class C {}
-class C0 {}
+mixin C0 {}
 class C1 = C with A;
 class C2 extends C1 {}
 class C3 = C with C0, A;
