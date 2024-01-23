@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -64,7 +64,7 @@ class ConstructorFieldsVerifier {
   /// Verify that the given [node] declaration does not violate any of
   /// the error codes relating to the initialization of fields in the
   /// enclosing class.
-  void verify(ConstructorDeclaration node) {
+  void verify(ConstructorDeclarationImpl node) {
     if (node.factoryKeyword != null ||
         node.redirectedConstructor != null ||
         node.externalKeyword != null) {
@@ -89,6 +89,16 @@ class ConstructorFieldsVerifier {
 
     _updateWithParameters(node);
     _updateWithInitializers(node);
+
+    var element = node.declaredElement!;
+
+    // TODO(scheglov): Report multiple initializers.
+    // TODO(scheglov): Logically merge-in initializers of augmentations.
+    // Constructor augmentations don't report not initialized fields.
+    // We report it for corresponding constructor declarations.
+    if (element.isAugmentation) {
+      return;
+    }
 
     if (_hasRedirectingConstructorInvocation) {
       return;
