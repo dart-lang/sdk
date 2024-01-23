@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "package:macro/cascade.dart" as cas;
+import "dart:core" as core;
+
+import "package:macro/cascade.dart";
+
+@#C1
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  @#C2
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ create() → self::Class
+    return new self::Class::•();
+}
+
+constants  {
+  #C1 = cas::CreateMacro {}
+  #C2 = cas::CreateMethodMacro {}
+}

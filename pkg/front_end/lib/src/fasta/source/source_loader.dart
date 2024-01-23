@@ -23,10 +23,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
-import 'package:front_end/src/fasta/kernel/benchmarker.dart'
-    show BenchmarkSubdivides;
-import 'package:front_end/src/fasta/kernel/exhaustiveness.dart';
-import 'package:front_end/src/fasta/source/source_type_alias_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -50,7 +46,6 @@ import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder_graph.dart';
 import '../denylisted_classes.dart'
@@ -59,8 +54,10 @@ import '../dill/dill_library_builder.dart';
 import '../export.dart' show Export;
 import '../fasta_codes.dart';
 import '../import_chains.dart';
+import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
+import '../kernel/exhaustiveness.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
@@ -69,7 +66,6 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
-import '../kernel/macro/annotation_parser.dart';
 import '../kernel/macro/macro.dart';
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../loader.dart' show Loader, untranslatableUriScheme;
@@ -88,10 +84,7 @@ import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
-import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
-import 'source_factory_builder.dart';
-import 'source_field_builder.dart';
 import 'source_library_builder.dart'
     show
         ImplicitLanguageVersion,
@@ -1680,141 +1673,33 @@ severity: $severity
       return null;
     }
 
-    Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
-    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
-      // TODO(johnniwinther): Handle patch libraries.
-      LibraryMacroApplicationData libraryMacroApplicationData =
-          new LibraryMacroApplicationData();
-      Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
-      while (iterator.moveNext()) {
-        Builder builder = iterator.current;
-        if (builder is SourceClassBuilder) {
-          SourceClassBuilder classBuilder = builder;
-          ClassMacroApplicationData classMacroApplicationData =
-              new ClassMacroApplicationData();
-          List<MacroApplication>? classMacroApplications = prebuildAnnotations(
-              enclosingLibrary: libraryBuilder,
-              scope: classBuilder.scope,
-              fileUri: classBuilder.fileUri,
-              metadataBuilders: classBuilder.metadata);
-          if (classMacroApplications != null) {
-            classMacroApplicationData.classApplications = new ApplicationData(
-                libraryBuilder, classBuilder, classMacroApplications);
-          }
-          Iterator<Builder> memberIterator = classBuilder.fullMemberIterator();
-          while (memberIterator.moveNext()) {
-            Builder memberBuilder = memberIterator.current;
-            if (memberBuilder is SourceProcedureBuilder) {
-              List<MacroApplication>? macroApplications = prebuildAnnotations(
-                  enclosingLibrary: libraryBuilder,
-                  scope: classBuilder.scope,
-                  fileUri: memberBuilder.fileUri,
-                  metadataBuilders: memberBuilder.metadata);
-              if (macroApplications != null) {
-                classMacroApplicationData.memberApplications[memberBuilder] =
-                    new ApplicationData(
-                        libraryBuilder, memberBuilder, macroApplications);
-              }
-            } else if (memberBuilder is SourceFieldBuilder) {
-              List<MacroApplication>? macroApplications = prebuildAnnotations(
-                  enclosingLibrary: libraryBuilder,
-                  scope: classBuilder.scope,
-                  fileUri: memberBuilder.fileUri,
-                  metadataBuilders: memberBuilder.metadata);
-              if (macroApplications != null) {
-                classMacroApplicationData.memberApplications[memberBuilder] =
-                    new ApplicationData(
-                        libraryBuilder, memberBuilder, macroApplications);
-              }
-            } else {
-              throw new UnsupportedError("Unexpected class member "
-                  "$memberBuilder (${memberBuilder.runtimeType})");
-            }
-          }
-          Iterator<MemberBuilder> constructorIterator =
-              classBuilder.fullConstructorIterator();
-          while (constructorIterator.moveNext()) {
-            MemberBuilder memberBuilder = constructorIterator.current;
-            if (memberBuilder is DeclaredSourceConstructorBuilder) {
-              List<MacroApplication>? macroApplications = prebuildAnnotations(
-                  enclosingLibrary: libraryBuilder,
-                  scope: classBuilder.scope,
-                  fileUri: memberBuilder.fileUri,
-                  metadataBuilders: memberBuilder.metadata);
-              if (macroApplications != null) {
-                classMacroApplicationData.memberApplications[memberBuilder] =
-                    new ApplicationData(
-                        libraryBuilder, memberBuilder, macroApplications);
-              }
-            } else if (memberBuilder is SourceFactoryBuilder) {
-              List<MacroApplication>? macroApplications = prebuildAnnotations(
-                  enclosingLibrary: libraryBuilder,
-                  scope: classBuilder.scope,
-                  fileUri: memberBuilder.fileUri,
-                  metadataBuilders: memberBuilder.metadata);
-              if (macroApplications != null) {
-                classMacroApplicationData.memberApplications[memberBuilder] =
-                    new ApplicationData(
-                        libraryBuilder, memberBuilder, macroApplications);
-              }
-            } else {
-              throw new UnsupportedError("Unexpected constructor "
-                  "$memberBuilder (${memberBuilder.runtimeType})");
-            }
-          }
-
-          if (classMacroApplicationData.classApplications != null ||
-              classMacroApplicationData.memberApplications.isNotEmpty) {
-            libraryMacroApplicationData.classData[builder] =
-                classMacroApplicationData;
-          }
-        } else if (builder is SourceProcedureBuilder) {
-          List<MacroApplication>? macroApplications = prebuildAnnotations(
-              enclosingLibrary: libraryBuilder,
-              scope: libraryBuilder.scope,
-              fileUri: builder.fileUri,
-              metadataBuilders: builder.metadata);
-          if (macroApplications != null) {
-            libraryMacroApplicationData.memberApplications[builder] =
-                new ApplicationData(libraryBuilder, builder, macroApplications);
-          }
-        } else if (builder is SourceFieldBuilder) {
-          List<MacroApplication>? macroApplications = prebuildAnnotations(
-              enclosingLibrary: libraryBuilder,
-              scope: libraryBuilder.scope,
-              fileUri: builder.fileUri,
-              metadataBuilders: builder.metadata);
-          if (macroApplications != null) {
-            libraryMacroApplicationData.memberApplications[builder] =
-                new ApplicationData(libraryBuilder, builder, macroApplications);
-          }
-        } else if (builder is PrefixBuilder ||
-            builder is SourceExtensionBuilder ||
-            builder is SourceTypeAliasBuilder) {
-          // Macro applications are not supported.
-        } else {
-          throw new UnsupportedError("Unexpected library member "
-              "$builder (${builder.runtimeType})");
-        }
-      }
-      if (libraryMacroApplicationData.classData.isNotEmpty ||
-          libraryMacroApplicationData.memberApplications.isNotEmpty) {
-        libraryData[libraryBuilder] = libraryMacroApplicationData;
-      }
-    }
-    if (libraryData.isNotEmpty) {
+    MacroApplications macroApplications = new MacroApplications(
+        this,
+        target.context.options.macroExecutor,
+        dataForTesting?.macroApplicationData);
+    macroApplications
+        .computeLibrariesMacroApplicationData(sourceLibraryBuilders);
+    if (macroApplications.hasLoadableMacroIds) {
       target.benchmarker?.beginSubdivide(
           BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
+      await macroApplications.loadMacroIds(target.benchmarker);
       target.benchmarker?.endSubdivide();
-
-      MacroApplications result = await MacroApplications.loadMacroIds(
-          target.context.options.macroExecutor,
-          libraryData,
-          dataForTesting?.macroApplicationData,
-          target.benchmarker);
-      return result;
+      return macroApplications;
     }
     return null;
+  }
+
+  Future<void> computeAdditionalMacroApplications(
+      MacroApplications macroApplications,
+      Iterable<SourceLibraryBuilder> sourceLibraryBuilders) async {
+    macroApplications
+        .computeLibrariesMacroApplicationData(sourceLibraryBuilders);
+    if (macroApplications.hasLoadableMacroIds) {
+      target.benchmarker?.beginSubdivide(
+          BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
+      await macroApplications.loadMacroIds(target.benchmarker);
+      target.benchmarker?.endSubdivide();
+    }
   }
 
   void finishDeferredLoadTearoffs() {

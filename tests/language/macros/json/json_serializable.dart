@@ -35,9 +35,10 @@ macro class JsonSerializable implements ClassDeclarationsMacro {
         clazz.library.uri.resolve('json_serializable.dart');
 
     builder.declareInType(DeclarationCode.fromParts([
-      '@',
+      '  @',
       await builder.resolveIdentifier(jsonSerializableUri, 'FromJson'),
-      '()\n  ',
+      // TODO(language#3580): Remove/replace 'external'?
+      '()\n  external ',
       clazz.identifier.name,
       '.fromJson(',
       mapStringObject,
@@ -45,9 +46,10 @@ macro class JsonSerializable implements ClassDeclarationsMacro {
     ]));
 
     builder.declareInType(DeclarationCode.fromParts([
-      '@',
+      '  @',
       await builder.resolveIdentifier(jsonSerializableUri, 'ToJson'),
-      '()\n  ',
+      // TODO(language#3580): Remove/replace 'external'?
+      '()\n  external ',
       mapStringObject,
       ' toJson();',
     ]));

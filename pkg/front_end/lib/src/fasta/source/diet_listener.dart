@@ -547,8 +547,12 @@ class DietListener extends StackListenerImpl {
     if (importUri.startsWith("dart-ext:")) return;
 
     Library libraryNode = libraryBuilder.library;
-    LibraryDependency dependency =
-        libraryNode.dependencies[importExportDirectiveIndex++];
+    LibraryDependency? dependency;
+    if (importExportDirectiveIndex < libraryNode.dependencies.length) {
+      // TODO(johnniwinther): Include dependencies from macro libraries in
+      // library dependencies.
+      dependency = libraryNode.dependencies[importExportDirectiveIndex++];
+    }
     parseMetadata(libraryBuilder.bodyBuilderContext, libraryBuilder, metadata,
         dependency);
   }

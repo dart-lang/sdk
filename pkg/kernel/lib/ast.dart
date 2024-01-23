@@ -753,7 +753,16 @@ class LibraryDependency extends TreeNode implements Annotatable {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    if (isExport) {
+      printer.write('export ');
+    } else {
+      printer.write('import ');
+    }
+    if (isDeferred) {
+      printer.write('deferred ');
+    }
+    printer.writeLibraryReference(importedLibraryReference);
+    printer.write(';');
   }
 }
 
