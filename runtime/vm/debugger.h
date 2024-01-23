@@ -574,6 +574,8 @@ class GroupDebugger {
   explicit GroupDebugger(IsolateGroup* isolate_group);
   ~GroupDebugger();
 
+  void MakeCodeBreakpointAtUnsafe(const Function& func,
+                                  BreakpointLocation* bpt);
   void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
 
   // Returns [nullptr] if no breakpoint exists for the given address.
@@ -592,6 +594,7 @@ class GroupDebugger {
   // Returns true if the call at address pc is patched to point to
   // a debugger stub.
   bool HasActiveBreakpoint(uword pc);
+  bool HasCodeBreakpointInFunctionUnsafe(const Function& func);
   bool HasCodeBreakpointInFunction(const Function& func);
   bool HasCodeBreakpointInCode(const Code& code);
 
@@ -609,9 +612,11 @@ class GroupDebugger {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  RwLock* code_breakpoints_lock() { return code_breakpoints_lock_.get(); }
+  SafepointRwLock* code_breakpoints_lock() {
+    return code_breakpoints_lock_.get();
+  }
 
-  RwLock* breakpoint_locations_lock() {
+  SafepointRwLock* breakpoint_locations_lock() {
     return breakpoint_locations_lock_.get();
   }
 
@@ -623,19 +628,22 @@ class GroupDebugger {
 
   // Returns [true] if there is at least one breakpoint set in function or code.
   // Checks for both user-defined and internal temporary breakpoints.
+  bool HasBreakpointUnsafe(Thread* thread, const Function& function);
   bool HasBreakpoint(Thread* thread, const Function& function);
   bool IsDebugging(Thread* thread, const Function& function);
+
+  IsolateGroup* isolate_group() { return isolate_group_; }
 
  private:
   IsolateGroup* isolate_group_;
 
-  std::unique_ptr<RwLock> code_breakpoints_lock_;
+  std::unique_ptr<SafepointRwLock> code_breakpoints_lock_;
   CodeBreakpoint* code_breakpoints_;
 
   // Secondary list of all breakpoint_locations_(primary is in Debugger class).
   // This list is kept in sync with all the lists in Isolate Debuggers and is
   // used to quickly scan BreakpointLocations when new Function is compiled.
-  std::unique_ptr<RwLock> breakpoint_locations_lock_;
+  std::unique_ptr<SafepointRwLock> breakpoint_locations_lock_;
   MallocGrowableArray<BreakpointLocation*> breakpoint_locations_;
 
   std::unique_ptr<RwLock> single_stepping_set_lock_;
@@ -793,7 +801,8 @@ class Debugger {
                    TokenPosition last_token_pos,
                    Function* best_fit);
   void DeoptimizeWorld();
-  void NotifySingleStepping(bool value) const;
+  void RunWithStoppedDeoptimizedWorld(std::function<void()> fun);
+  void NotifySingleStepping(bool value);
   BreakpointLocation* SetCodeBreakpoints(
       const GrowableHandlePtrArray<const Script>& scripts,
       TokenPosition token_pos,
@@ -820,6 +829,7 @@ class Debugger {
   BreakpointLocation* GetLatentBreakpoint(const String& url,
                                           intptr_t line,
                                           intptr_t column);
+  void RegisterBreakpointLocationUnsafe(BreakpointLocation* loc);
   void RegisterBreakpointLocation(BreakpointLocation* bpt);
   BreakpointLocation* GetResolvedBreakpointLocation(
       const String& script_url,

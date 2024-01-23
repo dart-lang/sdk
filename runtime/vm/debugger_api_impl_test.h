@@ -83,6 +83,12 @@ Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id, bool* is_debuggable);
 Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id, bool is_debuggable);
 
 /**
+ * Remove breakpoint with provided id.
+ *
+ * Requires there to be a current isolate.
+ */
+Dart_Handle Dart_RemoveBreakpoint(Dart_Handle breakpoint_id);
+/**
  * Sets a breakpoint at line \line_number in \script_url, or the closest
  * following line (within the same function) where a breakpoint can be set.
  *
