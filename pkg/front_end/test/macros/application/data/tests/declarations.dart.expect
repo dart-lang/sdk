@@ -57,26 +57,8 @@ static field core::int? topLevelField1;
 static final field core::int? topLevelField3 = null;
 @#C6
 late static field core::int? topLevelField4;
-@#C7
-static method topLevelFunction1() → void {}
-@#C7
-external static method topLevelFunction2() → void;
-@#C6
-external static get topLevelField2() → core::int?;
-@#C6
-external static set topLevelField2(synthesized core::int? #externalFieldValue) → void;
-@#C7
-static get topLevelGetter1() → core::int?
-  return null;
-@#C7
-static set topLevelSetter1(core::int? value) → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ Class1_instanceMethod1GeneratedMethod_() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ Class1_instanceGetter1GeneratedMethod_g() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ Class1_operatorGeneratedMethod_o() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ Class1_instanceField1GeneratedMethod_() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ Class1_instanceField2GeneratedMethod_f() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-5 */ Class1_instanceField3GeneratedMethod_fl() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-6 */ Class1_instanceSetter1GeneratedMethod_s() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-10 */ Class1Introspection() → void {
   core::print("constructors='','redirect','fact'");
   core::print("fields='instanceField1','instanceField2','instanceField3'");
@@ -95,10 +77,28 @@ static method /* from org-dartlang-augmentation:/a/b/c/main.dart-16 */ topLevelF
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-17 */ topLevelFunction2GeneratedMethod_e() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-18 */ topLevelField1GeneratedMethod_() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-19 */ topLevelField2GeneratedMethod_e() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ Class1_operatorGeneratedMethod_o() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-20 */ topLevelField3GeneratedMethod_f() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-21 */ topLevelField4GeneratedMethod_l() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-22 */ topLevelGetter1GeneratedMethod_g() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-23 */ topLevelSetter1GeneratedMethod_s() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ Class1_instanceField1GeneratedMethod_() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ Class1_instanceField2GeneratedMethod_f() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-5 */ Class1_instanceField3GeneratedMethod_fl() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-6 */ Class1_instanceSetter1GeneratedMethod_s() → void {}
+@#C7
+static method topLevelFunction1() → void {}
+@#C7
+external static method topLevelFunction2() → void;
+@#C6
+external static get topLevelField2() → core::int?;
+@#C6
+external static set topLevelField2(synthesized core::int? #externalFieldValue) → void;
+@#C7
+static get topLevelGetter1() → core::int?
+  return null;
+@#C7
+static set topLevelSetter1(core::int? value) → void {}
 
 constants  {
   #C1 = mac::ClassDeclarationsMacro1 {}

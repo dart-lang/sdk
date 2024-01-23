@@ -116,6 +116,9 @@ Future<void> main(List<String> args) async {
         IncrementalCompilerResult incrementalCompilerResult =
             await compiler.computeDelta(entryPoints: [entryPoint]);
         Component component = incrementalCompilerResult.component;
+        if (component.problemsAsJson?.isNotEmpty ?? false) {
+          throw 'Unexpected errors.';
+        }
         StringBuffer buffer = new StringBuffer();
         Printer printer = new Printer(buffer)
           ..writeProblemsAsJson(

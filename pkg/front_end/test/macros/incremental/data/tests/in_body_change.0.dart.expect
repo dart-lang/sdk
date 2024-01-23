@@ -4,6 +4,7 @@ import "package:macro/macro.dart" as mac;
 import "dart:core" as core;
 
 import "package:macro/macro.dart";
+import "dart:core" as prefix0;
 
 @#C1
 class Class extends core::Object {

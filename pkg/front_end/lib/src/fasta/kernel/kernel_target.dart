@@ -371,8 +371,7 @@ class KernelTarget extends TargetImplementation {
     loader.finishTypeVariables(
         augmentationLibraries, objectClassBuilder, dynamicType);
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      augmentationLibrary.buildOutlineNodes(loader.coreLibrary,
-          modifyTarget: false);
+      augmentationLibrary.buildOutlineNodes(loader.coreLibrary);
     }
     loader.resolveConstructors(augmentationLibraries);
   }

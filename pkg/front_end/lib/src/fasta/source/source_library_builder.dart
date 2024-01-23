@@ -1137,8 +1137,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   /// Builds the core AST structure of this library as needed for the outline.
-  Library buildOutlineNodes(LibraryBuilder coreLibrary,
-      {bool modifyTarget = true}) {
+  Library buildOutlineNodes(LibraryBuilder coreLibrary) {
     // TODO(johnniwinther): Avoid the need to process patch libraries before
     // the origin. Currently, settings performed by the patch are overridden
     // by the origin. For instance, the `Map` class is abstract in the origin
@@ -1148,7 +1147,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.buildOutlineNodes(coreLibrary, modifyTarget: modifyTarget);
+        patchLibrary.buildOutlineNodes(coreLibrary);
       }
     }
 
@@ -1160,8 +1159,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       _buildOutlineNodes(iterator.current, coreLibrary);
     }
-
-    if (!modifyTarget) return library;
 
     library.isSynthetic = isSynthetic;
     library.isUnsupported = isUnsupported;
