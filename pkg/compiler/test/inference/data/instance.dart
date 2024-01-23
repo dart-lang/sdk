@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   thisExact();
@@ -69,7 +67,7 @@ thisSubclassExact() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: Class4a.:[exact=Class4a]*/
-class Class4a {
+mixin class Class4a {
   /*member: Class4a.method:[subtype=Class4a]*/
   method() => this;
 }
@@ -88,7 +86,7 @@ thisSubtype() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: Class5a.:[exact=Class5a]*/
-class Class5a {
+mixin class Class5a {
   /*member: Class5a.method:[exact=Class5a]*/
   method() => this;
 }
@@ -105,7 +103,7 @@ thisSubtypeExact() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: Class6a.:[exact=Class6a]*/
-class Class6a {
+mixin class Class6a {
   /*member: Class6a.method:[subtype=Class6a]*/
   method() => this;
 }
@@ -123,7 +121,7 @@ thisSubtypeMixedIn() {
 /// Return `this` of a mixed in class that is itself uninstantiated.
 ////////////////////////////////////////////////////////////////////////////////
 
-class Class7a {
+mixin Class7a {
   /*member: Class7a.method:[exact=Class7b]*/
   method() => this;
 }

@@ -61,7 +61,7 @@ library;
 // pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:18:12: Error: The type 'int' of the inherited getter 'Enum.index' is not a subtype of the type 'String' of the setter 'A2.index'.
 //   void set index(String value) {} // Error.
 //            ^^^^^
-// sdk/lib/core/enum.dart:22:11: Context: This is the declaration of the getter 'Enum.index'.
+// sdk/lib/core/enum.dart:25:11: Context: This is the declaration of the getter 'Enum.index'.
 //   int get index;
 //           ^^^^^
 //
@@ -75,7 +75,7 @@ library;
 // pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:23:12: Error: The type 'int' of the inherited getter 'Enum.index' is not a subtype of the type 'String' of the setter 'M2.index'.
 //   void set index(String value) {} // Error.
 //            ^^^^^
-// sdk/lib/core/enum.dart:22:11: Context: This is the declaration of the getter 'Enum.index'.
+// sdk/lib/core/enum.dart:25:11: Context: This is the declaration of the getter 'Enum.index'.
 //   int get index;
 //           ^^^^^
 //

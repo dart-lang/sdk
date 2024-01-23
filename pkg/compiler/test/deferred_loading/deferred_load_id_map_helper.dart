@@ -44,12 +44,10 @@ Future<void> runTest(String testGroup, List<String> options,
         options: [
           '--stage=cfe',
           '--out=$cfeFilename',
-          '${Flags.noSoundNullSafety}',
           ...options,
         ],
         outputProvider: cfeCollector,
-        beforeRun: (c) => compiler = c,
-        unsafeToTouchSourceFiles: true);
+        beforeRun: (c) => compiler = c);
     final cfeDill = cfeCollector.binaryOutputMap.values.first.list;
     final dillInputFiles = {cfeFilename: cfeDill};
     final resultCollector = OutputCollector();
@@ -59,7 +57,6 @@ Future<void> runTest(String testGroup, List<String> options,
         options: [
           '${Flags.deferredLoadIdMapUri}=$resultFilename',
           '--input-dill=memory:$cfeFilename',
-          '${Flags.noSoundNullSafety}',
           ...options,
         ],
         beforeRun: (c) => compiler = c);

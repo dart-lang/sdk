@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class {
-  Class next;
+  Class? next;
 }
 
 main() {
@@ -23,8 +21,8 @@ switch1(dynamic c) {
         /*dynamic*/ c.next;
         break;
       case 1:
-        /*dynamic*/ c.next;
-        if (/*dynamic*/ c is Class) {
+        /*Class*/ c.next;
+        if (/*Class*/ c is Class) {
           /*Class*/ c.next;
         }
         c = 0;

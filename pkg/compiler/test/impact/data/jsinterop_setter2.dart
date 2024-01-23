@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 @JS()
 library main;
 
@@ -68,7 +66,7 @@ import 'package:js/js.dart';
   native:PositionError,
   native:SensorErrorEvent,
   native:SpeechRecognitionError,
-  param:void Function(String*,File*)*]
+  param:void Function(String,File)]
 */
 @JS()
 external set foo(void Function(String, File) f);
@@ -118,8 +116,8 @@ external set foo(void Function(String, File) f);
   inst:JSBool,
   inst:JSNull,
   inst:JSString,
-  param:File*,
-  param:String*]
+  param:File,
+  param:String]
 */
 void _doStuff(String name, File file) {
   if (file == null) {
@@ -130,7 +128,7 @@ void _doStuff(String name, File file) {
 
 /*member: main:static=[
   _doStuff,
-  allowInterop<void Function(String*,File*)*>(1),
+  allowInterop<void Function(String,File)>(1),
   set:foo]*/
 void main() {
   foo = allowInterop(_doStuff);

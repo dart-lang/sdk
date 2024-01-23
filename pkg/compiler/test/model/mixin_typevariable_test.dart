@@ -20,9 +20,9 @@ void main() {
 testMixinSupertypes() async {
   var env = await TypeEnvironment.create(r"""
       class S<S_T> {}
-      class M1<M1_T> {}
-      class M2<M2_T> {}
-      class M3<M3_T> {}
+      mixin M1<M1_T> {}
+      mixin M2<M2_T> {}
+      mixin M3<M3_T> {}
 
       class C1<C1_T> extends S<C1_T> with M1<C1_T>, M2<C1_T>, M3<C1_T> {}
       class C2<C2_T> = S<C2_T> with M1<C2_T>, M2<C2_T>, M3<C2_T>;
@@ -83,7 +83,7 @@ testNonTrivialSubstitutions() async {
   var env = await TypeEnvironment.create(r"""
       class _ {}
       class A<A_T> {}
-      class B<B_T, B_S> {}
+      mixin B<B_T, B_S> {}
 
       class C1<C1_T> extends A with B {}
       class C2<C2_T> = A with B;

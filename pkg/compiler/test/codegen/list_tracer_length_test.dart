@@ -17,7 +17,7 @@ main() {
 
 String TEST2(selectorName, args) {
   return """
-var a = [42];
+var a = <int?>[42];
 main() {
   a.$selectorName($args);
   return a[0];
@@ -103,7 +103,7 @@ checkRangeError(String test,
 main() {
   asyncTest(() async {
     await checkRangeError(TEST1, hasRangeError: false);
-    await checkRangeError(TEST2('insert', 'null, null'), hasRangeError: true);
+    await checkRangeError(TEST2('insert', '-1, null'), hasRangeError: true);
     await checkRangeError(TEST2('add', 'null'), hasRangeError: true);
     await checkRangeError(TEST2('clear', ''), hasRangeError: true);
     await checkRangeError(TEST2('toString', ''), hasRangeError: false);

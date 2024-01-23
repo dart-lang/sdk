@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -106,9 +107,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     var parameterElement = expression.staticElement;
     for (var parameter in constructor.parameters.parameters) {
       if (parameter.declaredElement == parameterElement) {
-        if (parameter is DefaultFormalParameter) {
-          parameter = parameter.parameter;
-        }
+        parameter = parameter.notDefault;
         return parameter is SimpleFormalParameter ? parameter : null;
       }
     }

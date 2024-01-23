@@ -1,6 +1,11 @@
 /// Scalable Vector Graphics:
 /// Two-dimensional vector graphics with support for events and animation.
 ///
+/// > [!Note]
+/// > New projects should prefer to use
+/// > [package:web](https://pub.dev/packages/web). For existing projects, see
+/// > our [migration guide](http://dart.dev/go/package-web).
+///
 /// For details about the features and syntax of SVG, a W3C standard,
 /// refer to the
 /// [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).

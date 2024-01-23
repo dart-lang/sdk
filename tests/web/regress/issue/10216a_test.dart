@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(https://github.com/dart-lang/sdk/issues/51557): Decide if the mixins
-// being applied in this test should be "mixin", "mixin class" or the test
-// should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
 
 // Tests codegen of methods reached only via mixin.
@@ -17,16 +12,16 @@ class A {
 
 class B extends A with M1, M2, M3 {}
 
-class M1 {}
+mixin M1 {}
 
-class M2 {
+mixin M2 {
   // These methods are only defined in this non-first, non-last mixin.
   plain(x) => 'P $x';
   // Check arity stubs are also available.
   bar(x, [y]) => '$y,$x';
 }
 
-class M3 {}
+mixin M3 {}
 
 makeB() {
   return [new A(), new B()].last as B;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
 /*class: Class1:*/
@@ -12,7 +10,7 @@ class Class1 {
   Class1();
 
   /*member: Class1.method:*/
-  T method<T>() => null;
+  T? method<T>() => null;
 }
 
 /*class: Class2:*/

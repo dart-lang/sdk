@@ -8,8 +8,8 @@ import '../helpers/compiler_helper.dart';
 
 const String TEST = r"""
 foo() {
-  String s = Object().toString();
-  Object o = Object().toString();
+  String? s = Object()?.toString();
+  Object? o = Object()?.toString();
   return s == 'foo'
     && s == null
     && null == s

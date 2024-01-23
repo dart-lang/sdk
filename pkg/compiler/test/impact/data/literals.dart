@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:static=[
  testBoolFromEnvironment(0),
  testComplexConstSymbol(0),
@@ -131,7 +129,7 @@ const complexSymbolField =
     complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
 
 /*member: testComplexConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
-testComplexConstSymbol() => const Symbol(complexSymbolField);
+testComplexConstSymbol() => const Symbol(complexSymbolField as String);
 
 /*member: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
@@ -143,7 +141,7 @@ testIfNullConstSymbol() => const Symbol(null ?? 'foo');
  type=[
   inst:Type,
   inst:_Type,
-  lit:Object*]
+  lit:Object]
 */
 testTypeLiteral() => Object;
 
@@ -156,7 +154,7 @@ testEmptyListLiteral() => [];
 /*member: testEmptyListLiteralDynamic:type=[inst:List<dynamic>]*/
 testEmptyListLiteralDynamic() => <dynamic>[];
 
-/*member: testEmptyListLiteralTyped:type=[inst:List<String*>]*/
+/*member: testEmptyListLiteralTyped:type=[inst:List<String>]*/
 testEmptyListLiteralTyped() => <String>[];
 
 /*member: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
@@ -164,7 +162,7 @@ testEmptyListLiteralConstant() => const [];
 
 /*member: testNonEmptyListLiteral:type=[
   inst:JSBool,
-  inst:List<bool*>]*/
+  inst:List<bool>]*/
 testNonEmptyListLiteral() => [true];
 
 /*member: testEmptyMapLiteral:type=[inst:Map<dynamic,dynamic>]*/
@@ -173,7 +171,7 @@ testEmptyMapLiteral() => {};
 /*member: testEmptyMapLiteralDynamic:type=[inst:Map<dynamic,dynamic>]*/
 testEmptyMapLiteralDynamic() => <dynamic, dynamic>{};
 
-/*member: testEmptyMapLiteralTyped:type=[inst:Map<String*,int*>]*/
+/*member: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
 testEmptyMapLiteralTyped() => <String, int>{};
 
 /*member: testEmptyMapLiteralConstant:
@@ -187,7 +185,7 @@ testEmptyMapLiteralConstant() => const {};
 /*member: testNonEmptyMapLiteral:type=[
   inst:JSBool,
   inst:JSNull,
-  inst:Map<Null,bool*>]*/
+  inst:Map<Null,bool>]*/
 testNonEmptyMapLiteral() => {null: true};
 
 class GenericClass<X, Y> {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: returnInt1:[exact=JSUInt31]*/
 returnInt1() {
   var a = 42;
@@ -105,7 +103,7 @@ returnIntOrNull() {
   for (
       // ignore: unused_local_variable
       var b in [42]) {
-    var bar = 42;
+    int? bar = 42;
     /*[null|exact=JSUInt31]*/ f() => bar;
     bar = null;
     return f();

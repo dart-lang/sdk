@@ -2,34 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
 class Class1 {
   method1() {
     /*needsSignature*/
-    num local(num n) => null;
+    num? local(num n) => null;
     return local;
   }
 
   method2() {
-    /*needsSignature*/ num local(int n) => null;
+    /*needsSignature*/ num? local(int n) => null;
     return local;
   }
 
   method3() {
-    /*needsSignature*/ Object local(num n) => null;
+    /*needsSignature*/ Object? local(num n) => null;
     return local;
   }
 }
 
-/*spec.class: Class2:explicit=[Class2.T*],needsArgs,test*/
+/*spec.class: Class2:explicit=[Class2.T],needsArgs,test*/
 /*prod.class: Class2:needsArgs*/
 class Class2<T> {
   method4() {
     /*needsSignature*/
-    num local(T n) => null;
+    num? local(T n) => null;
     return local;
   }
 }
@@ -38,22 +36,22 @@ class Class2<T> {
 class Class3<T> {
   method5() {
     /*needsSignature*/
-    T local(num n) => null;
+    T? local(num n) => null;
     return local;
   }
 }
 
-/*spec.class: Class4:explicit=[Class4.T*],needsArgs,test*/
+/*spec.class: Class4:explicit=[Class4.T],needsArgs,test*/
 /*prod.class: Class4:needsArgs*/
 class Class4<T> {
   method6() {
-    /*needsSignature*/ num local(num n, T t) => null;
+    /*needsSignature*/ num? local(num n, T t) => null;
     return local;
   }
 }
 
 @pragma('dart2js:noInline')
-test(o) => o is num Function(num);
+test(o) => o is num? Function(num);
 
 main() {
   makeLive(test(new Class1().method1()));

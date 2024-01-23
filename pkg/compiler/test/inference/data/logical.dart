@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   returnTrue();
@@ -87,7 +85,7 @@ returnNotTrue() => !true;
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: returnNotOfNull:[exact=JSBool]*/
-returnNotOfNull() => !null;
+returnNotOfNull() => !(null as dynamic);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return value of an is test.
@@ -170,7 +168,7 @@ returnLogicalAndFalseTrue() => false && true;
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: returnLogicalAndNullTrue:[exact=JSBool]*/
-returnLogicalAndNullTrue() => null && true;
+returnLogicalAndNullTrue() => (null as dynamic) && true;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return logical and of is test and use.
@@ -290,7 +288,7 @@ returnLogicalOrFalseFalse() => false || false;
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: returnLogicalOrNullTrue:[exact=JSBool]*/
-returnLogicalOrNullTrue() => null || true;
+returnLogicalOrNullTrue() => (null as dynamic) || true;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return logical or of is test or use.

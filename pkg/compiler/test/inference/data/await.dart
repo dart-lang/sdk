@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 
 /*member: main:[null]*/
@@ -20,7 +18,7 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _method1a:[null]*/
-_method1a(/*[null|subclass=JSInt]*/ o) {}
+_method1a(/*[subclass=JSInt]*/ o) {}
 
 /*member: awaitOfFuture:[exact=_Future]*/
 awaitOfFuture() async {
@@ -29,7 +27,7 @@ awaitOfFuture() async {
 }
 
 /*member: _method1b:[null]*/
-_method1b(/*[null|subclass=JSInt]*/ o) {}
+_method1b(/*[subclass=JSInt]*/ o) {}
 
 /*member: awaitOfFutureWithLocal:[exact=_Future]*/
 awaitOfFutureWithLocal() async {
@@ -43,7 +41,7 @@ awaitOfFutureWithLocal() async {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _method2a:[null]*/
-_method2a(/*[null|subclass=JSInt]*/ o) {}
+_method2a(/*[subclass=JSInt]*/ o) {}
 
 /*member: awaitOfInt:[exact=_Future]*/
 awaitOfInt() async {
@@ -51,7 +49,7 @@ awaitOfInt() async {
 }
 
 /*member: _method2b:[null]*/
-_method2b(/*[null|subclass=JSInt]*/ o) {}
+_method2b(/*[subclass=JSInt]*/ o) {}
 
 /*member: awaitOfIntWithLocal:[exact=_Future]*/
 awaitOfIntWithLocal() async {
@@ -69,7 +67,7 @@ _method3(
     o) {}
 
 /*member: _method4:[null]*/
-_method4(/*[null|subclass=JSInt]*/ o) {}
+_method4(/*[subclass=JSInt]*/ o) {}
 
 /*member: awaitForOfStream:[exact=_Future]*/
 awaitForOfStream() async {

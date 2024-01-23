@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// In Dart 3.0, switch cases implicitly exit, so it's not an error to have a
-// case that contains only a function that throws. Pin to 2.19 to test that
-// older error-reporting behavior.
-// @dart=2.19
-
 import "package:expect/expect.dart";
 
 switcher(val) {
@@ -74,14 +69,11 @@ switcher3(val) {
   }
 }
 
-// Tests that switch cases that don't exit report an error even when the case
-// body calls a function that the compiler can infer always throws, and there
-// is no break in the switch case body.
 switcher4(val) {
   switch (val) {
     case 1:
       return 100;
-    case 2: _throw(); //# 00: compile-time error
+    case 2: _throw();
     case 3:
       _throw();
       break;

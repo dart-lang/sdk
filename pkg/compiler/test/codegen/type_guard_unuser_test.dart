@@ -25,13 +25,13 @@ foo(d) {
 """;
 
 const String TEST_THREE = r"""
-foo(int a, int b) {
+foo(a, b) {
   return 0 + a + b;
 }
 """;
 
 const String TEST_THREE_WITH_BAILOUT = r"""
-foo(int a, int b) {
+foo(a, b) {
   var t;
   for (int i = 0; i < 1; i++) {
     t = 0 + a + b;

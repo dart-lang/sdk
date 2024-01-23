@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: dynamicIndexAssign:Specializer=[!IndexAssign]*/
 @pragma('dart2js:noInline')
 dynamicIndexAssign(var list) {
@@ -13,8 +11,8 @@ dynamicIndexAssign(var list) {
 /*spec.member: unknownListIndexAssign:Specializer=[!IndexAssign]*/
 /*prod.member: unknownListIndexAssign:Specializer=[IndexAssign]*/
 @pragma('dart2js:noInline')
-unknownListIndexAssign(List list) {
-  list[0] = 1;
+unknownListIndexAssign(List? list) {
+  list![0] = 1;
 }
 
 /*spec.member: possiblyNullMutableListIndexAssign:Specializer=[!IndexAssign]*/
@@ -22,7 +20,7 @@ unknownListIndexAssign(List list) {
 @pragma('dart2js:noInline')
 possiblyNullMutableListIndexAssign(bool b) {
   var list = b ? [0] : null;
-  list[0] = 1;
+  list![0] = 1;
 }
 
 /*spec.member: mutableListIndexAssign:Specializer=[!IndexAssign]*/

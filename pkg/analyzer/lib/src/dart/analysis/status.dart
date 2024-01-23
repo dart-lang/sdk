@@ -63,21 +63,15 @@ class Monitor {
 class StatusSupport {
   final StreamController<Object> _eventsController;
 
-  /// The controller for the [stream].
-  final _statusController = StreamController<AnalysisStatus>();
-
-  /// The last status sent to the [stream].
+  /// The last status sent to [_eventsController].
   AnalysisStatus _currentStatus = const AnalysisStatusIdle._();
 
   StatusSupport({
     required StreamController<Object> eventsController,
   }) : _eventsController = eventsController;
 
-  /// Return the last status sent to the [stream].
+  /// The last status sent to [_eventsController].
   AnalysisStatus get currentStatus => _currentStatus;
-
-  /// Return the stream that produces [AnalysisStatus] events.
-  Stream<AnalysisStatus> get stream => _statusController.stream;
 
   /// If the current status is not [AnalysisStatusAnalyzing] yet, set the
   /// current status to it, and send it to the stream.
@@ -86,7 +80,6 @@ class StatusSupport {
       var newStatus = AnalysisStatusAnalyzing._();
       _currentStatus = newStatus;
       _eventsController.add(newStatus);
-      _statusController.add(newStatus);
     }
   }
 
@@ -97,7 +90,6 @@ class StatusSupport {
       var newStatus = const AnalysisStatusIdle._();
       _currentStatus = newStatus;
       _eventsController.add(newStatus);
-      _statusController.add(newStatus);
       status._idleCompleter.complete();
     }
   }

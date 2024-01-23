@@ -532,7 +532,6 @@ class Subclass<T extends A> extends Class<T> {
         'const Subclass<B>(B())', 'ConstructedConstant(Subclass<B*>())'),
   ]),
   TestData('Nested Unevaluated', '''
-//@dart = 2.12
 class Foo {
   const Foo(
     int Function(String)? a1,

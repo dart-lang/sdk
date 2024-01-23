@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:compiler/src/util/testing.dart";
 
 /*class: I:checkedInstance*/
@@ -16,14 +14,14 @@ class J<T> {}
 class S<T> {}
 
 /*class: M:checkedInstance,checks=[]*/
-class M<T> {
+mixin M<T> {
   t() {
     return T;
   }
 }
 
 /*class: A:checkedInstance*/
-class A<U, V> = Object with M<Map<U, V>> implements I<V>;
+mixin class A<U, V> = Object with M<Map<U, V>> implements I<V>;
 
 /*class: C:checks=[$isA,$isI,$isJ],instance*/
 class C<T, K> = S<T> with A<T, List<K>> implements J<K>;

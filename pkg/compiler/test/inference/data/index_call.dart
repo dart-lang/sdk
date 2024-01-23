@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   listIndexCall();
@@ -64,9 +62,9 @@ multiMapIndex() {
     'a': {'b': 0}
   };
   return a /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Dictionary([null|exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]}), map: {a: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]})})*/
-              ['a']
+              ['a']!
           /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]})*/
-          ['b']
+          ['b']!
       . /*invoke: [exact=JSUInt31]*/
       abs();
 }
@@ -78,9 +76,9 @@ multiMapIndexCall() {
     'a': {'b': closure}
   };
   return a /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Dictionary([null|exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]}), map: {a: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]})})*/
-          ['a']
+          ['a']!
       /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]})*/
-      ['b'](d: 0);
+      ['b']!(d: 0);
 }
 
 /*member: multiMapListIndexCall:[null|subclass=Object]*/
@@ -90,7 +88,7 @@ multiMapListIndexCall() {
     'a': [closure]
   };
   return a /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1), map: {a: Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
-          ['a']
+          ['a']!
       /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)*/
       [0](d: 0);
 }

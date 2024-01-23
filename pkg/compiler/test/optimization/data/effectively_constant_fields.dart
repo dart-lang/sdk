@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 
 class Class1 {
@@ -54,22 +52,16 @@ method4(Class3 c) {
   return c.field4();
 }
 
-/*member: method6:
- ConstantFieldGet=[name=Class1.field1&value=IntConstant(0)],
- NullCheck=[selector=field1]
-*/
+/*member: method6:ConstantFieldGet=[name=Class1.field1&value=IntConstant(0)]*/
 @pragma('dart2js:noInline')
-method6(Class1 c) {
-  return c.field1;
+method6(Class1? c) {
+  return c!.field1;
 }
 
-/*member: method7:
- ConstantFieldCall=[name=Class3.field4&value=FunctionConstant(_field4)],
- NullCheck=[selector=field4]
-*/
+/*member: method7:ConstantFieldCall=[name=Class3.field4&value=FunctionConstant(_field4)]*/
 @pragma('dart2js:noInline')
-method7(Class3 c) {
-  return c.field4();
+method7(Class3? c) {
+  return c!.field4();
 }
 
 main() {

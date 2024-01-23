@@ -5505,14 +5505,6 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
 
   body += FfiCall(marshaller, function.FfiIsLeaf());
 
-  for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    if (marshaller.IsPointer(i)) {
-      body += LoadLocal(parsed_function_->ParameterVariable(
-          first_argument_parameter_offset + i));
-      body += ReachabilityFence();
-    }
-  }
-
   const intptr_t num_defs = marshaller.NumReturnDefinitions();
   ASSERT(num_defs >= 1);
   auto defs = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_defs);

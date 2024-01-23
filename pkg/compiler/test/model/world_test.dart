@@ -34,8 +34,8 @@ testClassSets() async {
   var env = await TypeEnvironment.create(r"""
       import 'dart:html' as html;
 
-      class A implements X {}
-      class B {}
+      mixin class A implements X {}
+      mixin class B {}
       class C_Super extends A {}
       class C extends C_Super {}
       class D implements A {}
@@ -196,43 +196,43 @@ testClassSets() async {
 
 testProperties() async {
   var env = await TypeEnvironment.create(r"""
-      class A {}
+      mixin class A {}
       class A1 extends A {}
       class A2 implements A {}
       class A3 extends Object with A {}
 
-      class B {}
+      mixin class B {}
       class B1 extends B {}
       class B2 implements B {}
       class B3 extends Object with B {}
 
-      class C {}
+      mixin class C {}
       class C1 extends C {}
       class C2 implements C {}
       class C3 extends Object with C {}
 
-      class D {}
+      mixin class D {}
       class D1 extends D {}
       class D2 implements D {}
       class D3 extends Object with D {}
 
-      class E {}
+      mixin class E {}
       class E1 extends E {}
       class E2 implements E {}
       class E3 extends Object with E {}
 
-      class F {}
+      mixin class F {}
       class F1 extends F {}
       class F2 implements F {}
       class F3 extends Object with F {}
 
-      class G {}
+      mixin class G {}
       class G1 extends G {}
       class G2 extends G1 {}
       class G3 extends G2 implements G {}
       class G4 extends G2 with G {}
 
-      class H {}
+      mixin class H {}
       class H1 extends H {}
       class H2 extends H1 {}
       class H3 extends H2 implements H {}
@@ -697,7 +697,7 @@ testLiveMembers() async {
   final env = await TypeEnvironment.create(r"""
       class A { int a() => 1; }
 
-      abstract class B { int b(); }
+      mixin B { int b(); }
       class C with B { int b() => 2; }
 
       mixin D { int d(); }

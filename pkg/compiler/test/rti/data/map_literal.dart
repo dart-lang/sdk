@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*prod.class: global#Map:needsArgs*/
 /*spec.class: global#Map:explicit=[Map,Map<Object?,Object?>],needsArgs,test*/
 

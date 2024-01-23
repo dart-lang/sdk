@@ -140,7 +140,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "8b1f24a8475a0116757172cd9acca4acbf87d973", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "b04c9c127fea5f3fdf600aa205f50d81d1c779c5", # https://github.com/dart-lang/dartdoc/issues/3562
+  "dartdoc_rev": "49d48d7749f48e2d9930ffda5bcde1e692ffce31",
   "ecosystem_rev": "1e2785d6900b4d709a31f4c669381dc340cad605",
   "ffi_rev": "c926657618443ff4821411ede01684096b503f84",
   "file_rev": "cd3a9324f6483f313ba1f0f3ff382ea4e6982ef2",
@@ -156,7 +156,7 @@ vars = {
   "leak_tracker_rev": "4a5b077739886f61bd6dc11c78865ef487c917c2",
   "lints_rev": "3810f8b3dc3205cfaa4ccc0054b021e68046d851",
   "logging_rev": "4d35a4e02b9237bd794378413e7ce3deb52ffcaf",
-  "markdown_rev": "7602f9f17d25702c11991380ebc7853ccdc42f7a",
+  "markdown_rev": "a8288ca3a3023228f1a8a832b78d00e11f0c4b30",
   "matcher_rev": "d9cf4f69e3f557718ab5be042dd5503afcacac51",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "ca9f059d2334bb2657683e0a7f5949817cb4b0e6",

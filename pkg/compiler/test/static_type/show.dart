@@ -6,19 +6,11 @@
 
 import 'package:args/args.dart';
 import '../equivalence/show_helper.dart';
-import 'type_promotion_test.dart';
 import 'static_type_test.dart';
 
 main(List<String> args) async {
   ArgParser argParser = createArgParser();
-  argParser.addFlag('type-promotion', defaultsTo: false);
   ArgResults results = argParser.parse(args);
 
-  bool showTypePromotion = results['type-promotion'];
-
-  await show(
-      results,
-      showTypePromotion
-          ? TypePromotionDataComputer()
-          : StaticTypeDataComputer());
+  await show(results, StaticTypeDataComputer());
 }

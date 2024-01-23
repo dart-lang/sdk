@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
 method1() {
-  /*spec.explicit=[local.T*],needsArgs,needsSignature,test*/
+  /*spec.explicit=[local.T],needsArgs,needsSignature,test*/
   /*prod.needsArgs,needsSignature*/
   T local<T>(T t) => t;
   return local;

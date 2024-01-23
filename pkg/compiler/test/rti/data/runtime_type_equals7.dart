@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: Class1a:explicit=[Class1a*]*/
+/*spec.class: Class1a:explicit=[Class1a]*/
 class Class1a {
   Class1a();
 }
@@ -25,7 +23,7 @@ class Class2<T> {
   Class2();
 }
 
-/*spec.class: Class3:explicit=[Class3*]*/
+/*spec.class: Class3:explicit=[Class3]*/
 class Class3<T> {
   final Class1a field;
 

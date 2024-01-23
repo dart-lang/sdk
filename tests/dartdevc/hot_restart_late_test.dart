@@ -27,13 +27,22 @@ main() {
   // Read this static field first to avoid interference with other reset counts.
   var weakNullSafety = hasUnsoundNullSafety;
 
-  // TODO(42495) `Expect.throws` contains the use of a const that triggers an
-  // extra field reset but consts are not correctly reset on hot restart so the
-  // extra reset only appears once. Perform an initial Expect.throws here to
-  // avoid confusion with the reset counts later.
+  // The first call of `Expect.throws` involves type tests that initialize
+  // values in the runtime type system that will read static fields. After
+  // initialization fields are never read again (even after a hot restart)
+  // so we perform the first call here before we start counting field resets.
   Expect.throws(() => throw 'foo');
 
-  var resetFieldCount = dart.resetFields.length;
+  dart.hotRestart();
+
+  // Count the number of reset fields triggered by a call to `Expect.throws`
+  // after every hot restart. This value is used as an offset in expectations
+  // below.
+  Expect.throws(() => throw 'foo');
+  var expectThrowsResetFieldCount = dart.resetFields.length;
+  Expect.equals(1, expectThrowsResetFieldCount);
+
+  dart.hotRestart();
 
   // Set uninitialized static late fields. Avoid calling getters for these
   // statics to ensure they are reset even if they are never accessed.
@@ -62,12 +71,10 @@ main() {
   // Sound Null Safety - 6 total field resets:
   //  - 3 write/resets for the actual uninitialized field writes.
   //  - 3 reads/resets for the actual initialized field reads.
-  var expectedResets =
-      weakNullSafety ? resetFieldCount + 12 : resetFieldCount + 6;
+  var expectedResets = weakNullSafety ? 12 : 6;
   Expect.equals(expectedResets, dart.resetFields.length);
 
   dart.hotRestart();
-  resetFieldCount = dart.resetFields.length;
 
   // Late statics should throw on get when not initialized.
   Expect.throws(() => noInitializer);
@@ -95,12 +102,13 @@ main() {
   // Sound Null Safety - 6 total field resets:
   //  - 3 write/resets for the actual uninitialized field writes.
   //  - 3 reads/resets for the actual initialized field reads.
-  expectedResets = weakNullSafety ? resetFieldCount + 12 : resetFieldCount + 6;
+  expectedResets = weakNullSafety
+      ? expectThrowsResetFieldCount + 12
+      : expectThrowsResetFieldCount + 6;
   Expect.equals(expectedResets, dart.resetFields.length);
 
   dart.hotRestart();
   dart.hotRestart();
-  resetFieldCount = dart.resetFields.length;
 
   // Late statics should throw on get when not initialized.
   Expect.throws(() => noInitializer);
@@ -120,6 +128,8 @@ main() {
   // Sound Null Safety - 6 total field resets:
   //  - 3 reads/resets for actual uninitialized field reads.
   //  - 3 reads/resets for the actual initialized field reads.
-  expectedResets = weakNullSafety ? resetFieldCount + 9 : resetFieldCount + 6;
+  expectedResets = weakNullSafety
+      ? expectThrowsResetFieldCount + 9
+      : expectThrowsResetFieldCount + 6;
   Expect.equals(expectedResets, dart.resetFields.length);
 }

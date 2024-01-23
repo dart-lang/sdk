@@ -686,8 +686,15 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
+    var augmented = enclosingClass!.augmented;
+    if (augmented == null) {
+      _setInvalidTypeResolution(node,
+          whyNotPromotedList: whyNotPromotedList, contextType: contextType);
+      return;
+    }
+
     var target = _inheritance.getMember2(
-      enclosingClass!,
+      augmented.declaration,
       _currentName!,
       forSuper: true,
     );
@@ -708,7 +715,7 @@ class MethodInvocationResolver with ScopeHelpers {
     // Otherwise, this is an error.
     // But we would like to give the user at least some resolution.
     // So, we try to find the interface target.
-    target = _inheritance.getInherited2(enclosingClass, _currentName!);
+    target = _inheritance.getInherited2(augmented.declaration, _currentName!);
     if (target != null) {
       nameNode.staticElement = target;
       _setResolution(node, target.type, whyNotPromotedList,
@@ -727,7 +734,7 @@ class MethodInvocationResolver with ScopeHelpers {
     _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
         nameNode,
-        [name, enclosingClass.displayName]);
+        [name, augmented.declaration.displayName]);
   }
 
   void _resolveReceiverType({
