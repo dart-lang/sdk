@@ -40,7 +40,7 @@ library;
 //
 // class A extends Enum { // Error.
 //       ^
-// sdk/lib/core/enum.dart:25:11: Context: 'Enum.index' is defined here.
+// sdk/lib/core/enum.dart:*: Context: 'Enum.index' is defined here.
 //   int get index;
 //           ^^^^^
 //
@@ -54,7 +54,7 @@ library;
 //
 // class B implements Enum { // Error.
 //       ^
-// sdk/lib/core/enum.dart:25:11: Context: 'Enum.index' is defined here.
+// sdk/lib/core/enum.dart:*: Context: 'Enum.index' is defined here.
 //   int get index;
 //           ^^^^^
 //
@@ -68,7 +68,7 @@ library;
 //
 // class EnumClass2 extends AbstractEnumClass {} // Error.
 //       ^^^^^^^^^^
-// sdk/lib/core/enum.dart:25:11: Context: 'Enum.index' is defined here.
+// sdk/lib/core/enum.dart:*: Context: 'Enum.index' is defined here.
 //   int get index;
 //           ^^^^^
 //
@@ -82,7 +82,7 @@ library;
 //
 // class EnumClass3 extends AbstractEnumClass2 {} // Error.
 //       ^^^^^^^^^^
-// sdk/lib/core/enum.dart:25:11: Context: 'Enum.index' is defined here.
+// sdk/lib/core/enum.dart:*: Context: 'Enum.index' is defined here.
 //   int get index;
 //           ^^^^^
 //
