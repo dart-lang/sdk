@@ -5,7 +5,7 @@ library;
 // pkg/front_end/testcases/class_modifiers/mixin/mixin_class_core_libraries_legacy.dart:14:7: Error: Can't use 'Error' as a mixin because it has constructors.
 // class B with Error {} /* Error */
 //       ^
-// sdk/lib/core/errors.dart:73:3: Context: This constructor prevents using 'Error' as a mixin.
+// sdk/lib/core/errors.dart:*: Context: This constructor prevents using 'Error' as a mixin.
 //   Error(); // Prevent use as mixin.
 //   ^
 //

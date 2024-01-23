@@ -1088,22 +1088,46 @@ class ThreadInfo with FileUtils {
   /// This is required so that when the user sets a breakpoint in an SDK source
   /// (which they may have navigated to via the Analysis Server) we generate a
   /// valid URI that the VM would create a breakpoint for.
-  Future<Uri?> resolvePathToUri(String filePath) async {
-    var google3Path = _convertPathToGoogle3Uri(filePath);
-    if (google3Path != null) {
-      var result = await _manager._adapter.vmService
-          ?.lookupPackageUris(isolate.id!, [google3Path.toString()]);
-      var uriStr = result?.uris?.first;
-      return uriStr != null ? Uri.parse(uriStr) : null;
+  ///
+  /// Because the VM supports using `file:` URIs in many places, we usually do
+  /// not need to convert file paths into `package:` URIs, however this will
+  /// be done if [forceResolveFileUris] is `true`.
+  Future<Uri?> resolvePathToUri(
+    String filePath, {
+    bool forceResolveFileUris = false,
+  }) async {
+    final sdkUri = _manager._adapter.convertPathToOrgDartlangSdk(filePath);
+    if (sdkUri != null) {
+      return sdkUri;
     }
 
-    // We don't need to call lookupPackageUris in non-google3 because the VM can
-    // handle incoming file:/// URIs for packages, and also the org-dartlang-sdk
-    // URIs directly for SDK sources (we do not need to convert to 'dart:'),
-    // however this method is Future-returning in case this changes in future
-    // and we need to include a call to lookupPackageUris here.
-    return _manager._adapter.convertPathToOrgDartlangSdk(filePath) ??
-        Uri.file(filePath);
+    final google3Uri = _convertPathToGoogle3Uri(filePath);
+    final uri = google3Uri ?? Uri.file(filePath);
+
+    // As an optimisation, we don't resolve file -> package URIs in many cases
+    // because the VM can set breakpoints for file: URIs anyway. However for
+    // G3 or if [forceResolveFileUris] is set, we will.
+    final performResolve = google3Uri != null || forceResolveFileUris;
+
+    // TODO(dantup): Consider caching results for this like we do for
+    //  resolveUriToPath (and then forceResolveFileUris can be removed and just
+    //  always used).
+    final packageUriList = performResolve
+        ? await _manager._adapter.vmService
+            ?.lookupPackageUris(isolate.id!, [uri.toString()])
+        : null;
+    final packageUriString = packageUriList?.uris?.firstOrNull;
+
+    if (packageUriString != null) {
+      // Use package URI if we resolved something
+      return Uri.parse(packageUriString);
+    } else if (google3Uri != null) {
+      // If we failed to resolve and was a Google3 URI, return null
+      return null;
+    } else {
+      // Otherwise, use the original (file) URI
+      return uri;
+    }
   }
 
   /// Batch resolves source URIs from the VM to a file path for the package lib
@@ -1359,8 +1383,10 @@ class ThreadInfo with FileUtils {
     //
     // We need to handle msimatched drive letters, and also file vs package
     // URIs.
-    final scriptResolvedUri =
-        await resolvePathToUri(scriptFileUri.toFilePath());
+    final scriptResolvedUri = await resolvePathToUri(
+      scriptFileUri.toFilePath(),
+      forceResolveFileUris: true,
+    );
     final candidateUris = {
       scriptFileUri.toString(),
       normalizeUri(scriptFileUri).toString(),

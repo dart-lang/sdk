@@ -62,10 +62,12 @@ a unique name, such as `filePath`.
 #### Extensions
 
 Public extensions (which are intended to be accessible outside their declaring
-library) are named in a consistent style. An extension on a class `Foo` is
-named `FooExtension`. While this can lead to long names (like
-`AnalysisOptionsImplExtension`), the extension name is rarely used (only in
-explicit extension overrides), and we value consistency.
+library) are named in a consistent style. An extension on a type `Foo` is
+named `FooExtension`. An extension on a nullable type `Foo?` uses the word
+"Nullable" in place of the question mark, like `FooNullableExtension`. While
+this can lead to long names (like `AnalysisOptionsImplExtension`), the
+extension name is rarely used (only in explicit extension overrides), and we
+value consistency.
 
 ### Modifier usage
 

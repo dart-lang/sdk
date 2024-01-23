@@ -79,6 +79,19 @@ extension AstNodeExtension on AstNode {
 }
 
 extension AstNodeNullableExtension on AstNode? {
+  Element? get canonicalElement {
+    var self = this;
+    if (self is Expression) {
+      var node = self.unParenthesized;
+      if (node is Identifier) {
+        return node.staticElement?.canonicalElement;
+      } else if (node is PropertyAccess) {
+        return node.propertyName.staticElement?.canonicalElement;
+      }
+    }
+    return null;
+  }
+
   bool get isFieldNameShortcut {
     var node = this;
     if (node is NullCheckPattern) node = node.parent;
@@ -462,21 +475,6 @@ extension MethodDeclarationExtension on MethodDeclaration {
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedMethod(
             name.lexeme, declaredElement.library);
-      }
-    }
-    return null;
-  }
-}
-
-extension NullableAstNodeExtension on AstNode? {
-  Element? get canonicalElement {
-    var self = this;
-    if (self is Expression) {
-      var node = self.unParenthesized;
-      if (node is Identifier) {
-        return node.staticElement?.canonicalElement;
-      } else if (node is PropertyAccess) {
-        return node.propertyName.staticElement?.canonicalElement;
       }
     }
     return null;

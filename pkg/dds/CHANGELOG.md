@@ -1,3 +1,6 @@
+# 3.1.3-unreleased
+- [DAP] Fixed "Unable to find library" errors when using global evaluation when the context file resolves to a `package:` URI.
+
 # 3.1.2
 - Improved error handling for serving static DevTools assets.
 - Updated `devtools_shared` constraint to ^6.0.3.

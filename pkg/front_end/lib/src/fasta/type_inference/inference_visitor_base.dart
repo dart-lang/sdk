@@ -1711,14 +1711,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // type parameters for the callee (see dartbug.com/31759).
       // TODO(paulberry): is it possible to find a narrower set of circumstances
       // in which me must do this, to avoid a performance regression?
-      if (calleeTypeParameters.isNotEmpty) {
-        FreshStructuralParameters fresh =
-            getFreshStructuralParameters(calleeTypeParameters);
-        calleeType = fresh.applyToFunctionType(calleeType);
-        calleeTypeParameters = fresh.freshTypeParameters;
-      } else {
-        calleeTypeParameters = const <StructuralParameter>[];
-      }
+      FreshStructuralParameters fresh =
+          getFreshStructuralParameters(calleeTypeParameters);
+      calleeType = fresh.applyToFunctionType(calleeType);
+      calleeTypeParameters = fresh.freshTypeParameters;
     }
 
     List<DartType>? explicitTypeArguments = getExplicitTypeArguments(arguments);

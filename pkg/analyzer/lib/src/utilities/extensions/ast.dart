@@ -40,7 +40,7 @@ extension AstNodeExtension on AstNode {
       return node.offset <= offset && node.end >= end;
     }
 
-    /// Return the child of the [node] that completely contains the [range], or
+    /// Return the child of the [node] that completely contains the range, or
     /// `null` if none of the children contain the range (which means that the
     /// [node] is the covering node).
     AstNode? childContainingRange(AstNode node) {
@@ -66,5 +66,19 @@ extension AstNodeExtension on AstNode {
       currentNode = childContainingRange(previousNode);
     }
     return previousNode;
+  }
+}
+
+extension AstNodeNullableExtension on AstNode? {
+  List<ClassMember> get classMembers {
+    final self = this;
+    return switch (self) {
+      ClassDeclaration() => self.members,
+      EnumDeclaration() => self.members,
+      ExtensionDeclaration() => self.members,
+      ExtensionTypeDeclaration() => self.members,
+      MixinDeclaration() => self.members,
+      _ => throw UnimplementedError('(${self.runtimeType}) $self'),
+    };
   }
 }

@@ -832,6 +832,10 @@ class DeclarationHelper {
         if (extensionTypeElement != null) {
           if (!mustBeType) {
             _addMembers(extensionTypeElement, parent.members);
+            var fieldElement = parent.representation.fieldElement;
+            if (fieldElement != null) {
+              _suggestField(fieldElement, extensionTypeElement);
+            }
           }
           _suggestTypeParameters(extensionTypeElement.typeParameters);
         }
