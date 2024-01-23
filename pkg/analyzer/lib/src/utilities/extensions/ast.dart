@@ -40,7 +40,7 @@ extension AstNodeExtension on AstNode {
       return node.offset <= offset && node.end >= end;
     }
 
-    /// Return the child of the [node] that completely contains the [range], or
+    /// Return the child of the [node] that completely contains the range, or
     /// `null` if none of the children contain the range (which means that the
     /// [node] is the covering node).
     AstNode? childContainingRange(AstNode node) {
