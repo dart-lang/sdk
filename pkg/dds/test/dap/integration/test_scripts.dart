@@ -111,10 +111,15 @@ const infiniteRunningProgram = '''
 ///
 /// A top-level String variable `myGlobal` is available with the value
 /// `"Hello, world!"`.
+///
+/// Requires the 'foo' package.
 const globalEvaluationProgram = '''
+  import 'package:foo/foo.dart';
+
   var myGlobal = 'Hello, world!';
   void main(List<String> args) async {
     while (true) {
+      foo();
       print('.');
       await Future.delayed(const Duration(seconds: 1));
     }

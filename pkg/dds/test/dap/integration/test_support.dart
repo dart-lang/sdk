@@ -174,11 +174,14 @@ class DapTestSession {
     );
   }
 
-  /// Create a simple package named `foo` that has an empty `foo` function.
-  Future<Uri> createFooPackage([String? filename]) {
+  /// Create a simple package named `foo` that has an empty `foo` function and
+  /// a top-level variable `fooGlobal`.
+  Future<(Uri, File)> createFooPackage([String? filename]) {
     return createSimplePackage(
       'foo',
       '''
+var fooGlobal = 'Hello, foo!';
+
 foo() {
   // Does nothing.
 }
@@ -202,7 +205,7 @@ environment:
 
   /// Creates a simple package script and adds the package to
   /// .dart_tool/package_config.json
-  Future<Uri> createSimplePackage(
+  Future<(Uri, File)> createSimplePackage(
     String name,
     String content, [
     String? filename,
@@ -222,7 +225,7 @@ environment:
     final fileUri = Uri.file('${packageDir.path}/');
     await addPackageDependency(testAppDir, name, fileUri);
 
-    return Uri.parse('package:$name/$filename');
+    return (Uri.parse('package:$name/$filename'), testFile);
   }
 
   /// Creates a file in a temporary folder to be used as an application for testing.

@@ -99,7 +99,7 @@ main() {
     });
 
     test('runs a simple script with commas in the filename', () async {
-      final packageUri = await dap.createFooPackage('foo,foo.dart');
+      final (packageUri, _) = await dap.createFooPackage('foo,foo.dart');
       final testFile = dap.createTestFile(
         '''
           import '$packageUri';
@@ -167,7 +167,7 @@ main() {
       // - stack frames with package URIs (that need asynchronously resolving)
       // - stack frames with dart URIs (that need asynchronously resolving)
       final fileUri = Uri.file(dap.createTestFile('').path);
-      final packageUri = await dap.createFooPackage();
+      final (packageUri, _) = await dap.createFooPackage();
       final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
       final testFile = dap.createTestFile(
         stderrPrintingProgram(fileUri, packageUri, dartUri),
@@ -212,7 +212,7 @@ main() {
       // - stack frames with package URIs (that need asynchronously resolving)
       // - stack frames with dart URIs (that need asynchronously resolving)
       final fileUri = Uri.file(dap.createTestFile('').path);
-      final packageUri = await dap.createFooPackage();
+      final (packageUri, _) = await dap.createFooPackage();
       final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
       final testFile = dap.createTestFile(
         stderrPrintingProgram(fileUri, packageUri, dartUri),
