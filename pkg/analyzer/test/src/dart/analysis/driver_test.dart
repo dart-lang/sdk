@@ -3,28 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as driver_events;
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart'
-    show DartUriResolver, SourceFactory;
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -39,7 +27,6 @@ import 'result_printer.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisDriverSchedulerTest);
     defineReflectiveTests(AnalysisDriver_PubPackageTest);
     defineReflectiveTests(AnalysisDriver_BlazeWorkspaceTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -4638,6 +4625,309 @@ final a = new A();
 ''');
   }
 
+  test_priorities_changed_importing_rest() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import 'c.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+import 'b.dart';
+''');
+
+    var driver = driverFor(a);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+    driver.addFile2(b);
+    driver.addFile2(c);
+
+    // Discard results so far.
+    await collector.nextStatusIdle();
+    collector.take();
+
+    modifyFile2(b, r'''
+class B2 {}
+''');
+    driver.changeFile2(b);
+
+    // We analyze `b` first, because it was changed.
+    // Then we analyze `c`, because it imports `b`.
+    // Then we analyze `a`, because it also affected.
+    // Note, there is no specific rule that says when `a` is analyzed.
+    configuration.withStreamResolvedUnitResults = false;
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
+[operation] analyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[status] idle
+''');
+  }
+
+  test_priorities_changed_importing_withErrors_rest() async {
+    // Note, is affected by `b`, but does not import it.
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+export 'b.dart';
+''');
+
+    // We will change this file.
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    // Note, does not import `b` directly.
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+import 'a.dart';
+class C extends X {}
+''');
+
+    // Note, does import `b`.
+    var d = newFile('$testPackageLibPath/d.dart', r'''
+import 'b.dart';
+''');
+
+    var driver = driverFor(a);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+    driver.addFile2(b);
+    driver.addFile2(c);
+    driver.addFile2(d);
+
+    // Discard results so far.
+    await collector.nextStatusIdle();
+    collector.take();
+
+    modifyFile2(b, r'''
+class B2 {}
+''');
+    driver.changeFile2(b);
+
+    // We analyze `b` first, because it was changed.
+    // The we analyze `d` because it import `b`.
+    // Then we analyze `c` because it has errors.
+    // Then we analyze `a` because it is affected.
+    // For `a` because it just exports, there are no special rules.
+    configuration.withStreamResolvedUnitResults = false;
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
+[operation] analyzeFile
+  file: /home/test/lib/d.dart
+  library: /home/test/lib/d.dart
+[operation] analyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[status] idle
+''');
+  }
+
+  test_priorities_changedAll() async {
+    // Make sure that `test2` is its own analysis context.
+    var test1Path = '$workspaceRootPath/test1';
+    writePackageConfig(
+      test1Path,
+      PackageConfigFileBuilder()..add(name: 'test1', rootPath: test1Path),
+    );
+
+    // Make sure that `test2` is its own analysis context.
+    var test2Path = '$workspaceRootPath/test2';
+    writePackageConfig(
+      test2Path,
+      PackageConfigFileBuilder()..add(name: 'test2', rootPath: test2Path),
+    );
+
+    // `b` imports `a`, so `b` is reanalyzed when `a` API changes.
+    var a = newFile('$test1Path/lib/a.dart', 'class A {}');
+    var b = newFile('$test1Path/lib/b.dart', "import 'a.dart';");
+
+    // `d` imports `c`, so `d` is reanalyzed when `b` API changes.
+    var c = newFile('$test2Path/lib/c.dart', 'class C {}');
+    var d = newFile('$test2Path/lib/d.dart', "import 'c.dart';");
+
+    final collector = DriverEventCollector.forCollection(
+      analysisContextCollection,
+    );
+
+    var driver1 = driverFor(a);
+    var driver2 = driverFor(c);
+
+    // Ensure that we actually have two separate analysis contexts.
+    expect(driver1, isNot(same(driver2)));
+
+    // Subscribe for analysis.
+    driver1.addFile2(a);
+    driver1.addFile2(b);
+    driver2.addFile2(c);
+    driver2.addFile2(d);
+
+    // Discard results so far.
+    await collector.nextStatusIdle();
+    collector.take();
+
+    // Change `a` and `c` in a way that changed their API signatures.
+    modifyFile2(a, 'class A2 {}');
+    modifyFile2(c, 'class C2 {}');
+    driver1.changeFile2(a);
+    driver2.changeFile2(c);
+
+    // Note, `a` and `c` analyzed first, because they were changed.
+    // Even though they are in different drivers.
+    configuration.withStreamResolvedUnitResults = false;
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test1/lib/a.dart
+  library: /home/test1/lib/a.dart
+[operation] analyzeFile
+  file: /home/test2/lib/c.dart
+  library: /home/test2/lib/c.dart
+[operation] analyzeFile
+  file: /home/test1/lib/b.dart
+  library: /home/test1/lib/b.dart
+[operation] analyzeFile
+  file: /home/test2/lib/d.dart
+  library: /home/test2/lib/d.dart
+[status] idle
+''');
+  }
+
+  test_priorities_getResolvedUnit_beforePriority() async {
+    // Make sure that `test1` is its own analysis context.
+    var test1Path = '$workspaceRootPath/test1';
+    writePackageConfig(
+      test1Path,
+      PackageConfigFileBuilder()..add(name: 'test1', rootPath: test1Path),
+    );
+
+    // Make sure that `test2` is its own analysis context.
+    var test2Path = '$workspaceRootPath/test2';
+    writePackageConfig(
+      test2Path,
+      PackageConfigFileBuilder()..add(name: 'test2', rootPath: test2Path),
+    );
+
+    var a = newFile('$test1Path/lib/a.dart', '');
+    var b = newFile('$test2Path/lib/b.dart', '');
+    var c = newFile('$test2Path/lib/c.dart', '');
+
+    final collector = DriverEventCollector.forCollection(
+      analysisContextCollection,
+    );
+
+    var driver1 = driverFor(a);
+    var driver2 = driverFor(c);
+
+    // Ensure that we actually have two separate analysis contexts.
+    expect(driver1, isNot(same(driver2)));
+
+    // Subscribe for analysis.
+    driver1.addFile2(a);
+    driver2.addFile2(b);
+    driver2.addFile2(c);
+
+    driver1.priorityFiles2 = [a];
+    driver2.priorityFiles2 = [c];
+
+    collector.driver = driver2;
+    collector.getResolvedUnit('B1', b);
+
+    // We asked for `b`, so it is analyzed.
+    // Even if it is not a priority file.
+    // Even if it is in the `driver2`.
+    configuration.withStreamResolvedUnitResults = false;
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test2/lib/b.dart
+  library: /home/test2/lib/b.dart
+[future] getResolvedUnit B1
+  ResolvedUnitResult #0
+    path: /home/test2/lib/b.dart
+    uri: package:test2/b.dart
+    flags: exists isLibrary
+[operation] analyzeFile
+  file: /home/test1/lib/a.dart
+  library: /home/test1/lib/a.dart
+[operation] analyzeFile
+  file: /home/test2/lib/c.dart
+  library: /home/test2/lib/c.dart
+[status] idle
+''');
+  }
+
+  test_priorities_priority_rest() async {
+    // Make sure that `test1` is its own analysis context.
+    var test1Path = '$workspaceRootPath/test1';
+    writePackageConfig(
+      test1Path,
+      PackageConfigFileBuilder()..add(name: 'test1', rootPath: test1Path),
+    );
+
+    // Make sure that `test2` is its own analysis context.
+    var test2Path = '$workspaceRootPath/test2';
+    writePackageConfig(
+      test2Path,
+      PackageConfigFileBuilder()..add(name: 'test2', rootPath: test2Path),
+    );
+
+    var a = newFile('$test1Path/lib/a.dart', '');
+    var b = newFile('$test1Path/lib/b.dart', '');
+    var c = newFile('$test2Path/lib/c.dart', '');
+    var d = newFile('$test2Path/lib/d.dart', '');
+
+    final collector = DriverEventCollector.forCollection(
+      analysisContextCollection,
+    );
+
+    var driver1 = driverFor(a);
+    var driver2 = driverFor(c);
+
+    // Ensure that we actually have two separate analysis contexts.
+    expect(driver1, isNot(same(driver2)));
+
+    driver1.addFile2(a);
+    driver1.addFile2(b);
+    driver1.priorityFiles2 = [a];
+
+    driver2.addFile2(c);
+    driver2.addFile2(d);
+    driver2.priorityFiles2 = [c];
+
+    configuration.withStreamResolvedUnitResults = false;
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test1/lib/a.dart
+  library: /home/test1/lib/a.dart
+[operation] analyzeFile
+  file: /home/test2/lib/c.dart
+  library: /home/test2/lib/c.dart
+[operation] analyzeFile
+  file: /home/test1/lib/b.dart
+  library: /home/test1/lib/b.dart
+[operation] analyzeFile
+  file: /home/test2/lib/d.dart
+  library: /home/test2/lib/d.dart
+[status] idle
+''');
+  }
+
   test_removeFile_addFile() async {
     final a = newFile('$testPackageLibPath/a.dart', '');
 
@@ -5281,6 +5571,37 @@ class A2 {}
 ''');
   }
 
+  test_status_anyWorkTransitionsToAnalyzing() async {
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    var b = newFile('$testPackageLibPath/b.dart', '');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+    driver.addFile2(b);
+
+    // Initial analysis.
+    configuration.withStreamResolvedUnitResults = false;
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
+[status] idle
+''');
+
+    // Any work transitions to analyzing, and back to idle.
+    await driver.getFilesReferencingName('X');
+    await assertEventsText(collector, r'''
+[status] analyzing
+[status] idle
+''');
+  }
+
   bool _configureWithCommonMacros() {
     try {
       writeTestPackageConfig(
@@ -5301,385 +5622,23 @@ class A2 {}
   }
 }
 
-@reflectiveTest
-class AnalysisDriverSchedulerTest with ResourceProviderMixin {
-  final ByteStore byteStore = MemoryByteStore();
-  final InfoDeclarationStore infoDeclarationStore = InfoDeclarationStoreImpl();
-
-  final StringBuffer logBuffer = StringBuffer();
-  late final PerformanceLog logger;
-
-  late final AnalysisDriverScheduler scheduler;
-
-  final ListQueue<Object> allEvents = ListQueue<Object>();
-  final List<AnalysisResultWithErrors> allResults = [];
-
-  Folder get sdkRoot => newFolder('/sdk');
-
-  AnalysisDriver newDriver(AnalysisDriverScheduler scheduler) {
-    var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
-    AnalysisDriver driver = AnalysisDriver(
-      scheduler: scheduler,
-      logger: logger,
-      resourceProvider: resourceProvider,
-      byteStore: byteStore,
-      infoDeclarationStore: infoDeclarationStore,
-      sourceFactory: SourceFactory(
-        [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
-      ),
-      analysisOptionsMap:
-          AnalysisOptionsMap.forSharedOptions(AnalysisOptionsImpl()),
-      packages: Packages.empty,
-    );
-    return driver;
-  }
-
-  void setUp() {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
-    logger = PerformanceLog(logBuffer);
-    scheduler = AnalysisDriverScheduler(logger);
-    scheduler.start();
-  }
-
-  test_priorities_allChangedFirst() async {
-    final scheduler = _newScheduler();
-    AnalysisDriver driver1 = newDriver(scheduler);
-    AnalysisDriver driver2 = newDriver(scheduler);
-
-    String a = convertPath('/a.dart');
-    String b = convertPath('/b.dart');
-    String c = convertPath('/c.dart');
-    String d = convertPath('/d.dart');
-    newFile(a, 'class A {}');
-    newFile(b, "import 'a.dart';");
-    newFile(c, 'class C {}');
-    newFile(d, "import 'c.dart';");
-    driver1.addFile(a);
-    driver1.addFile(b);
-    driver2.addFile(c);
-    driver2.addFile(d);
-
-    await scheduler.waitForIdle();
-    allResults.clear();
-
-    modifyFile(a, 'class A2 {}');
-    modifyFile(c, 'class C2 {}');
-    driver1.changeFile(a);
-    driver1.changeFile(c);
-    driver2.changeFile(a);
-    driver2.changeFile(c);
-
-    await scheduler.waitForIdle();
-    expect(allResults, hasLength(greaterThanOrEqualTo(2)));
-    expect(allResults[0].path, a);
-    expect(allResults[1].path, c);
-  }
-
-  test_priorities_firstChanged_thenImporting() async {
-    final scheduler = _newScheduler();
-    AnalysisDriver driver1 = newDriver(scheduler);
-    AnalysisDriver driver2 = newDriver(scheduler);
-
-    String a = convertPath('/a.dart');
-    String b = convertPath('/b.dart');
-    String c = convertPath('/c.dart');
-    newFile(a, "import 'c.dart';");
-    newFile(b, 'class B {}');
-    newFile(c, "import 'b.dart';");
-    driver1.addFile(a);
-    driver1.addFile(b);
-    driver2.addFile(c);
-
-    await scheduler.waitForIdle();
-    allResults.clear();
-
-    modifyFile(b, 'class B2 {}');
-    driver1.changeFile(b);
-    driver2.changeFile(b);
-
-    await scheduler.waitForIdle();
-    expect(allResults, hasLength(greaterThanOrEqualTo(2)));
-    expect(allResults[0].path, b);
-    expect(allResults[1].path, c);
-  }
-
-  test_priorities_firstChanged_thenWithErrors() async {
-    final scheduler = _newScheduler();
-    AnalysisDriver driver1 = newDriver(scheduler);
-    AnalysisDriver driver2 = newDriver(scheduler);
-
-    String a = convertPath('/a.dart');
-    String b = convertPath('/b.dart');
-    String c = convertPath('/c.dart');
-    String d = convertPath('/d.dart');
-    newFile(a, 'class A {}');
-    newFile(b, "export 'a.dart';");
-    newFile(c, "import 'b.dart';");
-    newFile(d, "import 'b.dart'; class D extends X {}");
-    driver1.addFile(a);
-    driver1.addFile(b);
-    driver2.addFile(c);
-    driver2.addFile(d);
-
-    await scheduler.waitForIdle();
-    allResults.clear();
-
-    modifyFile(a, 'class A2 {}');
-    driver1.changeFile(a);
-    driver2.changeFile(a);
-
-    await scheduler.waitForIdle();
-    expect(allResults, hasLength(greaterThanOrEqualTo(2)));
-    expect(allResults[0].path, a);
-    expect(allResults[1].path, d);
-  }
-
-  test_priorities_getResolvedUnit_beforePriority() async {
-    final scheduler = _newScheduler();
-    AnalysisDriver driver1 = newDriver(scheduler);
-    AnalysisDriver driver2 = newDriver(scheduler);
-
-    String a = convertPath('/a.dart');
-    String b = convertPath('/b.dart');
-    String c = convertPath('/c.dart');
-    newFile(a, 'class A {}');
-    newFile(b, 'class B {}');
-    newFile(c, 'class C {}');
-    driver1.addFile(a);
-    driver2.addFile(b);
-    driver2.addFile(c);
-    driver1.priorityFiles = [a];
-    driver2.priorityFiles = [a];
-
-    var result = await driver2.getResolvedUnit(b) as ResolvedUnitResult;
-    expect(result.path, b);
-
-    await _waitForAnalysisStatusIdle();
-
-    expect(allResults, hasLength(3));
-    expect(allResults[0].path, b);
-    expect(allResults[1].path, a);
-    expect(allResults[2].path, c);
-  }
-
-  test_priorities_priorityBeforeGeneral1() async {
-    final scheduler = _newScheduler();
-    AnalysisDriver driver1 = newDriver(scheduler);
-    AnalysisDriver driver2 = newDriver(scheduler);
-
-    String a = convertPath('/a.dart');
-    String b = convertPath('/b.dart');
-    newFile(a, 'class A {}');
-    newFile(b, 'class B {}');
-    driver1.addFile(a);
-    driver2.addFile(b);
-    driver1.priorityFiles = [a];
-    driver2.priorityFiles = [a];
-
-    await _waitForAnalysisStatusIdle();
-
-    expect(allResults, hasLength(2));
-    expect(allResults[0].path, a);
-    expect(allResults[1].path, b);
-  }
-
-  test_priorities_priorityBeforeGeneral2() async {
-    final scheduler = _newScheduler();
-    AnalysisDriver driver1 = newDriver(scheduler);
-    AnalysisDriver driver2 = newDriver(scheduler);
-
-    String a = convertPath('/a.dart');
-    String b = convertPath('/b.dart');
-    newFile(a, 'class A {}');
-    newFile(b, 'class B {}');
-    driver1.addFile(a);
-    driver2.addFile(b);
-    driver1.priorityFiles = [b];
-    driver2.priorityFiles = [b];
-
-    await _waitForAnalysisStatusIdle();
-
-    expect(allResults, hasLength(2));
-    expect(allResults[0].path, b);
-    expect(allResults[1].path, a);
-  }
-
-  test_priorities_priorityBeforeGeneral3() async {
-    final scheduler = _newScheduler();
-    AnalysisDriver driver1 = newDriver(scheduler);
-    AnalysisDriver driver2 = newDriver(scheduler);
-
-    String a = convertPath('/a.dart');
-    String b = convertPath('/b.dart');
-    String c = convertPath('/c.dart');
-    newFile(a, 'class A {}');
-    newFile(b, 'class B {}');
-    newFile(c, 'class C {}');
-    driver1.addFile(a);
-    driver1.addFile(b);
-    driver2.addFile(c);
-    driver1.priorityFiles = [a, c];
-    driver2.priorityFiles = [a, c];
-
-    await _waitForAnalysisStatusIdle();
-
-    expect(allResults, hasLength(3));
-    expect(allResults[0].path, a);
-    expect(allResults[1].path, c);
-    expect(allResults[2].path, b);
-  }
-
-  test_status() async {
-    final scheduler = _newScheduler();
-    AnalysisDriver driver1 = newDriver(scheduler);
-    AnalysisDriver driver2 = newDriver(scheduler);
-
-    String a = convertPath('/a.dart');
-    String b = convertPath('/b.dart');
-    String c = convertPath('/c.dart');
-    newFile(a, 'class A {}');
-    newFile(b, 'class B {}');
-    newFile(c, 'class C {}');
-    driver1.addFile(a);
-    driver2.addFile(b);
-    driver2.addFile(c);
-
-    // TODO(scheglov): use text expectations
-    final idleStatusCompleter = Completer<void>();
-    final allStatuses = <AnalysisStatus>[];
-    while (true) {
-      final status = allEvents.removeFirstOrNull();
-      if (status is AnalysisStatus) {
-        allStatuses.add(status);
-        if (status.isIdle) {
-          idleStatusCompleter.complete();
-          break;
-        }
-      }
-      await pumpEventQueue();
-    }
-
-    await idleStatusCompleter.future;
-    expect(allStatuses, hasLength(2));
-    expect(allStatuses[0].isAnalyzing, isTrue);
-    expect(allStatuses[1].isAnalyzing, isFalse);
-
-    expect(allResults, hasLength(3));
-  }
-
-  test_status_anyWorkTransitionsToAnalyzing() async {
-    final scheduler = _newScheduler();
-    AnalysisDriver driver1 = newDriver(scheduler);
-    AnalysisDriver driver2 = newDriver(scheduler);
-
-    String a = convertPath('/a.dart');
-    String b = convertPath('/b.dart');
-    newFile(a, 'class A {}');
-    newFile(b, 'class B {}');
-    driver1.addFile(a);
-    driver2.addFile(b);
-
-    // TODO(scheglov): use text expectations
-    // The two added files were analyzed, and the schedule is idle.
-    {
-      final idleStatusCompleter = Completer<void>();
-      final allStatuses = <AnalysisStatus>[];
-      while (true) {
-        final status = allEvents.removeFirstOrNull();
-        if (status is AnalysisStatus) {
-          allStatuses.add(status);
-          if (status.isIdle) {
-            idleStatusCompleter.complete();
-            break;
-          }
-        }
-        await pumpEventQueue();
-      }
-      expect(allStatuses, [AnalysisStatus.ANALYZING, AnalysisStatus.IDLE]);
-    }
-
-    // Any work transitions to analyzing, and back to idle.
-    {
-      await driver1.getFilesReferencingName('X');
-      final idleStatusCompleter = Completer<void>();
-      final allStatuses = <AnalysisStatus>[];
-      while (true) {
-        final status = allEvents.removeFirstOrNull();
-        if (status is AnalysisStatus) {
-          allStatuses.add(status);
-          if (status.isIdle) {
-            idleStatusCompleter.complete();
-            break;
-          }
-        }
-        await pumpEventQueue();
-      }
-      expect(allStatuses, [AnalysisStatus.ANALYZING, AnalysisStatus.IDLE]);
-    }
-  }
-
-  AnalysisDriverScheduler _newScheduler() {
-    final scheduler = AnalysisDriverScheduler(
-      PerformanceLog(null),
-    );
-
-    scheduler.events.listen((event) {
-      allEvents.add(event);
-      if (event is AnalysisResultWithErrors) {
-        allResults.add(event);
-      }
-    });
-
-    scheduler.start();
-    return scheduler;
-  }
-
-  // TODO(scheglov): use text expectations
-  Future<void> _waitForAnalysisStatusIdle() async {
-    while (true) {
-      final first = allEvents.removeFirstOrNull();
-      if (first is AnalysisStatus && first.isIdle) {
-        break;
-      }
-      await pumpEventQueue();
-    }
-  }
-}
-
 /// Tracks events reported into the `results` stream, and results of `getXyz`
 /// requests. We are interested in relative orders, identity of the objects,
 /// absence of duplicate events, etc.
 class DriverEventCollector {
   final idProvider = IdProvider();
-  final AnalysisDriver driver;
+  late AnalysisDriver driver;
   List<DriverEvent> events = [];
   final List<Completer<void>> statusIdleCompleters = [];
 
   DriverEventCollector(this.driver) {
-    driver.scheduler.events.listen((event) {
-      switch (event) {
-        case AnalysisStatus():
-          events.add(
-            SchedulerStatusEvent(event),
-          );
-          if (event.isIdle) {
-            statusIdleCompleters.completeAll();
-            statusIdleCompleters.clear();
-          }
-        case driver_events.AnalyzeFile():
-        case driver_events.GetErrorsFromBytes():
-        case ErrorsResult():
-        case ResolvedUnitResult():
-          events.add(
-            ResultStreamEvent(
-              object: event,
-            ),
-          );
-      }
-    });
+    _listenSchedulerEvents(driver.scheduler);
+  }
+
+  DriverEventCollector.forCollection(
+    AnalysisContextCollectionImpl collection,
+  ) {
+    _listenSchedulerEvents(collection.scheduler);
   }
 
   void getCachedResolvedUnit(String name, File file) {
@@ -5792,6 +5751,30 @@ class DriverEventCollector {
     final result = events;
     events = [];
     return result;
+  }
+
+  void _listenSchedulerEvents(AnalysisDriverScheduler scheduler) {
+    scheduler.events.listen((event) {
+      switch (event) {
+        case AnalysisStatus():
+          events.add(
+            SchedulerStatusEvent(event),
+          );
+          if (event.isIdle) {
+            statusIdleCompleters.completeAll();
+            statusIdleCompleters.clear();
+          }
+        case driver_events.AnalyzeFile():
+        case driver_events.GetErrorsFromBytes():
+        case ErrorsResult():
+        case ResolvedUnitResult():
+          events.add(
+            ResultStreamEvent(
+              object: event,
+            ),
+          );
+      }
+    });
   }
 }
 

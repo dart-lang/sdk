@@ -2372,19 +2372,19 @@ augment class B {
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @73
-                    staticElement: <null>
+                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @80
                   identifier: SimpleIdentifier
                     token: AddMethodFoo @81
-                    staticElement: <null>
+                    staticElement: package:test/a.dart::@class::AddMethodFoo
                     staticType: null
-                  staticElement: <null>
+                  staticElement: package:test/a.dart::@class::AddMethodFoo
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @93
                   rightParenthesis: ) @94
-                element: <null>
+                element: package:test/a.dart::@class::AddMethodFoo::@constructor::new
             augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
             augmented
               methods

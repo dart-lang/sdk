@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/dart/analysis/analysis_options.dart';
@@ -82,6 +83,10 @@ abstract class AnalysisContext {
   SourceFactory get sourceFactory;
 
   /// Get the [AnalysisOptions] instance for the given [file].
+  ///
+  /// NOTE: this API is experimental and subject to change in a future
+  /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
+  @experimental
   AnalysisOptions getAnalysisOptionsForFile(File file);
 }
 

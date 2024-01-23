@@ -56,6 +56,7 @@ import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
+import 'package:meta/meta.dart';
 
 /// This class computes analysis results for Dart files.
 ///
@@ -700,6 +701,9 @@ class AnalysisDriver {
     return completer.future;
   }
 
+  /// NOTE: this API is experimental and subject to change in a future
+  /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
+  @experimental
   AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
       analysisOptionsMap.getOptions(file);
 

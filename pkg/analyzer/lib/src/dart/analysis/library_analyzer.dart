@@ -796,7 +796,7 @@ class LibraryAnalyzer {
 
     unit.accept(ScopeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        nameScope: _libraryElement.scope));
+        nameScope: unitElement.enclosingElement.scope));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
