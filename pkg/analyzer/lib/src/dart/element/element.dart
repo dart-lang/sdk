@@ -1016,6 +1016,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// and [offset].
   ConstructorElementImpl(super.name, super.offset);
 
+  ConstructorElementImpl? get augmentedDeclaration {
+    if (isAugmentation) {
+      return augmentationTarget?.augmentedDeclaration;
+    } else {
+      return this;
+    }
+  }
+
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
   List<ConstructorInitializer> get constantInitializers {

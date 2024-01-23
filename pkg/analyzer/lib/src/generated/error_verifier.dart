@@ -243,15 +243,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
   final UseResultVerifier _checkUseVerifier;
   late final TypeArgumentsVerifier _typeArgumentsVerifier;
-  late final ConstructorFieldsVerifier _constructorFieldsVerifier;
   late final ReturnTypeVerifier _returnTypeVerifier;
   final TypeSystemOperations typeSystemOperations;
 
   /// Initialize a newly created error verifier.
-  ErrorVerifier(this.errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.libraryVerificationContext, this.options,
-      {required this.typeSystemOperations})
-      : _uninstantiatedBoundChecker =
+  ErrorVerifier(
+    this.errorReporter,
+    this._currentLibrary,
+    this._typeProvider,
+    this._inheritanceManager,
+    this.libraryVerificationContext,
+    this.options, {
+    required this.typeSystemOperations,
+  })  : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter,
@@ -269,10 +273,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     typeSystem = _currentLibrary.typeSystem;
     _typeArgumentsVerifier =
         TypeArgumentsVerifier(options, _currentLibrary, errorReporter);
-    _constructorFieldsVerifier = ConstructorFieldsVerifier(
-      typeSystem: typeSystem,
-      errorReporter: errorReporter,
-    );
     _returnTypeVerifier = ReturnTypeVerifier(
       typeProvider: _typeProvider as TypeProviderImpl,
       typeSystem: typeSystem,
@@ -469,8 +469,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkClassInheritance(node, superclass, withClause, implementsClause);
       }
 
+      if (node.nativeClause == null) {
+        libraryVerificationContext.constructorFieldsVerifier
+            .addConstructors(errorReporter, augmented, members);
+      }
+
       _checkForConflictingClassMembers();
-      _constructorFieldsVerifier.enterClass(node, declarationElement);
       _checkForFinalNotInitializedInClass(element, members);
       _checkForBadFunctionUse(
         superclass: node.extendsClause?.superclass,
@@ -491,7 +495,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       super.visitClassDeclaration(node);
     } finally {
       _isInNativeClass = false;
-      _constructorFieldsVerifier.leaveClass();
       _enclosingClass = null;
       _enclosingClassAugmented = null;
     }
@@ -561,7 +564,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!_checkForConstConstructorWithNonConstSuper(node)) {
         _checkForConstConstructorWithNonFinalField(node, element);
       }
-      _constructorFieldsVerifier.verify(node);
       _checkForRedirectingConstructorErrorCodes(node);
       _checkForConflictingInitializerErrorCodes(node);
       _checkForRecursiveConstructorRedirect(node, element);
@@ -624,6 +626,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitEnumDeclaration(EnumDeclaration node) {
     try {
       var element = node.declaredElement as EnumElementImpl;
+
+      final augmented = element.augmented;
+      if (augmented == null) {
+        return;
+      }
       _enclosingClass = element;
       _duplicateDefinitionVerifier.checkEnum(node);
 
@@ -637,8 +644,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkClassInheritance(node, null, withClause, implementsClause);
       }
 
-      _constructorFieldsVerifier.enterEnum(node, element);
-      _checkForFinalNotInitializedInClass(element, node.members);
+      var members = node.members;
+      libraryVerificationContext.constructorFieldsVerifier
+          .addConstructors(errorReporter, augmented, members);
+      _checkForFinalNotInitializedInClass(element, members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, element);
@@ -651,7 +660,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       super.visitEnumDeclaration(node);
     } finally {
-      _constructorFieldsVerifier.leaveClass();
       _enclosingClass = null;
       _enclosingClassAugmented = null;
     }
@@ -722,12 +730,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME);
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(element);
 
+      var members = node.members;
       _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForRepeatedType(node.implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkForConflictingClassMembers();
       _checkForConflictingGenerics(node);
-      _constructorFieldsVerifier.enterExtensionType(node, declarationElement);
+      libraryVerificationContext.constructorFieldsVerifier
+          .addConstructors(errorReporter, augmented, members);
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, element);
       _checkForExtensionTypeRepresentationDependsOnItself(node, element);
@@ -750,7 +760,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       super.visitExtensionTypeDeclaration(node);
     } finally {
-      _constructorFieldsVerifier.leaveClass();
       _enclosingClass = null;
       _enclosingClassAugmented = null;
     }
@@ -6149,6 +6158,11 @@ class HiddenElements {
 /// Information to pass from from the defining unit to augmentations.
 class LibraryVerificationContext {
   final duplicationDefinitionContext = DuplicationDefinitionContext();
+  final ConstructorFieldsVerifier constructorFieldsVerifier;
+
+  LibraryVerificationContext({
+    required this.constructorFieldsVerifier,
+  });
 }
 
 /// Recursively visits a type annotation, looking uninstantiated bounds.

@@ -477,25 +477,6 @@ class A {}
     ]);
   }
 
-  @FailingTest(reason: r'''
-ResolvedLibraryResult #0
-  element: package:test/test.dart
-  units
-    ResolvedUnitResult #1
-      path: /home/test/lib/test.dart
-      uri: package:test/test.dart
-      flags: exists isLibrary
-      errors
-        169 +3 FINAL_NOT_INITIALIZED
-        189 +4 FINAL_NOT_INITIALIZED
-    ResolvedUnitResult #2
-      path: /home/test/lib/test.macro.dart
-      uri: package:test/test.macro.dart
-      flags: exists isAugmentation isMacroAugmentation
-      errors
-        317 +13 DUPLICATE_CONSTRUCTOR
-        164 +4 FINAL_NOT_INITIALIZED_CONSTRUCTOR
-''')
   test_example_jsonSerializable() async {
     newFile(testFile.path, r'''
 import 'json_serializable.dart';

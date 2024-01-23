@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
@@ -79,8 +80,8 @@ class LibraryAnalyzer {
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
-  final LibraryVerificationContext _libraryVerificationContext =
-      LibraryVerificationContext();
+  late final LibraryVerificationContext _libraryVerificationContext;
+
   final TestingData? _testingData;
   final TypeSystemOperations _typeSystemOperations;
 
@@ -89,7 +90,13 @@ class LibraryAnalyzer {
       {TestingData? testingData,
       required TypeSystemOperations typeSystemOperations})
       : _testingData = testingData,
-        _typeSystemOperations = typeSystemOperations;
+        _typeSystemOperations = typeSystemOperations {
+    _libraryVerificationContext = LibraryVerificationContext(
+      constructorFieldsVerifier: ConstructorFieldsVerifier(
+        typeSystem: _typeSystem,
+      ),
+    );
+  }
 
   TypeProviderImpl get _typeProvider => _libraryElement.typeProvider;
 
@@ -271,6 +278,8 @@ class LibraryAnalyzer {
       _computeVerifyErrors(file, unit);
     });
 
+    _libraryVerificationContext.constructorFieldsVerifier.report();
+
     if (_analysisOptions.warning) {
       var usedImportedElements = <UsedImportedElements>[];
       var usedLocalElements = <UsedLocalElements>[];
@@ -406,13 +415,14 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = ErrorVerifier(
-        errorReporter,
-        _libraryElement,
-        _typeProvider,
-        _inheritance,
-        _libraryVerificationContext,
-        _analysisOptions,
-        typeSystemOperations: _typeSystemOperations);
+      errorReporter,
+      _libraryElement,
+      _typeProvider,
+      _inheritance,
+      _libraryVerificationContext,
+      _analysisOptions,
+      typeSystemOperations: _typeSystemOperations,
+    );
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as

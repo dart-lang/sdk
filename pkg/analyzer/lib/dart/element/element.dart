@@ -85,7 +85,10 @@ abstract class AugmentedClassElement implements AugmentedInterfaceElement {
 /// The result of applying augmentations to an [EnumElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedEnumElement implements AugmentedInterfaceElement {}
+abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
+  @override
+  EnumElement get declaration;
+}
 
 /// The result of applying augmentations to an [ExtensionElement].
 ///
