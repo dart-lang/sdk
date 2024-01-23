@@ -4853,6 +4853,11 @@ static ObjectPtr EvaluateCompiledExpressionHelper(
     const TypeArguments& type_arguments) {
   // type_arguments is null if all type arguments are dynamic.
   if (type_definitions.Length() == 0 || type_arguments.IsNull()) {
+#if defined(DEBUG)
+    for (intptr_t i = 0; i < arguments.Length(); ++i) {
+      ASSERT(arguments.At(i) != Object::optimized_out().ptr());
+    }
+#endif  // defined(DEBUG)
     return DartEntry::InvokeFunction(eval_function, arguments);
   }
 
@@ -4863,6 +4868,7 @@ static ObjectPtr EvaluateCompiledExpressionHelper(
   Object& arg = Object::Handle(zone);
   for (intptr_t i = 0; i < arguments.Length(); ++i) {
     arg = arguments.At(i);
+    ASSERT(arg.ptr() != Object::optimized_out().ptr());
     real_arguments.SetAt(i + 1, arg);
   }
 
