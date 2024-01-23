@@ -31,6 +31,25 @@ String libraryNameToString(Library? node) {
   return node == null ? 'null' : node.name ?? 'library ${node.importUri}';
 }
 
+String libraryReferenceToString(Reference? reference) {
+  if (reference == null) {
+    return '<missing-library-reference>';
+  } else {
+    Library? node = reference.node as Library?;
+    if (node != null) {
+      return node.importUri.toString();
+    } else {
+      CanonicalName? canonicalName = reference.canonicalName;
+      if (canonicalName != null) {
+        return qualifiedCanonicalNameToString(canonicalName,
+            includeLibraryName: false);
+      } else {
+        return '<unlinked-library-reference>';
+      }
+    }
+  }
+}
+
 String qualifiedClassNameToString(Class node,
     {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;

@@ -11,7 +11,7 @@ class ToStringMacro implements ClassDeclarationsMacro {
   const ToStringMacro();
 
   @override
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
     if (!methods.any((m) => m.identifier.name == 'toString')) {
@@ -44,7 +44,7 @@ class InjectMacro implements ClassDeclarationsMacro {
   const InjectMacro();
 
   @override
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
     if (!methods.any((m) => m.identifier.name == 'injectedMethod')) {

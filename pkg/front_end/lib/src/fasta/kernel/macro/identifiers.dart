@@ -15,7 +15,7 @@ import '../../builder/member_builder.dart';
 import '../../builder/nullability_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../uris.dart';
-import 'macro.dart';
+import 'introspectors.dart';
 
 abstract class IdentifierImpl extends macro.IdentifierImpl {
   IdentifierImpl({
@@ -26,7 +26,7 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
   macro.ResolvedIdentifier resolveIdentifier();
 
   Future<macro.TypeDeclaration> resolveTypeDeclaration(
-      MacroApplications macroApplications);
+      MacroIntrospection macroIntrospection);
 
   DartType buildType(
       NullabilityBuilder nullabilityBuilder, List<DartType> typeArguments);
@@ -37,9 +37,9 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
       Uri? uri;
       switch (typeDeclarationBuilder) {
         case ClassBuilder():
-          uri = typeDeclarationBuilder.libraryBuilder.importUri;
+          uri = typeDeclarationBuilder.libraryBuilder.origin.importUri;
         case TypeAliasBuilder():
-          uri = typeDeclarationBuilder.libraryBuilder.importUri;
+          uri = typeDeclarationBuilder.libraryBuilder.origin.importUri;
         case NominalVariableBuilder():
         // TODO(johnniwinther): Handle this case.
         case StructuralVariableBuilder():
@@ -56,7 +56,6 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
         // TODO(johnniwinther): How should we handle this case?
         case OmittedTypeDeclarationBuilder():
       }
-
       return new macro.ResolvedIdentifier(
           kind: macro.IdentifierKind.topLevelMember,
           name: name,
@@ -67,16 +66,15 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
     }
   }
 
-  Future<macro.TypeDeclaration> _resolveTypeDeclaration(
-      MacroApplications macroApplications,
+  macro.TypeDeclaration _resolveTypeDeclaration(
+      MacroIntrospection macroIntrospection,
       TypeDeclarationBuilder? typeDeclarationBuilder) {
     switch (typeDeclarationBuilder) {
       case ClassBuilder():
-        return new Future.value(
-            macroApplications.getClassDeclaration(typeDeclarationBuilder));
+        return macroIntrospection.getClassDeclaration(typeDeclarationBuilder);
       case TypeAliasBuilder():
-        return new Future.value(
-            macroApplications.getTypeAliasDeclaration(typeDeclarationBuilder));
+        return macroIntrospection
+            .getTypeAliasDeclaration(typeDeclarationBuilder);
       case NominalVariableBuilder():
       case StructuralVariableBuilder():
       case ExtensionBuilder():
@@ -87,9 +85,12 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
       case OmittedTypeDeclarationBuilder():
       case null:
         // TODO(johnniwinther): Handle these cases.
-        return new Future.error(
-            new ArgumentError('Unable to resolve identifier $this'));
+        throw new ArgumentError('Unable to resolve identifier $this');
     }
+  }
+
+  macro.Declaration resolveDeclaration(MacroIntrospection macroIntrospection) {
+    throw new UnimplementedError('${runtimeType}.resolveDeclaration');
   }
 }
 
@@ -126,8 +127,20 @@ class TypeBuilderIdentifier extends IdentifierImpl {
 
   @override
   Future<macro.TypeDeclaration> resolveTypeDeclaration(
-      MacroApplications macroApplications) {
-    return _resolveTypeDeclaration(macroApplications, typeBuilder.declaration);
+      MacroIntrospection macroIntrospection) {
+    return new Future.value(
+        _resolveTypeDeclaration(macroIntrospection, typeBuilder.declaration));
+  }
+
+  @override
+  macro.Declaration resolveDeclaration(MacroIntrospection macroIntrospection) {
+    return _resolveTypeDeclaration(macroIntrospection, typeBuilder.declaration);
+  }
+
+  @override
+  String toString() {
+    return "TypeBuilderIdentifier("
+        "typeBuilder=$typeBuilder,libraryBuilder=$libraryBuilder)";
   }
 }
 
@@ -149,8 +162,14 @@ class TypeDeclarationBuilderIdentifier extends IdentifierImpl {
 
   @override
   Future<macro.TypeDeclaration> resolveTypeDeclaration(
-      MacroApplications macroApplications) {
-    return _resolveTypeDeclaration(macroApplications, typeDeclarationBuilder);
+      MacroIntrospection macroIntrospection) {
+    return new Future.value(
+        _resolveTypeDeclaration(macroIntrospection, typeDeclarationBuilder));
+  }
+
+  @override
+  macro.Declaration resolveDeclaration(MacroIntrospection macroIntrospection) {
+    return _resolveTypeDeclaration(macroIntrospection, typeDeclarationBuilder);
   }
 
   @override
@@ -182,12 +201,12 @@ class MemberBuilderIdentifier extends IdentifierImpl {
     String? staticScope;
     macro.IdentifierKind kind;
     if (memberBuilder.isTopLevel) {
-      uri = memberBuilder.libraryBuilder.importUri;
+      uri = memberBuilder.libraryBuilder.origin.importUri;
       kind = macro.IdentifierKind.topLevelMember;
     } else if (memberBuilder.isStatic || memberBuilder.isConstructor) {
       ClassBuilder classBuilder = memberBuilder.classBuilder!;
       staticScope = classBuilder.name;
-      uri = classBuilder.libraryBuilder.importUri;
+      uri = classBuilder.libraryBuilder.origin.importUri;
       kind = macro.IdentifierKind.staticInstanceMember;
     } else {
       kind = macro.IdentifierKind.instanceMember;
@@ -204,7 +223,7 @@ class MemberBuilderIdentifier extends IdentifierImpl {
 
   @override
   Future<macro.TypeDeclaration> resolveTypeDeclaration(
-      MacroApplications macroApplications) {
+      MacroIntrospection macroIntrospection) {
     return new Future.error(
         new ArgumentError('Cannot resolve type declaration from member.'));
   }
@@ -238,7 +257,7 @@ class FormalParameterBuilderIdentifier extends IdentifierImpl {
 
   @override
   Future<macro.TypeDeclaration> resolveTypeDeclaration(
-      MacroApplications macroApplications) {
+      MacroIntrospection macroIntrospection) {
     throw new ArgumentError(
         'Cannot resolve type declaration from formal parameter.');
   }
@@ -264,7 +283,7 @@ class OmittedTypeIdentifier extends IdentifierImpl {
 
   @override
   Future<macro.TypeDeclaration> resolveTypeDeclaration(
-      MacroApplications macroApplications) {
+      MacroIntrospection macroIntrospection) {
     return new Future.error(new ArgumentError(
         'Cannot resolve type declaration from omitted type.'));
   }

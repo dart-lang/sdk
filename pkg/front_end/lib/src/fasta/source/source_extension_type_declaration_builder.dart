@@ -735,7 +735,7 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
       new ClassDeclarationMemberIterator<SourceExtensionTypeDeclarationBuilder,
-              T>(
+              T>.full(
           const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
           this,
           includeDuplicates: false);
@@ -751,7 +751,7 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
       new ClassDeclarationConstructorIterator<
-              SourceExtensionTypeDeclarationBuilder, T>(
+              SourceExtensionTypeDeclarationBuilder, T>.full(
           const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
           this,
           includeDuplicates: false);

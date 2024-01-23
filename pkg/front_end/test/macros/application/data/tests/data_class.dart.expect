@@ -4,6 +4,8 @@ import "package:macro/data_class.dart" as dat;
 import "dart:core" as core;
 
 import "package:macro/data_class.dart";
+import "dart:core" as prefix0;
+import "dart:core" as prefix0;
 
 @#C1
 class Foo extends core::Object {

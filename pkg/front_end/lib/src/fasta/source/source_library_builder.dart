@@ -498,9 +498,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// unparsed library on the [loader].
   SourceLibraryBuilder createAugmentationLibrary(String source,
       {Map<String, OmittedTypeBuilder>? omittedTypes}) {
+    assert(!isPatch,
+        "createAugmentationLibrary is only supported on the origin library.");
     int index = _patchLibraries?.length ?? 0;
     Uri uri =
         new Uri(scheme: augmentationScheme, path: '${fileUri.path}-$index');
+    // TODO(johnniwinther): Add support for printing the generated macro
+    // libraries when running `fasta compile`.
+    /*
+    print('==================================================================');
+    print('Origin library: ${importUri}');
+    print('Augmentation library: $uri');
+    print('-----------------------------source-------------------------------');
+    print(source);
+    print('==================================================================');
+    */
     Map<String, Builder>? omittedTypeDeclarationBuilders;
     if (omittedTypes != null && omittedTypes.isNotEmpty) {
       omittedTypeDeclarationBuilders = {};
@@ -1125,8 +1137,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   /// Builds the core AST structure of this library as needed for the outline.
-  Library buildOutlineNodes(LibraryBuilder coreLibrary,
-      {bool modifyTarget = true}) {
+  Library buildOutlineNodes(LibraryBuilder coreLibrary) {
     // TODO(johnniwinther): Avoid the need to process patch libraries before
     // the origin. Currently, settings performed by the patch are overridden
     // by the origin. For instance, the `Map` class is abstract in the origin
@@ -1136,7 +1147,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.buildOutlineNodes(coreLibrary, modifyTarget: modifyTarget);
+        patchLibrary.buildOutlineNodes(coreLibrary);
       }
     }
 
@@ -1148,8 +1159,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       _buildOutlineNodes(iterator.current, coreLibrary);
     }
-
-    if (!modifyTarget) return library;
 
     library.isSynthetic = isSynthetic;
     library.isUnsupported = isUnsupported;

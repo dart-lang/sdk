@@ -4,6 +4,7 @@ import "dart:core" as core;
 import "package:macro/macro.dart" as mac;
 
 import "package:macro/macro.dart";
+import "org-dartlang-test:///a/b/c/main.dart" as prefix0;
 
 class A extends core::Object {
   synthetic constructor •() → self::A
@@ -40,6 +41,10 @@ class D2 extends core::Object {
     : super core::Object::•()
     ;
 }
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction1GeneratedMethod_es() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ topLevelFunction2GeneratedMethod_s() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ topLevelFunction3GeneratedMethod_() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ topLevelFunction4GeneratedMethod_() → void {}
 @#C1
 @#C2
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ topLevelFunction1(self::A a) → self::A {
@@ -68,10 +73,6 @@ static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ topLevelFu
   core::print("isSubtype=false");
   throw 42;
 }
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction1GeneratedMethod_es() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ topLevelFunction2GeneratedMethod_s() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ topLevelFunction3GeneratedMethod_() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ topLevelFunction4GeneratedMethod_() → void {}
 
 constants  {
   #C1 = mac::FunctionDeclarationsMacro2 {}

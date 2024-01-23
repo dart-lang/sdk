@@ -358,9 +358,67 @@ class SourceClassBuilder extends ClassBuilderImpl
         .forEach(build);
   }
 
+  /// [Iterator] for all members declared directly in this class, including
+  /// augmenting members.
+  ///
+  /// Duplicates are _not_ included.
+  ///
+  /// For instance:
+  ///
+  ///     class Class {
+  ///       // Declared, so it is included for this class but not for the
+  ///       // augmentation class below.
+  ///       method() {}
+  ///       // Declared, so it is included for this class but not for the
+  ///       // augmentation class below.
+  ///       method2() {}
+  ///       method2() {} // Duplicate, so it is *not* included.
+  ///     }
+  ///
+  ///     augment class Class {
+  ///       // Augmenting, so it is included for this augmentation class but
+  ///       // not for the origin class above.
+  ///       augment method() {}
+  ///       // Declared, so it is included for this augmentation class but not
+  ///       // for the origin class above.
+  ///       extra() {}
+  ///     }
+  ///
+  Iterator<T> localMemberIterator<T extends Builder>() =>
+      new ClassDeclarationMemberIterator<SourceClassBuilder, T>.local(this,
+          includeDuplicates: false);
+
+  /// [Iterator] for all constructors declared directly in this class, including
+  /// augmenting constructors.
+  ///
+  /// For instance:
+  ///
+  ///     class Class {
+  ///       // Declared, so it is included for this class but not for the
+  ///       // augmentation class below.
+  ///       Class();
+  ///       // Declared, so it is included for this class but not for the
+  ///       // augmentation class below.
+  ///       Class.named();
+  ///       Class.named(); // Duplicate, so it is *not* included.
+  ///     }
+  ///
+  ///     augment class Class {
+  ///       // Augmenting, so it is included for this augmentation class but
+  ///       // not for the origin class above.
+  ///       augment Class();
+  ///       // Declared, so it is included for this augmentation class but not
+  ///       // for the origin class above.
+  ///       Class.extra();
+  ///     }
+  ///
+  Iterator<T> localConstructorIterator<T extends MemberBuilder>() =>
+      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>.local(this,
+          includeDuplicates: false);
+
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      new ClassDeclarationMemberIterator<SourceClassBuilder, T>(
+      new ClassDeclarationMemberIterator<SourceClassBuilder, T>.full(
           const _SourceClassBuilderAugmentationAccess(), this,
           includeDuplicates: false);
 
@@ -372,7 +430,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>(
+      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>.full(
           const _SourceClassBuilderAugmentationAccess(), this,
           includeDuplicates: false);
 

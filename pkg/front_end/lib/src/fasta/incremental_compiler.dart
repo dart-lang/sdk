@@ -2040,8 +2040,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary,
-          modifyTarget: false);
+      debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary);
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
               debugLibrary,

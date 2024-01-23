@@ -547,7 +547,7 @@ class DietListener extends StackListenerImpl {
     if (importUri.startsWith("dart-ext:")) return;
 
     Library libraryNode = libraryBuilder.library;
-    LibraryDependency dependency =
+    LibraryDependency? dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
     parseMetadata(libraryBuilder.bodyBuilderContext, libraryBuilder, metadata,
         dependency);
