@@ -1111,8 +1111,7 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
       type_arguments_available = true;
       type_arguments ^= value.ptr();
     } else if (!name.Equals(Symbols::This()) &&
-               !IsSyntheticVariableName(name) &&
-               value.ptr() != Object::optimized_out().ptr()) {
+               !IsSyntheticVariableName(name)) {
       if (IsPrivateVariableName(name)) {
         name = Symbols::New(Thread::Current(), String::ScrubName(name));
       }
