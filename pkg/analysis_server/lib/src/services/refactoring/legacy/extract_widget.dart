@@ -305,9 +305,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       var parameterList = method.parameters;
       if (parameterList != null) {
         for (var parameter in parameterList.parameters) {
-          if (parameter is DefaultFormalParameter) {
-            parameter = parameter.parameter;
-          }
+          parameter = parameter.notDefault;
           if (parameter is NormalFormalParameter) {
             final element = parameter.declaredElement!;
             _parameters.add(_Parameter(element.name, element.type,

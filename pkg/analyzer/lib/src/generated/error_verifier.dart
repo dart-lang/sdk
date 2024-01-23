@@ -5671,10 +5671,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     NodeList<FormalParameter> parameters = node.parameters;
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
-      FormalParameter parameter = parameters[i];
-      if (parameter is DefaultFormalParameter) {
-        parameter = parameter.parameter;
-      }
+      var parameter = parameters[i].notDefault;
       var keyword = parameter.covariantKeyword;
       if (keyword != null) {
         errorReporter.reportErrorForToken(
@@ -6065,9 +6062,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     List<FormalParameter> parameters = constructor.parameters.parameters;
     for (FormalParameter parameter in parameters) {
-      if (parameter is DefaultFormalParameter) {
-        parameter = parameter.parameter;
-      }
+      parameter = parameter.notDefault;
       if (parameter is FieldFormalParameter) {
         final element =
             parameter.declaredElement as FieldFormalParameterElement;

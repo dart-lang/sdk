@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -244,7 +245,7 @@ class ConstructorFieldsVerifier {
   void _updateWithParameters(ConstructorDeclaration node) {
     var formalParameters = node.parameters.parameters;
     for (FormalParameter parameter in formalParameters) {
-      parameter = _baseParameter(parameter);
+      parameter = parameter.notDefault;
       if (parameter is FieldFormalParameter) {
         var fieldElement =
             (parameter.declaredElement as FieldFormalParameterElementImpl)
@@ -269,13 +270,6 @@ class ConstructorFieldsVerifier {
         }
       }
     }
-  }
-
-  static FormalParameter _baseParameter(FormalParameter parameter) {
-    if (parameter is DefaultFormalParameter) {
-      return parameter.parameter;
-    }
-    return parameter;
   }
 }
 
