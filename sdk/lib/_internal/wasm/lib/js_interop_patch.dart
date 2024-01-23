@@ -94,11 +94,27 @@ extension FunctionToJSExportedDartFunction on Function {
       'by the interop transformer.');
 }
 
+/// Embedded global property for wrapped Dart objects passed via JS interop.
+///
+/// This is a Symbol so that different Dart applications don't share Dart
+/// objects from different Dart runtimes. We expect all [JSBoxedDartObject]s to
+/// have this Symbol.
+final JSSymbol _jsBoxedDartObjectProperty = _boxNonNullable<JSSymbol>(
+    js_helper.JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")'));
+
 /// [JSBoxedDartObject] <-> [Object]
 @patch
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
-  Object get toDart => jsObjectToDartObject(toExternRef);
+  Object get toDart {
+    final val = js_helper.JS<WasmExternRef?>('(o,s) => o[s]', this.toExternRef,
+        _jsBoxedDartObjectProperty.toExternRef);
+    if (isDartNull(val)) {
+      throw 'Expected a wrapped Dart object, but got a JS object or a wrapped '
+          'Dart object from a separate runtime instead.';
+    }
+    return jsObjectToDartObject(val);
+  }
 }
 
 @patch
@@ -108,7 +124,10 @@ extension ObjectToJSBoxedDartObject on Object {
     if (this is JSValue) {
       throw 'Attempting to box non-Dart object.';
     }
-    return _boxNonNullable<JSBoxedDartObject>(jsObjectFromDartObject(this));
+    final box = JSObject();
+    js_helper.JS<WasmExternRef?>('(o,s,v) => o[s] = v', box.toExternRef,
+        _jsBoxedDartObjectProperty.toExternRef, jsObjectFromDartObject(this));
+    return box as JSBoxedDartObject;
   }
 }
 
