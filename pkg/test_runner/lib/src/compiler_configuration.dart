@@ -698,14 +698,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     args.addAll([
       "--ignore-unrecognized-flags",
       "--no-summarize",
-      if (d8Runtime) "--modules=legacy",
+      if (d8Runtime) "--modules=ddc",
       "-o",
       outputFile,
       inputFile,
     ]);
 
     if (!d8Runtime) {
-      // TODO(sigmund): allow caching of shared packages in legacy mode too.
+      // TODO(sigmund): allow caching of shared packages for DDC modules too.
       // Link to the summaries for the available packages, so that they don't
       // get recompiled into the test's own module.
       for (var package in testPackages) {

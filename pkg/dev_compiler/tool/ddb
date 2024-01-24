@@ -219,7 +219,7 @@ void main(List<String> args) async {
       break;
     case 'd8':
       d8 = true;
-      mod = 'legacy';
+      mod = 'ddc';
       break;
     case 'chrome':
       chrome = true;
