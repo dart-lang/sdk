@@ -1158,6 +1158,28 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(LoadStoreExclusiveR31, assembler) {
+  __ AddImmediate(CSP, CSP, -16);
+  __ ldxr(ZR, CSP, kEightBytes);
+  __ stxr(ZR, ZR, CSP, kEightBytes);
+  __ AddImmediate(CSP, CSP, 16);
+  __ LoadImmediate(R0, 42);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadStoreExclusiveR31, test) {
+  EXPECT(test != nullptr);
+  typedef intptr_t (*LoadStoreExclusiveR31)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(LoadStoreExclusiveR31, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "sub csp, csp, #0x10\n"
+      "ldxr zr, csp\n"
+      "stxr zr, zr, csp\n"
+      "add csp, csp, #0x10\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(AtomicLoadClear, assembler) {
   __ mov(R1, R0);
   __ LoadImmediate(R2, 2);

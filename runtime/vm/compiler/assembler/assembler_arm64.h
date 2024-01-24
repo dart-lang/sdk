@@ -1074,6 +1074,7 @@ class Assembler : public AssemblerBase {
 
   // Loads and Stores.
   void ldr(Register rt, Address a, OperandSize sz = kEightBytes) {
+    ASSERT((rt != CSP) && (rt != R31));
     ASSERT((a.type() != Address::PairOffset) &&
            (a.type() != Address::PairPostIndex) &&
            (a.type() != Address::PairPreIndex));
@@ -1089,6 +1090,7 @@ class Assembler : public AssemblerBase {
     }
   }
   void str(Register rt, Address a, OperandSize sz = kEightBytes) {
+    ASSERT((rt != CSP) && (rt != R31));
     ASSERT((a.type() != Address::PairOffset) &&
            (a.type() != Address::PairPostIndex) &&
            (a.type() != Address::PairPreIndex));
@@ -1096,12 +1098,14 @@ class Assembler : public AssemblerBase {
   }
 
   void ldp(Register rt, Register rt2, Address a, OperandSize sz = kEightBytes) {
+    ASSERT((rt != CSP) && (rt != R31));
     ASSERT((a.type() == Address::PairOffset) ||
            (a.type() == Address::PairPostIndex) ||
            (a.type() == Address::PairPreIndex));
     EmitLoadStoreRegPair(LDP, rt, rt2, a, sz);
   }
   void stp(Register rt, Register rt2, Address a, OperandSize sz = kEightBytes) {
+    ASSERT((rt != CSP) && (rt != R31));
     ASSERT((a.type() == Address::PairOffset) ||
            (a.type() == Address::PairPostIndex) ||
            (a.type() == Address::PairPreIndex));
@@ -2873,9 +2877,9 @@ class Assembler : public AssemblerBase {
     ASSERT(sz == kEightBytes || sz == kFourBytes);
     const int32_t size = B31 | (sz == kEightBytes ? B30 : 0);
 
-    ASSERT((rs != kNoRegister) && (rs != ZR));
+    ASSERT((rs != kNoRegister) && (rs != CSP));
     ASSERT((rn != kNoRegister) && (rn != ZR));
-    ASSERT((rt != kNoRegister) && (rt != ZR));
+    ASSERT((rt != kNoRegister) && (rt != CSP));
 
     const int32_t encoding = op | size | Arm64Encode::Rs(rs) |
                              Arm64Encode::Rt2(R31) | Arm64Encode::Rn(rn) |

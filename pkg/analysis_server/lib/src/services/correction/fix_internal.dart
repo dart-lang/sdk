@@ -229,7 +229,6 @@ import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/ffi_code.g.dart';
@@ -1589,16 +1588,10 @@ void registerBuiltInProducers() {
 class DartFixContributor implements FixContributor {
   @override
   Future<List<Fix>> computeFixes(DartFixContext context) async {
-    try {
-      var processor = FixProcessor(context);
-      var fixes = await processor.compute();
-      var fixInFileProcessor = FixInFileProcessor(context);
-      var fixInFileFixes = await fixInFileProcessor.compute();
-      fixes.addAll(fixInFileFixes);
-      return fixes;
-    } on CancelCorrectionException {
-      return const <Fix>[];
-    }
+    return [
+      ...await FixProcessor(context).compute(),
+      ...await FixInFileProcessor(context).compute(),
+    ];
   }
 }
 

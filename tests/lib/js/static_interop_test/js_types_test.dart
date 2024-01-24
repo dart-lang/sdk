@@ -173,6 +173,7 @@ void syncTests() {
   expect(edo is JSBoxedDartObject, true);
   expect(confuse(edo) is JSBoxedDartObject, true);
   expect(((edo as JSBoxedDartObject).toDart as DartObject).foo, 'bar');
+  expect(edo.instanceOfString('Object'), true);
   // Functions should be boxed without assertInterop.
   final concat = (String a, String b) => a + b;
   edo = concat.toJSBox;

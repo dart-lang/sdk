@@ -12,6 +12,15 @@
 
 [pub-security-advisories]: https://dart.dev/go/pub-security-advisories
 
+### Libraries
+
+#### `dart:js_interop`
+
+- On dart2wasm, `JSBoxedDartObject` now is an actual JS object that wraps the
+  opaque Dart value instead of only externalizing the value. Like the JS
+  backends, you'll now get a more useful error when trying to use it in another
+  Dart runtime.
+
 ## 3.3.0
 
 ### Language
