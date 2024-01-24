@@ -539,16 +539,6 @@ bool _allListsIdentical(List<List<Object>> lists, int position) {
   return true;
 }
 
-/// This exception is thrown to cancel the current correction operation,
-/// such as quick assist or quick fix because an inconsistency was detected.
-/// These inconsistencies may happen as a part of normal workflow, e.g. because
-/// a resource was deleted, or an analysis result was invalidated.
-class CancelCorrectionException {
-  final Object? exception;
-
-  CancelCorrectionException({this.exception});
-}
-
 class CorrectionUtils {
   final CompilationUnit unit;
   final LibraryElement? _library;
