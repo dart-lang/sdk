@@ -148,8 +148,12 @@ main() {
 
       // Expect that termination is reported as 'Detached' when we explicitly
       // requested a detach.
-      expect(client.outputEvents.map((output) => output.output.trim()),
-          emits('Detached.'));
+      expect(
+        client.outputEvents.map((output) => output.output.trim()),
+        // emitsThrough because we might still get "Hello" in the output
+        // because we resume as part of detach.
+        emitsThrough('Detached.'),
+      );
 
       // Detach using terminateRequest. Despite the name, terminateRequest is
       // the request for a graceful detach (and disconnectRequest is the
