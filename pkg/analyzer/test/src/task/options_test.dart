@@ -280,7 +280,7 @@ analyzer:
 analyzer:
   optional-checks:
     chromeos-manifest
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_chromeos_manifest_checks_notAMap() {

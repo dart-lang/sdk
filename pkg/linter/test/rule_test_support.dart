@@ -58,7 +58,7 @@ class AnalysisOptionsFileConfig {
       }
 
       if (propagateLinterExceptions) {
-        buffer.writeln('  strong-mode:');
+        buffer.writeln('  optional-checks:');
         buffer.writeln(
           '    propagate-linter-exceptions: $propagateLinterExceptions',
         );
