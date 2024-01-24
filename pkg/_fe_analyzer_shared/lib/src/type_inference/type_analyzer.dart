@@ -1349,6 +1349,9 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression, Pattern).
   ///
   /// Returns a [PatternForInResult] containing information on reported errors.
+  ///
+  /// Note, however, that the caller is responsible for reporting an error if
+  /// the static type of [expression] is potentially nullable.
   PatternForInResult<Type, Error> analyzePatternForIn({
     required Node node,
     required bool hasAwait,

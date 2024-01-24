@@ -926,6 +926,19 @@ m() {
     ]);
   }
 
+  test_forLoop_pattern_nullable() async {
+    await assertErrorsInCode(r'''
+m() {
+  List? x;
+  for (var (y) in x) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+          35, 1),
+    ]);
+  }
+
   test_getter_nullable_nonNullableExtension() async {
     await assertErrorsInCode(r'''
 extension E on int {
