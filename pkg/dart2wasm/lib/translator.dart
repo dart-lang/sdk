@@ -40,6 +40,7 @@ class TranslatorOptions {
   bool printWasm = false;
   bool minify = false;
   bool verifyTypeChecks = false;
+  bool verbose = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int> watchPoints = [];

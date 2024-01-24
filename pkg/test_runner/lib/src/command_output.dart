@@ -1146,7 +1146,8 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
   @override
   void _parseErrors() {
     var errors = <StaticError>[];
-    parseErrors(decodeUtf8(stdout), errors);
+    // We expect errors to be printed to `stderr` for dart2wasm.
+    parseErrors(decodeUtf8(stderr), errors);
     errors.forEach(addError);
   }
 }

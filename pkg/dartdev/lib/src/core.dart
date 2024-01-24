@@ -101,41 +101,42 @@ Future<Process> startDartProcess(
   return Process.start(sdk.dart, arguments, workingDirectory: cwd);
 }
 
-void routeToStdout(
-  Process process, {
+Future<int> runProcess(
+  List<String> command, {
   bool logToTrace = false,
   void Function(String str)? listener,
-}) {
-  if (isDiagnostics) {
-    _streamLineTransform(process.stdout, (String line) {
-      logToTrace ? log.trace(line.trimRight()) : log.stdout(line.trimRight());
-      if (listener != null) listener(line);
-    });
-    _streamLineTransform(process.stderr, (String line) {
-      log.stderr(line.trimRight());
-      if (listener != null) listener(line);
-    });
-  } else {
-    _streamLineTransform(process.stdout, (String line) {
-      logToTrace ? log.trace(line.trimRight()) : log.stdout(line.trimRight());
-      if (listener != null) listener(line);
-    });
-
-    _streamLineTransform(process.stderr, (String line) {
-      log.stderr(line.trimRight());
+  String? cwd,
+}) async {
+  Future forward(Stream<List<int>> output, bool isStderr) {
+    return _streamLineTransform(output, (line) {
+      final trimmed = line.trimRight();
+      logToTrace
+          ? log.trace(trimmed)
+          : (isStderr ? log.stderr(trimmed) : log.stdout(trimmed));
       if (listener != null) listener(line);
     });
   }
+
+  log.trace(command.join(' '));
+  final process = await Process.start(command.first, command.skip(1).toList(),
+      workingDirectory: cwd);
+  final (_, _, exitCode) = await (
+    forward(process.stdout, false),
+    forward(process.stderr, true),
+    process.exitCode
+  ).wait;
+  return exitCode;
 }
 
-void _streamLineTransform(
+Future _streamLineTransform(
   Stream<List<int>> stream,
   Function(String line) handler,
 ) {
-  stream
+  return stream
       .transform(utf8.decoder)
       .transform(const LineSplitter())
-      .forEach(handler);
+      .listen(handler)
+      .asFuture();
 }
 
 /// A representation of a project on disk.

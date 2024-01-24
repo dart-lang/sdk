@@ -45,6 +45,8 @@ final List<Option> options = [
   Flag("omit-type-checks",
       (o, value) => o.translatorOptions.omitTypeChecks = value,
       defaultsTo: _d.translatorOptions.omitTypeChecks),
+  Flag("verbose", (o, value) => o.translatorOptions.verbose = value,
+      defaultsTo: _d.translatorOptions.verbose),
   Flag("verify-type-checks",
       (o, value) => o.translatorOptions.verifyTypeChecks = value,
       defaultsTo: _d.translatorOptions.verifyTypeChecks),
@@ -143,5 +145,5 @@ WasmCompilerOptions parseArguments(List<String> arguments) {
 
 Future<int> main(List<String> args) async {
   WasmCompilerOptions options = parseArguments(args);
-  return generateWasm(options);
+  return generateWasm(options, errorPrinter: stderr.writeln);
 }

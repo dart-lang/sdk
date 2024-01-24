@@ -72,6 +72,7 @@ vars = {
   "checkout_javascript_engines": False,
   "d8_tag": "version:12.1.131",
   "jsshell_tag": "version:120.0",
+  "jsc_tag": "version:273394",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:b3a9e8f7c0afb00147ab6c6a6ad426de149420dd",
@@ -249,6 +250,14 @@ deps = {
           "version": Var("jsshell_tag"),
       }],
       "condition": "checkout_javascript_engines",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/jsc": {
+      "packages": [{
+          "package": "dart/third_party/jsc/linux-amd64",
+          "version": Var("jsc_tag"),
+      }],
+      "condition": "checkout_javascript_engines and host_os == 'linux' and host_cpu == 'x64'",
       "dep_type": "cipd",
   },
   Var("dart_root") + "/third_party/devtools": {
