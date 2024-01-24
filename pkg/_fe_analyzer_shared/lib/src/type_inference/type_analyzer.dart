@@ -360,11 +360,12 @@ mixin TypeAnalyzer<
     required Type requiredType,
   }) {
     Type matchedValueType = flow.getMatchedValueType();
-    bool matchedTypeIsSubtypeOfRequired = flow.promoteForPattern(
+    flow.promoteForPattern(
         matchedType: matchedValueType,
         knownType: requiredType,
         matchFailsIfWrongType: false);
-    if (matchedTypeIsSubtypeOfRequired) {
+    if (operations.isSubtypeOf(matchedValueType, requiredType) &&
+        !operations.isError(requiredType)) {
       errors.matchedTypeIsSubtypeOfRequired(
         pattern: pattern,
         matchedType: matchedValueType,

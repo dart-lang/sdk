@@ -10459,6 +10459,32 @@ main() {
             ]),
           ]);
         });
+
+        test('matched type is extension type', () {
+          h.addSuperInterfaces('E', (_) => [Type('Object?')]);
+          h.addExtensionTypeErasure('E', 'int');
+          var x = Var('x');
+          h.run([
+            ifCase(expr('E'), x.pattern(type: 'int'), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ]),
+          ]);
+        });
+
+        test('known type is extension type', () {
+          h.addSuperInterfaces('E', (_) => [Type('Object?')]);
+          h.addExtensionTypeErasure('E', 'int');
+          var x = Var('x');
+          h.run([
+            ifCase(expr('int'), x.pattern(type: 'E'), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ]),
+          ]);
+        });
       });
 
       group("doesn't cover matched type:", () {

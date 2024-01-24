@@ -1937,6 +1937,38 @@ main() {
           ]);
         });
       });
+
+      group('Fully covered due to extension type erasure:', () {
+        test('Cast to representation type', () {
+          // If an `as` pattern fully covers the matched value type due to
+          // extension type erasure, the "matchedTypeIsSubtypeOfRequired"
+          // warning should not be issued.
+          h.addSuperInterfaces('E', (_) => [Type('Object?')]);
+          h.addExtensionTypeErasure('E', 'int');
+          h.run([
+            ifCase(expr('E'), wildcard().as_('int'), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ]),
+          ]);
+        });
+
+        test('Cast to extension type', () {
+          // If an `as` pattern fully covers the matched value type due to
+          // extension type erasure, the "matchedTypeIsSubtypeOfRequired"
+          // warning should not be issued.
+          h.addSuperInterfaces('E', (_) => [Type('Object?')]);
+          h.addExtensionTypeErasure('E', 'int');
+          h.run([
+            ifCase(expr('int'), wildcard().as_('E'), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ]),
+          ]);
+        });
+      });
     });
 
     group('Const or literal:', () {
