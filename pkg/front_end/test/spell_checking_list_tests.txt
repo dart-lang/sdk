@@ -283,6 +283,7 @@ equally
 erase
 err
 esc
+est
 estat
 et
 everytime
@@ -833,6 +834,7 @@ worlds
 wrongly
 ws
 x's
+xf
 xlate
 xrequired
 xxx

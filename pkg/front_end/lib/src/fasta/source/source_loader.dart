@@ -2475,6 +2475,9 @@ severity: $severity
       }
       libraries.add(target);
     }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      library.processPendingNullabilities();
+    }
     ticker.logMs("Built component");
   }
 
