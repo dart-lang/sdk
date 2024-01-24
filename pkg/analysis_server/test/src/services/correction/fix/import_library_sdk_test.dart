@@ -47,6 +47,13 @@ void f(p) {
 ''');
   }
 
+  Future<void> test_withClass_dartHtml() async {
+    await resolveTestCode('''
+void f(KeyEvent e) {}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_withClass_extends() async {
     await resolveTestCode('''
 class MyCompleter extends Completer<String> {}

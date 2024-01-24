@@ -2227,6 +2227,35 @@ suggestions
 ''');
   }
 
+  Future<void> test_dartHtml_imported() async {
+    allowedIdentifiers = {'KeyEvent'};
+    printerConfiguration.withLibraryUri = true;
+    await computeSuggestions('''
+import 'dart:html';
+KeyE^
+''');
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  KeyEvent
+    kind: class
+    libraryUri: dart:html
+''');
+  }
+
+  Future<void> test_dartHtml_notImported() async {
+    allowedIdentifiers = {'KeyEvent'};
+    await computeSuggestions('''
+KeyE^
+''');
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+''');
+  }
+
   Future<void> test_defaultFormalParameter_named_expression() async {
     // TODO(brianwilkerson): This is invalid code and there's no clear answer as
     //  to what ought to be suggested. Consider deleting the test, or making it
