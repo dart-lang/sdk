@@ -607,8 +607,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       } else {
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
             coreTypes.legacyRawType(node), coreTypes.objectClass,
-            isNonNullableByDefault: node
-                .enclosingLibrary.isNonNullableByDefault) as ir.InterfaceType);
+            isNonNullableByDefault: true) as ir.InterfaceType);
       }
     }
   }
@@ -797,10 +796,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // isCovariant implies this FunctionNode is a class Procedure.
       var isCovariant =
           variable.isCovariantByDeclaration || variable.isCovariantByClass;
-      var isFromNonNullableByDefaultLibrary = isCovariant &&
-          (node.parent as ir.Procedure).enclosingLibrary.isNonNullableByDefault;
-      return types.getTearOffParameterType(getDartType(variable.type),
-          isCovariant, isFromNonNullableByDefaultLibrary);
+      return types.getTearOffParameterType(
+          getDartType(variable.type), isCovariant);
     }
 
     for (ir.VariableDeclaration variable in node.positionalParameters) {

@@ -50,9 +50,6 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       : super(
             staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
 
-  bool get isNonNullableByDefault =>
-      staticTypeContext.enclosingLibrary.isNonNullableByDefault;
-
   @override
   VariableScopeModel get variableScopeModel => _variableScopeModel!;
 
