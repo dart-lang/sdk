@@ -250,9 +250,14 @@ class _UnnecessaryMethodOverrideVisitor
   ExecutableElement? getInheritedElement(node) {
     var element = node.declaredElement;
     if (element == null) return null;
+
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
-    return enclosingElement.thisType.lookUpMethod2(
+
+    var augmented = enclosingElement.augmented;
+    if (augmented == null) return null;
+
+    return augmented.declaration.thisType.lookUpMethod2(
       node.name.lexeme,
       element.library,
       concrete: true,

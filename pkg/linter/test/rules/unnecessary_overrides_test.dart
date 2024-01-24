@@ -17,6 +17,28 @@ class UnnecessaryOverridesTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_overrides';
 
+  test_class_augmentation_method_withoutOverride_noSuper() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+augment class A {
+  void foo() {}
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   test_enum_field() async {
     await assertDiagnostics(r'''
 enum A {
