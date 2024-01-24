@@ -53,6 +53,64 @@ enum E {
     ]);
   }
 
+  test_class_augmentation_augmentsConstructor_1of1() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  final int f;
+  A();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A() : f = 0;
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
+  test_class_augmentation_augmentsConstructor_1of2() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  final int f1;
+  final int f2;
+  A();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A() : f1 = 0;
+}
+''');
+
+    await resolveFile2(testFile);
+    assertErrorsInResult([
+      error(
+        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+        70,
+        1,
+        messageContains: ['f2'],
+      ),
+    ]);
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
   test_class_augmentation_augmentsConstructor_noInitializers() async {
     newFile(testFile.path, r'''
 import augment 'a.dart';

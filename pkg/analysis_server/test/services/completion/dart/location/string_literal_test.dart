@@ -8,8 +8,28 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(StringInterpolationTest);
     defineReflectiveTests(StringLiteralTest);
   });
+}
+
+@reflectiveTest
+class StringInterpolationTest extends AbstractCompletionDriverTest
+    with StringInterpolationTestCases {}
+
+mixin StringInterpolationTestCases on AbstractCompletionDriverTest {
+  Future<void> test_inBraces_nonVoid() async {
+    await computeSuggestions(r'''
+var s = 'a ${^} b';
+void f0() {}
+int f1() {}
+''');
+    assertResponse(r'''
+suggestions
+  f1
+    kind: functionInvocation
+''');
+  }
 }
 
 @reflectiveTest

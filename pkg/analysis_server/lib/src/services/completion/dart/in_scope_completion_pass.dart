@@ -1229,7 +1229,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    declarationHelper(mustBeStatic: node.inStaticContext)
+    declarationHelper(mustBeStatic: node.inStaticContext, mustBeNonVoid: true)
         .addLexicalDeclarations(node);
   }
 

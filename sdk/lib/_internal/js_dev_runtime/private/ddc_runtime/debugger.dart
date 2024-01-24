@@ -532,7 +532,7 @@ bool _isRecordType(@notNull Type type) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     return rti.isRecordType(type);
   } else {
-    return isRecordType(type);
+    return type is _Type ? isRecordType(type) : false;
   }
 }
 

@@ -772,7 +772,8 @@ class ExpressionEvaluationTestDriver {
   ///           }
   Future<String> stringifyRemoteObject(wip.RemoteObject obj) async {
     String str;
-    switch (obj.type) {
+    final type = obj.json.containsKey('type') ? obj.type : null;
+    switch (type) {
       case 'function':
         str = obj.description ?? '';
         break;
