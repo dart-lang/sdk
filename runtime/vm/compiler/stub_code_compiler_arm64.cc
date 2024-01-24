@@ -1183,6 +1183,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       COMPILE_ASSERT(IP0 == R16);
       __ mov(IP0, R15);
       __ str(IP0, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+    } else if (r == R31) {
+      __ str(ZR, Address(SP, -1 * target::kWordSize, Address::PreIndex));
     } else {
       __ str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
     }
