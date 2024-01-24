@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dart2native/generate.dart';
-import 'package:dart2wasm/generate_wasm.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:path/path.dart' as path;
@@ -247,9 +246,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
 
     log.stdout('Compiling $sourcePath to $commandName file $outputFile.');
     // TODO(bkonyi): perform compilation in same process.
-    final process = await startDartProcess(sdk, buildArgs);
-    routeToStdout(process);
-    return process.exitCode;
+    return await runProcess([sdk.dart, ...buildArgs]);
   }
 }
 
@@ -413,9 +410,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
   static const String help =
       'Compile Dart to a WebAssembly/WasmGC module (EXPERIMENTAL).';
 
-  final String optimizer = path.join(
-      binDir.path, 'utils', Platform.isWindows ? 'wasm-opt.exe' : 'wasm-opt');
-
   CompileWasmCommand({bool verbose = false})
       : super(commandName, help, verbose, hidden: !verbose) {
     argParser
@@ -499,13 +493,14 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     log.stdout(
         'The support may change, or be removed, with no advance notice.\n');
 
-    final libraries = path.absolute(sdk.sdkPath, 'lib', 'libraries.json');
-    if (!Sdk.checkArtifactExists(libraries)) {
-      return 255;
-    }
     final args = argResults!;
-    bool verbose = this.verbose || args['verbose'];
-    if (args['optimize'] && !Sdk.checkArtifactExists(optimizer)) {
+    final verbose = this.verbose || args['verbose'];
+    final optimize = args['optimize'];
+
+    if (!Sdk.checkArtifactExists(sdk.librariesJson) ||
+        !Sdk.checkArtifactExists(sdk.dartAotRuntime) ||
+        !Sdk.checkArtifactExists(sdk.dart2wasmSnapshot) ||
+        (optimize && !Sdk.checkArtifactExists(sdk.wasmOpt))) {
       return 255;
     }
 
@@ -536,37 +531,40 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final outputFileBasename =
         outputFile.substring(0, outputFile.length - '.wasm'.length);
 
-    final options = WasmCompilerOptions(
-      mainUri: Uri.file(path.absolute(sourcePath)),
-      outputFile: outputFile,
-    );
-    options.librariesSpecPath =
-        Uri.file(path.absolute(sdk.sdkPath, 'lib', 'libraries.json'));
-    options.sdkPath = Uri.file(path.absolute(sdk.sdkPath));
-    options.packagesPath = args[packagesOption.flag];
-    options.translatorOptions.enableAsserts = args['enable-asserts'];
-    options.translatorOptions.printWasm = args['print-wasm'];
-    options.translatorOptions.printKernel = args['print-kernel'];
-    options.translatorOptions.omitTypeChecks = args['omit-type-checks'];
-    options.translatorOptions.nameSection = args['name-section'];
+    final sdkPath = path.absolute(sdk.sdkPath);
+    final packages = args[packagesOption.flag];
+
+    int? maxPages;
     if (args['shared-memory'] != null) {
-      int? maxPages = int.tryParse(args['shared-memory']);
+      maxPages = int.tryParse(args['shared-memory']);
       if (maxPages == null) {
         usageException(
             'Error: The --shared-memory flag must specify a number!');
       }
-      options.translatorOptions.importSharedMemory = true;
-      options.translatorOptions.sharedMemoryMaxPages = maxPages;
     }
 
-    int result;
+    final dart2wasmCommand = [
+      sdk.dartAotRuntime,
+      sdk.dart2wasmSnapshot,
+      '--libraries-spec=${sdk.librariesJson}',
+      '--dart-sdk=$sdkPath',
+      if (verbose) '--verbose',
+      if (packages != null) '--packages=$packages',
+      if (args['enable-asserts']) '--enable-asserts',
+      if (args['print-wasm']) '--print-wasm',
+      if (args['print-kernel']) '--print-kernel',
+      if (args['omit-type-checks']) '--omit-type-checks',
+      if (args['name-section']) '--name-section',
+      if (maxPages != null) ...[
+        '--import-shared-memory',
+        '--shared-memory-max-pages=$maxPages',
+      ],
+      path.absolute(sourcePath),
+      outputFile,
+    ];
     try {
-      result = await generateWasm(
-        options,
-        verbose: verbose,
-        errorPrinter: (error) => log.stderr(error),
-      );
-      if (result != 0) return compileErrorExitCode;
+      final exitCode = await runProcess(dart2wasmCommand);
+      if (exitCode != 0) return compileErrorExitCode;
     } catch (e, st) {
       log.stderr('Error: Wasm compilation failed');
       log.stderr(e.toString());
@@ -586,10 +584,10 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       ];
 
       if (verbose) {
-        log.stdout('Optimizing output with: $optimizer $flags');
+        log.stdout('Optimizing output with: ${sdk.wasmOpt} $flags');
       }
       final processResult = Process.runSync(
-        optimizer,
+        sdk.wasmOpt,
         [...flags, '-o', outputFile, unoptFile],
       );
       if (processResult.exitCode != 0) {
@@ -602,7 +600,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final mjsFile = '$outputFileBasename.mjs';
     log.stdout(
         "Generated wasm module '$outputFile', and JS init file '$mjsFile'.");
-    return result;
+    return 0;
   }
 }
 
