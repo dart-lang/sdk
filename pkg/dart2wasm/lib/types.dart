@@ -290,13 +290,16 @@ class Types {
     final arrayOfStringType = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [stringType]);
 
-    final arrayOfStrings = translator.constants.makeArrayOf(
-        stringType, [for (final name in typeNames) StringConstant(name)]);
-
     final typeNamesType =
         translator.translateStorageType(arrayOfStringType).unpacked;
-    translator.constants
-        .instantiateConstant(null, b, arrayOfStrings, typeNamesType);
+    if (translator.options.minify) {
+      b.ref_null((typeNamesType as w.RefType).heapType);
+    } else {
+      final arrayOfStrings = translator.constants.makeArrayOf(
+          stringType, [for (final name in typeNames) StringConstant(name)]);
+      translator.constants
+          .instantiateConstant(null, b, arrayOfStrings, typeNamesType);
+    }
     return typeNamesType;
   }
 

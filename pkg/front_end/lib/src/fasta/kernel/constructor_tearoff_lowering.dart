@@ -154,8 +154,8 @@ Procedure createTypedefTearOffProcedure(
 /// [enclosingDeclarationTypeParameters].
 ///
 /// The [declarationConstructor] is the origin constructor and
-/// [implementationConstructor] is the patch constructor, if patched, otherwise
-/// it is the [declarationConstructor].
+/// [implementationConstructor] is the augmentation constructor, if augmented,
+/// otherwise it is the [declarationConstructor].
 void buildConstructorTearOffProcedure(
     {required Procedure tearOff,
     required Member declarationConstructor,
@@ -209,8 +209,8 @@ void buildConstructorTearOffProcedure(
 /// [enclosingTypeDeclaration].
 ///
 /// The [declarationConstructor] is the origin constructor and
-/// [implementationConstructor] is the patch constructor, if patched, otherwise
-/// it is the [declarationConstructor].
+/// [implementationConstructor] is the augmentation constructor, if augmented,
+/// otherwise it is the [declarationConstructor].
 void buildTypedefTearOffProcedure(
     {required Procedure tearOff,
     required Member declarationConstructor,
@@ -279,7 +279,7 @@ void buildTypedefTearOffProcedure(
 ///
 /// The [declarationConstructor] is the [Procedure] for the origin constructor
 /// and [implementationConstructorFunctionNode] is the [FunctionNode] for the
-/// implementation constructor. If the constructor is patched, these are not
+/// implementation constructor. If the constructor is augmented, these are not
 /// connected until [Builder.buildBodyNodes].
 FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
     {required Procedure tearOff,

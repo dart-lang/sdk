@@ -38,6 +38,7 @@ class TranslatorOptions {
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
+  bool minify = false;
   bool verifyTypeChecks = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;

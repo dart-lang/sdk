@@ -180,11 +180,10 @@ class ClassDeclarationMemberIterator<D extends ClassDeclaration,
   final bool includeDuplicates;
 
   factory ClassDeclarationMemberIterator.full(
-      ClassDeclarationAugmentationAccess<D> patching, D classBuilder,
+      ClassDeclarationAugmentationAccess<D> access, D classBuilder,
       {required bool includeDuplicates}) {
-    return new ClassDeclarationMemberIterator._(
-        patching.getOrigin(classBuilder),
-        patching.getAugmentations(classBuilder)?.iterator,
+    return new ClassDeclarationMemberIterator._(access.getOrigin(classBuilder),
+        access.getAugmentations(classBuilder)?.iterator,
         includeDuplicates: includeDuplicates);
   }
 
@@ -235,11 +234,11 @@ class ClassDeclarationMemberNameIterator<D extends ClassDeclaration,
   final bool includeDuplicates;
 
   factory ClassDeclarationMemberNameIterator(
-      ClassDeclarationAugmentationAccess<D> patching, D classBuilder,
+      ClassDeclarationAugmentationAccess<D> access, D classBuilder,
       {required bool includeDuplicates}) {
     return new ClassDeclarationMemberNameIterator._(
-        patching.getOrigin(classBuilder),
-        patching.getAugmentations(classBuilder)?.iterator,
+        access.getOrigin(classBuilder),
+        access.getAugmentations(classBuilder)?.iterator,
         includeDuplicates: includeDuplicates);
   }
 
@@ -287,11 +286,11 @@ class ClassDeclarationConstructorIterator<D extends ClassDeclaration,
   final bool includeDuplicates;
 
   factory ClassDeclarationConstructorIterator.full(
-      ClassDeclarationAugmentationAccess<D> patching, D classBuilder,
+      ClassDeclarationAugmentationAccess<D> access, D classBuilder,
       {required bool includeDuplicates}) {
     return new ClassDeclarationConstructorIterator._(
-        patching.getOrigin(classBuilder),
-        patching.getAugmentations(classBuilder)?.iterator,
+        access.getOrigin(classBuilder),
+        access.getAugmentations(classBuilder)?.iterator,
         includeDuplicates: includeDuplicates);
   }
 
@@ -343,11 +342,11 @@ class ClassDeclarationConstructorNameIterator<D extends ClassDeclaration,
   final bool includeDuplicates;
 
   factory ClassDeclarationConstructorNameIterator(
-      ClassDeclarationAugmentationAccess<D> patching, D classDeclaration,
+      ClassDeclarationAugmentationAccess<D> access, D classDeclaration,
       {required bool includeDuplicates}) {
     return new ClassDeclarationConstructorNameIterator._(
-        patching.getOrigin(classDeclaration),
-        patching.getAugmentations(classDeclaration)?.iterator,
+        access.getOrigin(classDeclaration),
+        access.getAugmentations(classDeclaration)?.iterator,
         includeDuplicates: includeDuplicates);
   }
 

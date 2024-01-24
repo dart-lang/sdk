@@ -82,7 +82,7 @@ abstract class BodyBuilderContext {
     return _declarationContext.lookupLocalMember(name, required: required);
   }
 
-  bool get isPatchClass => _declarationContext.isPatchClass;
+  bool get isAugmentationClass => _declarationContext.isAugmentationClass;
 
   Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
     return _declarationContext.lookupStaticOriginMember(name, charOffset, uri);
@@ -267,7 +267,7 @@ abstract class BodyBuilderDeclarationContext {
 
   Builder? lookupLocalMember(String name, {bool required = false});
 
-  bool get isPatchClass => false;
+  bool get isAugmentationClass => false;
 
   Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
     throw new UnsupportedError('${runtimeType}.lookupStaticOriginMember');
@@ -363,11 +363,11 @@ class _SourceClassBodyBuilderDeclarationContext
   }
 
   @override
-  bool get isPatchClass => _sourceClassBuilder.isPatch;
+  bool get isAugmentationClass => _sourceClassBuilder.isPatch;
 
   @override
   Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
-    // The scope of a patched method includes the origin class.
+    // The scope of an augmented method includes the origin class.
     return _sourceClassBuilder.origin
         .findStaticBuilder(name, charOffset, uri, _libraryBuilder);
   }

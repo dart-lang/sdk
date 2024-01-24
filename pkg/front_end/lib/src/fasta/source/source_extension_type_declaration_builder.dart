@@ -9,7 +9,6 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -52,7 +51,6 @@ class SourceExtensionTypeDeclarationBuilder
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
   SourceExtensionTypeDeclarationBuilder? _origin;
-  SourceExtensionTypeDeclarationBuilder? patchForTesting;
 
   MergedClassMemberScope? _mergedScope;
 
@@ -682,24 +680,21 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is SourceExtensionTypeDeclarationBuilder) {
-      patch._origin = this;
-      if (retainDataForTesting) {
-        patchForTesting = patch;
-      }
+  void applyAugmentation(Builder augmentation) {
+    if (augmentation is SourceExtensionTypeDeclarationBuilder) {
+      augmentation._origin = this;
       scope.forEachLocalMember((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: false);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+        Builder? memberAugmentation =
+            augmentation.scope.lookupLocalMember(name, setter: false);
+        if (memberAugmentation != null) {
+          member.applyAugmentation(memberAugmentation);
         }
       });
       scope.forEachLocalSetter((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: true);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+        Builder? memberAugmentation =
+            augmentation.scope.lookupLocalMember(name, setter: true);
+        if (memberAugmentation != null) {
+          member.applyAugmentation(memberAugmentation);
         }
       });
 
@@ -707,7 +702,7 @@ class SourceExtensionTypeDeclarationBuilder
       // with origin declaration.
     } else {
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          patch.charOffset, noLength, patch.fileUri, context: [
+          augmentation.charOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, charOffset, noLength)
       ]);

@@ -234,8 +234,8 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
   TypeParameter get parameter => origin.actualParameter;
 
   @override
-  void applyPatch(covariant NominalVariableBuilder patch) {
-    patch.actualOrigin = this;
+  void applyAugmentation(covariant NominalVariableBuilder augmentation) {
+    augmentation.actualOrigin = this;
   }
 
   @override
@@ -319,10 +319,16 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
+    TypeBuilder? boundBuilder = bound;
+    TypeDeclarationBuilder? boundDeclarationBuilder =
+        boundBuilder is NamedTypeBuilder ? boundBuilder.declaration : null;
     bool needsPostUpdate =
         nullabilityBuilder.isOmitted && hasUnsetParameterBound ||
             library is SourceLibraryBuilder &&
-                library.hasPendingNullability(parameterBound);
+                library.hasPendingNullability(parameterBound) ||
+            nullabilityBuilder.isOmitted &&
+                boundDeclarationBuilder is ExtensionTypeDeclarationBuilder &&
+                !boundDeclarationBuilder.hasInterfacesBuilt;
     Nullability nullability;
     if (nullabilityBuilder.isOmitted) {
       if (needsPostUpdate) {
@@ -665,11 +671,17 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
+    TypeBuilder? boundBuilder = bound;
+    TypeDeclarationBuilder? boundDeclarationBuilder =
+        boundBuilder is NamedTypeBuilder ? boundBuilder.declaration : null;
     bool needsPostUpdate = nullabilityBuilder.isOmitted &&
             identical(
                 parameter.bound, StructuralParameter.unsetBoundSentinel) ||
         library is SourceLibraryBuilder &&
-            library.hasPendingNullability(parameter.bound);
+            library.hasPendingNullability(parameter.bound) ||
+        nullabilityBuilder.isOmitted &&
+            boundDeclarationBuilder is ExtensionTypeDeclarationBuilder &&
+            !boundDeclarationBuilder.hasInterfacesBuilt;
     Nullability nullability;
     if (nullabilityBuilder.isOmitted) {
       if (needsPostUpdate) {
@@ -754,8 +766,8 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   }
 
   @override
-  void applyPatch(covariant StructuralVariableBuilder patch) {
-    patch.actualOrigin = this;
+  void applyAugmentation(covariant StructuralVariableBuilder augmentation) {
+    augmentation.actualOrigin = this;
   }
 
   StructuralVariableBuilder clone(

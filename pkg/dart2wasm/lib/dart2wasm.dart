@@ -27,6 +27,8 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.inlining),
   Flag("name-section", (o, value) => o.translatorOptions.nameSection = value,
       defaultsTo: _d.translatorOptions.nameSection),
+  Flag("minify", (o, value) => o.translatorOptions.minify = value,
+      defaultsTo: _d.translatorOptions.minify),
   Flag("polymorphic-specialization",
       (o, value) => o.translatorOptions.polymorphicSpecialization = value,
       defaultsTo: _d.translatorOptions.polymorphicSpecialization),

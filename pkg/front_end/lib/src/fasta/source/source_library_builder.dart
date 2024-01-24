@@ -255,9 +255,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// [forEachExtensionInScope].
   Set<ExtensionBuilder>? _extensionsInScope;
 
-  List<SourceLibraryBuilder>? _patchLibraries;
+  List<SourceLibraryBuilder>? _augmentationLibraries;
 
-  int patchIndex = 0;
+  int augmentationIndex = 0;
 
   /// `true` if this is an augmentation library.
   final bool isAugmentation;
@@ -480,19 +480,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           includeDuplicates: false);
 
   // TODO(johnniwinther): Can avoid using this from outside this class?
-  Iterable<SourceLibraryBuilder>? get patchLibraries => _patchLibraries;
+  Iterable<SourceLibraryBuilder>? get augmentationLibraries =>
+      _augmentationLibraries;
 
-  void addPatchLibrary(SourceLibraryBuilder patchLibrary) {
-    assert(patchLibrary.isPatch,
-        "Library ${patchLibrary} must be a patch library.");
-    assert(!patchLibrary.isPart,
-        "Patch library ${patchLibrary} cannot be a part .");
-    (_patchLibraries ??= []).add(patchLibrary);
-    patchLibrary.patchIndex = _patchLibraries!.length;
+  void addAugmentationLibrary(SourceLibraryBuilder augmentationLibrary) {
+    assert(augmentationLibrary.isPatch,
+        "Library ${augmentationLibrary} must be a augmentation library.");
+    assert(!augmentationLibrary.isPart,
+        "Augmentation library ${augmentationLibrary} cannot be a part .");
+    (_augmentationLibraries ??= []).add(augmentationLibrary);
+    augmentationLibrary.augmentationIndex = _augmentationLibraries!.length;
   }
 
   /// Creates a synthesized augmentation library for the [source] code and
-  /// attach it as a patch library of this library.
+  /// attach it as an augmentation library of this library.
   ///
   /// To support the parser of the [source], the library is registered as an
   /// unparsed library on the [loader].
@@ -500,7 +501,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {Map<String, OmittedTypeBuilder>? omittedTypes}) {
     assert(!isPatch,
         "createAugmentationLibrary is only supported on the origin library.");
-    int index = _patchLibraries?.length ?? 0;
+    int index = _augmentationLibraries?.length ?? 0;
     Uri uri =
         new Uri(scheme: augmentationScheme, path: '${fileUri.path}-$index');
     // TODO(johnniwinther): Add support for printing the generated macro
@@ -532,7 +533,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isAugmentation: true,
         referencesFrom: referencesFrom,
         omittedTypes: omittedTypeDeclarationBuilders);
-    addPatchLibrary(augmentationLibrary);
+    addAugmentationLibrary(augmentationLibrary);
     loader.registerUnparsedLibrarySource(augmentationLibrary, source);
     return augmentationLibrary;
   }
@@ -1138,16 +1139,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// Builds the core AST structure of this library as needed for the outline.
   Library buildOutlineNodes(LibraryBuilder coreLibrary) {
-    // TODO(johnniwinther): Avoid the need to process patch libraries before
-    // the origin. Currently, settings performed by the patch are overridden
-    // by the origin. For instance, the `Map` class is abstract in the origin
-    // but (unintentionally) concrete in the patch. By processing the origin
-    // last the `isAbstract` property set by the patch is corrected by the
-    // origin.
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.buildOutlineNodes(coreLibrary);
+    // TODO(johnniwinther): Avoid the need to process augmentation libraries
+    // before the origin. Currently, settings performed by the augmentation are
+    // overridden by the origin. For instance, the `Map` class is abstract in
+    // the origin but (unintentionally) concrete in the patch. By processing the
+    // origin last the `isAbstract` property set by the patch is corrected by
+    // the origin.
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.buildOutlineNodes(coreLibrary);
       }
     }
 
@@ -1389,7 +1391,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       unboundNominalVariables.addAll(part.unboundNominalVariables);
       unboundStructuralVariables.addAll(part.unboundStructuralVariables);
       // Check that the targets are different. This is not normally a problem
-      // but is for patch files.
+      // but is for augmentation libraries.
       if (library != part.library && part.library.problemsAsJson != null) {
         (library.problemsAsJson ??= <String>[])
             .addAll(part.library.problemsAsJson!);
@@ -1428,10 +1430,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addImportsToScope() {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.addImportsToScope();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.addImportsToScope();
       }
     }
 
@@ -1548,10 +1551,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   int resolveTypes() {
     int typeCount = 0;
 
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        typeCount += patchLibrary.resolveTypes();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        typeCount += augmentationLibrary.resolveTypes();
       }
     }
 
@@ -1566,10 +1570,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void installDefaultSupertypes(
       ClassBuilder objectClassBuilder, Class objectClass) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.installDefaultSupertypes(objectClassBuilder, objectClass);
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.installDefaultSupertypes(
+            objectClassBuilder, objectClass);
       }
     }
 
@@ -1595,10 +1601,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void collectSourceClassesAndExtensionTypes(
       List<SourceClassBuilder> sourceClasses,
       List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.collectSourceClassesAndExtensionTypes(
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.collectSourceClassesAndExtensionTypes(
             sourceClasses, sourceExtensionTypes);
       }
     }
@@ -1620,10 +1627,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   int resolveConstructors() {
     int count = 0;
 
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        count += patchLibrary.resolveConstructors();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        count += augmentationLibrary.resolveConstructors();
       }
     }
 
@@ -1811,10 +1819,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void collectInferableTypes(List<InferableType> inferableTypes) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.collectInferableTypes(inferableTypes);
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.collectInferableTypes(inferableTypes);
       }
     }
     if (_inferableTypes != null) {
@@ -2814,10 +2823,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         "Mixin applications have already been processed.");
     mixinApplications.addAll(_mixinApplications!);
     _mixinApplications = null;
-    Iterable<SourceLibraryBuilder>? patchLibraries = this.patchLibraries;
-    if (patchLibraries != null) {
-      for (SourceLibraryBuilder patchLibrary in patchLibraries) {
-        patchLibrary.takeMixinApplications(mixinApplications);
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.takeMixinApplications(mixinApplications);
       }
     }
   }
@@ -3592,10 +3602,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
       List<DelayedActionPerformer> delayedActionPerformers) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.buildOutlineExpressions(classHierarchy,
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.buildOutlineExpressions(classHierarchy,
             delayedDefaultValueCloners, delayedActionPerformers);
       }
     }
@@ -3642,7 +3653,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             declaration.isConflictingAugmentationMember) {
           cls.name = '${cls.name}'
               '#${declaration.duplicateIndex}'
-              '#${declaration.libraryBuilder.patchIndex}';
+              '#${declaration.libraryBuilder.augmentationIndex}';
         }
         library.addClass(cls);
       }
@@ -3695,7 +3706,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!declaration.isPatch && !declaration.isDuplicate) {
         if (declaration.isConflictingAugmentationMember) {
           member.name = new Name(
-              '${member.name.text}#${declaration.libraryBuilder.patchIndex}',
+              '${member.name.text}'
+              '#${declaration.libraryBuilder.augmentationIndex}',
               member.name.library);
         }
         library.addField(member);
@@ -3707,7 +3719,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           !declaration.isConflictingSetter) {
         if (declaration.isConflictingAugmentationMember) {
           member.name = new Name(
-              '${member.name.text}#${declaration.libraryBuilder.patchIndex}',
+              '${member.name.text}'
+              '#${declaration.libraryBuilder.augmentationIndex}',
               member.name.library);
         }
         library.addProcedure(member);
@@ -3868,10 +3881,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   int finishDeferredLoadTearoffs() {
     int total = 0;
 
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        total += patchLibrary.finishDeferredLoadTearoffs();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        total += augmentationLibrary.finishDeferredLoadTearoffs();
       }
     }
 
@@ -3891,10 +3905,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   int finishForwarders() {
     int count = 0;
 
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        count += patchLibrary.finishForwarders();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        count += augmentationLibrary.finishForwarders();
       }
     }
 
@@ -3953,10 +3968,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   int finishNativeMethods() {
     int count = 0;
 
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        count += patchLibrary.finishNativeMethods();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        count += augmentationLibrary.finishNativeMethods();
       }
     }
 
@@ -4028,10 +4044,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Map<NominalVariableBuilder, SourceLibraryBuilder> typeVariableBuilders,
       Map<StructuralVariableBuilder, SourceLibraryBuilder>
           functionTypeTypeVariableBuilders) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.collectUnboundTypeVariables(
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.collectUnboundTypeVariables(
             typeVariableBuilders, functionTypeTypeVariableBuilders);
       }
     }
@@ -4052,10 +4069,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// may be bounds to some of the type parameters of other types from the input
   /// list.
   void processPendingNullabilities({Set<DartType>? typeFilter}) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.processPendingNullabilities();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.processPendingNullabilities();
       }
     }
 
@@ -4234,10 +4252,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   int computeVariances() {
     int count = 0;
 
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        count += patchLibrary.computeVariances();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        count += augmentationLibrary.computeVariances();
       }
     }
 
@@ -4359,10 +4378,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
 
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        count += patchLibrary.computeDefaultTypes(
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        count += augmentationLibrary.computeDefaultTypes(
             dynamicType, nullType, bottomType, objectClass);
       }
     }
@@ -4585,8 +4605,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  /// If this is a patch library, apply its patches to [origin].
-  void applyPatches() {
+  /// If this is an augmentation library, apply its augmentations to [origin].
+  void applyAugmentations() {
     if (!isPatch) return;
 
     if (languageVersion != origin.languageVersion) {
@@ -4617,14 +4637,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// Builds the AST nodes needed for the full compilation.
   ///
-  /// This includes patching member bodies and adding augmented members.
+  /// This includes augmenting member bodies and adding augmented members.
   int buildBodyNodes() {
     int count = 0;
 
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        count += patchLibrary.buildBodyNodes();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        count += augmentationLibrary.buildBodyNodes();
       }
     }
 
@@ -4771,8 +4792,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (typeParameter != null &&
         typeParameter.fileOffset != -1 &&
         typeParameter.location?.file != null) {
-      // It looks like when parameters come from patch files, they don't
-      // have a reportable location.
+      // It looks like when parameters come from augmentation libraries, they
+      // don't have a reportable location.
       (context ??= <LocatedMessage>[]).add(
           messageIncorrectTypeArgumentVariable.withLocation(
               typeParameter.location!.file,
@@ -4797,8 +4818,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // Skip reporting location for function-type type parameters as it's a
     // limitation of Kernel.
     if (typeParameter != null && typeParameter.location != null) {
-      // It looks like when parameters come from patch files, they don't
-      // have a reportable location.
+      // It looks like when parameters come from augmentation libraries, they
+      // don't have a reportable location.
       (context ??= <LocatedMessage>[]).add(
           messageIncorrectTypeArgumentVariable.withLocation(
               typeParameter.location!.file,
@@ -5111,10 +5132,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.checkTypesInOutline(typeEnvironment);
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.checkTypesInOutline(typeEnvironment);
       }
     }
 
@@ -5224,10 +5246,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void computeShowHideElements(ClassMembersBuilder membersBuilder) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.computeShowHideElements(membersBuilder);
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.computeShowHideElements(membersBuilder);
       }
     }
 
@@ -5456,10 +5479,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void installTypedefTearOffs() {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.installTypedefTearOffs();
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.installTypedefTearOffs();
       }
     }
 
@@ -6135,8 +6159,8 @@ class SourceLibraryBuilderMemberIterator<T extends Builder>
   factory SourceLibraryBuilderMemberIterator(
       SourceLibraryBuilder libraryBuilder,
       {required bool includeDuplicates}) {
-    return new SourceLibraryBuilderMemberIterator._(
-        libraryBuilder.origin, libraryBuilder.origin.patchLibraries?.iterator,
+    return new SourceLibraryBuilderMemberIterator._(libraryBuilder.origin,
+        libraryBuilder.origin.augmentationLibraries?.iterator,
         includeDuplicates: includeDuplicates);
   }
 
@@ -6184,8 +6208,8 @@ class SourceLibraryBuilderMemberNameIterator<T extends Builder>
   factory SourceLibraryBuilderMemberNameIterator(
       SourceLibraryBuilder libraryBuilder,
       {required bool includeDuplicates}) {
-    return new SourceLibraryBuilderMemberNameIterator._(
-        libraryBuilder.origin, libraryBuilder.origin.patchLibraries?.iterator,
+    return new SourceLibraryBuilderMemberNameIterator._(libraryBuilder.origin,
+        libraryBuilder.origin.augmentationLibraries?.iterator,
         includeDuplicates: includeDuplicates);
   }
 

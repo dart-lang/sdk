@@ -45,6 +45,6 @@ abstract class ModifierBuilderImpl extends BuilderImpl
   }
 
   @override
-  String toString() =>
-      "${isPatch ? 'patch ' : ''}$debugName(${printOn(new StringBuffer())})";
+  String toString() => "${isPatch ? 'augmentation ' : ''}"
+      "$debugName(${printOn(new StringBuffer())})";
 }
