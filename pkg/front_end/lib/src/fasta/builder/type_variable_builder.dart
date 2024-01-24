@@ -234,8 +234,8 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
   TypeParameter get parameter => origin.actualParameter;
 
   @override
-  void applyPatch(covariant NominalVariableBuilder patch) {
-    patch.actualOrigin = this;
+  void applyAugmentation(covariant NominalVariableBuilder augmentation) {
+    augmentation.actualOrigin = this;
   }
 
   @override
@@ -754,8 +754,8 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   }
 
   @override
-  void applyPatch(covariant StructuralVariableBuilder patch) {
-    patch.actualOrigin = this;
+  void applyAugmentation(covariant StructuralVariableBuilder augmentation) {
+    augmentation.actualOrigin = this;
   }
 
   StructuralVariableBuilder clone(

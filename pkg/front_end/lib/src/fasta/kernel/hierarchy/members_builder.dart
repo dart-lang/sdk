@@ -200,7 +200,8 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     ClassMembersBuilder membersBuilder =
         new ClassMembersBuilder(hierarchyBuilder);
     for (ClassBuilder classBuilder in classes) {
-      assert(!classBuilder.isPatch, "Unexpected augment class $classBuilder");
+      assert(
+          !classBuilder.isPatch, "Unexpected augmentation class $classBuilder");
       membersBuilder.classNodes[classBuilder.cls] = new ClassMembersNodeBuilder(
               membersBuilder,
               hierarchyBuilder.getNodeFromClassBuilder(classBuilder))

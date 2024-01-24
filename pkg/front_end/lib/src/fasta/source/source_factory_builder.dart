@@ -60,7 +60,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   SourceFactoryBuilder? actualOrigin;
 
-  List<SourceFactoryBuilder>? _patches;
+  List<SourceFactoryBuilder>? _augmentations;
 
   final MemberName _memberName;
 
@@ -117,7 +117,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   DeclarationBuilder get declarationBuilder => super.declarationBuilder!;
 
-  List<SourceFactoryBuilder>? get patchesForTesting => _patches;
+  List<SourceFactoryBuilder>? get augmentationsForTesting => _augmentations;
 
   @override
   AsyncMarker get asyncModifier => actualAsyncModifier;
@@ -250,29 +250,29 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is SourceFactoryBuilder) {
-      if (checkPatch(patch)) {
-        patch.actualOrigin = this;
-        (_patches ??= []).add(patch);
+  void applyAugmentation(Builder augmentation) {
+    if (augmentation is SourceFactoryBuilder) {
+      if (checkAugmentation(augmentation)) {
+        augmentation.actualOrigin = this;
+        (_augmentations ??= []).add(augmentation);
       }
     } else {
-      reportPatchMismatch(patch);
+      reportAugmentationMismatch(augmentation);
     }
   }
 
-  void _finishPatch() {
-    finishProcedurePatch(origin._procedure, _procedureInternal);
+  void _finishAugmentation() {
+    finishProcedureAugmentation(origin._procedure, _procedureInternal);
 
     if (_factoryTearOff != null) {
-      finishProcedurePatch(origin._factoryTearOff!, _factoryTearOff);
+      finishProcedureAugmentation(origin._factoryTearOff!, _factoryTearOff);
     }
   }
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
     if (!isPatch) return 0;
-    _finishPatch();
+    _finishAugmentation();
     return 1;
   }
 
@@ -284,10 +284,10 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
     library.checkTypesInFunctionBuilder(this, typeEnvironment);
-    List<SourceFactoryBuilder>? patches = _patches;
-    if (patches != null) {
-      for (SourceFactoryBuilder patch in patches) {
-        patch.checkTypes(library, typeEnvironment);
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation.checkTypes(library, typeEnvironment);
       }
     }
   }
@@ -296,10 +296,10 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   /// augmentations.
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     _checkRedirectingFactory(typeEnvironment);
-    List<SourceFactoryBuilder>? patches = _patches;
-    if (patches != null) {
-      for (SourceFactoryBuilder patch in patches) {
-        patch._checkRedirectingFactory(typeEnvironment);
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation._checkRedirectingFactory(typeEnvironment);
       }
     }
   }
@@ -324,9 +324,9 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   bool get isAugmented {
     if (isPatch) {
-      return origin._patches!.last != this;
+      return origin._augmentations!.last != this;
     } else {
-      return _patches != null;
+      return _augmentations != null;
     }
   }
 }
@@ -561,14 +561,14 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           libraryBuilder: libraryBuilder, identicalSignatures: false));
     }
     if (isConst && isPatch) {
-      _finishPatch();
+      _finishAugmentation();
     }
     _hasBuiltOutlines = true;
   }
 
   @override
-  void _finishPatch() {
-    super._finishPatch();
+  void _finishAugmentation() {
+    super._finishAugmentation();
 
     SourceFactoryBuilder redirectingOrigin = origin;
     if (redirectingOrigin is RedirectingFactoryBuilder) {
@@ -754,7 +754,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         function.computeThisFunctionType(libraryBuilder.nonNullable);
     if (isPatch) {
       // The redirection target type uses the origin type parameters so we must
-      // substitute patch type parameters before checking subtyping.
+      // substitute augmentation type parameters before checking subtyping.
       if (function.typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {

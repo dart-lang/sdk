@@ -229,14 +229,15 @@ class SourceLoader extends Loader {
 
   /// The [LibraryBuilder]s for libraries built from source or loaded from dill.
   ///
-  /// Before [resolveParts] have been called, this includes parts and patches.
+  /// Before [resolveParts] have been called, this includes parts and
+  /// augmentations.
   Iterable<LibraryBuilder> get libraryBuilders => _builders.values;
 
   /// The [SourceLibraryBuilder]s for the libraries built from source by this
   /// source loader.
   ///
   /// This is available after [resolveParts] have been called and doesn't
-  /// include parts or patches. Orphaned parts _are_ included.
+  /// include parts or augmentations. Orphaned parts _are_ included.
   List<SourceLibraryBuilder> get sourceLibraryBuilders {
     assert(
         _sourceLibraryBuilders != null,
@@ -292,7 +293,8 @@ class SourceLoader extends Loader {
   /// [fileUri] must not be null and is a URI that can be passed to FileSystem
   /// to locate the corresponding file.
   ///
-  /// [origin] is non-null if the created library is a patch to [origin].
+  /// [origin] is non-null if the created library is an augmentation of
+  /// [origin].
   ///
   /// [packageUri] is the base uri for the package which the library belongs to.
   /// For instance 'package:foo'.
@@ -672,7 +674,7 @@ class SourceLoader extends Loader {
         if (library.loader == this) {
           libraryCount++;
           if (library is SourceLibraryBuilder) {
-            libraryCount += library.patchLibraries?.length ?? 0;
+            libraryCount += library.augmentationLibraries?.length ?? 0;
           }
         }
       }
@@ -913,12 +915,12 @@ severity: $severity
       List<int> source = getSource(bytes);
 
       /// We use the [importUri] of the created [Library] and not the
-      /// [importUri] of the [LibraryBuilder] since it might be a patch library
-      /// which is not directly part of the output.
+      /// [importUri] of the [LibraryBuilder] since it might be an augmentation
+      /// library which is not directly part of the output.
       Uri importUri = libraryBuilder.library.importUri;
       if (libraryBuilder.isPatch) {
-        // For patch files we create a "fake" import uri.
-        // We cannot use the import uri from the patched library because
+        // For augmentation libraries we create a "fake" import uri.
+        // We cannot use the import uri from the augmented library because
         // several different files would then have the same import uri,
         // and the VM does not support that. Also, what would, for instance,
         // setting a breakpoint on line 42 of some import uri mean, if the uri
@@ -1193,10 +1195,11 @@ severity: $severity
     // [library] is only nullable so we can call this a "dummy-time" to get rid
     // of a semi-leak.
     if (library == null) return;
-    Iterable<SourceLibraryBuilder>? patches = library.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        await buildBody(patchLibrary);
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        library.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        await buildBody(augmentationLibrary);
       }
     }
 
@@ -1338,14 +1341,14 @@ severity: $severity
     List<Uri> parts = <Uri>[];
     List<SourceLibraryBuilder> libraries = [];
     List<SourceLibraryBuilder> sourceLibraries = [];
-    List<SourceLibraryBuilder> patchLibraries = [];
+    List<SourceLibraryBuilder> augmentationLibraries = [];
     _builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this && library is SourceLibraryBuilder) {
         if (library.isPart) {
           parts.add(uri);
         } else {
           if (library.isPatch) {
-            patchLibraries.add(library);
+            augmentationLibraries.add(library);
           } else {
             sourceLibraries.add(library);
           }
@@ -1374,19 +1377,19 @@ severity: $severity
     }
     ticker.logMs("Resolved parts");
 
-    for (SourceLibraryBuilder patchLibrary in patchLibraries) {
-      _builders.remove(patchLibrary.fileUri);
-      patchLibrary.origin.addPatchLibrary(patchLibrary);
-      patchLibrary.applyPatches();
+    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+      _builders.remove(augmentationLibrary.fileUri);
+      augmentationLibrary.origin.addAugmentationLibrary(augmentationLibrary);
+      augmentationLibrary.applyAugmentations();
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
         libraryBuilders.every((library) => !library.isPatch),
-        "Patch library found in libraryBuilders: "
+        "Augmentation library found in libraryBuilders: "
         "${libraryBuilders.where((library) => library.isPatch)}.");
     assert(
         sourceLibraries.every((library) => !library.isPatch),
-        "Patch library found in sourceLibraryBuilders: "
+        "Augmentation library found in sourceLibraryBuilders: "
         "${sourceLibraries.where((library) => library.isPatch)}.");
     assert(
         libraryBuilders.every((library) =>
@@ -1394,7 +1397,7 @@ severity: $severity
         "Source library not found in sourceLibraryBuilders:"
         "${libraryBuilders.where((library) => // force line break
             library.loader == this && !sourceLibraries.contains(library))}");
-    ticker.logMs("Applied patches");
+    ticker.logMs("Applied augmentations");
   }
 
   /// Compute library scopes for [libraryBuilders].
@@ -1807,7 +1810,7 @@ severity: $severity
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       count += library.buildBodyNodes();
     }
-    ticker.logMs("Finished $count patch methods");
+    ticker.logMs("Finished $count augmentation methods");
   }
 
   /// Check that [objectClass] has no supertypes. Recover by removing any
@@ -2849,10 +2852,11 @@ severity: $severity
 
   void _checkMainMethods(
       SourceLibraryBuilder libraryBuilder, DartType listOfString) {
-    Iterable<SourceLibraryBuilder>? patches = libraryBuilder.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        _checkMainMethods(patchLibrary, listOfString);
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        libraryBuilder.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        _checkMainMethods(augmentationLibrary, listOfString);
       }
     }
 

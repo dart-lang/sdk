@@ -138,7 +138,7 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   /// The [Class] built by this builder.
   ///
-  /// For a patch class the origin class is returned.
+  /// For an augmentation class the origin class is returned.
   Class get cls;
 
   @override
@@ -170,9 +170,9 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// the class built by this class builder. If [isSuper] is `true`, the member
   /// is found among the class members of the superclass.
   ///
-  /// If this class builder is a patch, interface members declared in this
-  /// patch are searched before searching the interface members in the origin
-  /// class.
+  /// If this class builder is an augmentation, interface members declared in
+  /// this augmentation are searched before searching the interface members in
+  /// the origin class.
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false, bool isSuper = false});
 }
@@ -449,7 +449,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         Member? member =
             hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
         if (member?.parent == instanceClass) {
-          // Only if the member is found in the patch can we use it.
+          // Only if the member is found in the augmentation can we use it.
           return member;
         } else {
           // Otherwise, we need to keep searching in the origin class.

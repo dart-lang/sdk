@@ -1402,7 +1402,7 @@ abstract class MergedScope<T extends Builder> {
         : newBuilder.hasPatchAnnotation;
     if (existingBuilder != null) {
       if (isAugmentationBuilder) {
-        existingBuilder.applyPatch(newBuilder);
+        existingBuilder.applyAugmentation(newBuilder);
       } else {
         newBuilder.isConflictingAugmentationMember = true;
         Message message;
@@ -1598,7 +1598,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
           : newConstructor.hasPatchAnnotation;
       if (existingConstructor != null) {
         if (isAugmentationBuilder) {
-          existingConstructor.applyPatch(newConstructor);
+          existingConstructor.applyAugmentation(newConstructor);
         } else {
           newConstructor.isConflictingAugmentationMember = true;
           originLibrary.addProblem(

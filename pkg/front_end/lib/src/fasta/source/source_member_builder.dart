@@ -41,7 +41,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
 
   /// Builds the AST nodes for this member as needed for the full compilation.
   ///
-  /// This includes adding patched bodies and augmented members.
+  /// This includes adding augmented bodies and augmented members.
   int buildBodyNodes(BuildNodesCallback f);
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the

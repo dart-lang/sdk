@@ -352,7 +352,7 @@ class MacroApplications {
 
   void _computeSourceLibraryMacroApplicationData(
       SourceLibraryBuilder libraryBuilder) {
-    // TODO(johnniwinther): Handle patch libraries.
+    // TODO(johnniwinther): Handle augmentation libraries.
     LibraryMacroApplicationData libraryMacroApplicationData =
         new LibraryMacroApplicationData();
     Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
@@ -727,7 +727,7 @@ class MacroApplications {
       await applyClassMacros(classBuilder);
       // TODO(johnniwinther): Avoid accessing augmentations from the outside.
       List<SourceClassBuilder>? augmentationClassBuilders =
-          classBuilder.patchesForTesting;
+          classBuilder.augmentationsForTesting;
       if (augmentationClassBuilders != null) {
         for (SourceClassBuilder augmentationClassBuilder
             in augmentationClassBuilders) {

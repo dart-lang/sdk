@@ -352,10 +352,11 @@ class KernelTarget extends TargetImplementation {
       Iterable<SourceLibraryBuilder> augmentationLibraries) async {
     await loader.buildOutlines();
     if (augmentationLibraries.isNotEmpty) {
-      // Normally patch libraries are applied in [SourceLoader.resolveParts].
-      // For augmentation libraries we instead apply them directly here.
+      // Normally augmentation libraries are applied in
+      // [SourceLoader.resolveParts]. For macro-generated augmentation libraries
+      // we instead apply them directly here.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.applyPatches();
+        augmentationLibrary.applyAugmentations();
       }
       loader.computeLibraryScopes(augmentationLibraries);
       loader.resolveTypes(augmentationLibraries);
@@ -636,7 +637,7 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
       loader.finishNativeMethods();
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_finishPatchMethods);
+      benchmarker?.enterPhase(BenchmarkPhases.body_finishAugmentationMethods);
       loader.buildBodyNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
@@ -864,7 +865,8 @@ class KernelTarget extends TargetImplementation {
   void installDefaultConstructor(SourceClassBuilder builder) {
     assert(!builder.isMixinApplication);
     assert(!builder.isExtension);
-    // TODO(askesc): Make this check light-weight in the absence of patches.
+    // TODO(askesc): Make this check light-weight in the absence of
+    //  augmentations.
     if (builder.cls.constructors.isNotEmpty) return;
     for (Procedure proc in builder.cls.procedures) {
       if (proc.isFactory) return;

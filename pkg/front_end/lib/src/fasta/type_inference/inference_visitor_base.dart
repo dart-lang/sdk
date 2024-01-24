@@ -4470,10 +4470,10 @@ class _WhyNotPromotedVisitor
         this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
       // `fieldPromotabilityInfo` is computed for all library builders except
-      // those for patch files.
+      // those for augmentation libraries.
       assert(this.inferrer.libraryBuilder.isPatch);
-      // "why not promoted" functionality is not supported in patch files, so
-      // just don't generate a context message.
+      // "why not promoted" functionality is not supported in augmentation
+      // libraries, so just don't generate a context message.
       return const [];
     }
     FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,

@@ -475,8 +475,9 @@ class OperationsCfe
   /// still populated, so that [whyPropertyIsNotPromotable] can figure out
   /// whether enabling field promotion would cause a field to be promotable.
   ///
-  /// The value is `null` if the current source library builder is for a patch
-  /// file (patch files don't support field promotion).
+  /// The value is `null` if the current source library builder is for an
+  /// augmentation library (augmentation libraries don't support field
+  /// promotion).
   final FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
   final Map<DartType, DartType> typeCacheNonNullable;
@@ -563,8 +564,8 @@ class OperationsCfe
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      // This only happens when compiling patch files. Patch files don't support
-      // field promotion.
+      // This only happens when compiling augmentation libraries. Augmentation
+      // libraries don't support field promotion.
       return false;
     }
     if (property is Procedure) {
@@ -588,8 +589,8 @@ class OperationsCfe
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      // This only happens when compiling patch files. Patch files don't support
-      // field promotion.
+      // This only happens when compiling augmentation libraries. Augmentation
+      // libraries don't support field promotion.
       return null;
     }
     return fieldNonPromotabilityInfo.individualPropertyReasons[property];

@@ -148,7 +148,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     _isConflictingAugmentationMember = value;
   }
 
-  List<SourceClassBuilder>? _patches;
+  List<SourceClassBuilder>? _augmentations;
 
   MergedClassMemberScope? _mergedScope;
 
@@ -189,7 +189,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   MergedClassMemberScope get mergedScope => _mergedScope ??=
       isPatch ? origin.mergedScope : new MergedClassMemberScope(this);
 
-  List<SourceClassBuilder>? get patchesForTesting => _patches;
+  List<SourceClassBuilder>? get augmentationsForTesting => _augmentations;
 
   SourceClassBuilder? actualOrigin;
 
@@ -570,29 +570,29 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is SourceClassBuilder) {
-      patch.actualOrigin = this;
-      (_patches ??= []).add(patch);
+  void applyAugmentation(Builder augmentation) {
+    if (augmentation is SourceClassBuilder) {
+      augmentation.actualOrigin = this;
+      (_augmentations ??= []).add(augmentation);
 
-      mergedScope.addAugmentationScope(patch);
+      mergedScope.addAugmentationScope(augmentation);
 
       int originLength = typeVariables?.length ?? 0;
-      int patchLength = patch.typeVariables?.length ?? 0;
-      if (originLength != patchLength) {
-        patch.addProblem(messagePatchClassTypeVariablesMismatch,
-            patch.charOffset, noLength, context: [
+      int augmentationLength = augmentation.typeVariables?.length ?? 0;
+      if (originLength != augmentationLength) {
+        augmentation.addProblem(messagePatchClassTypeVariablesMismatch,
+            augmentation.charOffset, noLength, context: [
           messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
         ]);
       } else if (typeVariables != null) {
         int count = 0;
-        for (NominalVariableBuilder t in patch.typeVariables!) {
-          typeVariables![count++].applyPatch(t);
+        for (NominalVariableBuilder t in augmentation.typeVariables!) {
+          typeVariables![count++].applyAugmentation(t);
         }
       }
     } else {
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          patch.charOffset, noLength, patch.fileUri, context: [
+          augmentation.charOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, charOffset, noLength)
       ]);
@@ -1181,7 +1181,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (member is Field && member.isStatic ||
             member is Procedure && member.isStatic) {
           member.name = new Name(
-              '${member.name}#${memberBuilder.libraryBuilder.patchIndex}',
+              '${member.name}'
+              '#${memberBuilder.libraryBuilder.augmentationIndex}',
               member.name.library);
         } else {
           return;
@@ -2061,5 +2062,5 @@ class _SourceClassBuilderAugmentationAccess
   @override
   Iterable<SourceClassBuilder>? getAugmentations(
           SourceClassBuilder classDeclaration) =>
-      classDeclaration._patches;
+      classDeclaration._augmentations;
 }

@@ -29,8 +29,8 @@ import '../kernel/kernel_helper.dart'
     show
         DelayedDefaultValueCloner,
         TypeDependency,
-        finishConstructorPatch,
-        finishProcedurePatch;
+        finishConstructorAugmentation,
+        finishProcedureAugmentation;
 import '../messages.dart'
     show
         LocatedMessage,
@@ -379,7 +379,7 @@ class DeclaredSourceConstructorBuilder
 
   Constructor get actualConstructor => _constructor;
 
-  List<DeclaredSourceConstructorBuilder>? _patches;
+  List<DeclaredSourceConstructorBuilder>? _augmentations;
 
   bool _hasDefaultValueCloner = false;
 
@@ -483,7 +483,7 @@ class DeclaredSourceConstructorBuilder
   @override
   DeclaredSourceConstructorBuilder get origin => actualOrigin ?? this;
 
-  List<SourceConstructorBuilder>? get patchForTesting => _patches;
+  List<SourceConstructorBuilder>? get augmentationsForTesting => _augmentations;
 
   @override
   bool get isDeclarationInstanceMember => false;
@@ -495,10 +495,10 @@ class DeclaredSourceConstructorBuilder
   bool get isEffectivelyExternal {
     bool isExternal = this.isExternal;
     if (isExternal) {
-      List<SourceConstructorBuilder>? patches = _patches;
-      if (patches != null) {
-        for (SourceConstructorBuilder patch in patches) {
-          isExternal &= patch.isExternal;
+      List<SourceConstructorBuilder>? augmentations = _augmentations;
+      if (augmentations != null) {
+        for (SourceConstructorBuilder augmentation in augmentations) {
+          isExternal &= augmentation.isExternal;
         }
       }
     }
@@ -519,10 +519,10 @@ class DeclaredSourceConstructorBuilder
   bool get isEffectivelyRedirecting {
     bool isRedirecting = this.isRedirecting;
     if (!isRedirecting) {
-      List<SourceConstructorBuilder>? patches = _patches;
-      if (patches != null) {
-        for (SourceConstructorBuilder patch in patches) {
-          isRedirecting |= patch.isRedirecting;
+      List<SourceConstructorBuilder>? augmentations = _augmentations;
+      if (augmentations != null) {
+        for (SourceConstructorBuilder augmentation in augmentations) {
+          isRedirecting |= augmentation.isRedirecting;
         }
       }
     }
@@ -814,7 +814,7 @@ class DeclaredSourceConstructorBuilder
     }
     addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     if (isConst && isPatch) {
-      _finishPatch();
+      _finishAugmentation();
     }
     beginInitializers = null;
     _hasBuiltOutlines = true;
@@ -857,22 +857,21 @@ class DeclaredSourceConstructorBuilder
   @override
   Member get member => constructor;
 
-  void _finishPatch() {
-    finishConstructorPatch(origin.constructor, _constructor);
+  void _finishAugmentation() {
+    finishConstructorAugmentation(origin.constructor, _constructor);
 
     if (_constructorTearOff != null) {
-      finishProcedurePatch(origin._constructorTearOff!, _constructorTearOff);
+      finishProcedureAugmentation(
+          origin._constructorTearOff!, _constructorTearOff);
     }
   }
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
     if (!isPatch) return 0;
-    _finishPatch();
+    _finishAugmentation();
     return 1;
   }
-
-  List<DeclaredSourceConstructorBuilder>? get patchesForTesting => _patches;
 
   @override
   void becomeNative(SourceLoader loader) {
@@ -881,14 +880,14 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is DeclaredSourceConstructorBuilder) {
-      if (checkPatch(patch)) {
-        patch.actualOrigin = this;
-        (_patches ??= []).add(patch);
+  void applyAugmentation(Builder augmentation) {
+    if (augmentation is DeclaredSourceConstructorBuilder) {
+      if (checkAugmentation(augmentation)) {
+        augmentation.actualOrigin = this;
+        (_augmentations ??= []).add(augmentation);
       }
     } else {
-      reportPatchMismatch(patch);
+      reportAugmentationMismatch(augmentation);
     }
   }
 
@@ -942,10 +941,10 @@ class DeclaredSourceConstructorBuilder
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
     super.checkTypes(library, typeEnvironment);
-    List<DeclaredSourceConstructorBuilder>? patches = _patches;
-    if (patches != null) {
-      for (DeclaredSourceConstructorBuilder patch in patches) {
-        patch.checkTypes(library, typeEnvironment);
+    List<DeclaredSourceConstructorBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (DeclaredSourceConstructorBuilder augmentation in augmentations) {
+        augmentation.checkTypes(library, typeEnvironment);
       }
     }
   }
@@ -968,9 +967,9 @@ class DeclaredSourceConstructorBuilder
   @override
   bool get isAugmented {
     if (isPatch) {
-      return origin._patches!.last != this;
+      return origin._augmentations!.last != this;
     } else {
-      return _patches != null;
+      return _augmentations != null;
     }
   }
 }

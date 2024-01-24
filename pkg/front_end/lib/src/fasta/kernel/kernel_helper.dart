@@ -309,34 +309,35 @@ void adjustAnnotationFileUri(Annotatable annotatable, Uri annotatableFileUri) {
   }
 }
 
-/// Copies properties, function parameters and body from the [patch] constructor
-/// to its [origin].
-void finishConstructorPatch(Constructor origin, Constructor patch) {
-  origin.fileUri = patch.fileUri;
-  origin.startFileOffset = patch.startFileOffset;
-  origin.fileOffset = patch.fileOffset;
-  origin.fileEndOffset = patch.fileEndOffset;
+/// Copies properties, function parameters and body from the [augmentation]
+/// constructor to its [origin].
+void finishConstructorAugmentation(
+    Constructor origin, Constructor augmentation) {
+  origin.fileUri = augmentation.fileUri;
+  origin.startFileOffset = augmentation.startFileOffset;
+  origin.fileOffset = augmentation.fileOffset;
+  origin.fileEndOffset = augmentation.fileEndOffset;
 
-  origin.isExternal = patch.isExternal;
-  origin.function = patch.function;
+  origin.isExternal = augmentation.isExternal;
+  origin.function = augmentation.function;
   origin.function.parent = origin;
-  origin.initializers = patch.initializers;
+  origin.initializers = augmentation.initializers;
   setParents(origin.initializers, origin);
 
   adjustAnnotationFileUri(origin, origin.fileUri);
 }
 
-/// Copies properties, function parameters and body from the [patch] procedure
-/// to its [origin].
-void finishProcedurePatch(Procedure origin, Procedure patch) {
-  origin.fileUri = patch.fileUri;
-  origin.fileStartOffset = patch.fileStartOffset;
-  origin.fileOffset = patch.fileOffset;
-  origin.fileEndOffset = patch.fileEndOffset;
+/// Copies properties, function parameters and body from the [augmentation]
+/// procedure to its [origin].
+void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {
+  origin.fileUri = augmentation.fileUri;
+  origin.fileStartOffset = augmentation.fileStartOffset;
+  origin.fileOffset = augmentation.fileOffset;
+  origin.fileEndOffset = augmentation.fileEndOffset;
 
-  origin.isAbstract = patch.isAbstract;
-  origin.isExternal = patch.isExternal;
-  origin.function = patch.function;
+  origin.isAbstract = augmentation.isAbstract;
+  origin.isExternal = augmentation.isExternal;
+  origin.function = augmentation.function;
   origin.function.parent = origin;
 
   adjustAnnotationFileUri(origin, origin.fileUri);

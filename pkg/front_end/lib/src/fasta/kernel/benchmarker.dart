@@ -209,7 +209,7 @@ enum BenchmarkPhases {
   body_buildMacroDefinitionsForPhase2,
   body_buildMacroDefinitionsForPhase3,
   body_finishNativeMethods,
-  body_finishPatchMethods,
+  body_finishAugmentationMethods,
   body_finishAllConstructors,
   body_runBuildTransformations,
   body_verify,

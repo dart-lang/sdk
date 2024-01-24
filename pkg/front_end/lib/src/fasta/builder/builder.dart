@@ -237,8 +237,8 @@ abstract class Builder {
 
   bool get isTypeVariable;
 
-  /// Applies [patch] to this declaration.
-  void applyPatch(Builder patch);
+  /// Applies [augmentation] to this declaration.
+  void applyAugmentation(Builder augmentation);
 
   /// Return `true` if this builder is a duplicate of another with the same
   /// name. This is `false` for the builder first declared amongst duplicates.
@@ -336,8 +336,8 @@ abstract class BuilderImpl implements Builder {
   bool get isTypeVariable => false;
 
   @override
-  void applyPatch(Builder patch) {
-    unsupported("${runtimeType}.applyPatch", charOffset, fileUri);
+  void applyAugmentation(Builder augmentation) {
+    unsupported("${runtimeType}.applyAugmentation", charOffset, fileUri);
   }
 
   @override

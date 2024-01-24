@@ -180,13 +180,13 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
             as SourceMemberBuilder?;
     List<MemberBuilder>? patchMembers;
     if (memberBuilder is SourceProcedureBuilder) {
-      patchMembers = memberBuilder.patchesForTesting;
+      patchMembers = memberBuilder.augmentationsForTesting;
     }
     if (memberBuilder is DeclaredSourceConstructorBuilder) {
-      patchMembers = memberBuilder.patchesForTesting;
+      patchMembers = memberBuilder.augmentationsForTesting;
     }
     if (memberBuilder is SourceFactoryBuilder) {
-      patchMembers = memberBuilder.patchesForTesting;
+      patchMembers = memberBuilder.augmentationsForTesting;
     }
     if (patchMembers != null) {
       features.add(Tags.patch);
