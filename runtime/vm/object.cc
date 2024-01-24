@@ -4945,6 +4945,12 @@ ObjectPtr Instance::EvaluateCompiledExpression(
 
   const auto& eval_function = Function::Cast(result);
 
+#if defined(DEBUG)
+  for (intptr_t i = 0; i < arguments.Length(); ++i) {
+    ASSERT(arguments.At(i) != Object::optimized_out().ptr());
+  }
+#endif  // defined(DEBUG)
+
   auto& all_arguments = Array::Handle(zone, arguments.ptr());
   if (!eval_function.is_static()) {
     // `this` may be optimized out (e.g. not accessible from breakpoint due to
