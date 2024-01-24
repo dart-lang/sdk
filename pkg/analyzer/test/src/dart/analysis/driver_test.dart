@@ -2385,8 +2385,10 @@ library augment 'b.dart';
     collector.getResolvedLibrary('X', a);
 
     await assertEventsText(collector, r'''
+[status] analyzing
 [future] getResolvedLibrary X
   NotLibraryButAugmentationResult
+[status] idle
 ''');
   }
 
@@ -2401,8 +2403,48 @@ part of 'b.dart';
     collector.getResolvedLibrary('X', a);
 
     await assertEventsText(collector, r'''
+[status] analyzing
 [future] getResolvedLibrary X
   NotLibraryButPartResult
+[status] idle
+''');
+  }
+
+  test_getResolvedLibrary_pending_changeFile() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    // Ask the resolved library.
+    // We used to record the request with the `LibraryFileKind`.
+    collector.getResolvedLibrary('A1', a);
+
+    // ...the request is pending, notify that the file changed.
+    // This forces its reading, and rebuilding its `kind`.
+    // So, the old `kind` is not valid anymore.
+    // This used to cause infinite processing of the request.
+    // https://github.com/dart-lang/sdk/issues/54708
+    driver.changeFile2(a);
+
+    await assertEventsText(collector, r'''
+[status] analyzing
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[future] getResolvedLibrary A1
+  ResolvedLibraryResult #1
+    element: package:test/a.dart
+    units
+      ResolvedUnitResult #0
+[status] idle
 ''');
   }
 
@@ -2558,8 +2600,10 @@ library augment 'b.dart';
     collector.getResolvedLibraryByUri('X', uri);
 
     await assertEventsText(collector, r'''
+[status] analyzing
 [future] getResolvedLibraryByUri X
   NotLibraryButAugmentationResult
+[status] idle
 ''');
   }
 
@@ -2575,8 +2619,10 @@ part of 'b.dart';
     collector.getResolvedLibraryByUri('X', uri);
 
     await assertEventsText(collector, r'''
+[status] analyzing
 [future] getResolvedLibraryByUri X
   NotLibraryButPartResult
+[status] idle
 ''');
   }
 
@@ -2590,8 +2636,10 @@ part of 'b.dart';
     collector.getResolvedLibraryByUri('A1', uri);
 
     await assertEventsText(collector, r'''
+[status] analyzing
 [future] getResolvedLibraryByUri A1
   NotLibraryButPartResult
+[status] idle
 ''');
   }
 

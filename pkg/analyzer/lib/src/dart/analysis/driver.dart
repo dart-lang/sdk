@@ -184,7 +184,7 @@ class AnalysisDriver {
   /// The mapping from the files for which analysis was requested using
   /// [getResolvedLibrary] to the [Completer]s to report the result.
   final _requestedLibraries =
-      <LibraryFileKind, List<Completer<SomeResolvedLibraryResult>>>{};
+      <String, List<Completer<SomeResolvedLibraryResult>>>{};
 
   /// The queue of requests for completion.
   final List<_ResolveForCompletionRequest> _resolveForCompletionRequests = [];
@@ -225,8 +225,7 @@ class AnalysisDriver {
   final Map<String, ResolvedUnitResult> _priorityResults = {};
 
   /// Cached results of [getResolvedLibrary].
-  final Map<LibraryFileKind, ResolvedLibraryResultImpl> _resolvedLibraryCache =
-      {};
+  final Map<String, ResolvedLibraryResultImpl> _resolvedLibraryCache = {};
 
   /// The controller for the [exceptions] stream.
   final StreamController<ExceptionResult> _exceptionController =
@@ -981,23 +980,14 @@ class AnalysisDriver {
       );
     }
 
-    final file = _fsState.getFileForPath(path);
-    final kind = file.kind;
-    if (kind is LibraryFileKind) {
-      if (_resolvedLibraryCache[kind] case var cached?) {
-        return cached;
-      }
-      final completer = Completer<SomeResolvedLibraryResult>();
-      _requestedLibraries.putIfAbsent(kind, () => []).add(completer);
-      _scheduler.notify();
-      return completer.future;
-    } else if (kind is AugmentationFileKind) {
-      return NotLibraryButAugmentationResult();
-    } else if (kind is PartFileKind) {
-      return NotLibraryButPartResult();
-    } else {
-      throw UnimplementedError('(${kind.runtimeType}) $kind');
+    if (_resolvedLibraryCache[path] case var cached?) {
+      return cached;
     }
+
+    final completer = Completer<SomeResolvedLibraryResult>();
+    _requestedLibraries.putIfAbsent(path, () => []).add(completer);
+    _scheduler.notify();
+    return completer.future;
   }
 
   /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
@@ -1186,8 +1176,8 @@ class AnalysisDriver {
     }
 
     // Analyze a requested library.
-    if (_requestedLibraries.firstKey case var library?) {
-      await _getResolvedLibrary(library);
+    if (_requestedLibraries.firstKey case var path?) {
+      await _getResolvedLibrary(path);
       return;
     }
 
@@ -1427,11 +1417,11 @@ class AnalysisDriver {
         );
 
         if (isLibraryWithPriorityFile) {
-          _resolvedLibraryCache[library] = libraryResult;
+          _resolvedLibraryCache[library.file.path] = libraryResult;
         }
 
         // getResolvedLibrary()
-        _requestedLibraries.completeAll(library, libraryResult);
+        _requestedLibraries.completeAll(library.file.path, libraryResult);
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
@@ -1463,7 +1453,7 @@ class AnalysisDriver {
         }
         // getResolvedLibrary()
         completeWithError(
-          _requestedLibraries.remove(library),
+          _requestedLibraries.remove(library.file.path),
         );
         _clearLibraryContextAfterException();
       }
@@ -1738,14 +1728,34 @@ class AnalysisDriver {
   }
 
   /// Completes the [getResolvedLibrary] request.
-  Future<void> _getResolvedLibrary(LibraryFileKind library) async {
-    final cached = _resolvedLibraryCache[library];
-    if (cached != null) {
-      _requestedLibraries.completeAll(library, cached);
+  Future<void> _getResolvedLibrary(String path) async {
+    final file = _fsState.getFileForPath(path);
+    final kind = file.kind;
+    switch (kind) {
+      case LibraryFileKind():
+        break;
+      case AugmentationFileKind():
+        _requestedLibraries.completeAll(
+          path,
+          NotLibraryButAugmentationResult(),
+        );
+        return;
+      case PartFileKind():
+        _requestedLibraries.completeAll(
+          path,
+          NotLibraryButPartResult(),
+        );
+        return;
+      default:
+        throw UnimplementedError('(${kind.runtimeType}) $kind');
+    }
+
+    if (_resolvedLibraryCache[path] case final cached?) {
+      _requestedLibraries.completeAll(path, cached);
       return;
     }
 
-    await _analyzeFile(library.file.path);
+    await _analyzeFile(path);
   }
 
   /// Return the key to store fully resolved results for the [signature].

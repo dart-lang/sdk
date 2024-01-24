@@ -18,15 +18,32 @@ abstract class FileStateFilter {
     }
   }
 
-  /// Return a filter of files in the package named [packageName].
-  factory FileStateFilter.packageName(
-    String? packageName, {
-    required bool excludeSrc,
-  }) {
-    return _PackageNameFilter(packageName, excludeSrc: excludeSrc);
-  }
-
   bool shouldInclude(FileState file);
+
+  static bool shouldIncludeSdk(FileState file, FileUriProperties uri) {
+    assert(identical(file.uriProperties, uri));
+    assert(uri.isDart);
+
+    // Exclude internal libraries.
+    if (uri.isDartInternal) {
+      return false;
+    }
+
+    // Exclude "soft deprecated" libraries.
+    if (const {
+      'dart:html',
+      'dart:indexed_db',
+      'dart:js',
+      'dart:js_util',
+      'dart:svg',
+      'dart:web_audio',
+      'dart:web_gl'
+    }.contains(file.uriStr)) {
+      return false;
+    }
+
+    return true;
+  }
 }
 
 class _AnyFilter implements FileStateFilter {
@@ -34,25 +51,9 @@ class _AnyFilter implements FileStateFilter {
   bool shouldInclude(FileState file) {
     var uri = file.uriProperties;
     if (uri.isDart) {
-      return !uri.isDartInternal;
+      return FileStateFilter.shouldIncludeSdk(file, uri);
     }
     return true;
-  }
-}
-
-/// Matches any file in the package [packageName].
-///
-/// If [packageName] is `null`, matches files that also have no `packageName`.
-class _PackageNameFilter implements FileStateFilter {
-  final String? packageName;
-  final bool excludeSrc;
-
-  _PackageNameFilter(this.packageName, {required this.excludeSrc});
-
-  @override
-  bool shouldInclude(FileState file) {
-    var uri = file.uriProperties;
-    return uri.packageName == packageName && !(uri.isSrc && excludeSrc);
   }
 }
 
@@ -101,7 +102,7 @@ class _PubFilter implements FileStateFilter {
   bool shouldInclude(FileState file) {
     var uri = file.uriProperties;
     if (uri.isDart) {
-      return !uri.isDartInternal;
+      return FileStateFilter.shouldIncludeSdk(file, uri);
     }
 
     // Normally only package URIs are available.
