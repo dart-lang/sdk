@@ -1,13 +1,13 @@
-## 3.2.6 - 
+## 3.2.6 - 2024-01-24
 
 This is a patch release that:
-- Fixes an issue that causes Flutter apps to freeze when breakpoints
-  are added to multiple isolates at the same time
-  It also Fixes an issue that causes Flutter apps to crash during hot
-  reload
-  (issue [54699][]).
 
-[#54699] - https://github.com/dart-lang/sdk/issues/54699
+- Fixes an issue that causes Flutter apps to freeze when breakpoints are added
+  to multiple isolates at the same time (issue [#54699][]).
+- Fixes an issue that causes Flutter apps to crash during hot reload
+  (issue [#54699][]).
+
+[#54699]: https://github.com/dart-lang/sdk/issues/54699
 
 ## 3.2.5 - 2024-01-17
 
