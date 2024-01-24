@@ -546,13 +546,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
         if (_isHostChecked) '--compiler-asserts',
       ],
       ...testFile.sharedOptions,
-      if (_useSdk)
-        // `dart compile exe` doesn't support -D arguments atm
-        // http://dartbug.com/54675
-        ..._configuration.sharedOptions
-            .where((o) => !o.startsWith('-Dtest_runner'))
-      else
-        ..._configuration.sharedOptions,
+      ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2wasmOptions,
       // The file being compiled is the last argument.
