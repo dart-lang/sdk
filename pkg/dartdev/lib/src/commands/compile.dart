@@ -205,7 +205,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     }
 
     final enabledExperiments = args.enabledExperiments;
-    final environmentVars = args['define'] ?? <String, String>{};
+    final defines = args[defineOption.flag] as List<String>;
 
     // Build arguments.
     final buildArgs = <String>[];
@@ -234,8 +234,8 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     if (verbose) {
       buildArgs.add('-v');
     }
-    if (environmentVars.isNotEmpty) {
-      buildArgs.addAll(environmentVars.map<String>((e) => '--define=$e'));
+    for (final define in defines) {
+      buildArgs.add('-D$define');
     }
     buildArgs.add(path.canonicalize(sourcePath));
 
@@ -382,7 +382,7 @@ Remove debugging information from the output and save it separately to the speci
         kind: format,
         sourceFile: sourcePath,
         outputFile: args['output'],
-        defines: args['define'],
+        defines: args[defineOption.flag],
         packages: args['packages'],
         enableExperiment: args.enabledExperiments.join(','),
         soundNullSafety: args['sound-null-safety'],
@@ -417,6 +417,13 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         outputFileOption.flag,
         help: outputFileOption.help,
         abbr: outputFileOption.abbr,
+      )
+      ..addFlag(
+        'minify',
+        defaultsTo: false,
+        negatable: true,
+        help: 'Generate minified output.',
+        hide: !verbose,
       )
       ..addFlag(
         'optimize',
@@ -474,14 +481,13 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         valueHelp: packagesOption.valueHelp,
         help: packagesOption.help,
         hide: !verbose,
+      )
+      ..addMultiOption(
+        defineOption.flag,
+        help: defineOption.help,
+        abbr: defineOption.abbr,
+        valueHelp: defineOption.valueHelp,
       );
-// TODO(): Defines are currently not supported by dart2wasm.
-//      ..addMultiOption(
-//        defineOption.flag,
-//        help: defineOption.help,
-//        abbr: defineOption.abbr,
-//        valueHelp: defineOption.valueHelp,
-//      )
   }
 
   @override
@@ -533,6 +539,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     final sdkPath = path.absolute(sdk.sdkPath);
     final packages = args[packagesOption.flag];
+    final defines = args[defineOption.flag] as List<String>;
 
     int? maxPages;
     if (args['shared-memory'] != null) {
@@ -555,10 +562,12 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (args['print-kernel']) '--print-kernel',
       if (args['omit-type-checks']) '--omit-type-checks',
       if (args['name-section']) '--name-section',
+      if (args['minify']) '--minify',
       if (maxPages != null) ...[
         '--import-shared-memory',
         '--shared-memory-max-pages=$maxPages',
       ],
+      for (final define in defines) '-D$define',
       path.absolute(sourcePath),
       outputFile,
     ];

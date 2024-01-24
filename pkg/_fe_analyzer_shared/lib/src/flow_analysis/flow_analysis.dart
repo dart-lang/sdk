@@ -5159,7 +5159,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     _Reference<Type> matchedValueReference =
         context.createReference(matchedType, _current);
-    bool coversMatchedType = operations.isSubtypeOf(matchedType, knownType);
+    bool coversMatchedType = operations.isSubtypeOf(
+        operations.extensionTypeErasure(matchedType),
+        operations.extensionTypeErasure(knownType));
     // Promote the synthetic cache variable the pattern is being matched
     // against.
     ExpressionInfo<Type> promotionInfo =

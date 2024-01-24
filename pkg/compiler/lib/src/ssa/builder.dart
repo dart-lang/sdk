@@ -1757,7 +1757,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   HInstruction _potentiallyAssertNotNull(MemberEntity member,
       ir.TreeNode context, HInstruction value, DartType type) {
     if (!options.enableNullAssertions) return value;
-    if (!_isNonNullableByDefault(context)) return value;
     if (!dartTypes.isNonNullableIfSound(type)) return value;
 
     // `operator==` is usually augmented to handle a `null`-argument before this
@@ -1788,11 +1787,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       add(nullCheck);
       return nullCheck;
     }
-  }
-
-  bool _isNonNullableByDefault(ir.TreeNode node) {
-    if (node is ir.Library) return node.isNonNullableByDefault;
-    return _isNonNullableByDefault(node.parent!);
   }
 
   /// Builds an SSA graph for FunctionNodes of external methods.
@@ -1913,14 +1907,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     HInstruction value = pop();
     // TODO(johnniwinther): Provide source information.
     if (options.nativeNullAssertions) {
-      if (_isNonNullableByDefault(functionNode)) {
-        DartType type = _getDartTypeIfValid(functionNode.returnType);
-        if (dartTypes.isNonNullableIfSound(type) &&
-            nodeIsInWebLibrary(functionNode)) {
-          push(HNullCheck(value, _abstractValueDomain.excludeNull(returnType),
-              sticky: true));
-          value = pop();
-        }
+      DartType type = _getDartTypeIfValid(functionNode.returnType);
+      if (dartTypes.isNonNullableIfSound(type) &&
+          nodeIsInWebLibrary(functionNode)) {
+        push(HNullCheck(value, _abstractValueDomain.excludeNull(returnType),
+            sticky: true));
+        value = pop();
       }
     }
     if (targetElement.isSetter) {
