@@ -420,7 +420,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.AsExpression? _createImplicitAsIfNeeded(
       ir.Expression value, ir.DartType valueType, ir.DartType setterType) {
     if (!typeEnvironment.isSubtypeOf(
-        valueType, setterType, ir.SubtypeCheckMode.ignoringNullabilities)) {
+        valueType, setterType, ir.SubtypeCheckMode.withNullabilities)) {
       // We need to insert an implicit cast to preserve the invariant that
       // a property set with a known interface target is also statically
       // checked.
@@ -578,8 +578,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     for (int i = 0; i < node.arguments.positional.length; i++) {
       ir.DartType argumentType = argumentTypes.positional[i];
       ir.DartType parameterType = functionType.positionalParameters[i];
-      if (!typeEnvironment.isSubtypeOf(argumentType, parameterType,
-          ir.SubtypeCheckMode.ignoringNullabilities)) {
+      if (!typeEnvironment.isSubtypeOf(
+          argumentType, parameterType, ir.SubtypeCheckMode.withNullabilities)) {
         neededPositionalChecks[i] = parameterType;
       }
     }
@@ -592,8 +592,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       ir.DartType parameterType = functionType.namedParameters
           .singleWhere((namedType) => namedType.name == namedArgument.name)
           .type;
-      if (!typeEnvironment.isSubtypeOf(argumentType, parameterType,
-          ir.SubtypeCheckMode.ignoringNullabilities)) {
+      if (!typeEnvironment.isSubtypeOf(
+          argumentType, parameterType, ir.SubtypeCheckMode.withNullabilities)) {
         neededNamedChecks[argumentIndex] = parameterType;
       }
     }
@@ -1863,7 +1863,7 @@ class TypeHolder {
       // make it faster.
       for (ir.DartType type in falseTypes) {
         if (typeEnvironment.isSubtypeOf(
-            declaredType, type, ir.SubtypeCheckMode.ignoringNullabilities)) {
+            declaredType, type, ir.SubtypeCheckMode.withNullabilities)) {
           return const ir.NullType();
         }
       }
@@ -1874,10 +1874,10 @@ class TypeHolder {
           return type;
         }
         if (typeEnvironment.isSubtypeOf(
-            type, candidate, ir.SubtypeCheckMode.ignoringNullabilities)) {
+            type, candidate, ir.SubtypeCheckMode.withNullabilities)) {
           candidate = type;
         } else if (!typeEnvironment.isSubtypeOf(
-            candidate, type, ir.SubtypeCheckMode.ignoringNullabilities)) {
+            candidate, type, ir.SubtypeCheckMode.withNullabilities)) {
           // We cannot promote. No single type is most specific.
           // TODO(johnniwinther): Compute implied types? For instance when the
           // declared type is `Iterable<String>` and tested type is
@@ -2139,10 +2139,10 @@ class TargetInfo {
         } else if (candidate is ir.NullType) {
           candidate = type;
         } else if (typeEnvironment.isSubtypeOf(
-            candidate, type, ir.SubtypeCheckMode.ignoringNullabilities)) {
+            candidate, type, ir.SubtypeCheckMode.withNullabilities)) {
           candidate = type;
         } else if (!typeEnvironment.isSubtypeOf(
-            type, candidate, ir.SubtypeCheckMode.ignoringNullabilities)) {
+            type, candidate, ir.SubtypeCheckMode.withNullabilities)) {
           // We cannot promote. No promoted type of one path is a supertype of
           // the promoted type from all other paths.
           // TODO(johnniwinther): Compute a greatest lower bound, instead?
@@ -2263,8 +2263,8 @@ class TypeMap {
         changed = true;
         Set<ir.DartType> newTypesOfInterest = {};
         for (ir.DartType typeOfInterest in info.typesOfInterest) {
-          if (typeEnvironment.isSubtypeOf(type, typeOfInterest,
-              ir.SubtypeCheckMode.ignoringNullabilities)) {
+          if (typeEnvironment.isSubtypeOf(
+              type, typeOfInterest, ir.SubtypeCheckMode.withNullabilities)) {
             newTypesOfInterest.add(typeOfInterest);
           }
         }
