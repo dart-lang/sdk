@@ -303,7 +303,7 @@ class _InterfaceType extends _Type {
   @override
   String toString() {
     StringBuffer s = StringBuffer();
-    s.write(_getTypeNames()[classId]);
+    s.write(_getTypeNames()?[classId] ?? 'minified:Class${classId}');
     if (typeArguments.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
@@ -602,7 +602,7 @@ class _RecordType extends _Type {
 
 external WasmArray<WasmArray<WasmI32>> _getTypeRulesSupers();
 external WasmArray<WasmArray<WasmArray<_Type>>> _getTypeRulesSubstitutions();
-external WasmArray<String> _getTypeNames();
+external WasmArray<String>? _getTypeNames();
 
 /// Type parameter environment used while comparing function types.
 ///
