@@ -75,6 +75,8 @@ class RecordData {
   List<MemberEntity> gettersForShape(RecordShape shape) =>
       _gettersByShape[shape]!;
 
+  Iterable<ClassEntity> get allClasses => _classToRepresentation.keys;
+
   factory RecordData.readFromDataSource(
       JsToElementMap elementMap, DataSourceReader source) {
     source.begin(tag);
