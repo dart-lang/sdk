@@ -8,6 +8,8 @@
 
 import 'dart:html';
 import 'dart:js_interop';
+import 'dart:typed_data';
+
 import 'package:js/js.dart' as pkgJs;
 
 // General non-interop types.
@@ -72,6 +74,17 @@ extension type EWindow(Window _) {}
 
 @JS()
 extension type EDocument(Document _) {}
+
+extension type EUint8List._(Uint8List _) {
+  external EUint8List();
+  //       ^
+  // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.
+}
+
+@JS()
+extension type EUint32List(Uint32List _) {}
+//             ^
+// [web] Extension type 'EUint32List' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'Uint32List'.
 
 // Extension types.
 

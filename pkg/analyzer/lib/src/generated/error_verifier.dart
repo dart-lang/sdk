@@ -207,9 +207,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// in the scope of a class.
   InterfaceElement? _enclosingClass;
 
-  /// The augmented view on [_enclosingClass].
-  AugmentedInterfaceElement? _enclosingClassAugmented;
-
   /// The element of the extension being visited, or `null` if we are not
   /// in the scope of an extension.
   ExtensionElement? _enclosingExtension;
@@ -449,7 +446,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
-      _enclosingClassAugmented = augmented;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
@@ -466,7 +462,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (implementsClause != null ||
           superclass != null ||
           withClause != null) {
-        _checkClassInheritance(node, superclass, withClause, implementsClause);
+        var moreChecks = _checkClassInheritance(
+            node, superclass, withClause, implementsClause);
+        if (moreChecks) {
+          _checkForNoDefaultSuperConstructorImplicit(element, augmented);
+        }
       }
 
       if (node.nativeClause == null) {
@@ -496,7 +496,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     } finally {
       _isInNativeClass = false;
       _enclosingClass = null;
-      _enclosingClassAugmented = null;
     }
   }
 
@@ -519,7 +518,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
       _enclosingClass = null;
-      _enclosingClassAugmented = null;
     }
     super.visitClassTypeAlias(node);
   }
@@ -661,7 +659,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       super.visitEnumDeclaration(node);
     } finally {
       _enclosingClass = null;
-      _enclosingClassAugmented = null;
     }
   }
 
@@ -724,7 +721,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
-      _enclosingClassAugmented = augmented;
 
       _checkForBuiltInIdentifierAsName(node.name,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME);
@@ -761,7 +757,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       super.visitExtensionTypeDeclaration(node);
     } finally {
       _enclosingClass = null;
-      _enclosingClassAugmented = null;
     }
   }
 
@@ -1097,7 +1092,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
-      _enclosingClassAugmented = augmented;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkMixin(node);
@@ -1122,7 +1116,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       super.visitMixinDeclaration(node);
     } finally {
       _enclosingClass = null;
-      _enclosingClassAugmented = null;
     }
   }
 
@@ -1496,7 +1489,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Checks the class for problems with the superclass, mixins, or implemented
   /// interfaces.
-  void _checkClassInheritance(
+  ///
+  /// Returns `false` if a severe hierarchy error was found, so that further
+  /// checking is not useful.
+  bool _checkClassInheritance(
       NamedCompilationUnitMember node,
       NamedType? superclass,
       WithClause? withClause,
@@ -1523,10 +1519,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForClassUsedAsMixin(withClause);
       _checkForSealedSupertypeOutsideOfLibrary(
           superclass, withClause, implementsClause, null);
-      if (node is ClassDeclaration) {
-        _checkForNoDefaultSuperConstructorImplicit(node);
-      }
+      return true;
     }
+    return false;
   }
 
   /// Given a list of [directives] that have the same prefix, generate an error
@@ -4226,20 +4221,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Check that if the given class [declaration] implicitly calls default
+  /// Check that if the given class [element] implicitly calls default
   /// constructor of its superclass, there should be such default constructor -
   /// implicit or explicit.
   ///
   /// See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
   void _checkForNoDefaultSuperConstructorImplicit(
-      ClassDeclaration declaration) {
+    ClassElementImpl element,
+    AugmentedClassElement augmented,
+  ) {
     // do nothing if there is explicit constructor
-    var constructors = _enclosingClassAugmented!.constructors;
+    var constructors = augmented.constructors;
     if (!constructors[0].isSynthetic) {
       return;
     }
     // prepare super
-    var superType = _enclosingClass!.supertype;
+    var superType = element.supertype;
     if (superType == null) {
       return;
     }
@@ -4251,13 +4248,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         : superUnnamedConstructor;
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
-        errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
-            declaration.name, [
-          superElement.name,
-          _enclosingClass!.name,
-          superUnnamedConstructor
-        ]);
+        errorReporter.reportErrorForElement(
+          CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
+          element,
+          [superElement.name, element.name, superUnnamedConstructor],
+        );
         return;
       }
       if (superUnnamedConstructor.isDefaultConstructor) {
@@ -4268,10 +4263,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_typeProvider.isNonSubtypableClass(superType.element)) {
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
-      errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
-          declaration.name,
-          [superType, _enclosingClass!.displayName]);
+      errorReporter.reportErrorForElement(
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+        element,
+        [superType, element.displayName],
+      );
     }
   }
 

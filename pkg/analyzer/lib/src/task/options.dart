@@ -288,7 +288,6 @@ class AnalyzerOptions {
     language,
     optionalChecks,
     plugins,
-    propagateLinterExceptions,
     strongMode,
   ];
 
@@ -309,6 +308,7 @@ class AnalyzerOptions {
   /// Supported 'analyzer' optional checks options.
   static const List<String> optionalChecksOptions = [
     chromeOsManifestChecks,
+    propagateLinterExceptions,
   ];
 
   /// Supported 'code-style' options.

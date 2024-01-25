@@ -84,6 +84,10 @@ class ForResolver {
       dispatchBody: dispatchBody,
     );
     _resolver.popRewrite();
+    _resolver.nullableDereferenceVerifier.expression(
+      CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+      forLoopParts.iterable,
+    );
   }
 
   /// Given an iterable expression from a foreach loop, attempt to infer

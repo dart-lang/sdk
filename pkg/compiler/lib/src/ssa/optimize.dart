@@ -333,13 +333,64 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   }
 
   // Simplify some CFG diamonds to equivalent expressions.
-  simplifyPhis(HBasicBlock block) {
-    // Is [block] the join point for a simple diamond that generates a single
-    // phi node?
-    if (block.phis.isEmpty) return;
-    HPhi phi = block.phis.first as HPhi;
-    if (phi.next != null) return;
+  void simplifyPhis(HBasicBlock block) {
     if (block.predecessors.length != 2) return;
+
+    // Do 'statement' simplifications first, as they might reduce the number of
+    // phis to one, enabling an 'expression' simplification.
+    HInstruction? phi = block.phis.first;
+    while (phi != null) {
+      final next = phi.next;
+      simplifyStatementPhi(block, phi as HPhi);
+      phi = next;
+    }
+
+    phi = block.phis.first;
+    if (phi != null && phi.next == null) {
+      simplifyExpressionPhi(block, phi as HPhi);
+    }
+  }
+
+  /// Simplify a single phi when there are possibly other phis (i.e. the result
+  /// might not be an expression).
+  void simplifyStatementPhi(HBasicBlock block, HPhi phi) {
+    HBasicBlock dominator = block.dominator!;
+
+    // Extract the controlling condition.
+    final controlFlow = dominator.last;
+    if (controlFlow is! HIf) return;
+    HInstruction condition = controlFlow.inputs.single;
+
+    if (condition.isBoolean(_abstractValueDomain).isPotentiallyFalse) return;
+
+    //  condition ? true : false  -->  condition
+    //  condition ? condition : false  -->  condition
+    //  condition ? true : condition  -->  condition
+    final left = phi.inputs[0];
+    final right = phi.inputs[1];
+    if ((_isBoolConstant(left, true) || left == condition) &&
+        (_isBoolConstant(right, false) || right == condition)) {
+      block.rewrite(phi, condition);
+      block.removePhi(phi);
+      condition.sourceElement ??= phi.sourceElement;
+      return;
+    }
+
+    //  condition ? false : true  -->  !condition
+    if (_isBoolConstant(left, false) && _isBoolConstant(right, true)) {
+      HInstruction replacement = HNot(condition, _abstractValueDomain.boolType)
+        ..sourceElement = phi.sourceElement
+        ..sourceInformation = phi.sourceInformation;
+      block.addAtEntry(replacement);
+      block.rewrite(phi, replacement);
+      block.removePhi(phi);
+      return;
+    }
+  }
+
+  /// Simplify some CFG diamonds to equivalent expressions.
+  void simplifyExpressionPhi(HBasicBlock block, HPhi phi) {
+    // Is [block] the join point for a simple diamond?
     assert(phi.inputs.length == 2);
     HBasicBlock b1 = block.predecessors[0];
     HBasicBlock b2 = block.predecessors[1];
@@ -350,6 +401,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     final controlFlow = dominator.last;
     if (controlFlow is! HIf) return;
     HInstruction test = controlFlow.inputs.single;
+
     if (test.usedBy.length > 1) return;
 
     bool negated = false;
@@ -396,7 +448,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       block.removePhi(phi);
       return;
     }
-    // If 'x'is nullable boolean,
+    // If 'x' is nullable boolean,
     //
     //     x == null ? true : x  --->  !(x == false)
     //

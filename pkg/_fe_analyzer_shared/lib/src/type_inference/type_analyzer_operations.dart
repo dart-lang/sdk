@@ -119,23 +119,23 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   TypeSchema mapTypeSchema(
       {required TypeSchema keyTypeSchema, required TypeSchema valueTypeSchema});
 
-  /// If [type] is a subtype of the type `Iterable<T>` for some `T`, returns
+  /// If [type] is a subtype of the type `Iterable<T>?` for some `T`, returns
   /// the type `T`.  Otherwise returns `null`.
   Type? matchIterableType(Type type);
 
-  /// If [typeSchema] is the type schema `Iterable<T>` (or a subtype thereof),
+  /// If [typeSchema] is the type schema `Iterable<T>?` (or a subtype thereof),
   /// for some `T`, returns the type `T`. Otherwise returns `null`.
   TypeSchema? matchIterableTypeSchema(TypeSchema typeSchema);
 
-  /// If [type] is a subtype of the type `List<T>` for some `T`, returns the
+  /// If [type] is a subtype of the type `List<T>?` for some `T`, returns the
   /// type `T`.  Otherwise returns `null`.
   Type? matchListType(Type type);
 
-  /// If [type] is a subtype of the type `Map<K, V>` for some `K` and `V`,
+  /// If [type] is a subtype of the type `Map<K, V>?` for some `K` and `V`,
   /// returns these `K` and `V`.  Otherwise returns `null`.
   MapPatternTypeArguments<Type>? matchMapType(Type type);
 
-  /// If [type] is a subtype of the type `Stream<T>` for some `T`, returns
+  /// If [type] is a subtype of the type `Stream<T>?` for some `T`, returns
   /// the type `T`.  Otherwise returns `null`.
   Type? matchStreamType(Type type);
 

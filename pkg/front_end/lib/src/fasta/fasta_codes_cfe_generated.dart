@@ -4114,8 +4114,9 @@ const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
             Message Function(DartType _type, bool isNonNullableByDefault)>(
         "JsInteropStaticInteropExternalTypeViolation",
         problemMessageTemplate:
-            r"""Type '#type' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.""",
-        correctionMessageTemplate: r"""Use one of the valid types instead.""",
+            r"""Type '#type' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.""",
+        correctionMessageTemplate:
+            r"""Use one of these valid types instead: JS types from 'dart:js_interop', '@staticInterop' types, 'dart:html' types when compiling to JS, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop or 'dart:html' type.""",
         withArguments:
             _withArgumentsJsInteropStaticInteropExternalTypeViolation);
 
@@ -4134,9 +4135,9 @@ Message _withArgumentsJsInteropStaticInteropExternalTypeViolation(
   String type = typeParts.join();
   return new Message(codeJsInteropStaticInteropExternalTypeViolation,
       problemMessage:
-          """Type '${type}' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.""" +
+          """Type '${type}' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.""" +
               labeler.originMessages,
-      correctionMessage: """Use one of the valid types instead.""",
+      correctionMessage: """Use one of these valid types instead: JS types from 'dart:js_interop', '@staticInterop' types, 'dart:html' types when compiling to JS, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop or 'dart:html' type.""",
       arguments: {'type': _type});
 }
 

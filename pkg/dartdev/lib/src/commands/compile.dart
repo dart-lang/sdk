@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:dart2native/generate.dart';
@@ -17,7 +18,6 @@ import '../experiments.dart';
 import '../native_assets.dart';
 import '../sdk.dart';
 import '../utils.dart';
-import '../vm_interop_handler.dart';
 
 // The unique place where we store dart2wasm binaryen flags.
 //
@@ -95,18 +95,43 @@ class CompileJSCommand extends CompileSubcommandCommand {
 
     if (!Sdk.checkArtifactExists(librariesPath)) return 255;
 
-    VmInteropHandler.run(
-      sdk.dart2jsSnapshot,
-      [
-        '--libraries-spec=$librariesPath',
-        '--cfe-invocation-modes=compile',
-        '--invoker=dart_cli',
-        ...argResults!.arguments,
-      ],
-      packageConfigOverride: null,
-    );
+    final args = argResults!;
 
-    return 0;
+    // Build arguments.
+    final buildArgs = <String>[
+      '--libraries-spec=$librariesPath',
+      '--cfe-invocation-modes=compile',
+      '--invoker=dart_cli',
+      // Add the remaining arguments.
+      if (args.rest.isNotEmpty) ...args.rest.sublist(0),
+    ];
+
+    var retval = 0;
+    final result = Completer<int>();
+    final exitPort = ReceivePort()
+      ..listen((msg) {
+        result.complete(0);
+      });
+    final errorPort = ReceivePort()
+      ..listen((error) {
+        log.stderr(error.toString());
+        result.complete(255);
+      });
+    try {
+      await Isolate.spawnUri(Uri.file(sdk.dart2jsSnapshot), buildArgs, null,
+          onExit: exitPort.sendPort, onError: errorPort.sendPort);
+      retval = await result.future;
+    } catch (e, st) {
+      log.stderr('Error: JS compilation failed');
+      log.stderr(e.toString());
+      if (verbose) {
+        log.stderr(st.toString());
+      }
+      retval = compileErrorExitCode;
+    }
+    errorPort.close();
+    exitPort.close();
+    return retval;
   }
 }
 

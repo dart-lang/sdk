@@ -304,7 +304,7 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
       modulePath = summaryPath.substring(equalSign + 1);
       summaryPath = summaryPath.substring(0, equalSign);
     } else if (moduleRoot != null && p.isWithin(moduleRoot, summaryPath)) {
-      // TODO(jmesserly): remove this, it's legacy --module-root support.
+      // TODO: Determine if this logic is still needed.
       modulePath = p.url.joinAll(
           p.split(p.relative(summaryPathWithoutExt, from: moduleRoot)));
     } else {

@@ -440,8 +440,8 @@ template("ddc_compile_sdk") {
       "$js_gen_dir/common/dart_sdk.js.map",
       "$js_gen_dir/es6/dart_sdk.js",
       "$js_gen_dir/es6/dart_sdk.js.map",
-      "$js_gen_dir/legacy/dart_sdk.js",
-      "$js_gen_dir/legacy/dart_sdk.js.map",
+      "$js_gen_dir/ddc/dart_sdk.js",
+      "$js_gen_dir/ddc/dart_sdk.js.map",
     ]
 
     vm_args = [ "-Dsdk_hash=$sdk_hash" ]
@@ -473,9 +473,9 @@ template("ddc_compile_sdk") {
       "-o",
       rebase_path("$js_gen_dir/es6/dart_sdk.js"),
       "--modules",
-      "legacy",
+      "ddc",
       "-o",
-      rebase_path("$js_gen_dir/legacy/dart_sdk.js"),
+      rebase_path("$js_gen_dir/ddc/dart_sdk.js"),
       rebase_path("$platform_input"),
     ]
 

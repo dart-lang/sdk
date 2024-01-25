@@ -172,7 +172,7 @@ class ExpressionEvaluationTestDriver {
                 '${setup.canaryFeatures ? 'canary' : 'stable'}'
                     '${setup.soundNullSafety ? '' : '_unsound'}',
                 'sdk',
-                'legacy',
+                'ddc',
                 'dart_sdk.js'))
             .toFilePath());
         if (!File(dartSdkPath).existsSync()) {
