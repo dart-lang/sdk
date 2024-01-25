@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' as io;
+import 'dart:async';
+import 'dart:isolate';
 
 import 'package:analysis_server/src/server/driver.dart' as server;
 import 'package:args/args.dart';
@@ -10,7 +11,6 @@ import 'package:args/args.dart';
 import '../core.dart';
 import '../sdk.dart';
 import '../utils.dart';
-import '../vm_interop_handler.dart';
 
 class LanguageServerCommand extends DartdevCommand {
   static const String commandName = 'language-server';
@@ -43,23 +43,42 @@ For more information about the server's capabilities and configuration, see:
     const protocol = server.Driver.SERVER_PROTOCOL;
     const lsp = server.Driver.PROTOCOL_LSP;
 
+    if (!Sdk.checkArtifactExists(sdk.analysisServerSnapshot)) return 255;
+
     var args = argResults!.arguments;
     if (!args.any((arg) => arg.startsWith('--$protocol'))) {
       args = [...args, '--$protocol=$lsp'];
+    } else {
+      // Need to make a copy as argResults!.arguments is an
+      // UnmodifiableListView object which cannot be passed as
+      // the args for spawnUri.
+      args = [...args];
     }
 
-    if (!Sdk.checkArtifactExists(sdk.analysisServerSnapshot)) return 255;
-
-    VmInteropHandler.run(
-      sdk.analysisServerSnapshot,
-      args,
-      packageConfigOverride: null,
-    );
-
-    // The server will continue to run past the return from this method.
-    //
-    // On an error on startup, the server will set the dart:io exitCode value
-    // (or, call exit() directly).
-    return io.exitCode;
+    var retval = 0;
+    final result = Completer<int>();
+    final exitPort = ReceivePort()
+      ..listen((msg) {
+        result.complete(0);
+      });
+    final errorPort = ReceivePort()
+      ..listen((error) {
+        log.stderr(error.toString());
+        result.complete(255);
+      });
+    try {
+      await Isolate.spawnUri(Uri.file(sdk.analysisServerSnapshot), args, null,
+          onExit: exitPort.sendPort, onError: errorPort.sendPort);
+      retval = await result.future;
+    } catch (e, st) {
+      log.stderr(e.toString());
+      if (verbose) {
+        log.stderr(st.toString());
+      }
+      retval = 255;
+    }
+    errorPort.close();
+    exitPort.close();
+    return retval;
   }
 }
