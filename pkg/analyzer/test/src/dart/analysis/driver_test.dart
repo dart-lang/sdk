@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as driver_events;
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1730,20 +1731,14 @@ class D {
     driver.addFile2(c);
     driver.addFile2(d);
 
-    expect(
-      await driver.getFilesDefiningClassMemberName2('m1'),
-      unorderedEquals([a]),
-    );
+    Future<List<File>> forName(String name) async {
+      var files = await driver.getFilesDefiningClassMemberName(name);
+      return files.resources;
+    }
 
-    expect(
-      await driver.getFilesDefiningClassMemberName2('m2'),
-      unorderedEquals([b, c]),
-    );
-
-    expect(
-      await driver.getFilesDefiningClassMemberName2('m3'),
-      unorderedEquals([d]),
-    );
+    expect(await forName('m1'), unorderedEquals([a]));
+    expect(await forName('m2'), unorderedEquals([b, c]));
+    expect(await forName('m3'), unorderedEquals([d]));
   }
 
   test_getFilesDefiningClassMemberName_mixin() async {
@@ -1777,20 +1772,14 @@ mixin D {
     driver.addFile2(c);
     driver.addFile2(d);
 
-    expect(
-      await driver.getFilesDefiningClassMemberName2('m1'),
-      unorderedEquals([a]),
-    );
+    Future<List<File>> forName(String name) async {
+      var files = await driver.getFilesDefiningClassMemberName(name);
+      return files.resources;
+    }
 
-    expect(
-      await driver.getFilesDefiningClassMemberName2('m2'),
-      unorderedEquals([b, c]),
-    );
-
-    expect(
-      await driver.getFilesDefiningClassMemberName2('m3'),
-      unorderedEquals([d]),
-    );
+    expect(await forName('m1'), unorderedEquals([a]));
+    expect(await forName('m2'), unorderedEquals([b, c]));
+    expect(await forName('m3'), unorderedEquals([d]));
   }
 
   test_getFilesReferencingName() async {

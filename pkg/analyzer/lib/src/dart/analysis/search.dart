@@ -304,10 +304,10 @@ class Search {
       element.methods.forEach(addElement);
     }
 
-    List<String> files = await _driver.getFilesDefiningClassMemberName(name);
-    for (String file in files) {
-      if (searchedFiles.add(file, this)) {
-        var unitResult = await _driver.getUnitElement(file);
+    var files = await _driver.getFilesDefiningClassMemberName(name);
+    for (var file in files) {
+      if (searchedFiles.add(file.path, this)) {
+        var unitResult = await _driver.getUnitElement(file.path);
         if (unitResult is UnitElementResult) {
           unitResult.element.classes.forEach(addElements);
           unitResult.element.enums.forEach(addElements);
