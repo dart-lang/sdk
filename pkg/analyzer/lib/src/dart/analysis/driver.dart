@@ -56,7 +56,6 @@ import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:analyzer/src/workspace/pub.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes analysis results for Dart files.
@@ -1762,10 +1761,6 @@ class AnalysisDriver {
   String _getResolvedUnitSignature(LibraryFileKind library, FileState file) {
     ApiSignature signature = ApiSignature();
     signature.addUint32List(_saltForResolution);
-    if (file.workspacePackage is PubPackage) {
-      signature.addString(
-          (file.workspacePackage as PubPackage).pubspecContent ?? '');
-    }
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);
     signature.addString(file.uriStr);

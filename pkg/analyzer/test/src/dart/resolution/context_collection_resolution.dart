@@ -231,9 +231,17 @@ abstract class ContextResolutionTest
     expect(workspace, TypeMatcher<GnWorkspace>());
   }
 
-  void assertPackageConfigWorkspaceFor(File file) {
+  void assertPackageBuildWorkspaceFor(File file) {
     var workspace = contextFor(file).contextRoot.workspace;
-    expect(workspace, TypeMatcher<PackageConfigWorkspace>());
+    expect(
+        workspace,
+        isA<PubWorkspace>()
+            .having((e) => e.usesPackageBuild, 'usesPackageBuild', true));
+  }
+
+  void assertPubWorkspaceFor(File file) {
+    var workspace = contextFor(file).contextRoot.workspace;
+    expect(workspace, TypeMatcher<PubWorkspace>());
   }
 
   AnalysisContext contextFor(File file) {

@@ -604,8 +604,8 @@ dependencies:
 class C { }
 ''');
 
-    expect(context.package, TypeMatcher<PubPackage>());
-    final pubPackage = context.package as PubPackage;
+    expect(context.package, TypeMatcher<PubWorkspacePackage>());
+    final pubPackage = context.package as PubWorkspacePackage;
     final pubspec = pubPackage.pubspec!;
 
     final argsDep = pubspec.dependencies!

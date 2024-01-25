@@ -10,7 +10,7 @@ abstract class FileStateFilter {
   /// Return a filter of files that can be accessed by the [file].
   factory FileStateFilter(FileState file) {
     var workspacePackage = file.workspacePackage;
-    if (workspacePackage is PubPackage) {
+    if (workspacePackage is PubWorkspacePackage) {
       return _PubFilter(workspacePackage, file.path);
     } else {
       return _AnyFilter();
@@ -57,13 +57,13 @@ class _AnyFilter implements FileStateFilter {
 }
 
 class _PubFilter implements FileStateFilter {
-  final PubPackage targetPackage;
+  final PubWorkspacePackage targetPackage;
   final String? targetPackageName;
   final bool targetPackageIsAnalysisServer;
   final bool targetInLib;
   final Set<String> dependencies;
 
-  factory _PubFilter(PubPackage package, String path) {
+  factory _PubFilter(PubWorkspacePackage package, String path) {
     var inLib = package.workspace.provider
         .getFolder(package.root)
         .getChildAssumingFolder('lib')
@@ -112,7 +112,7 @@ class _PubFilter implements FileStateFilter {
         return false;
       } else {
         var filePackage = file.workspacePackage;
-        return filePackage is PubPackage &&
+        return filePackage is PubWorkspacePackage &&
             filePackage.root == targetPackage.root;
       }
     }

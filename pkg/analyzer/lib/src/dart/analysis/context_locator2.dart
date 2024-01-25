@@ -192,10 +192,10 @@ class ContextLocatorImpl2 implements ContextLocator {
     Folder? packagesFolderToChooseRoot;
     if (defaultPackagesFile != null) {
       packagesFile = defaultPackagesFile;
-      // If  the packages file is in .dart_tool directory, use the grandparent
-      // folder, else use the parent folder.
-      packagesFolderToChooseRoot =
-          _findPackagesFile(packagesFile.parent)?.parent ?? packagesFile.parent;
+    } else {
+      var foundPackages = _findPackagesFile(parent);
+      packagesFile = foundPackages?.file;
+      packagesFolderToChooseRoot = foundPackages?.parent;
     }
 
     var buildGnFile = _findBuildGnFile(parent);
@@ -211,23 +211,11 @@ class ContextLocatorImpl2 implements ContextLocator {
       packagesFile: packagesFile,
       buildGnFile: buildGnFile,
     );
-
     if (workspace is! BasicWorkspace) {
       rootFolder = _lowest([
         rootFolder,
         resourceProvider.getFolder(workspace.root),
       ]);
-    }
-
-    if (workspace is PackageConfigWorkspace) {
-      packagesFile ??= workspace.packageConfigFile;
-      // If the default packages folder is a parent of the workspace root,
-      // choose that as the root.
-      if (rootFolder != null && packagesFolderToChooseRoot != null) {
-        if (packagesFolderToChooseRoot.contains(rootFolder.path)) {
-          rootFolder = packagesFolderToChooseRoot;
-        }
-      }
     }
 
     if (rootFolder == null) {
@@ -426,8 +414,8 @@ class ContextLocatorImpl2 implements ContextLocator {
     Workspace? workspace;
     workspace = BlazeWorkspace.find(resourceProvider, rootPath,
         lookForBuildFileSubstitutes: false);
-    workspace = _mostSpecificWorkspace(workspace,
-        PackageConfigWorkspace.find(resourceProvider, packages, rootPath));
+    workspace = _mostSpecificWorkspace(
+        workspace, PubWorkspace.find(resourceProvider, packages, rootPath));
     workspace ??= BasicWorkspace.find(resourceProvider, packages, rootPath);
     return workspace;
   }

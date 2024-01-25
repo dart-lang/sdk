@@ -259,7 +259,6 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
   @override
   void createDefaultFiles() {
     writeTestPackageConfig();
-    writeTestPackagePubspecYamlFile('name: test');
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(

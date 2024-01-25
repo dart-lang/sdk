@@ -501,7 +501,7 @@ class LibraryAnalyzer {
     //
     var package = file.workspacePackage;
     var sdkVersionConstraint =
-        (package is PubPackage) ? package.sdkVersionConstraint : null;
+        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
     if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
         errorReporter,
