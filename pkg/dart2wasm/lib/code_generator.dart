@@ -245,7 +245,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.closureInfo;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
@@ -1748,7 +1748,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (intrinsicResult != null) return intrinsicResult;
 
     ClassInfo info = translator.classInfo[node.target.enclosingClass]!;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
 
     _visitArguments(node.arguments, node.targetReference, 0);
 
@@ -2102,7 +2102,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
       b.call_indirect(selector.signature, translator.dispatchTable.wasmTable);
 
-      translator.functions.activateSelector(selector);
+      translator.functions.recordSelectorUse(selector);
     }
 
     return translator.outputOrVoid(selector.signature.outputs);
@@ -2600,7 +2600,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.closureInfo;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
@@ -3124,7 +3124,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitRecordLiteral(RecordLiteral node, w.ValueType expectedType) {
     final ClassInfo recordClassInfo =
         translator.getRecordClassInfo(node.recordType);
-    translator.functions.allocateClass(recordClassInfo.classId);
+    translator.functions.recordClassAllocation(recordClassInfo.classId);
 
     b.i32_const(recordClassInfo.classId);
     b.i32_const(initialIdentityHash);
