@@ -111,7 +111,7 @@ class EditGetFixesHandler extends LegacyHandler
     var package =
         analysisContext.contextRoot.workspace.findPackageFor(optionsFile.path);
     var sdkVersionConstraint =
-        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
+        (package is PubPackage) ? package.sdkVersionConstraint : null;
     var errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,

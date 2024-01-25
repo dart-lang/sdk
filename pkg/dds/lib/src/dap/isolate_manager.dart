@@ -613,8 +613,7 @@ class IsolateManager {
             .toSet();
 
         // Split into logpoints (which just print messages) and breakpoints.
-        final logPoints = clientBreakpoints
-            .whereNotNull()
+        final logPoints = clientBreakpoints.nonNulls
             .where((bp) => bp.logMessage?.isNotEmpty ?? false)
             .toSet();
         final breakpoints = clientBreakpoints.difference(logPoints);
@@ -941,7 +940,7 @@ class IsolateManager {
     // many requests to the server.
     final allUris = libraries
         .map((library) => library.uri)
-        .whereNotNull()
+        .nonNulls
         .map(Uri.parse)
         .toList();
     await thread.resolveUrisToPackageLibPathsBatch(allUris);

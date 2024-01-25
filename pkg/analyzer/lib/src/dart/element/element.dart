@@ -4152,7 +4152,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<LibraryElementImpl> get exportedLibraries {
     return libraryExports
         .map((import) => import.exportedLibrary)
-        .whereNotNull()
+        .nonNulls
         .toSet()
         .toList();
   }
@@ -4214,7 +4214,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<LibraryElementImpl> get importedLibraries {
     return libraryImports
         .map((import) => import.importedLibrary)
-        .whereNotNull()
+        .nonNulls
         .toSet()
         .toList();
   }

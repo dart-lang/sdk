@@ -21,7 +21,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:collection/collection.dart';
 
 /// A completion pass that will create candidate suggestions based on the
 /// elements in scope in the library containing the selection, as well as
@@ -3005,7 +3004,7 @@ extension on GuardedPattern {
 extension on NodeList<PatternField> {
   /// Returns the names of the named fields in this list.
   Set<String> get fieldNames {
-    return map((field) => field.name?.name?.lexeme).whereNotNull().toSet();
+    return map((field) => field.name?.name?.lexeme).nonNulls.toSet();
   }
 }
 

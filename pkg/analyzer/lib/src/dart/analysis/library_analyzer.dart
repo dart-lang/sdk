@@ -52,7 +52,6 @@ import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 class AnalysisForCompletionResult {
@@ -316,7 +315,7 @@ class LibraryAnalyzer {
               return null;
             }
           })
-          .whereNotNull()
+          .nonNulls
           .toList();
       for (final linterUnit in allUnits) {
         _computeLints(linterUnit.file, linterUnit, allUnits,
@@ -502,7 +501,7 @@ class LibraryAnalyzer {
     //
     var package = file.workspacePackage;
     var sdkVersionConstraint =
-        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
+        (package is PubPackage) ? package.sdkVersionConstraint : null;
     if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
         errorReporter,

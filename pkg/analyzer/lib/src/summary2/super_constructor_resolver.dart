@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:collection/collection.dart';
 
 /// Resolves the explicit or implicit super-constructors invoked by
 /// non-redirecting generative constructors.

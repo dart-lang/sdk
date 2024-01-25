@@ -322,7 +322,7 @@ class DeclarationBuilder {
     return element.withAugmentations
         .expand((current) => current.metadata)
         .map(_buildMetadataElement)
-        .whereNotNull()
+        .nonNulls
         .toList();
   }
 
@@ -334,7 +334,7 @@ class DeclarationBuilder {
 
     final importPrefixNames = annotation.library.libraryImports
         .map((e) => e.prefix?.element.name)
-        .whereNotNull()
+        .nonNulls
         .toSet();
 
     final identifiers = <ast.SimpleIdentifier>[];

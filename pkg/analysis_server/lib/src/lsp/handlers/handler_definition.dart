@@ -20,7 +20,6 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
-import 'package:collection/collection.dart';
 
 typedef StaticOptions = Either2<bool, DefinitionOptions>;
 
@@ -116,7 +115,7 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
             mergedTargets,
             (NavigationTarget target) =>
                 _toLocationLink(mergedResults, lineInfo, target),
-          ).whereNotNull().toList();
+          ).nonNulls.toList();
 
           final results = _filterResults(
             convertedResults,
@@ -131,7 +130,7 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
           final convertedResults = convert(
             mergedTargets,
             (NavigationTarget target) => _toLocation(mergedResults, target),
-          ).whereNotNull().toList();
+          ).nonNulls.toList();
 
           final results = _filterResults(
             convertedResults,

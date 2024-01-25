@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:collection/collection.dart';
 
 typedef SharedPatternField
     = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;

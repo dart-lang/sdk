@@ -447,8 +447,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
   final List<String> optimizationLevel3Flags = _flagList('''
       --inlining
-      --minify
       --omit-implicit-checks
+      --omit-explicit-checks
     '''); // end of optimizationLevel3Flags
 
   final List<String> optimizationLevel4Flags = _flagList('''

@@ -49,7 +49,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
 
 import 'fix/pubspec/fix_generator.dart';
@@ -522,7 +521,7 @@ class BulkFixProcessor {
 
     var lintRules = syntacticLintCodes
         .map((name) => Registry.ruleRegistry.getRule(name))
-        .whereNotNull()
+        .nonNulls
         .toList();
     for (var linter in lintRules) {
       linter.reporter = errorReporter;

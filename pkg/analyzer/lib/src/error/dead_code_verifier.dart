@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:collection/collection.dart';
 
 typedef _CatchClausesVerifierReporter = void Function(
   CatchClause first,

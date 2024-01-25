@@ -5,13 +5,12 @@
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:collection/collection.dart';
 
 abstract class FileStateFilter {
   /// Return a filter of files that can be accessed by the [file].
   factory FileStateFilter(FileState file) {
     var workspacePackage = file.workspacePackage;
-    if (workspacePackage is PubWorkspacePackage) {
+    if (workspacePackage is PubPackage) {
       return _PubFilter(workspacePackage, file.path);
     } else {
       return _AnyFilter();
@@ -58,13 +57,13 @@ class _AnyFilter implements FileStateFilter {
 }
 
 class _PubFilter implements FileStateFilter {
-  final PubWorkspacePackage targetPackage;
+  final PubPackage targetPackage;
   final String? targetPackageName;
   final bool targetPackageIsAnalysisServer;
   final bool targetInLib;
   final Set<String> dependencies;
 
-  factory _PubFilter(PubWorkspacePackage package, String path) {
+  factory _PubFilter(PubPackage package, String path) {
     var inLib = package.workspace.provider
         .getFolder(package.root)
         .getChildAssumingFolder('lib')
@@ -113,7 +112,7 @@ class _PubFilter implements FileStateFilter {
         return false;
       } else {
         var filePackage = file.workspacePackage;
-        return filePackage is PubWorkspacePackage &&
+        return filePackage is PubPackage &&
             filePackage.root == targetPackage.root;
       }
     }
@@ -142,10 +141,7 @@ extension on PSDependencyList? {
     if (self == null) {
       return const [];
     } else {
-      return self
-          .map((dependency) => dependency.name?.text)
-          .whereNotNull()
-          .toList();
+      return self.map((dependency) => dependency.name?.text).nonNulls.toList();
     }
   }
 }

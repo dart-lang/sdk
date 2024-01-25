@@ -26,7 +26,6 @@ import 'package:analyzer/src/summary/idl.dart' as idl;
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -408,10 +407,7 @@ class DeclarationsContext {
   }
 
   List<String> _resolvePackageNamesToLibPaths(List<String> packageNames) {
-    return packageNames
-        .map(_resolvePackageNameToLibPath)
-        .whereNotNull()
-        .toList();
+    return packageNames.map(_resolvePackageNameToLibPath).nonNulls.toList();
   }
 
   String? _resolvePackageNameToLibPath(String packageName) {
@@ -2110,7 +2106,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
   List<_LibraryNode> computeDependencies() {
     return file.exports
         .map((export) => export.file)
-        .whereNotNull()
+        .nonNulls
         .where((file) => file.isLibrary)
         .map(walker.getNode)
         .toList();

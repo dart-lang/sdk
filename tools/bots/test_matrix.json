@@ -455,7 +455,7 @@
       "options": {
         "host-checked": true,
         "dart2wasm-options": [
-          "--no-optimize"
+          "-O0"
         ],
         "timeout": 240
       }
@@ -463,7 +463,7 @@
     "dart2wasm-(linux|mac|win)-optimized-(d8|jsshell|jsc|chrome|firefox)": {
       "options": {
         "dart2wasm-options": [
-          "--optimize"
+          "-O1"
         ],
         "host-checked": false,
         "timeout": 240
@@ -472,7 +472,7 @@
     "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox)": {
       "options": {
         "dart2wasm-options": [
-          "--no-optimize",
+          "-O0",
           "--js-compatibility"
         ],
         "host-checked": true,
