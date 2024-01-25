@@ -519,8 +519,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     moduleItems.addAll(afterClassDefItems);
     afterClassDefItems.clear();
+    // Register the local const cache for this module so it can be cleared on a
+    // hot restart.
+    if (_constTableCache.isNotEmpty) {
+      moduleItems.add(runtimeCall('moduleConstCaches.set(#, #)', [
+        js_ast.string(_options.moduleName),
+        _constTableCache.containerId
+      ]).toStatement());
+    }
     _ticker?.logMs('Added table caches');
-
     // Add all type hierarchy rules for the interface types used in this module.
     if (_options.newRuntimeTypes) {
       // TODO(nshahan) This is likely more information than the application
