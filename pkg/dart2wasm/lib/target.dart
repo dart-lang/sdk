@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
-import 'package:_js_interop_checks/src/transformations/export_creator.dart';
+import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -215,10 +215,13 @@ class WasmTarget extends Target {
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
     }
-    final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
-        jsInteropReporter, jsInteropChecks.exportChecker);
+    final sharedInteropTransformer = SharedInteropTransformer(
+        TypeEnvironment(coreTypes, hierarchy),
+        jsInteropReporter,
+        jsInteropChecks.exportChecker,
+        jsInteropChecks.extensionIndex);
     for (Library library in interopDependentLibraries) {
-      exportCreator.visitLibrary(library);
+      sharedInteropTransformer.visitLibrary(library);
     }
   }
 

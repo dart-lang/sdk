@@ -62,6 +62,11 @@ extension JSAnyUtilityExtension on JSAny? {
       .toBool();
 
   @patch
+  bool isA<T>() => throw UnimplementedError(
+      "This should never be called. Calls to 'isA' should have been "
+      'transformed by the interop transformer.');
+
+  @patch
   Object? dartify() => js_util.dartify(this);
 }
 
@@ -90,8 +95,8 @@ extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
 extension FunctionToJSExportedDartFunction on Function {
   @patch
   JSExportedDartFunction get toJS => throw UnimplementedError(
-      'This should never be called. Calls to toJS should have been transformed '
-      'by the interop transformer.');
+      "This should never be called. Calls to 'toJS' should have been "
+      'transformed by the interop transformer.');
 }
 
 /// Embedded global property for wrapped Dart objects passed via JS interop.

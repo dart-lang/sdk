@@ -51,6 +51,7 @@ e.g
 enclose
 exhaustively
 exportable
+extensiontype
 f
 ffi
 finality
@@ -66,6 +67,7 @@ interact
 interop
 intervening
 irrefutable
+isa
 js_util
 jsany
 jsexport
@@ -113,6 +115,7 @@ resource
 sdksummary
 size
 solutions
+specially
 stacktrace
 stand
 staticinterop
@@ -130,7 +133,9 @@ this.namedconstructor
 this.x
 tojs
 trusttypes
+type's
 type3.#name
+typeof
 u
 unavailable
 unsound

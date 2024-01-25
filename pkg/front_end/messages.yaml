@@ -5845,6 +5845,22 @@ JsInteropExportNoExportableMembers:
   problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
   correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
 
+JsInteropIsAInvalidType:
+  problemMessage: "Type argument '#type' needs to be an interop 'ExtensionType'."
+  correctionMessage: "Use a valid interop extension type as the type argument instead."
+
+JsInteropIsAObjectLiteralType:
+  problemMessage: "Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check."
+  correctionMessage: "Use 'JSObject' as the type argument instead."
+
+JsInteropIsAPrimitiveExtensionType:
+  problemMessage: "Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'."
+  correctionMessage: "Use the primitive JS type '#string' as the type argument instead."
+
+JsInteropIsATearoff:
+  problemMessage: "'isA' can't be torn off."
+  correctionMessage: "Use a method that calls 'isA' and tear off that method instead."
+
 JsInteropExtensionTypeNotInterop:
   problemMessage: "Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
   correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types."

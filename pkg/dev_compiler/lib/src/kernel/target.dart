@@ -7,8 +7,8 @@ import 'dart:collection';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
-import 'package:_js_interop_checks/src/transformations/export_creator.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
@@ -206,13 +206,17 @@ class DevCompilerTarget extends Target {
       // Process and validate first before doing anything with exports.
       node.accept(jsInteropChecks);
     }
-    final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
-        jsInteropReporter, jsInteropChecks.exportChecker);
-    final jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
+    final sharedInteropTransformer = SharedInteropTransformer(
+        TypeEnvironment(coreTypes, hierarchy),
+        jsInteropReporter,
+        jsInteropChecks.exportChecker,
+        jsInteropChecks.extensionIndex);
+    final jsUtilOptimizer =
+        JsUtilOptimizer(coreTypes, hierarchy, jsInteropChecks.extensionIndex);
     for (var node in nodes) {
       _CovarianceTransformer(node).transform();
-      // Export creator has static checks, so we still visit.
-      node.accept(exportCreator);
+      // Shared interop transformer has static checks, so we still visit.
+      node.accept(sharedInteropTransformer);
       if (!jsInteropReporter.hasJsInteropErrors) {
         // We can't guarantee calls are well-formed, so don't transform.
         node.accept(jsUtilOptimizer);

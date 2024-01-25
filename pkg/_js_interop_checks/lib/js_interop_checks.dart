@@ -60,7 +60,7 @@ import 'src/js_interop.dart';
 class JsInteropChecks extends RecursiveVisitor {
   final Set<Constant> _constantCache = {};
   final CoreTypes _coreTypes;
-  late final ExtensionIndex _extensionIndex;
+  late final ExtensionIndex extensionIndex;
   final Procedure _functionToJSTarget;
   // Errors on constants need source information, so we use the surrounding
   // `ConstantExpression` as the source.
@@ -163,7 +163,7 @@ class JsInteropChecks extends RecursiveVisitor {
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
         _staticTypeContext = StatefulStaticTypeContext.stacked(
             TypeEnvironment(_coreTypes, hierarchy)) {
-    _extensionIndex =
+    extensionIndex =
         ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment);
   }
 
@@ -209,7 +209,7 @@ class JsInteropChecks extends RecursiveVisitor {
           node.fileOffset, node.name.length, node.fileUri);
     }
     if (hasDartJSInteropAnnotation(node) &&
-        !_extensionIndex.isInteropExtensionType(node)) {
+        !extensionIndex.isInteropExtensionType(node)) {
       _reporter.report(
           templateJsInteropExtensionTypeNotInterop.withArguments(
               node.name, node.declaredRepresentationType, true),
@@ -352,9 +352,9 @@ class JsInteropChecks extends RecursiveVisitor {
       // can only have named parameters, and every other interop member can only
       // have positional parameters.
       final isObjectLiteralConstructor = node.isExtensionTypeMember &&
-          (_extensionIndex.getExtensionTypeDescriptor(node)!.kind ==
+          (extensionIndex.getExtensionTypeDescriptor(node)!.kind ==
                   ExtensionTypeMemberKind.Constructor ||
-              _extensionIndex.getExtensionTypeDescriptor(node)!.kind ==
+              extensionIndex.getExtensionTypeDescriptor(node)!.kind ==
                   ExtensionTypeMemberKind.Factory) &&
           node.function.namedParameters.isNotEmpty;
       final isAnonymousFactory = _classHasAnonymousAnnotation && node.isFactory;
@@ -381,13 +381,13 @@ class JsInteropChecks extends RecursiveVisitor {
         _checkNoParamInitializersForStaticInterop(node.function);
         late Annotatable? annotatable;
         if (node.isExtensionTypeMember) {
-          annotatable = _extensionIndex.getExtensionType(node);
+          annotatable = extensionIndex.getExtensionType(node);
         } else if (node.isExtensionMember) {
-          annotatable = _extensionIndex.getExtensionAnnotatable(node);
+          annotatable = extensionIndex.getExtensionAnnotatable(node);
           if (annotatable != null) {
             // We do not support external extension members with the 'static'
             // keyword currently.
-            if (_extensionIndex.getExtensionDescriptor(node)!.isStatic) {
+            if (extensionIndex.getExtensionDescriptor(node)!.isStatic) {
               report(
                   messageJsInteropExternalExtensionMemberWithStaticDisallowed);
             }
@@ -644,13 +644,13 @@ class JsInteropChecks extends RecursiveVisitor {
     if (member.isExternal) {
       if (_isAllowedExternalUsage(member)) return;
       if (member.isExtensionMember) {
-        final annotatable = _extensionIndex.getExtensionAnnotatable(member);
+        final annotatable = extensionIndex.getExtensionAnnotatable(member);
         if (annotatable == null) {
           _reporter.report(messageJsInteropExternalExtensionMemberOnTypeInvalid,
               member.fileOffset, member.name.text.length, member.fileUri);
         }
       } else if (member.isExtensionTypeMember) {
-        final extensionType = _extensionIndex.getExtensionType(member);
+        final extensionType = extensionIndex.getExtensionType(member);
         if (extensionType == null) {
           _reporter.report(messageJsInteropExtensionTypeMemberNotInterop,
               member.fileOffset, member.name.text.length, member.fileUri);
@@ -680,25 +680,27 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Returns whether an error was triggered.
   bool _checkDisallowedTearoff(Member member, TreeNode? context) {
     if (context == null || context.location == null) return false;
-    if (member.isExternal) {
+    // TODO(srujzs): Delete the check for patched member once
+    // https://github.com/dart-lang/sdk/issues/53367 is resolved.
+    if (member.isExternal && !JsInteropChecks.isPatchedMember(member)) {
       var memberKind = '';
       var memberName = '';
       if (member.isExtensionTypeMember) {
         // Extension type interop members can not be torn off.
-        if (_extensionIndex.getExtensionType(member) == null) {
+        if (extensionIndex.getExtensionType(member) == null) {
           return false;
         }
         memberKind = 'extension type interop member';
         memberName =
-            _extensionIndex.getExtensionTypeDescriptor(member)!.name.text;
+            extensionIndex.getExtensionTypeDescriptor(member)!.name.text;
         if (memberName.isEmpty) memberName = 'new';
       } else if (member.isExtensionMember) {
         // JS interop members can not be torn off.
-        if (_extensionIndex.getExtensionAnnotatable(member) == null) {
+        if (extensionIndex.getExtensionAnnotatable(member) == null) {
           return false;
         }
         memberKind = 'extension interop member';
-        memberName = _extensionIndex.getExtensionDescriptor(member)!.name.text;
+        memberName = extensionIndex.getExtensionDescriptor(member)!.name.text;
       } else if (member.enclosingClass != null) {
         // @staticInterop members can not be torn off.
         final enclosingClass = member.enclosingClass!;
@@ -783,14 +785,14 @@ class JsInteropChecks extends RecursiveVisitor {
     var isInvalidOperator = false;
     var operatorHasRenaming = false;
     if ((node.isExtensionTypeMember &&
-            _extensionIndex.getExtensionTypeDescriptor(node)?.kind ==
+            extensionIndex.getExtensionTypeDescriptor(node)?.kind ==
                 ExtensionTypeMemberKind.Operator) ||
         (node.isExtensionMember &&
-            _extensionIndex.getExtensionDescriptor(node)?.kind ==
+            extensionIndex.getExtensionDescriptor(node)?.kind ==
                 ExtensionMemberKind.Operator)) {
       final operator =
-          _extensionIndex.getExtensionTypeDescriptor(node)?.name.text ??
-              _extensionIndex.getExtensionDescriptor(node)?.name.text;
+          extensionIndex.getExtensionTypeDescriptor(node)?.name.text ??
+              extensionIndex.getExtensionDescriptor(node)?.name.text;
       isInvalidOperator = operator != '[]' && operator != '[]=';
       operatorHasRenaming = getJSName(node).isNotEmpty;
     } else if (!node.isStatic && node.kind == ProcedureKind.Operator) {
@@ -858,8 +860,8 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Otherwise, return null.
   Member? _getTornOffFromGeneratedTearOff(Procedure procedure) {
     final tornOff =
-        _extensionIndex.getExtensionTypeMemberForTearOff(procedure) ??
-            _extensionIndex.getExtensionMemberForTearOff(procedure);
+        extensionIndex.getExtensionTypeMemberForTearOff(procedure) ??
+            extensionIndex.getExtensionMemberForTearOff(procedure);
     if (tornOff != null) return tornOff.asMember;
     final name = extractConstructorNameFromTearOff(procedure.name);
     if (name == null) return null;
@@ -895,10 +897,10 @@ class JsInteropChecks extends RecursiveVisitor {
     if (member.isExternal) {
       if (_classHasJSAnnotation) return true;
       if (member.isExtensionMember) {
-        return _extensionIndex.getExtensionAnnotatable(member) != null;
+        return extensionIndex.getExtensionAnnotatable(member) != null;
       }
       if (member.isExtensionTypeMember) {
-        return _extensionIndex.getExtensionType(member) != null;
+        return extensionIndex.getExtensionType(member) != null;
       }
       if (member.enclosingClass == null) {
         // dart:js_interop requires top-levels to be @JS-annotated. package:js
@@ -926,11 +928,11 @@ class JsInteropChecks extends RecursiveVisitor {
       // TODO(srujzs): We may want to support type parameters with primitive
       // bounds that are themselves allowed e.g. `num`. If so, we should handle
       // that change in dart2wasm.
-      if (_extensionIndex.isAllowedRepresentationType(bound)) return true;
+      if (extensionIndex.isAllowedRepresentationType(bound)) return true;
     }
     // If it can be used as a representation type of an interop extension type,
     // it is okay to be used on an external member.
-    if (_extensionIndex.isAllowedRepresentationType(type)) return true;
+    if (extensionIndex.isAllowedRepresentationType(type)) return true;
     if (type is InterfaceType) {
       final cls = type.classNode;
       // Primitive types are okay.

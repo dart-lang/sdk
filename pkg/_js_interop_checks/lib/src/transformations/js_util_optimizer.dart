@@ -68,7 +68,8 @@ class JsUtilOptimizer extends Transformer {
 
   late final ExtensionIndex _extensionIndex;
 
-  JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
+  JsUtilOptimizer(
+      this._coreTypes, ClassHierarchy hierarchy, this._extensionIndex)
       : _callMethodTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'callMethod'),
         _callMethodTrustTypeTarget = _coreTypes.index
@@ -108,10 +109,7 @@ class JsUtilOptimizer extends Transformer {
         _listEmptyFactory =
             _coreTypes.index.getProcedure('dart:core', 'List', 'empty'),
         _staticTypeContext = StatefulStaticTypeContext.stacked(
-            TypeEnvironment(_coreTypes, hierarchy)) {
-    _extensionIndex =
-        ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment);
-  }
+            TypeEnvironment(_coreTypes, hierarchy));
 
   @override
   visitLibrary(Library node) {
@@ -200,7 +198,7 @@ class JsUtilOptimizer extends Transformer {
       if (jsName.isNotEmpty) {
         var lastDotIndex = jsName.lastIndexOf('.');
         if (lastDotIndex != -1) {
-          dottedPrefix = _concatenateJSNames(
+          dottedPrefix = concatenateJSNames(
               dottedPrefix, jsName.substring(0, lastDotIndex));
         }
       }
@@ -231,15 +229,17 @@ class JsUtilOptimizer extends Transformer {
             ? enclosingClass.name
             : (enclosingClass as ExtensionTypeDeclaration).name;
       }
-      dottedPrefix = _concatenateJSNames(dottedPrefix, className);
+      dottedPrefix = concatenateJSNames(dottedPrefix, className);
     }
     return dottedPrefix;
   }
 
+  // TODO(srujzs): It feels weird to have this be public, but it's weirder to
+  // have this method elsewhere for now. Figure out a better place for this.
   /// Given two `@JS` values, combines them into a concatenated name using '.'.
   ///
   /// If either parameters are empty, returns the other.
-  String _concatenateJSNames(String prefix, String suffix) {
+  static String concatenateJSNames(String prefix, String suffix) {
     if (prefix.isEmpty) return suffix;
     if (suffix.isEmpty) return prefix;
     return '$prefix.$suffix';
@@ -473,6 +473,8 @@ class JsUtilOptimizer extends Transformer {
       invocation = _lowerCallMethod(node, shouldTrustType: false);
     } else if (target == _callConstructorTarget) {
       invocation = _lowerCallConstructor(node);
+      // TODO(srujzs): Delete the `isPatchedMember` check once
+      // https://github.com/dart-lang/sdk/issues/53367 is resolved.
     } else if (target.isExternal && !JsInteropChecks.isPatchedMember(target)) {
       final builder = _externalInvocationBuilders.putIfAbsent(
           target, () => _getExternalInvocationBuilder(target));
@@ -827,8 +829,7 @@ class ExtensionIndex {
       if (_coreInteropTypeIndex.containsKey(reference)) {
         return _coreInteropTypeIndex[reference];
       }
-      if (declaration.enclosingLibrary.importUri.toString() ==
-          'dart:js_interop') {
+      if (isJSType(declaration)) {
         return _coreInteropTypeIndex[reference] = reference;
       }
       // Note that we recurse instead of using the erasure, as JS types are
@@ -991,4 +992,7 @@ class ExtensionIndex {
     }
     return false;
   }
+
+  bool isJSType(ExtensionTypeDeclaration decl) =>
+      decl.enclosingLibrary.importUri.toString() == 'dart:js_interop';
 }

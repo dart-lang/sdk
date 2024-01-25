@@ -44,6 +44,11 @@ extension JSAnyUtilityExtension on JSAny? {
       foreign_helper.JS('bool', '# instanceof #', this, constructor);
 
   @patch
+  bool isA<T>() => throw UnimplementedError(
+      "This should never be called. Calls to 'isA' should have been "
+      'transformed by the interop transformer.');
+
+  @patch
   @pragma('dart2js:prefer-inline')
   Object? dartify() => js_util.dartify(this);
 }
