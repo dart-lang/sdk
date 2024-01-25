@@ -63,7 +63,7 @@ class BasicWorkspacePackage extends WorkspacePackage {
   final String root;
 
   @override
-  final BasicWorkspace workspace;
+  final SimpleWorkspace workspace;
 
   BasicWorkspacePackage(this.root, this.workspace);
 

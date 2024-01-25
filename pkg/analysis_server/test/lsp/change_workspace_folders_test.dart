@@ -35,9 +35,9 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     workspaceFolder2Uri = pathContext.toUri(workspaceFolder2Path);
     workspaceFolder3Uri = pathContext.toUri(workspaceFolder3Path);
 
-    newPubspecYamlFile(workspaceFolder1Path, '');
-    newPubspecYamlFile(workspaceFolder2Path, '');
-    newPubspecYamlFile(workspaceFolder3Path, '');
+    newPackageConfigJsonFile(workspaceFolder1Path, '');
+    newPackageConfigJsonFile(workspaceFolder2Path, '');
+    newPackageConfigJsonFile(workspaceFolder3Path, '');
 
     nonFileWorkspaceFolderUri = Uri.parse('dart-foo:/foo.dart');
   }
@@ -261,11 +261,12 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
-    // Ensure no pubspecs in tree.
+    // Ensure no package config in tree.
     deleteFile(
       join(
         workspaceFolder1Path,
-        file_paths.pubspecYaml,
+        file_paths.dotDartTool,
+        file_paths.packageConfigJson,
       ),
     );
 

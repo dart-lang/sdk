@@ -668,7 +668,7 @@ analyzer:
     );
     expect(roots, hasLength(1));
 
-    ContextRoot root = findRoot(roots, getFolder('/'));
+    ContextRoot root = findRoot(roots, getFolder('/home'));
     expect(
         root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
     expect(root.excludedPaths, isEmpty);
@@ -761,13 +761,13 @@ analyzer:
     _assertAnalyzedFiles2(root, [fooFile, barFile]);
   }
 
-  void test_locateRoots_multiple_files_differentWorkspaces_pub() {
+  void test_locateRoots_multiple_files_differentWorkspaces_packageConfig() {
     var rootPath = '/home';
     var fooPath = '$rootPath/foo';
     var barPath = '$rootPath/bar';
 
-    newPubspecYamlFile(fooPath, '');
-    newPubspecYamlFile(barPath, '');
+    newPackageConfigJsonFile(fooPath, '');
+    newPackageConfigJsonFile(barPath, '');
 
     var fooFile = newFile('$fooPath/lib/foo.dart', '');
     var barFile = newFile('$barPath/lib/bar.dart', '');
@@ -781,7 +781,7 @@ analyzer:
     expect(fooRoot.includedPaths, unorderedEquals([fooFile.path]));
     expect(fooRoot.excludedPaths, isEmpty);
     expect(fooRoot.optionsFile, isNull);
-    expect(fooRoot.packagesFile, isNull);
+    expect(fooRoot.packagesFile, isNotNull);
     _assertPubWorkspace(fooRoot.workspace, fooPath);
     _assertAnalyzedFiles2(fooRoot, [fooFile]);
 
@@ -789,7 +789,7 @@ analyzer:
     expect(barRoot.includedPaths, unorderedEquals([barFile.path]));
     expect(barRoot.excludedPaths, isEmpty);
     expect(barRoot.optionsFile, isNull);
-    expect(barRoot.packagesFile, isNull);
+    expect(barRoot.packagesFile, isNotNull);
     _assertPubWorkspace(barRoot.workspace, barPath);
     _assertAnalyzedFiles2(barRoot, [barFile]);
   }
@@ -1774,7 +1774,7 @@ ${getFolder(outPath).path}
   }
 
   void _assertPubWorkspace(Workspace workspace, String posixRoot) {
-    workspace as PubWorkspace;
+    workspace as PackageConfigWorkspace;
     var root = convertPath(posixRoot);
     expect(workspace.root, root);
   }
