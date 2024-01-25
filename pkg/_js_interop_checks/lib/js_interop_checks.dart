@@ -915,32 +915,25 @@ class JsInteropChecks extends RecursiveVisitor {
     return false;
   }
 
+  /// Return whether [type] can be used on a `dart:js_interop` external member
+  /// or in the signature of a function that is converted via `toJS`.
   bool _isAllowedExternalType(DartType type) {
-    // TODO(joshualitt): We allow only JS types on external JS interop APIs with
-    // two exceptions: `void` and `Null`. Both of these exceptions exist largely
-    // to support passing Dart functions to JS as callbacks.  Furthermore, both
-    // of these types mean no actual values needs to be returned to JS. That
-    // said, for completeness, we may restrict these two types someday, and
-    // provide JS types equivalents, but likely only if we have implicit
-    // conversions between Dart types and JS types.
-
     if (type is VoidType || type is NullType) return true;
     if (type is TypeParameterType || type is StructuralParameterType) {
       final bound = type.nonTypeVariableBound;
-      final isStaticInteropBound =
-          bound is InterfaceType && hasStaticInteropAnnotation(bound.classNode);
-      final isInteropExtensionTypeBound = bound is ExtensionType &&
-          _extensionIndex
-              .isInteropExtensionType(bound.extensionTypeDeclaration);
+      // If it can be used as a representation type of an interop extension
+      // type, it is okay to be used as a bound.
       // TODO(srujzs): We may want to support type parameters with primitive
       // bounds that are themselves allowed e.g. `num`. If so, we should handle
       // that change in dart2wasm.
-      if (isStaticInteropBound || isInteropExtensionTypeBound) {
-        return true;
-      }
+      if (_extensionIndex.isAllowedRepresentationType(bound)) return true;
     }
+    // If it can be used as a representation type of an interop extension type,
+    // it is okay to be used on an external member.
+    if (_extensionIndex.isAllowedRepresentationType(type)) return true;
     if (type is InterfaceType) {
       final cls = type.classNode;
+      // Primitive types are okay.
       if (cls == _coreTypes.boolClass ||
           cls == _coreTypes.numClass ||
           cls == _coreTypes.doubleClass ||
@@ -948,13 +941,10 @@ class JsInteropChecks extends RecursiveVisitor {
           cls == _coreTypes.stringClass) {
         return true;
       }
-      if (hasStaticInteropAnnotation(cls)) return true;
-    }
-    if (type is ExtensionType) {
-      if (_extensionIndex
-          .isInteropExtensionType(type.extensionTypeDeclaration)) {
-        return true;
-      }
+    } else if (type is ExtensionType) {
+      // Extension types that wrap other allowed types are also okay. Interop
+      // extension types are handled above, so this is essentially for extension
+      // types on primtives.
       return _isAllowedExternalType(type.extensionTypeErasure);
     }
     return false;

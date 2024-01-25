@@ -49,7 +49,7 @@ class JsUtilOptimizer extends Transformer {
   final Procedure _setPropertyUncheckedTarget;
 
   /// Dynamic members in js_util that interop allowed.
-  static final Iterable<String> _allowedInteropJsUtilMembers = <String>[
+  static const List<String> _allowedInteropJsUtilMembers = [
     'callConstructor',
     'callMethod',
     'getProperty',
@@ -57,9 +57,10 @@ class JsUtilOptimizer extends Transformer {
     'newObject',
     'setProperty'
   ];
+
+  final Procedure _allowInteropTarget;
   final Iterable<Procedure> _allowedInteropJsUtilTargets;
   final Procedure _jsTarget;
-  final Procedure _allowInteropTarget;
   final Procedure _listEmptyFactory;
 
   final CoreTypes _coreTypes;
@@ -690,7 +691,7 @@ class JsUtilOptimizer extends Transformer {
 /// member in question if needed. We only process JS interop extension types and
 /// extensions on either JS interop or @Native classes.
 class ExtensionIndex {
-  final CoreTypes _coreTypes;
+  final Map<Reference, Reference?> _coreInteropTypeIndex = {};
   final Map<Reference, Annotatable> _extensionAnnotatableIndex = {};
   final Map<Reference, Extension> _extensionIndex = {};
   final Map<Reference, ExtensionMemberDescriptor> _extensionMemberIndex = {};
@@ -699,13 +700,15 @@ class ExtensionIndex {
   final Map<Reference, ExtensionTypeMemberDescriptor>
       _extensionTypeMemberIndex = {};
   final Map<Reference, Reference> _extensionTypeTearOffIndex = {};
-  final Map<Reference, bool> _interopExtensionTypeIndex = {};
+  final Class? _javaScriptObject;
   final Set<Library> _processedExtensionLibraries = {};
   final Set<Library> _processedExtensionTypeLibraries = {};
   final Set<Reference> _shouldTrustType = {};
   final TypeEnvironment _typeEnvironment;
 
-  ExtensionIndex(this._coreTypes, this._typeEnvironment);
+  ExtensionIndex(CoreTypes coreTypes, this._typeEnvironment)
+      : _javaScriptObject = coreTypes.index
+            .tryGetClass('dart:_interceptors', 'JavaScriptObject');
 
   /// If unprocessed, for all extension members in [library] whose on-type is a
   /// JS interop or `@Native` class, does the following:
@@ -786,49 +789,70 @@ class ExtensionIndex {
     return _extensionTearOffIndex[member.reference];
   }
 
-  /// Caches and returns whether the ultimate representation type that
-  /// corresponds to [extensionType]'s representation type is an interop type
-  /// that can be statically interoperable.
+  /// Returns whether [extensionType] is an "interop extension type".
   ///
-  /// This currently allows the interface type to be:
-  /// - all package:js classes
-  /// - dart:js_interop types
-  /// - @Native types that implement JavaScriptObject
-  /// - extension types that wrap any of the above
+  /// Interop extension types have either another interop extension type or a
+  /// "core" interop type (see below) as their representation type. Extension
+  /// types can only declare external JS interop members if they are interop
+  /// extension types.
   bool isInteropExtensionType(ExtensionTypeDeclaration extensionType) {
-    final reference = extensionType.reference;
-    if (_interopExtensionTypeIndex.containsKey(reference)) {
-      return _interopExtensionTypeIndex[reference]!;
-    }
-    // Check if this is an dart:js_interop JS type or recursively an extension
-    // type on one.
-    DartType repType = ExtensionType(extensionType, Nullability.nonNullable);
-    while (repType is ExtensionType) {
-      final declaration = repType.extensionTypeDeclaration;
+    return getCoreInteropType(
+        // Nullability is irrelevant for this purpose.
+        ExtensionType(extensionType, Nullability.undetermined)) != null;
+  }
+
+  /// Returns the "core" interop type of [type], unwrapping extension types as
+  /// needed and caching along the way.
+  ///
+  /// A type is a "core" interop type if it is:
+  /// - a `dart:js_interop` extension type
+  /// - a `@staticInterop` type
+  /// - an `@Native` type that <: `JavaScriptObject`. Note that this excludes
+  ///   `dart:typed_data`, as typed list factories return a type that is
+  ///   <: `JavaScriptObject`, but the typed lists themselves are not such a
+  ///   type. This is expected and intended since unlike `dart:html`,
+  ///   `dart:typed_data` can be used in dart2wasm, and since we do not want
+  ///   typed lists to be considered interoperable there, it makes sense to
+  ///   exclude them here.
+  ///
+  /// If [type] is allowed and is an extension type, it is an interop extension
+  /// type as well.
+  ///
+  /// Returns `null` if there is no [type] that neither wraps nor is a "core"
+  /// interop type.
+  Reference? getCoreInteropType(DartType type) {
+    if (type is ExtensionType) {
+      final declaration = type.extensionTypeDeclaration;
+      final reference = declaration.reference;
+      if (_coreInteropTypeIndex.containsKey(reference)) {
+        return _coreInteropTypeIndex[reference];
+      }
       if (declaration.enclosingLibrary.importUri.toString() ==
           'dart:js_interop') {
-        return true;
+        return _coreInteropTypeIndex[reference] = reference;
       }
-      repType = declaration.declaredRepresentationType;
-    }
-    if (repType is InterfaceType) {
-      final cls = repType.classNode;
-      final javaScriptObject = _coreTypes.index
-          .tryGetClass('dart:_interceptors', 'JavaScriptObject');
+      // Note that we recurse instead of using the erasure, as JS types are
+      // extension types.
+      return _coreInteropTypeIndex[reference] =
+          getCoreInteropType(declaration.declaredRepresentationType);
+    } else if (type is InterfaceType) {
+      final cls = type.classNode;
+      final reference = cls.reference;
       if (hasStaticInteropAnnotation(cls) ||
-          (javaScriptObject != null &&
+          (_javaScriptObject != null &&
               hasNativeAnnotation(cls) &&
               _typeEnvironment.isSubtypeOf(
-                  repType,
-                  InterfaceType(javaScriptObject, Nullability.nullable),
+                  type,
+                  InterfaceType(_javaScriptObject!, Nullability.nullable),
                   SubtypeCheckMode.withNullabilities))) {
-        _interopExtensionTypeIndex[reference] = true;
-        return true;
+        return _coreInteropTypeIndex[reference] = reference;
       }
     }
-    _interopExtensionTypeIndex[reference] = false;
-    return false;
+    return null;
   }
+
+  bool isAllowedRepresentationType(DartType type) =>
+      getCoreInteropType(type) != null;
 
   /// If unprocessed, for all extension type members in [library] whose
   /// extension type is static interop, does the following:
