@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart' show CompileTimeErrorCode;
-import 'package:collection/collection.dart';
 
 Element? _getKnownElement(SyntacticEntity expression) {
   if (expression is ParenthesizedExpression) {

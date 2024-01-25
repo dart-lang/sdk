@@ -69,7 +69,6 @@ import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -3190,7 +3189,7 @@ class AstBuilder extends StackListener {
       assert(labelCount == 0);
     }
 
-    var members2 = members.whereNotNull().toList();
+    var members2 = members.nonNulls.toList();
     if (members2.isNotEmpty) {
       members2.last = updateSwitchMember(
         member: members2.last,
@@ -5576,7 +5575,7 @@ class AstBuilder extends StackListener {
 
     final tailList = List<T?>.filled(count, null, growable: true);
     stack.popList(count, tailList, null);
-    return tailList.whereNotNull().toList();
+    return tailList.nonNulls.toList();
   }
 
   // TODO(scheglov): This is probably not optimal.

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class SinceSdkVersionComputer {

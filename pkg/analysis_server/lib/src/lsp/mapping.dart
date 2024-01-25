@@ -561,7 +561,7 @@ lsp.Diagnostic pluginToDiagnostic(
     relatedInformation = contextMessages
         .map((message) => pluginToDiagnosticRelatedInformation(
             uriConverter, getLineInfo, message))
-        .whereNotNull()
+        .nonNulls
         .toList();
   }
 

@@ -414,7 +414,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     if (args is DartLaunchRequestArguments)
       path.dirname((args as DartLaunchRequestArguments).program),
     ...?args.additionalProjectPaths,
-  ].whereNotNull().toList();
+  ].nonNulls.toList();
 
   /// Whether we have already sent the [TerminatedEvent] to the client.
   ///
@@ -765,7 +765,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final existingIsolates = existingIsolateRefs != null
         ? await Future.wait(existingIsolateRefs
             .map((isolateRef) => isolateRef.id)
-            .whereNotNull()
+            .nonNulls
             .map(vmService.getIsolate))
         : <vm.Isolate>[];
     await Future.wait(existingIsolates.map((isolate) async {
@@ -1748,7 +1748,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // many requests to the server.
         final allUris = frames
             .map((frame) => frame.location?.script?.uri)
-            .whereNotNull()
+            .nonNulls
             .map(Uri.parse)
             .toList();
         await thread.resolveUrisToPathsBatch(allUris);
@@ -2153,7 +2153,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // Extract all the URIs so we can send a batch request for resolving them.
     final lines = message.split('\n');
     final frames = lines.map(parseStackFrame).toList();
-    final uris = frames.whereNotNull().map((f) => f.uri).toList();
+    final uris = frames.nonNulls.map((f) => f.uri).toList();
 
     // We need an Isolate to resolve package URIs. Since we don't know what
     // isolate printed an error to stderr, we just have to use the first one and

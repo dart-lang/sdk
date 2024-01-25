@@ -41,7 +41,6 @@ import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -1752,7 +1751,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
       ...parts
           .whereType<PartWithFile>()
           .map((partState) => partState.includedPart)
-          .whereNotNull()
+          .nonNulls
           .map((partKind) => partKind.file),
       ...augmentations.map((e) => e.file),
     ];

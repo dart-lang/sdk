@@ -5,7 +5,6 @@
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:collection/collection.dart';
 
 abstract class FileStateFilter {
   /// Return a filter of files that can be accessed by the [file].
@@ -142,10 +141,7 @@ extension on PSDependencyList? {
     if (self == null) {
       return const [];
     } else {
-      return self
-          .map((dependency) => dependency.name?.text)
-          .whereNotNull()
-          .toList();
+      return self.map((dependency) => dependency.name?.text).nonNulls.toList();
     }
   }
 }

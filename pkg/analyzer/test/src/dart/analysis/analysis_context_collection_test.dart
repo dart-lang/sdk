@@ -14,7 +14,6 @@ import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -643,7 +642,7 @@ class _AnalysisContextCollectionPrinter {
           var file = analysisOption.file;
           return file != null ? (analysisOption, file) : null;
         })
-        .whereNotNull()
+        .nonNulls
         .toList();
 
     sink.writeElements('analysisOptions', withFile, (pair) {

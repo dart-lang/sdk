@@ -19,7 +19,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
-import 'package:collection/collection.dart';
 
 Uint8List writeUnitInformative(CompilationUnit unit) {
   var byteSink = ByteSink();

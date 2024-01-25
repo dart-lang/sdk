@@ -3131,7 +3131,7 @@ class NoMatchABCDEF {}
           final fileStr = inFiles[file];
           return fileStr != null ? MapEntry(fileStr, declaration) : null;
         })
-        .whereNotNull()
+        .nonNulls
         .groupListsBy((entry) => entry.key);
 
     final buffer = StringBuffer();

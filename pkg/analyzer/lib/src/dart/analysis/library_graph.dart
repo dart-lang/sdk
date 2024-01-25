@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -150,7 +149,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
                   .map((export) => export.exportedLibrary),
             ])
         .flattenedToList2
-        .whereNotNull()
+        .nonNulls
         .toSet();
 
     return referencedLibraries.map(walker.getNode).toList();

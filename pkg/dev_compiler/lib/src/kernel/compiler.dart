@@ -11,8 +11,6 @@ import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
     show eraseStaticInteropTypesForJSCompilers;
-import 'package:collection/collection.dart'
-    show IterableExtension, IterableNullableExtension;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName, JsBuiltin;
 import 'package:kernel/class_hierarchy.dart';
@@ -2350,7 +2348,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Add all of the super helper methods
     jsMethods.addAll(_superHelpers.values);
 
-    return jsMethods.whereNotNull().toList();
+    return jsMethods.nonNulls.toList();
   }
 
   bool _isForwardingStub(Procedure member) {
