@@ -42,9 +42,19 @@ final List<Option> options = [
   Flag(
       "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
       defaultsTo: _d.translatorOptions.enableAsserts),
-  Flag("omit-type-checks",
-      (o, value) => o.translatorOptions.omitTypeChecks = value,
-      defaultsTo: _d.translatorOptions.omitTypeChecks),
+  Flag("omit-explicit-checks",
+      (o, value) => o.translatorOptions.omitExplicitTypeChecks = value,
+      defaultsTo: _d.translatorOptions.omitExplicitTypeChecks),
+  Flag("omit-implicit-checks",
+      (o, value) => o.translatorOptions.omitImplicitTypeChecks = value,
+      defaultsTo: _d.translatorOptions.omitImplicitTypeChecks),
+  // TODO(http://dartbug.com/54675): Deprecate & Remove this one.
+  Flag("omit-type-checks", (o, value) {
+    o.translatorOptions.omitImplicitTypeChecks = value;
+    o.translatorOptions.omitExplicitTypeChecks = value;
+  },
+      defaultsTo: _d.translatorOptions.omitImplicitTypeChecks &&
+          _d.translatorOptions.omitExplicitTypeChecks),
   Flag("verbose", (o, value) => o.translatorOptions.verbose = value,
       defaultsTo: _d.translatorOptions.verbose),
   Flag("verify-type-checks",

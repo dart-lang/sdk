@@ -712,7 +712,7 @@ void generateDynamicFunctionCall(
   b.br_if(noSuchMethodBlock);
 
   // Shape check passed, check types
-  if (!translator.options.omitTypeChecks) {
+  if (!translator.options.omitImplicitTypeChecks) {
     b.local_get(functionTypeLocal);
     b.local_get(typeArgsLocal);
     b.local_get(posArgsLocal);

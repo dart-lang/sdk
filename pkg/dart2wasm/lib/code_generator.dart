@@ -488,7 +488,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   void generateTypeChecks(List<TypeParameter> typeParameters,
       FunctionNode function, ParameterInfo paramInfo) {
-    if (translator.options.omitTypeChecks) {
+    if (translator.options.omitImplicitTypeChecks) {
       return;
     }
 
@@ -3047,7 +3047,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitAsExpression(AsExpression node, w.ValueType expectedType) {
-    if (translator.options.omitTypeChecks || node.isUnchecked) {
+    if (translator.options.omitExplicitTypeChecks || node.isUnchecked) {
       return wrap(node.operand, expectedType);
     }
 
@@ -3425,7 +3425,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
     }
 
-    if (!translator.options.omitTypeChecks) {
+    if (!translator.options.omitImplicitTypeChecks) {
       // Check type parameter bounds
       for (TypeParameter typeParameter in memberTypeParams) {
         if (typeParameter.bound != translator.coreTypes.objectNullableRawType) {

@@ -131,9 +131,9 @@ class SelectorInfo {
                 // parameter.
                 return translator.coreTypes.objectNullableRawType;
               }
-              if (!translator.options.omitTypeChecks) {
+              if (!translator.options.omitImplicitTypeChecks) {
                 // A runtime type check of the parameter will be generated.
-                // The value therefore must be boxed.
+                // The value must therefore be boxed.
                 ensureBoxed[index] = true;
               }
             }
