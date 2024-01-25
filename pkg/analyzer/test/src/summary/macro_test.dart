@@ -1558,6 +1558,26 @@ augment class A {
 ''');
   }
 
+  test_macroGeneratedFileByName_beforeLinking() async {
+    // See https://dart-review.googlesource.com/c/sdk/+/348202
+    // Create `FileState` with the same name as would be macro generated.
+    // If we don't have implementation to discard it, we will get exception.
+    driverFor(testFile).getFileSync('$testPackageLibPath/test.macro.dart');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+class B {}
+''');
+  }
+
   test_resolveIdentifier_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
