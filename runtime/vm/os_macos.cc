@@ -95,25 +95,8 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-  if (__builtin_available(macOS 10.12, iOS 10.0, *)) {
-    // This is more efficient when available.
-    return clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID) /
-           kNanosecondsPerMicrosecond;
-  }
-
-  mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
-  thread_basic_info_data_t info_data;
-  thread_basic_info_t info = &info_data;
-  mach_port_t thread_port = pthread_mach_thread_np(pthread_self());
-  kern_return_t r =
-      thread_info(thread_port, THREAD_BASIC_INFO, (thread_info_t)info, &count);
-  ASSERT(r == KERN_SUCCESS);
-  int64_t thread_cpu_micros =
-      (info->system_time.seconds + info->user_time.seconds);
-  thread_cpu_micros *= kMicrosecondsPerSecond;
-  thread_cpu_micros += info->user_time.microseconds;
-  thread_cpu_micros += info->system_time.microseconds;
-  return thread_cpu_micros;
+  return clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID) /
+         kNanosecondsPerMicrosecond;
 }
 
 int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
