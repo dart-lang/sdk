@@ -16,6 +16,34 @@ main() {
 @reflectiveTest
 class FinalInitializedInParameterAndInitializerTest
     extends PubPackageResolutionTest {
+  test_class_augmentation() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  final int f;
+  A(this.f);
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A(this.f) : f = 0;
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+          70, 1),
+    ]);
+  }
+
   test_class_fieldFormalParameter_initializer() async {
     await assertErrorsInCode(r'''
 class A {

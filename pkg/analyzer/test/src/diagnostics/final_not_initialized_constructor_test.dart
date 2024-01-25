@@ -38,19 +38,56 @@ class A {
     ]);
   }
 
-  test_class_3Plus() async {
+  test_class_3() async {
     await assertErrorsInCode('''
-enum E {
-  v;
+class A {
   final int a;
   final int b;
   final int c;
-  const E();
+  A() {}
 }
 ''', [
       error(
-          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 67, 1),
+          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 57, 1),
     ]);
+  }
+
+  test_class_augmentation_augmentsConstructor2_2of2() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+import augment 'b.dart';
+
+class A {
+  final int f1;
+  final int f2;
+  A();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A() : f1 = 0;
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A() : f2 = 0;
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+
+    await resolveFile2(b);
+    assertNoErrorsInResult();
   }
 
   test_class_augmentation_augmentsConstructor_1of1() async {
@@ -216,6 +253,21 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 52, 1),
+    ]);
+  }
+
+  test_enum_3Plus() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  final int a;
+  final int b;
+  final int c;
+  const E();
+}
+''', [
+      error(
+          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 67, 1),
     ]);
   }
 
