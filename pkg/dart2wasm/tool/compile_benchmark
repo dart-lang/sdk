@@ -8,6 +8,46 @@
 
 set -e
 
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+SDK_DIR="$(cd "${PROG_DIR}/../../.." ; pwd -P)"
+
+# Locate build directory, containing executables, snapshots and platform dill.
+if [[ `uname` == 'Darwin' ]]; then
+  OUT_DIR="$SDK_DIR/xcodebuild"
+else
+  OUT_DIR="$SDK_DIR/out"
+fi
+DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
+BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
+
+BINARYEN="$BIN_DIR/wasm-opt"
+DART_AOT_RUNTIME="$BIN_DIR/dart_precompiled_runtime"
+SDK_ARG="--dart-sdk=$SDK_DIR"
+
+function find_flags {
+  echo -en "$(sed -n "/$1 =/,/end of $1/ p" $SDK_DIR/pkg/dartdev/lib/src/commands/compile.dart  | sed  '1d' | sed '$d' | tr '\n' ' ' | sed 's#\s\+# #g' | sed 's#^\s\+##' | sed 's#\s\+$##')"
+}
+# Use same flags as `dart compile exe`
+BINARYEN_FLAGS=($(find_flags 'binaryenFlags'))
+OPT_FLAGS_L0=($(find_flags 'optimizationLevel0Flags'))
+OPT_FLAGS_L1=($(find_flags 'optimizationLevel1Flags'))
+OPT_FLAGS_L2=($(find_flags 'optimizationLevel2Flags'))
+OPT_FLAGS_L3=($(find_flags 'optimizationLevel3Flags'))
+OPT_FLAGS_L4=($(find_flags 'optimizationLevel4Flags'))
+
 RUN_BINARYEN=1
 COMPILE_BENCHMARK_BASE_NAME=""
 PLATFORM_FILENAME="dart2wasm_platform.dill"
@@ -38,11 +78,43 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
+    -O0 | --optimization-level=0)
+      DART2WASM_ARGS+=(${OPT_FLAGS_L0[@]})
+      RUN_BINARYEN=0
+      shift
+      ;;
+
+    -O1 | --optimization-level=1)
+      DART2WASM_ARGS+=(${OPT_FLAGS_L1[@]})
+      RUN_BINARYEN=1
+      shift
+      ;;
+
+    -O2 | --optimization-level=2)
+      DART2WASM_ARGS+=(${OPT_FLAGS_L2[@]})
+      RUN_BINARYEN=1
+      shift
+      ;;
+
+    -O3 | --optimization-level=3)
+      DART2WASM_ARGS+=(${OPT_FLAGS_L3[@]})
+      RUN_BINARYEN=1
+      shift
+      ;;
+
+    -O4 | --optimization-level=4)
+      DART2WASM_ARGS+=(${OPT_FLAGS_L4[@]})
+      RUN_BINARYEN=1
+      shift
+      ;;
+
+    # TODO: Remove this deprecated flag
     --optimize)
       RUN_BINARYEN=1
       shift
       ;;
 
+    # TODO: Remove this deprecated flag
     --no-optimize)
       RUN_BINARYEN=0
       shift
@@ -83,40 +155,8 @@ if [ -z "$DART_FILE" -o -z "$WASM_FILE" ]; then
 fi
 
 
-function follow_links() {
-  file="$1"
-  while [ -h "$file" ]; do
-    # On Mac OS, readlink -f doesn't work.
-    file="$(readlink "$file")"
-  done
-  echo "$file"
-}
-
-# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
-PROG_NAME="$(follow_links "$BASH_SOURCE")"
-
-# Handle the case where dart-sdk/bin has been symlinked to.
-PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
-SDK_DIR="$(cd "${PROG_DIR}/../../.." ; pwd -P)"
-
-# Use same binaryen flags as `dart compile exe`
-BINARYEN_FLAGS="$(sed -n '/binaryenFlags =/,/end of binaryenFlags/ p' $SDK_DIR/pkg/dartdev/lib/src/commands/compile.dart  | sed  '1d' | sed '$d' | tr '\n' ' ')"
-
-# Locate build directory, containing executables, snapshots and platform dill.
-if [[ `uname` == 'Darwin' ]]; then
-  OUT_DIR="$SDK_DIR/xcodebuild"
-else
-  OUT_DIR="$SDK_DIR/out"
-fi
-DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
-BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
-
-BINARYEN="$BIN_DIR/wasm-opt"
-DART_AOT_RUNTIME="$BIN_DIR/dart_precompiled_runtime"
-DART2WASM_AOT_SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
-
 PLATFORM_ARG="--platform=$BIN_DIR/$PLATFORM_FILENAME"
-SDK_ARG="--dart-sdk=$SDK_DIR"
+DART2WASM_AOT_SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
 
 function measure() {
   set +e
