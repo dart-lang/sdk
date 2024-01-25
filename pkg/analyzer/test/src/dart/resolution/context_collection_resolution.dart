@@ -34,7 +34,6 @@ import 'package:test/test.dart';
 import '../../../generated/test_support.dart';
 import '../../summary/macros_environment.dart';
 import '../analysis/analyzer_state_printer.dart';
-import 'context_collection_resolution_caching.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
 
@@ -120,7 +119,13 @@ abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
-  MemoryByteStore _byteStore = getContextResolutionTestByteStore();
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
+  MemoryByteStore _byteStore = _sharedByteStore;
 
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
