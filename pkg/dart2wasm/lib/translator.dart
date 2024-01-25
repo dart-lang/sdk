@@ -34,7 +34,8 @@ class TranslatorOptions {
   bool inlining = true;
   bool jsCompatibility = false;
   bool nameSection = true;
-  bool omitTypeChecks = false;
+  bool omitImplicitTypeChecks = false;
+  bool omitExplicitTypeChecks = false;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
@@ -450,7 +451,7 @@ class Translator with KernelNodes {
     final namedParameters = List.of(staticType.namedParameters);
     assert(namedParameters.length == method.function.namedParameters.length);
 
-    if (!options.omitTypeChecks) {
+    if (!options.omitImplicitTypeChecks) {
       for (int i = 0; i < positionalParameters.length; i++) {
         final param = method.function.positionalParameters[i];
         if (param.isCovariantByDeclaration || param.isCovariantByClass) {

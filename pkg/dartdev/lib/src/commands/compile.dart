@@ -19,28 +19,6 @@ import '../native_assets.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
-// The unique place where we store dart2wasm binaryen flags.
-//
-// Other uses (e.g. in shell scripts) will grep in this file for the flags. So
-// please keep it as a simple multi-line string of flags.
-final List<String> binaryenFlags = '''
-  --all-features
-  --closed-world
-  --traps-never-happen
-  --type-unfinalizing
-  -O3
-  --type-ssa
-  --gufa
-  -O3
-  --type-merging
-  -O1
-  --type-finalizing
-''' // end of binaryenFlags
-    .split('\n')
-    .map((line) => line.trim())
-    .where((line) => line.isNotEmpty)
-    .toList();
-
 const int compileErrorExitCode = 64;
 
 class Option {
@@ -435,6 +413,57 @@ class CompileWasmCommand extends CompileSubcommandCommand {
   static const String help =
       'Compile Dart to a WebAssembly/WasmGC module (EXPERIMENTAL).';
 
+  // The unique place where we store various flags for dart2wasm & binaryen.
+  //
+  // Other uses (e.g. pkg/dart2wasm/tool/compile_benchmark) will grep in this
+  // file for the flags. So please keep the formatting.
+
+  final List<String> binaryenFlags = _flagList('''
+      --all-features
+      --closed-world
+      --traps-never-happen
+      --type-unfinalizing
+      -O3
+      --type-ssa
+      --gufa
+      -O3
+      --type-merging
+      -O1
+      --type-finalizing
+    '''); // end of binaryenFlags
+
+  final List<String> optimizationLevel0Flags = _flagList('''
+      --no-inlining
+    '''); // end of optimizationLevel0Flags
+
+  final List<String> optimizationLevel1Flags = _flagList('''
+      --inlining
+    '''); // end of optimizationLevel1Flags
+
+  final List<String> optimizationLevel2Flags = _flagList('''
+      --inlining
+      --minify
+    '''); // end of optimizationLevel2Flags
+
+  final List<String> optimizationLevel3Flags = _flagList('''
+      --inlining
+      --minify
+      --omit-implicit-checks
+    '''); // end of optimizationLevel3Flags
+
+  final List<String> optimizationLevel4Flags = _flagList('''
+      --inlining
+      --minify
+      --omit-implicit-checks
+      --omit-explicit-checks
+    '''); // end of optimizationLevel4Flags
+
+  static List<String> _flagList(String lines) => lines
+      .split('\n')
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .toList();
+
   CompileWasmCommand({bool verbose = false})
       : super(commandName, help, verbose, hidden: !verbose) {
     argParser
@@ -450,6 +479,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         help: 'Generate minified output.',
         hide: !verbose,
       )
+      // TODO: Deprecate this flag.
       ..addFlag(
         'optimize',
         defaultsTo: true,
@@ -498,6 +528,16 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         help: 'Import a shared memory buffer.'
             ' The max number of pages must be passed.',
         valueHelp: 'page count',
+        hide: !verbose,
+      )
+      ..addOption(
+        'optimization-level',
+        abbr: 'O',
+        help: 'Controls optimizations that can help reduce code-size and '
+            'improve performance of the generated code.',
+        allowed: ['0', '1', '2', '3', '4'],
+        defaultsTo: null, // TODO: Set this to '1'
+        valueHelp: 'level',
         hide: !verbose,
       )
       ..addOption(
@@ -575,24 +615,42 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       }
     }
 
+    final defaultOptimizationLevel = args['optimize'] ? '1' : '0';
+    final optimizationLevel =
+        int.parse(args['optimization-level'] ?? defaultOptimizationLevel);
+    final runWasmOpt = optimizationLevel >= 1;
+
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
       sdk.dart2wasmSnapshot,
+
       '--libraries-spec=${sdk.librariesJson}',
       '--dart-sdk=$sdkPath',
       if (verbose) '--verbose',
       if (packages != null) '--packages=$packages',
-      if (args['enable-asserts']) '--enable-asserts',
       if (args['print-wasm']) '--print-wasm',
       if (args['print-kernel']) '--print-kernel',
-      if (args['omit-type-checks']) '--omit-type-checks',
-      if (args['name-section']) '--name-section',
-      if (args['minify']) '--minify',
+      if (args['enable-asserts']) '--enable-asserts',
+      for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',
         '--shared-memory-max-pages=$maxPages',
       ],
-      for (final define in defines) '-D$define',
+
+      // First we pass flags based on the optimization level.
+      ...switch (optimizationLevel) {
+        0 => optimizationLevel0Flags,
+        1 => optimizationLevel1Flags,
+        2 => optimizationLevel2Flags,
+        3 => optimizationLevel3Flags,
+        4 => optimizationLevel4Flags,
+        _ => throw 'unreachable',
+      },
+      // Then we pass flags that were opted into explicitly.
+      if (args['omit-type-checks']) '--omit-type-checks',
+      if (args['name-section']) '--name-section',
+      if (args['minify']) '--minify',
+
       path.absolute(sourcePath),
       outputFile,
     ];
@@ -608,7 +666,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       return compileErrorExitCode;
     }
 
-    if (args['optimize']) {
+    if (runWasmOpt) {
       final unoptFile = '$outputFileBasename.unopt.wasm';
       File(outputFile).renameSync(unoptFile);
 

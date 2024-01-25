@@ -287,23 +287,13 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
     usleep(3000 * 1000 /* 3 s*/);
   }
 
-  OSStatus status = noErr;
   // Perform the certificate verification.
-  if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
-    // SecTrustEvaluateWithError available as of OSX 10.14 and iOS 12.
-    // The result is ignored as we get more information from the following call
-    // to SecTrustGetTrustResult which also happens to match the information we
-    // get from calling SecTrustEvaluate.
-    bool res = SecTrustEvaluateWithError(trust.get(), nullptr);
-    USE(res);
-    status = SecTrustGetTrustResult(trust.get(), &trust_result);
-  } else {
-    // SecTrustEvaluate is deprecated as of OSX 10.15 and iOS 13.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated"
-    status = SecTrustEvaluate(trust.get(), &trust_result);
-#pragma clang diagnostic pop
-  }
+  // The result is ignored as we get more information from the following call
+  // to SecTrustGetTrustResult which also happens to match the information we
+  // got from calling SecTrustEvaluate before macOS 10.14.
+  bool res = SecTrustEvaluateWithError(trust.get(), nullptr);
+  USE(res);
+  OSStatus status = SecTrustGetTrustResult(trust.get(), &trust_result);
 
   postReply(reply_port_id,
             status == noErr && (trust_result == kSecTrustResultProceed ||
