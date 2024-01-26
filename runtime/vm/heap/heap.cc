@@ -49,7 +49,6 @@ Heap::Heap(IsolateGroup* isolate_group,
       new_space_(this, max_new_gen_semi_words),
       old_space_(this, max_old_gen_words),
       read_only_(false),
-      last_gc_was_old_space_(false),
       assume_scavenge_will_fail_(false),
       gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
@@ -58,8 +57,6 @@ Heap::Heap(IsolateGroup* isolate_group,
     old_weak_tables_[sel] = new WeakTable();
   }
   stats_.num_ = 0;
-  stats_.state_ = kInitial;
-  stats_.reachability_barrier_ = 0;
 }
 
 Heap::~Heap() {
@@ -140,7 +137,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
     }
     // All GC tasks finished without allocating successfully. Collect both
     // generations.
-    CollectMostGarbage(GCReason::kOldSpace, /*compact=*/false);
+    CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kOldSpace);
     addr = old_space_.TryAllocate(size, is_exec);
     if (addr != 0) {
       return addr;
@@ -157,7 +154,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
       return addr;
     }
     // Before throwing an out-of-memory error try a synchronous GC.
-    CollectAllGarbage(GCReason::kOldSpace, /*compact=*/true);
+    CollectOldSpaceGarbage(thread, GCType::kMarkCompact, GCReason::kOldSpace);
     WaitForSweeperTasksAtSafepoint(thread);
   }
   uword addr = old_space_.TryAllocate(size, is_exec, PageSpace::kForceGrowth);
@@ -232,9 +229,6 @@ void Heap::CheckExternalGC(Thread* thread) {
   }
 
   if (old_space_.ReachedHardThreshold()) {
-    if (last_gc_was_old_space_) {
-      CollectNewSpaceGarbage(thread, GCType::kScavenge, GCReason::kFull);
-    }
     CollectGarbage(thread, GCType::kMarkSweep, GCReason::kExternal);
   } else {
     CheckConcurrentMarking(thread, GCReason::kExternal, 0);
@@ -480,7 +474,6 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
 #if defined(SUPPORT_TIMELINE)
       PrintStatsToTimeline(&tbes, reason);
 #endif
-      last_gc_was_old_space_ = false;
     }
     if (type == GCType::kScavenge && reason == GCReason::kNewSpace) {
       if (old_space_.ReachedHardThreshold()) {
@@ -547,7 +540,6 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
           isolate->catch_entry_moves_cache()->Clear();
         },
         /*at_safepoint=*/true);
-    last_gc_was_old_space_ = true;
     assume_scavenge_will_fail_ = false;
   }
 }
@@ -567,19 +559,8 @@ void Heap::CollectGarbage(Thread* thread, GCType type, GCReason reason) {
   }
 }
 
-void Heap::CollectMostGarbage(GCReason reason, bool compact) {
-  Thread* thread = Thread::Current();
-  CollectNewSpaceGarbage(thread, GCType::kScavenge, reason);
-  CollectOldSpaceGarbage(
-      thread, compact ? GCType::kMarkCompact : GCType::kMarkSweep, reason);
-}
-
 void Heap::CollectAllGarbage(GCReason reason, bool compact) {
   Thread* thread = Thread::Current();
-
-  // New space is evacuated so this GC will collect all dead objects
-  // kept alive by a cross-generational pointer.
-  CollectNewSpaceGarbage(thread, GCType::kEvacuate, reason);
   if (thread->is_marking()) {
     // If incremental marking is happening, we need to finish the GC cycle
     // and perform a follow-up GC to purge any "floating garbage" that may be
@@ -624,19 +605,6 @@ void Heap::CheckConcurrentMarking(Thread* thread,
       return;
     case PageSpace::kDone:
       if (old_space_.ReachedSoftThreshold()) {
-        // New-space objects are roots during old-space GC. This means that even
-        // unreachable new-space objects prevent old-space objects they
-        // reference from being collected during an old-space GC. Normally this
-        // is not an issue because new-space GCs run much more frequently than
-        // old-space GCs. If new-space allocation is low and direct old-space
-        // allocation is high, which can happen in a program that allocates
-        // large objects and little else, old-space can fill up with unreachable
-        // objects until the next new-space GC. This check is the
-        // concurrent-marking equivalent to the new-space GC before
-        // synchronous-marking in CollectMostGarbage.
-        if (last_gc_was_old_space_) {
-          CollectNewSpaceGarbage(thread, GCType::kScavenge, GCReason::kFull);
-        }
         StartConcurrentMarking(thread, reason);
       }
       return;

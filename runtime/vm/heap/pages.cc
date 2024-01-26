@@ -1102,6 +1102,7 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   }
 
   bool can_verify;
+  SweepNew();
   if (compact) {
     Compact(thread);
     set_phase(kDone);
@@ -1142,6 +1143,20 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   if (heap_ != nullptr) {
     heap_->UpdateGlobalMaxUsed();
   }
+}
+
+void PageSpace::SweepNew() {
+  // TODO(rmacnak): Run in parallel with SweepExecutable.
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "SweepNew");
+
+  GCSweeper sweeper;
+  intptr_t free = 0;
+  for (Page* page = heap_->new_space()->head(); page != nullptr;
+       page = page->next()) {
+    page->Release();
+    free += sweeper.SweepNewPage(page);
+  }
+  heap_->new_space()->set_freed_in_words(free >> kWordSizeLog2);
 }
 
 void PageSpace::SweepLarge() {
