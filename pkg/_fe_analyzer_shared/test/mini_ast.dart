@@ -5712,7 +5712,8 @@ class _MiniAstTypeAnalyzer
         names: ['matchedType', 'staticType'], location: node.location);
     var expectInferredType = node.expectInferredType;
     if (expectInferredType != null) {
-      expect(staticType.type, expectInferredType);
+      expect(staticType.type, expectInferredType,
+          reason: 'at ${node.location}');
     }
   }
 
