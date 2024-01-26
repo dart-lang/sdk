@@ -70,19 +70,8 @@ int64_t OS::GetCurrentTimeMicros() {
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
 
-static mach_timebase_info_data_t timebase_info;
-
 int64_t OS::GetCurrentMonotonicTicks() {
-  if (timebase_info.denom == 0) {
-    kern_return_t kr = mach_timebase_info(&timebase_info);
-    ASSERT(KERN_SUCCESS == kr);
-  }
-  ASSERT(timebase_info.denom != 0);
-  // timebase_info converts absolute time tick units into nanoseconds.
-  int64_t result = mach_absolute_time();
-  result *= timebase_info.numer;
-  result /= timebase_info.denom;
-  return result;
+  return clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
 }
 
 int64_t OS::GetCurrentMonotonicFrequency() {
