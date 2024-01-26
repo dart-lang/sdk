@@ -26,7 +26,6 @@ dart.ci_sandbox_builder(
     "dart2wasm-linux-optimized-jsc",
     category = "d2w|j",
     properties = [js_engines, emscripten, no_android],
-    location_filters = paths.to_location_filters(paths.dart2wasm),
     triggered_by = ["dart2wasm-gitiles-trigger-%s"],
 )
 
