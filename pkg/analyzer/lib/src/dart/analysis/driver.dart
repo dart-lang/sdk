@@ -68,7 +68,7 @@ import 'package:meta/meta.dart';
 /// to the file contents most recently read from that file, or fetched from the
 /// content cache (considering all possible file paths, regardless of
 /// whether they're in the set of explicitly analyzed files). Let the
-/// "analysis state" be either "analyzing" or "idle".
+/// "analysis state" be either "working" or "idle".
 ///
 /// (These are theoretical constructs; they may not necessarily reflect data
 /// structures maintained explicitly by the driver).
@@ -79,7 +79,7 @@ import 'package:meta/meta.dart';
 ///      consistent with the current file state.
 ///
 ///    - A call to [addFile] or [changeFile] causes the analysis state to
-///      transition to "analyzing", and schedules the contents of the given
+///      transition to "working", and schedules the contents of the given
 ///      files to be read into the current file state prior to the next time
 ///      the analysis state transitions back to "idle".
 ///
@@ -598,7 +598,7 @@ class AnalysisDriver {
   ///
   /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
   ///
-  /// Causes the analysis state to transition to "analyzing" (if it is not in
+  /// Causes the analysis state to transition to "working" (if it is not in
   /// that state already). Schedules the file contents for [path] to be read
   /// into the current file state prior to the next time the analysis state
   /// transitions to "idle".
@@ -949,7 +949,7 @@ class AnalysisDriver {
   /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
   ///
   /// Invocation of this method causes the analysis state to transition to
-  /// "analyzing" (if it is not in that state already), the driver will produce
+  /// "working" (if it is not in that state already), the driver will produce
   /// the resolution result for it, which is consistent with the current file
   /// state (including new states of the files previously reported using
   /// [changeFile]), prior to the next time the analysis state transitions
@@ -984,7 +984,7 @@ class AnalysisDriver {
   /// the [Future] completes with an [InvalidResult].
   ///
   /// Invocation of this method causes the analysis state to transition to
-  /// "analyzing" (if it is not in that state already), the driver will produce
+  /// "working" (if it is not in that state already), the driver will produce
   /// the resolution result for it, which is consistent with the current file
   /// state (including new states of the files previously reported using
   /// [changeFile]), prior to the next time the analysis state transitions
@@ -1013,7 +1013,7 @@ class AnalysisDriver {
   /// If [sendCachedToStream] is `true`, then the result is also reported into
   /// the `events` stream, just as if it were freshly computed.
   ///
-  /// Otherwise causes the analysis state to transition to "analyzing" (if it is
+  /// Otherwise causes the analysis state to transition to "working" (if it is
   /// not in that state already), the driver will produce the analysis result for
   /// it, which is consistent with the current file state (including new states
   /// of the files previously reported using [changeFile]), prior to the next
@@ -2158,35 +2158,40 @@ class AnalysisDriverScheduler {
   /// Note that the stream supports only one single subscriber.
   ///
   /// Analysis starts when the [AnalysisDriverScheduler] is started and the
-  /// driver is added to it. The analysis state transitions to "analyzing" and
+  /// driver is added to it. The analysis state transitions to "working" and
   /// an analysis result is produced for every added file prior to the next time
   /// the analysis state transitions to "idle".
   ///
-  /// [AnalysisStatus.ANALYZING] is produced every time when there is any
-  /// work to do in any [AnalysisDriver]. This includes analysis of files
-  /// passed to [AnalysisDriver.addFile], and any asynchronous `getXyz()`
-  /// requests.
+  /// [AnalysisStatusWorking] is produced every time when the current status
+  /// is [AnalysisStatusIdle], and there is any work to do in any
+  /// [AnalysisDriver]. This includes analysis of files passed to
+  /// [AnalysisDriver.addFile], any asynchronous `getXyz()` requests, and
+  /// [AnalysisDriver.changeFile].
   ///
-  /// [AnalysisStatus.IDLE] is produced every time when there is no more work
-  /// to do after [AnalysisStatus.ANALYZING].
+  /// [AnalysisStatusIdle] is produced every time when there is no more work
+  /// to do after [AnalysisStatusWorking].
   ///
-  /// [ResolvedUnitResult]s are produced for:
-  /// 1. Files requested using [AnalysisDriver.getResolvedUnit].
-  // TODO(scheglov): Will include more files, all files of a library.
-  /// 2. Files passed to [AnalysisDriver.addFile] which are also in
-  ///    [AnalysisDriver.priorityFiles].
+  /// [ErrorsResult]s are produced for files passed to [AnalysisDriver.addFile]
+  /// which are not in [AnalysisDriver.priorityFiles]. We can avoid analyzing
+  /// a file, if there is already result for it in the [ByteStore].
   ///
-  /// [ErrorsResult]s are produced for:
-  /// 1. Files passed to [AnalysisDriver.addFile] which are not in
-  ///    [AnalysisDriver.priorityFiles].
+  /// [ResolvedUnitResult]s are produced for every analyzed file. Currently
+  /// to analyze a file of a library, the whole library is analyzed, all its
+  /// files - the defining unit, augmentations, and parts.
+  ///
+  /// A file requires analysis if:
+  /// 1. It was requested by [AnalysisDriver.getResolvedUnit] or
+  ///    [AnalysisDriver.getResolvedLibrary], and not cached.
+  /// 2. It was [AnalysisDriver.addFile], and either there is no result for it
+  ///    in the [ByteStore], or it is in [AnalysisDriver.priorityFiles].
   Stream<Object> get events => _events;
 
-  /// Return `true` if we are currently analyzing code.
-  bool get isAnalyzing {
-    return _statusSupport.currentStatus.isAnalyzing;
-  }
-
   bool get isStarted => _started;
+
+  /// Returns `true` if we are currently working on requests.
+  bool get isWorking {
+    return _statusSupport.currentStatus.isWorking;
+  }
 
   /// Return `true` if there is a driver with a file to analyze.
   bool get _hasFilesToAnalyze {
@@ -2210,7 +2215,7 @@ class AnalysisDriverScheduler {
   /// Notifies the scheduler that there might be work to do.
   void notify() {
     _hasWork.notify();
-    _statusSupport.transitionToAnalyzing();
+    _statusSupport.transitionToWorking();
   }
 
   /// Remove the given [driver] from the scheduler, so that it will not be
@@ -2261,10 +2266,10 @@ class AnalysisDriverScheduler {
         driver._applyPendingFileChanges();
       }
 
-      // Transition to analyzing if there are files to analyze.
+      // Transition to working if there are files to analyze.
       if (_hasFilesToAnalyze) {
-        _statusSupport.transitionToAnalyzing();
-        analysisSection ??= _logger.enter('Analyzing');
+        _statusSupport.transitionToWorking();
+        analysisSection ??= _logger.enter('Working');
       }
 
       // Find the driver with the highest priority.

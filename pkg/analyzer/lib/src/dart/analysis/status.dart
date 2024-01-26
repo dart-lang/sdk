@@ -8,32 +8,32 @@ import 'dart:async';
 sealed class AnalysisStatus {
   const AnalysisStatus._();
 
-  bool get isAnalyzing;
+  bool get isIdle => !isWorking;
 
-  bool get isIdle => !isAnalyzing;
-}
-
-final class AnalysisStatusAnalyzing extends AnalysisStatus {
-  /// Will complete when we switch to [AnalysisStatusIdle].
-  final Completer<void> _idleCompleter = Completer<void>();
-
-  AnalysisStatusAnalyzing._() : super._();
-
-  @override
-  bool get isAnalyzing => true;
-
-  @override
-  String toString() => 'analyzing';
+  bool get isWorking;
 }
 
 final class AnalysisStatusIdle extends AnalysisStatus {
   const AnalysisStatusIdle._() : super._();
 
   @override
-  bool get isAnalyzing => false;
+  bool get isWorking => false;
 
   @override
   String toString() => 'idle';
+}
+
+final class AnalysisStatusWorking extends AnalysisStatus {
+  /// Will complete when we switch to [AnalysisStatusIdle].
+  final Completer<void> _idleCompleter = Completer<void>();
+
+  AnalysisStatusWorking._() : super._();
+
+  @override
+  bool get isWorking => true;
+
+  @override
+  String toString() => 'working';
 }
 
 /// [Monitor] can be used to wait for a signal.
@@ -73,20 +73,10 @@ class StatusSupport {
   /// The last status sent to [_eventsController].
   AnalysisStatus get currentStatus => _currentStatus;
 
-  /// If the current status is not [AnalysisStatusAnalyzing] yet, set the
-  /// current status to it, and send it to the stream.
-  void transitionToAnalyzing() {
-    if (_currentStatus is AnalysisStatusIdle) {
-      var newStatus = AnalysisStatusAnalyzing._();
-      _currentStatus = newStatus;
-      _eventsController.add(newStatus);
-    }
-  }
-
   /// If the current status is not [AnalysisStatusIdle] yet, set the
   /// current status to it, and send it to the stream.
   void transitionToIdle() {
-    if (_currentStatus case AnalysisStatusAnalyzing status) {
+    if (_currentStatus case AnalysisStatusWorking status) {
       var newStatus = const AnalysisStatusIdle._();
       _currentStatus = newStatus;
       _eventsController.add(newStatus);
@@ -94,16 +84,26 @@ class StatusSupport {
     }
   }
 
+  /// If the current status is not [AnalysisStatusWorking] yet, set the
+  /// current status to it, and send it to the stream.
+  void transitionToWorking() {
+    if (_currentStatus is AnalysisStatusIdle) {
+      var newStatus = AnalysisStatusWorking._();
+      _currentStatus = newStatus;
+      _eventsController.add(newStatus);
+    }
+  }
+
   /// If the current status is [AnalysisStatusIdle], returns the future that
   /// will complete immediately.
   ///
-  /// If the current status is [AnalysisStatusAnalyzing], returns the future
+  /// If the current status is [AnalysisStatusWorking], returns the future
   /// that will complete when the status changes to [AnalysisStatusIdle].
   Future<void> waitForIdle() {
     switch (_currentStatus) {
       case AnalysisStatusIdle():
         return Future<void>.value();
-      case AnalysisStatusAnalyzing status:
+      case AnalysisStatusWorking status:
         return status._idleCompleter.future;
     }
   }

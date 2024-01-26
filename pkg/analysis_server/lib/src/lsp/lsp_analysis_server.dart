@@ -766,7 +766,7 @@ class LspAnalysisServer extends AnalysisServer {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
-    var isAnalyzing = status.isAnalyzing;
+    var isAnalyzing = status.isWorking;
     if (wasAnalyzing && !isAnalyzing) {
       wasAnalyzing = isAnalyzing;
       // Only send analysis analytics after analysis is complete.

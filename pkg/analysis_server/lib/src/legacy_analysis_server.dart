@@ -612,7 +612,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Return `true` if analysis is complete.
   bool isAnalysisComplete() {
-    return !analysisDriverScheduler.isAnalyzing;
+    return !analysisDriverScheduler.isWorking;
   }
 
   /// Return `true` if the given path is a valid `FilePath`.
@@ -691,7 +691,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
   void sendStatusNotificationNew(analysis.AnalysisStatus status) {
-    var isAnalyzing = status.isAnalyzing;
+    var isAnalyzing = status.isWorking;
     if (isAnalyzing) {
       _onAnalysisStartedController.add(true);
     }

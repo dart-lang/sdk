@@ -258,10 +258,10 @@ class DriverEventsPrinter {
     sink.writeIndentedLine(() {
       sink.write('[status] ');
       switch (event.status) {
-        case AnalysisStatusAnalyzing():
-          sink.write('analyzing');
         case AnalysisStatusIdle():
           sink.write('idle');
+        case AnalysisStatusWorking():
+          sink.write('working');
       }
     });
   }

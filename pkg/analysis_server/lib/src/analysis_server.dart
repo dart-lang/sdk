@@ -685,7 +685,7 @@ abstract class AnalysisServer {
 
   @mustCallSuper
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
-    if (isFirstAnalysisSinceContextsBuilt && !status.isAnalyzing) {
+    if (isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
       isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }
