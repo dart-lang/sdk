@@ -496,7 +496,8 @@ class DeclarationsContext {
   }
 
   void _scheduleKnownFiles() {
-    for (var path in _analysisDriver.knownFiles) {
+    for (var file in _analysisDriver.knownFiles) {
+      var path = file.path;
       if (_knownPathSet.add(path)) {
         if (!path.contains(r'/lib/src/') && !path.contains(r'\lib\src\')) {
           _knownPathList.add(path);

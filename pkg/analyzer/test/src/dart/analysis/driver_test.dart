@@ -1483,12 +1483,13 @@ final v = 2;
     // And `c` is not in the package config, so should not be discovered.
     await driver.discoverAvailableFiles();
 
-    expect(driver.knownFiles2, contains(t1));
-    expect(driver.knownFiles2, contains(a1));
-    expect(driver.knownFiles2, contains(a2));
-    expect(driver.knownFiles2, isNot(contains(a3)));
-    expect(driver.knownFiles2, contains(b1));
-    expect(driver.knownFiles2, isNot(contains(c1)));
+    var knownFiles = driver.knownFiles.resources;
+    expect(knownFiles, contains(t1));
+    expect(knownFiles, contains(a1));
+    expect(knownFiles, contains(a2));
+    expect(knownFiles, isNot(contains(a3)));
+    expect(knownFiles, contains(b1));
+    expect(knownFiles, isNot(contains(c1)));
 
     // We can wait for discovery more than once.
     await driver.discoverAvailableFiles();
@@ -1498,7 +1499,7 @@ final v = 2;
     final driver = driverFor(testFile);
     await driver.discoverAvailableFiles();
     expect(
-      driver.knownFiles2,
+      driver.knownFiles.resources,
       containsAll([
         sdkRoot.getChildAssumingFile('lib/async/async.dart'),
         sdkRoot.getChildAssumingFile('lib/collection/collection.dart'),
@@ -3695,17 +3696,17 @@ import 'b.dart';
     driver.addFile2(a);
     driver.addFile2(c);
     await pumpEventQueue(times: 5000);
-    expect(driver.knownFiles, contains(a.path));
-    expect(driver.knownFiles, contains(b.path));
-    expect(driver.knownFiles, contains(c.path));
+    expect(driver.knownFiles.resources, contains(a));
+    expect(driver.knownFiles.resources, contains(b));
+    expect(driver.knownFiles.resources, contains(c));
 
     // Remove `a` and analyze.
     // Both `a` and `b` are not known now.
     driver.removeFile2(a);
     await pumpEventQueue(times: 5000);
-    expect(driver.knownFiles, isNot(contains(a.path)));
-    expect(driver.knownFiles, isNot(contains(b.path)));
-    expect(driver.knownFiles, contains(c.path));
+    expect(driver.knownFiles.resources, isNot(contains(a)));
+    expect(driver.knownFiles.resources, isNot(contains(b)));
+    expect(driver.knownFiles.resources, contains(c));
   }
 
   test_knownFiles_beforeAnalysis() async {
@@ -3865,15 +3866,15 @@ import 'a.dart';
 ''');
 
     final driver = driverFor(testFile);
-    expect(driver.fsState.knownFiles, isEmpty);
+    expect(driver.knownFiles, isEmpty);
 
     // Don't read `a` when parse.
     driver.parseFileSync2(b);
-    expect(driver.knownFiles2, unorderedEquals([b]));
+    expect(driver.knownFiles.resources, unorderedEquals([b]));
 
     // Still don't read `a.dart` when parse the second time.
     driver.parseFileSync2(b);
-    expect(driver.knownFiles2, unorderedEquals([b]));
+    expect(driver.knownFiles.resources, unorderedEquals([b]));
   }
 
   test_parseFileSync_notAbsolutePath() async {
@@ -3900,7 +3901,7 @@ CompilationUnit
       rightBracket: }
 ''');
 
-    expect(driver.knownFiles2, unorderedEquals([a]));
+    expect(driver.knownFiles.resources, unorderedEquals([a]));
   }
 
   test_partOfName_getErrors_afterLibrary() async {

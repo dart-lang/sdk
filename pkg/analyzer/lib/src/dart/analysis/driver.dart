@@ -366,11 +366,7 @@ class AnalysisDriver {
   /// Return the set of files that are known at this moment. This set does not
   /// always include all added files or all implicitly used file. If a file has
   /// not been processed yet, it might be missing.
-  Set<String> get knownFiles => _fsState.knownFilePaths;
-
-  /// See [knownFiles].
-  Set<File> get knownFiles2 =>
-      _fsState.knownFiles.map((e) => e.resource).toSet();
+  Set<FileState> get knownFiles => _fsState.knownFiles;
 
   /// Return the context in which libraries should be analyzed.
   LibraryContext get libraryContext {
@@ -2603,9 +2599,9 @@ class _FilesDefiningClassMemberNameTask {
   final String name;
   final Completer<List<FileState>> completer = Completer<List<FileState>>();
 
-  final List<FileState> definingFiles = <FileState>[];
-  final Set<String> checkedFiles = <String>{};
-  final List<String> filesToCheck = <String>[];
+  final List<FileState> definingFiles = [];
+  final Set<FileState> checkedFiles = {};
+  final List<FileState> filesToCheck = [];
 
   _FilesDefiningClassMemberNameTask(this.driver, this.name);
 
@@ -2622,7 +2618,7 @@ class _FilesDefiningClassMemberNameTask {
     while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
       // Prepare files to check.
       if (filesToCheck.isEmpty) {
-        Set<String> newFiles = driver.knownFiles.difference(checkedFiles);
+        var newFiles = driver.knownFiles.difference(checkedFiles);
         filesToCheck.addAll(newFiles);
       }
 
@@ -2633,12 +2629,11 @@ class _FilesDefiningClassMemberNameTask {
       }
 
       // Check the next file.
-      String path = filesToCheck.removeLast();
-      FileState file = driver._fsState.getFileForPath(path);
+      var file = filesToCheck.removeLast();
       if (file.definedClassMemberNames.contains(name)) {
         definingFiles.add(file);
       }
-      checkedFiles.add(path);
+      checkedFiles.add(file);
     }
 
     // We're not done yet.

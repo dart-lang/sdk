@@ -892,7 +892,8 @@ class SearchedFiles {
   }
 
   void ownKnown(Search search) {
-    for (var path in search._driver.knownFiles) {
+    for (var file in search._driver.knownFiles) {
+      var path = file.path;
       if (path.endsWith('.dart')) {
         add(path, search);
       }
