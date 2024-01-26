@@ -117,6 +117,19 @@ class C {
             error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
   }
 
+  Future<void> test_withFinalAssignedInDeclaration() async {
+    await resolveTestCode('''
+class C {
+  late final String s = '';
+}
+
+void f(C c) {
+  c.s = '';
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_withFinalAssignedInLibrary() async {
     await resolveTestCode('''
 class C {

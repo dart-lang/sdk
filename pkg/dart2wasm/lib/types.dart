@@ -590,7 +590,7 @@ class Types {
       return info.nonNullableType;
     }
 
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     if (type is InterfaceType) {

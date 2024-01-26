@@ -54,17 +54,21 @@ class ConstructorFieldsVerifier {
       return;
     }
 
+    var element = node.declaredElement!;
     var constructorState = interfaceFields.forConstructor(
       errorReporter: errorReporter,
       node: node,
-      element: node.declaredElement!,
+      element: element,
     );
     if (constructorState == null) {
       return;
     }
 
-    constructorState.updateWithParameters(node);
-    constructorState.updateWithInitializers(node);
+    if (!element.isAugmentation) {
+      constructorState.updateWithParameters(node);
+    }
+
+    constructorState.updateWithInitializers(errorReporter, node);
   }
 
   _Interface _forInterface(AugmentedInstanceElement augmented) {
@@ -192,6 +196,7 @@ class _Constructor {
   }
 
   void updateWithInitializers(
+    ErrorReporter errorReporter,
     ConstructorDeclaration node,
   ) {
     for (var initializer in node.initializers) {

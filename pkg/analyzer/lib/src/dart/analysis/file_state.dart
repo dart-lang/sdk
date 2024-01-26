@@ -1835,6 +1835,15 @@ $code
       augmentationContent = code;
     }
 
+    final macroRelativeUri = uriCache.parse(macroFileName);
+    final macroUri = uriCache.resolveRelative(file.uri, macroRelativeUri);
+
+    // Normally this should not happen.
+    // But it happens, when LSP asks for the file while we linking.
+    if (file._fsState._uriToFile[macroUri] case var existing?) {
+      _disposeMacroFile(existing);
+    }
+
     final contentBytes = utf8.encoder.convert(augmentationContent);
     final hashBytes = md5.convert(contentBytes).bytes;
     final hashStr = hex.encode(hashBytes);
@@ -1843,9 +1852,6 @@ $code
       contentHash: hashStr,
       exists: true,
     );
-
-    final macroRelativeUri = uriCache.parse(macroFileName);
-    final macroUri = uriCache.resolveRelative(file.uri, macroRelativeUri);
 
     final macroFileResolution = file._fsState.getFileForUri(macroUri);
     macroFileResolution as UriResolutionFile;
@@ -1905,10 +1911,7 @@ $code
       _augmentationImports = augmentationImports.withoutLast.toFixedList();
       // Discard the file.
       final macroFile = macroImport.importedFile;
-      macroFile.kind.dispose();
-      file._fsState._pathToFile.remove(macroFile.path);
-      file._fsState._uriToFile.remove(macroFile.uri);
-      file._fsState.knownFiles.remove(macroFile);
+      _disposeMacroFile(macroFile);
     }
     _macroImports = const [];
   }
@@ -1938,6 +1941,13 @@ $code
   @override
   String toString() {
     return 'LibraryFileKind($file)';
+  }
+
+  void _disposeMacroFile(FileState macroFile) {
+    macroFile.kind.dispose();
+    file._fsState._pathToFile.remove(macroFile.path);
+    file._fsState._uriToFile.remove(macroFile.uri);
+    file._fsState.knownFiles.remove(macroFile);
   }
 }
 

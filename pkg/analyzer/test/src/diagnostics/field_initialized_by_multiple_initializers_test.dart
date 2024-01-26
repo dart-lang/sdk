@@ -19,6 +19,122 @@ class FinalInitializedByMultipleInitializersTest
   static const _errorCode =
       CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS;
 
+  test_class_augmentation2_bothInitialize() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+import augment 'b.dart';
+
+class A {
+  final int f;
+  A();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A() : f = 0;
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A() : f = 1;
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(_errorCode, 64, 1),
+    ]);
+  }
+
+  test_class_augmentation_augmentationInitializes() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  final int f;
+  A();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A() : f = 0;
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
+  test_class_augmentation_bothInitialize() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  final int f;
+  A() : f = 0;
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A() : f = 1;
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertErrorsInResult([
+      error(_errorCode, 64, 1),
+    ]);
+  }
+
+  test_class_augmentation_declarationInitializes() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  final int f;
+  A() : f = 0;
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A();
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
   test_class_more_than_two_initializers() async {
     await assertErrorsInCode(r'''
 class A {
@@ -85,8 +201,7 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 1),
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, 50,
-          1),
+      error(_errorCode, 50, 1),
     ]);
   }
 }

@@ -994,7 +994,7 @@ class Translator with KernelNodes {
 
     final Class cls = isGrowable ? growableListClass : fixedLengthListClass;
     final ClassInfo info = classInfo[cls]!;
-    functions.allocateClass(info.classId);
+    functions.recordClassAllocation(info.classId);
     final w.ArrayType arrayType = listArrayType;
 
     b.i32_const(info.classId);

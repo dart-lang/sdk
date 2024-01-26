@@ -1001,7 +1001,7 @@ class Intrinsifier {
     b.local_set(receiverLocal);
 
     ClassInfo newInfo = translator.classInfo[newClass]!;
-    translator.functions.allocateClass(newInfo.classId);
+    translator.functions.recordClassAllocation(newInfo.classId);
     b.i32_const(newInfo.classId);
     b.i32_const(initialIdentityHash);
     b.local_get(receiverLocal);

@@ -265,7 +265,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
     // Instantiate a [_SyncStarIterable] containing the context and resume
     // function for this `sync*` function.
     DartType elementType = functionNode.emittedValueType!;
-    translator.functions.allocateClass(syncStarIterableInfo.classId);
+    translator.functions.recordClassAllocation(syncStarIterableInfo.classId);
     b.i32_const(syncStarIterableInfo.classId);
     b.i32_const(initialIdentityHash);
     types.makeType(this, elementType);

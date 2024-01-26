@@ -99,7 +99,6 @@ class Forwarder {
     final selectors =
         translator.dispatchTable.dynamicGetterSelectors(memberName);
     for (final selector in selectors) {
-      translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
         final Reference target = selector.targets[classID]!;
         final targetMember = target.asMember;
@@ -159,7 +158,6 @@ class Forwarder {
     final selectors =
         translator.dispatchTable.dynamicSetterSelectors(memberName);
     for (final selector in selectors) {
-      translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
         final Reference target = selector.targets[classID]!;
         final Member targetMember = target.asMember;
@@ -214,8 +212,6 @@ class Forwarder {
     final methodSelectors =
         translator.dispatchTable.dynamicMethodSelectors(memberName);
     for (final selector in methodSelectors) {
-      translator.functions.activateSelector(selector);
-
       // Map methods to classes that inherit them, to avoid generating
       // duplicate blocks when a method is inherited by multiple classes.
       final Map<Reference, List<int>> targets = {};
@@ -522,7 +518,6 @@ class Forwarder {
         translator.dispatchTable.dynamicGetterSelectors(memberName);
     final getterValueLocal = function.addLocal(translator.topInfo.nullableType);
     for (final selector in getterSelectors) {
-      translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
         final Reference target = selector.targets[classID]!;
         final targetMember = target.asMember;
@@ -815,7 +810,7 @@ void generateNoSuchMethodCall(
 
   final SelectorInfo noSuchMethodSelector = translator.dispatchTable
       .selectorForTarget(translator.objectNoSuchMethod.reference);
-  translator.functions.activateSelector(noSuchMethodSelector);
+  translator.functions.recordSelectorUse(noSuchMethodSelector);
 
   final noSuchMethodParamInfo = noSuchMethodSelector.paramInfo;
   final noSuchMethodWasmFunctionType = noSuchMethodSelector.signature;

@@ -336,7 +336,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     ClassInfo info = translator.classInfo[isOneByte
         ? translator.oneByteStringClass
         : translator.twoByteStringClass]!;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
     w.RefType type = info.nonNullableType;
     bool lazy = constant.value.length > maxArrayNewFixedLength;
     return createConstant(constant, type, lazy: lazy, (function, b) {
@@ -384,7 +384,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     }
 
     ClassInfo info = translator.classInfo[cls]!;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
     w.RefType type = info.nonNullableType;
 
     // Collect sub-constants for field values.
@@ -461,7 +461,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     }
 
     ClassInfo info = translator.classInfo[translator.immutableListClass]!;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
     w.RefType type = info.nonNullableType;
     return createConstant(constant, type, lazy: lazy, (function, b) {
       w.ArrayType arrayType = translator.listArrayType;
@@ -514,7 +514,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     bool lazy = ensureConstant(dataList)?.isLazy ?? false;
 
     ClassInfo info = translator.classInfo[translator.immutableMapClass]!;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
     w.RefType type = info.nonNullableType;
     return createConstant(constant, type, lazy: lazy, (function, b) {
       w.RefType indexType =
@@ -545,7 +545,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     bool lazy = ensureConstant(dataList)?.isLazy ?? false;
 
     ClassInfo info = translator.classInfo[translator.immutableSetClass]!;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
     w.RefType type = info.nonNullableType;
     return createConstant(constant, type, lazy: lazy, (function, b) {
       w.RefType indexType =
@@ -588,7 +588,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     w.RefType type = w.RefType.def(struct, nullable: false);
     return createConstant(constant, type, (function, b) {
       ClassInfo info = translator.closureInfo;
-      translator.functions.allocateClass(info.classId);
+      translator.functions.recordClassAllocation(info.classId);
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
@@ -661,7 +661,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     return createConstant(constant, type, (function, b) {
       ClassInfo info = translator.closureInfo;
-      translator.functions.allocateClass(info.classId);
+      translator.functions.recordClassAllocation(info.classId);
 
       w.BaseFunction makeTrampoline(
           w.FunctionType signature, w.BaseFunction tearOffFunction) {
@@ -815,7 +815,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitTypeLiteralConstant(TypeLiteralConstant constant) {
     final DartType type = constant.type;
     final ClassInfo info = translator.classInfo[types.classForType(type)]!;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
     if (type is InterfaceType && !types.isSpecializedClass(type.classNode)) {
       return _makeInterfaceType(constant, type, info);
     } else if (type is FutureOrType) {
@@ -898,7 +898,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   @override
   ConstantInfo? visitSymbolConstant(SymbolConstant constant) {
     ClassInfo info = translator.classInfo[translator.symbolClass]!;
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
     w.RefType stringType = translator
         .classInfo[translator.coreTypes.stringClass]!.repr.nonNullableType;
     StringConstant nameConstant = StringConstant(constant.name);
@@ -916,7 +916,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitRecordConstant(RecordConstant constant) {
     final ClassInfo recordClassInfo =
         translator.getRecordClassInfo(constant.recordType);
-    translator.functions.allocateClass(recordClassInfo.classId);
+    translator.functions.recordClassAllocation(recordClassInfo.classId);
 
     final List<Constant> arguments = constant.positional.toList();
     arguments.addAll(constant.named.values);
