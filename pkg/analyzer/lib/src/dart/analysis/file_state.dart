@@ -1838,24 +1838,32 @@ $code
     final macroRelativeUri = uriCache.parse(macroFileName);
     final macroUri = uriCache.resolveRelative(file.uri, macroRelativeUri);
 
-    // Normally this should not happen.
-    // But it happens, when LSP asks for the file while we linking.
-    if (file._fsState._uriToFile[macroUri] case var existing?) {
-      _disposeMacroFile(existing);
-    }
-
     final contentBytes = utf8.encoder.convert(augmentationContent);
     final hashBytes = md5.convert(contentBytes).bytes;
     final hashStr = hex.encode(hashBytes);
-    file._fsState._macroFileContent = StoredFileContent(
+    final fileContent = StoredFileContent(
       content: augmentationContent,
       contentHash: hashStr,
       exists: true,
     );
 
+    // This content will be consumed by the next `refresh()`.
+    // This might happen during `getFileForUri()` below.
+    // Or this happens during the explicit `refresh()`, more below.
+    file._fsState._macroFileContent = fileContent;
+
     final macroFileResolution = file._fsState.getFileForUri(macroUri);
     macroFileResolution as UriResolutionFile;
     final macroFile = macroFileResolution.file;
+
+    // If the file existed, and has different content, force `refresh()`.
+    // This will ensure that the file has the required content.
+    if (macroFile.content != fileContent.content) {
+      macroFile.refresh();
+    }
+
+    // We are done with the file, stop forcing its content.
+    file._fsState._macroFileContent = null;
 
     final import = AugmentationImportWithFile(
       container: this,
@@ -1906,12 +1914,14 @@ $code
   /// macros might potentially generate different code, or no code at all. So,
   /// we discard the existing macro augmentation library, it will be rebuilt
   /// during linking.
-  void disposeMacroAugmentations() {
+  void disposeMacroAugmentations({
+    required bool disposeFiles,
+  }) {
     for (final macroImport in _macroImports) {
       _augmentationImports = augmentationImports.withoutLast.toFixedList();
-      // Discard the file.
-      final macroFile = macroImport.importedFile;
-      _disposeMacroFile(macroFile);
+      if (disposeFiles) {
+        _disposeMacroFile(macroImport.importedFile);
+      }
     }
     _macroImports = const [];
   }
@@ -1929,7 +1939,8 @@ $code
 
   void internal_setLibraryCycle(LibraryCycle? cycle) {
     _libraryCycle = cycle;
-    disposeMacroAugmentations();
+    // Keep the merged augmentation file, as we do for normal files.
+    disposeMacroAugmentations(disposeFiles: false);
   }
 
   @override

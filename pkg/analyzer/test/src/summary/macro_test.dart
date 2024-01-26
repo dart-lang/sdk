@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
@@ -1558,8 +1559,8 @@ augment class A {
 ''');
   }
 
-  test_macroGeneratedFileByName_beforeLinking() async {
-    // See https://dart-review.googlesource.com/c/sdk/+/348202
+  test_macroGeneratedFile_existedBeforeLinking() async {
+    // See https://github.com/dart-lang/sdk/issues/54713
     // Create `FileState` with the same name as would be macro generated.
     // If we don't have implementation to discard it, we will get exception.
     driverFor(testFile).getFileSync('$testPackageLibPath/test.macro.dart');
@@ -9442,7 +9443,7 @@ elementFactory
     package:test/test.dart
 ''');
 
-      // When we discard the library, we remove its macro file.
+      // When we discard the library, we keep its macro file.
       driverFor(testFile).changeFile(testFile.path);
       await driverFor(testFile).applyPendingFileChanges();
       assertDriverStateString(testFile, r'''
@@ -9459,7 +9460,7 @@ files
           libraries: library_0
           apiSignature_0
           users: cycle_1
-      referencingFiles: file_1
+      referencingFiles: file_1 file_3
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -9493,6 +9494,25 @@ files
       unlinkedKey: k02
   /home/test/lib/test.macro.dart
     uri: package:test/test.macro.dart
+    current
+      id: file_3
+      content
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+class MyClass {
+  void foo(prefix0.A _) {}
+}
+---
+      kind: augmentation_3
+        uriFile: file_2
+        libraryImports
+          library_0
+          library_10 dart:core synthetic
+      referencingFiles: file_2
+      unlinkedKey: k03
 libraryCycles
   /home/test/lib/a.dart
     current: cycle_0
@@ -9836,6 +9856,631 @@ elementFactory
     package:test/test.dart
 ''');
     }
+  }
+
+  test_macroGeneratedFile_changeLibrary_noMacroApplication_restore() async {
+    if (!keepLinkingLibraries) return;
+    useEmptyByteStore();
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+class B {}
+''');
+
+    // Note that we have `test.macro.dart` file.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 package:macro/api.dart
+          library_9 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macro/api.dart
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_1
+        libraryImports
+          library_0
+          library_9 dart:core synthetic
+        augmentationImports
+          augmentation_2
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k01
+  /home/test/lib/test.macro.dart
+    uri: package:test/test.macro.dart
+    current
+      id: file_2
+      kind: augmentation_2
+        augmented: library_1
+        library: library_1
+        libraryImports
+          library_9 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /home/test/lib/test.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+elementFactory
+  hasElement
+    package:test/append.dart
+    package:test/test.dart
+''');
+
+    // Change the library content, no macro applications.
+    modifyFile2(testFile, r'''
+class A {}
+''');
+    driverFor(testFile).changeFile2(testFile);
+
+    // Ask the library, will be relinked.
+    await driverFor(testFile).getLibraryByUri('package:test/test.dart');
+
+    // For `test.dart`.
+    // This is the same `FileState` instance.
+    // We refreshed it, it has different `unlinkedKey`, `kind`, `cycle`.
+    // We linked new summary, and put it into the byte store.
+    //
+    // For `test.macro.dart`.
+    // This is the same `FileState` instance.
+    // We did not refresh it, same `unlinkedKey`, `kind`.
+    // Its `kind.library` is empty, `test.dart` does not import it.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 package:macro/api.dart
+          library_9 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macro/api.dart
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_15
+        libraryImports
+          library_9 dart:core synthetic
+        cycle_5
+          dependencies: dart:core
+          libraries: library_15
+          apiSignature_2
+      unlinkedKey: k05
+  /home/test/lib/test.macro.dart
+    uri: package:test/test.macro.dart
+    current
+      id: file_2
+      kind: augmentation_2
+        uriFile: file_1
+        libraryImports
+          library_9 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /home/test/lib/test.dart
+    current: cycle_5
+      key: k06
+    get: []
+    put: [k04, k06]
+elementFactory
+  hasElement
+    package:test/append.dart
+    package:test/test.dart
+''');
+
+    // Use the same library as initially.
+    modifyFile2(testFile, r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+    driverFor(testFile).changeFile2(testFile);
+
+    // Ask the library, will be relinked.
+    await driverFor(testFile).getLibraryByUri('package:test/test.dart');
+
+    // For `test.dart`.
+    // This is the same `FileState` instance.
+    // We refreshed it, it has different `unlinkedKey`, `kind`, `cycle`.
+    // We read the linked summary, see `get`.
+    //
+    // For `test.macro.dart`.
+    // This is the same `FileState` instance.
+    // Its content is the same as it already was, so we did not `refresh()` it.
+    // Its `kind.library` now points at the new `kind` of `test.dart`.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 package:macro/api.dart
+          library_9 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macro/api.dart
+          libraries: library_0
+          apiSignature_0
+          users: cycle_6
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_16
+        libraryImports
+          library_0
+          library_9 dart:core synthetic
+        augmentationImports
+          augmentation_2
+        cycle_6
+          dependencies: cycle_0 dart:core
+          libraries: library_16
+          apiSignature_1
+      unlinkedKey: k01
+  /home/test/lib/test.macro.dart
+    uri: package:test/test.macro.dart
+    current
+      id: file_2
+      kind: augmentation_2
+        augmented: library_16
+        library: library_16
+        libraryImports
+          library_9 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /home/test/lib/test.dart
+    current: cycle_6
+      key: k04
+    get: [k04]
+    put: [k04, k06]
+elementFactory
+  hasElement
+    package:test/append.dart
+    package:test/test.dart
+  hasReader
+    package:test/test.dart
+''');
+  }
+
+  test_macroGeneratedFile_changeLibrary_updateMacroApplication() async {
+    if (!keepLinkingLibraries) return;
+    useEmptyByteStore();
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+class B {}
+''');
+
+    // Note that we have `test.macro.dart` file.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 package:macro/api.dart
+          library_9 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macro/api.dart
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_1
+        libraryImports
+          library_0
+          library_9 dart:core synthetic
+        augmentationImports
+          augmentation_2
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k01
+  /home/test/lib/test.macro.dart
+    uri: package:test/test.macro.dart
+    current
+      id: file_2
+      kind: augmentation_2
+        augmented: library_1
+        library: library_1
+        libraryImports
+          library_9 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /home/test/lib/test.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+elementFactory
+  hasElement
+    package:test/append.dart
+    package:test/test.dart
+''');
+
+    // Change the library content.
+    modifyFile2(testFile, r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B2 {}')
+class A {}
+''');
+    driverFor(testFile).changeFile2(testFile);
+
+    // Ask the library, will be relinked.
+    var result2 =
+        await driverFor(testFile).getLibraryByUri('package:test/test.dart');
+
+    // For `test.dart`.
+    // This is the same `FileState` instance.
+    // We refreshed it, it has different `unlinkedKey`, `kind`, `cycle`.
+    // We linked new summary, and put it into the byte store.
+    //
+    // For `test.macro.dart`.
+    // This is the same `FileState` instance.
+    // We refreshed it, it has different `unlinkedKey`, `kind`.
+    // Its `library` points at `test.dart` library.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 package:macro/api.dart
+          library_9 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macro/api.dart
+          libraries: library_0
+          apiSignature_0
+          users: cycle_5
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_15
+        libraryImports
+          library_0
+          library_9 dart:core synthetic
+        augmentationImports
+          augmentation_16
+        cycle_5
+          dependencies: cycle_0 dart:core
+          libraries: library_15
+          apiSignature_2
+      unlinkedKey: k05
+  /home/test/lib/test.macro.dart
+    uri: package:test/test.macro.dart
+    current
+      id: file_2
+      kind: augmentation_16
+        augmented: library_15
+        library: library_15
+        libraryImports
+          library_9 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k06
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /home/test/lib/test.dart
+    current: cycle_5
+      key: k07
+    get: []
+    put: [k04, k07]
+elementFactory
+  hasElement
+    package:test/append.dart
+    package:test/test.dart
+''');
+
+    // Check that it has `class B2 {}`, as requested.
+    result2 as LibraryElementResultImpl;
+    _assertMacroCode(result2.element as LibraryElementImpl, r'''
+library augment 'test.dart';
+
+class B2 {}
+''');
+  }
+
+  test_macroGeneratedFile_dispose_restore() async {
+    if (!keepLinkingLibraries) return;
+    useEmptyByteStore();
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareInLibrary('class B {}')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+class B {}
+''');
+
+    // Note that we have `test.macro.dart` file.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 package:macro/api.dart
+          library_9 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macro/api.dart
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_1
+        libraryImports
+          library_0
+          library_9 dart:core synthetic
+        augmentationImports
+          augmentation_2
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k01
+  /home/test/lib/test.macro.dart
+    uri: package:test/test.macro.dart
+    current
+      id: file_2
+      kind: augmentation_2
+        augmented: library_1
+        library: library_1
+        libraryImports
+          library_9 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /home/test/lib/test.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+elementFactory
+  hasElement
+    package:test/append.dart
+    package:test/test.dart
+''');
+
+    // "Touch" the library file, so dispose it.
+    // But don't load the library yet.
+    driverFor(testFile).changeFile2(testFile);
+    await pumpEventQueue(times: 5000);
+
+    // For `test.dart`.
+    // No `current` in `libraryCycles`, it was disposed.
+    // It has a new instance `cycle_X`.
+    // Actually the cycle was also disposed, but the printer re-created it.
+    //
+    // For `test.macro.dart`.
+    // It still has the same `current`.
+    // No `current` library cycle.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 package:macro/api.dart
+          library_9 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macro/api.dart
+          libraries: library_0
+          apiSignature_0
+          users: cycle_5
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_15
+        libraryImports
+          library_0
+          library_9 dart:core synthetic
+        cycle_5
+          dependencies: cycle_0 dart:core
+          libraries: library_15
+          apiSignature_1
+      unlinkedKey: k01
+  /home/test/lib/test.macro.dart
+    uri: package:test/test.macro.dart
+    current
+      id: file_2
+      kind: augmentation_2
+        uriFile: file_1
+        libraryImports
+          library_9 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /home/test/lib/test.dart
+    get: []
+    put: [k04]
+elementFactory
+  hasElement
+    package:test/append.dart
+''');
+
+    // Load the library from bytes.
+    await driverFor(testFile).getLibraryByUri('package:test/test.dart');
+
+    // For `test.dart`.
+    // It has `current` in `libraryCycles`.
+    // This is a new instance.
+    // It has `get` with the same id as was put before.
+    //
+    // For `test.macro.dart`.
+    // The same instance of `kind` as before.
+    // We read the `test.dart` linked summary from bytes, and added the
+    // augmentation file `test.macro.dart` from the stored the code. The code
+    // was the same as before, so we did not `refresh()` the file. So, we did
+    // not change the existing `kind`.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 package:macro/api.dart
+          library_9 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macro/api.dart
+          libraries: library_0
+          apiSignature_0
+          users: cycle_5
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_15
+        libraryImports
+          library_0
+          library_9 dart:core synthetic
+        augmentationImports
+          augmentation_2
+        cycle_5
+          dependencies: cycle_0 dart:core
+          libraries: library_15
+          apiSignature_1
+      unlinkedKey: k01
+  /home/test/lib/test.macro.dart
+    uri: package:test/test.macro.dart
+    current
+      id: file_2
+      kind: augmentation_2
+        augmented: library_15
+        library: library_15
+        libraryImports
+          library_9 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /home/test/lib/test.dart
+    current: cycle_5
+      key: k04
+    get: [k04]
+    put: [k04]
+elementFactory
+  hasElement
+    package:test/append.dart
+    package:test/test.dart
+  hasReader
+    package:test/test.dart
+''');
   }
 }
 

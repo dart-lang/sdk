@@ -466,7 +466,7 @@ class LibraryBuilder {
       return;
     }
 
-    kind.disposeMacroAugmentations();
+    kind.disposeMacroAugmentations(disposeFiles: true);
 
     // Remove import for partial macro augmentations.
     element.augmentationImports = element.augmentationImports
