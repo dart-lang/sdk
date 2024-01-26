@@ -101,14 +101,15 @@ class SourceExtensionTypeDeclarationBuilder
   SourceExtensionTypeDeclarationBuilder get origin => _origin ?? this;
 
   // TODO(johnniwinther): Add merged scope for extension type declarations.
-  MergedClassMemberScope get mergedScope => _mergedScope ??= isPatch
+  MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ? origin.mergedScope
       : throw new UnimplementedError(
           "SourceExtensionTypeDeclarationBuilder.mergedScope");
 
   @override
-  ExtensionTypeDeclaration get extensionTypeDeclaration =>
-      isPatch ? origin._extensionTypeDeclaration : _extensionTypeDeclaration;
+  ExtensionTypeDeclaration get extensionTypeDeclaration => isAugmenting
+      ? origin._extensionTypeDeclaration
+      : _extensionTypeDeclaration;
 
   @override
   Annotatable get annotatable => extensionTypeDeclaration;

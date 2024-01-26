@@ -125,7 +125,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final bool isFinal;
 
-  @override
+  /// Set to `true` if this class is declared using the `augment` modifier.
   final bool isAugmentation;
 
   @override
@@ -176,18 +176,19 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isBase = false,
       this.isInterface = false,
       this.isFinal = false,
-      this.isAugmentation = false,
+      bool isAugmentation = false,
       this.isMixinClass = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, indexedContainer,
             isAugmentation: isAugmentation),
+        isAugmentation = isAugmentation,
         super(metadata, modifiers, name, scope, constructors, parent,
             nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
   MergedClassMemberScope get mergedScope => _mergedScope ??=
-      isPatch ? origin.mergedScope : new MergedClassMemberScope(this);
+      isAugmenting ? origin.mergedScope : new MergedClassMemberScope(this);
 
   List<SourceClassBuilder>? get augmentationsForTesting => _augmentations;
 
@@ -334,9 +335,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
 
-    MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
+    MetadataBuilder.buildAnnotations(isAugmenting ? origin.cls : cls, metadata,
         bodyBuilderContext, libraryBuilder, fileUri, libraryBuilder.scope,
-        createFileUriExpression: isPatch);
+        createFileUriExpression: isAugmenting);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
@@ -1174,7 +1175,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member) {
     member.parent = cls;
-    if (!memberBuilder.isPatch &&
+    if (!memberBuilder.isAugmenting &&
         !memberBuilder.isDuplicate &&
         !memberBuilder.isConflictingSetter) {
       if (memberBuilder.isConflictingAugmentationMember) {

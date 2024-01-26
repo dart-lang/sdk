@@ -120,8 +120,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   @override
   bool get isFinal;
 
-  bool get isAugmentation;
-
   bool get declaresConstConstructor;
 
   bool get isMixin;
@@ -236,7 +234,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Builder? declaration = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
-    if (declaration == null && isPatch) {
+    if (declaration == null && isAugmenting) {
       return origin.findStaticBuilder(
           name, charOffset, fileUri, accessingLibrary,
           isSetter: isSetter);
@@ -248,7 +246,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
     Builder? builder = scope.lookupLocalMember(name, setter: setter);
-    if (builder == null && isPatch) {
+    if (builder == null && isAugmenting) {
       builder = origin.scope.lookupLocalMember(name, setter: setter);
     }
     if (required && builder == null) {
@@ -411,7 +409,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments) {
-    Class cls = isPatch ? origin.cls : this.cls;
+    Class cls = isAugmenting ? origin.cls : this.cls;
     if (arguments != null) {
       List<DartType> typeArguments =
           buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
@@ -439,7 +437,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false, bool isSuper = false}) {
     Class? instanceClass = cls;
-    if (isPatch) {
+    if (isAugmenting) {
       assert(identical(instanceClass, origin.cls),
           "Found ${origin.cls} expected $instanceClass");
       if (isSuper) {

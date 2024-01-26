@@ -76,12 +76,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   SourceExtensionBuilder get origin => _origin ?? this;
 
   // TODO(johnniwinther): Add merged scope for extensions.
-  MergedClassMemberScope get mergedScope => _mergedScope ??= isPatch
+  MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ? origin.mergedScope
       : throw new UnimplementedError("SourceExtensionBuilder.mergedScope");
 
   @override
-  Extension get extension => isPatch ? origin._extension : _extension;
+  Extension get extension => isAugmenting ? origin._extension : _extension;
 
   @override
   BodyBuilderContext get bodyBuilderContext =>

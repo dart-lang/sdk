@@ -115,25 +115,6 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
-    # TODO: Remove this deprecated flag
-    --optimize)
-      RUN_BINARYEN=1
-      shift
-      ;;
-
-    # TODO: Remove this deprecated flag
-    --no-optimize)
-      RUN_BINARYEN=0
-      shift
-      ;;
-
-    --omit-checks)
-      # Golem uses --omit-checks but pkg/dart2wasm/bin/dart2wasm accepts
-      # --omit-type-checks.
-      DART2WASM_ARGS+=("--omit-type-checks")
-      shift
-      ;;
-
     --* | -*)
       DART2WASM_ARGS+=("$1")
       shift

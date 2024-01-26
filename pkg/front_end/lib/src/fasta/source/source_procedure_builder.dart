@@ -171,7 +171,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   SourceProcedureBuilder get origin => _origin ?? this;
 
   @override
-  Procedure get procedure => isPatch ? origin.procedure : _procedure;
+  Procedure get procedure => isAugmenting ? origin.procedure : _procedure;
 
   Procedure get actualProcedure => _procedure;
 
@@ -665,7 +665,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   @override
   bool get isAugmented {
-    if (isPatch) {
+    if (isAugmenting) {
       return origin._augmentations!.last != this;
     } else {
       return _augmentations != null;

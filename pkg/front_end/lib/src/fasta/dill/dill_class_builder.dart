@@ -104,9 +104,6 @@ class DillClassBuilder extends ClassBuilderImpl
   bool get isFinal => cls.isFinal;
 
   @override
-  bool get isAugmentation => false;
-
-  @override
   List<NominalVariableBuilder>? get typeVariables {
     List<NominalVariableBuilder>? typeVariables = _typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {

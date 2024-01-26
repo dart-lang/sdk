@@ -447,8 +447,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
   final List<String> optimizationLevel3Flags = _flagList('''
       --inlining
+      --minify
       --omit-implicit-checks
-      --omit-explicit-checks
     '''); // end of optimizationLevel3Flags
 
   final List<String> optimizationLevel4Flags = _flagList('''
@@ -477,20 +477,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         defaultsTo: false,
         negatable: true,
         help: 'Generate minified output.',
-        hide: !verbose,
-      )
-      // TODO: Deprecate this flag.
-      ..addFlag(
-        'optimize',
-        defaultsTo: true,
-        negatable: true,
-        help: 'Optimize wasm output using Binaryen wasm-opt.',
-      )
-      ..addFlag(
-        'omit-type-checks',
-        defaultsTo: false,
-        negatable: false,
-        help: 'Omit runtime type checks, such as covariance and downcasts.',
         hide: !verbose,
       )
       ..addFlag(
@@ -536,7 +522,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         help: 'Controls optimizations that can help reduce code-size and '
             'improve performance of the generated code.',
         allowed: ['0', '1', '2', '3', '4'],
-        defaultsTo: null, // TODO: Set this to '1'
+        defaultsTo: '1',
         valueHelp: 'level',
         hide: !verbose,
       )
@@ -566,12 +552,11 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     final args = argResults!;
     final verbose = this.verbose || args['verbose'];
-    final optimize = args['optimize'];
 
     if (!Sdk.checkArtifactExists(sdk.librariesJson) ||
         !Sdk.checkArtifactExists(sdk.dartAotRuntime) ||
         !Sdk.checkArtifactExists(sdk.dart2wasmSnapshot) ||
-        (optimize && !Sdk.checkArtifactExists(sdk.wasmOpt))) {
+        !Sdk.checkArtifactExists(sdk.wasmOpt)) {
       return 255;
     }
 
@@ -615,9 +600,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       }
     }
 
-    final defaultOptimizationLevel = args['optimize'] ? '1' : '0';
-    final optimizationLevel =
-        int.parse(args['optimization-level'] ?? defaultOptimizationLevel);
+    final optimizationLevel = int.parse(args['optimization-level']);
     final runWasmOpt = optimizationLevel >= 1;
 
     final dart2wasmCommand = [
@@ -647,7 +630,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         _ => throw 'unreachable',
       },
       // Then we pass flags that were opted into explicitly.
-      if (args['omit-type-checks']) '--omit-type-checks',
       if (args['name-section']) '--name-section',
       if (args['minify']) '--minify',
 

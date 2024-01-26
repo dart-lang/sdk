@@ -373,7 +373,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
   @override
   void finish(SourceLibraryBuilder library, ClassBuilder object,
       TypeBuilder dynamicType) {
-    if (isPatch) return;
+    if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
         library.nullableBuilder,
@@ -737,7 +737,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   @override
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
-    if (isPatch) return;
+    if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
         library.nullableBuilder,

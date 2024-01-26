@@ -320,7 +320,8 @@ class SourceLoader extends Loader {
       SourceLibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation = false}) {
+      bool isAugmentation = false,
+      bool isPatch = false}) {
     return new SourceLibraryBuilder(
         importUri: importUri,
         fileUri: fileUri,
@@ -333,7 +334,8 @@ class SourceLoader extends Loader {
         isUnsupported: origin?.library.isUnsupported ??
             importUri.isScheme('dart') &&
                 !target.uriTranslator.isLibrarySupported(importUri.path),
-        isAugmentation: isAugmentation);
+        isAugmentation: isAugmentation,
+        isPatch: isPatch);
   }
 
   /// Return `"true"` if the [dottedName] is a 'dart.library.*' qualifier for a
@@ -365,6 +367,7 @@ class SourceLoader extends Loader {
       Library? referencesFrom,
       bool? referenceIsPartOwner,
       bool isAugmentation,
+      bool isPatch,
       bool addAsRoot) {
     if (fileUri != null &&
         (fileUri.isScheme("dart") ||
@@ -443,7 +446,8 @@ class SourceLoader extends Loader {
         origin: origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner,
-        isAugmentation: isAugmentation);
+        isAugmentation: isAugmentation,
+        isPatch: isPatch);
     if (packageLanguageVersionProblem != null) {
       libraryBuilder.addPostponedProblem(
           packageLanguageVersionProblem, 0, noLength, libraryBuilder.fileUri);
@@ -554,18 +558,20 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation = false}) {
+      bool isAugmentation = false,
+      bool isPatch = false}) {
     LibraryBuilder libraryBuilder = _read(uri,
         fileUri: fileUri,
         origin: origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation,
+        isPatch: isPatch,
         addAsRoot: false);
     libraryBuilder.recordAccess(
         accessor, charOffset, noLength, accessor.fileUri);
     if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
-        !accessor.isPatch) {
+        !accessor.isAugmenting) {
       accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
           noLength, accessor.fileUri);
     }
@@ -581,7 +587,11 @@ class SourceLoader extends Loader {
   LibraryBuilder readAsEntryPoint(Uri uri,
       {Uri? fileUri, Library? referencesFrom}) {
     LibraryBuilder libraryBuilder = _read(uri,
-        fileUri: fileUri, referencesFrom: referencesFrom, addAsRoot: true);
+        fileUri: fileUri,
+        referencesFrom: referencesFrom,
+        addAsRoot: true,
+        isAugmentation: false,
+        isPatch: false);
     // TODO(johnniwinther): Avoid using the first library, if present, as the
     // accessor of [libraryBuilder]. Currently the incremental compiler doesn't
     // handle errors reported without an accessor, since the messages are not
@@ -620,7 +630,8 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation = false,
+      required bool isAugmentation,
+      required bool isPatch,
       required bool addAsRoot}) {
     LibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
@@ -635,6 +646,7 @@ class SourceLoader extends Loader {
             referencesFrom,
             referenceIsPartOwner,
             isAugmentation,
+            isPatch,
             addAsRoot);
       }
       _builders[uri] = libraryBuilder;
@@ -894,7 +906,7 @@ severity: $severity
                 ExperimentalFlag.nonNullable,
                 libraryBuilder.importUri,
                 libraryBuilder.packageLanguageVersion.version),
-            forAugmentationLibrary: libraryBuilder.isAugmentation),
+            forAugmentationLibrary: libraryBuilder.isAugmentationLibrary),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {
@@ -918,7 +930,7 @@ severity: $severity
       /// [importUri] of the [LibraryBuilder] since it might be an augmentation
       /// library which is not directly part of the output.
       Uri importUri = libraryBuilder.library.importUri;
-      if (libraryBuilder.isPatch) {
+      if (libraryBuilder.isAugmenting) {
         // For augmentation libraries we create a "fake" import uri.
         // We cannot use the import uri from the augmented library because
         // several different files would then have the same import uri,
@@ -1347,7 +1359,7 @@ severity: $severity
         if (library.isPart) {
           parts.add(uri);
         } else {
-          if (library.isPatch) {
+          if (library.isAugmenting) {
             augmentationLibraries.add(library);
           } else {
             sourceLibraries.add(library);
@@ -1384,13 +1396,13 @@ severity: $severity
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
-        libraryBuilders.every((library) => !library.isPatch),
+        libraryBuilders.every((library) => !library.isAugmenting),
         "Augmentation library found in libraryBuilders: "
-        "${libraryBuilders.where((library) => library.isPatch)}.");
+        "${libraryBuilders.where((library) => library.isAugmenting)}.");
     assert(
-        sourceLibraries.every((library) => !library.isPatch),
+        sourceLibraries.every((library) => !library.isAugmenting),
         "Augmentation library found in sourceLibraryBuilders: "
-        "${sourceLibraries.where((library) => library.isPatch)}.");
+        "${sourceLibraries.where((library) => library.isAugmenting)}.");
     assert(
         libraryBuilders.every((library) =>
             library.loader != this || sourceLibraries.contains(library)),
@@ -2485,7 +2497,7 @@ severity: $severity
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      if (!libraryBuilder.isPatch &&
+      if (!libraryBuilder.isAugmenting &&
           (libraryBuilder.loader == this ||
               libraryBuilder.importUri.isScheme("dart") ||
               roots.contains(libraryBuilder.importUri))) {
@@ -2566,13 +2578,13 @@ severity: $severity
       Class enumClass,
       Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
-      assert(builder.libraryBuilder.loader == this && !builder.isPatch);
+      assert(builder.libraryBuilder.loader == this && !builder.isAugmenting);
       builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
           enumClass, underscoreEnumClass, _macroClassBuilder?.cls);
     }
     for (SourceExtensionTypeDeclarationBuilder builder
         in sourceExtensionTypeDeclarations) {
-      assert(builder.libraryBuilder.loader == this && !builder.isPatch);
+      assert(builder.libraryBuilder.loader == this && !builder.isAugmenting);
       builder.checkSupertypes(coreTypes, hierarchyBuilder);
     }
     ticker.logMs("Checked supertypes");
@@ -2674,14 +2686,14 @@ severity: $severity
           sourceExtensionTypeDeclarationBuilders) {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
+      if (builder.libraryBuilder.loader == this && !builder.isAugmenting) {
         builder.checkRedirectingFactories(
             typeInferenceEngine.typeSchemaEnvironment);
       }
     }
     for (SourceExtensionTypeDeclarationBuilder builder
         in sourceExtensionTypeDeclarationBuilders) {
-      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
+      if (builder.libraryBuilder.loader == this && !builder.isAugmenting) {
         builder.checkRedirectingFactories(
             typeInferenceEngine.typeSchemaEnvironment);
       }
@@ -2694,7 +2706,7 @@ severity: $severity
   void computeFieldPromotability() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       // TODO(paulberry): what should we do for augmentation libraries?
-      if (library.loader == this && !library.isPatch) {
+      if (library.loader == this && !library.isAugmenting) {
         library.computeFieldPromotability();
       }
     }
@@ -2703,7 +2715,7 @@ severity: $severity
 
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
-      if (!builder.isPatch) {
+      if (!builder.isAugmenting) {
         Class? mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
           builder.checkMixinApplication(hierarchy, coreTypes);
@@ -2725,7 +2737,7 @@ severity: $severity
       for (MapEntry<SourceClassBuilder, TypeBuilder> entry
           in mixinApplications.entries) {
         SourceClassBuilder mixinApplication = entry.key;
-        if (!mixinApplication.isPatch) {
+        if (!mixinApplication.isAugmenting) {
           ClassHierarchyNode node =
               hierarchyBuilder.getNodeFromClassBuilder(mixinApplication);
           ClassHierarchyNode? mixedInNode = node.mixedInNode;

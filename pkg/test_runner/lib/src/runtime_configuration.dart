@@ -148,12 +148,11 @@ abstract class RuntimeConfiguration {
   }
 
   String get jscFileName {
-    final d8Dir = Repository.dir.append('third_party/jsc');
-    final d8Path = d8Dir.append(
-        '${Platform.operatingSystem}/${Architecture.host}/jsc$executableExtension');
-    final d8 = d8Path.toNativePath();
-    TestUtils.ensureExists(d8, _configuration);
-    return d8;
+    final jscPath =
+        Repository.dir.append('third_party/jsc/jsc$executableExtension');
+    final jsc = jscPath.toNativePath();
+    TestUtils.ensureExists(jsc, _configuration);
+    return jsc;
   }
 
   String get jsShellFileName {
