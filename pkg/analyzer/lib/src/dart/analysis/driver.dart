@@ -745,12 +745,12 @@ class AnalysisDriver {
     // If a macro generated file, request its library instead.
     var file = resourceProvider.getFile(path);
     if (file.libraryForMacro case var library?) {
-      _errorsRequestedFiles.putIfAbsent(library.path, () => []);
+      _errorsRequestedFiles.addKey(library.path);
     }
 
     // Schedule analysis.
     var completer = Completer<SomeErrorsResult>();
-    _errorsRequestedFiles.putIfAbsent(path, () => []).add(completer);
+    _errorsRequestedFiles.add(path, completer);
     _scheduler.notify();
     return completer.future;
   }
@@ -815,12 +815,12 @@ class AnalysisDriver {
     // If a macro generated file, request its library instead.
     var file = resourceProvider.getFile(path);
     if (file.libraryForMacro case var library?) {
-      _indexRequestedFiles.putIfAbsent(library.path, () => []);
+      _indexRequestedFiles.addKey(library.path);
     }
 
     // Schedule analysis.
     var completer = Completer<AnalysisDriverUnitIndex?>();
-    _indexRequestedFiles.putIfAbsent(path, () => []).add(completer);
+    _indexRequestedFiles.add(path, completer);
     _scheduler.notify();
     return completer.future;
   }
@@ -974,7 +974,7 @@ class AnalysisDriver {
     }
 
     final completer = Completer<SomeResolvedLibraryResult>();
-    _requestedLibraries.putIfAbsent(path, () => []).add(completer);
+    _requestedLibraries.add(path, completer);
     _scheduler.notify();
     return completer.future;
   }
@@ -1052,12 +1052,12 @@ class AnalysisDriver {
     // If a macro generated file, request its library instead.
     var file = resourceProvider.getFile(path);
     if (file.libraryForMacro case var library?) {
-      _requestedFiles.putIfAbsent(library.path, () => []);
+      _requestedFiles.addKey(library.path);
     }
 
     // Schedule analysis.
     var completer = Completer<SomeResolvedUnitResult>();
-    _requestedFiles.putIfAbsent(path, () => []).add(completer);
+    _requestedFiles.add(path, completer);
     _scheduler.notify();
     return completer.future;
   }
@@ -1096,12 +1096,12 @@ class AnalysisDriver {
     // Once the library is ready, we can return the requested result.
     var file = resourceProvider.getFile(path);
     if (file.libraryForMacro case var library?) {
-      _unitElementRequestedFiles.putIfAbsent(library.path, () => []);
+      _unitElementRequestedFiles.addKey(library.path);
     }
 
     // Schedule analysis.
     var completer = Completer<SomeUnitElementResult>();
-    _unitElementRequestedFiles.putIfAbsent(path, () => []).add(completer);
+    _unitElementRequestedFiles.add(path, completer);
     _scheduler.notify();
     return completer.future;
   }

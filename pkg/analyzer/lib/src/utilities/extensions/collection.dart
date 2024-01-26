@@ -123,9 +123,14 @@ extension MapExtension<K, V> on Map<K, V> {
   }
 }
 
-extension MapOfListValuesExtension<K, V> on Map<K, List<V>> {
+extension MapOfListExtension<K, V> on Map<K, List<V>> {
   void add(K key, V value) {
     (this[key] ??= []).add(value);
+  }
+
+  /// Ensure that [key] is present in the target, maybe with the empty list.
+  void addKey(K key) {
+    this[key] ??= [];
   }
 }
 
