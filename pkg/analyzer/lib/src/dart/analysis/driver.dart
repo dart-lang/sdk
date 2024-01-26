@@ -56,7 +56,6 @@ import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:analyzer/src/workspace/pub.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes analysis results for Dart files.
@@ -760,20 +759,13 @@ class AnalysisDriver {
     return completer.future;
   }
 
-  /// Return a [Future] that completes with the list of added files that
-  /// define a class member with the given [name].
-  Future<List<String>> getFilesDefiningClassMemberName(String name) {
+  /// Completes with files that define a class member with the [name].
+  Future<List<FileState>> getFilesDefiningClassMemberName(String name) async {
     _discoverAvailableFiles();
     var task = _FilesDefiningClassMemberNameTask(this, name);
     _definingClassMemberNameTasks.add(task);
     _scheduler.notify();
-    return task.completer.future;
-  }
-
-  /// See [getFilesDefiningClassMemberName].
-  Future<List<File>> getFilesDefiningClassMemberName2(String name) async {
-    final pathList = await getFilesDefiningClassMemberName(name);
-    return pathList.map((path) => resourceProvider.getFile(path)).toList();
+    return await task.completer.future;
   }
 
   /// Return a [Future] that completes with the list of known files that
@@ -1769,10 +1761,6 @@ class AnalysisDriver {
   String _getResolvedUnitSignature(LibraryFileKind library, FileState file) {
     ApiSignature signature = ApiSignature();
     signature.addUint32List(_saltForResolution);
-    if (file.workspacePackage is PubPackage) {
-      signature.addString(
-          (file.workspacePackage as PubPackage).pubspecContent ?? '');
-    }
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);
     signature.addString(file.uriStr);
@@ -2613,9 +2601,9 @@ class _FilesDefiningClassMemberNameTask {
 
   final AnalysisDriver driver;
   final String name;
-  final Completer<List<String>> completer = Completer<List<String>>();
+  final Completer<List<FileState>> completer = Completer<List<FileState>>();
 
-  final List<String> definingFiles = <String>[];
+  final List<FileState> definingFiles = <FileState>[];
   final Set<String> checkedFiles = <String>{};
   final List<String> filesToCheck = <String>[];
 
@@ -2648,7 +2636,7 @@ class _FilesDefiningClassMemberNameTask {
       String path = filesToCheck.removeLast();
       FileState file = driver._fsState.getFileForPath(path);
       if (file.definedClassMemberNames.contains(name)) {
-        definingFiles.add(path);
+        definingFiles.add(file);
       }
       checkedFiles.add(path);
     }

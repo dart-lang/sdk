@@ -2557,3 +2557,9 @@ extension on List<DirectiveState> {
     }
   }
 }
+
+extension IterableOrFileStateExtension on Iterable<FileState> {
+  List<File> get resources {
+    return map((file) => file.resource).toList();
+  }
+}

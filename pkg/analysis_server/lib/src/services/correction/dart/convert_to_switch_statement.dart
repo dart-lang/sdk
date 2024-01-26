@@ -142,11 +142,19 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
       Expression node) {
     if (node is BinaryExpression) {
       if (node.isNotEqNull) {
-        final expressionCode = utils.getNodeText(node.leftOperand);
         return (
-          expressionCode: expressionCode,
+          expressionCode: utils.getNodeText(node.leftOperand),
           patternCode: '_?',
         );
+      } else if (node.operator.type.isRelationalOperator) {
+        if (node.rightOperand is Literal) {
+          return (
+            expressionCode: utils.getNodeText(node.leftOperand),
+            patternCode: utils.getRangeText(
+              range.startEnd(node.operator, node.rightOperand),
+            ),
+          );
+        }
       }
     } else if (node is IsExpression) {
       final expressionCode = utils.getNodeText(node.expression);

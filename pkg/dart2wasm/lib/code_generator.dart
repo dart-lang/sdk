@@ -3145,7 +3145,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final RecordShape recordShape = RecordShape.fromType(node.receiverType);
     final ClassInfo recordClassInfo =
         translator.getRecordClassInfo(node.receiverType);
-    translator.functions.allocateClass(recordClassInfo.classId);
 
     wrap(node.receiver, translator.topInfo.nonNullableType);
     b.ref_cast(w.RefType(recordClassInfo.struct, nullable: false));
@@ -3160,7 +3159,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final RecordShape recordShape = RecordShape.fromType(node.receiverType);
     final ClassInfo recordClassInfo =
         translator.getRecordClassInfo(node.receiverType);
-    translator.functions.allocateClass(recordClassInfo.classId);
 
     wrap(node.receiver, translator.topInfo.nonNullableType);
     b.ref_cast(w.RefType(recordClassInfo.struct, nullable: false));

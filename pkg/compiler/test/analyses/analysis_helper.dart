@@ -307,7 +307,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
             typeEnvironment.isSubtypeOf(
                 staticType,
                 _getStaticTypeFromExpression(node),
-                ir.SubtypeCheckMode.withNullabilities),
+                ir.SubtypeCheckMode.ignoringNullabilities),
         reportAssertionFailure(
             node,
             "Unexpected static type for $node (${node.runtimeType}): "

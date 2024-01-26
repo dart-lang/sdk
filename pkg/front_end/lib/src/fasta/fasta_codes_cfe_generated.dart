@@ -4110,6 +4110,109 @@ Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropIsAInvalidType = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropIsAInvalidType",
+        problemMessageTemplate:
+            r"""Type argument '#type' needs to be an interop 'ExtensionType'.""",
+        correctionMessageTemplate:
+            r"""Use a valid interop extension type as the type argument instead.""",
+        withArguments: _withArgumentsJsInteropIsAInvalidType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropIsAInvalidType =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropIsAInvalidType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropIsAInvalidType(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropIsAInvalidType,
+      problemMessage:
+          """Type argument '${type}' needs to be an interop 'ExtensionType'.""" +
+              labeler.originMessages,
+      correctionMessage: """Use a valid interop extension type as the type argument instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropIsAObjectLiteralType = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropIsAObjectLiteralType",
+        problemMessageTemplate:
+            r"""Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check.""",
+        correctionMessageTemplate:
+            r"""Use 'JSObject' as the type argument instead.""",
+        withArguments: _withArgumentsJsInteropIsAObjectLiteralType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropIsAObjectLiteralType =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropIsAObjectLiteralType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropIsAObjectLiteralType(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropIsAObjectLiteralType,
+      problemMessage:
+          """Type argument '${type}' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check.""" +
+              labeler.originMessages,
+      correctionMessage: """Use 'JSObject' as the type argument instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, String string, bool isNonNullableByDefault)>
+    templateJsInteropIsAPrimitiveExtensionType = const Template<
+            Message Function(
+                DartType _type, String string, bool isNonNullableByDefault)>(
+        "JsInteropIsAPrimitiveExtensionType",
+        problemMessageTemplate:
+            r"""Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'.""",
+        correctionMessageTemplate:
+            r"""Use the primitive JS type '#string' as the type argument instead.""",
+        withArguments: _withArgumentsJsInteropIsAPrimitiveExtensionType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, String string, bool isNonNullableByDefault)>
+    codeJsInteropIsAPrimitiveExtensionType = const Code<
+        Message Function(
+            DartType _type, String string, bool isNonNullableByDefault)>(
+  "JsInteropIsAPrimitiveExtensionType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropIsAPrimitiveExtensionType(
+    DartType _type, String string, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (string.isEmpty) throw 'No string provided';
+  String type = typeParts.join();
+  return new Message(codeJsInteropIsAPrimitiveExtensionType,
+      problemMessage:
+          """Type argument '${type}' wraps primitive JS type '${string}', which is specially handled using 'typeof'.""" +
+              labeler.originMessages,
+      correctionMessage: """Use the primitive JS type '${string}' as the type argument instead.""",
+      arguments: {'type': _type, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropStaticInteropExternalTypeViolation = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
         "JsInteropStaticInteropExternalTypeViolation",

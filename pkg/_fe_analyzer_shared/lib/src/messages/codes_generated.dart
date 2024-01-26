@@ -8858,6 +8858,16 @@ const MessageCode messageJsInteropInvalidStaticClassMemberName = const MessageCo
         r"""JS interop static class members cannot have '.' in their JS name.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropIsATearoff = messageJsInteropIsATearoff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropIsATearoff = const MessageCode(
+    "JsInteropIsATearoff",
+    problemMessage: r"""'isA' can't be torn off.""",
+    correctionMessage:
+        r"""Use a method that calls 'isA' and tear off that method instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,

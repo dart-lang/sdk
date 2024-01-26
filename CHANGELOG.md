@@ -20,6 +20,10 @@
   opaque Dart value instead of only externalizing the value. Like the JS
   backends, you'll now get a more useful error when trying to use it in another
   Dart runtime.
+- Added `isA` helper to make type checks easier with interop types. See
+  [#54138][] for more details.
+
+[#54138]: https://github.com/dart-lang/sdk/issues/54138
 
 ## 3.3.0
 

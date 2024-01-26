@@ -9,8 +9,8 @@ library compiler.src.kernel.dart2js_target;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
-import 'package:_js_interop_checks/src/transformations/export_creator.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -155,13 +155,17 @@ class Dart2jsTarget extends Target {
     for (var library in libraries) {
       jsInteropChecks.visitLibrary(library);
     }
-    var exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
-        jsInteropReporter, jsInteropChecks.exportChecker);
-    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
+    var sharedInteropTransformer = SharedInteropTransformer(
+        TypeEnvironment(coreTypes, hierarchy),
+        jsInteropReporter,
+        jsInteropChecks.exportChecker,
+        jsInteropChecks.extensionIndex);
+    var jsUtilOptimizer =
+        JsUtilOptimizer(coreTypes, hierarchy, jsInteropChecks.extensionIndex);
     for (var library in libraries) {
-      // Export creator has static checks, so we still visit even if there are
-      // errors.
-      exportCreator.visitLibrary(library);
+      // Shared transformer has static checks, so we still visit even if there
+      // are errors.
+      sharedInteropTransformer.visitLibrary(library);
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.
       if (!jsInteropReporter.hasJsInteropErrors) {
