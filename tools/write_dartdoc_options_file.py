@@ -33,6 +33,23 @@ def Main(argv):
         revision = 'main'
     output = '''dartdoc:
   categoryOrder: ["Core", "VM", "Web", "Web (Legacy)"]
+  categories:
+    'Web':
+      external:
+        - name: 'package:web'
+          url: https://pub.dev/documentation/web/latest/
+          docs: >-
+            This package exposes browser APIs. It's intended to replace
+            dart:html and similar Dart SDK libraries. It will support access to
+            browser APIs from Dart code compiled to either JavaScript or
+            WebAssembly.
+    'Web (Legacy)':
+      external:
+        - name: 'package:js'
+          url: https://pub.dev/documentation/js/latest/
+          docs: >-
+            Use this package when you want to call JavaScript APIs from Dart
+            code, or vice versa.
   linkToSource:
     root: '.'
     uriTemplate: 'https://github.com/dart-lang/sdk/blob/%s/sdk/%%f%%#L%%l%%'
