@@ -34,6 +34,7 @@ DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 BINARYEN="$BIN_DIR/wasm-opt"
+DART="$BIN_DIR/dart"
 DART_AOT_RUNTIME="$BIN_DIR/dart_precompiled_runtime"
 SDK_ARG="--dart-sdk=$SDK_DIR"
 
@@ -49,6 +50,7 @@ OPT_FLAGS_L3=($(find_flags 'optimizationLevel3Flags'))
 OPT_FLAGS_L4=($(find_flags 'optimizationLevel4Flags'))
 
 RUN_BINARYEN=1
+RUN_SRC=0
 COMPILE_BENCHMARK_BASE_NAME=""
 PLATFORM_FILENAME="dart2wasm_platform.dill"
 SNAPSHOT_NAME="dart2wasm"
@@ -63,6 +65,11 @@ while [ $# -gt 0 ]; do
     case "$1" in
       --compile-benchmark=*)
       COMPILE_BENCHMARK_BASE_NAME=$(echo $1 | sed 's/--compile-benchmark=//g')
+      shift
+      ;;
+
+    --src)
+      RUN_SRC=1
       shift
       ;;
 
@@ -157,6 +164,7 @@ fi
 
 PLATFORM_ARG="--platform=$BIN_DIR/$PLATFORM_FILENAME"
 DART2WASM_AOT_SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
+DART2WASM_SRC="$SDK_DIR/pkg/dart2wasm/bin/dart2wasm.dart"
 
 function measure() {
   set +e
@@ -184,9 +192,13 @@ function run_if_binaryen_enabled() {
   fi
 }
 
-dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$SDK_ARG" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+if [ $RUN_SRC -eq 1 ]; then
+  dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$SDK_ARG" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+else
+  dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$SDK_ARG" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+fi
 
-binaryen_command=("$BINARYEN" $BINARYEN_FLAGS "$WASM_FILE" -o "$WASM_FILE")
+binaryen_command=("$BINARYEN" "${BINARYEN_FLAGS[@]}" "$WASM_FILE" -o "$WASM_FILE")
 
 if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
   measure ${dart2wasm_command[@]}
