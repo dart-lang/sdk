@@ -17,24 +17,7 @@ main() {
 
 @reflectiveTest
 class MainHasTooManyRequiredPositionalParametersTest
-    extends PubPackageResolutionTest
-    with MainHasTooManyRequiredPositionalParametersTestCases {
-  test_positionalRequired_3_namedRequired_1() async {
-    await resolveTestCode('''
-void main(args, int a, int b, {required int c}) {}
-''');
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
-      error(
-          CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
-          5,
-          4),
-    ]);
-  }
-}
-
-mixin MainHasTooManyRequiredPositionalParametersTestCases
-    on PubPackageResolutionTest {
+    extends PubPackageResolutionTest {
   test_namedOptional_1() async {
     await resolveTestCode('''
 void main({int a = 0}) {}
@@ -94,6 +77,19 @@ void main(args, int a, int b) {}
 void main(args, int a, int b, {int c = 0}) {}
 ''');
     assertErrorsInResult([
+      error(
+          CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+          5,
+          4),
+    ]);
+  }
+
+  test_positionalRequired_3_namedRequired_1() async {
+    await resolveTestCode('''
+void main(args, int a, int b, {required int c}) {}
+''');
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
       error(
           CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
           5,

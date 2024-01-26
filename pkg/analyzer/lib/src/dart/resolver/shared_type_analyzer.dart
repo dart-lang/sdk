@@ -35,28 +35,11 @@ class SharedTypeAnalyzerErrors
       required DartType scrutineeType,
       required DartType caseExpressionType,
       required bool nullSafetyEnabled}) {
-    if (nullSafetyEnabled) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-          caseExpression,
-          [caseExpressionType, scrutineeType]);
-    } else {
-      // We only report the error if it occurs on the first case; otherwise
-      // separate logic will report that different cases have different types.
-      var switchStatement = scrutinee.parent as SwitchStatement;
-      if (identical(
-          switchStatement.members
-              .whereType<SwitchCase>()
-              .firstOrNull
-              ?.expression,
-          caseExpression)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
-            scrutinee,
-            [scrutineeType, caseExpressionType]);
-      }
-    }
+    _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode
+            .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+        caseExpression,
+        [caseExpressionType, scrutineeType]);
   }
 
   @override

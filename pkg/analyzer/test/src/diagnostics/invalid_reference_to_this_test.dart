@@ -10,39 +10,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidReferenceToThisTest);
-    defineReflectiveTests(InvalidReferenceToThisWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InvalidReferenceToThisTest extends PubPackageResolutionTest
-    with InvalidReferenceToThisTestCases {
-  test_instanceVariableInitializer_inDeclaration_late() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  late var f = this;
-}
-''');
-  }
-
-  test_mixinVariableInitializer_inDeclaration_late() async {
-    await assertNoErrorsInCode(r'''
-mixin A {
-  late var f = this;
-}
-''');
-  }
-
-  test_variableInitializer_late() async {
-    await assertErrorsInCode('''
-late var x = this;
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4),
-    ]);
-  }
-}
-
-mixin InvalidReferenceToThisTestCases on PubPackageResolutionTest {
+class InvalidReferenceToThisTest extends PubPackageResolutionTest {
   test_class_constructor() async {
     await assertErrorsInCode(r'''
 class A {
@@ -129,6 +101,22 @@ class B extends A {
     ]);
   }
 
+  test_instanceVariableInitializer_inDeclaration_late() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  late var f = this;
+}
+''');
+  }
+
+  test_mixinVariableInitializer_inDeclaration_late() async {
+    await assertNoErrorsInCode(r'''
+mixin A {
+  late var f = this;
+}
+''');
+  }
+
   test_topLevelFunction() async {
     await assertErrorsInCode('''
 f() { return this; }
@@ -144,9 +132,12 @@ int x = this;
       error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 8, 4),
     ]);
   }
-}
 
-@reflectiveTest
-class InvalidReferenceToThisWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with InvalidReferenceToThisTestCases, WithoutNullSafetyMixin {}
+  test_variableInitializer_late() async {
+    await assertErrorsInCode('''
+late var x = this;
+''', [
+      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4),
+    ]);
+  }
+}

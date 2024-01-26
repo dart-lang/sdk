@@ -10,15 +10,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryCastTest);
-    defineReflectiveTests(UnnecessaryCastTestWithNullSafety);
   });
 }
 
 @reflectiveTest
-class UnnecessaryCastTest extends PubPackageResolutionTest
-    with UnnecessaryCastTestCases, WithoutNullSafetyMixin {}
-
-mixin UnnecessaryCastTestCases on PubPackageResolutionTest {
+class UnnecessaryCastTest extends PubPackageResolutionTest {
   test_conditionalExpression_changesResultType_left() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -159,68 +155,6 @@ void f<T extends num>(T Function(T) a) {
 ''');
   }
 
-  test_type_dynamic() async {
-    await assertNoErrorsInCode(r'''
-void f() {
-  Object as dynamic;
-}
-''');
-  }
-
-  test_type_supertype() async {
-    await assertNoErrorsInCode(r'''
-void f(int a) {
-  a as Object;
-}
-''');
-  }
-
-  test_type_type() async {
-    await assertErrorsInCode(r'''
-void f(num a) {
-  a as num;
-}
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 18, 8),
-    ]);
-  }
-
-  test_typeParameter_hasBound_same() async {
-    await assertNoErrorsInCode(r'''
-void f<T extends num>(T a) {
-  a as num;
-}
-''');
-  }
-
-  test_typeParameter_hasBound_subtype() async {
-    await assertNoErrorsInCode(r'''
-void f<T extends int>(T a) {
-  a as num;
-}
-''');
-  }
-
-  test_typeParameter_hasBound_unrelated() async {
-    await assertNoErrorsInCode(r'''
-void f<T extends num>(T a) {
-  a as String;
-}
-''');
-  }
-
-  test_typeParameter_noBound() async {
-    await assertNoErrorsInCode(r'''
-void f<T>(T a) {
-  a as num;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class UnnecessaryCastTestWithNullSafety extends PubPackageResolutionTest
-    with UnnecessaryCastTestCases {
   test_interfaceType_star_toNone() async {
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
@@ -257,6 +191,32 @@ void f() {
     ]);
   }
 
+  test_type_dynamic() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  Object as dynamic;
+}
+''');
+  }
+
+  test_type_supertype() async {
+    await assertNoErrorsInCode(r'''
+void f(int a) {
+  a as Object;
+}
+''');
+  }
+
+  test_type_type() async {
+    await assertErrorsInCode(r'''
+void f(num a) {
+  a as num;
+}
+''', [
+      error(WarningCode.UNNECESSARY_CAST, 18, 8),
+    ]);
+  }
+
   test_type_type_asInterfaceTypeTypedef() async {
     await assertErrorsInCode(r'''
 typedef N = num;
@@ -266,5 +226,37 @@ void f(num a) {
 ''', [
       error(WarningCode.UNNECESSARY_CAST, 35, 6),
     ]);
+  }
+
+  test_typeParameter_hasBound_same() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends num>(T a) {
+  a as num;
+}
+''');
+  }
+
+  test_typeParameter_hasBound_subtype() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends int>(T a) {
+  a as num;
+}
+''');
+  }
+
+  test_typeParameter_hasBound_unrelated() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends num>(T a) {
+  a as String;
+}
+''');
+  }
+
+  test_typeParameter_noBound() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(T a) {
+  a as num;
+}
+''');
   }
 }

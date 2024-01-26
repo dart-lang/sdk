@@ -10,27 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolNegationExpressionTest);
-    defineReflectiveTests(NonBoolNegationExpressionWithoutNullSafetyTest);
     defineReflectiveTests(NonBoolNegationExpressionWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
 class NonBoolNegationExpressionTest extends PubPackageResolutionTest {
-  test_null() async {
-    await assertErrorsInCode('''
-void m(Null x) {
-  !x;
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 20, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class NonBoolNegationExpressionWithoutNullSafetyTest
-    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_nonBool() async {
     await assertErrorsInCode(r'''
 f() {
@@ -41,7 +26,7 @@ f() {
     ]);
   }
 
-  test_nonBool_implicitCast_fromLiteral() async {
+  test_nonBool_fromLiteral() async {
     await assertErrorsInCode('''
 f() {
   ![1, 2, 3];
@@ -51,12 +36,24 @@ f() {
     ]);
   }
 
-  test_nonBool_implicitCast_fromSupertype() async {
-    await assertNoErrorsInCode('''
+  test_nonBool_fromSupertype() async {
+    await assertErrorsInCode('''
 f(Object o) {
   !o;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 17, 1),
+    ]);
+  }
+
+  test_null() async {
+    await assertErrorsInCode('''
+void m(Null x) {
+  !x;
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 20, 1),
+    ]);
   }
 }
 
