@@ -66,7 +66,7 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger) async {
   final pkgNativeAssetsBuilderUri = Platform.script.resolve(
       '../../../../third_party/pkg/native/pkgs/native_assets_builder/');
   // Reuse the test projects from `pkg:native`.
-  final testProjectsUri = pkgNativeAssetsBuilderUri.resolve('test/data/');
+  final testProjectsUri = pkgNativeAssetsBuilderUri.resolve('test_data/');
   final manifestUri = testProjectsUri.resolve('manifest.yaml');
   final manifestFile = File.fromUri(manifestUri);
   final manifestString = await manifestFile.readAsString();
@@ -99,7 +99,7 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger) async {
     final targetUri = copyTargetUri.resolveUri(pathToModify);
     final sourceString = await sourceFile.readAsString();
     final modifiedString = sourceString.replaceAll(
-      'path: ../../../',
+      'path: ../../',
       'path: ${pkgNativeAssetsBuilderUri.toFilePath().replaceAll('\\', '/')}',
     );
     await File.fromUri(targetUri).writeAsString(modifiedString);
