@@ -11,7 +11,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidAssignment_ImplicitCallReferenceTest);
     defineReflectiveTests(InvalidAssignmentTest);
-    defineReflectiveTests(InvalidAssignmentWithoutNullSafetyTest);
     defineReflectiveTests(InvalidAssignmentWithStrictCastsTest);
   });
 }
@@ -340,8 +339,47 @@ num Function() f = C();
 }
 
 @reflectiveTest
-class InvalidAssignmentTest extends PubPackageResolutionTest
-    with InvalidAssignmentTestCases {
+class InvalidAssignmentTest extends PubPackageResolutionTest {
+  test_assignment_to_dynamic() async {
+    await assertErrorsInCode(r'''
+f() {
+  var g;
+  g = () => 0;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
+  }
+
+  test_cascadeExpression() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  // ignore:unused_local_variable
+  String v = (a)..isEven;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 64, 1),
+    ]);
+  }
+
+  test_compoundAssignment() async {
+    await assertErrorsInCode(r'''
+class byte {
+  int _value;
+  byte(this._value);
+  byte operator +(int val) { return this; }
+}
+
+void main() {
+  byte b = new byte(52);
+  b += 3;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 19, 6),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 116, 1),
+    ]);
+  }
+
   test_constructorTearoff_inferredTypeArgs() async {
     await assertNoErrorsInCode('''
 class C<T> {
@@ -371,6 +409,78 @@ class C<T> {
 C Function(String) g = C<int>.new;
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 49, 10),
+    ]);
+  }
+
+  test_defaultValue_named() async {
+    await assertErrorsInCode(r'''
+f({String x = 0}) {
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 1),
+    ]);
+  }
+
+  test_defaultValue_named_sameType() async {
+    await assertNoErrorsInCode(r'''
+f({String x = '0'}) {
+}''');
+  }
+
+  test_defaultValue_optional() async {
+    await assertErrorsInCode(r'''
+f([String x = 0]) {
+}''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 1),
+    ]);
+  }
+
+  test_defaultValue_optional_sameType() async {
+    await assertNoErrorsInCode(r'''
+f([String x = '0']) {
+}
+''');
+  }
+
+  test_functionExpressionInvocation() async {
+    await assertErrorsInCode('''
+class C {
+  String x = (() => 5)();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 11),
+    ]);
+  }
+
+  test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
+    await assertNoErrorsInCode('''
+T f<T>(T a) => a;
+U Function<U>(U) foo = f;
+''');
+  }
+
+  test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
+    await assertErrorsInCode('''
+T f<T>(T a) => a;
+U Function<U>(U, int) foo = f;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 1),
+    ]);
+  }
+
+  test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
+    await assertNoErrorsInCode('''
+T f<T>(T a) => a;
+int Function(int) foo = f;
+''');
+  }
+
+  test_functionInstantiation_topLevelVariable_nonGenericContext_nonAssignable() async {
+    await assertErrorsInCode('''
+T f<T>(T a) => a;
+int Function(int, int) foo = f;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 1),
     ]);
   }
 
@@ -446,190 +556,6 @@ void f(int i) {
   n ??= i;
 }
 ''');
-  }
-
-  test_localLevelVariable_never_null() async {
-    await assertErrorsInCode('''
-void f(Never x) {
-  x = null;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 4),
-    ]);
-  }
-
-  void test_recordType_localVariable_initializer() async {
-    await assertErrorsInCode('''
-void f() {
-  (int, int) r = (a: 1, b: 2);
-  print(r);
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 28, 12),
-    ]);
-  }
-
-  void test_recordType_parameter() async {
-    await assertErrorsInCode('''
-void f((int a, int b) r) {
-  r = (a: 1, b: 2);
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 12),
-    ]);
-  }
-
-  void test_recordType_setter() async {
-    await assertErrorsInCode('''
-void f(C c) {
-  c.r = (a: 1, b: 2);
-}
-class C {
-  (int, int)? r;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 12),
-    ]);
-  }
-
-  test_topLevelVariable_never_null() async {
-    await assertErrorsInCode('''
-Never x = throw 0;
-
-void f() {
-  x = null;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 4),
-    ]);
-  }
-
-  test_typeParameter() async {
-    // https://github.com/dart-lang/sdk/issues/14221
-    await assertErrorsInCode(r'''
-class B<T> {
-  T? value;
-  void test(num n) {
-    value = n;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 58, 1),
-    ]);
-  }
-}
-
-mixin InvalidAssignmentTestCases on PubPackageResolutionTest {
-  test_assignment_to_dynamic() async {
-    await assertErrorsInCode(r'''
-f() {
-  var g;
-  g = () => 0;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-    ]);
-  }
-
-  test_cascadeExpression() async {
-    await assertErrorsInCode(r'''
-void f(int a) {
-  // ignore:unused_local_variable
-  String v = (a)..isEven;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 64, 1),
-    ]);
-  }
-
-  test_compoundAssignment() async {
-    await assertErrorsInCode(r'''
-class byte {
-  int _value;
-  byte(this._value);
-  byte operator +(int val) { return this; }
-}
-
-void main() {
-  byte b = new byte(52);
-  b += 3;
-}
-''', [
-      error(WarningCode.UNUSED_FIELD, 19, 6),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 116, 1),
-    ]);
-  }
-
-  test_defaultValue_named() async {
-    await assertErrorsInCode(r'''
-f({String x = 0}) {
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 1),
-    ]);
-  }
-
-  test_defaultValue_named_sameType() async {
-    await assertNoErrorsInCode(r'''
-f({String x = '0'}) {
-}''');
-  }
-
-  test_defaultValue_optional() async {
-    await assertErrorsInCode(r'''
-f([String x = 0]) {
-}''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 1),
-    ]);
-  }
-
-  test_defaultValue_optional_sameType() async {
-    await assertNoErrorsInCode(r'''
-f([String x = '0']) {
-}
-''');
-  }
-
-  test_functionExpressionInvocation() async {
-    await assertErrorsInCode('''
-class C {
-  String x = (() => 5)();
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 11),
-    ]);
-  }
-
-  test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
-    await assertNoErrorsInCode('''
-T f<T>(T a) => a;
-U Function<U>(U) foo = f;
-''');
-  }
-
-  test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
-    await assertErrorsInCode('''
-T f<T>(T a) => a;
-U Function<U>(U, int) foo = f;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 1),
-    ]);
-  }
-
-  test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
-    await assertNoErrorsInCode('''
-T f<T>(T a) => a;
-int Function(int) foo = f;
-''');
-  }
-
-  test_functionInstantiation_topLevelVariable_nonGenericContext_nonAssignable() async {
-    await assertErrorsInCode('''
-T f<T>(T a) => a;
-int Function(int, int) foo = f;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 1),
-    ]);
   }
 
   test_implicitlyImplementFunctionViaCall_1() async {
@@ -734,6 +660,16 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
+  }
+
+  test_localLevelVariable_never_null() async {
+    await assertErrorsInCode('''
+void f(Never x) {
+  x = null;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 4),
     ]);
   }
 
@@ -924,6 +860,40 @@ void f<X extends A, Y extends B>(X x) {
     ]);
   }
 
+  void test_recordType_localVariable_initializer() async {
+    await assertErrorsInCode('''
+void f() {
+  (int, int) r = (a: 1, b: 2);
+  print(r);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 28, 12),
+    ]);
+  }
+
+  void test_recordType_parameter() async {
+    await assertErrorsInCode('''
+void f((int a, int b) r) {
+  r = (a: 1, b: 2);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 12),
+    ]);
+  }
+
+  void test_recordType_setter() async {
+    await assertErrorsInCode('''
+void f(C c) {
+  c.r = (a: 1, b: 2);
+}
+class C {
+  (int, int)? r;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 12),
+    ]);
+  }
+
   test_regressionInIssue18468Fix() async {
     // https://code.google.com/p/dart/issues/detail?id=18628
     await assertErrorsInCode(r'''
@@ -963,11 +933,37 @@ f(var y) {
     ]);
   }
 
+  test_topLevelVariable_never_null() async {
+    await assertErrorsInCode('''
+Never x = throw 0;
+
+void f() {
+  x = null;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 4),
+    ]);
+  }
+
   test_topLevelVariableDeclaration() async {
     await assertErrorsInCode('''
 int x = 'string';
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 8),
+    ]);
+  }
+
+  test_typeParameter() async {
+    // https://github.com/dart-lang/sdk/issues/14221
+    await assertErrorsInCode(r'''
+class B<T> {
+  T? value;
+  void test(num n) {
+    value = n;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 58, 1),
     ]);
   }
 
@@ -1017,71 +1013,6 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 218, 7),
-    ]);
-  }
-}
-
-@reflectiveTest
-class InvalidAssignmentWithoutNullSafetyTest extends PubPackageResolutionTest
-    with InvalidAssignmentTestCases, WithoutNullSafetyMixin {
-  test_functionTearoff_genericInstantiation() async {
-    await assertNoErrorsInCode('''
-int Function() foo(int Function<T extends int>() f) {
-  return f;
-}
-''');
-
-    final node = findNode.simple('f;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: f
-  staticElement: self::@function::foo::@parameter::f
-  staticType: int* Function()*
-  tearOffTypeArgumentTypes
-    int*
-''');
-  }
-
-  test_ifNullAssignment() async {
-    await assertErrorsInCode('''
-void f(int i) {
-  double d;
-  d ??= i;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 36, 1),
-    ]);
-  }
-
-  test_ifNullAssignment_sameType() async {
-    await assertNoErrorsInCode('''
-void f(int i) {
-  int j;
-  j ??= i;
-}
-''');
-  }
-
-  test_ifNullAssignment_superType() async {
-    await assertNoErrorsInCode('''
-void f(int i) {
-  num n;
-  n ??= i;
-}
-''');
-  }
-
-  test_typeParameter() async {
-    // https://github.com/dart-lang/sdk/issues/14221
-    await assertErrorsInCode(r'''
-class B<T> {
-  T value;
-  void test(num n) {
-    value = n;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 1),
     ]);
   }
 }

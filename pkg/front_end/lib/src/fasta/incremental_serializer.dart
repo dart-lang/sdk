@@ -65,7 +65,7 @@ class IncrementalSerializer {
       List<SerializationGroup> newGroups = <SerializationGroup>[];
       for (int i = 0; i < goodViews.length; i++) {
         SubComponentView view = goodViews[i];
-        List<int> data = new Uint8List(view.componentFileSize);
+        Uint8List data = new Uint8List(view.componentFileSize);
         data.setRange(0, data.length, bytes, view.componentStartOffset);
         SerializationGroup newGroup = createGroupFor(view.libraries, data);
         newGroups.add(newGroup);
@@ -155,7 +155,7 @@ class IncrementalSerializer {
         new Map<String, SerializationGroup>();
     for (String package in newPackages.keys) {
       List<Library> libraries = newPackages[package]!;
-      List<int> data = serialize(component, libraries);
+      Uint8List data = serialize(component, libraries);
       sink.add(data);
       SerializationGroup newGroup = createGroupFor(libraries, data);
       newPackageGroups[package] = newGroup;
@@ -279,7 +279,7 @@ class IncrementalSerializer {
   }
 
   /// Create a [SerializationGroup] for the input, setting up [uriToGroup].
-  SerializationGroup createGroupFor(List<Library> libraries, List<int> data) {
+  SerializationGroup createGroupFor(List<Library> libraries, Uint8List data) {
     Set<Uri> libraryUris = new Set<Uri>();
     for (Library lib in libraries) {
       libraryUris.add(lib.fileUri);
@@ -296,7 +296,7 @@ class IncrementalSerializer {
 
   /// Serialize the specified libraries using other needed data from the
   /// component.
-  List<int> serialize(Component component, List<Library> libraries) {
+  Uint8List serialize(Component component, List<Library> libraries) {
     Component singlePackageLibraries = new Component(
         libraries: libraries,
         uriToSource: component.uriToSource,
@@ -329,7 +329,7 @@ class IncrementalSerializer {
 }
 
 class SerializationGroup {
-  final List<int> serializedData;
+  final Uint8List serializedData;
   final Set<Uri> uris;
   Set<SerializationGroup>? dependencies;
   Set<SerializationGroup>? othersDependingOnMe;

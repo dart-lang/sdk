@@ -10,6 +10,5 @@ analyzer:
     unused_local_variable: ignore
     unused_field: ignore
     unused_element: ignore
-    missing_return: ignore
     unnecessary_null_comparison: ignore
     undefined_shown_name: ignore

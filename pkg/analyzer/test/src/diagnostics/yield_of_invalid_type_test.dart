@@ -15,10 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest extends PubPackageResolutionTest
-    with YieldOfInvalidTypeTestCases {}
-
-mixin YieldOfInvalidTypeTestCases on PubPackageResolutionTest {
+class YieldOfInvalidTypeTest extends PubPackageResolutionTest {
   test_none_asyncStar_dynamic_to_streamInt() async {
     await assertNoErrorsInCode('''
 Stream<int> f(dynamic a) async* {

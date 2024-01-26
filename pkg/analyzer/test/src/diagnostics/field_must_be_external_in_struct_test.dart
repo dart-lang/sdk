@@ -14,16 +14,12 @@ main() {
 }
 
 @reflectiveTest
-class FieldMustBeExternalInStructTest extends PubPackageResolutionTest
-    with FieldMustBeExternalInStructTestCases {}
-
-mixin FieldMustBeExternalInStructTestCases on PubPackageResolutionTest {
+class FieldMustBeExternalInStructTest extends PubPackageResolutionTest {
   test_struct() async {
-    final keyword = isNullSafetyEnabled ? 'final ' : '';
     await assertErrorsInCode('''
 import 'dart:ffi';
 
-${keyword}class A extends Struct {
+final class A extends Struct {
   @Int16()
   int a;
 }
@@ -33,11 +29,10 @@ ${keyword}class A extends Struct {
   }
 
   test_union() async {
-    final keyword = isNullSafetyEnabled ? 'final ' : '';
     await assertErrorsInCode('''
 import 'dart:ffi';
 
-${keyword}class A extends Union {
+final class A extends Union {
   @Int16()
   int a;
 }

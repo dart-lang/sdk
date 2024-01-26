@@ -14,14 +14,12 @@ main() {
 }
 
 @reflectiveTest
-class NotNullAwareNullSpreadTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(srawlins): Use null safety in test cases.
-  // https://github.com/dart-lang/sdk/issues/44666
+class NotNullAwareNullSpreadTest extends PubPackageResolutionTest {
   test_listLiteral_notNullAware_nullLiteral() async {
     await assertErrorsInCode('''
 var v = [...null];
 ''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 12, 4),
       error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 12, 4),
     ]);
   }
@@ -31,6 +29,7 @@ var v = [...null];
 Null a = null;
 var v = [...a];
 ''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 27, 1),
       error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 27, 1),
     ]);
   }
@@ -52,6 +51,7 @@ var v = [...?a];
     await assertErrorsInCode('''
 var v = <int, int>{...null};
 ''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 22, 4),
       error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 22, 4),
     ]);
   }
@@ -61,6 +61,7 @@ var v = <int, int>{...null};
 Null a = null;
 var v = <int, int>{...a};
 ''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 37, 1),
       error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 37, 1),
     ]);
   }
@@ -82,6 +83,7 @@ var v = <int, int>{...?a};
     await assertErrorsInCode('''
 var v = <int>{...null};
 ''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 17, 4),
       error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 17, 4),
     ]);
   }
@@ -91,6 +93,7 @@ var v = <int>{...null};
 Null a = null;
 var v = <int>{...a};
 ''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
       error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 32, 1),
     ]);
   }

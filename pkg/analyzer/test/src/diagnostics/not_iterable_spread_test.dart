@@ -10,14 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotIterableSpreadTest);
-    defineReflectiveTests(NotIterableSpreadWithoutNullSafetyTest);
     defineReflectiveTests(NotIterableSpreadWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class NotIterableSpreadTest extends PubPackageResolutionTest
-    with NotIterableSpreadTestCases {
+class NotIterableSpreadTest extends PubPackageResolutionTest {
   test_iterable_interfaceTypeTypedef() async {
     await assertNoErrorsInCode('''
 typedef A = List<int>;
@@ -28,17 +26,6 @@ f(A a) {
 ''');
   }
 
-  test_iterable_typeParameter_bound_listQuestion() async {
-    await assertNoErrorsInCode('''
-void f<T extends List<int>?>(T a) {
-  var v = [...?a];
-  v;
-}
-''');
-  }
-}
-
-mixin NotIterableSpreadTestCases on PubPackageResolutionTest {
   test_iterable_list() async {
     await assertNoErrorsInCode('''
 var a = [0];
@@ -56,6 +43,15 @@ var v = [...?null];
     await assertNoErrorsInCode('''
 void f<T extends List<int>>(T a) {
   var v = [...a];
+  v;
+}
+''');
+  }
+
+  test_iterable_typeParameter_bound_listQuestion() async {
+    await assertNoErrorsInCode('''
+void f<T extends List<int>?>(T a) {
+  var v = [...?a];
   v;
 }
 ''');
@@ -117,10 +113,6 @@ List<int> f() => [...{1: 2, 3: 4}];
     ]);
   }
 }
-
-@reflectiveTest
-class NotIterableSpreadWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, NotIterableSpreadTestCases {}
 
 @reflectiveTest
 class NotIterableSpreadWithStrictCastsTest extends PubPackageResolutionTest

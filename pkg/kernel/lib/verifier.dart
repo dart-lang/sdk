@@ -65,8 +65,10 @@ class Verification {
 
 void verifyComponent(
     Target target, VerificationStage stage, Component component,
-    {bool skipPlatform = false}) {
-  VerifyingVisitor.check(target, stage, component, skipPlatform: skipPlatform);
+    {bool skipPlatform = false,
+    bool Function(Library library)? librarySkipFilter}) {
+  VerifyingVisitor.check(target, stage, component,
+      skipPlatform: skipPlatform, librarySkipFilter: librarySkipFilter);
 }
 
 class VerificationErrorListener {
@@ -125,6 +127,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   final List<TreeNode> treeNodeStack = <TreeNode>[];
   final bool skipPlatform;
+  final bool Function(Library library)? librarySkipFilter;
 
   final Set<Class> classes = new Set<Class>();
   final Set<Typedef> typedefs = new Set<Typedef>();
@@ -172,13 +175,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       currentExtensionTypeDeclaration;
 
   static void check(Target target, VerificationStage stage, Component component,
-      {required bool skipPlatform}) {
-    component.accept(
-        new VerifyingVisitor(target, stage, skipPlatform: skipPlatform));
+      {required bool skipPlatform,
+      bool Function(Library library)? librarySkipFilter}) {
+    component.accept(new VerifyingVisitor(target, stage,
+        skipPlatform: skipPlatform, librarySkipFilter: librarySkipFilter));
   }
 
   VerifyingVisitor(this.target, this.stage,
       {required this.skipPlatform,
+      required this.librarySkipFilter,
       VerificationErrorListener this.listener =
           const VerificationErrorListener()});
 
@@ -366,28 +371,62 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             problem(typedef_, "Typedef '$typedef_' declared more than once.");
           }
         }
-        library.members.forEach(declareMember);
+
+        for (Field field in library.fields) {
+          declareMember(field);
+        }
+        for (Procedure procedure in library.procedures) {
+          declareMember(procedure);
+        }
         for (Class class_ in library.classes) {
-          class_.members.forEach(declareMember);
+          for (Field field in class_.fields) {
+            declareMember(field);
+          }
+          for (Procedure procedure in class_.procedures) {
+            declareMember(procedure);
+          }
+          for (Constructor constructor in class_.constructors) {
+            declareMember(constructor);
+          }
         }
         for (ExtensionTypeDeclaration extensionTypeDeclaration
             in library.extensionTypeDeclarations) {
-          extensionTypeDeclaration.procedures.forEach(declareMember);
+          for (Procedure procedure in extensionTypeDeclaration.procedures) {
+            declareMember(procedure);
+          }
         }
       }
       visitChildren(component);
     } finally {
       for (Library library in component.libraries) {
-        library.members.forEach(undeclareMember);
-        for (Class class_ in library.classes) {
-          class_.members.forEach(undeclareMember);
+        for (Field field in library.fields) {
+          undeclareMember(field);
         }
+        for (Procedure procedure in library.procedures) {
+          undeclareMember(procedure);
+        }
+        for (Class class_ in library.classes) {
+          for (Field field in class_.fields) {
+            undeclareMember(field);
+          }
+          for (Procedure procedure in class_.procedures) {
+            undeclareMember(procedure);
+          }
+          for (Constructor constructor in class_.constructors) {
+            undeclareMember(constructor);
+          }
+        }
+
         for (ExtensionTypeDeclaration extensionTypeDeclaration
             in library.extensionTypeDeclarations) {
-          extensionTypeDeclaration.procedures.forEach(undeclareMember);
+          for (Procedure procedure in extensionTypeDeclaration.procedures) {
+            undeclareMember(procedure);
+          }
         }
       }
-      variableStack.forEach(undeclareVariable);
+      for (VariableDeclaration variable in variableStack) {
+        undeclareVariable(variable);
+      }
     }
   }
 
@@ -398,6 +437,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         // 'dart:test' is used in the unit tests and isn't an actual part of the
         // platform so we don't skip its verification.
         node.importUri.path != 'test') {
+      return;
+    }
+    if (librarySkipFilter != null && librarySkipFilter!(node)) {
       return;
     }
 
@@ -1198,7 +1240,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           " field values, but the class declares"
           " $fieldCount fields.");
     }
-    constant.fieldValues.forEach((Reference fieldRef, Constant value) {
+    for (Reference fieldRef in constant.fieldValues.keys) {
       Field field = fieldRef.asField;
       if (!superClasses.contains(field.enclosingClass)) {
         problem(
@@ -1206,7 +1248,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             "Constant $constant refers to field $field,"
             " which does not belong to the right class.");
       }
-    });
+    }
   }
 
   @override

@@ -50,11 +50,11 @@ vars = {
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution
   # in a cipd package used to run Dart scripts in the build and test
   # infrastructure, which is automatically built on the release commits.
-  "sdk_tag": "version:3.2.4",
+  "sdk_tag": "version:3.3.0-279.1.beta",
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "dadc1781676fe5562917ac6bc5ea38da64abe76a",
+  "co19_rev": "af2ac968c0ca28b7dd94325b00a3acf569f6e858",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "3e58fcfa1464ffd7b1d3edc7a8d5d9a24a321c5d",
@@ -141,9 +141,8 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "8b1f24a8475a0116757172cd9acca4acbf87d973", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "49d48d7749f48e2d9930ffda5bcde1e692ffce31",
+  "dartdoc_rev": "0f13e6443595f8e49cc86d783210d78c93d3502e",
   "ecosystem_rev": "1e2785d6900b4d709a31f4c669381dc340cad605",
-  "ffi_rev": "c926657618443ff4821411ede01684096b503f84",
   "file_rev": "cd3a9324f6483f313ba1f0f3ff382ea4e6982ef2",
   "fixnum_rev": "3e08c0d7ce1a0cd832a17391444898ec610b5f89",
   "flute_rev": "f42b09f77132210499ec8ed819a60c260af03db6",
@@ -162,7 +161,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "ca9f059d2334bb2657683e0a7f5949817cb4b0e6",
   "mockito_rev": "e15e00086ed20f3175b2e677fd11611be4fa8e8e",
-  "native_rev": "153811080d9020c894c4e820053d2ede79ca9012",
+  "native_rev": "40382efb9c7a0774d2764238fc1802e562e9cbaf",
   "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
   "path_rev": "57a049cff2e2be7a302dd9683b2b194c6d06e2d4",
   "pool_rev": "4c490001446d8ba3d361b99d8befd6a4f61abc7a",
@@ -385,8 +384,6 @@ deps = {
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
   Var("dart_root") + "/third_party/pkg/ecosystem":
       Var("dart_git") + "ecosystem.git" + "@" + Var("ecosystem_rev"),
-  Var("dart_root") + "/third_party/pkg/ffi":
-      Var("dart_git") + "ffi.git" + "@" + Var("ffi_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_rev"),
   Var("dart_root") + "/third_party/flute": {

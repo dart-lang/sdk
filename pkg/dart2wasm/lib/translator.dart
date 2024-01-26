@@ -79,7 +79,11 @@ class Translator with KernelNodes {
   /// [ClassInfo]s of classes in the compilation unit and the [ClassInfo] for
   /// the `#Top` struct. Indexed by class ID. Entries added by
   /// [ClassInfoCollector].
-  final List<ClassInfo> classes = [];
+  late final List<ClassInfo> classes;
+
+  /// Same as [classes] but ordered such that info for class at index I
+  /// will have class info for superlass/superinterface at <I).
+  late final List<ClassInfo> classesSupersFirst;
 
   /// [ClassInfo]s of classes in the compilation unit. Entries added by
   /// [ClassInfoCollector].

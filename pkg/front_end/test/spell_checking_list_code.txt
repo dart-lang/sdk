@@ -33,6 +33,7 @@ actively
 adequate
 adi
 adjusts
+adler
 adoption
 advantage
 affecting
@@ -235,6 +236,8 @@ charcode
 chars
 checkout
 checkpoint
+checksum
+checksums
 chloestefantsova
 chunks
 ci
