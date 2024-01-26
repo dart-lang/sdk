@@ -1318,7 +1318,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<Uri> seenUris = new Set<Uri>();
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
       if (builder.isPart) continue;
-      if (builder.isPatch) continue;
+      if (builder.isAugmenting) continue;
       if (rebuildBodies!.contains(builder)) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedResult.reusedLibraries.add(builder);
@@ -1951,6 +1951,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
         isAugmentation: false,
+        isPatch: false,
       );
       libraryBuilder.scope.forEachLocalMember((name, member) {
         debugLibrary.scope.addLocalMember(name, member, setter: false);
@@ -2008,6 +2009,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
         isAugmentation: false,
+        isPatch: false,
       );
 
       HybridFileSystem hfs =
@@ -2243,7 +2245,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (builder.isPart) continue;
       // TODO(jensj/ahe): This line can probably go away once
       // https://dart-review.googlesource.com/47442 lands.
-      if (builder.isPatch) continue;
+      if (builder.isAugmenting) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedLibraries.add(builder);
     }

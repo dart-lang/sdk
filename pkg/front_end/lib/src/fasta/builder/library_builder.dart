@@ -432,6 +432,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   StringBuffer printOn(StringBuffer buffer) {
-    return buffer..write(isPart || isPatch ? fileUri : importUri);
+    return buffer..write(isPart || isAugmenting ? fileUri : importUri);
   }
 }

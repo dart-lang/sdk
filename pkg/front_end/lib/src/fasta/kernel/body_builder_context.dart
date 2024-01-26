@@ -363,7 +363,7 @@ class _SourceClassBodyBuilderDeclarationContext
   }
 
   @override
-  bool get isAugmentationClass => _sourceClassBuilder.isPatch;
+  bool get isAugmentationClass => _sourceClassBuilder.isAugmenting;
 
   @override
   Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {

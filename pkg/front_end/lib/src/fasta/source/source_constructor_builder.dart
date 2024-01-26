@@ -798,7 +798,7 @@ class DeclaredSourceConstructorBuilder
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
-    if (isConst && isPatch) {
+    if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
@@ -813,7 +813,7 @@ class DeclaredSourceConstructorBuilder
           beginInitializers, delayedActionPerformers, classBuilder.scope);
     }
     addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
-    if (isConst && isPatch) {
+    if (isConst && isAugmenting) {
       _finishAugmentation();
     }
     beginInitializers = null;
@@ -852,7 +852,8 @@ class DeclaredSourceConstructorBuilder
     returnType.registerInferredType(type);
   }
 
-  Constructor get constructor => isPatch ? origin.constructor : _constructor;
+  Constructor get constructor =>
+      isAugmenting ? origin.constructor : _constructor;
 
   @override
   Member get member => constructor;
@@ -868,7 +869,7 @@ class DeclaredSourceConstructorBuilder
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
-    if (!isPatch) return 0;
+    if (!isAugmenting) return 0;
     _finishAugmentation();
     return 1;
   }
@@ -915,7 +916,7 @@ class DeclaredSourceConstructorBuilder
 
   @override
   void registerInitializedField(SourceFieldBuilder fieldBuilder) {
-    if (isPatch) {
+    if (isAugmenting) {
       origin.registerInitializedField(fieldBuilder);
     } else {
       (_initializedFields ??= {}).add(fieldBuilder);
@@ -966,7 +967,7 @@ class DeclaredSourceConstructorBuilder
 
   @override
   bool get isAugmented {
-    if (isPatch) {
+    if (isAugmenting) {
       return origin._augmentations!.last != this;
     } else {
       return _augmentations != null;

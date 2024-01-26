@@ -53,7 +53,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment);
 
-  /// Returns `true` if this member is an augmentation.
+  /// Returns `true` if this member is declared using the `augment` modifier.
   bool get isAugmentation;
 
   /// Returns `true` if this member is a member declared in an augmentation

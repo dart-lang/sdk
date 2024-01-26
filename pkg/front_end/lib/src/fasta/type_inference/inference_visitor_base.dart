@@ -4471,7 +4471,7 @@ class _WhyNotPromotedVisitor
     if (fieldNonPromotabilityInfo == null) {
       // `fieldPromotabilityInfo` is computed for all library builders except
       // those for augmentation libraries.
-      assert(this.inferrer.libraryBuilder.isPatch);
+      assert(this.inferrer.libraryBuilder.isAugmenting);
       // "why not promoted" functionality is not supported in augmentation
       // libraries, so just don't generate a context message.
       return const [];

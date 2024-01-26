@@ -260,7 +260,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   int augmentationIndex = 0;
 
   /// `true` if this is an augmentation library.
-  final bool isAugmentation;
+  final bool isAugmentationLibrary;
+
+  /// `true` if this is a patch library.
+  final bool isPatchLibrary;
 
   /// Map from synthesized names used for omitted types to their corresponding
   /// synthesized type declarations.
@@ -291,6 +294,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool? referenceIsPartOwner,
       required bool isUnsupported,
       required bool isAugmentation,
+      required bool isPatch,
       Map<String, Builder>? omittedTypes})
       : this.fromScopes(
             loader,
@@ -306,6 +310,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             referencesFrom,
             isUnsupported: isUnsupported,
             isAugmentation: isAugmentation,
+            isPatch: isPatch,
             omittedTypes: omittedTypes);
 
   SourceLibraryBuilder.fromScopes(
@@ -321,7 +326,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this._nameOrigin,
       this.referencesFrom,
       {required this.isUnsupported,
-      required this.isAugmentation,
+      required bool isAugmentation,
+      required bool isPatch,
       Map<String, Builder>? omittedTypes})
       : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
@@ -330,6 +336,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         _immediateOrigin = origin,
         _omittedTypeDeclarationBuilders = omittedTypes,
         libraryName = new LibraryName(library.reference),
+        isAugmentationLibrary = isAugmentation,
+        isPatchLibrary = isPatch,
         super(
             fileUri,
             _libraryTypeParameterScopeBuilder.toScope(importScope,
@@ -349,7 +357,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   MergedLibraryScope get mergedScope {
     return _mergedScope ??=
-        isPatch ? origin.mergedScope : new MergedLibraryScope(this);
+        isAugmenting ? origin.mergedScope : new MergedLibraryScope(this);
   }
 
   TypeParameterScopeBuilder get libraryTypeParameterScopeBuilderForTesting =>
@@ -443,6 +451,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool? referenceIsPartOwner,
       required bool isUnsupported,
       required bool isAugmentation,
+      required bool isPatch,
       Map<String, Builder>? omittedTypes})
       : this.internal(
             loader,
@@ -465,6 +474,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             referenceIsPartOwner: referenceIsPartOwner,
             isUnsupported: isUnsupported,
             isAugmentation: isAugmentation,
+            isPatch: isPatch,
             omittedTypes: omittedTypes);
 
   @override
@@ -484,7 +494,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       _augmentationLibraries;
 
   void addAugmentationLibrary(SourceLibraryBuilder augmentationLibrary) {
-    assert(augmentationLibrary.isPatch,
+    assert(augmentationLibrary.isAugmenting,
         "Library ${augmentationLibrary} must be a augmentation library.");
     assert(!augmentationLibrary.isPart,
         "Augmentation library ${augmentationLibrary} cannot be a part .");
@@ -499,7 +509,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// unparsed library on the [loader].
   SourceLibraryBuilder createAugmentationLibrary(String source,
       {Map<String, OmittedTypeBuilder>? omittedTypes}) {
-    assert(!isPatch,
+    assert(!isAugmenting,
         "createAugmentationLibrary is only supported on the origin library.");
     int index = _augmentationLibraries?.length ?? 0;
     Uri uri =
@@ -531,6 +541,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         target: library,
         origin: this,
         isAugmentation: true,
+        isPatch: false,
         referencesFrom: referencesFrom,
         omittedTypes: omittedTypeDeclarationBuilders);
     addAugmentationLibrary(augmentationLibrary);
@@ -860,7 +871,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
     parts.add(loader.read(resolvedUri, charOffset,
-        origin: isPatch ? origin : null, fileUri: newFileUri, accessor: this));
+        origin: isAugmenting ? origin : null,
+        fileUri: newFileUri,
+        accessor: this,
+        isPatch: isAugmenting));
     partOffsets.add(charOffset);
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
@@ -1613,10 +1627,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder member = iterator.current;
-      if (member is SourceClassBuilder && !member.isPatch) {
+      if (member is SourceClassBuilder && !member.isAugmenting) {
         sourceClasses.add(member);
       } else if (member is SourceExtensionTypeDeclarationBuilder &&
-          !member.isPatch) {
+          !member.isAugmenting) {
         sourceExtensionTypes.add(member);
       }
     }
@@ -1766,7 +1780,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  bool get isPatch => _immediateOrigin != null;
+  bool get isAugmenting => _immediateOrigin != null;
 
   @override
   SourceLibraryBuilder get origin {
@@ -3613,7 +3627,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     MetadataBuilder.buildAnnotations(
         library, metadata, bodyBuilderContext, this, fileUri, scope,
-        createFileUriExpression: isPatch);
+        createFileUriExpression: isAugmenting);
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
@@ -3648,7 +3662,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void _buildOutlineNodes(Builder declaration, LibraryBuilder coreLibrary) {
     if (declaration is SourceClassBuilder) {
       Class cls = declaration.build(coreLibrary);
-      if (!declaration.isPatch) {
+      if (!declaration.isAugmenting) {
         if (declaration.isDuplicate ||
             declaration.isConflictingAugmentationMember) {
           cls.name = '${cls.name}'
@@ -3660,7 +3674,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     } else if (declaration is SourceExtensionBuilder) {
       Extension extension = declaration.build(coreLibrary,
           addMembersToLibrary: !declaration.isDuplicate);
-      if (!declaration.isPatch && !declaration.isDuplicate) {
+      if (!declaration.isAugmenting && !declaration.isDuplicate) {
         if (declaration.isUnnamedExtension) {
           declaration.extensionName.name =
               '_extension#${library.extensions.length}';
@@ -3670,7 +3684,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
       ExtensionTypeDeclaration extensionTypeDeclaration = declaration
           .build(coreLibrary, addMembersToLibrary: !declaration.isDuplicate);
-      if (!declaration.isPatch && !declaration.isDuplicate) {
+      if (!declaration.isAugmenting && !declaration.isDuplicate) {
         library.addExtensionTypeDeclaration(extensionTypeDeclaration);
       }
     } else if (declaration is SourceMemberBuilder) {
@@ -3685,7 +3699,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       });
     } else if (declaration is SourceTypeAliasBuilder) {
       Typedef typedef = declaration.build();
-      if (!declaration.isPatch && !declaration.isDuplicate) {
+      if (!declaration.isAugmenting && !declaration.isDuplicate) {
         library.addTypedef(typedef);
       }
     } else if (declaration is PrefixBuilder) {
@@ -3703,7 +3717,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void _addMemberToLibrary(SourceMemberBuilder declaration, Member member) {
     if (member is Field) {
       member.isStatic = true;
-      if (!declaration.isPatch && !declaration.isDuplicate) {
+      if (!declaration.isAugmenting && !declaration.isDuplicate) {
         if (declaration.isConflictingAugmentationMember) {
           member.name = new Name(
               '${member.name.text}'
@@ -3714,7 +3728,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     } else if (member is Procedure) {
       member.isStatic = true;
-      if (!declaration.isPatch &&
+      if (!declaration.isAugmenting &&
           !declaration.isDuplicate &&
           !declaration.isConflictingSetter) {
         if (declaration.isConflictingAugmentationMember) {
@@ -4607,7 +4621,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// If this is an augmentation library, apply its augmentations to [origin].
   void applyAugmentations() {
-    if (!isPatch) return;
+    if (!isAugmenting) return;
 
     if (languageVersion != origin.languageVersion) {
       List<LocatedMessage> context = <LocatedMessage>[];
@@ -5492,7 +5506,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceTypeAliasBuilder declaration = iterator.current;
       declaration.buildTypedefTearOffs(this, (Procedure procedure) {
         procedure.isStatic = true;
-        if (!declaration.isPatch && !declaration.isDuplicate) {
+        if (!declaration.isAugmenting && !declaration.isDuplicate) {
           library.addProcedure(procedure);
         }
       });

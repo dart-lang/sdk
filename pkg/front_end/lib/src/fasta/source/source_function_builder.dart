@@ -532,7 +532,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   bool checkAugmentation(SourceFunctionBuilder augmentation) {
-    if (!isExternal && !augmentation.libraryBuilder.isAugmentation) {
+    if (!isExternal && !augmentation.libraryBuilder.isAugmentationLibrary) {
       augmentation.libraryBuilder.addProblem(messagePatchNonExternal,
           augmentation.charOffset, noLength, augmentation.fileUri!, context: [
         messagePatchDeclarationOrigin.withLocation(

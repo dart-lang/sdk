@@ -832,8 +832,8 @@ class KernelTarget extends TargetImplementation {
   void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      if (builder.cls != objectClass && !builder.isPatch) {
-        if (builder.isPatch ||
+      if (builder.cls != objectClass && !builder.isAugmenting) {
+        if (builder.isAugmenting ||
             builder.isMixinDeclaration ||
             builder.isExtension) {
           continue;
@@ -1290,7 +1290,7 @@ class KernelTarget extends TargetImplementation {
   /// Ensure constructors of [classBuilder] have the correct initializers and
   /// other requirements.
   void finishConstructors(SourceClassBuilder classBuilder) {
-    if (classBuilder.isPatch) return;
+    if (classBuilder.isAugmenting) return;
     Class cls = classBuilder.cls;
 
     Constructor? superTarget;
@@ -1668,7 +1668,8 @@ class KernelTarget extends TargetImplementation {
         library.loader.read(patch, -1,
             fileUri: patch,
             origin: library,
-            accessor: library) as SourceLibraryBuilder;
+            accessor: library,
+            isPatch: true) as SourceLibraryBuilder;
       }
     }
   }

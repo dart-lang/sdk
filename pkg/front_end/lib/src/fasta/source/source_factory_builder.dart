@@ -145,7 +145,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   ProcedureKind get kind => ProcedureKind.Factory;
 
-  Procedure get _procedure => isPatch ? origin._procedure : _procedureInternal;
+  Procedure get _procedure =>
+      isAugmenting ? origin._procedure : _procedureInternal;
 
   @override
   FunctionNode get function => _procedureInternal.function;
@@ -244,7 +245,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     _procedureInternal.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget(target, typeArguments);
     bodyInternal?.parent = function;
-    if (isPatch) {
+    if (isAugmenting) {
       actualOrigin!.setRedirectingFactoryBody(target, typeArguments);
     }
   }
@@ -271,7 +272,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
-    if (!isPatch) return 0;
+    if (!isAugmenting) return 0;
     _finishAugmentation();
     return 1;
   }
@@ -323,7 +324,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   bool get isAugmented {
-    if (isPatch) {
+    if (isAugmenting) {
       return origin._augmentations!.last != this;
     } else {
       return _augmentations != null;
@@ -395,7 +396,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _procedureInternal.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget(target, typeArguments);
     bodyInternal?.parent = function;
-    if (isPatch) {
+    if (isAugmenting) {
       if (function.typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
@@ -468,7 +469,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
-    if (isConst && isPatch) {
+    if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
@@ -560,7 +561,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           target!, _procedure,
           libraryBuilder: libraryBuilder, identicalSignatures: false));
     }
-    if (isConst && isPatch) {
+    if (isConst && isAugmenting) {
       _finishAugmentation();
     }
     _hasBuiltOutlines = true;
@@ -752,7 +753,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     // of their own.
     FunctionType factoryType =
         function.computeThisFunctionType(libraryBuilder.nonNullable);
-    if (isPatch) {
+    if (isAugmenting) {
       // The redirection target type uses the origin type parameters so we must
       // substitute augmentation type parameters before checking subtyping.
       if (function.typeParameters.isNotEmpty) {

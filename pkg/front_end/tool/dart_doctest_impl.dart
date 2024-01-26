@@ -835,6 +835,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       nameOrigin: libraryBuilder,
       isUnsupported: false,
       isAugmentation: false,
+      isPatch: false,
     );
 
     if (libraryBuilder is DillLibraryBuilder) {
@@ -919,7 +920,8 @@ class DocTestSourceLoader extends SourceLoader {
       SourceLibraryBuilder? origin,
       kernel.Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation = false}) {
+      bool isAugmentation = false,
+      bool isPatch = false}) {
     if (importUri == DocTestIncrementalCompiler.dartDocTestUri) {
       HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
@@ -937,6 +939,7 @@ class DocTestSourceLoader extends SourceLoader {
         origin: origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner,
-        isAugmentation: isAugmentation);
+        isAugmentation: isAugmentation,
+        isPatch: isPatch);
   }
 }
