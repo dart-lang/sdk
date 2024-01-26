@@ -87,6 +87,9 @@ class BulkFixProcessor {
     CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
       DataDriven.new,
     ],
+    CompileTimeErrorCode.CAST_TO_NON_TYPE: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       DataDriven.new,
     ],
