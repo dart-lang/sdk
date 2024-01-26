@@ -25,11 +25,14 @@ import '../fasta_codes.dart'
 
 List<LocatedMessage> verifyComponent(
     Target target, VerificationStage stage, Component component,
-    {bool skipPlatform = false}) {
+    {bool skipPlatform = false,
+    bool Function(Library library)? librarySkipFilter}) {
   FastaVerificationErrorListener listener =
       new FastaVerificationErrorListener();
   VerifyingVisitor verifier = new VerifyingVisitor(target, stage,
-      skipPlatform: skipPlatform, listener: listener);
+      skipPlatform: skipPlatform,
+      librarySkipFilter: librarySkipFilter,
+      listener: listener);
   component.accept(verifier);
   return listener.errors;
 }
