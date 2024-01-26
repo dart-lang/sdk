@@ -323,7 +323,48 @@ class Fclass extends Bclass with  Eclass {}
 replacement
   right: 5
 suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
   class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
+  extension
+    kind: keyword
+  external
+    kind: keyword
+  final
+    kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -397,11 +438,33 @@ suggestions
     kind: keyword
   base
     kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   interface
     kind: keyword
+  late
+    kind: keyword
   mixin
+    kind: keyword
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
