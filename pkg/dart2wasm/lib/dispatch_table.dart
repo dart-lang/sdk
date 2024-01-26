@@ -331,10 +331,11 @@ class DispatchTable {
     // Collect class/selector combinations
 
     // Maps class IDs to selector IDs of the class
-    List<Set<int>> selectorsInClass = [];
+    List<Set<int>> selectorsInClass =
+        List.filled(translator.classes.length, const {});
 
     // Add classes to selector targets for their members
-    for (ClassInfo info in translator.classes) {
+    for (ClassInfo info in translator.classesSupersFirst) {
       Set<int> selectorIds = {};
       final ClassInfo? superInfo = info.superInfo;
 
@@ -393,7 +394,7 @@ class DispatchTable {
         }
       }
 
-      selectorsInClass.add(selectorIds);
+      selectorsInClass[info.classId] = selectorIds;
     }
 
     // Build lists of class IDs and count targets
