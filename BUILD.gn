@@ -195,7 +195,7 @@ if (is_fuchsia) {
         "pkg/expect",
         "pkg/meta",
         "tests/ffi",
-        "third_party/pkg/ffi",
+        "third_party/pkg/native/pkgs/ffi",
         "third_party/pkg/path",
       ]
       resources = []

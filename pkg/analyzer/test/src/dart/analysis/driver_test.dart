@@ -158,7 +158,7 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
 
     // The files are analyzed in the order of adding.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -194,7 +194,7 @@ import 'a.dart';
 
     // Initial analysis, `b` does not use `a`, so there is a hint.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -230,7 +230,7 @@ void f() {
 
     // `b` was analyzed, no more hints.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -264,7 +264,7 @@ class A {}
     // We produced both the library, and its macro-generated file.
     configuration.withMacroFileContent();
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -311,7 +311,7 @@ class B {}
     // 1. The priority file is produced first.
     // 2. Each analyzed file produces `ResolvedUnitResult`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -352,7 +352,7 @@ class B {}
 
     // No files to analyze.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [status] idle
 ''');
   }
@@ -373,7 +373,7 @@ class B {}
     // We remove `a` before analysis started.
     // So, only `b` was analyzed.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -397,7 +397,7 @@ class B {}
     // Get the result, not cached.
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -439,7 +439,7 @@ class B {}
 
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -458,7 +458,7 @@ class B {}
     driver.changeFile2(a);
     collector.getResolvedUnit('A2', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -477,7 +477,7 @@ class B {}
     driver.addFile2(b);
     collector.getResolvedUnit('A3', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -504,7 +504,7 @@ class B {}
     driver.removeFile2(b);
     collector.getResolvedUnit('A4', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -531,7 +531,7 @@ class B {}
     // Get the result for `a`, new.
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -550,7 +550,7 @@ class B {}
     driver.priorityFiles2 = [a, b];
     collector.getResolvedUnit('A2', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getResolvedUnit A2
   ResolvedUnitResult #0
 [status] idle
@@ -559,7 +559,7 @@ class B {}
     // Get the result for `b`, new.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -585,7 +585,7 @@ class B {}
     driver.priorityFiles2 = [b];
     collector.getResolvedUnit('A3', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -609,7 +609,7 @@ class B {}
     // Always analyzed the first time.
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -626,7 +626,7 @@ class B {}
     // Analyzed again, because `a` is not priority.
     collector.getResolvedUnit('A2', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -658,7 +658,7 @@ part of 'a.dart';
     // Ask the result for `a`, should cache for both `a` and `b`.
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -719,7 +719,7 @@ part of 'a.dart';
     // Ask the result for `b`, should cache for both `a` and `b`.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -780,7 +780,7 @@ part of 'a.dart';
     // Ask the result for `b`, should cache for both `a` and `b`.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -848,7 +848,7 @@ var B = 0;
     // We have a result only for "a".
     // The type of `B` is `int`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -874,7 +874,7 @@ var B = 1.2;
     // The change causes "a" to be reanalyzed.
     // The type of `B` is now `double`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -924,7 +924,7 @@ class A {}
     // We produced both the library, and its macro-generated file.
     configuration.withMacroFileContent();
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -968,7 +968,7 @@ import 'a.dart';
 
     // `b` is analyzed, has an error.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -989,7 +989,7 @@ import 'a.dart';
     // Both `a` and `b` are analyzed.
     // No errors anymore.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1020,7 +1020,7 @@ import 'a.dart';
 
     // Initial analysis, no errors.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1037,7 +1037,7 @@ import 'a.dart';
     modifyFile2(a, ';');
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1058,7 +1058,7 @@ import 'a.dart';
     modifyFile2(a, '');
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] getErrorsFromBytes
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1075,7 +1075,7 @@ import 'a.dart';
     modifyFile2(a, ';');
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] getErrorsFromBytes
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1101,7 +1101,7 @@ import 'a.dart';
 
     // Nothing interesting, "a" is analyzed.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1119,7 +1119,7 @@ import 'a.dart';
 
     // Nothing depends on "b", so nothing is analyzed.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [status] idle
 ''');
   }
@@ -1313,7 +1313,7 @@ final B1 = A1;
 
     // We have results for both "a" and "b".
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1349,7 +1349,7 @@ final A2 = B1;
     // We again get results for both "a" and "b".
     // The results are consistent.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1398,7 +1398,7 @@ final A2 = B1;
 
     // Initial analysis.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1422,7 +1422,7 @@ final A2 = B1;
     // We get a new result.
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1483,12 +1483,13 @@ final v = 2;
     // And `c` is not in the package config, so should not be discovered.
     await driver.discoverAvailableFiles();
 
-    expect(driver.knownFiles2, contains(t1));
-    expect(driver.knownFiles2, contains(a1));
-    expect(driver.knownFiles2, contains(a2));
-    expect(driver.knownFiles2, isNot(contains(a3)));
-    expect(driver.knownFiles2, contains(b1));
-    expect(driver.knownFiles2, isNot(contains(c1)));
+    var knownFiles = driver.knownFiles.resources;
+    expect(knownFiles, contains(t1));
+    expect(knownFiles, contains(a1));
+    expect(knownFiles, contains(a2));
+    expect(knownFiles, isNot(contains(a3)));
+    expect(knownFiles, contains(b1));
+    expect(knownFiles, isNot(contains(c1)));
 
     // We can wait for discovery more than once.
     await driver.discoverAvailableFiles();
@@ -1498,7 +1499,7 @@ final v = 2;
     final driver = driverFor(testFile);
     await driver.discoverAvailableFiles();
     expect(
-      driver.knownFiles2,
+      driver.knownFiles.resources,
       containsAll([
         sdkRoot.getChildAssumingFile('lib/async/async.dart'),
         sdkRoot.getChildAssumingFile('lib/collection/collection.dart'),
@@ -1525,7 +1526,7 @@ final v = 2;
     driver.priorityFiles2 = [a];
     collector.getResolvedUnit('A2', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1558,7 +1559,7 @@ var v = 0
 
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1582,7 +1583,7 @@ var v = 0
     // The result is produced from bytes.
     collector.getErrors('A2', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] getErrorsFromBytes
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1614,7 +1615,7 @@ part of 'a.dart';
 
     // Note, both `getErrors()` returned during the library analysis.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1665,7 +1666,7 @@ class A {}
     // The future for the macro generated file completed.
     configuration.withMacroFileContent();
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1879,7 +1880,7 @@ void f(A a) {}
     // So, `a` is in the library context.
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1907,7 +1908,7 @@ void f(A a) {}
     // We have not read `a.dart`, so `A` is still not declared.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -1930,7 +1931,7 @@ void f(A a) {}
     // ...and apply this change.
     await driver.applyPendingFileChanges();
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [status] idle
 ''');
 
@@ -1940,7 +1941,7 @@ void f(A a) {}
     // ...and `b` has no errors.
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -1999,7 +2000,7 @@ void f() {
 
     collector.getIndex('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2040,7 +2041,7 @@ class A {}
     // The library, and the macro generated file were analyzed.
     configuration.withMacroFileContent();
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2110,7 +2111,7 @@ class B {}
 
     // No analysis.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [status] idle
 ''');
   }
@@ -2274,7 +2275,7 @@ class A {}
 
     collector.getResolvedLibrary('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2308,7 +2309,7 @@ part of 'a.dart';
 
     collector.getResolvedLibrary('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2374,7 +2375,7 @@ library augment 'b.dart';
     collector.getResolvedLibrary('X', a);
 
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getResolvedLibrary X
   NotLibraryButAugmentationResult
 [status] idle
@@ -2392,7 +2393,7 @@ part of 'b.dart';
     collector.getResolvedLibrary('X', a);
 
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getResolvedLibrary X
   NotLibraryButPartResult
 [status] idle
@@ -2419,7 +2420,7 @@ class A {}
     driver.changeFile2(a);
 
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2458,7 +2459,7 @@ class A {}
     // We produced both the library, and its macro-generated file.
     configuration.withMacroFileContent();
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2498,7 +2499,7 @@ class B {}
     collector.getResolvedLibraryByUri('A1', uri);
 
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2549,7 +2550,7 @@ part of 'a.dart';
 
     // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2589,7 +2590,7 @@ library augment 'b.dart';
     collector.getResolvedLibraryByUri('X', uri);
 
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getResolvedLibraryByUri X
   NotLibraryButAugmentationResult
 [status] idle
@@ -2608,7 +2609,7 @@ part of 'b.dart';
     collector.getResolvedLibraryByUri('X', uri);
 
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getResolvedLibraryByUri X
   NotLibraryButPartResult
 [status] idle
@@ -2625,7 +2626,7 @@ part of 'b.dart';
     collector.getResolvedLibraryByUri('A1', uri);
 
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getResolvedLibraryByUri A1
   NotLibraryButPartResult
 [status] idle
@@ -2667,7 +2668,7 @@ class A {}
     // We produced both the library, and its macro-generated file.
     configuration.withMacroFileContent();
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2705,7 +2706,7 @@ class B {}
 
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2731,7 +2732,7 @@ class B {}
 
     // Note, no separate `ErrorsResult`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2763,7 +2764,7 @@ library augment 'a.dart';
 
     // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -2803,7 +2804,7 @@ class B extends A {}
     // No errors in `a` or `b`.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -2832,7 +2833,7 @@ class B extends A {}
     // The unresolved URI error must be reported.
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -2856,7 +2857,7 @@ class B extends A {}
     // No errors in `b` again.
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -2898,7 +2899,7 @@ part of 'a.dart';
     // Note, the library is resolved only once.
     // Note, no separate `ErrorsResult` for `a` or `b`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2935,7 +2936,7 @@ library augment 'a.dart';
 
     // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2974,7 +2975,7 @@ part of 'a.dart';
 
     // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3013,7 +3014,7 @@ part of 'a.dart';
 
     // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3061,7 +3062,7 @@ class A {}
     // instead, and results for both produced.
     configuration.withMacroFileContent();
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3102,7 +3103,7 @@ class B {}
     // We try to analyze `a.dart`, but it does not exist.
     // Then we separately analyze `a.macro.dart`, it also does not exist.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3144,7 +3145,7 @@ final foo = 0;
     // If asked, we analyze it as Dart.
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.txt
   library: /home/test/lib/a.txt
@@ -3248,7 +3249,7 @@ part of 'a.dart';
 
     // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -3287,7 +3288,7 @@ part of 'a.dart';
 
     // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -3323,7 +3324,7 @@ part of 'a.dart';
 
     // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3354,7 +3355,7 @@ part of 'a.dart';
 
     // Note, the library is resolved only once.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3385,7 +3386,7 @@ part of 'a.dart';
 
     // Note, no separate `getIndex` result.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3417,7 +3418,7 @@ part of 'a.dart';
 
     // The future with the result still completes.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3444,7 +3445,7 @@ part of 'a.dart';
 
     // Both futures complete.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3476,7 +3477,7 @@ void bar() {}
 
     collector.getUnitElement('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getUnitElement A1
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
@@ -3499,7 +3500,7 @@ import 'package:test/b.dart';
 
     collector.getResolvedLibrary('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3520,7 +3521,7 @@ import 'package:test/b.dart';
 
     collector.getUnitElement('A2', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getUnitElement A2
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
@@ -3562,7 +3563,7 @@ class A {}
     // The enclosing element is an augmentation library, in a library.
     // The macro generated file has `class B`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getUnitElement AM1
   path: /home/test/lib/a.macro.dart
   uri: package:test/a.macro.dart
@@ -3602,7 +3603,7 @@ final B = A;
 
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -3633,7 +3634,7 @@ final A = 1.2;
     // Note, still `B: int`, not `B: double` yet.
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -3695,17 +3696,17 @@ import 'b.dart';
     driver.addFile2(a);
     driver.addFile2(c);
     await pumpEventQueue(times: 5000);
-    expect(driver.knownFiles, contains(a.path));
-    expect(driver.knownFiles, contains(b.path));
-    expect(driver.knownFiles, contains(c.path));
+    expect(driver.knownFiles.resources, contains(a));
+    expect(driver.knownFiles.resources, contains(b));
+    expect(driver.knownFiles.resources, contains(c));
 
     // Remove `a` and analyze.
     // Both `a` and `b` are not known now.
     driver.removeFile2(a);
     await pumpEventQueue(times: 5000);
-    expect(driver.knownFiles, isNot(contains(a.path)));
-    expect(driver.knownFiles, isNot(contains(b.path)));
-    expect(driver.knownFiles, contains(c.path));
+    expect(driver.knownFiles.resources, isNot(contains(a)));
+    expect(driver.knownFiles.resources, isNot(contains(b)));
+    expect(driver.knownFiles.resources, contains(c));
   }
 
   test_knownFiles_beforeAnalysis() async {
@@ -3761,7 +3762,7 @@ void f(A a) {}
     // So, `a` is in the library context.
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -3794,7 +3795,7 @@ class A {}
     // We have not read `a`, so `A` is still not declared.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -3825,7 +3826,7 @@ CompilationUnit
     // So, `b` does not have errors anymore.
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -3865,15 +3866,15 @@ import 'a.dart';
 ''');
 
     final driver = driverFor(testFile);
-    expect(driver.fsState.knownFiles, isEmpty);
+    expect(driver.knownFiles, isEmpty);
 
     // Don't read `a` when parse.
     driver.parseFileSync2(b);
-    expect(driver.knownFiles2, unorderedEquals([b]));
+    expect(driver.knownFiles.resources, unorderedEquals([b]));
 
     // Still don't read `a.dart` when parse the second time.
     driver.parseFileSync2(b);
-    expect(driver.knownFiles2, unorderedEquals([b]));
+    expect(driver.knownFiles.resources, unorderedEquals([b]));
   }
 
   test_parseFileSync_notAbsolutePath() async {
@@ -3900,7 +3901,7 @@ CompilationUnit
       rightBracket: }
 ''');
 
-    expect(driver.knownFiles2, unorderedEquals([a]));
+    expect(driver.knownFiles.resources, unorderedEquals([a]));
   }
 
   test_partOfName_getErrors_afterLibrary() async {
@@ -3923,7 +3924,7 @@ final a = A();
     // Process `a` so that we know that it's a library for `b`.
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
@@ -3949,7 +3950,7 @@ final a = A();
     // TODO(scheglov): don't switch to analysis?
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] getErrorsFromBytes
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
@@ -3985,7 +3986,7 @@ final a = A();
     // So, it has no errors.
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
@@ -4028,7 +4029,7 @@ final a = new A();
     // So, no errors.
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -4070,7 +4071,7 @@ final a = new A();
     // So, we treat it as its own library, has errors.
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -4110,7 +4111,7 @@ final a = new A();
     // Process `a` so that we know that it's a library for `b`.
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
@@ -4132,7 +4133,7 @@ final a = new A();
     // We know that `b` is analyzed as part of `a`.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
@@ -4174,7 +4175,7 @@ final a = new A();
     // Because `a` is added, we know how to analyze `b`.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
@@ -4213,7 +4214,7 @@ final a = new A();
     // So, we treat it as its own library.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -4243,7 +4244,7 @@ part 'b.dart';
 
     // Analyze the library without the part.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -4270,7 +4271,7 @@ Future<int>? f;
     // This should not crash.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
@@ -4309,7 +4310,7 @@ final a = new A();
     // There is no library which `b` is a part of, so `A` is unresolved.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -4338,7 +4339,7 @@ var a = new A();
     // There is no library which `b` is a part of, so `A` is unresolved.
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -4373,7 +4374,7 @@ final a = new A();
     // Process `a` so that we know that it's a library for `b`.
     collector.getResolvedUnit('A1', a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
@@ -4395,7 +4396,7 @@ final a = new A();
     // We know that `a` is the library for `b`.
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getUnitElement B1
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
@@ -4427,7 +4428,7 @@ final a = new A();
     // Because `a` is added, we know how to analyze `b`.
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getUnitElement B1
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
@@ -4463,7 +4464,7 @@ final a = new A();
     // So, we treat it as its own library.
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [future] getUnitElement B1
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
@@ -4498,7 +4499,7 @@ final a = new A();
     // We discover all added libraries.
     // So, we know that `a` is the library of `b`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
@@ -4541,7 +4542,7 @@ final a = new A();
     // We discover all added libraries.
     // So, we know that `a` is the library of `b`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
@@ -4585,7 +4586,7 @@ final a = new A();
     // We discover all added libraries.
     // So, we know that `a` is the library of `b`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
@@ -4617,7 +4618,7 @@ final a = new A();
     // There is no library for `b`.
     // So, we analyze `b` as its own library.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -4647,7 +4648,7 @@ final a = new A();
     // There is no library for `b`.
     // So, we analyze `b` as its own library.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -4697,7 +4698,7 @@ class B2 {}
     // Note, there is no specific rule that says when `a` is analyzed.
     configuration.withStreamResolvedUnitResults = false;
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -4757,7 +4758,7 @@ class B2 {}
     // For `a` because it just exports, there are no special rules.
     configuration.withStreamResolvedUnitResults = false;
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -4827,7 +4828,7 @@ class B2 {}
     // Even though they are in different drivers.
     configuration.withStreamResolvedUnitResults = false;
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test1/lib/a.dart
   library: /home/test1/lib/a.dart
@@ -4889,7 +4890,7 @@ class B2 {}
     // Even if it is in the `driver2`.
     configuration.withStreamResolvedUnitResults = false;
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test2/lib/b.dart
   library: /home/test2/lib/b.dart
@@ -4948,7 +4949,7 @@ class B2 {}
 
     configuration.withStreamResolvedUnitResults = false;
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test1/lib/a.dart
   library: /home/test1/lib/a.dart
@@ -4975,7 +4976,7 @@ class B2 {}
 
     // Initial analysis.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -4993,7 +4994,7 @@ class B2 {}
     // The cache key for `a` errors is the same, return from bytes.
     // Note, no analysis.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] getErrorsFromBytes
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5041,7 +5042,7 @@ final B = 0;
 
     // We have results for both `a` and `b`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5076,7 +5077,7 @@ final B = 1.2;
     // We don't get a result for `b`.
     // But the change causes `a` to be reanalyzed.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5108,7 +5109,7 @@ class A {}
     driver.removeFile2(a);
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [status] idle
 ''');
   }
@@ -5131,7 +5132,7 @@ final a = new A();
 
     // No errors in `b`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5155,7 +5156,7 @@ final a = new A();
     deleteFile2(a);
     driver.removeFile2(a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -5221,7 +5222,7 @@ class F extends X {}
     // Initial analysis, all files analyzed in order of adding.
     // Note, `f` has an error.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5286,7 +5287,7 @@ class B {}
     // 3. Then `f` that has an error (even if it is unrelated).
     // 4. Then the rest, in order of adding.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -5374,7 +5375,7 @@ import 'b.dart';
 
     // Initial analysis, all files analyzed in order of adding.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5431,7 +5432,7 @@ class B2 {}
     // First `a` and `b`.
     // Then `d` and `e` because they import `a` and `b`.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5482,7 +5483,7 @@ final v = 0;
 
     // Initial analysis.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5504,7 +5505,7 @@ final v = 0
     driver.removeFile2(b);
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5536,7 +5537,7 @@ class B {}
 
     // Initial analysis.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5564,7 +5565,7 @@ class A2 {}
 
     // Only `a` is analyzed, `b` is not affected.
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5586,7 +5587,7 @@ class A2 {}
     driver.addFile2(a);
 
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5621,7 +5622,7 @@ class A2 {}
     // Initial analysis.
     configuration.withStreamResolvedUnitResults = false;
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5634,7 +5635,7 @@ class A2 {}
     // Any work transitions to analyzing, and back to idle.
     await driver.getFilesReferencingName('X');
     await assertEventsText(collector, r'''
-[status] analyzing
+[status] working
 [status] idle
 ''');
   }

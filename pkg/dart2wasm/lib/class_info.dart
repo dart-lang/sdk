@@ -569,7 +569,7 @@ class ClassInfoCollector {
     final fixedOrder = <Class, int>{
       translator.coreTypes.boolClass: -10,
       translator.coreTypes.numClass: -9,
-      translator.stringBaseClass: -8,
+      if (!translator.options.jsCompatibility) translator.stringBaseClass: -8,
       translator.jsStringClass: -7,
       translator.typeClass: -6,
       translator.listBaseClass: -5,

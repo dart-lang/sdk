@@ -1,4 +1,4 @@
-# main
+# 3.3.0
 
 - removed lint: `always_require_non_null_named_parameters`
 - removed lint: `avoid_returning_null`

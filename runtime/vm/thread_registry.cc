@@ -105,6 +105,19 @@ void ThreadRegistry::ReleaseMarkingStacks() {
   }
 }
 
+void ThreadRegistry::FlushMarkingStacks() {
+  MonitorLocker ml(threads_lock());
+  Thread* thread = active_list_;
+  while (thread != nullptr) {
+    if (!thread->BypassSafepoints() && thread->is_marking()) {
+      thread->MarkingStackFlush();
+      thread->DeferredMarkingStackFlush();
+      ASSERT(thread->is_marking());
+    }
+    thread = thread->next_;
+  }
+}
+
 void ThreadRegistry::AddToActiveListLocked(Thread* thread) {
   ASSERT(thread != nullptr);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());

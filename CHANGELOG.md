@@ -191,12 +191,25 @@
 
 [#54201]: https://github.com/dart-lang/sdk/issues/54201
 
+#### Analyzer
+
+- You can now suppress diagnostics in `pubspec.yaml` files by
+  adding an `# ignore: <diagnostic_id>` comment.
+- Invalid `dart doc` comment directives are now reported.
+- The [`flutter_style_todos`][] lint now has a quick fix.
+
+[`flutter_style_todos`]: https://dart.dev/lints/flutter_style_todos
+
 #### Linter
 
 - Removed the `iterable_contains_unrelated_type` and
   `list_remove_unrelated_type` lints.
   Consider migrating to the expanded
   [`collection_methods_unrelated_type`][] lint.
+- Removed various lints that are no longer necessary with sound null safety:
+  - `always_require_non_null_named_parameters`
+  - `avoid_returning_null`,
+  - `avoid_returning_null_for_future`
 
 [`collection_methods_unrelated_type`]: https://dart.dev/lints/collection_methods_unrelated_type
 

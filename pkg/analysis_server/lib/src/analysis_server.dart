@@ -479,8 +479,8 @@ abstract class AnalysisServer {
       });
       var driver = drivers.firstWhereOrNull(
           (driver) => driver.analysisContext!.contextRoot.isAnalyzed(path));
-      driver ??= drivers
-          .firstWhereOrNull((driver) => driver.knownFiles.contains(path));
+      driver ??= drivers.firstWhereOrNull(
+          (driver) => driver.fsState.getExistingFromPath(path) != null);
       driver ??= drivers.first;
       return driver;
     }
@@ -685,7 +685,7 @@ abstract class AnalysisServer {
 
   @mustCallSuper
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
-    if (isFirstAnalysisSinceContextsBuilt && !status.isAnalyzing) {
+    if (isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
       isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }

@@ -358,10 +358,11 @@ class CollectReportPage extends DiagnosticPage {
       var contextData = {};
       contexts.add(contextData);
       // We don't include the name as some might see that as "secret".
+      var knownFiles = data.knownFiles.map((f) => f.path).toSet();
       contextData['priorityFiles'] = data.priorityFiles.length;
       contextData['addedFiles'] = data.addedFiles.length;
-      contextData['knownFiles'] = data.knownFiles.length;
-      uniqueKnownFiles.addAll(data.knownFiles);
+      contextData['knownFiles'] = knownFiles.length;
+      uniqueKnownFiles.addAll(knownFiles);
 
       var collectedOptionsData = _collectOptionsData(data);
       contextData['lints'] = collectedOptionsData.lints.toList();
@@ -764,8 +765,8 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     var priorityFiles = driver.priorityFiles;
     var addedFiles = driver.addedFiles.toList();
-    var implicitFiles =
-        driver.knownFiles.difference(driver.addedFiles).toList();
+    var knownFiles = driver.knownFiles.map((f) => f.path).toSet();
+    var implicitFiles = knownFiles.difference(driver.addedFiles).toList();
     addedFiles.sort();
     implicitFiles.sort();
 

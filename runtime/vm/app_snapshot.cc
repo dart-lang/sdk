@@ -875,8 +875,8 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::ClassIdTag::update(class_id, tags);
   tags = UntaggedObject::SizeTag::update(size, tags);
   tags = UntaggedObject::CanonicalBit::update(is_canonical, tags);
-  tags = UntaggedObject::OldBit::update(true, tags);
-  tags = UntaggedObject::OldAndNotMarkedBit::update(true, tags);
+  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
+  tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
   tags = UntaggedObject::NewBit::update(false, tags);
   raw->untag()->tags_ = tags;

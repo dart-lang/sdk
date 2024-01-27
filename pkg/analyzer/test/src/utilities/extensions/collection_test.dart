@@ -13,6 +13,7 @@ main() {
     defineReflectiveTests(IterableMapEntryExtensionTest);
     defineReflectiveTests(ListExtensionTest);
     defineReflectiveTests(MapExtensionTest);
+    defineReflectiveTests(MapOfListExtensionTest);
   });
 }
 
@@ -131,6 +132,51 @@ class MapExtensionTest {
   test_firstKey() {
     expect({0: 1, 2: 3}.firstKey, 0);
     expect(<int, int>{}.firstKey, isNull);
+  }
+}
+
+@reflectiveTest
+class MapOfListExtensionTest {
+  test_add_existingKey() {
+    var map = {
+      0: [1, 2],
+    };
+    map.add(0, 3);
+    expect(map, {
+      0: [1, 2, 3],
+    });
+  }
+
+  test_add_newKey() {
+    var map = {
+      1: [2, 3],
+    };
+    map.add(4, 5);
+    expect(map, {
+      1: [2, 3],
+      4: [5],
+    });
+  }
+
+  test_addKey_existing() {
+    var map = {
+      0: [1, 2],
+    };
+    map.addKey(0);
+    expect(map, {
+      0: [1, 2],
+    });
+  }
+
+  test_addKey_new() {
+    var map = {
+      1: [2, 3],
+    };
+    map.addKey(4);
+    expect(map, {
+      1: [2, 3],
+      4: <int>[],
+    });
   }
 }
 
