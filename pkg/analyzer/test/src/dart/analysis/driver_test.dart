@@ -1742,6 +1742,58 @@ class D {
     expect(await forName('m3'), unorderedEquals([d]));
   }
 
+  test_getFilesDefiningClassMemberName_macroGenerated() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInType('  void foo() {}')
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+import 'append.dart';
+
+@DeclareInType('  void bar() {}')
+class B {}
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+import 'append.dart';
+
+@DeclareInType('  void foo() {}')
+class C {}
+''');
+
+    final driver = driverFor(testFile);
+    driver.addFile2(a);
+    driver.addFile2(b);
+    driver.addFile2(c);
+
+    Future<List<File>> forName(String name) async {
+      var files = await driver.getFilesDefiningClassMemberName(name);
+      return files.resources;
+    }
+
+    expect(
+      await forName('foo'),
+      unorderedEquals([
+        a.macroForLibrary,
+        c.macroForLibrary,
+      ]),
+    );
+
+    expect(
+      await forName('bar'),
+      unorderedEquals([
+        b.macroForLibrary,
+      ]),
+    );
+  }
+
   test_getFilesDefiningClassMemberName_mixin() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 mixin A {
