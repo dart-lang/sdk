@@ -68,6 +68,11 @@ class Driver implements ServerStarter {
   static const String DISABLE_SERVER_FEATURE_SEARCH =
       'disable-server-feature-search';
 
+  /// The name of the option to disable the debouncing of `server.status`
+  /// notifications.
+  static const String DISABLE_STATUS_NOTIFICATION_DEBOUNCING =
+      'disable-status-notification-debouncing';
+
   /// The name of the multi-option to enable one or more experiments.
   static const String ENABLE_EXPERIMENT = 'enable-experiment';
 
@@ -329,6 +334,9 @@ class Driver implements ServerStarter {
       }
     }
 
+    // TODO(brianwilkerson): Pass the following value to the server and
+    // implement the debouncing when it hasn't been disabled.
+    // var disableDebouncing = results[DISABLE_STATUS_NOTIFICATION_DEBOUNCING] as bool;
     if (analysisServerOptions.useLanguageServerProtocol) {
       if (sendPort != null) {
         throw UnimplementedError(
@@ -615,6 +623,7 @@ class Driver implements ServerStarter {
       DISABLE_SERVER_EXCEPTION_HANDLING,
       DISABLE_SERVER_FEATURE_COMPLETION,
       DISABLE_SERVER_FEATURE_SEARCH,
+      DISABLE_STATUS_NOTIFICATION_DEBOUNCING,
       'enable-completion-model',
       'enable-experiment',
       'enable-instrumentation',
@@ -821,6 +830,10 @@ class Driver implements ServerStarter {
         help: 'disable all completion features', defaultsTo: false, hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
         help: 'disable all search features', defaultsTo: false, hide: true);
+    parser.addFlag(DISABLE_STATUS_NOTIFICATION_DEBOUNCING,
+        negatable: false,
+        help: 'Suppress debouncing of status notifications.',
+        hide: true);
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
         help: 'enable sending `print` output to the console',
         defaultsTo: false,
