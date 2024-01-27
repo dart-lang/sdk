@@ -406,7 +406,8 @@ class LegacyAnalysisServer extends AnalysisServer {
         ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.events.listen(handleAnalysisEvent);
+    analysisDriverSchedulerEventsSubscription =
+        analysisDriverScheduler.events.listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
     onAnalysisStarted.first.then((_) {

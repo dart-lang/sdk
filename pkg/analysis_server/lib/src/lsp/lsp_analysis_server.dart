@@ -178,7 +178,8 @@ class LspAnalysisServer extends AnalysisServer {
         LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.events.listen(handleAnalysisEvent);
+    analysisDriverSchedulerEventsSubscription =
+        analysisDriverScheduler.events.listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
     _channelSubscription =

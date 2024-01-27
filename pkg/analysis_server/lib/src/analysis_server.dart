@@ -138,6 +138,8 @@ abstract class AnalysisServer {
 
   late analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
+  late StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
+
   DeclarationsTracker? declarationsTracker;
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
@@ -849,6 +851,9 @@ abstract class AnalysisServer {
 
   @mustCallSuper
   Future<void> shutdown() async {
+    await analysisDriverSchedulerEventsSubscription?.cancel();
+    analysisDriverSchedulerEventsSubscription = null;
+
     // For now we record plugins only on shutdown. We might want to record them
     // every time the set of plugins changes, in which case we'll need to listen
     // to the `PluginManager.pluginsChanged` stream.
