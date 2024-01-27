@@ -25,6 +25,9 @@ final class IncompleteStruct extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::IncompleteStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::IncompleteStruct
+    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
+    ;
   @#C37
   get a0() → core::int
     return ffi::_loadAbiSpecificInt<self::Incomplete>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C38.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
@@ -48,6 +51,9 @@ final class IncompleteArrayStruct extends ffi::Struct {
     ;
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::IncompleteArrayStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
+    ;
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::IncompleteArrayStruct
+    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
   @#C46
   get a0() → ffi::Array<self::Incomplete>
