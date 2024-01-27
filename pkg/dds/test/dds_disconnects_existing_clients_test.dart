@@ -1,42 +1,39 @@
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
 import 'package:dds/dds.dart';
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
-import 'test_helper.dart';
+import 'common/test_helper.dart';
 
 final tests = <VMTest>[
-  (VM vm) async {
+  (VmService service) async {
     late DartDevelopmentService dds;
     final waitForDDS = Completer<void>();
     final serviceMessageCompleter = Completer<void>();
 
-    // The original VM service client is connected.
-    expect(vm.isConnected, true);
-
     // A service event is sent to all existing clients when DDS connects before
     // their connection is closed.
-    await vm.listenEventStream('Service', (ServiceEvent event) async {
+    service.onServiceEvent.listen((event) async {
       // Wait for dds to be set before checking the server's URI.
       await waitForDDS.future;
       final message =
           'A Dart Developer Service instance has connected and this direct '
           'connection to the VM service will now be closed. Please reconnect to '
           'the Dart Development Service at ${dds.uri}.';
-      expect(event.kind, ServiceEvent.kDartDevelopmentServiceConnected);
-      expect(event.message, message);
-      expect(event.uri, dds.uri);
+      expect(event.kind, 'DartDevelopmentServiceConnected');
+      expect(event.json!['message'], message);
+      expect(event.json!['uri'], dds.uri.toString());
       serviceMessageCompleter.complete();
     });
 
     // Start DDS, which should result in the original VM service client being
     // disconnected from the VM service.
-    final remote = Uri.parse(vm.target.networkAddress);
+    final remote = Uri.parse(service.wsUri!);
     dds = await DartDevelopmentService.startDartDevelopmentService(
       remote.replace(
         scheme: 'http',
@@ -49,13 +46,14 @@ final tests = <VMTest>[
     waitForDDS.complete();
     expect(dds.isRunning, true);
     await serviceMessageCompleter.future;
-    await vm.onDisconnect;
+    await service.onDone;
     await dds.shutdown();
   }
 ];
 
-main(args) async => runVMTests(
+void main([args = const <String>[]]) => runVMTests(
       args,
       tests,
-      enableDds: false,
+      'dds_disconnects_existing_clients_test.dart',
+      extraArgs: ['--no-dds'],
     );

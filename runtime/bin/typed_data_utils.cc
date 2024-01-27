@@ -56,8 +56,9 @@ intptr_t TypedDataScope::size_in_bytes() const {
 }
 
 const char* TypedDataScope::GetScopedCString() const {
-  char* buf = reinterpret_cast<char*>(Dart_ScopeAllocate(size_in_bytes()));
+  char* buf = reinterpret_cast<char*>(Dart_ScopeAllocate(size_in_bytes() + 1));
   strncpy(buf, GetCString(), size_in_bytes());
+  buf[size_in_bytes()] = '\0';
   return buf;
 }
 

@@ -189,13 +189,8 @@ class AnalysisDriver {
   /// The queue of requests for completion.
   final List<_ResolveForCompletionRequest> _resolveForCompletionRequests = [];
 
-  /// The task that discovers available files.  If this field is not `null`,
-  /// and the task is not completed, it should be performed and completed
-  /// before any name searching task.
-  _DiscoverAvailableFilesTask? _discoverAvailableFilesTask;
-
-  /// The list of tasks to compute files defining a class member name.
-  final _definingClassMemberNameTasks = <_FilesDefiningClassMemberNameTask>[];
+  /// Set to `true` after first [discoverAvailableFiles].
+  bool _hasAvailableFilesDiscovered = false;
 
   /// The list of tasks to compute files referencing a name.
   final _referencingNameTasks = <_FilesReferencingNameTask>[];
@@ -442,12 +437,7 @@ class AnalysisDriver {
     if (_requestedLibraries.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
-    if (_discoverAvailableFilesTask != null &&
-        !_discoverAvailableFilesTask!.isCompleted) {
-      return AnalysisDriverPriority.interactive;
-    }
-    if (_definingClassMemberNameTasks.isNotEmpty ||
-        _referencingNameTasks.isNotEmpty) {
+    if (_referencingNameTasks.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
     if (_errorsRequestedFiles.isNotEmpty) {
@@ -639,14 +629,49 @@ class AnalysisDriver {
 
   /// Return a [Future] that completes when discovery of all files that are
   /// potentially available is done, so that they are included in [knownFiles].
-  Future<void> discoverAvailableFiles() {
-    if (_discoverAvailableFilesTask != null &&
-        _discoverAvailableFilesTask!.isCompleted) {
-      return Future.value();
+  Future<void> discoverAvailableFiles() async {
+    if (_hasAvailableFilesDiscovered) {
+      return;
     }
-    _discoverAvailableFiles();
-    _scheduler.notify();
-    return _discoverAvailableFilesTask!.completer.future;
+    _hasAvailableFilesDiscovered = true;
+
+    // Discover added files.
+    for (var path in addedFiles) {
+      _fsState.getFileForPath(path);
+    }
+
+    // Discover SDK libraries.
+    if (_sourceFactory.dartSdk case var dartSdk?) {
+      for (var sdkLibrary in dartSdk.sdkLibraries) {
+        var source = dartSdk.mapDartUri(sdkLibrary.shortName);
+        var path = source!.fullName;
+        _fsState.getFileForPath(path);
+      }
+    }
+
+    void discoverRecursively(Folder folder) {
+      try {
+        var pathContext = resourceProvider.pathContext;
+        for (var child in folder.getChildren()) {
+          if (child is File) {
+            var path = child.path;
+            if (file_paths.isDart(pathContext, path)) {
+              _fsState.getFileForPath(path);
+            }
+          } else if (child is Folder) {
+            discoverRecursively(child);
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Discover files in package/lib folders.
+    if (_sourceFactory.packageMap case var packageMap?) {
+      var folders = packageMap.values.flattenedToList2;
+      for (var folder in folders) {
+        discoverRecursively(folder);
+      }
+    }
   }
 
   /// Notify the driver that the client is going to stop using it.
@@ -757,17 +782,27 @@ class AnalysisDriver {
 
   /// Completes with files that define a class member with the [name].
   Future<List<FileState>> getFilesDefiningClassMemberName(String name) async {
-    _discoverAvailableFiles();
-    var task = _FilesDefiningClassMemberNameTask(this, name);
-    _definingClassMemberNameTasks.add(task);
-    _scheduler.notify();
-    return await task.completer.future;
+    await discoverAvailableFiles();
+
+    // Get library elements, so macro generated files are added.
+    for (var file in knownFiles.toList()) {
+      await getLibraryByUri(file.uriStr);
+    }
+
+    var definingFiles = <FileState>[];
+    for (var file in knownFiles) {
+      if (file.definedClassMemberNames.contains(name)) {
+        definingFiles.add(file);
+      }
+    }
+
+    return definingFiles;
   }
 
   /// Return a [Future] that completes with the list of known files that
   /// reference the given external [name].
   Future<List<String>> getFilesReferencingName(String name) {
-    _discoverAvailableFiles();
+    discoverAvailableFiles();
     var task = _FilesReferencingNameTask(this, name);
     _referencingNameTasks.add(task);
     _scheduler.notify();
@@ -1188,23 +1223,6 @@ class AnalysisDriver {
       return;
     }
 
-    // Discover available files.
-    if (_discoverAvailableFilesTask case var task?) {
-      if (!task.isCompleted) {
-        task.perform();
-        return;
-      }
-    }
-
-    // Compute files defining a name.
-    if (_definingClassMemberNameTasks.firstOrNull case var task?) {
-      bool isDone = task.perform();
-      if (isDone) {
-        _definingClassMemberNameTasks.remove(task);
-      }
-      return;
-    }
-
     // Compute files referencing a name.
     if (_referencingNameTasks.firstOrNull case var task?) {
       bool isDone = task.perform();
@@ -1577,12 +1595,6 @@ class AnalysisDriver {
       unit: unitResult.unit,
       errors: unitResult.errors,
     );
-  }
-
-  /// If this has not been done yet, schedule discovery of all files that are
-  /// potentially available, so that they are included in [knownFiles].
-  void _discoverAvailableFiles() {
-    _discoverAvailableFilesTask ??= _DiscoverAvailableFilesTask(this);
   }
 
   /// When we look at a part that has a `part of name;` directive, we
@@ -2492,95 +2504,6 @@ abstract class SchedulerWorker {
   Future<void> performWork();
 }
 
-/// Task that discovers all files that are available to the driver, and makes
-/// them known.
-class _DiscoverAvailableFilesTask {
-  static const int _MS_WORK_INTERVAL = 5;
-
-  final AnalysisDriver driver;
-
-  final Completer<void> completer = Completer<void>();
-
-  Iterator<Folder>? folderIterator;
-
-  final List<String> files = [];
-
-  int fileIndex = 0;
-
-  _DiscoverAvailableFilesTask(this.driver);
-
-  bool get isCompleted => completer.isCompleted;
-
-  /// Perform the next piece of work, and set [isCompleted] to `true` to
-  /// indicate that the task is done, or keeps it `false` to indicate that the
-  /// task should continue to be run.
-  void perform() {
-    if (folderIterator == null) {
-      files.addAll(driver.addedFiles);
-
-      // Discover SDK libraries.
-      var dartSdk = driver._sourceFactory.dartSdk;
-      if (dartSdk != null) {
-        for (var sdkLibrary in dartSdk.sdkLibraries) {
-          var file = dartSdk.mapDartUri(sdkLibrary.shortName)!.fullName;
-          files.add(file);
-        }
-      }
-
-      // Discover files in package/lib folders.
-      var packageMap = driver._sourceFactory.packageMap;
-      if (packageMap != null) {
-        folderIterator = packageMap.values.flattenedToList2.iterator;
-      } else {
-        folderIterator = <Folder>[].iterator;
-      }
-    }
-
-    // List each package/lib folder recursively.
-    Stopwatch timer = Stopwatch()..start();
-    while (folderIterator!.moveNext()) {
-      var folder = folderIterator!.current;
-      _appendFilesRecursively(folder);
-
-      // Note: must check if we are exiting before calling moveNext()
-      // otherwise we will skip one iteration of the loop when we come back.
-      if (timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
-        return;
-      }
-    }
-
-    // Get know files one by one.
-    while (fileIndex < files.length) {
-      if (timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
-        return;
-      }
-      var file = files[fileIndex++];
-      driver._fsState.getFileForPath(file);
-    }
-
-    // The task is done, clean up.
-    folderIterator = null;
-    files.clear();
-    completer.complete();
-  }
-
-  void _appendFilesRecursively(Folder folder) {
-    try {
-      var pathContext = driver.resourceProvider.pathContext;
-      for (var child in folder.getChildren()) {
-        if (child is File) {
-          var path = child.path;
-          if (file_paths.isDart(pathContext, path)) {
-            files.add(path);
-          }
-        } else if (child is Folder) {
-          _appendFilesRecursively(child);
-        }
-      }
-    } catch (_) {}
-  }
-}
-
 class _FileChange {
   final String path;
   final _FileChangeKind kind;
@@ -2594,57 +2517,6 @@ class _FileChange {
 }
 
 enum _FileChangeKind { add, change, remove }
-
-/// Task that computes the list of files that were added to the driver and
-/// declare a class member with the given [name].
-class _FilesDefiningClassMemberNameTask {
-  static const int _MS_WORK_INTERVAL = 5;
-
-  final AnalysisDriver driver;
-  final String name;
-  final Completer<List<FileState>> completer = Completer<List<FileState>>();
-
-  final List<FileState> definingFiles = [];
-  final Set<FileState> checkedFiles = {};
-  final List<FileState> filesToCheck = [];
-
-  _FilesDefiningClassMemberNameTask(this.driver, this.name);
-
-  /// Perform work for a fixed length of time, and complete the [completer] to
-  /// either return `true` to indicate that the task is done, or return `false`
-  /// to indicate that the task should continue to be run.
-  ///
-  /// Each invocation of an asynchronous method has overhead, which looks as
-  /// `_SyncCompleter.complete` invocation, we see as much as 62% in some
-  /// scenarios. Instead we use a fixed length of time, so we can spend less time
-  /// overall and keep quick enough response time.
-  bool perform() {
-    Stopwatch timer = Stopwatch()..start();
-    while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
-      // Prepare files to check.
-      if (filesToCheck.isEmpty) {
-        var newFiles = driver.knownFiles.difference(checkedFiles);
-        filesToCheck.addAll(newFiles);
-      }
-
-      // If no more files to check, complete and done.
-      if (filesToCheck.isEmpty) {
-        completer.complete(definingFiles);
-        return true;
-      }
-
-      // Check the next file.
-      var file = filesToCheck.removeLast();
-      if (file.definedClassMemberNames.contains(name)) {
-        definingFiles.add(file);
-      }
-      checkedFiles.add(file);
-    }
-
-    // We're not done yet.
-    return false;
-  }
-}
 
 /// Task that computes the list of files that were added to the driver and
 /// have at least one reference to an identifier [name] defined outside of the
@@ -2723,10 +2595,18 @@ extension<K, V> on Map<K, List<Completer<V>>> {
   }
 }
 
-extension on File {
+extension FileExtension on File {
   File? get libraryForMacro {
     if (path.removeSuffix('.macro.dart') case var noExtPath?) {
       var libraryPath = '$noExtPath.dart';
+      return provider.getFile(libraryPath);
+    }
+    return null;
+  }
+
+  File? get macroForLibrary {
+    if (path.removeSuffix('.dart') case var noExtPath?) {
+      var libraryPath = '$noExtPath.macro.dart';
       return provider.getFile(libraryPath);
     }
     return null;

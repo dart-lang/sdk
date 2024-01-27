@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, TYPE_REF;
 import 'dart:_runtime' as dart;
 
 void main() {
   dynamic data = JS('', '[1, 2, 3, 4]');
   Expect.isFalse(data is List<int>);
 
-  var list = dart.constList(data, dart.unwrapType(int));
+  var list = dart.constList(data, TYPE_REF<int>());
   Expect.isTrue(list is List<int>);
   Expect.throws(() {
     list[0] = 0;
