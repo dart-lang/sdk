@@ -75,6 +75,7 @@
       "out/ReleaseX64/dart2wasm_js_compatibility_outline.dill",
       "out/ReleaseX64/dart2wasm_js_compatibility_platform.dill",
       "out/ReleaseX64/wasm/",
+      "out/ReleaseX64/wasm-opt",
       "pkg/",
       "runtime/tests/",
       "samples/",
@@ -95,6 +96,8 @@
       "tests/light_unittest.dart",
       "tests/search/",
       "tests/ffi/",
+      "third_party/jsc/",
+      "third_party/firefox_jsshell/",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
@@ -2644,6 +2647,38 @@
           "name": "dart2wasm tests",
           "arguments": [
             "-ndart2wasm-linux-${runtime}",
+            "co19",
+            "corelib",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 8,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2wasm-linux-optimized-jsc"
+      ],
+      "meta": {
+        "description": "dart2wasm tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart2wasm",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "dart2wasm tests",
+          "arguments": [
+            "-ndart2wasm-linux-optimized-${runtime}",
             "co19",
             "corelib",
             "language",
