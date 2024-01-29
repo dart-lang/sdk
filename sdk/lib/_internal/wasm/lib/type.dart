@@ -413,7 +413,7 @@ class _FunctionType extends _Type {
   bool _checkInstance(Object o) {
     if (ClassID.getID(o) != ClassID.cid_Closure) return false;
     return _typeUniverse.isFunctionSubtype(
-        _getFunctionRuntimeType(unsafeCast(o)), null, this, null);
+        _Closure._getClosureRuntimeType(unsafeCast(o)), null, this, null);
   }
 
   bool operator ==(Object o) {
@@ -603,6 +603,13 @@ class _RecordType extends _Type {
 external WasmArray<WasmArray<WasmI32>> _getTypeRulesSupers();
 external WasmArray<WasmArray<WasmArray<_Type>>> _getTypeRulesSubstitutions();
 external WasmArray<String>? _getTypeNames();
+
+external WasmArray<WasmI8> get _typeCategoryTable;
+external WasmI32 get _typeCategoryAbstractClass;
+external WasmI32 get _typeCategoryObject;
+external WasmI32 get _typeCategoryFunction;
+external WasmI32 get _typeCategoryRecord;
+external WasmI32 get _typeCategoryNotMasqueraded;
 
 /// Type parameter environment used while comparing function types.
 ///
@@ -1280,19 +1287,54 @@ void _checkClosureType(
 }
 
 @pragma("wasm:entry-point")
-external _Type _getActualRuntimeType(Object object);
+_Type _getActualRuntimeType(Object object) {
+  final classId = ClassID.getID(object);
+  final category = _typeCategoryTable.readUnsigned(classId);
+
+  if (category == _typeCategoryFunction.toIntUnsigned()) {
+    return _Closure._getClosureRuntimeType(unsafeCast<_Closure>(object));
+  }
+  if (category == _typeCategoryRecord.toIntUnsigned()) {
+    return Record._getRecordRuntimeType(unsafeCast<Record>(object));
+  }
+  if (category == _typeCategoryObject.toIntUnsigned()) {
+    return _literal<Object>();
+  }
+  if (category == _typeCategoryAbstractClass.toIntUnsigned()) {
+    throw 'unreachable';
+  }
+  return _InterfaceType(classId, false, Object._getTypeArguments(object));
+}
 
 @pragma("wasm:prefer-inline")
 _Type _getActualRuntimeTypeNullable(Object? object) =>
     object == null ? _literal<Null>() : _getActualRuntimeType(object);
 
 @pragma("wasm:entry-point")
-external _Type _getMasqueradedRuntimeType(Object object);
+_Type _getMasqueradedRuntimeType(Object object) {
+  final classId = ClassID.getID(object);
+  final category = _typeCategoryTable.readUnsigned(classId);
+
+  if (category == _typeCategoryNotMasqueraded.toIntUnsigned()) {
+    return _InterfaceType(classId, false, Object._getTypeArguments(object));
+  }
+  if (category == _typeCategoryFunction.toIntUnsigned()) {
+    return _Closure._getClosureRuntimeType(unsafeCast<_Closure>(object));
+  }
+  if (category == _typeCategoryRecord.toIntUnsigned()) {
+    return Record._getRecordRuntimeType(unsafeCast<Record>(object));
+  }
+  if (category == _typeCategoryObject.toIntUnsigned()) {
+    return _literal<Object>();
+  }
+  if (category == _typeCategoryAbstractClass.toIntUnsigned()) {
+    throw 'unreachable';
+  }
+  return _InterfaceType(category, false, Object._getTypeArguments(object));
+}
 
 @pragma("wasm:prefer-inline")
 _Type _getMasqueradedRuntimeTypeNullable(Object? object) =>
     object == null ? _literal<Null>() : _getMasqueradedRuntimeType(object);
-
-external _FunctionType _getFunctionRuntimeType(Function f);
 
 external bool _isRecordInstance(Object o);
