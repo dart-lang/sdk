@@ -21446,24 +21446,36 @@ const char* AbstractType::NullabilitySuffix(
 }
 
 StringPtr AbstractType::Name() const {
+  return Symbols::New(Thread::Current(), NameCString());
+}
+
+const char* AbstractType::NameCString() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
   PrintName(kInternalName, &printer);
-  return Symbols::New(thread, printer.buffer());
+  return printer.buffer();
 }
 
 StringPtr AbstractType::UserVisibleName() const {
+  return Symbols::New(Thread::Current(), UserVisibleNameCString());
+}
+
+const char* AbstractType::UserVisibleNameCString() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
   PrintName(kUserVisibleName, &printer);
-  return Symbols::New(thread, printer.buffer());
+  return printer.buffer();
 }
 
 StringPtr AbstractType::ScrubbedName() const {
+  return Symbols::New(Thread::Current(), ScrubbedNameCString());
+}
+
+const char* AbstractType::ScrubbedNameCString() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
   PrintName(kScrubbedName, &printer);
-  return Symbols::New(thread, printer.buffer());
+  return printer.buffer();
 }
 
 void AbstractType::PrintName(NameVisibility name_visibility,
