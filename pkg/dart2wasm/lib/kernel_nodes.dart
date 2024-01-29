@@ -255,6 +255,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Error", "_throw");
 
   // dart:core type procedures
+  late final Procedure getClosureRuntimeType =
+      index.getProcedure("dart:core", '_Closure', "_getClosureRuntimeType");
   late final Procedure getActualRuntimeType =
       index.getTopLevelProcedure("dart:core", "_getActualRuntimeType");
   late final Procedure getMasqueradedRuntimeType =

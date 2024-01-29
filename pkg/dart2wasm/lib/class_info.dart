@@ -221,6 +221,9 @@ class ClassInfoCollector {
   /// subtypes of the key masquerade as the value.
   late final Map<Class, Class> _masquerades = _computeMasquerades();
 
+  /// Masqueraded types are mapped to these classes.
+  late final Set<Class> masqueradeValues = _masquerades.values.toSet();
+
   Map<Class, Class> _computeMasquerades() {
     final map = {
       translator.coreTypes.boolClass: translator.coreTypes.boolClass,
@@ -581,6 +584,7 @@ class ClassInfoCollector {
 
       final importUri = klass.enclosingLibrary.importUri.toString();
       if (importUri.startsWith('dart:')) {
+        if (masqueradeValues.contains(klass)) return -1;
         // Bundle the typed data and collection together, they may not have
         // common base class except for `Object` but most of them have similar
         // selectors.
@@ -617,23 +621,34 @@ class ClassInfoCollector {
 
     final classIds = <Class, int>{};
 
-    // TODO: Remove this special case that violates strict DFS pre-order
-    // numbering by re-doing the masquerades.
+    // TODO: We may consider removing the type category table. But until we do
+    // we have to make sure that all masqueraded types that concrete classes may
+    // be mapped to have class ids that are <=255.
     //
-    // We need to use 4 classes here that don't require name mangling.
-    classIds[translator.coreTypes.objectClass] = nextClassId++;
-    classIds[translator.functionTypeClass] = nextClassId++;
-    classIds[translator.interfaceTypeClass] = nextClassId++;
-    classIds[translator.recordTypeClass] = nextClassId++;
-    for (Class cls in _masquerades.values) {
-      classIds[cls] = classIds[cls] ?? nextClassId++;
+    // We still want to maintain that all classes's concrete subclasses form a
+    // single continious class-id range.
+    //
+    // => So we move the abstract masqeraded classes before all the concrete
+    // ones.
+    for (Class cls in masqueradeValues) {
+      if (cls.isAbstract) {
+        assert(classIds[cls] == null);
+        classIds[cls] = nextClassId++;
+      }
     }
 
     for (final cls in dfsOrder) {
-      if (!cls.isAbstract) classIds[cls] = classIds[cls] ?? nextClassId++;
+      if (!cls.isAbstract) {
+        assert(classIds[cls] == null);
+        classIds[cls] = nextClassId++;
+      }
     }
     for (final cls in dfsOrder) {
       if (cls.isAbstract) classIds[cls] = classIds[cls] ?? nextClassId++;
+    }
+    // Abstract masquerade
+    for (Class cls in masqueradeValues) {
+      assert(classIds[cls]! <= 255);
     }
 
     return (dfsOrder, classIds);
