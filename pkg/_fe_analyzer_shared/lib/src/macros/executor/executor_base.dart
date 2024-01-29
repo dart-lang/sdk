@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 
 import '../api.dart';
@@ -225,23 +226,13 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                 requestId: requestId,
                 responseType: resultType,
                 serializationZoneId: zoneId);
-          } on ArgumentError catch (error, stackTrace) {
-            // TODO: Something better here.
-            if (requestId == null) rethrow;
-            response = new SerializableResponse(
-                error: '$error',
-                stackTrace: '$stackTrace',
-                requestId: requestId,
-                responseType: MessageType.argumentError,
-                serializationZoneId: zoneId);
           } catch (error, stackTrace) {
             // TODO: Something better here.
             if (requestId == null) rethrow;
             response = new SerializableResponse(
-                error: '$error',
-                stackTrace: '$stackTrace',
+                exception: new MacroExceptionImpl.from(error, stackTrace),
                 requestId: requestId,
-                responseType: MessageType.error,
+                responseType: MessageType.exception,
                 serializationZoneId: zoneId);
           }
           Serializer serializer = serializerFactory();
@@ -336,8 +327,7 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
             Response response = await completer.future;
             T? result = response.response as T?;
             if (result != null) return result;
-            throw new RemoteException(
-                response.error!.toString(), response.stackTrace);
+            throw response.exception!;
           } finally {
             // Clean up the zone after the request is done.
             destroyRemoteInstanceZone(zoneId);

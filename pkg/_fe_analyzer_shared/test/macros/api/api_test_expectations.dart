@@ -264,8 +264,8 @@ Future<void> checkTypeDeclarationResolver(
       await throws(() async {
         await introspector.typeDeclarationOf(identifier);
       }, '$name from $identifier',
-          expectedError: (e) => e is! ArgumentError
-              ? 'Expected ArgumentError, got ${e.runtimeType}: $e'
+          expectedError: (e) => e is! MacroImplementationException
+              ? 'Expected MacroImplementationException, got ${e.runtimeType}: $e'
               : null);
     } else {
       TypeDeclaration result = await introspector.typeDeclarationOf(identifier);

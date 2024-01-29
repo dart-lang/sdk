@@ -6,6 +6,7 @@
 /// the isolate or process doing the work of macro loading and execution.
 library _fe_analyzer_shared.src.macros.executor_shared.protocol;
 
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
 import 'package:meta/meta.dart';
 
 import '../api.dart';
@@ -40,23 +41,21 @@ abstract class Request implements Serializable {
   static int _next = 0;
 }
 
-/// A generic response object that contains either a response or an error, and
-/// a unique ID.
+/// A generic response object that contains either a response or an exception,
+/// and a unique ID.
 class Response {
   final Object? response;
-  final Object? error;
-  final String? stackTrace;
+  final MacroException? exception;
   final int requestId;
   final MessageType responseType;
 
   Response({
     this.response,
-    this.error,
-    this.stackTrace,
+    this.exception,
     required this.requestId,
     required this.responseType,
-  })  : assert(response != null || error != null),
-        assert(response == null || error == null);
+  })  : assert(response != null || exception != null),
+        assert(response == null || exception == null);
 }
 
 /// A serializable [Response], contains the message type as an enum.
@@ -66,16 +65,13 @@ class SerializableResponse implements Response, Serializable {
   @override
   final MessageType responseType;
   @override
-  final String? error;
-  @override
-  final String? stackTrace;
+  final MacroExceptionImpl? exception;
   @override
   final int requestId;
   final int serializationZoneId;
 
   SerializableResponse({
-    this.error,
-    this.stackTrace,
+    this.exception,
     required this.requestId,
     this.response,
     required this.responseType,
@@ -87,22 +83,14 @@ class SerializableResponse implements Response, Serializable {
   factory SerializableResponse.deserialize(
       Deserializer deserializer, int serializationZoneId) {
     deserializer.moveNext();
+
     MessageType responseType = MessageType.values[deserializer.expectInt()];
     Serializable? response;
-    String? error;
-    String? stackTrace;
+    MacroExceptionImpl? exception;
     switch (responseType) {
-      case MessageType.error:
+      case MessageType.exception:
         deserializer.moveNext();
-        error = deserializer.expectString();
-        deserializer.moveNext();
-        stackTrace = deserializer.expectNullableString();
-        break;
-      case MessageType.argumentError:
-        deserializer.moveNext();
-        error = deserializer.expectString();
-        deserializer.moveNext();
-        stackTrace = deserializer.expectNullableString();
+        exception = deserializer.expectRemoteInstance();
         break;
       case MessageType.macroInstanceIdentifier:
         response = new MacroInstanceIdentifierImpl.deserialize(deserializer);
@@ -133,8 +121,7 @@ class SerializableResponse implements Response, Serializable {
     return new SerializableResponse(
         responseType: responseType,
         response: response,
-        error: error,
-        stackTrace: stackTrace,
+        exception: exception,
         requestId: (deserializer..moveNext()).expectInt(),
         serializationZoneId: serializationZoneId);
   }
@@ -146,13 +133,8 @@ class SerializableResponse implements Response, Serializable {
       ..addInt(MessageType.response.index)
       ..addInt(responseType.index);
     switch (responseType) {
-      case MessageType.error:
-        serializer.addString(error!.toString());
-        serializer.addNullableString(stackTrace);
-        break;
-      case MessageType.argumentError:
-        serializer.addString(error!.toString());
-        serializer.addNullableString(stackTrace?.toString());
+      case MessageType.exception:
+        exception!.serialize(serializer);
         break;
       default:
         response.serializeNullable(serializer);
@@ -776,44 +758,27 @@ final class ClientDefinitionPhaseIntrospector
   }
 }
 
-/// An exception that occurred remotely, the exception object and stack trace
-/// are serialized as [String]s and both included in the [toString] output.
-class RemoteException implements Exception {
-  final String error;
-  final String? stackTrace;
-
-  RemoteException(this.error, [this.stackTrace]);
-
-  @override
-  String toString() =>
-      'RemoteException: $error${stackTrace == null ? '' : '\n\n$stackTrace'}';
-}
-
 /// Either returns the actual response from [response], casted to [T], or throws
 /// a [RemoteException] with the given error and stack trace.
 T _handleResponse<T>(Response response) {
-  if (response.responseType == MessageType.error) {
-    throw new RemoteException(response.error!.toString(), response.stackTrace);
-  } else if (response.responseType == MessageType.argumentError) {
-    throw new ArgumentError('${response.error!.toString()}'
-        '${response.stackTrace == null ? '' : '\n\n${response.stackTrace}'}');
+  if (response.responseType == MessageType.exception) {
+    throw response.exception!;
   }
 
   return response.response as T;
 }
 
 enum MessageType {
-  argumentError,
   boolean,
   constructorsOfRequest,
   declarationOfRequest,
   declarationList,
   destroyRemoteInstanceZoneRequest,
   disposeMacroRequest,
+  exception,
   valuesOfRequest,
   fieldsOfRequest,
   methodsOfRequest,
-  error,
   executeDeclarationsPhaseRequest,
   executeDefinitionsPhaseRequest,
   executeTypesPhaseRequest,
@@ -833,4 +798,12 @@ enum MessageType {
   topLevelDeclarationsOfRequest,
   typeDeclarationOfRequest,
   typesOfRequest,
+}
+
+// TODO(davidmorgan): this is needed by a presubmit due to version mismatch,
+// remove.
+class RemoteException {
+  final String error;
+  final String? stackTrace;
+  RemoteException(this.error, this.stackTrace);
 }

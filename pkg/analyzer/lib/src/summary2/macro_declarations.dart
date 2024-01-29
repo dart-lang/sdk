@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart'
+    as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
@@ -116,12 +118,13 @@ class DeclarationBuilder {
   /// See [macro.DefinitionPhaseIntrospector.declarationOf].
   macro.DeclarationImpl declarationOf(macro.Identifier identifier) {
     if (identifier is! IdentifierImpl) {
-      throw ArgumentError('Not analyzer identifier.');
+      throw macro.MacroImplementationExceptionImpl('Not analyzer identifier.');
     }
 
     final element = identifier.element;
     if (element == null) {
-      throw ArgumentError('Identifier without element.');
+      throw macro.MacroImplementationExceptionImpl(
+          'Identifier without element.');
     }
 
     return declarationOfElement(element);
@@ -293,7 +296,7 @@ class DeclarationBuilder {
       case macro.OmittedTypeAnnotationCode():
         return _resolveTypeCodeOmitted(typeCode);
       case macro.RawTypeAnnotationCode():
-        throw ArgumentError('Not supported');
+        throw macro.MacroImplementationExceptionImpl('Not supported');
       case macro.RecordTypeAnnotationCode():
         return _resolveTypeCodeRecord(typeCode);
     }
@@ -302,12 +305,13 @@ class DeclarationBuilder {
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(macro.Identifier identifier) {
     if (identifier is! IdentifierImpl) {
-      throw ArgumentError('Not analyzer identifier.');
+      throw macro.MacroImplementationExceptionImpl('Not analyzer identifier.');
     }
 
     final element = identifier.element;
     if (element == null) {
-      throw ArgumentError('Identifier without element.');
+      throw macro.MacroImplementationExceptionImpl(
+          'Identifier without element.');
     }
 
     final node = nodeOfElement(element);
@@ -678,7 +682,8 @@ class DeclarationBuilderFromElement {
         return mixinElement(element);
       default:
         // TODO(scheglov): other elements
-        throw ArgumentError('element: (${element.runtimeType}) $element');
+        throw macro.MacroImplementationExceptionImpl(
+            'element: (${element.runtimeType}) $element');
     }
   }
 
@@ -1348,7 +1353,8 @@ class DeclarationBuilderFromNode {
         return mixinDeclaration(node);
       default:
         // TODO(scheglov): other nodes
-        throw ArgumentError('node: (${node.runtimeType}) $node');
+        throw macro.MacroImplementationExceptionImpl(
+            'node: (${node.runtimeType}) $node');
     }
   }
 

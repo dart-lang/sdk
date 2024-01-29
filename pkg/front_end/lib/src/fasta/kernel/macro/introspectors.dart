@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart'
+    as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
@@ -472,7 +474,8 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
     LibraryBuilder? libraryBuilder = sourceLoader.lookupLibraryBuilder(library);
     if (libraryBuilder == null) {
       return new Future.error(
-          new ArgumentError('Library at uri $library could not be resolved.'),
+          new macro.MacroImplementationExceptionImpl(
+              'Library at uri $library could not be resolved.'),
           StackTrace.current);
     }
     bool isSetter = false;
@@ -485,7 +488,7 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
         libraryBuilder.scope.lookupLocalMember(memberName, setter: isSetter);
     if (builder == null) {
       return new Future.error(
-          new ArgumentError(
+          new macro.MacroImplementationExceptionImpl(
               'Unable to find top level identifier "$name" in $library'),
           StackTrace.current);
     } else if (builder is TypeDeclarationBuilder) {

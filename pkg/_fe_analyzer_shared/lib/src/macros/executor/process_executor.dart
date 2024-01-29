@@ -7,12 +7,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
 
-import '../executor/message_grouper.dart';
-import '../executor/executor_base.dart';
-import '../executor/serialization.dart';
 import '../executor.dart';
+import '../executor/executor_base.dart';
+import '../executor/message_grouper.dart';
+import '../executor/serialization.dart';
 
 /// Spawns a [MacroExecutor] as a separate process, by running [program] with
 /// [arguments], and communicating using [serializationMode].
@@ -71,9 +71,9 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
       await serverSocket.close();
       rethrow;
     }
-    process.stderr
-        .transform(const Utf8Decoder())
-        .listen((content) => throw new RemoteException(content));
+    process.stderr.transform(const Utf8Decoder()).listen((content) =>
+        throw new UnexpectedMacroExceptionImpl(
+            'stderr output by macro process: $content'));
     process.stdout.transform(const Utf8Decoder()).listen(
         (event) => print('Stdout from MacroExecutor at $programPath:\n$event'));
 
@@ -116,9 +116,9 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
       String programPath,
       List<String> arguments) async {
     Process process = await Process.start(programPath, arguments);
-    process.stderr
-        .transform(const Utf8Decoder())
-        .listen((content) => throw new RemoteException(content));
+    process.stderr.transform(const Utf8Decoder()).listen((content) =>
+        throw new UnexpectedMacroExceptionImpl(
+            'stderr output by macro process: $content'));
 
     Stream<Object> messageStream;
 

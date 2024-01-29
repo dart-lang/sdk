@@ -14,7 +14,6 @@ import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
     as processExecutor show start;
 import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
     hide start;
-import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:test/test.dart';
 
@@ -142,8 +141,8 @@ void main() {
             await expectLater(
                 () => executor.executeTypesPhase(simpleMacroInstanceId,
                     Fixtures.myFunction, TestTypePhaseIntrospector()),
-                throwsA(isA<RemoteException>().having((e) => e.error, 'error',
-                    contains('Unrecognized macro instance'))),
+                throwsA(isA<UnexpectedMacroException>().having((e) => e.message,
+                    'message', contains('Unrecognized macro instance'))),
                 reason: 'Should be able to dispose macro instances');
             if (tmpDir.existsSync()) {
               try {
