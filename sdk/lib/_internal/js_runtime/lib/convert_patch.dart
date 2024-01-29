@@ -270,7 +270,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     assert(!_isUpgraded);
     List? keys = _data;
     if (keys == null) {
-      keys = _data = new JSArray<String>.typed(_getPropertyNames(_original));
+      keys = _data = JSArray<String>.typed(_getPropertyNames(_original));
     }
     return JS('JSExtendableArray', '#', keys);
   }
