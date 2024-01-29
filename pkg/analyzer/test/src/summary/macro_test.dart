@@ -926,7 +926,6 @@ class MacroArgumentsTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
-  @SkippedTest(reason: 'Fails') // TODO(scheglov): triage.
   test_error() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
