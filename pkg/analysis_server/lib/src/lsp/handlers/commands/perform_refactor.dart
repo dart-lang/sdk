@@ -10,9 +10,15 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:meta/meta.dart';
 
 class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
     with LspHandlerHelperMixin {
+  /// A [Future] used by tests to allow inserting a delay between resolving
+  /// the initial unit and the refactor running.
+  @visibleForTesting
+  static Future<void>? delayAfterResolveForTests;
+
   PerformRefactorCommandHandler(super.server);
 
   @override
@@ -36,6 +42,10 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
     server.analyticsManager.executedCommand(actionName);
 
     final result = await requireResolvedUnit(path);
+    if (delayAfterResolveForTests != null) {
+      await delayAfterResolveForTests;
+    }
+
     return result.mapResult((result) async {
       final refactoring = await getRefactoring(
           RefactoringKind(kind), result, offset, length, options);

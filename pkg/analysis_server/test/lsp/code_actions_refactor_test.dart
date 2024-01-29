@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
@@ -239,14 +240,22 @@ void f() {
       openTargetFile: true,
     );
 
-    // Send an edit request immediately after the refactor request.
-    final req1 = executeCommand(codeAction.command!);
-    final req2 = replaceFile(100, mainFileUri, 'new test content');
+    // Use a Completer to control when the refactor handler starts computing.
+    final completer = Completer<void>();
+    PerformRefactorCommandHandler.delayAfterResolveForTests = completer.future;
+    try {
+      // Send an edit request immediately after the refactor request.
+      final req1 = executeCommand(codeAction.command!);
+      await replaceFile(100, mainFileUri, 'new test content');
+      completer.complete();
 
-    // Expect the first to fail because of the modified content.
-    await expectLater(
-        req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
-    await req2;
+      // Expect the first to fail because of the modified content.
+      await expectLater(
+          req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
+    } finally {
+      // Ensure we never leave an incomplete future if anything above throws.
+      PerformRefactorCommandHandler.delayAfterResolveForTests = null;
+    }
   }
 
   Future<void> test_filtersCorrectly() async {
