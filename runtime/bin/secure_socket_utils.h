@@ -152,8 +152,8 @@ class ScopedSSLStackType {
 
   ~ScopedSSLStackType() {
     if (obj_ != nullptr) {
-      sk_pop_free(reinterpret_cast<_STACK*>(obj_),
-                  reinterpret_cast<void (*)(void*)>(func));
+      func(reinterpret_cast<E*>(
+          OPENSSL_sk_pop(reinterpret_cast<OPENSSL_STACK*>(obj_))));
     }
   }
 
