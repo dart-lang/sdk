@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart'
+    as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
 import 'package:kernel/ast.dart';
@@ -85,7 +87,8 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
       case OmittedTypeDeclarationBuilder():
       case null:
         // TODO(johnniwinther): Handle these cases.
-        throw new ArgumentError('Unable to resolve identifier $this');
+        throw new macro.MacroImplementationExceptionImpl(
+            'Unable to resolve identifier $this');
     }
   }
 
@@ -224,8 +227,8 @@ class MemberBuilderIdentifier extends IdentifierImpl {
   @override
   Future<macro.TypeDeclaration> resolveTypeDeclaration(
       MacroIntrospection macroIntrospection) {
-    return new Future.error(
-        new ArgumentError('Cannot resolve type declaration from member.'));
+    return new Future.error(new macro.MacroImplementationExceptionImpl(
+        'Cannot resolve type declaration from member.'));
   }
 }
 
@@ -258,7 +261,7 @@ class FormalParameterBuilderIdentifier extends IdentifierImpl {
   @override
   Future<macro.TypeDeclaration> resolveTypeDeclaration(
       MacroIntrospection macroIntrospection) {
-    throw new ArgumentError(
+    throw new macro.MacroImplementationExceptionImpl(
         'Cannot resolve type declaration from formal parameter.');
   }
 }
@@ -284,7 +287,7 @@ class OmittedTypeIdentifier extends IdentifierImpl {
   @override
   Future<macro.TypeDeclaration> resolveTypeDeclaration(
       MacroIntrospection macroIntrospection) {
-    return new Future.error(new ArgumentError(
+    return new Future.error(new macro.MacroImplementationExceptionImpl(
         'Cannot resolve type declaration from omitted type.'));
   }
 }

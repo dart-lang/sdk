@@ -101,9 +101,9 @@ class RemoteInstanceImpl extends RemoteInstance {
 enum RemoteInstanceKind {
   classDeclaration,
   constructorDeclaration,
+  constructorMetadataAnnotation,
   declarationPhaseIntrospector,
   definitionPhaseIntrospector,
-  constructorMetadataAnnotation,
   enumDeclaration,
   enumValueDeclaration,
   extensionDeclaration,
@@ -125,9 +125,14 @@ enum RemoteInstanceKind {
   recordTypeAnnotation,
   staticType,
   typeAliasDeclaration,
-  typePhaseIntrospector,
   typeParameterDeclaration,
+  typePhaseIntrospector,
   variableDeclaration,
+
+  // Exceptions.
+  macroImplementationException,
+  macroIntrospectionCycleException,
+  unexpectedMacroException,
 }
 
 /// Creates a new zone with a remote instance cache and an id, which it uses to

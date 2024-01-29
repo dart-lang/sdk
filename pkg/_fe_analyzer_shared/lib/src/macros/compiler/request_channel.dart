@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/message_grouper.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 
 /// Channel for exchanging requests and responses over [Socket].
@@ -103,9 +103,9 @@ class RequestChannel {
         final Object? exception = message['exception'];
         if (exception is Map) {
           completer.completeError(
-            new RemoteException(
+            new UnexpectedMacroExceptionImpl(
               exception['message'] as String,
-              exception['stackTrace'] as String,
+              stackTrace: exception['stackTrace'] as String,
             ),
           );
           return;

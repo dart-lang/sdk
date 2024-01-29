@@ -4,8 +4,9 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart'
+    as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart' as macro;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -769,11 +770,11 @@ class LibraryMacroApplier {
       return await body();
     } on AnalyzerMacroDiagnostic catch (e) {
       targetElement.addMacroDiagnostic(e);
-    } on macro.RemoteException catch (e) {
+    } on macro.MacroException catch (e) {
       targetElement.addMacroDiagnostic(
         ExceptionMacroDiagnostic(
           annotationIndex: annotationIndex,
-          message: e.error,
+          message: e.message,
           stackTrace: e.stackTrace ?? '<null>',
         ),
       );
@@ -1163,7 +1164,7 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
       element = element.variable;
     }
     if (element == null) {
-      throw ArgumentError([
+      throw macro.MacroImplementationExceptionImpl([
         'Unresolved identifier.',
         'library: $library',
         'name: $name',

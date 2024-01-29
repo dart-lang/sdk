@@ -10,8 +10,8 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart' show MacroException;
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:frontend_server/frontend_server.dart';
@@ -1718,8 +1718,8 @@ extension type Foo(int value) {
           await runWithServer((requestChannel) async {
             try {
               await requestChannel.sendRequest<Uint8List>('dill.put', 42);
-              fail('Expected RemoteException');
-            } on RemoteException {}
+              fail('Expected MacroException');
+            } on MacroException {}
           });
         });
 
@@ -1727,8 +1727,8 @@ extension type Foo(int value) {
           await runWithServer((requestChannel) async {
             try {
               await requestChannel.sendRequest<Uint8List>('dill.put', {});
-              fail('Expected RemoteException');
-            } on RemoteException {}
+              fail('Expected MacroException');
+            } on MacroException {}
           });
         });
 
@@ -1738,8 +1738,8 @@ extension type Foo(int value) {
               await requestChannel.sendRequest<Uint8List>('dill.put', {
                 'uri': 'vm:dill',
               });
-              fail('Expected RemoteException');
-            } on RemoteException {}
+              fail('Expected MacroException');
+            } on MacroException {}
           });
         });
 
@@ -1758,8 +1758,8 @@ extension type Foo(int value) {
           await runWithServer((requestChannel) async {
             try {
               await requestChannel.sendRequest<Uint8List>('dill.remove', 42);
-              fail('Expected RemoteException');
-            } on RemoteException {}
+              fail('Expected MacroException');
+            } on MacroException {}
           });
         });
 
@@ -1767,8 +1767,8 @@ extension type Foo(int value) {
           await runWithServer((requestChannel) async {
             try {
               await requestChannel.sendRequest<Uint8List>('dill.remove', {});
-              fail('Expected RemoteException');
-            } on RemoteException {}
+              fail('Expected MacroException');
+            } on MacroException {}
           });
         });
 
@@ -1789,8 +1789,8 @@ extension type Foo(int value) {
                 'kernelForProgram',
                 42,
               );
-              fail('Expected RemoteException');
-            } on RemoteException {}
+              fail('Expected MacroException');
+            } on MacroException {}
           });
         });
 
@@ -1801,8 +1801,8 @@ extension type Foo(int value) {
                 'kernelForProgram',
                 {},
               );
-              fail('Expected RemoteException');
-            } on RemoteException {}
+              fail('Expected MacroException');
+            } on MacroException {}
           });
         });
 
@@ -1812,8 +1812,8 @@ extension type Foo(int value) {
               await requestChannel.sendRequest<Uint8List>('kernelForProgram', {
                 'sdkSummary': 'dill:vm',
               });
-              fail('Expected RemoteException');
-            } on RemoteException {}
+              fail('Expected MacroException');
+            } on MacroException {}
           });
         });
 

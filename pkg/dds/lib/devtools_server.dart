@@ -331,7 +331,7 @@ class DevToolsServer {
           .replace(queryParameters: queryParameters)
           .toString();
 
-      // If app size parameters are present, open to the standalone `appsize`
+      // If app size parameters are present, open to the standalone `app-size`
       // page, regardless if there is a vm service uri specified. We only check
       // for the presence of [appSizeBase] here because [appSizeTest] may or may
       // not be specified (it should only be present for diffs). If [appSizeTest]
@@ -340,7 +340,7 @@ class DevToolsServer {
         final startQueryParamIndex = url.indexOf('?');
         if (startQueryParamIndex != -1) {
           url = '${url.substring(0, startQueryParamIndex)}'
-              '/#/appsize'
+              '/#/app-size'
               '${url.substring(startQueryParamIndex)}';
         }
       }

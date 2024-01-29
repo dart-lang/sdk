@@ -128,8 +128,8 @@ abstract interface class DeclarationPhaseIntrospector
 
   /// Resolves an [identifier] to its [TypeDeclaration].
   ///
-  /// If [identifier] does not resolve to a [TypeDeclaration], then an
-  /// [ArgumentError] is thrown.
+  /// If [identifier] does not resolve to a [TypeDeclaration], then a
+  /// [MacroImplementationException] is thrown.
   Future<TypeDeclaration> typeDeclarationOf(covariant Identifier identifier);
 }
 
@@ -192,22 +192,22 @@ abstract interface class LibraryDefinitionBuilder implements DefinitionBuilder {
   /// Retrieve a [TypeDefinitionBuilder] for a type declaration with
   /// [identifier].
   ///
-  /// Throws an [ArgumentError] if [identifier] does not refer to a type
-  /// declaration in this library.
+  /// Throws a [MacroImplementationException] if [identifier] does not refer to
+  /// a type declaration in this library.
   Future<TypeDefinitionBuilder> buildType(Identifier identifier);
 
   /// Retrieve a [FunctionDefinitionBuilder] for a function declaration with
   /// [identifier].
   ///
-  /// Throws an [ArgumentError] if [identifier] does not refer to a top level
-  /// function declaration in this library.
+  /// Throws a [MacroImplementationException] if [identifier] does not refer to
+  /// a top level function declaration in this library.
   Future<FunctionDefinitionBuilder> buildFunction(Identifier identifier);
 
   /// Retrieve a [VariableDefinitionBuilder] for a variable declaration with
   /// [identifier].
   ///
-  /// Throws an [ArgumentError] if [identifier] does not refer to a top level
-  /// variable declaration in this library.
+  /// Throws a [MacroImplementationException] if [identifier] does not refer to
+  /// a top level variable declaration in this library.
   Future<VariableDefinitionBuilder> buildVariable(Identifier identifier);
 }
 
@@ -216,21 +216,21 @@ abstract interface class LibraryDefinitionBuilder implements DefinitionBuilder {
 abstract interface class TypeDefinitionBuilder implements DefinitionBuilder {
   /// Retrieve a [VariableDefinitionBuilder] for a field with [identifier].
   ///
-  /// Throws an [ArgumentError] if [identifier] does not refer to a field in
-  /// this class.
+  /// Throws a [MacroImplementationException] if [identifier] does not refer to
+  /// a field in this class.
   Future<VariableDefinitionBuilder> buildField(Identifier identifier);
 
   /// Retrieve a [FunctionDefinitionBuilder] for a method with [identifier].
   ///
-  /// Throws an [ArgumentError] if [identifier] does not refer to a method in
-  /// this class.
+  /// Throws a [MacroImplementationException] if [identifier] does not refer to
+  /// a method in this class.
   Future<FunctionDefinitionBuilder> buildMethod(Identifier identifier);
 
   /// Retrieve a [ConstructorDefinitionBuilder] for a constructor with
   /// [identifier].
   ///
-  /// Throws an [ArgumentError] if [identifier] does not refer to a constructor
-  /// in this class.
+  /// Throws a [MacroImplementationException] if [identifier] does not refer to
+  /// a constructor in this class.
   Future<ConstructorDefinitionBuilder> buildConstructor(Identifier identifier);
 }
 
@@ -240,8 +240,8 @@ abstract interface class EnumDefinitionBuilder
     implements TypeDefinitionBuilder {
   /// Retrieve an [EnumValueDefinitionBuilder] for an entry with [identifier].
   ///
-  /// Throws an [ArgumentError] if [identifier] does not refer to an entry on
-  /// this enum.
+  /// Throws a [MacroImplementationException] if [identifier] does not refer to
+  /// an entry on this enum.
   Future<EnumValueDefinitionBuilder> buildEnumValue(Identifier identifier);
 }
 

@@ -812,7 +812,7 @@ class _Printer {
           TypeDeclaration declaration;
           try {
             declaration = await introspector.typeDeclarationOf(identifier);
-          } on ArgumentError {
+          } on MacroImplementationException {
             sink.writelnWithIndent('noDeclaration');
             return;
           }

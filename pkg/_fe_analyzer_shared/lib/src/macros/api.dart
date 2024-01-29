@@ -8,5 +8,6 @@ import 'dart:collection' show UnmodifiableListView;
 part 'api/builders.dart';
 part 'api/code.dart';
 part 'api/diagnostic.dart';
+part 'api/exceptions.dart';
 part 'api/introspection.dart';
 part 'api/macros.dart';

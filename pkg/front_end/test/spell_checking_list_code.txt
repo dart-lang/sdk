@@ -112,6 +112,7 @@ augmentations
 augmented
 augmenting
 augments
+author
 auto
 automagically
 auxiliary
@@ -1162,6 +1163,7 @@ ordered
 orders
 ordinal
 org
+oriented
 orig
 orphancy
 orphans
@@ -1788,6 +1790,8 @@ they've
 thought
 thread
 thresh
+throwable
+throwables
 ti
 tick
 ticker
@@ -1948,6 +1952,7 @@ uri's
 url
 urls
 usages
+usefully
 user's
 usr
 usual
