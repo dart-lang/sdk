@@ -89,8 +89,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     return resolveResult.unit.featureSet;
   }
 
-  bool get _isNonNullable => _featureSet.isEnabled(Feature.non_nullable);
-
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
@@ -427,9 +425,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
                   'key',
                   type: classKey!.instantiate(
                     typeArguments: const [],
-                    nullabilitySuffix: _isNonNullable
-                        ? NullabilitySuffix.question
-                        : NullabilitySuffix.star,
+                    nullabilitySuffix: NullabilitySuffix.question,
                   ),
                 );
               }
@@ -437,14 +433,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
               // Add parameters for fields, local, and method parameters.
               for (var parameter in _parameters) {
-                builder.write('    ');
-                if (_isNonNullable) {
-                  builder.write('required');
-                } else {
-                  builder.write('@');
-                  builder.writeReference(accessorRequired!);
-                }
-                builder.write(' ');
+                builder.write('    required ');
                 if (parameter.constructorName != parameter.name) {
                   builder.writeType(parameter.type);
                   builder.write(' ');

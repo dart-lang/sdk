@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -29,23 +28,20 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
-      if (node is SimpleFormalParameter) {
-        await _forSimpleFormalParameter(builder, node);
-      } else if (node is FunctionTypedFormalParameter) {
-        await _forFunctionTypedFormalParameter(builder, node);
-      } else if (node is FieldFormalParameter) {
-        await _forFieldFormalParameter(builder, node);
-      } else if (node is SuperFormalParameter) {
-        await _forSuperFormalParameter(builder, node);
-      } else if (node is Expression) {
-        final parent = node.parent;
-        if (parent is AssignmentExpression && parent.rightHandSide == node) {
-          await _forAssignment(builder, node, parent);
-        } else if (parent is VariableDeclaration &&
-            parent.initializer == node) {
-          await _forVariableDeclaration(builder, node, parent);
-        }
+    if (node is SimpleFormalParameter) {
+      await _forSimpleFormalParameter(builder, node);
+    } else if (node is FunctionTypedFormalParameter) {
+      await _forFunctionTypedFormalParameter(builder, node);
+    } else if (node is FieldFormalParameter) {
+      await _forFieldFormalParameter(builder, node);
+    } else if (node is SuperFormalParameter) {
+      await _forSuperFormalParameter(builder, node);
+    } else if (node is Expression) {
+      final parent = node.parent;
+      if (parent is AssignmentExpression && parent.rightHandSide == node) {
+        await _forAssignment(builder, node, parent);
+      } else if (parent is VariableDeclaration && parent.initializer == node) {
+        await _forVariableDeclaration(builder, node, parent);
       }
     }
   }

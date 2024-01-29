@@ -1968,8 +1968,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (node.externalKeyword == null) {
       keywordHelper.addKeyword(Keyword.EXTERNAL);
     }
-    if (variableDeclarationList.lateKeyword == null &&
-        featureSet.isEnabled(Feature.non_nullable)) {
+    if (variableDeclarationList.lateKeyword == null) {
       keywordHelper.addKeyword(Keyword.LATE);
     }
     if (!variables.first.isConst) {
