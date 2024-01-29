@@ -95,7 +95,8 @@ mixin ErrorDetectionHelpers {
         if (typeSystem.isAssignableTo(field.type, actualStaticType,
             strictCasts: strictCasts)) {
           errorReporter.reportErrorForNode(
-            WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+            CompileTimeErrorCode
+                .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
             expression,
             [],
           );

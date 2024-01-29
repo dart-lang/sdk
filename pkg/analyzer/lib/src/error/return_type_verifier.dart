@@ -350,7 +350,8 @@ class ReturnTypeVerifier {
           if (_typeSystem.isAssignableTo(field.type, S,
               strictCasts: _strictCasts)) {
             _errorReporter.reportErrorForNode(
-              WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+              CompileTimeErrorCode
+                  .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
               expression,
               [],
             );

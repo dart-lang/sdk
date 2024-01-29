@@ -1987,6 +1987,10 @@ CompileTimeErrorCode:
         }
       }
       ```
+  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+    problemMessage: "A record literal with exactly one positional field requires a trailing comma."
+    correctionMessage: Try adding a trailing comma.
+    hasPublishedDocs: true
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
@@ -25248,10 +25252,6 @@ WarningCode:
       the call are unreachable.
 
       Parameters: none
-  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
-    problemMessage: "A record literal with exactly one positional field requires a trailing comma."
-    correctionMessage: Try adding a trailing comma.
-    hasPublishedDocs: true
   REDECLARE_ON_NON_REDECLARING_MEMBER:
     problemMessage: "The {0} doesn't redeclare a {0} declared in a superinterface."
     correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.

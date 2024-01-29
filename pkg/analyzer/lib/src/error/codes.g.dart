@@ -4415,6 +4415,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode
+      RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA = CompileTimeErrorCode(
+    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "A record literal with exactly one positional field requires a trailing "
+        "comma.",
+    correctionMessage: "Try adding a trailing comma.",
+    hasPublishedDocs: true,
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode RECURSIVE_COMPILE_TIME_CONSTANT =
       CompileTimeErrorCode(
@@ -7028,15 +7037,6 @@ class WarningCode extends AnalyzerErrorCode {
     "The receiver is of type 'Never', and will never complete with a value.",
     correctionMessage:
         "Try checking for throw expressions or type errors in the receiver",
-  );
-
-  static const WarningCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =
-      WarningCode(
-    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-    "A record literal with exactly one positional field requires a trailing "
-        "comma.",
-    correctionMessage: "Try adding a trailing comma.",
-    hasPublishedDocs: true,
   );
 
   ///  An error code indicating the use of a redeclare annotation on a member that does not redeclare.
