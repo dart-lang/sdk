@@ -192,8 +192,12 @@ class AnalysisDriver {
   /// Set to `true` after first [discoverAvailableFiles].
   bool _hasAvailableFilesDiscovered = false;
 
-  /// The list of tasks to compute files referencing a name.
-  final _referencingNameTasks = <_FilesReferencingNameTask>[];
+  /// The requests to compute files defining a class member with the name.
+  final _definingClassMemberNameRequests =
+      <_GetFilesDefiningClassMemberNameRequest>[];
+
+  /// The requests to compute files referencing a name.
+  final _referencingNameRequests = <_GetFilesReferencingNameRequest>[];
 
   /// The mapping from the files for which errors were requested using
   /// [getErrors] to the [Completer]s to report the result.
@@ -437,7 +441,10 @@ class AnalysisDriver {
     if (_requestedLibraries.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
-    if (_referencingNameTasks.isNotEmpty) {
+    if (_definingClassMemberNameRequests.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
+    }
+    if (_referencingNameRequests.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
     if (_errorsRequestedFiles.isNotEmpty) {
@@ -488,7 +495,8 @@ class AnalysisDriver {
         _requestedLibraries.isNotEmpty ||
         _requestedFiles.isNotEmpty ||
         _errorsRequestedFiles.isNotEmpty ||
-        _referencingNameTasks.isNotEmpty ||
+        _definingClassMemberNameRequests.isNotEmpty ||
+        _referencingNameRequests.isNotEmpty ||
         _indexRequestedFiles.isNotEmpty ||
         _unitElementRequestedFiles.isNotEmpty ||
         _disposeRequests.isNotEmpty;
@@ -783,36 +791,19 @@ class AnalysisDriver {
   /// Completes with files that define a class member with the [name].
   Future<List<FileState>> getFilesDefiningClassMemberName(String name) async {
     await discoverAvailableFiles();
-
-    // Get library elements, so macro generated files are added.
-    for (var file in knownFiles.toList()) {
-      await getLibraryByUri(file.uriStr);
-    }
-
-    var definingFiles = <FileState>[];
-    for (var file in knownFiles) {
-      if (file.definedClassMemberNames.contains(name)) {
-        definingFiles.add(file);
-      }
-    }
-
-    return definingFiles;
-  }
-
-  /// Return a [Future] that completes with the list of known files that
-  /// reference the given external [name].
-  Future<List<String>> getFilesReferencingName(String name) {
-    discoverAvailableFiles();
-    var task = _FilesReferencingNameTask(this, name);
-    _referencingNameTasks.add(task);
+    var request = _GetFilesDefiningClassMemberNameRequest(name);
+    _definingClassMemberNameRequests.add(request);
     _scheduler.notify();
-    return task.completer.future;
+    return request.completer.future;
   }
 
-  /// See [getFilesReferencingName].
-  Future<List<File>> getFilesReferencingName2(String name) async {
-    final pathList = await getFilesReferencingName(name);
-    return pathList.map((path) => resourceProvider.getFile(path)).toList();
+  /// Completes with files that reference the given external [name].
+  Future<List<FileState>> getFilesReferencingName(String name) async {
+    await discoverAvailableFiles();
+    var request = _GetFilesReferencingNameRequest(name);
+    _referencingNameRequests.add(request);
+    _scheduler.notify();
+    return request.completer.future;
   }
 
   /// Return the [FileResult] for the Dart file with the given [path].
@@ -1223,12 +1214,15 @@ class AnalysisDriver {
       return;
     }
 
+    // Compute files defining a class member.
+    if (_definingClassMemberNameRequests.removeLastOrNull() case var request?) {
+      await _getFilesDefiningClassMemberName(request);
+      return;
+    }
+
     // Compute files referencing a name.
-    if (_referencingNameTasks.firstOrNull case var task?) {
-      bool isDone = task.perform();
-      if (isDone) {
-        _referencingNameTasks.remove(task);
-      }
+    if (_referencingNameRequests.removeLastOrNull() case var request?) {
+      await _getFilesReferencingName(request);
       return;
     }
 
@@ -1637,6 +1631,24 @@ class AnalysisDriver {
     }
   }
 
+  Future<void> _ensureMacroGeneratedFiles() async {
+    for (var file in knownFiles.toList()) {
+      if (file.kind case LibraryFileKind libraryKind) {
+        var libraryCycle = libraryKind.libraryCycle;
+        if (libraryCycle.importsMacroClass) {
+          if (!libraryCycle.hasMacroFilesCreated) {
+            libraryCycle.hasMacroFilesCreated = true;
+            // We create macro-generated FileState(s) when load bundles.
+            await libraryContext.load(
+              targetLibrary: libraryKind,
+              performance: OperationPerformanceImpl('<root>'),
+            );
+          }
+        }
+      }
+    }
+  }
+
   void _fillSalt() {
     _fillSaltForUnlinked();
     _fillSaltForElements();
@@ -1705,6 +1717,34 @@ class AnalysisDriver {
       }
     }
     return errors;
+  }
+
+  Future<void> _getFilesDefiningClassMemberName(
+    _GetFilesDefiningClassMemberNameRequest request,
+  ) async {
+    await _ensureMacroGeneratedFiles();
+
+    var result = <FileState>[];
+    for (var file in knownFiles) {
+      if (file.definedClassMemberNames.contains(request.name)) {
+        result.add(file);
+      }
+    }
+    request.completer.complete(result);
+  }
+
+  Future<void> _getFilesReferencingName(
+    _GetFilesReferencingNameRequest request,
+  ) async {
+    await _ensureMacroGeneratedFiles();
+
+    var result = <FileState>[];
+    for (var file in knownFiles) {
+      if (file.referencedNames.contains(request.name)) {
+        result.add(file);
+      }
+    }
+    request.completer.complete(result);
   }
 
   Future<void> _getIndex(String path) async {
@@ -2518,62 +2558,18 @@ class _FileChange {
 
 enum _FileChangeKind { add, change, remove }
 
-/// Task that computes the list of files that were added to the driver and
-/// have at least one reference to an identifier [name] defined outside of the
-/// file.
-class _FilesReferencingNameTask {
-  static const int _WORK_FILES = 100;
-  static const int _MS_WORK_INTERVAL = 5;
-
-  final AnalysisDriver driver;
+class _GetFilesDefiningClassMemberNameRequest {
   final String name;
-  final Completer<List<String>> completer = Completer<List<String>>();
+  final completer = Completer<List<FileState>>();
 
-  int fileStamp = -1;
-  List<FileState>? filesToCheck;
-  int filesToCheckIndex = -1;
+  _GetFilesDefiningClassMemberNameRequest(this.name);
+}
 
-  final List<String> referencingFiles = <String>[];
+class _GetFilesReferencingNameRequest {
+  final String name;
+  final completer = Completer<List<FileState>>();
 
-  _FilesReferencingNameTask(this.driver, this.name);
-
-  /// Perform work for a fixed length of time, and complete the [completer] to
-  /// either return `true` to indicate that the task is done, or return `false`
-  /// to indicate that the task should continue to be run.
-  ///
-  /// Each invocation of an asynchronous method has overhead, which looks as
-  /// `_SyncCompleter.complete` invocation, we see as much as 62% in some
-  /// scenarios. Instead we use a fixed length of time, so we can spend less time
-  /// overall and keep quick enough response time.
-  bool perform() {
-    if (driver._fsState.fileStamp != fileStamp) {
-      filesToCheck = null;
-      referencingFiles.clear();
-    }
-
-    // Prepare files to check.
-    if (filesToCheck == null) {
-      fileStamp = driver._fsState.fileStamp;
-      filesToCheck = driver._fsState.knownFiles.toList();
-      filesToCheckIndex = 0;
-    }
-
-    Stopwatch timer = Stopwatch()..start();
-    while (filesToCheckIndex < filesToCheck!.length) {
-      if (filesToCheckIndex % _WORK_FILES == 0 &&
-          timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
-        return false;
-      }
-      FileState file = filesToCheck![filesToCheckIndex++];
-      if (file.referencedNames.contains(name)) {
-        referencingFiles.add(file.path);
-      }
-    }
-
-    // If no more files to check, complete and done.
-    completer.complete(referencingFiles);
-    return true;
-  }
+  _GetFilesReferencingNameRequest(this.name);
 }
 
 class _ResolveForCompletionRequest {
