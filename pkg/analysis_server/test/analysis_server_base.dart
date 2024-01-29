@@ -24,7 +24,7 @@ import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'mocks.dart';
-import 'src/utilities/mock_packages.dart';
+import 'support/configuration_files.dart';
 
 // TODO(scheglov): this is duplicate
 class AnalysisOptionsFileConfig {
@@ -204,7 +204,8 @@ class ContextResolutionTest with ResourceProviderMixin {
   }
 }
 
-class PubPackageAnalysisServerTest extends ContextResolutionTest {
+class PubPackageAnalysisServerTest extends ContextResolutionTest
+    with ConfigurationFilesMixin {
   // If experiments are needed,
   // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
@@ -295,13 +296,6 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
     return offset;
   }
 
-  void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
-    newPackageConfigJsonFile(
-      root.path,
-      config.toContent(toUriStr: toUriStr),
-    );
-  }
-
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
@@ -315,35 +309,13 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
     bool flutter = false,
     bool meta = false,
   }) {
-    if (config == null) {
-      config = PackageConfigFileBuilder();
-    } else {
-      config = config.copy();
-    }
-
-    config.add(
-      name: 'test',
-      rootPath: testPackageRootPath,
+    writePackageConfig(
+      testPackageRoot.path,
+      config: config,
       languageVersion: languageVersion,
+      flutter: flutter,
+      meta: meta,
     );
-
-    if (meta || flutter) {
-      var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
-    }
-
-    if (flutter) {
-      {
-        var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
-      }
-      {
-        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
-      }
-    }
-
-    writePackageConfig(testPackageRoot, config);
   }
 
   void writeTestPackagePubspecYamlFile(String content) {
