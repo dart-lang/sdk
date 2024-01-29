@@ -154,6 +154,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  enum
+    kind: keyword
   export '';
     kind: keyword
     selection: 8
@@ -209,6 +211,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  enum
     kind: keyword
   export '';
     kind: keyword
@@ -335,6 +339,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  enum
+    kind: keyword
   extension
     kind: keyword
   external
@@ -394,6 +400,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  enum
     kind: keyword
   export '';
     kind: keyword
@@ -503,6 +511,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  enum
+    kind: keyword
   export '';
     kind: keyword
     selection: 8
@@ -581,6 +591,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  enum
     kind: keyword
   export '';
     kind: keyword
@@ -677,6 +689,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  enum
+    kind: keyword
   export '';
     kind: keyword
     selection: 8
@@ -728,6 +742,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  enum
     kind: keyword
   export '';
     kind: keyword
@@ -781,6 +797,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  enum
     kind: keyword
   extension
     kind: keyword
@@ -911,6 +929,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  enum
+    kind: keyword
   export '';
     kind: keyword
     selection: 8
@@ -941,6 +961,19 @@ suggestions
   var
     kind: keyword
   void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_enum_prefix() async {
+    await computeSuggestions('''
+enu^
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  enum
     kind: keyword
 ''');
   }

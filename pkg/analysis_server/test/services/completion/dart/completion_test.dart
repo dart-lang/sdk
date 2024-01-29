@@ -335,6 +335,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  enum
+    kind: keyword
   export '';
     kind: keyword
     selection: 8
@@ -445,6 +447,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  enum
     kind: keyword
   extension
     kind: keyword
@@ -4564,6 +4568,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  enum
     kind: keyword
   extension
     kind: keyword

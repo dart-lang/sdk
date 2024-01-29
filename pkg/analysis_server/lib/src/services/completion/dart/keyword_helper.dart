@@ -139,6 +139,7 @@ class KeywordHelper {
     addKeyword(Keyword.CONST);
     addKeyword(Keyword.COVARIANT);
     addKeyword(Keyword.DYNAMIC);
+    addKeyword(Keyword.ENUM);
     addKeyword(Keyword.EXTERNAL);
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.MIXIN);
