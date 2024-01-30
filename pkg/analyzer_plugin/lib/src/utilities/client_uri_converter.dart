@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:path/path.dart' as path;
 
 /// The file suffix used for virtual macro files in the analyzer.
@@ -17,7 +16,7 @@ const macroClientUriScheme = 'dart-macro+file';
 /// The simplest form of this class simple translates between file paths and
 /// `file://` URIs but depending on client capabilities some paths/URIs may be
 /// re-written to support features like virtual files for macros.
-class ClientUriConverter {
+abstract class ClientUriConverter {
   final path.Context _context;
 
   /// The URI schemes that are supported by this converter.
@@ -29,27 +28,69 @@ class ClientUriConverter {
   /// The URI schemes that are supported by this converter except 'file'.
   final Set<String> supportedNonFileSchemes;
 
-  /// A set of document filters for Dart files in the supported schemes.
-  final List<TextDocumentFilterWithScheme> filters;
-
   /// Creates a converter that does nothing besides translation between file
   /// paths and `file://` URIs.
-  ClientUriConverter.noop(path.Context context) : this._(context);
+  factory ClientUriConverter.noop(path.Context context) =>
+      _NoOpConverter(context);
 
   /// Creates a converter that translates paths/URIs for virtual files such as
   /// those created by macros.
-  ClientUriConverter.withVirtualFileSupport(path.Context context)
-      : this._(context, {macroClientUriScheme});
+  factory ClientUriConverter.withVirtualFileSupport(path.Context context) =>
+      _VirtualFileClientUriConverter(context);
 
   ClientUriConverter._(this._context, [this.supportedNonFileSchemes = const {}])
-      : supportedSchemes = {'file', ...supportedNonFileSchemes},
-        filters = [
-          for (var scheme in {'file', ...supportedNonFileSchemes})
-            TextDocumentFilterWithScheme(language: 'dart', scheme: scheme)
-        ];
+      : supportedSchemes = {'file', ...supportedNonFileSchemes};
+
+  /// Converts client FilePath (which may be a URI or a file path depending on
+  /// client capbilities) into a file path/reference from the analyzer.
+  ///
+  /// This is the legacy protocol equiv of [fromClientUri].
+  String fromClientFilePath(String filePathOrUri);
 
   /// Converts a URI provided by the client into a file path/reference that can
   /// be used by the analyzer.
+  ///
+  /// This is the LSP equiv of [fromClientFilePath].
+  String fromClientUri(Uri uri);
+
+  /// Converts a file path/reference from the analyzer into a client FilePath
+  /// (which may be a URI or a file path depending on client capbilities).
+  ///
+  /// This is the legacy protocol equiv of [toClientUri].
+  String toClientFilePath(String filePath);
+
+  /// Converts a file path/reference from the analyzer into a URI to be sent to
+  /// the client.
+  ///
+  /// This is the LSP equiv of [toClientFilePath].
+  Uri toClientUri(String filePath);
+}
+
+class _NoOpConverter extends ClientUriConverter {
+  _NoOpConverter(super.context) : super._();
+
+  @override
+  String fromClientFilePath(String filePathOrUri) => filePathOrUri;
+
+  @override
+  String fromClientUri(Uri uri) => _context.fromUri(uri);
+
+  @override
+  String toClientFilePath(String filePath) => filePath;
+
+  @override
+  Uri toClientUri(String filePath) => _context.toUri(filePath);
+}
+
+class _VirtualFileClientUriConverter extends ClientUriConverter {
+  _VirtualFileClientUriConverter(path.Context context)
+      : super._(context, {macroClientUriScheme});
+
+  @override
+  String fromClientFilePath(String filePathOrUri) =>
+      fromClientUri(Uri.parse(filePathOrUri));
+
+  @override
   String fromClientUri(Uri uri) {
     // For URIs with no scheme, assume it was a relative path and provide a
     // better message than "scheme '' is not supported".
@@ -81,8 +122,10 @@ class ClientUriConverter {
     }
   }
 
-  /// Converts a file path/reference from the analyzer into a URI to be sent to
-  /// the client.
+  @override
+  String toClientFilePath(String filePath) => toClientUri(filePath).toString();
+
+  @override
   Uri toClientUri(String filePath) {
     // Map '/.../x.macro.dart' onto macro scheme.
     if (filePath.endsWith(macroClientFileSuffix) &&

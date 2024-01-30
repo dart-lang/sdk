@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/utilities/client_uri_converter.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../../tool/codebase/failing_tests.dart';
-import '../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -16,7 +14,7 @@ void main() {
 }
 
 @reflectiveTest
-class ClientUriConverterTest extends AbstractSingleUnitTest {
+class ClientUriConverterTest with ResourceProviderMixin {
   Future<void> test_noop_fromUri() async {
     var converter = ClientUriConverter.noop(pathContext);
 

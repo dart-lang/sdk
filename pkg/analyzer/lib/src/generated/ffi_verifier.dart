@@ -1625,7 +1625,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate the invocation of the extension method
   /// `Pointer<T extends Struct>.ref`.
   void _validateRefPrefixedIdentifier(PrefixedIdentifier node) {
-    var targetType = node.prefix.typeOrThrow;
+    var targetType = node.prefix.staticType;
     if (!_isValidFfiNativeType(targetType,
         allowVoid: false, allowEmptyStruct: true)) {
       final AstNode errorNode = node;
