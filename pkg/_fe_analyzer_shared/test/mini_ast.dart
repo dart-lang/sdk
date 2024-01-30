@@ -2800,6 +2800,7 @@ class MiniAstOperations implements TypeAnalyzerOperations<Var, Type> {
         fail('Unknown downward inference query: $query');
   }
 
+  @override
   Type extensionTypeErasure(Type type) {
     var query = '$type';
     return _extensionTypeErasure[query] ?? type;

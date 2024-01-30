@@ -55,6 +55,10 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
   /// the [TypeClassification] enum.
   TypeClassification classifyType(Type type);
 
+  /// If [type] is an extension type, returns the ultimate representation type.
+  /// Otherwise returns [type] as is.
+  Type extensionTypeErasure(Type type);
+
   /// Returns the "remainder" of [from] when [what] has been removed from
   /// consideration by an instance check.
   Type factor(Type from, Type what);
