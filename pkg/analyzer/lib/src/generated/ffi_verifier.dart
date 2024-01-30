@@ -219,9 +219,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (element is MethodElement) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeStructArrayExtension ||
-          enclosingElement.isNativeUnionPointerExtension ||
-          enclosingElement.isNativeUnionArrayExtension) {
+          enclosingElement.isNativeStructArrayExtension) {
         if (element.name == '[]') {
           _validateRefIndexed(node);
         }
@@ -234,12 +232,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var constructor = node.constructorName.staticElement;
     var class_ = constructor?.enclosingElement;
     if (class_.isStructSubclass || class_.isUnionSubclass) {
-      if (!constructor!.isFactory) {
-        _errorReporter.reportErrorForNode(
-          FfiCode.CREATION_OF_STRUCT_OR_UNION,
-          node.constructorName,
-        );
-      }
+      _errorReporter.reportErrorForNode(
+        FfiCode.CREATION_OF_STRUCT_OR_UNION,
+        node.constructorName,
+      );
     } else if (class_.isNativeCallable) {
       _validateNativeCallable(node);
     }
@@ -293,10 +289,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         } else if (element.name == 'elementAt') {
           _validateElementAt(node);
         }
-      } else if (enclosingElement.isStruct || enclosingElement.isUnion) {
-        if (element.name == 'create') {
-          _validateCreate(node, enclosingElement.name!);
-        }
       } else if (enclosingElement.isNative) {
         if (element.name == 'addressOf') {
           _validateNativeAddressOf(node);
@@ -328,8 +320,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var element = node.staticElement;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeUnionPointerExtension) {
+      if (enclosingElement.isNativeStructPointerExtension) {
         if (element.name == 'ref') {
           _validateRefPrefixedIdentifier(node);
         }
@@ -343,8 +334,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var element = node.propertyName.staticElement;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeUnionPointerExtension) {
+      if (enclosingElement.isNativeStructPointerExtension) {
         if (element.name == 'ref') {
           _validateRefPropertyAccess(node);
         }
@@ -1173,22 +1163,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _validateCreate(MethodInvocation node, String errorClass) {
-    final typeArgumentTypes = node.typeArgumentTypes;
-    if (typeArgumentTypes == null || typeArgumentTypes.length != 1) {
-      return;
-    }
-    final DartType dartType = typeArgumentTypes[0];
-    if (!_isValidFfiNativeType(dartType)) {
-      final AstNode errorNode = node;
-      _errorReporter.reportErrorForNode(
-        FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
-        errorNode,
-        ['$errorClass.create'],
-      );
-    }
-  }
-
   void _validateElementAt(MethodInvocation node) {
     var targetType = node.realTarget?.staticType;
     if (targetType is InterfaceType && targetType.isPointer) {
@@ -1651,7 +1625,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate the invocation of the extension method
   /// `Pointer<T extends Struct>.ref`.
   void _validateRefPrefixedIdentifier(PrefixedIdentifier node) {
-    var targetType = node.prefix.staticType;
+    var targetType = node.prefix.typeOrThrow;
     if (!_isValidFfiNativeType(targetType,
         allowVoid: false, allowEmptyStruct: true)) {
       final AstNode errorNode = node;
@@ -1945,20 +1919,6 @@ extension on Element? {
     final element = this;
     return element is ExtensionElement &&
         element.name == 'StructPointer' &&
-        element.isFfiExtension;
-  }
-
-  bool get isNativeUnionArrayExtension {
-    final element = this;
-    return element is ExtensionElement &&
-        element.name == 'UnionArray' &&
-        element.isFfiExtension;
-  }
-
-  bool get isNativeUnionPointerExtension {
-    final element = this;
-    return element is ExtensionElement &&
-        element.name == 'UnionPointer' &&
         element.isFfiExtension;
   }
 

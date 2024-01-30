@@ -251,12 +251,8 @@ class FfiTransformer extends Transformer {
   final Procedure arrayNestedDimensionsFlattened;
   final Procedure arrayNestedDimensionsFirst;
   final Procedure arrayNestedDimensionsRest;
-  final Procedure structCreate;
-  final Procedure unionCreate;
   final Constructor structFromTypedDataBase;
   final Constructor unionFromTypedDataBase;
-  final Constructor structFromTypedData;
-  final Constructor unionFromTypedData;
   final Constructor arrayConstructor;
   final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
@@ -422,16 +418,10 @@ class FfiTransformer extends Transformer {
             'dart:ffi', 'Array', 'get:_nestedDimensionsFirst'),
         arrayNestedDimensionsRest = index.getProcedure(
             'dart:ffi', 'Array', 'get:_nestedDimensionsRest'),
-        structCreate = index.getProcedure('dart:ffi', 'Struct', 'create'),
-        unionCreate = index.getProcedure('dart:ffi', 'Union', 'create'),
         structFromTypedDataBase =
             index.getConstructor('dart:ffi', 'Struct', '_fromTypedDataBase'),
         unionFromTypedDataBase =
             index.getConstructor('dart:ffi', 'Union', '_fromTypedDataBase'),
-        structFromTypedData =
-            index.getConstructor('dart:ffi', 'Struct', '_fromTypedData'),
-        unionFromTypedData =
-            index.getConstructor('dart:ffi', 'Union', '_fromTypedData'),
         arrayConstructor = index.getConstructor('dart:ffi', 'Array', '_'),
         fromAddressInternal =
             index.getTopLevelProcedure('dart:ffi', '_fromAddress'),
