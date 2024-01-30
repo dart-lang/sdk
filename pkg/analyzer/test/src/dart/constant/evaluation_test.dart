@@ -946,6 +946,17 @@ void f(Object? x) {
 ''');
   }
 
+  test_recordTypeAnnotation() async {
+    await assertNoErrorsInCode(r'''
+const a = ('',) is (int,);
+''');
+    final result = _topLevelVar('a');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::a
+''');
+  }
+
   test_typeParameter() async {
     await assertErrorsInCode('''
 class A<X> {

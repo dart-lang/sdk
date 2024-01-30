@@ -1245,6 +1245,15 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
+  Constant? visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    return DartObjectImpl(
+      typeSystem,
+      _typeProvider.typeType,
+      TypeState(node.type),
+    );
+  }
+
+  @override
   Constant visitSetOrMapLiteral(SetOrMapLiteral node) {
     // Note: due to dartbug.com/33441, it's possible that a set/map literal
     // resynthesized from a summary will have neither its `isSet` or `isMap`
