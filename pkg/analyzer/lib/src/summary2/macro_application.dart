@@ -280,7 +280,8 @@ class LibraryMacroApplier {
             _elementToIntrospectionCycleId[element] = id;
           }
 
-          throw StateError('[$id] Declarations phase introspection cycle.');
+          throw macro.MacroIntrospectionCycleExceptionImpl(
+              '[$id] Declarations phase introspection cycle.');
         }
       }
     }
@@ -1050,7 +1051,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     // We might have detected a cycle for this target element.
     // Either just now, or before.
     if (applier._elementToIntrospectionCycleId[element] case var id?) {
-      throw StateError('[$id] Declarations phase introspection cycle.');
+      throw macro.MacroIntrospectionCycleExceptionImpl(
+          '[$id] Declarations phase introspection cycle.');
     }
   }
 }
