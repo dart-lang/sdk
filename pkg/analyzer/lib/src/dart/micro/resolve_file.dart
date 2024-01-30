@@ -786,7 +786,8 @@ class FileResolver {
         declaredVariables: contextObjects!.declaredVariables,
         byteStore: byteStore,
         infoDeclarationStore: const NoOpInfoDeclarationStore(),
-        analysisOptions: contextObjects!.analysisOptions,
+        analysisOptionsMap: AnalysisOptionsMap.forSharedOptions(
+            contextObjects!.analysisOptions),
         analysisSession: contextObjects!.analysisSession,
         logger: logger,
         fileSystemState: fsState!,

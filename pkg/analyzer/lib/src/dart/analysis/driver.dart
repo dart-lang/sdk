@@ -94,7 +94,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 332;
+  static const int DATA_VERSION = 333;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -264,8 +264,7 @@ class AnalysisDriver {
   bool _disposed = false;
 
   /// A map that associates files to corresponding analysis options.
-  // TODO(pq): retype to OptionsOptionsMap
-  late final SharedOptionsOptionsMap analysisOptionsMap;
+  late final AnalysisOptionsMap analysisOptionsMap;
 
   /// Create a new instance of [AnalysisDriver].
   ///
@@ -283,7 +282,7 @@ class AnalysisDriver {
     this.analysisContext,
     @Deprecated("Use 'analysisOptionsMap' instead")
     AnalysisOptionsImpl? analysisOptions,
-    SharedOptionsOptionsMap? analysisOptionsMap,
+    AnalysisOptionsMap? analysisOptionsMap,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
@@ -341,7 +340,7 @@ class AnalysisDriver {
 
   /// Return the analysis options used to control analysis.
   @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  AnalysisOptions get analysisOptions => analysisOptionsMap.sharedOptions;
+  AnalysisOptions get analysisOptions => analysisOptionsMap.firstOrDefault;
 
   /// Return the current analysis session.
   AnalysisSessionImpl get currentSession {
@@ -350,9 +349,9 @@ class AnalysisDriver {
 
   /// Return a list of the names of all the plugins enabled in analysis options
   /// in this driver.
-  List<String> get enabledPluginNames =>
-      // TODO(pq): get this value from a union of all the plugins enabled in the  `analysisOptionsMap`
-      analysisOptionsMap.sharedOptions.enabledPluginNames;
+  List<String> get enabledPluginNames => analysisOptionsMap.entries
+      .map((e) => e.options.enabledPluginNames)
+      .flattenedToList2;
 
   /// Return the stream that produces [ExceptionResult]s.
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;
@@ -375,7 +374,7 @@ class AnalysisDriver {
       logger: _logger,
       byteStore: _byteStore,
       infoDeclarationStore: _infoDeclarationStore,
-      analysisOptions: analysisOptionsMap.sharedOptions,
+      analysisOptionsMap: analysisOptionsMap,
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
       macroSupport: macroSupport,
@@ -1658,7 +1657,6 @@ class AnalysisDriver {
   void _fillSaltForElements() {
     var buffer = ApiSignature();
     buffer.addInt(DATA_VERSION);
-    buffer.addUint32List(analysisOptionsMap.sharedOptions.signatureForElements);
     _addDeclaredVariablesToSignature(buffer);
     _saltForElements = buffer.toUint32List();
   }
@@ -1668,7 +1666,6 @@ class AnalysisDriver {
     buffer.addInt(DATA_VERSION);
     buffer.addBool(enableIndex);
     buffer.addBool(enableDebugResolutionMarkers);
-    buffer.addUint32List(analysisOptionsMap.sharedOptions.signature);
     _addDeclaredVariablesToSignature(buffer);
 
     var workspace = analysisContext?.contextRoot.workspace;
@@ -1681,7 +1678,7 @@ class AnalysisDriver {
     var buffer = ApiSignature();
     buffer.addInt(DATA_VERSION);
     buffer.addBool(enableIndex);
-    buffer.addUint32List(analysisOptionsMap.sharedOptions.unlinkedSignature);
+
     _saltForUnlinked = buffer.toUint32List();
   }
 
@@ -1811,6 +1808,7 @@ class AnalysisDriver {
     signature.addUint32List(_saltForResolution);
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);
+    signature.addUint32List(library.file.analysisOptions.signature);
     signature.addString(file.uriStr);
     signature.addString(file.contentHash);
     return signature.toHex();

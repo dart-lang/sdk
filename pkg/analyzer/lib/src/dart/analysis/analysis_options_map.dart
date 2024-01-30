@@ -17,6 +17,10 @@ class AnalysisOptionsMap {
   /// Create an empty [AnalysisOptionsMap] instance.
   AnalysisOptionsMap();
 
+  /// Get the first options entry or the default options object if there is none.
+  AnalysisOptionsImpl get firstOrDefault =>
+      entries.firstOrNull?.options ?? _defaultOptions;
+
   /// Map this [folder] to the given [options].
   void add(Folder folder, AnalysisOptionsImpl options) {
     entries.add(OptionsMapEntry(folder, options));
