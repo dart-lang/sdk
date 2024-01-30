@@ -88,7 +88,7 @@ class Isolate {
       _unsupported();
 }
 
-/** Default factory for receive ports. */
+/// Default factory for receive ports.
 @patch
 class ReceivePort {
   @patch

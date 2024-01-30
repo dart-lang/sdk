@@ -25,9 +25,7 @@ abstract class Interceptor {
   String toString() => JS<String>('!', '#.toString()', this);
 }
 
-/**
- * The interceptor class for [bool].
- */
+/// The interceptor class for [bool].
 @JsPeerInterface(name: 'Boolean')
 final class JSBool extends Interceptor implements bool, TrustedGetRuntimeType {
   const JSBool();
@@ -55,11 +53,9 @@ final class JSBool extends Interceptor implements bool, TrustedGetRuntimeType {
   Type get runtimeType => bool;
 }
 
-/**
- * The supertype for JSString and JSArray. Used by the backend as to
- * have a type mask that contains the objects that we can use the
- * native JS [] operator and length on.
- */
+/// The supertype for JSString and JSArray. Used by the backend as to
+/// have a type mask that contains the objects that we can use the
+/// native JS [] operator and length on.
 abstract class JSIndexable<E> {
   int get length;
   E operator [](int index);

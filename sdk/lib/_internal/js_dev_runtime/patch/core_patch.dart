@@ -161,7 +161,7 @@ class Expando<T extends Object> {
         object is num ||
         object is String ||
         object is Record) {
-      throw new ArgumentError.value(
+      throw ArgumentError.value(
           object,
           "Expandos are not allowed on strings, numbers, booleans, records,"
           " or null");
@@ -174,7 +174,7 @@ class Expando<T extends Object> {
     // JavaScript's WeakMap already throws on non-Object setter keys, so
     // we can rely on the underlying behavior for all non-Records.
     if (object is Record) {
-      throw new ArgumentError.value(
+      throw ArgumentError.value(
           object,
           "Expandos are not allowed on strings, numbers, booleans, records,"
           " or null");
@@ -243,7 +243,7 @@ class int {
     var value = tryParse(source, radix: radix);
     if (value != null) return value;
     if (onError != null) return onError(source);
-    throw new FormatException(source);
+    throw FormatException(source);
   }
 
   @patch
@@ -281,7 +281,7 @@ class double {
     var value = tryParse(source);
     if (value != null) return value;
     if (onError != null) return onError(source);
-    throw new FormatException('Invalid double', source);
+    throw FormatException('Invalid double', source);
   }
 
   @patch
@@ -893,11 +893,9 @@ class _Uri {
   // are not encoded by any encoding table.
   static final RegExp _needsNoEncoding = RegExp(r'^[\-\.0-9A-Z_a-z~]*$');
 
-  /**
-   * This is the internal implementation of JavaScript's encodeURI function.
-   * It encodes all characters in the string [text] except for those
-   * that appear in [canonicalTable], and returns the escaped string.
-   */
+  /// This is the internal implementation of JavaScript's encodeURI function.
+  /// It encodes all characters in the string [text] except for those
+  /// that appear in [canonicalTable], and returns the escaped string.
   @patch
   static String _uriEncode(List<int> canonicalTable, String text,
       Encoding encoding, bool spaceToPlus) {
