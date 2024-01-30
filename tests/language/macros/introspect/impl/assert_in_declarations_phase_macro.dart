@@ -9,25 +9,34 @@ import 'package:expect/expect.dart';
 
 import 'impl.dart';
 
-macro class AssertInDeclarationsPhase
-    implements ClassDeclarationsMacro {
+macro class AssertInDeclarationsPhase implements ClassDeclarationsMacro {
   final String? targetLibrary;
   final String targetName;
   final List? constructorsOf;
   final List? fieldsOf;
   final List? methodsOf;
+  final String? expectThrowsA;
 
   const AssertInDeclarationsPhase(
       {this.targetLibrary,
       required this.targetName,
       this.constructorsOf,
       this.fieldsOf,
-      this.methodsOf});
+      this.methodsOf,
+      this.expectThrowsA});
 
   @override
   Future<void> buildDeclarationsForClass(
-          ClassDeclaration clazz, MemberDeclarationBuilder builder) =>
-      _assert(clazz, builder);
+      ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
+    Object? thrown;
+    try {
+      await _assert(clazz, builder);
+      thrown = null;
+    } catch (e) {
+      thrown = e;
+    }
+    Expect.equals(expectThrowsA, thrown?.runtimeType.toString());
+  }
 
   // TODO(davidmorgan): support asserting in more places.
 
