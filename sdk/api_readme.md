@@ -8,8 +8,8 @@ Welcome to the Dart API reference documentation, covering the
   * [dart:io](dart-io/dart-io-library.html): I/O for non-web apps.
   * [dart:js_interop](dart-js_interop/dart-js_interop-library.html)
     and [package:web](https://pub.dev/documentation/web):
-    Web interop features and APIs for accessing JavaScript and browser bindings.
-    
+    Web interop features and API bindings for accessing JavaScript and web libraries.
+
 The core libraries - except for `dart:core` - must be imported before they're
 available for use:
 
