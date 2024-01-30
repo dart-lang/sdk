@@ -763,7 +763,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       var weakNullSafetyWarnings = !(weakNullSafetyErrors || _soundNullSafety);
       var repositoryUri = Uri.directory(Repository.dir.toNativePath());
       var dartLibraryPath = repositoryUri
-          .resolve('pkg/dev_compiler/lib/js/legacy/dart_library.js')
+          .resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js')
           .path;
       var sdkJsDir =
           Uri.directory(_configuration.buildDirectory).resolve('$genDir/sdk');

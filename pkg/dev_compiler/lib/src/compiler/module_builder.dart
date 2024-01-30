@@ -170,8 +170,7 @@ abstract class _ModuleBuilder {
   }
 }
 
-/// Generates modules for with our DDC `dart_library.js` loading mechanism.
-// TODO(jmesserly): remove this and replace with something that interoperates.
+/// Generates DDC modules with our `ddc_module_loader.js` loading mechanism.
 class DdcModuleBuilder extends _ModuleBuilder {
   /// Build a module variable definition for [import].
   ///

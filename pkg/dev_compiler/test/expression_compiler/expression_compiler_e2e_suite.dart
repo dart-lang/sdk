@@ -178,8 +178,8 @@ class ExpressionEvaluationTestDriver {
         if (!File(dartSdkPath).existsSync()) {
           throw Exception('Unable to find Dart SDK at $dartSdkPath');
         }
-        var dartLibraryPath =
-            escaped(p.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js'));
+        var dartLibraryPath = escaped(
+            p.join(ddcPath, 'lib', 'js', 'ddc', 'ddc_module_loader.js'));
         var outputPath = output.toFilePath();
         // This is used in the DDC module system for multiapp workflows and is
         // stubbed here.
