@@ -2451,7 +2451,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   final bool enableTripleShift;
   final bool enableAsserts;
-  bool enableConstFunctions;
+  final bool enableConstFunctions;
   bool inExtensionTypeConstConstructor = false;
 
   final Map<Constant, Constant> canonicalizationCache;

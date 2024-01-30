@@ -23,9 +23,9 @@ import 'pragma.dart';
 /// fields and getters annotated with "vm:platform-const".
 ///
 /// To avoid restricting getters annotated with "vm:platform-const" to be just
-/// a single return statement whose body is evaluated, we treat annotated
-/// getters as const functions. If [enableConstFunctions] is false, then
-/// only annotated getters are treated this way.
+/// a single return statement whose body is evaluated, as well as handling
+/// immediately-invoked closures wrapping complex initializing code in field
+/// initializers, we enable constant evaluation of functions.
 class VMConstantEvaluator extends ConstantEvaluator {
   final TargetOS? _targetOS;
   final Map<String, Constant> _constantFields = {};
@@ -43,7 +43,6 @@ class VMConstantEvaluator extends ConstantEvaluator {
       this._targetOS,
       this._pragmaParser,
       {bool enableTripleShift = false,
-      bool enableConstFunctions = false,
       bool enableAsserts = true,
       bool errorOnUnevaluatedConstant = false,
       EvaluationMode evaluationMode = EvaluationMode.weak})
@@ -51,7 +50,9 @@ class VMConstantEvaluator extends ConstantEvaluator {
         super(dartLibrarySupport, backend, component, environmentDefines,
             typeEnvironment, errorReporter,
             enableTripleShift: enableTripleShift,
-            enableConstFunctions: enableConstFunctions,
+            // We use evaluation of const functions for getters and immediately
+            // invoked closures in field initializers.
+            enableConstFunctions: true,
             enableAsserts: enableAsserts,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode) {
@@ -68,10 +69,10 @@ class VMConstantEvaluator extends ConstantEvaluator {
       Target target, Component component, TargetOS? targetOS, NnbdMode nnbdMode,
       {bool evaluateAnnotations = true,
       bool enableTripleShift = false,
-      bool enableConstFunctions = false,
       bool enableConstructorTearOff = false,
       bool enableAsserts = true,
       bool errorOnUnevaluatedConstant = false,
+      ErrorReporter? errorReporter,
       Map<String, String>? environmentDefines,
       CoreTypes? coreTypes,
       ClassHierarchy? hierarchy}) {
@@ -90,11 +91,10 @@ class VMConstantEvaluator extends ConstantEvaluator {
         component,
         environmentDefines,
         typeEnvironment,
-        const SimpleErrorReporter(),
+        errorReporter ?? const SimpleErrorReporter(),
         targetOS,
         ConstantPragmaAnnotationParser(coreTypes, target),
         enableTripleShift: enableTripleShift,
-        enableConstFunctions: enableConstFunctions,
         enableAsserts: enableAsserts,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: EvaluationMode.fromNnbdMode(nnbdMode));
@@ -128,24 +128,14 @@ class VMConstantEvaluator extends ConstantEvaluator {
         }
       }
 
-      final initializer = target.initializer;
-      if (initializer == null) {
-        throw 'Cannot const evaluate annotated field with no initializer';
-      }
+      // The base class only evaluates const fields, so the VM constant
+      // evaluator must manually request the initializer be evaluated.
+      // instead of just calling super.visitStaticGet(target).
       return withNewEnvironment(
-          () => evaluateExpressionInContext(target, initializer));
+          () => evaluateExpressionInContext(target, target.initializer!));
     }
 
-    if (target is Procedure && target.kind == ProcedureKind.Getter) {
-      // Temporarily enable const functions and use the base class to evaluate
-      // the getter with appropriate caching/recursive evaluation checks.
-      final oldEnableConstFunctions = enableConstFunctions;
-      enableConstFunctions = true;
-      final result = super.visitStaticGet(node);
-      enableConstFunctions = oldEnableConstFunctions;
-      return result;
-    }
-
-    throw 'Expected annotated field with initializer or getter, got $target';
+    // The base class already handles constant evaluation of a getter.
+    return super.visitStaticGet(node);
   }
 }
