@@ -7,13 +7,11 @@
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';
-import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
 import 'ffi_test_helpers.dart';
-import 'regress_47673_test.dart';
 
 void main() {
   testPointerBasic();

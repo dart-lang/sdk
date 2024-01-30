@@ -137,59 +137,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
     final target = node.target;
     if (hierarchy.isSubclassOf(target.enclosingClass, compoundClass) &&
-        target.name != Name("#fromTypedDataBase") &&
-        target.name != Name("#fromTypedData")) {
+        target.name != Name("#fromTypedDataBase")) {
       diagnosticReporter.report(messageFfiCreateOfStructOrUnion,
           node.fileOffset, 1, node.location?.file);
     }
     return super.visitConstructorInvocation(node);
-  }
-
-  /// Transforms calls to Struct.create and Union.create.
-  ///
-  /// Transforms `create<T>()` into
-  ///
-  /// ```
-  /// Compound._fromTypedDataBase(Uint8List(sizeOf<T>()))
-  /// ```
-  ///
-  /// and `create<T>(typedList)` into
-  ///
-  /// ```
-  /// Compound._fromTypedData(typedList, sizeOf<T>())
-  /// ```
-  ///
-  /// in subclasses of `Struct` and `Union`.
-  Expression _transformCompoundCreate(StaticInvocation node) {
-    final positionalArguments = node.arguments.positional;
-    final nativeType = (node.arguments.types.first as InterfaceType);
-    final constructors = nativeType.classNode.constructors;
-    final sizeOfExpression = inlineSizeOf(nativeType)!;
-    if (positionalArguments.isNotEmpty) {
-      // Check length of provided typed data, use checked constructor.
-      return ConstructorInvocation(
-        constructors.firstWhere((c) => c.name == Name("#fromTypedData")),
-        Arguments([
-          (defaultExpression(node.arguments.positional.first) as Expression),
-          (positionalArguments.length >= 2
-              ? defaultExpression(positionalArguments[1]) as Expression
-              : ConstantExpression(IntConstant(0))),
-          // Length in bytes to check the typedData against.
-          sizeOfExpression,
-        ]),
-      );
-    }
-
-    // Correct-size typed data is allocated, use unchecked constructor.
-    return ConstructorInvocation(
-      constructors.firstWhere((c) => c.name == Name("#fromTypedDataBase")),
-      Arguments([
-        StaticInvocation(
-          uint8ListFactory,
-          Arguments([sizeOfExpression]),
-        ),
-      ]),
-    );
   }
 
   @override
@@ -521,10 +473,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               functionType: FunctionTypeInstantiator.instantiate(
                   allocateFunctionType, node.arguments.types));
         }
-      } else if (target == structCreate || target == unionCreate) {
-        final nativeType = node.arguments.types.first;
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
-        return _transformCompoundCreate(node);
       } else if (target == nativeAddressOf) {
         return _replaceNativeAddressOf(node);
       }

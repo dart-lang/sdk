@@ -86,7 +86,7 @@ void transformLibraries(
     // If dart:ffi is not loaded (for real): do not do the transformation.
     return;
   }
-  final transformer = _FfiDefinitionTransformer(index, coreTypes, hierarchy,
+  final transformer = new _FfiDefinitionTransformer(index, coreTypes, hierarchy,
       diagnosticReporter, referenceFromIndex, changedStructureNotifier);
   libraries.forEach(transformer.visitLibrary);
   transformer.manualVisitInTopologicalOrder();
@@ -510,7 +510,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     /// #fromTypedDataBase(Object #typedDataBase) :
     ///   super._fromTypedDataBase(#typedDataBase);
     /// ```
-    final VariableDeclaration typedDataBase = VariableDeclaration(
+    final VariableDeclaration typedDataBase = new VariableDeclaration(
         "#typedDataBase",
         type: coreTypes.objectNonNullableRawType,
         isSynthesized: true);
@@ -537,66 +537,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     // in return position in FFI calls, and by value in arguments in FFI
     // callbacks.
     node.addConstructor(ctor);
-
-    {
-      /// Add a constructor which `Struct.create` can use.
-      ///
-      /// ```dart
-      /// MyStruct.#fromTypedData(
-      ///   super.typedData,
-      ///   super.offset,
-      ///   super.sizeInBytes,
-      /// ) : super._fromTypedData();
-      /// ```
-      final VariableDeclaration typedData = VariableDeclaration(
-        "#typedData",
-        type: InterfaceType(
-          typedDataClass,
-          Nullability.nonNullable,
-          const <DartType>[],
-        ),
-        isSynthesized: true,
-      );
-      final VariableDeclaration offset = VariableDeclaration(
-        "#offset",
-        type: coreTypes.intNonNullableRawType,
-        isSynthesized: true,
-      );
-      final VariableDeclaration sizeInBytes = VariableDeclaration(
-        "#sizeInBytes",
-        type: coreTypes.intNonNullableRawType,
-        isSynthesized: true,
-      );
-      final name = Name("#fromTypedData");
-      final reference = indexedClass?.lookupConstructorReference(name);
-      final Constructor ctor = Constructor(
-          FunctionNode(
-            EmptyStatement(),
-            positionalParameters: [typedData, offset, sizeInBytes],
-            returnType: InterfaceType(node, Nullability.nonNullable),
-          ),
-          name: name,
-          initializers: [
-            SuperInitializer(
-              node.superclass == structClass
-                  ? structFromTypedData
-                  : unionFromTypedData,
-              Arguments(
-                [
-                  VariableGet(typedData),
-                  VariableGet(offset),
-                  VariableGet(sizeInBytes),
-                ],
-              ),
-            )
-          ],
-          fileUri: node.fileUri,
-          reference: reference)
-        ..fileOffset = node.fileOffset
-        ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
-
-      node.addConstructor(ctor);
-    }
   }
 
   // Works only for non-transformed classes.

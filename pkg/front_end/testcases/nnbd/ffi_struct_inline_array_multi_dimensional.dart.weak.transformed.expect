@@ -17,9 +17,6 @@ final class StructInlineArrayMultiDimensional extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::StructInlineArrayMultiDimensional
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
-  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::StructInlineArrayMultiDimensional
-    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
-    ;
   @#C10
   get a0() → ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>
     return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Uint8>>>( block {
@@ -83,7 +80,7 @@ constants  {
 Extra constant evaluation status:
 Evaluated: NullCheck @ org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:18:25 -> IntConstant(0)
 Evaluated: NullCheck @ org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:19:8 -> IntConstant(1)
-Extra constant evaluation: evaluated: 113, effectively constant: 2
+Extra constant evaluation: evaluated: 110, effectively constant: 2
 
 
 Constructor coverage from constants:
