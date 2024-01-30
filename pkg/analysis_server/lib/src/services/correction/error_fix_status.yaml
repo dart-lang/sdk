@@ -1380,6 +1380,8 @@ CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
   status: noFix
+CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  status: hasFix
 CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR:
   status: noFix
 CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT:
@@ -3749,8 +3751,6 @@ WarningCode.RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
-WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
-  status: hasFix
 WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER:
   status: hasFix
 WarningCode.REMOVED_LINT_USE:

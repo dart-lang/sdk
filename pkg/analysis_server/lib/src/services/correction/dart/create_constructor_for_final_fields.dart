@@ -37,10 +37,6 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     return null;
   }
 
-  bool get _hasNonNullableFeature {
-    return unit.featureSet.isEnabled(Feature.non_nullable);
-  }
-
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final fieldDeclaration = _errorFieldDeclaration;
@@ -188,9 +184,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.writeType(
           keyClass.instantiate(
             typeArguments: const [],
-            nullabilitySuffix: _hasNonNullableFeature
-                ? NullabilitySuffix.question
-                : NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.question,
           ),
         );
         builder.write(' key');
@@ -362,7 +356,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
     for (final field in childrenLast) {
       builder.write(', ');
-      if (_hasNonNullableFeature && field.hasNonNullableType) {
+      if (field.hasNonNullableType) {
         builder.write('required ');
       }
       builder.write('this.');

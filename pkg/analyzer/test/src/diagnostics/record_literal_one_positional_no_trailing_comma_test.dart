@@ -42,7 +42,10 @@ void f((int,) i) {
   f((1));
 }
 ''', [
-      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 23, 3),
+      error(
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          23,
+          3),
     ]);
   }
 
@@ -80,7 +83,10 @@ void f((int,) r) {
   r = (1);
 }
 ''', [
-      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 25, 3),
+      error(
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          25,
+          3),
     ]);
   }
 
@@ -96,7 +102,10 @@ void f((int,) r) {
     await assertErrorsInCode('''
 (int,) r = (1);
 ''', [
-      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 11, 3),
+      error(
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          11,
+          3),
     ]);
   }
 
@@ -130,7 +139,10 @@ void f((int,) r) {
   return (1);
 }
 ''', [
-      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 22, 3),
+      error(
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          22,
+          3),
     ]);
   }
 
@@ -154,7 +166,10 @@ void f((int,) r) {
     await assertErrorsInCode('''
 (int,) f() => (1);
 ''', [
-      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 14, 3),
+      error(
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          14,
+          3),
     ]);
   }
 

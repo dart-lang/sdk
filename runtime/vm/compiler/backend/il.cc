@@ -6218,7 +6218,7 @@ void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
 void BoxAllocationSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (compiler::Assembler::EmittingComments()) {
     __ Comment("%s slow path allocation of %s", instruction()->DebugName(),
-               String::Handle(cls_.ScrubbedName()).ToCString());
+               cls_.ScrubbedNameCString());
   }
   __ Bind(entry_label());
   const auto& stub = Code::ZoneHandle(

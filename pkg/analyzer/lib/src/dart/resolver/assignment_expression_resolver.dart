@@ -145,7 +145,7 @@ class AssignmentExpressionResolver {
       if (_typeSystem.isAssignableTo(field.type, rightType,
           strictCasts: strictCasts)) {
         _errorReporter.reportErrorForNode(
-          WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
           right,
           [],
         );

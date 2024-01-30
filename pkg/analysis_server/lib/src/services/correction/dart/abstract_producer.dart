@@ -9,7 +9,6 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -167,9 +166,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
         utils = CorrectionUtils(unitResult),
         typeProvider =
             unitResult is ResolvedUnitResult ? unitResult.typeProvider : null;
-
-  bool get isNonNullableByDefault =>
-      unit.featureSet.isEnabled(Feature.non_nullable);
 
   static CorrectionProducerContext<ParsedUnitResult> createParsed({
     required ParsedUnitResult resolvedResult,
@@ -593,7 +589,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// Return the text that should be displayed to users when referring to the
   /// given [type].
   String displayStringForType(DartType type) =>
-      type.getDisplayString(withNullability: _context.isNonNullableByDefault);
+      type.getDisplayString(withNullability: true);
 
   CodeStyleOptions getCodeStyleOptions(File file) =>
       sessionHelper.session.analysisContext

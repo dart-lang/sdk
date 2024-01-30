@@ -626,9 +626,8 @@ static void PrintSubtypeCheck(const AbstractType& subtype,
 
   LogBlock lb;
   THR_Print("SubtypeCheck: '%s' %d %s '%s' %d (pc: %#" Px ").\n",
-            String::Handle(subtype.Name()).ToCString(), subtype.type_class_id(),
-            result ? "is" : "is !",
-            String::Handle(supertype.Name()).ToCString(),
+            subtype.NameCString(), subtype.type_class_id(),
+            result ? "is" : "is !", supertype.NameCString(),
             supertype.type_class_id(), caller_frame->pc());
 
   const Function& function =
@@ -840,21 +839,19 @@ static void PrintTypeCheck(const char* message,
   LogBlock lb;
   if (type.IsInstantiated()) {
     THR_Print("%s: '%s' %d %s '%s' %d (pc: %#" Px ").\n", message,
-              String::Handle(instance_type.Name()).ToCString(),
-              instance_type.type_class_id(),
+              instance_type.NameCString(), instance_type.type_class_id(),
               (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
-              String::Handle(type.Name()).ToCString(), type.type_class_id(),
-              caller_frame->pc());
+              type.NameCString(), type.type_class_id(), caller_frame->pc());
   } else {
     // Instantiate type before printing.
     const AbstractType& instantiated_type = AbstractType::Handle(
         type.InstantiateFrom(instantiator_type_arguments,
                              function_type_arguments, kAllFree, Heap::kOld));
     THR_Print("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
-              message, String::Handle(instance_type.Name()).ToCString(),
+              message, instance_type.NameCString(),
               (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
-              String::Handle(instantiated_type.Name()).ToCString(),
-              String::Handle(type.Name()).ToCString(), caller_frame->pc());
+              instantiated_type.NameCString(), type.NameCString(),
+              caller_frame->pc());
   }
   const Function& function =
       Function::Handle(caller_frame->LookupDartFunction());

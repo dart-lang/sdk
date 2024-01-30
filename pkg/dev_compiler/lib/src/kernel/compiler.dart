@@ -1084,16 +1084,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     assert(formals.isNotEmpty);
     var jsFormals = _emitTypeFormals(formals);
 
-    // Checks for explicitly set variance to avoid emitting legacy covariance
-    // Variance annotations are not necessary when variance experiment flag is
-    // not enabled or when no type parameters have explicitly defined
-    // variances.
-    var hasOnlyLegacyCovariance = formals.every((t) => t.isLegacyCovariant);
-    if (!hasOnlyLegacyCovariance) {
-      var varianceList = formals.map(_emitVariance);
-      var varianceStatement = runtimeStatement(
-          'setGenericArgVariances(#, [#])', [className, varianceList]);
-      body = js_ast.Statement.from([body, varianceStatement]);
+    if (!_options.newRuntimeTypes) {
+      // In the new runtime type system variances are emitted as seperate rules
+      // saved in the type universe. There is no need to attach them to the
+      // class itself like in the old type system.
+      //
+      // Checks for explicitly set variance to avoid emitting legacy covariance
+      // Variance annotations are not necessary when variance experiment flag is
+      // not enabled or when no type parameters have explicitly defined
+      // variances.
+      var hasOnlyLegacyCovariance = formals.every((t) => t.isLegacyCovariant);
+      if (!hasOnlyLegacyCovariance) {
+        var varianceList = formals.map(_emitVariance);
+        var varianceStatement = runtimeStatement(
+            'setGenericArgVariances(#, [#])', [className, varianceList]);
+        body = js_ast.Statement.from([body, varianceStatement]);
+      }
     }
 
     var typeConstructor = js.call('(#) => { #; #; #; return #; }', [

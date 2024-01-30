@@ -926,7 +926,6 @@ class MacroArgumentsTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
-  @SkippedTest(reason: 'Fails') // TODO(scheglov): triage.
   test_error() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
@@ -9272,7 +9271,6 @@ class MyClass {}
     }
   }
 
-  @SkippedTest(reason: 'Fails') // TODO(scheglov): triage.
   test_imports_class() async {
     useEmptyByteStore();
 
@@ -9360,7 +9358,7 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -9374,10 +9372,10 @@ files
       id: file_1
       kind: library_1
         libraryImports
-          library_12 dart:async
+          library_13 dart:async
           library_4 package:macro/api.dart
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         cycle_1
           dependencies: cycle_0 dart:core package:macro/api.dart
           libraries: library_1
@@ -9392,7 +9390,7 @@ files
       kind: library_2
         libraryImports
           library_1
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
           augmentation_3
         cycle_2
@@ -9419,7 +9417,7 @@ class MyClass {
         library: library_2
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_2
       unlinkedKey: k03
 libraryCycles
@@ -9456,7 +9454,7 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -9470,10 +9468,10 @@ files
       id: file_1
       kind: library_1
         libraryImports
-          library_12 dart:async
+          library_13 dart:async
           library_4 package:macro/api.dart
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         cycle_1
           dependencies: cycle_0 dart:core package:macro/api.dart
           libraries: library_1
@@ -9485,13 +9483,13 @@ files
     uri: package:test/test.dart
     current
       id: file_2
-      kind: library_16
+      kind: library_17
         libraryImports
           library_1
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         cycle_6
           dependencies: cycle_1 dart:core
-          libraries: library_16
+          libraries: library_17
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/test.macro.dart
@@ -9512,7 +9510,7 @@ class MyClass {
         uriFile: file_2
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_2
       unlinkedKey: k03
 libraryCycles
@@ -9543,7 +9541,7 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -9557,10 +9555,10 @@ files
       id: file_1
       kind: library_1
         libraryImports
-          library_12 dart:async
+          library_13 dart:async
           library_4 package:macro/api.dart
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         cycle_1
           dependencies: cycle_0 dart:core package:macro/api.dart
           libraries: library_1
@@ -9575,7 +9573,7 @@ files
       kind: library_2
         libraryImports
           library_1
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
           augmentation_3
         cycle_2
@@ -9602,7 +9600,7 @@ class MyClass {
         library: library_2
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_2
       unlinkedKey: k03
 libraryCycles
@@ -9632,7 +9630,6 @@ elementFactory
     }
   }
 
-  @SkippedTest(reason: 'Fails') // TODO(scheglov): triage.
   test_iterate_merge() async {
     useEmptyByteStore();
 
@@ -9722,7 +9719,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -9737,7 +9734,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -9765,7 +9762,7 @@ class B {}
         library: library_1
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -9794,7 +9791,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -9809,7 +9806,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -9837,7 +9834,7 @@ class B {}
         library: library_1
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -9861,7 +9858,6 @@ elementFactory
     }
   }
 
-  @SkippedTest(reason: 'Fails') // TODO(scheglov): triage.
   test_macroGeneratedFile_changeLibrary_noMacroApplication_restore() async {
     if (!keepLinkingLibraries) return;
     useEmptyByteStore();
@@ -9889,7 +9885,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -9904,7 +9900,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -9920,7 +9916,7 @@ files
         augmented: library_1
         library: library_1
         libraryImports
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -9967,7 +9963,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -9977,12 +9973,12 @@ files
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_15
+      kind: library_16
         libraryImports
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_5
           dependencies: dart:core
-          libraries: library_15
+          libraries: library_16
           apiSignature_2
       unlinkedKey: k05
   /home/test/lib/test.macro.dart
@@ -9992,7 +9988,7 @@ files
       kind: augmentation_2
         uriFile: file_1
         libraryImports
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -10042,7 +10038,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -10054,15 +10050,15 @@ files
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_16
+      kind: library_17
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_6
           dependencies: cycle_0 dart:core
-          libraries: library_16
+          libraries: library_17
           apiSignature_1
       unlinkedKey: k01
   /home/test/lib/test.macro.dart
@@ -10070,10 +10066,10 @@ files
     current
       id: file_2
       kind: augmentation_2
-        augmented: library_16
-        library: library_16
+        augmented: library_17
+        library: library_17
         libraryImports
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -10096,7 +10092,6 @@ elementFactory
 ''');
   }
 
-  @SkippedTest(reason: 'Fails') // TODO(scheglov): triage.
   test_macroGeneratedFile_changeLibrary_updateMacroApplication() async {
     if (!keepLinkingLibraries) return;
     useEmptyByteStore();
@@ -10124,7 +10119,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -10139,7 +10134,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -10155,7 +10150,7 @@ files
         augmented: library_1
         library: library_1
         libraryImports
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -10206,7 +10201,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -10218,26 +10213,26 @@ files
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_15
+      kind: library_16
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         augmentationImports
-          augmentation_16
+          augmentation_17
         cycle_5
           dependencies: cycle_0 dart:core
-          libraries: library_15
+          libraries: library_16
           apiSignature_2
       unlinkedKey: k05
   /home/test/lib/test.macro.dart
     uri: package:test/test.macro.dart
     current
       id: file_2
-      kind: augmentation_16
-        augmented: library_15
-        library: library_15
+      kind: augmentation_17
+        augmented: library_16
+        library: library_16
         libraryImports
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k06
 libraryCycles
@@ -10266,7 +10261,6 @@ class B2 {}
 ''');
   }
 
-  @SkippedTest(reason: 'Fails') // TODO(scheglov): triage.
   test_macroGeneratedFile_dispose_restore() async {
     if (!keepLinkingLibraries) return;
     useEmptyByteStore();
@@ -10294,7 +10288,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -10309,7 +10303,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -10325,7 +10319,7 @@ files
         augmented: library_1
         library: library_1
         libraryImports
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -10367,7 +10361,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -10379,13 +10373,13 @@ files
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_15
+      kind: library_16
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_5
           dependencies: cycle_0 dart:core
-          libraries: library_15
+          libraries: library_16
           apiSignature_1
       unlinkedKey: k01
   /home/test/lib/test.macro.dart
@@ -10395,7 +10389,7 @@ files
       kind: augmentation_2
         uriFile: file_1
         libraryImports
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -10435,7 +10429,7 @@ files
       kind: library_0
         libraryImports
           library_3 package:macro/api.dart
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         cycle_0
           dependencies: dart:core package:macro/api.dart
           libraries: library_0
@@ -10447,15 +10441,15 @@ files
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_15
+      kind: library_16
         libraryImports
           library_0
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_5
           dependencies: cycle_0 dart:core
-          libraries: library_15
+          libraries: library_16
           apiSignature_1
       unlinkedKey: k01
   /home/test/lib/test.macro.dart
@@ -10463,10 +10457,10 @@ files
     current
       id: file_2
       kind: augmentation_2
-        augmented: library_15
-        library: library_15
+        augmented: library_16
+        library: library_16
         libraryImports
-          library_9 dart:core synthetic
+          library_10 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles

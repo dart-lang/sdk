@@ -241,7 +241,7 @@ class FieldGuardState {
   bool is_nullable() const { return IsNullableBit::decode(state_); }
 
  private:
-  using GuardedCidBits = BitField<int32_t, ClassIdTagType, 0, 16>;
+  using GuardedCidBits = BitField<int32_t, ClassIdTagType, 0, 20>;
   using IsNullableBit = BitField<int32_t, bool, GuardedCidBits::kNextBit, 1>;
 
   const int32_t state_;

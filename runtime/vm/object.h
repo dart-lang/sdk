@@ -9087,15 +9087,18 @@ class AbstractType : public Instance {
   virtual const char* NullabilitySuffix(NameVisibility name_visibility) const;
 
   // The name of this type, including the names of its type arguments, if any.
-  virtual StringPtr Name() const;
+  StringPtr Name() const;
+  const char* NameCString() const;
 
   // The name of this type, including the names of its type arguments, if any.
   // Names of internal classes are mapped to their public interfaces.
-  virtual StringPtr UserVisibleName() const;
+  StringPtr UserVisibleName() const;
+  const char* UserVisibleNameCString() const;
 
   // The name of this type, including the names of its type arguments, if any.
   // Privacy suffixes are dropped.
-  virtual StringPtr ScrubbedName() const;
+  StringPtr ScrubbedName() const;
+  const char* ScrubbedNameCString() const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.

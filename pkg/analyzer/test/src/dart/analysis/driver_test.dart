@@ -1732,14 +1732,9 @@ class D {
     driver.addFile2(c);
     driver.addFile2(d);
 
-    Future<List<File>> forName(String name) async {
-      var files = await driver.getFilesDefiningClassMemberName(name);
-      return files.resources;
-    }
-
-    expect(await forName('m1'), unorderedEquals([a]));
-    expect(await forName('m2'), unorderedEquals([b, c]));
-    expect(await forName('m3'), unorderedEquals([d]));
+    await driver.assertFilesDefiningClassMemberName('m1', [a]);
+    await driver.assertFilesDefiningClassMemberName('m2', [b, c]);
+    await driver.assertFilesDefiningClassMemberName('m3', [d]);
   }
 
   test_getFilesDefiningClassMemberName_macroGenerated() async {
@@ -1768,30 +1763,24 @@ import 'append.dart';
 class C {}
 ''');
 
-    final driver = driverFor(testFile);
-    driver.addFile2(a);
-    driver.addFile2(b);
-    driver.addFile2(c);
+    // Run twice: when linking, and when reading.
+    for (var i = 0; i < 2; i++) {
+      final driver = driverFor(testFile);
+      driver.addFile2(a);
+      driver.addFile2(b);
+      driver.addFile2(c);
 
-    Future<List<File>> forName(String name) async {
-      var files = await driver.getFilesDefiningClassMemberName(name);
-      return files.resources;
-    }
-
-    expect(
-      await forName('foo'),
-      unorderedEquals([
+      await driver.assertFilesDefiningClassMemberName('foo', [
         a.macroForLibrary,
         c.macroForLibrary,
-      ]),
-    );
+      ]);
 
-    expect(
-      await forName('bar'),
-      unorderedEquals([
+      await driver.assertFilesDefiningClassMemberName('bar', [
         b.macroForLibrary,
-      ]),
-    );
+      ]);
+
+      await disposeAnalysisContextCollection();
+    }
   }
 
   test_getFilesDefiningClassMemberName_mixin() async {
@@ -1825,14 +1814,9 @@ mixin D {
     driver.addFile2(c);
     driver.addFile2(d);
 
-    Future<List<File>> forName(String name) async {
-      var files = await driver.getFilesDefiningClassMemberName(name);
-      return files.resources;
-    }
-
-    expect(await forName('m1'), unorderedEquals([a]));
-    expect(await forName('m2'), unorderedEquals([b, c]));
-    expect(await forName('m3'), unorderedEquals([d]));
+    await driver.assertFilesDefiningClassMemberName('m1', [a]);
+    await driver.assertFilesDefiningClassMemberName('m2', [b, c]);
+    await driver.assertFilesDefiningClassMemberName('m3', [d]);
   }
 
   test_getFilesReferencingName() async {
@@ -1871,15 +1855,17 @@ void main() {}
     // `c` references an external `A`.
     // `d` references the local `A`.
     // `e` does not reference `A` at all.
-    expect(
-      await driver.getFilesReferencingName2('A'),
-      unorderedEquals([b, c]),
+    await driver.assertFilesReferencingName(
+      'A',
+      includesAll: [b, c],
+      excludesAll: [d, e],
     );
 
     // We get the same results second time.
-    expect(
-      await driver.getFilesReferencingName2('A'),
-      unorderedEquals([b, c]),
+    await driver.assertFilesReferencingName(
+      'A',
+      includesAll: [b, c],
+      excludesAll: [d, e],
     );
   }
 
@@ -1903,17 +1889,66 @@ int b = 0;
 ''');
 
     final c = newFile('$packagesRootPath/ccc/lib/c.dart', '''
-int c = 0
+int c = 0;
 ''');
 
     final driver = driverFor(testFile);
     driver.addFile2(t);
 
-    final files = await driver.getFilesReferencingName2('int');
-    expect(files, contains(t));
-    expect(files, contains(a));
-    expect(files, contains(b));
-    expect(files, isNot(contains(c)));
+    await driver.assertFilesReferencingName(
+      'int',
+      includesAll: [t, a, b],
+      excludesAll: [c],
+    );
+  }
+
+  test_getFilesReferencingName_macroGenerated() async {
+    if (!_configureWithCommonMacros()) {
+      return;
+    }
+
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('{{dart:core@int}} get foo => 0;')
+class A {}
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('{{dart:core@double}} get foo => 1.2;')
+class B {}
+''');
+
+    final c = newFile('$testPackageLibPath/c.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('{{dart:core@int}} get foo => 0;')
+class C {}
+''');
+
+    // Run twice: when linking, and when reading.
+    for (var i = 0; i < 2; i++) {
+      final driver = driverFor(testFile);
+      driver.addFile2(a);
+      driver.addFile2(b);
+      driver.addFile2(c);
+
+      await driver.assertFilesReferencingName(
+        'int',
+        includesAll: [a.macroForLibrary, c.macroForLibrary],
+        excludesAll: [b.macroForLibrary],
+      );
+
+      await driver.assertFilesReferencingName(
+        'double',
+        includesAll: [b.macroForLibrary],
+        excludesAll: [a.macroForLibrary, c.macroForLibrary],
+      );
+
+      await disposeAnalysisContextCollection();
+    }
   }
 
   test_getFileSync_changedFile() async {
@@ -5869,6 +5904,30 @@ class DriverEventCollector {
 }
 
 extension on AnalysisDriver {
+  Future<void> assertFilesDefiningClassMemberName(
+    String name,
+    List<File?> expected,
+  ) async {
+    var fileStateList = await getFilesDefiningClassMemberName(name);
+    var files = fileStateList.resources;
+    expect(files, unorderedEquals(expected));
+  }
+
+  Future<void> assertFilesReferencingName(
+    String name, {
+    required List<File?> includesAll,
+    required List<File?> excludesAll,
+  }) async {
+    var fileStateList = await getFilesReferencingName(name);
+    var files = fileStateList.resources;
+    for (var expected in includesAll) {
+      expect(files, contains(expected));
+    }
+    for (var expected in excludesAll) {
+      expect(files, isNot(contains(expected)));
+    }
+  }
+
   void assertLoadedLibraryUriSet({
     Iterable<String>? included,
     Iterable<String>? excluded,

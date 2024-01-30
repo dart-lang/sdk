@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -16,10 +15,6 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!unit.featureSet.isEnabled(Feature.non_nullable)) {
-      return;
-    }
-
     final node = this.node;
     if (node is! Expression) {
       return;

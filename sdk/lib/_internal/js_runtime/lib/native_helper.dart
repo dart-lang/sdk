@@ -208,7 +208,7 @@ lookupAndCacheInterceptor(obj) {
 
   if (mark == DISCRIMINATED_MARK) {
     // TODO(sra): Use discriminator of tag.
-    throw new UnimplementedError(tag);
+    throw UnimplementedError(tag);
   }
 
   // [tag] was not explicitly an interior or leaf tag, so
@@ -419,7 +419,7 @@ applyHooksTransformer(transformer, hooks) {
 // the code emitter, or JS_CONST could be improved to parse entire functions and
 // take care of the minification.
 
-const _baseHooks = const JS_CONST(r'''
+const _baseHooks = JS_CONST(r'''
 function() {
   var toStringFunction = Object.prototype.toString;
   function getTag(o) {
@@ -466,13 +466,13 @@ function() {
 /// This function is split out of
 /// [_fallbackConstructorHooksTransformerGenerator] as it is called from both
 /// the dispatch hooks and via [constructorNameFallback] from objectToString.
-const _constructorNameFallback = const JS_CONST(r'''
+const _constructorNameFallback = JS_CONST(r'''
 function getTagFallback(o) {
   var s = Object.prototype.toString.call(o);
   return s.substring(8, s.length - 1);
 }''');
 
-const _fallbackConstructorHooksTransformerGenerator = const JS_CONST(r'''
+const _fallbackConstructorHooksTransformerGenerator = JS_CONST(r'''
 function(getTagFallback) {
   return function(hooks) {
     // If we are not in a browser, assume we are in d8.
@@ -494,7 +494,7 @@ function(getTagFallback) {
   };
 }''');
 
-const _ieHooksTransformer = const JS_CONST(r'''
+const _ieHooksTransformer = JS_CONST(r'''
 function(hooks) {
   if (typeof navigator != "object") return hooks;
   var userAgent = navigator.userAgent;
@@ -533,7 +533,7 @@ function(hooks) {
   hooks.prototypeForTag = prototypeForTagIE;
 }''');
 
-const _fixDocumentHooksTransformer = const JS_CONST(r'''
+const _fixDocumentHooksTransformer = JS_CONST(r'''
 function(hooks) {
   var getTag = hooks.getTag;
   var prototypeForTag = hooks.prototypeForTag;
@@ -560,7 +560,7 @@ function(hooks) {
   hooks.prototypeForTag = prototypeForTagFixed;
 }''');
 
-const _firefoxHooksTransformer = const JS_CONST(r'''
+const _firefoxHooksTransformer = JS_CONST(r'''
 function(hooks) {
   if (typeof navigator != "object") return hooks;
   var userAgent = navigator.userAgent;
@@ -585,15 +585,15 @@ function(hooks) {
   hooks.getTag = getTagFirefox;
 }''');
 
-const _operaHooksTransformer = const JS_CONST(r'''
+const _operaHooksTransformer = JS_CONST(r'''
 function(hooks) { return hooks; }
 ''');
 
-const _safariHooksTransformer = const JS_CONST(r'''
+const _safariHooksTransformer = JS_CONST(r'''
 function(hooks) { return hooks; }
 ''');
 
-const _dartExperimentalFixupGetTagHooksTransformer = const JS_CONST(r'''
+const _dartExperimentalFixupGetTagHooksTransformer = JS_CONST(r'''
 function(hooks) {
   if (typeof dartExperimentalFixupGetTag != "function") return hooks;
   hooks.getTag = dartExperimentalFixupGetTag(hooks.getTag);

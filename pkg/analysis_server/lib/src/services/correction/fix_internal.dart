@@ -1102,6 +1102,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE: [
     ReplaceColonWithEquals.new
   ],
+  CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
+    AddTrailingComma.new,
+  ],
   CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
@@ -1457,9 +1460,6 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
     RemoveAnnotation.new,
-  ],
-  WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
-    AddTrailingComma.new,
   ],
   WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER: [
     RemoveAnnotation.new,
