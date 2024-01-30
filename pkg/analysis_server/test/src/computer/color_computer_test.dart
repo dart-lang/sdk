@@ -8,7 +8,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../tool/codebase/failing_tests.dart';
 import '../../abstract_context.dart';
 
 void main() {

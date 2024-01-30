@@ -2798,7 +2798,8 @@ class Location implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -2847,7 +2848,7 @@ class Location implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['length'] = length;
     result['startLine'] = startLine;
@@ -3538,7 +3539,8 @@ class Position implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -3557,7 +3559,7 @@ class Position implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     return result;
   }
@@ -4390,7 +4392,8 @@ class SourceFileEdit implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -4420,7 +4423,7 @@ class SourceFileEdit implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['fileStamp'] = fileStamp;
     result['edits'] = edits.map((SourceEdit value) => value.toJson()).toList();
     return result;

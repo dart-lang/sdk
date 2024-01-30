@@ -18,7 +18,6 @@ import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
-import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
@@ -30,6 +29,7 @@ import 'package:analyzer/src/dart/analysis/search.dart' as server
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 
 const languageSourceName = 'dart';

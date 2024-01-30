@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/utilities/client_uri_converter.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

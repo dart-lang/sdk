@@ -24,6 +24,8 @@ mixin ResourceProviderMixin {
           ? MemoryResourceProvider(context: path.windows)
           : MemoryResourceProvider();
 
+  path.Context get pathContext => resourceProvider.pathContext;
+
   String convertPath(String path) => resourceProvider.convertPath(path);
 
   void deleteAnalysisOptionsYamlFile(String directoryPath) {

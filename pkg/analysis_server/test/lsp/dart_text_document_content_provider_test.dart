@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/test_macros.dart';
-import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

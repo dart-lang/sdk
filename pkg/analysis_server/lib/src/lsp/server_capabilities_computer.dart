@@ -316,7 +316,13 @@ class ServerCapabilitiesComputer {
       clientCapabilities: _server.lspClientCapabilities!,
       clientConfiguration: _server.lspClientConfiguration,
       customDartSchemes: _server.uriConverter.supportedNonFileSchemes,
-      dartFilters: _server.uriConverter.filters,
+      dartFilters: [
+        for (var scheme in {
+          'file',
+          ..._server.uriConverter.supportedNonFileSchemes
+        })
+          TextDocumentFilterWithScheme(language: 'dart', scheme: scheme)
+      ],
       pluginTypes: pluginTypes,
     );
   }

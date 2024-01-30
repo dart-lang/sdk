@@ -38,7 +38,6 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
-import 'package:analysis_server/src/utilities/client_uri_converter.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
@@ -76,6 +75,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
