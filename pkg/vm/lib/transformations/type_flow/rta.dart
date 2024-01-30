@@ -151,11 +151,13 @@ class _ClassHierarchyCache {
 
   void addDynamicCall(Selector selector, Class cl, RapidTypeAnalysis rta) {
     final ClassInfo classInfo = getClassInfo(cl);
-    for (var sub in classInfo.subtypes) {
-      if (sub.calledDynamicSelectors.add(selector) && sub.isAllocated) {
-        final member = sub.getDispatchTarget(selector);
-        if (member != null) {
-          rta.addMember(member);
+    if (!classInfo.calledDynamicSelectors.contains(selector)) {
+      for (var sub in classInfo.subtypes) {
+        if (sub.calledDynamicSelectors.add(selector) && sub.isAllocated) {
+          final member = sub.getDispatchTarget(selector);
+          if (member != null) {
+            rta.addMember(member);
+          }
         }
       }
     }
@@ -163,11 +165,13 @@ class _ClassHierarchyCache {
 
   void addVirtualCall(Selector selector, Class cl, RapidTypeAnalysis rta) {
     final ClassInfo classInfo = getClassInfo(cl);
-    for (var sub in classInfo.subclasses) {
-      if (sub.calledVirtualSelectors.add(selector) && sub.isAllocated) {
-        final member = sub.getDispatchTarget(selector);
-        if (member != null) {
-          rta.addMember(member);
+    if (!classInfo.calledVirtualSelectors.contains(selector)) {
+      for (var sub in classInfo.subclasses) {
+        if (sub.calledVirtualSelectors.add(selector) && sub.isAllocated) {
+          final member = sub.getDispatchTarget(selector);
+          if (member != null) {
+            rta.addMember(member);
+          }
         }
       }
     }
