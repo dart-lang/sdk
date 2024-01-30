@@ -6,9 +6,10 @@ Welcome to the Dart API reference documentation, covering the
   * [dart:core](dart-core/dart-core-library.html): Core functionality such as
     strings, numbers, collections, errors, dates, and URIs.
   * [dart:io](dart-io/dart-io-library.html): I/O for non-web apps.
-  * [dart:html](dart-html/dart-html-library.html): DOM manipulation for web apps
-    (available only to web apps).
-
+  * [dart:js_interop](dart-js_interop/dart-js_interop-library.html)
+    and [package:web](https://pub.dev/documentation/web):
+    Web interop features and APIs for accessing JavaScript and browser bindings.
+    
 The core libraries - except for `dart:core` - must be imported before they're
 available for use:
 
