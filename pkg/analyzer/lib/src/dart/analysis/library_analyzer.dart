@@ -867,12 +867,8 @@ class LibraryAnalyzer {
   }) {
     directive.element = element;
     _resolveNamespaceDirective(
-      directive: directive,
-      primaryUriNode: directive.uri,
-      primaryUriState: state.uris.primary,
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
-      selectedUriState: state.selectedUri,
     );
     if (state is LibraryExportWithUri) {
       final selectedUriStr = state.selectedUri.relativeUriStr;
@@ -926,12 +922,8 @@ class LibraryAnalyzer {
     directive.element = element;
     directive.prefix?.staticElement = element.prefix?.element;
     _resolveNamespaceDirective(
-      directive: directive,
-      primaryUriNode: directive.uri,
-      primaryUriState: state.uris.primary,
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
-      selectedUriState: state.selectedUri,
     );
     if (state is LibraryImportWithUri) {
       final selectedUriStr = state.selectedUri.relativeUriStr;
@@ -977,10 +969,6 @@ class LibraryAnalyzer {
   }
 
   void _resolveNamespaceDirective({
-    required NamespaceDirectiveImpl directive,
-    required StringLiteralImpl primaryUriNode,
-    required file_state.DirectiveUri primaryUriState,
-    required file_state.DirectiveUri selectedUriState,
     required List<Configuration> configurationNodes,
     required List<file_state.DirectiveUri> configurationUris,
   }) {
