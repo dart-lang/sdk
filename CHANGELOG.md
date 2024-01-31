@@ -1,5 +1,14 @@
 ## 3.4.0
 
+### Language
+
+- **Breaking Change** [#54640][]: The pattern context type schema for
+  cast patterns has been changed from `Object?` to `_` (the unknown
+  type), to align with the specification. This change is not expected
+  to make any difference in practice.
+
+[#54640]: https://github.com/dart-lang/sdk/issues/54640
+
 ### Tools
 
 #### Pub

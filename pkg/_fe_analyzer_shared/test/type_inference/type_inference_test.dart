@@ -1876,13 +1876,9 @@ main() {
       test('Type schema', () {
         var x = Var('x');
         h.run([
-          ifCase(
-            expr('num'),
-            x.pattern().as_('int'),
-            [],
-          ).checkIR('ifCase(expr(num), castPattern(varPattern(x, '
-              'matchedType: int, staticType: int), int, matchedType: num), '
-              'variables(x), true, block(), noop)'),
+          match(x.pattern().as_('int'), expr('num').checkSchema('?')).checkIR(
+              'match(expr(num), castPattern(varPattern(x, '
+              'matchedType: int, staticType: int), int, matchedType: num))'),
         ]);
       });
 

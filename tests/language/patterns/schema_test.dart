@@ -62,9 +62,7 @@ test() {
 
   // - Cast: The context type schema is `_`.
   {
-    // TODO(paulberry): uncomment this after
-    // https://github.com/dart-lang/sdk/issues/54640 is addressed.
-    // var [_ as Object] = [1]..expectStaticType<Exactly<List<int>>>();
+    var [_ as Object] = [1]..expectStaticType<Exactly<List<int>>>();
   }
 
   // - Parenthesized: The context type schema of the inner subpattern.
