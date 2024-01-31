@@ -30,6 +30,7 @@ aligns
 allocations
 allowlist
 allowlisting
+alphabetically
 alt
 amend
 amended
@@ -236,6 +237,7 @@ dijkstra
 dijkstras
 dinteractive
 dirname
+dirs
 disagree
 disagreement
 disconnect
@@ -525,9 +527,11 @@ nondefault
 nonexisting
 noo
 noted
+noting
 nottest
 nq
 null'ed
+numbered
 numerator
 nums
 ob
@@ -640,6 +644,7 @@ rendition
 reorder
 reordering
 repaint
+representative
 repro
 reproduce
 reproduction
@@ -795,6 +800,7 @@ ugly
 unassignment
 unawaited
 unbreak
+uncaught
 unconverted
 uncover
 uncovers
@@ -813,6 +819,7 @@ unusual
 unversioned
 upgrade
 upload
+upstream
 upward
 uuid
 val

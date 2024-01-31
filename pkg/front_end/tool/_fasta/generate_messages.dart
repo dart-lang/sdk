@@ -426,7 +426,7 @@ const Code<Null> code$name = message$name;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode message$name =
-    const MessageCode(\"$name\", ${codeArguments.join(', ')});
+    const MessageCode(\"$name\", ${codeArguments.join(', ')},);
 """, isShared: canBeShared);
   }
 
@@ -450,13 +450,17 @@ const MessageCode message$name =
     messageArguments
         .add("correctionMessage: ${interpolate(correctionMessage)}");
   }
-  messageArguments.add("arguments: { ${arguments.join(', ')} }");
+  messageArguments.add("arguments: { ${arguments.join(', ')}, }");
+
+  if (codeArguments.isNotEmpty) {
+    codeArguments.add("");
+  }
 
   return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(${parameters.join(', ')})> template$name =
     const Template<Message Function(${parameters.join(', ')})>(
-        ${templateArguments.join(', ')});
+        ${templateArguments.join(', ')},);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(${parameters.join(', ')})> code$name =
@@ -468,7 +472,7 @@ Message _withArguments$name(${parameters.join(', ')}) {
   ${conversions.join('\n  ')}
   return new Message(
      code$name,
-     ${messageArguments.join(', ')});
+     ${messageArguments.join(', ')},);
 }
 """, isShared: canBeShared);
 }

@@ -566,9 +566,12 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
   };
 
   InternalCompilerResult compilerResult = (await kernelForProgramInternal(
-      astLibraryUri, options,
-      retainDataForTesting: true,
-      requireMain: false)) as InternalCompilerResult;
+    astLibraryUri,
+    options,
+    retainDataForTesting: true,
+    requireMain: false,
+    buildComponent: false,
+  )) as InternalCompilerResult;
   if (errorsFound) {
     throw 'Errors found';
   }
