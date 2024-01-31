@@ -752,7 +752,7 @@ FunctionType _createSmall(returnType, List required) => JS('', '''(() => {
  }
  let result = map.get($returnType);
  if (result !== void 0) return result;
- result = ${new FunctionType(JS<Type>('!', '#', returnType), required, [], JS('', '{}'), JS('', '{}'))};
+ result = ${FunctionType(JS<Type>('!', '#', returnType), required, [], JS('', '{}'), JS('', '{}'))};
  map.set($returnType, result);
  return result;
 })()''');

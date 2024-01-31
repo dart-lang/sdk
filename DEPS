@@ -117,7 +117,7 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "args_rev": "46d5033377d277d70bc6ec68504730b9384b1db1",
+  "args_rev": "03386ba1cc338086af46f1c742ef944c6a402862",
   "async_rev": "e83d054b3ea0ff6cb25e5849c5408cd7c4fc1d3f",
   "bazel_worker_rev": "3d9cd5823fc96872b7275fe99a4fabc4dcfe57c8",
   "benchmark_harness_rev": "a62e4169c120ac04b1f5bfdf8f14346459529781",
@@ -129,7 +129,7 @@ vars = {
   "collection_rev": "2d57a82ad079fe2d127f5a9b188170de2f5cdedc",
   "convert_rev": "f8a72d67a10805bca358be8d7e189a62f79d86b9",
   "crypto_rev": "f2efb981b461dcae43d0cf18a3a970142abfee35",
-  "csslib_rev": "1ad2d1ec461fb1836180e917220a5a48fd641897",
+  "csslib_rev": "ec86ee57c89f683352e66c55542bcc1daa425c13",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -142,25 +142,25 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "633b01cba68f4b42ddc2985c3d521c22149d5ce3", # disable rev_sdk_deps.dart
   "dartdoc_rev": "0f13e6443595f8e49cc86d783210d78c93d3502e",
-  "ecosystem_rev": "1e2785d6900b4d709a31f4c669381dc340cad605",
+  "ecosystem_rev": "9ee08a41b85973e5cc2f6144ff4de69bf9aed244",
   "file_rev": "cd3a9324f6483f313ba1f0f3ff382ea4e6982ef2",
   "fixnum_rev": "3e08c0d7ce1a0cd832a17391444898ec610b5f89",
   "flute_rev": "f42b09f77132210499ec8ed819a60c260af03db6",
   "glob_rev": "7c9a121e92687b7ac6456ec0796eb1e5c0373d90",
-  "html_rev": "06bc148600b1d1a70f2256bdf788c213f1f60f55",
+  "html_rev": "910f6d703ed0193318fb095be09e8ddf1bec3e05",
   "http_rev": "f0a02f98f7c921e86ecc81c70f38bb6fbccc81b9", # https://github.com/dart-lang/sdk/issues/54165
-  "http_multi_server_rev": "ae484896624cee8b0a8a97a0fb1ea323c4c3d31f",
+  "http_multi_server_rev": "491f7c613198d38c489ee0010b9c5377ad29afde",
   "http_parser_rev": "224c1a9d24b46c7a9da1f09147e0e1fbda78089d",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "ac1fabddd51fc90aa6fa4e1248f1a7141899eb4a",
   "leak_tracker_rev": "4a5b077739886f61bd6dc11c78865ef487c917c2",
   "lints_rev": "3810f8b3dc3205cfaa4ccc0054b021e68046d851",
-  "logging_rev": "4d35a4e02b9237bd794378413e7ce3deb52ffcaf",
+  "logging_rev": "e04942dadc6ed9ed177ab0c6b8d0e80a789cd176",
   "markdown_rev": "a8288ca3a3023228f1a8a832b78d00e11f0c4b30",
   "matcher_rev": "d9cf4f69e3f557718ab5be042dd5503afcacac51",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "mime_rev": "ca9f059d2334bb2657683e0a7f5949817cb4b0e6",
-  "mockito_rev": "e15e00086ed20f3175b2e677fd11611be4fa8e8e",
+  "mime_rev": "99fbdcc745e2f2cfb85be4a4c6c7b520cd25c2dd",
+  "mockito_rev": "0422551a774cbf72eea87ba80e71f7b5d81199f3",
   "native_rev": "40382efb9c7a0774d2764238fc1802e562e9cbaf",
   "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
   "path_rev": "57a049cff2e2be7a302dd9683b2b194c6d06e2d4",
@@ -179,14 +179,14 @@ vars = {
   "sync_http_rev": "f96db9543e5a9f62833ca9a24269b12fcf63d45b",
   "tar_rev": "0fc831c6e93be5342d4863d9e464428e73007cce",
   "term_glyph_rev": "4c5a49664ee78b62c35de528cec5a9469bb84936",
-  "test_rev": "846d73ee40a9cbd86348bc3cfc97f9c765872f2d",
+  "test_rev": "6700049d5de97906d033f4271f67f7599090bf4e",
   "test_descriptor_rev": "59ce97fae49709fa1f479efa808c031a576e617e",
   "test_process_rev": "d68de5bc53bf33a12334d06748af9db4844d66f0",
   "test_reflective_loader_rev": "6edf5358b53bfda487840bad1a03d089326fa08c",
-  "tools_rev": "8ffc077f93ecb630c76a833be2cc80b918916428",
+  "tools_rev": "f6e67f2223fd5f9c6bdb3ace908d22c73ea02bc5",
   "typed_data_rev": "6f6d81d64cd698f8def5116fc97b7b1fb7441696",
   "usage_rev": "e99690ae6d5fa9ec24ac5218bcd3621e8e3ae8a9",
-  "vector_math_rev": "38a00c35575b71a095903467141e5ee60c94d011",
+  "vector_math_rev": "cb976c731f5f9011f09311cd1c39d5778d4f8f2e",
   "watcher_rev": "66cd694ffb7ee6e09ff0cde6c9f788aa47ee1a23",
   "web_rev": "d17fdd2b6ddec289920d02a3df92c3368f0a0e50",
   "web_socket_channel_rev": "5241175e7c66271850d6e75fb9ec90068f9dd3c4", # https://github.com/dart-lang/sdk/issues/54165

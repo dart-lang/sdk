@@ -1733,7 +1733,7 @@ class _BigIntImpl implements BigInt {
   }
 
   /// Returns the least significant [width] bits of this big integer as a
-  /// non-negative number (i.e. unsigned representation).  The returned value
+  /// non-negative number (i.e. unsigned representation). The returned value
   /// has zeros in all bit positions higher than [width].
   ///
   /// ```
@@ -1750,7 +1750,7 @@ class _BigIntImpl implements BigInt {
   /// `q` will count from `0` up to `255` and then wrap around to `0`.
   ///
   /// If the input fits in [width] bits without truncation, the result is the
-  /// same as the input.  The minimum width needed to avoid truncation of `x` is
+  /// same as the input. The minimum width needed to avoid truncation of `x` is
   /// given by `x.bitLength`, i.e.
   ///
   /// ```
@@ -1761,10 +1761,10 @@ class _BigIntImpl implements BigInt {
   }
 
   /// Returns the least significant [width] bits of this integer, extending the
-  /// highest retained bit to the sign.  This is the same as truncating the
-  /// value to fit in [width] bits using an signed 2-s complement
-  /// representation.  The returned value has the same bit value in all
-  /// positions higher than [width].
+  /// highest retained bit to the sign. This is the same as truncating the value
+  /// to fit in [width] bits using an signed 2-s complement representation. The
+  /// returned value has the same bit value in all positions higher than
+  /// [width].
   ///
   /// ```
   /// var big15 = new BigInt.from(15);
@@ -1777,7 +1777,7 @@ class _BigIntImpl implements BigInt {
   /// ```
   ///
   /// This operation can be used to simulate arithmetic from low level
-  /// languages.  For example, to increment an 8 bit signed quantity:
+  /// languages. For example, to increment an 8 bit signed quantity:
   ///
   /// ```
   /// q = (q + 1).toSigned(8);
@@ -1795,7 +1795,7 @@ class _BigIntImpl implements BigInt {
   /// ```
   _BigIntImpl toSigned(int width) {
     // The value of binary number weights each bit by a power of two.  The
-    // twos-complement value weights the sign bit negatively.  We compute the
+    // twos-complement value weights the sign bit negatively. We compute the
     // value of the negative weighting by isolating the sign bit with the
     // correct power of two weighting and subtracting it from the value of the
     // lower bits.
