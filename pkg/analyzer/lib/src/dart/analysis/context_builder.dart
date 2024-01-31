@@ -14,6 +14,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
     show ByteStore, MemoryByteStore;
+import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show
@@ -44,6 +45,9 @@ import 'package:analyzer/src/workspace/workspace.dart';
 class ContextBuilderImpl implements ContextBuilder {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
+
+  /// Analysis options mappings shared by all contexts built by this builder.
+  final AnalysisOptionsMap _optionsMap = AnalysisOptionsMap();
 
   /// Initialize a newly created context builder. If a [resourceProvider] is
   /// given, then it will be used to access the file system, otherwise the
@@ -113,16 +117,13 @@ class ContextBuilderImpl implements ContextBuilder {
 
     var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
 
-    var options = _getAnalysisOptions(contextRoot, sourceFactory);
-    if (updateAnalysisOptions2 != null) {
-      updateAnalysisOptions2(
-        analysisOptions: options,
-        contextRoot: contextRoot,
-        sdk: sdk,
-      );
-    }
-    // TODO(pq): replace w/ a map created directly via `_createOptionsMap`
-    var analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(options);
+    var analysisOptionsMap = ContextLocatorImpl.singleOptionContexts
+        ? AnalysisOptionsMap.forSharedOptions(_getAnalysisOptions(
+            contextRoot, sourceFactory, sdk, updateAnalysisOptions2))
+        // TODO(pq): verify that options maps handle contextRoot.optionsFile overriding
+        // https://github.com/dart-lang/sdk/issues/54791
+        : _createOptionsMap(
+            contextRoot, sourceFactory, updateAnalysisOptions2, sdk);
 
     final analysisContext =
         DriverBasedAnalysisContext(resourceProvider, contextRoot);
@@ -159,7 +160,6 @@ class ContextBuilderImpl implements ContextBuilder {
   }
 
   /// Create an [AnalysisOptionsMap] for the given [contextRoot].
-  // ignore: unused_element
   AnalysisOptionsMap _createOptionsMap(
       ContextRoot contextRoot,
       SourceFactory sourceFactory,
@@ -169,7 +169,6 @@ class ContextBuilderImpl implements ContextBuilder {
               required DartSdk sdk})?
           updateAnalysisOptions,
       DartSdk sdk) {
-    var map = AnalysisOptionsMap();
     var provider = AnalysisOptionsProvider(sourceFactory);
     var pubspecFile = _findPubspecFile(contextRoot);
 
@@ -194,25 +193,16 @@ class ContextBuilderImpl implements ContextBuilder {
 
     var optionsMappings =
         (contextRoot as ContextRootImpl).optionsFileMap.entries;
-
-    // If there are no options files, we still want to propagate sdk constraints
-    // and options updates to the context root.
-    if (optionsMappings.isEmpty) {
-      var options = AnalysisOptionsImpl();
+    for (var entry in optionsMappings) {
+      var file = entry.value;
+      var options = AnalysisOptionsImpl(file: file);
+      var optionsYaml = provider.getOptionsFromFile(file);
+      options.applyOptions(optionsYaml);
       updateOptions(options);
-      map.add(contextRoot.root, options);
-    } else {
-      for (var entry in optionsMappings) {
-        var file = entry.value;
-        var options = AnalysisOptionsImpl(file: file);
-        var optionsYaml = provider.getOptionsFromFile(file);
-        options.applyOptions(optionsYaml);
-        updateOptions(options);
-        map.add(entry.key, options);
-      }
+      _optionsMap.add(entry.key, options);
     }
 
-    return map;
+    return _optionsMap;
   }
 
   /// Return [Packages] to analyze the [contextRoot].
@@ -293,6 +283,12 @@ class ContextBuilderImpl implements ContextBuilder {
   AnalysisOptionsImpl _getAnalysisOptions(
     ContextRoot contextRoot,
     SourceFactory sourceFactory,
+    DartSdk sdk,
+    void Function(
+            {required AnalysisOptionsImpl analysisOptions,
+            required ContextRoot contextRoot,
+            required DartSdk sdk})?
+        updateAnalysisOptions,
   ) {
     var optionsFile = contextRoot.optionsFile;
     var options = AnalysisOptionsImpl(file: optionsFile);
@@ -316,6 +312,14 @@ class ContextBuilderImpl implements ContextBuilder {
         // ignore: deprecated_member_use_from_same_package
         options.sdkVersionConstraint = sdkVersionConstraint;
       }
+    }
+
+    if (updateAnalysisOptions != null) {
+      updateAnalysisOptions(
+        analysisOptions: options,
+        contextRoot: contextRoot,
+        sdk: sdk,
+      );
     }
 
     return options;

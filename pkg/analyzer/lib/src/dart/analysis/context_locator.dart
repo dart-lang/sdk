@@ -27,6 +27,12 @@ import 'package:yaml/yaml.dart';
 
 /// An implementation of a context locator.
 class ContextLocatorImpl implements ContextLocator {
+  /// A flag indicating if analysis contexts are limited to one corresponding
+  /// analysis options file.
+  ///
+  /// See: https://github.com/dart-lang/sdk/issues/53876
+  static bool singleOptionContexts = true;
+
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
@@ -250,6 +256,10 @@ class ContextLocatorImpl implements ContextLocator {
     var root = ContextRootImpl(resourceProvider, rootFolder, workspace);
     root.packagesFile = packagesFile;
     root.optionsFile = optionsFile;
+    if (optionsFile != null) {
+      root.optionsFileMap[rootFolder] = optionsFile;
+    }
+
     root.excludedGlobs = _getExcludedGlobs(root);
     roots.add(root);
     return root;
@@ -289,12 +299,18 @@ class ContextLocatorImpl implements ContextLocator {
       localPackagesFile = _getPackagesFile(folder);
     }
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
+
+    if (localOptionsFile != null) {
+      (containingRoot as ContextRootImpl).optionsFileMap[folder] =
+          localOptionsFile;
+    }
+
     //
-    // Create a context root for the given [folder] if at least one of the
-    // options and packages file is locally specified.
+    // Create a context root for the given [folder] if a packages or build file
+    // is locally specified.
     //
     if (localPackagesFile != null ||
-        localOptionsFile != null ||
+        (singleOptionContexts && localOptionsFile != null) ||
         buildGnFile != null) {
       if (optionsFile != null) {
         localOptionsFile = optionsFile;

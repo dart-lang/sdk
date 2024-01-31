@@ -97,10 +97,10 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       optionsFile: optionsFile,
       packagesFile: packagesFile,
     );
+    var contextBuilder = ContextBuilderImpl(
+      resourceProvider: this.resourceProvider,
+    );
     for (var root in roots) {
-      var contextBuilder = ContextBuilderImpl(
-        resourceProvider: this.resourceProvider,
-      );
       var context = contextBuilder.createContext(
         byteStore: byteStore,
         contextRoot: root,
