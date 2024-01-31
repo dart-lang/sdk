@@ -108,13 +108,11 @@ class BaseMarshaller : public ZoneAllocated {
   // Recurses into VarArgs if needed.
   AbstractTypePtr CType(intptr_t arg_index) const;
 
-  AbstractTypePtr DartType(intptr_t arg_index) const;
-
   // The Dart and C Type is Pointer.
   //
   // Requires boxing or unboxing the Pointer object to int.
   bool IsPointer(intptr_t arg_index) const {
-    if (IsHandle(arg_index) || IsTypedData(arg_index)) {
+    if (IsHandle(arg_index)) {
       return false;
     }
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
@@ -128,12 +126,6 @@ class BaseMarshaller : public ZoneAllocated {
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
            kFfiHandleCid;
   }
-
-  // The Dart type is a TypedData and C Type is Pointer.
-  //
-  // Requires unboxing the typed data to an int address.
-  bool IsTypedData(intptr_t arg_index) const;
-
   bool IsBool(intptr_t arg_index) const {
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
            kFfiBoolCid;

@@ -5218,27 +5218,6 @@ FfiLeafCallMustNotReturnHandle:
   problemMessage: "FFI leaf call must not have Handle return type."
   external: test/ffi_test.dart
 
-FfiNonLeafCallMustNotTakeTypedData:
-  # Used by dart:ffi
-  problemMessage: "FFI non-leaf calls can't take typed data arguments."
-  correctionMessage: Try changing the call to a leaf call.
-  analyzerCode: NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA
-  external: test/ffi_test.dart
-
-FfiCallMustNotReturnTypedData:
-  # Used by dart:ffi
-  problemMessage: "FFI calls can't return typed data."
-  correctionMessage: Try changing using `Pointer`s.
-  analyzerCode: CALL_MUST_NOT_RETURN_TYPED_DATA
-  external: test/ffi_test.dart
-
-FfiCallbackMustNotUseTypedData:
-  # Used by dart:ffi
-  problemMessage: "FFI callbacks can't take typed data arguments or return value."
-  correctionMessage: Try changing using `Pointer`s.
-  analyzerCode: CALLBACK_MUST_NOT_USE_TYPED_DATA
-  external: test/ffi_test.dart 
-
 FfiNativeUnexpectedNumberOfParametersWithReceiver:
   # Used by dart:ffi
   problemMessage: "Unexpected number of Native annotation parameters. Expected #count but has #count2. Native instance method annotation must have receiver as first argument."

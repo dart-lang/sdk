@@ -143,56 +143,6 @@ AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
   return c_signature_.ParameterTypeAt(real_arg_index);
 }
 
-AbstractTypePtr BaseMarshaller::DartType(intptr_t arg_index) const {
-  if (arg_index == kResultIndex) {
-    return dart_signature_.result_type();
-  }
-  const intptr_t real_arg_index = arg_index + dart_signature_params_start_at_;
-  ASSERT(!Array::Handle(dart_signature_.parameter_types()).IsNull());
-  ASSERT(real_arg_index <
-         Array::Handle(dart_signature_.parameter_types()).Length());
-  ASSERT(!AbstractType::Handle(dart_signature_.ParameterTypeAt(real_arg_index))
-              .IsNull());
-  return dart_signature_.ParameterTypeAt(real_arg_index);
-}
-
-bool BaseMarshaller::IsTypedData(intptr_t arg_index) const {
-  if (IsHandle(arg_index)) {
-    return false;
-  }
-
-  if (Array::Handle(zone_, dart_signature_.parameter_types()).IsNull()) {
-    // TODO(https://dartbug.com/54173): BuildGraphOfSyncFfiCallback provides a
-    // function object with its type arguments not initialized. Change this
-    // to an assert when addressing that issue.
-    return false;
-  }
-
-  const auto& type = AbstractType::Handle(zone_, DartType(arg_index));
-  // The classes here are not the recognized classes, but the interface types.
-  // Consequently, the class ids are not predefined.
-  const auto& klass = Class::Handle(zone_, type.type_class());
-  if (klass.library() != Library::TypedDataLibrary()) {
-    return false;
-  }
-#define CHECK_SYMBOL(symbol)                                                   \
-  if (klass.UserVisibleName() == Symbols::symbol().ptr()) {                    \
-    return true;                                                               \
-  }
-  CHECK_SYMBOL(Int8List)
-  CHECK_SYMBOL(Int16List)
-  CHECK_SYMBOL(Int32List)
-  CHECK_SYMBOL(Int64List)
-  CHECK_SYMBOL(Uint8List)
-  CHECK_SYMBOL(Uint16List)
-  CHECK_SYMBOL(Uint32List)
-  CHECK_SYMBOL(Uint64List)
-  CHECK_SYMBOL(Float32List)
-  CHECK_SYMBOL(Float64List)
-#undef CHECK_SYMBOL
-  return false;
-}
-
 // Keep consistent with Function::FfiCSignatureReturnsStruct.
 bool BaseMarshaller::IsCompound(intptr_t arg_index) const {
   const auto& type = AbstractType::Handle(zone_, CType(arg_index));
@@ -389,9 +339,6 @@ Representation BaseMarshaller::RepInFfiCall(intptr_t def_index_global) const {
 
 Representation CallMarshaller::RepInFfiCall(intptr_t def_index_global) const {
   intptr_t arg_index = ArgumentIndex(def_index_global);
-  if (IsTypedData(arg_index)) {
-    return kTagged;
-  }
   const auto& location = Location(arg_index);
   if (location.IsPointerToMemory()) {
     if (ArgumentIndexIsReturn(arg_index)) {
