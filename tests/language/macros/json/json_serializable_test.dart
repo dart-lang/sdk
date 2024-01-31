@@ -12,10 +12,22 @@ void main() {
   var rogerJson = {
     'age': 5,
     'name': 'Roger',
+    'friends': [
+      {
+        'age': 7,
+        'name': 'Felix',
+        'friends': [],
+      }
+    ],
   };
   var roger = User.fromJson(rogerJson);
   Expect.equals(roger.age, 5);
   Expect.equals(roger.name, 'Roger');
+  Expect.equals(roger.friends.length, 1);
+  var felix = roger.friends.single;
+  Expect.equals(felix.age, 7);
+  Expect.equals(felix.name, 'Felix');
+  Expect.equals(felix.friends.isEmpty, true);
   Expect.deepEquals(roger.toJson(), rogerJson);
 
   var rogerAccountJson = {
@@ -24,6 +36,10 @@ void main() {
       'username': 'roger1',
       'password': 'theGoat',
     },
+  };
+  (rogerAccountJson['friends'] as dynamic)[0]['login'] = {
+    'username': 'felixTheCat',
+    'password': '9Lives',
   };
   var rogerAccount = UserAccount.fromJson(rogerAccountJson);
   Expect.equals(rogerAccount.age, 5);
@@ -37,6 +53,7 @@ void main() {
 class User {
   final int age;
   final String name;
+  final List<User> friends;
 }
 
 @JsonSerializable()
