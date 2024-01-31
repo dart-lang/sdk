@@ -43,7 +43,8 @@ Set<String> allowlistedExternalDartFiles = {
   "pkg/meta/lib/meta_meta.dart",
 };
 
-Future<void> main() async {
+/// Returns true on no errors and false if errors was found.
+Future<bool> main() async {
   Ticker ticker = new Ticker(isVerbose: false);
   CompilerOptions compilerOptions = getOptions();
 
@@ -139,7 +140,9 @@ Future<void> main() async {
       print(" - $uri");
     }
     exitCode = 1;
+    return false;
   }
+  return true;
 }
 
 CompilerOptions getOptions() {

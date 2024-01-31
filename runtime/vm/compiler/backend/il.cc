@@ -7417,7 +7417,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     // FfiCall to the right native location based on calling convention.
     for (intptr_t i = 0; i < num_defs; i++) {
       __ Comment("  def_index %" Pd, def_index);
-      Location origin = rebase.Rebase(locs()->in(def_index));
+      const Location origin = rebase.Rebase(locs()->in(def_index));
       const Representation origin_rep =
           RequiredInputRepresentation(def_index) == kTagged
               ? kUnboxedFfiIntPtr  // When arg_target.IsPointerToMemory().
@@ -7437,17 +7437,14 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       if (origin.IsConstant()) {
         __ Comment("origin.IsConstant()");
         ASSERT(!marshaller_.IsHandle(arg_index));
-        ASSERT(!marshaller_.IsTypedData(arg_index));
         compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
       } else if (origin.IsPairLocation() &&
                  (origin.AsPairLocation()->At(0).IsConstant() ||
                   origin.AsPairLocation()->At(1).IsConstant())) {
-        ASSERT(!marshaller_.IsTypedData(arg_index));
         // Note: half of the pair can be constant.
         __ Comment("origin.IsPairLocation() and constant");
         compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
       } else if (marshaller_.IsHandle(arg_index)) {
-        ASSERT(!marshaller_.IsTypedData(arg_index));
         __ Comment("marshaller_.IsHandle(arg_index)");
         // Handles are passed into FfiCalls as Tagged values on the stack, and
         // then we pass pointers to these handles to the native function here.
@@ -7486,20 +7483,6 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                  marshaller_.RequiredStackSpaceInBytes());
         }
 #endif
-        if (marshaller_.IsTypedData(arg_index)) {
-          // Unwrap typed data before move to native location.
-          __ Comment("marshaller_.IsTypedData(arg_index)");
-          if (origin.IsStackSlot()) {
-            compiler->EmitMove(Location::RegisterLocation(temp0), origin,
-                               &temp_alloc);
-            origin = Location::RegisterLocation(temp0);
-          }
-          ASSERT(origin.IsRegister());
-          __ LoadField(
-              origin.reg(),
-              compiler::FieldAddress(
-                  origin.reg(), compiler::target::PointerBase::data_offset()));
-        }
         compiler->EmitMoveToNative(def_target, origin, origin_rep, &temp_alloc);
       }
       def_index++;

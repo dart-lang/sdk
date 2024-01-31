@@ -217,6 +217,8 @@ Future<CompilerResult> _buildInternal(
           showOffsets: options.debugDumpShowOffsets);
     }
     options.ticker.logMs("Generated component");
+  } else {
+    component = summaryComponent;
   }
   // TODO(johnniwinther): Should we reuse the macro executor on subsequent
   // compilations where possible?

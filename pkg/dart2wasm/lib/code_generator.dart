@@ -2883,8 +2883,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // assume non-nullable here.
     assert(!dartTypeOf(node.expression).isPotentiallyNullable);
     wrap(node.expression, translator.topInfo.nonNullableType);
-    call(translator.stackTraceCurrent.reference);
-    call(translator.errorThrow.reference);
+    call(translator.errorThrowWithCurrentStackTrace.reference);
     b.unreachable();
     return expectedType;
   }
