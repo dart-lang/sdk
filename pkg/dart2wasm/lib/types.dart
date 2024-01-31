@@ -109,9 +109,6 @@ class Types {
   w.ValueType classAndFieldToType(Class cls, int fieldIndex) =>
       translator.classInfo[cls]!.struct.fields[fieldIndex].type.unpacked;
 
-  Iterable<Class> _getConcreteSubtypes(Class cls) =>
-      translator.subtypes.getSubtypesOf(cls).where((c) => !c.isAbstract);
-
   /// Wasm value type for non-nullable `_Type` values
   w.ValueType get nonNullableTypeType => typeClassInfo.nonNullableType;
 
@@ -720,36 +717,54 @@ class Types {
       b.br_on_null(nullLabel);
     }
 
-    List<Class> concrete = _getConcreteSubtypes(type.classNode).toList();
-    if (type.classNode == coreTypes.objectClass) {
+    final interfaceClass = type.classNode;
+
+    if (interfaceClass == coreTypes.objectClass) {
       b.drop();
       b.i32_const(1);
-    } else if (type.classNode == coreTypes.functionClass) {
+    } else if (interfaceClass == coreTypes.functionClass) {
       b.ref_test(translator.closureInfo.nonNullableType);
-    } else if (concrete.isEmpty) {
-      b.drop();
-      b.i32_const(0);
-    } else if (concrete.length == 1) {
-      ClassInfo info = translator.classInfo[concrete.single]!;
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.i32_const(info.classId);
-      b.i32_eq();
     } else {
-      w.Local idLocal = codeGen.addLocal(w.NumType.i32);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.local_set(idLocal);
-      w.Label done = b.block(const [], const [w.NumType.i32]);
-      b.i32_const(1);
-      for (Class cls in concrete) {
-        ClassInfo info = translator.classInfo[cls]!;
-        b.i32_const(info.classId);
-        b.local_get(idLocal);
-        b.i32_eq();
-        b.br_if(done);
+      final ranges =
+          translator.classIdNumbering.getConcreteClassIdRanges(interfaceClass);
+      if (ranges.isEmpty) {
+        b.drop();
+        b.i32_const(0);
+      } else if (ranges.length == 1) {
+        final range = ranges[0];
+
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.i32_const(range.start);
+        if (range.length == 1) {
+          b.i32_eq();
+        } else {
+          b.i32_sub();
+          b.i32_const(range.length);
+          b.i32_lt_u();
+        }
+      } else {
+        w.Local idLocal = codeGen.addLocal(w.NumType.i32);
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.local_set(idLocal);
+        w.Label done = b.block(const [], const [w.NumType.i32]);
+        b.i32_const(1);
+
+        for (Range range in ranges) {
+          b.local_get(idLocal);
+          b.i32_const(range.start);
+          if (range.length == 1) {
+            b.i32_eq();
+          } else {
+            b.i32_sub();
+            b.i32_const(range.length);
+            b.i32_lt_u();
+          }
+          b.br_if(done);
+        }
+        b.drop();
+        b.i32_const(0);
+        b.end(); // done
       }
-      b.drop();
-      b.i32_const(0);
-      b.end(); // done
     }
 
     if (isPotentiallyNullable) {

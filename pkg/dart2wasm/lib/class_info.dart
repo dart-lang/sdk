@@ -502,8 +502,12 @@ class ClassInfoCollector {
   /// Create class info and Wasm struct for all classes.
   void collect() {
     // `0` is occupied by artificial non-Dart top class.
-    const int nextClassId = 1;
-    final (dfsOrder, classIds) = _numberClasses(nextClassId);
+    const int firstClassId = 1;
+
+    translator.classIdNumbering =
+        ClassIdNumbering._number(translator, masqueradeValues, firstClassId);
+    final classIds = translator.classIdNumbering.classIds;
+    final dfsOrder = translator.classIdNumbering.dfsOrder;
 
     _createStructForClassTop(dfsOrder.length);
 
@@ -524,6 +528,10 @@ class ClassInfoCollector {
     // needs to be initialized before we encounter a class with type
     // parameters.
     _createStructForClass(classIds, translator.typeClass);
+
+    // Similarly the `Record` class needs to be handled before the loop below as
+    // the [_createStructForRecordClass] needs it.
+    _createStructForClass(classIds, translator.coreTypes.recordClass);
 
     for (final cls in dfsOrder) {
       if (cls.superclass == translator.coreTypes.recordClass) {
@@ -546,21 +554,86 @@ class ClassInfoCollector {
     // Validate that all internally used fields have the expected indices.
     FieldIndex.validate(translator);
   }
+}
 
-  (List<Class>, Map<Class, int>) _numberClasses(int nextClassId) {
+class ClassIdNumbering {
+  final Map<Class, List<Class>> _subclasses;
+  final Map<Class, List<Class>> _implementors;
+  final List<Range> _concreteSubclassIdRanges;
+
+  final List<Class> dfsOrder;
+  final Map<Class, int> classIds;
+
+  ClassIdNumbering._(this._subclasses, this._implementors,
+      this._concreteSubclassIdRanges, this.dfsOrder, this.classIds);
+
+  final Map<Class, Set<Class>> _transitiveImplementors = {};
+  Set<Class> _getTransitiveImplementors(Class klass) {
+    var transitiveImplementors = _transitiveImplementors[klass];
+    if (transitiveImplementors != null) return transitiveImplementors;
+
+    transitiveImplementors = {};
+
+    List<Class>? classes = _subclasses[klass];
+    if (classes != null) {
+      for (final cls in classes) {
+        transitiveImplementors.addAll(_getTransitiveImplementors(cls));
+      }
+    }
+    classes = _implementors[klass];
+    if (classes != null) {
+      for (final cls in classes) {
+        transitiveImplementors.add(cls);
+        transitiveImplementors.addAll(_getTransitiveImplementors(cls));
+      }
+    }
+
+    return _transitiveImplementors[klass] = transitiveImplementors;
+  }
+
+  // Maps a class to a list of class id ranges that implement/extend the given
+  // class directly or transitively.
+  final Map<Class, List<Range>> _concreteClassIdRanges = {};
+  List<Range> getConcreteClassIdRanges(Class klass) {
+    var ranges = _concreteClassIdRanges[klass];
+    if (ranges != null) return ranges;
+
+    ranges = [];
+    final transitiveImplementors = _getTransitiveImplementors(klass);
+    final range = _concreteSubclassIdRanges[classIds[klass]!];
+    if (!range.isEmpty) ranges.add(range);
+    for (final implementor in transitiveImplementors) {
+      final range = _concreteSubclassIdRanges[classIds[implementor]!];
+      if (!range.isEmpty) ranges.add(range);
+    }
+    ranges.normalize();
+
+    return _concreteClassIdRanges[klass] = ranges;
+  }
+
+  static ClassIdNumbering _number(
+      Translator translator, Set<Class> masqueradeValues, int firstClassId) {
     // Make graph from class to its subclasses.
     late final Class root;
     final subclasses = <Class, List<Class>>{};
+    final implementors = <Class, List<Class>>{};
+    int abstractClassCount = 0;
+    int concreteClassCount = 0;
     for (final library in translator.component.libraries) {
       for (final cls in library.classes) {
+        cls.isAbstract ? abstractClassCount++ : concreteClassCount++;
         final superClass = cls.superclass;
         if (superClass == null) {
           root = cls;
         } else {
           subclasses.putIfAbsent(superClass, () => []).add(cls);
         }
+        for (final interface in cls.implementedTypes) {
+          implementors.putIfAbsent(interface.classNode, () => []).add(cls);
+        }
       }
     }
+    final int classCount = abstractClassCount + concreteClassCount;
 
     // We have a preference in which order we explore the direct subclasses of
     // `Object` as that allows us to keep class ids of certain hierarchies
@@ -605,21 +678,27 @@ class ClassInfoCollector {
     subclasses[root]!.sort((Class a, Class b) => order(a).compareTo(order(b)));
 
     // Traverse class inheritence graph in depth-first pre-order.
-    void dfs(Class root, void Function(Class) fun) {
-      fun(root);
+    void dfs(
+        Class root, int Function(Class) pre, void Function(Class, int) post) {
+      final classId = pre(root);
       final children = subclasses[root];
       if (children != null) {
         for (final sub in children) {
-          dfs(sub, fun);
+          dfs(sub, pre, post);
         }
       }
+      post(root, classId);
     }
 
     // Make a list of the depth-first pre-order traversal.
     final dfsOrder = <Class>[];
-    dfs(root, dfsOrder.add);
-
     final classIds = <Class, int>{};
+
+    // Maps any class to a dense range of concrete class ids that are subclasses
+    // of that class.
+    final concreteSubclassRanges = List<Range>.filled(
+        firstClassId + classCount, Range.empty(),
+        growable: false);
 
     // TODO: We may consider removing the type category table. But until we do
     // we have to make sure that all masqueraded types that concrete classes may
@@ -630,27 +709,99 @@ class ClassInfoCollector {
     //
     // => So we move the abstract masqeraded classes before all the concrete
     // ones.
+    int nextAbstractClassId = firstClassId;
     for (Class cls in masqueradeValues) {
       if (cls.isAbstract) {
         assert(classIds[cls] == null);
-        classIds[cls] = nextClassId++;
+        classIds[cls] = nextAbstractClassId++;
       }
     }
+    int nextConcreteClassId = nextAbstractClassId;
+    nextAbstractClassId = firstClassId +
+        (nextAbstractClassId - firstClassId) +
+        concreteClassCount;
+    dfs(root, (Class cls) {
+      dfsOrder.add(cls);
+      if (cls.isAbstract) {
+        var classId = classIds[cls];
+        if (classId == null) classIds[cls] = nextAbstractClassId++;
+        return nextConcreteClassId;
+      }
 
-    for (final cls in dfsOrder) {
+      assert(classIds[cls] == null);
+      classIds[cls] = nextConcreteClassId++;
+      return nextConcreteClassId - 1;
+    }, (Class cls, int firstClassId) {
+      final range = Range(firstClassId, nextConcreteClassId - 1);
       if (!cls.isAbstract) {
-        assert(classIds[cls] == null);
-        classIds[cls] = nextClassId++;
+        assert(classIds[cls] == firstClassId);
+        concreteSubclassRanges[firstClassId] = range;
+      } else {
+        concreteSubclassRanges[classIds[cls]!] = range;
       }
-    }
-    for (final cls in dfsOrder) {
-      if (cls.isAbstract) classIds[cls] = classIds[cls] ?? nextClassId++;
-    }
-    // Abstract masquerade
+    });
     for (Class cls in masqueradeValues) {
       assert(classIds[cls]! <= 255);
     }
+    return ClassIdNumbering._(
+        subclasses, implementors, concreteSubclassRanges, dfsOrder, classIds);
+  }
+}
 
-    return (dfsOrder, classIds);
+// A range of class ids, both ends inclusive.
+class Range {
+  final int start;
+  final int end;
+
+  Range._(this.start, this.end) : assert(start <= end);
+  const Range.empty()
+      : start = 0,
+        end = -1;
+  factory Range(int start, int end) {
+    if (end < start) return Range.empty();
+    return Range._(start, end);
+  }
+
+  int get length => 1 + (end - start);
+  bool get isEmpty => length == 0;
+
+  bool contains(int id) => start <= id && id <= end;
+  bool containsRange(Range other) => start <= other.start && other.end <= end;
+
+  Range shiftBy(int offset) {
+    if (isEmpty) return this;
+    return Range(start + offset, end + offset);
+  }
+
+  String toString() => isEmpty ? '[]' : '[$start, $end]';
+}
+
+extension RangeListExtention on List<Range> {
+  void normalize() {
+    if (isEmpty) return;
+
+    // Ensure we sort ranges by start of the range.
+    sort((a, b) => a.start.compareTo(b.start));
+
+    int current = 0;
+    Range currentRange = this[0];
+    for (int read = 1; read < length; ++read) {
+      final nextRange = this[read];
+      if (currentRange.isEmpty) {
+        currentRange = nextRange;
+        continue;
+      }
+      if (nextRange.isEmpty) continue;
+      if (currentRange.containsRange(nextRange)) continue;
+      if (currentRange.contains(nextRange.start)) {
+        currentRange = Range(currentRange.start, nextRange.end);
+        continue;
+      }
+
+      this[current++] = currentRange;
+      currentRange = nextRange;
+    }
+    this[current++] = currentRange;
+    this.length = current;
   }
 }
