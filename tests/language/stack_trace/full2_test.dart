@@ -12,6 +12,8 @@
 
 import "package:expect/expect.dart";
 
+import 'non_web_helper.dart' if (dart.library.js_interop) 'web_helper.dart';
+
 @pragma("vm:entry-point") // Prevent obfuscation.
 void func1() {
   throw new Exception("Test full stacktrace");
@@ -78,6 +80,7 @@ int func7() {
 }
 
 main() {
+  configureStackFrameLimit();
   var i = func7();
   Expect.equals(1, i);
 }
