@@ -9,17 +9,26 @@ void configureStackFrameLimit() {
   // are captured in stack traces (e.g. Chrome's limit is 10).
   // We can configure that here manually, to ensure the tests pass
   // on all compiler+browser combinations.
-  eval('''
-    var globalState = (typeof window != "undefined") ? window
-      : (typeof global != "undefined") ? global
-      : (typeof self != "undefined") ? self : null;
+  jsWindow?.error.stackTraceLimit = 100;
+}
 
-    // By default, stack traces cutoff at 10 in Chrome.
-    if (globalState.Error) {
-      globalState.Error.stackTraceLimit = Infinity;
-    }
-''');
+@JS('window')
+external JSWindow? get jsWindow;
+
+@JS()
+@staticInterop
+class JSWindow {}
+
+extension on JSWindow {
+  @JS('Error')
+  external JSError get error;
 }
 
 @JS()
-external void eval(String code);
+@staticInterop
+class JSError {}
+
+extension on JSError {
+  @JS('stackTraceLimit')
+  external void set stackTraceLimit(int value);
+}
