@@ -1226,6 +1226,7 @@ class CompilerOptions implements DiagnosticOptions {
 
     environment['dart.web.assertions_enabled'] = '$enableUserAssertions';
     environment['dart.tool.dart2js'] = '${true}';
+    environment['dart.tool.dart2js.minify'] = '$enableMinification';
     // Eventually pragmas and commandline flags should be aligned so that users
     // setting these flag is equivalent to setting the relevant pragmas
     // globally.
