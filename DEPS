@@ -161,7 +161,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "99fbdcc745e2f2cfb85be4a4c6c7b520cd25c2dd",
   "mockito_rev": "0422551a774cbf72eea87ba80e71f7b5d81199f3",
-  "native_rev": "40382efb9c7a0774d2764238fc1802e562e9cbaf",
+  "native_rev": "0eafd544d6ebce07b42007560ae9e0858c885d89",
   "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
   "path_rev": "57a049cff2e2be7a302dd9683b2b194c6d06e2d4",
   "pool_rev": "4c490001446d8ba3d361b99d8befd6a4f61abc7a",
