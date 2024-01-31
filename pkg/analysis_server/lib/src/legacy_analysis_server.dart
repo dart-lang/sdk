@@ -487,8 +487,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     cancellationTokens[id]?.cancel();
   }
 
-  Future<void> dispose() async {}
-
   /// The socket from which requests are being read has been closed.
   void done() {}
 
