@@ -66,7 +66,7 @@ class JsUtilOptimizer extends Transformer {
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
 
-  late final ExtensionIndex _extensionIndex;
+  final ExtensionIndex _extensionIndex;
 
   JsUtilOptimizer(
       this._coreTypes, ClassHierarchy hierarchy, this._extensionIndex)
@@ -112,7 +112,7 @@ class JsUtilOptimizer extends Transformer {
             TypeEnvironment(_coreTypes, hierarchy));
 
   @override
-  visitLibrary(Library node) {
+  TreeNode visitLibrary(Library node) {
     _staticTypeContext.enterLibrary(node);
     node.transformChildren(this);
     _staticTypeContext.leaveLibrary(node);
@@ -120,7 +120,7 @@ class JsUtilOptimizer extends Transformer {
   }
 
   @override
-  defaultMember(Member node) {
+  TreeNode defaultMember(Member node) {
     _staticTypeContext.enterMember(node);
     node.transformChildren(this);
     _staticTypeContext.leaveMember(node);
@@ -382,19 +382,13 @@ class JsUtilOptimizer extends Transformer {
     // TODO(srujzs): Support more operators for overloading using some
     // combination of Dart-defineable operators and @JS renaming for the ones
     // that are not renameable.
-    late Procedure target;
-    switch (operator) {
-      case '[]':
-        target =
-            shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
-        break;
-      case '[]=':
-        target = _setPropertyTarget;
-        break;
-      default:
-        throw UnimplementedError(
-            'External operator $operator is unsupported for static interop. ');
-    }
+    final target = switch (operator) {
+      '[]' =>
+        shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget,
+      '[]=' => _setPropertyTarget,
+      _ => throw UnimplementedError(
+          'External operator $operator is unsupported for static interop. ')
+    };
 
     return (Arguments arguments, Expression invocation) {
       return StaticInvocation(

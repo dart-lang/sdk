@@ -276,8 +276,7 @@ class SharedInteropTransformer extends Transformer {
       ..fileOffset = invocation.fileOffset;
     block.add(jsExporter);
 
-    for (var exportName in exportMap.keys) {
-      var exports = exportMap[exportName]!;
+    for (var MapEntry(key: exportName, value: exports) in exportMap.entries) {
       ExpressionStatement setProperty(
           VariableGet jsObject, String propertyName, StaticInvocation jsValue) {
         // `jsObject[propertyName] = jsValue`
@@ -338,9 +337,7 @@ class SharedInteropTransformer extends Transformer {
             isSynthesized: true)
           ..fileOffset = invocation.fileOffset;
         block.add(getSetMap);
-        var getSet = _exportChecker.getGetterSetter(exports);
-        var getter = getSet.getter;
-        var setter = getSet.setter;
+        var (:getter, :setter) = _exportChecker.getGetterSetter(exports);
         if (getter != null) {
           final resultType = _staticInteropMockValidator.typeParameterResolver
               .resolve(getter.getterType);

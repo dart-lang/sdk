@@ -104,9 +104,8 @@ class StaticInteropMockValidator {
         _computeImplementableExtensionMembers(staticInteropClass);
     var exportMap = _exportChecker.exportClassToMemberMap[dartClass.reference]!;
 
-    for (var exportName in exportNameToDescriptors.keys) {
-      var descriptors = exportNameToDescriptors[exportName]!;
-
+    for (var MapEntry(key: exportName, value: descriptors)
+        in exportNameToDescriptors.entries) {
       String getAsErrorString(Iterable<ExtensionMemberDescriptor> descriptors) {
         var withExtensionNameAndType = descriptors.map((descriptor) {
           var extension = _descriptorToExtensionName[descriptor]!;
@@ -139,7 +138,7 @@ class StaticInteropMockValidator {
           hasImplementation = descriptors
               .any((descriptor) => _implements(firstMember, descriptor));
         } else {
-          var getSet = _exportChecker.getGetterSetter(dartMembers);
+          var (:getter, :setter) = _exportChecker.getGetterSetter(dartMembers);
 
           var getters = <ExtensionMemberDescriptor>{};
           var setters = <ExtensionMemberDescriptor>{};
@@ -148,10 +147,10 @@ class StaticInteropMockValidator {
           var implementsSetter = false;
           for (var descriptor in descriptors) {
             if (descriptor.isGetter) {
-              implementsGetter |= _implements(getSet.getter, descriptor);
+              implementsGetter |= _implements(getter, descriptor);
               getters.add(descriptor);
             } else if (descriptor.isSetter) {
-              implementsSetter |= _implements(getSet.setter, descriptor);
+              implementsSetter |= _implements(setter, descriptor);
               setters.add(descriptor);
             }
           }
@@ -288,8 +287,8 @@ class StaticInteropMockValidator {
     // Process the stored libraries, and create a mapping between @staticInterop
     // classes and their extensions.
     var staticInteropClassesWithExtensions = <Reference, Set<Extension>>{};
-    for (var library in ExportChecker.libraryExtensionMap.keys) {
-      for (var extension in ExportChecker.libraryExtensionMap[library]!) {
+    for (var extensions in ExportChecker.libraryExtensionMap.values) {
+      for (var extension in extensions) {
         var onType = extension.onType as InterfaceType;
         staticInteropClassesWithExtensions
             .putIfAbsent(onType.classReference, () => {})
