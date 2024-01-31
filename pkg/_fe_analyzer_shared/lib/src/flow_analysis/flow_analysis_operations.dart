@@ -26,10 +26,10 @@ abstract interface class FlowAnalysisOperations<Variable extends Object,
   ///
   /// This method is only called if a closure returned by
   /// [FlowAnalysis.whyNotPromoted] is invoked, and the expression being queried
-  /// is a reference to a property that wasn't promoted; this typically means
-  /// that an error occurred and the client is attempting to produce a context
-  /// message to provide additional information about the error (i.e., that the
-  /// error happened due to failed promotion).
+  /// is a reference to a private property that wasn't promoted; this typically
+  /// means that an error occurred and the client is attempting to produce a
+  /// context message to provide additional information about the error (i.e.,
+  /// that the error happened due to failed promotion).
   ///
   /// The client should return `null` if [property] was not promotable due to a
   /// conflict with a field, getter, or noSuchMethod forwarder elsewhere in the

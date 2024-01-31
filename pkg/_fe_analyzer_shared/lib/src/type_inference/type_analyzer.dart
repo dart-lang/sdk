@@ -387,8 +387,7 @@ mixin TypeAnalyzer<
   /// Computes the type schema for a cast pattern.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeCastPatternSchema() =>
-      operations.typeToSchema(operations.objectQuestionType);
+  TypeSchema analyzeCastPatternSchema() => operations.unknownType;
 
   /// Analyzes a constant pattern.  [node] is the pattern itself, and
   /// [expression] is the constant expression.  Depending on the client's
