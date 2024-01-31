@@ -114,8 +114,9 @@ main(List<String> args) async {
       path.join(dir, 'does_not_exist.dart.dill.so'),
     ]);
     Expect.notEquals(0, result3.exitCode);
+    Expect.contains('The uri', result3.stderr);
     Expect.contains(
-        'The uri provided to `Isolate.spawnUri()` does not contain a valid AOT '
+        'provided to `Isolate.spawnUri()` does not contain a valid AOT '
         'snapshot',
         result3.stderr);
   });
