@@ -7619,3 +7619,8 @@ ExtensionTypeImplementsDeferred:
       extension type ET(d.A id) implements d.A {}
     lib.dart: |
       class A {}
+
+RecordUsedAsCallable:
+  problemMessage: "The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`"
+  script: |
+    test(({dynamic call} r) => r(0);

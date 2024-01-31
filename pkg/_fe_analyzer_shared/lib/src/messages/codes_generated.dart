@@ -12673,6 +12673,15 @@ const MessageCode messageRecordTypeZeroFieldsButTrailingComma =
         correctionMessage: r"""Try removing the trailing comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordUsedAsCallable = messageRecordUsedAsCallable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordUsedAsCallable = const MessageCode(
+    "RecordUsedAsCallable",
+    problemMessage:
+        r"""The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRedirectingConstructorWithAnotherInitializer =
     messageRedirectingConstructorWithAnotherInitializer;
 

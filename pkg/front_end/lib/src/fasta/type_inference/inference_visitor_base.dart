@@ -9,8 +9,6 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.d
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-import 'package:front_end/src/fasta/source/source_field_builder.dart';
-import 'package:front_end/src/fasta/source/source_procedure_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
@@ -43,8 +41,10 @@ import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 import '../names.dart';
 import '../problems.dart' show internalProblem, unhandled;
 import '../source/source_constructor_builder.dart';
+import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
+import '../source/source_procedure_builder.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
@@ -3380,6 +3380,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             hoistedExpressions: hoistedExpressions);
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordNamed:
+        if (isImplicitCall && !target.isNullable) {
+          libraryBuilder.addProblem(messageRecordUsedAsCallable,
+              receiver.fileOffset, noLength, libraryBuilder.fileUri);
+        }
         DartType type = target.getGetterType(this);
         Expression read = new RecordNameGet(receiver,
             target.receiverType as RecordType, target.recordFieldName!)
