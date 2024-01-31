@@ -320,18 +320,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           dartType,
           node,
           allowHandle: true, // Handle-specific errors emitted below.
-          allowTypedData: true, // TypedData-specific errors emitted below.
         );
         ensureLeafCallDoesNotUseHandles(
           nativeType,
           isLeaf,
-          reportErrorOn: node,
-        );
-        ensureOnlyLeafCallsUseTypedData(
-          node.arguments.types[0],
-          dartType,
-          isLeaf: isLeaf,
-          isCall: true,
           reportErrorOn: node,
         );
         return _replaceLookupFunction(node);
@@ -349,18 +341,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           dartType,
           node,
           allowHandle: true, // Handle-specific errors emitted below.
-          allowTypedData: true, // TypedData-specific errors emitted below.
         );
         ensureLeafCallDoesNotUseHandles(
           nativeType,
           isLeaf,
-          reportErrorOn: node,
-        );
-        ensureOnlyLeafCallsUseTypedData(
-          node.arguments.types[0],
-          dartType,
-          isLeaf: isLeaf,
-          isCall: true,
           reportErrorOn: node,
         );
         final DartType nativeSignature = nativeType.typeArguments[0];
@@ -768,14 +752,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       nativeType,
       dartType,
       node,
-      allowTypedData: true, // TypedData-specific errors emitted below.
-    );
-    ensureOnlyLeafCallsUseTypedData(
-      node.arguments.types[0],
-      dartType,
-      isLeaf: false,
-      isCall: false,
-      reportErrorOn: node,
     );
 
     final funcType = dartType as FunctionType;

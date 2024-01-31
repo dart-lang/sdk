@@ -601,14 +601,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           [nativeType, dartType, 'Native']);
       return;
     }
-
-    _validateFfiTypedDataUnwrapping(
-      dartType,
-      nativeType,
-      errorNode,
-      isLeaf: isLeaf,
-      isCall: true,
-    );
   }
 
   bool _extendsNativeFieldWrapperClass1(InterfaceType? type) {
@@ -1041,13 +1033,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (isLeaf) {
         _validateFfiLeafCallUsesNoHandles(TPrime, node);
       }
-      _validateFfiTypedDataUnwrapping(
-        F,
-        TPrime,
-        errorNode,
-        isLeaf: isLeaf,
-        isCall: true,
-      );
     }
     _validateIsLeafIsConst(node);
   }
@@ -1207,46 +1192,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _validateFfiTypedDataUnwrapping(
-    DartType dartType,
-    DartType nativeType,
-    AstNode errorNode, {
-    required bool isLeaf,
-    required bool isCall,
-  }) {
-    if (dartType is FunctionType && nativeType is FunctionType) {
-      if (dartType.returnType.isTypedData && nativeType.returnType.isPointer) {
-        if (!isCall) {
-          _errorReporter.reportErrorForNode(
-              FfiCode.CALLBACK_MUST_NOT_USE_TYPED_DATA, errorNode);
-        } else {
-          _errorReporter.reportErrorForNode(
-              FfiCode.CALL_MUST_NOT_RETURN_TYPED_DATA, errorNode);
-        }
-      }
-      int i = 0;
-      final nativeParamTypes = nativeType.normalParameterTypes.flattenVarArgs();
-      for (final dartParam in dartType.normalParameterTypes) {
-        if (i >= nativeParamTypes.length) {
-          // Cascading error as not the same amount of arguments.
-          // Already results in an error earlier.
-          return;
-        }
-        final nativeParam = nativeParamTypes[i];
-        i++;
-        if (dartParam.isTypedData && nativeParam.isPointer) {
-          if (!isCall) {
-            _errorReporter.reportErrorForNode(
-                FfiCode.CALLBACK_MUST_NOT_USE_TYPED_DATA, errorNode);
-          } else if (!isLeaf) {
-            _errorReporter.reportErrorForNode(
-                FfiCode.NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA, errorNode);
-          }
-        }
-      }
-    }
-  }
-
   /// Validate that the fields declared by the given [node] meet the
   /// requirements for fields within a struct or union class.
   void _validateFieldsInCompound(FieldDeclaration node) {
@@ -1379,7 +1324,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, e, ['exceptionalReturn']);
       }
     }
-    _validateFfiTypedDataUnwrapping(FT, T, f, isLeaf: false, isCall: false);
   }
 
   /// Ensure `isLeaf` is const as we need the value at compile time to know
@@ -1431,9 +1375,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (isLeaf) {
       _validateFfiLeafCallUsesNoHandles(S, typeArguments[0]);
     }
-    final AstNode errorNode = typeArguments[1];
-    _validateFfiTypedDataUnwrapping(F, S, errorNode,
-        isLeaf: isLeaf, isCall: true);
   }
 
   /// Validate the invocation of `Native.addressOf`.
@@ -1576,13 +1517,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           _errorReporter.reportErrorForNode(
               FfiCode.MUST_BE_A_SUBTYPE, e, [eType, natRetType, name]);
         }
-        _validateFfiTypedDataUnwrapping(
-          funcType,
-          typeArg,
-          e,
-          isLeaf: false,
-          isCall: false,
-        );
         if (!_isConst(e)) {
           _errorReporter.reportErrorForNode(
               FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, e, ['exceptionalReturn']);

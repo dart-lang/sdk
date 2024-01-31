@@ -5006,29 +5006,6 @@ const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
         r"""Argument to 'Native.addressOf' must be annotated with @Native.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFfiCallMustNotReturnTypedData =
-    messageFfiCallMustNotReturnTypedData;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiCallMustNotReturnTypedData = const MessageCode(
-    "FfiCallMustNotReturnTypedData",
-    analyzerCodes: <String>["CALL_MUST_NOT_RETURN_TYPED_DATA"],
-    problemMessage: r"""FFI calls can't return typed data.""",
-    correctionMessage: r"""Try changing using `Pointer`s.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFfiCallbackMustNotUseTypedData =
-    messageFfiCallbackMustNotUseTypedData;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiCallbackMustNotUseTypedData = const MessageCode(
-    "FfiCallbackMustNotUseTypedData",
-    analyzerCodes: <String>["CALLBACK_MUST_NOT_USE_TYPED_DATA"],
-    problemMessage:
-        r"""FFI callbacks can't take typed data arguments or return value.""",
-    correctionMessage: r"""Try changing using `Pointer`s.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String name)>
     templateFfiCompoundImplementsFinalizable =
     const Template<Message Function(String string, String name)>(
@@ -5429,17 +5406,6 @@ Message _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver(
           """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}. Native instance method annotation must have receiver as first argument.""",
       arguments: {'count': count, 'count2': count2});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFfiNonLeafCallMustNotTakeTypedData =
-    messageFfiNonLeafCallMustNotTakeTypedData;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiNonLeafCallMustNotTakeTypedData = const MessageCode(
-    "FfiNonLeafCallMustNotTakeTypedData",
-    analyzerCodes: <String>["NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA"],
-    problemMessage: r"""FFI non-leaf calls can't take typed data arguments.""",
-    correctionMessage: r"""Try changing the call to a leaf call.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

@@ -4972,10 +4972,6 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
   if (marshaller.IsPointer(arg_index)) {
     body += Box(kUnboxedFfiIntPtr);
     body += FfiPointerFromAddress();
-  } else if (marshaller.IsTypedData(arg_index)) {
-    // Only FFI call arguments can be TypedData, so only reachable in
-    // `FfiConvertPrimitiveToNative`.
-    UNREACHABLE();
   } else if (marshaller.IsHandle(arg_index)) {
     body += UnwrapHandle();
   } else if (marshaller.IsVoid(arg_index)) {
@@ -5008,8 +5004,6 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     body += LoadNativeField(Slot::PointerBase_data(),
                             InnerPointerAccess::kCannotBeInnerPointer);
     body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
-  } else if (marshaller.IsTypedData(arg_index)) {
-    // Nothing to do yet. Unwrap in `FfiCallInstr::EmitNativeCode`.
   } else if (marshaller.IsHandle(arg_index)) {
     body += WrapHandle();
   } else {

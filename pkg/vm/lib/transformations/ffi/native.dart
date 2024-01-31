@@ -960,18 +960,10 @@ class FfiNativeTransformer extends FfiTransformer {
         wrappedDartFunctionType,
         node,
         allowHandle: true, // Handle-specific errors emitted below.
-        allowTypedData: true, // TypedData-specific errors emitted below.
       );
       ensureLeafCallDoesNotUseHandles(
         nativeType,
         isLeaf,
-        reportErrorOn: node,
-      );
-      ensureOnlyLeafCallsUseTypedData(
-        ffiFunctionType,
-        dartFunctionType,
-        isLeaf: isLeaf,
-        isCall: true,
         reportErrorOn: node,
       );
     } on FfiStaticTypeError {
