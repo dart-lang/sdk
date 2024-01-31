@@ -162,7 +162,7 @@ vars = {
   "mime_rev": "99fbdcc745e2f2cfb85be4a4c6c7b520cd25c2dd",
   "mockito_rev": "0422551a774cbf72eea87ba80e71f7b5d81199f3",
   "native_rev": "0eafd544d6ebce07b42007560ae9e0858c885d89",
-  "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
+  "package_config_rev": "5a0bc197fde3db2907d0e35e0470e601bee20845",
   "path_rev": "57a049cff2e2be7a302dd9683b2b194c6d06e2d4",
   "pool_rev": "4c490001446d8ba3d361b99d8befd6a4f61abc7a",
   "protobuf_rev": "a293fb9c866b1def3d3e7fffc5f6763a2ec59cc9",
