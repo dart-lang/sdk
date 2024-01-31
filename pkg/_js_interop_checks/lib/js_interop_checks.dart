@@ -379,7 +379,7 @@ class JsInteropChecks extends RecursiveVisitor {
               (hasDartJSInteropAnnotation(node) ||
                   _libraryHasDartJSInteropAnnotation)) {
         _checkNoParamInitializersForStaticInterop(node.function);
-        late Annotatable? annotatable;
+        final Annotatable? annotatable;
         if (node.isExtensionTypeMember) {
           annotatable = extensionIndex.getExtensionType(node);
         } else if (node.isExtensionMember) {
@@ -683,7 +683,7 @@ class JsInteropChecks extends RecursiveVisitor {
     // TODO(srujzs): Delete the check for patched member once
     // https://github.com/dart-lang/sdk/issues/53367 is resolved.
     if (member.isExternal && !JsInteropChecks.isPatchedMember(member)) {
-      var memberKind = '';
+      final String memberKind;
       var memberName = '';
       if (member.isExtensionTypeMember) {
         // Extension type interop members can not be torn off.
@@ -946,7 +946,7 @@ class JsInteropChecks extends RecursiveVisitor {
     } else if (type is ExtensionType) {
       // Extension types that wrap other allowed types are also okay. Interop
       // extension types are handled above, so this is essentially for extension
-      // types on primtives.
+      // types on primitives.
       return _isAllowedExternalType(type.extensionTypeErasure);
     }
     return false;
