@@ -163,19 +163,13 @@ library lib_a;
 class A {}
 class B extends A {}
 ''');
-    newPackageConfigJsonFile(
-      '$packagesRootPath/pkgA',
-      (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA'))
-          .toContent(toUriStr: toUriStr),
+    writePackageConfig(
+      convertPath('$packagesRootPath/pkgA'),
     );
     // reference the package from a project
-    newPackageConfigJsonFile(
-      testPackageRootPath,
-      (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA'))
-          .toContent(toUriStr: toUriStr),
-    );
+    writeTestPackageConfig(
+        config: (PackageConfigFileBuilder()
+          ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA')));
     addTestFile('''
 import 'package:pkgA/libA.dart';
 class C extends A {}

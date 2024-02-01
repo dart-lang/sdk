@@ -52,7 +52,7 @@ class ConvertToWhereTypeTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_iterable_whereType;
 
   @override
-  String? get testPackageLanguageVersion => '2.9';
+  String get testPackageLanguageVersion => '2.9';
 
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''

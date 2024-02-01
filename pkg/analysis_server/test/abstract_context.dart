@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
@@ -24,8 +23,10 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'src/utilities/mock_packages.dart';
+import 'support/configuration_files.dart';
 
-class AbstractContextTest with ResourceProviderMixin {
+class AbstractContextTest
+    with MockPackagesMixin, ConfigurationFilesMixin, ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
 
   static final ByteStore _byteStore = MemoryByteStore();
@@ -59,11 +60,8 @@ class AbstractContextTest with ResourceProviderMixin {
         EnableString.macros,
       ];
 
-  String get latestLanguageVersion =>
-      '${ExperimentStatus.currentVersion.major}.'
-      '${ExperimentStatus.currentVersion.minor}';
-
   /// The path that is not in [workspaceRootPath], contains external packages.
+  @override
   String get packagesRootPath => '/packages';
 
   Folder get sdkRoot => newFolder('/sdk');
@@ -76,10 +74,9 @@ class AbstractContextTest with ResourceProviderMixin {
 
   File get testFile => getFile(testFilePath);
 
-  String? get testPackageLanguageVersion => latestLanguageVersion;
-
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
+  @override
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get testPackageTestPath => '$testPackageRootPath/test';
@@ -229,54 +226,6 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void verifyCreatedCollection() {}
-
-  void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, config.toContent(toUriStr: toUriStr));
-  }
-
-  void writeTestPackageConfig({
-    PackageConfigFileBuilder? config,
-    String? languageVersion,
-    bool flutter = false,
-    bool meta = false,
-    bool vector_math = false,
-  }) {
-    if (config == null) {
-      config = PackageConfigFileBuilder();
-    } else {
-      config = config.copy();
-    }
-
-    config.add(
-      name: 'test',
-      rootPath: testPackageRootPath,
-      languageVersion: languageVersion ?? testPackageLanguageVersion,
-    );
-
-    if (meta || flutter) {
-      var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
-    }
-
-    if (flutter) {
-      {
-        var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
-      }
-      {
-        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
-      }
-    }
-
-    if (vector_math) {
-      var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
-    }
-
-    var path = '$testPackageRootPath/.dart_tool/package_config.json';
-    writePackageConfig(path, config);
-  }
 
   void _addAnalyzedFilesToDrivers() {
     for (var analysisContext in _analysisContextCollection!.contexts) {

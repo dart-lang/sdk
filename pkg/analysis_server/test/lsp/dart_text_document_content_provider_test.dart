@@ -85,7 +85,7 @@ class DartTextDocumentContentProviderTest extends AbstractLspAnalysisServerTest
   }
 
   Future<void> test_valid_content() async {
-    writePackageConfig(projectFolderPath, temporaryMacroSupport: true);
+    writeTestPackageConfig(macro: true);
 
     newFile(
         join(projectFolderPath, 'lib', 'with_foo.dart'), withFooMethodMacro);
@@ -124,7 +124,7 @@ class A {
   }
 
   Future<void> test_valid_eventAndModifiedContent() async {
-    writePackageConfig(projectFolderPath, temporaryMacroSupport: true);
+    writeTestPackageConfig(macro: true);
 
     var macroImplementationFilePath =
         join(projectFolderPath, 'lib', 'with_foo.dart');

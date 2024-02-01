@@ -14,6 +14,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -31,6 +32,7 @@ import 'package:unified_analytics/unified_analytics.dart';
 
 import '../mocks.dart';
 import '../mocks_lsp.dart';
+import '../src/utilities/mock_packages.dart';
 import '../support/configuration_files.dart';
 import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
@@ -49,6 +51,7 @@ abstract class AbstractLspAnalysisServerTest
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
+        MockPackagesMixin<MemoryResourceProvider>,
         ConfigurationFilesMixin {
   late MockLspServerChannel channel;
   late TestPluginManager pluginManager;
@@ -62,8 +65,9 @@ abstract class AbstractLspAnalysisServerTest
 
   DartFixPromptManager? get dartFixPromptManager => null;
 
+  /// The path that is not in [projectFolderPath], contains external packages.
   @override
-  path.Context get pathContext => server.resourceProvider.pathContext;
+  String get packagesRootPath => resourceProvider.convertPath('/packages');
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -301,7 +305,7 @@ analyzer:
 ''');
 
     analysisOptionsUri = pathContext.toUri(analysisOptionsPath);
-    writePackageConfig(projectFolderPath);
+    writeTestPackageConfig();
   }
 
   Future<void> tearDown() async {
@@ -863,6 +867,8 @@ mixin LspAnalysisServerTestMixin
   ServerCapabilities get serverCapabilities => _serverCapabilities!;
 
   Stream<Message> get serverToClient;
+
+  String get testPackageRootPath => projectFolderPath;
 
   Future<void> changeFile(
     int newVersion,

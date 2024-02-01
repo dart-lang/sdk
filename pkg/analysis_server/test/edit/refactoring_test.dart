@@ -7,14 +7,12 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
 import '../mocks.dart';
-import '../src/utilities/mock_packages.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -846,11 +844,7 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   late List<RefactoringKind> kinds;
 
   void addFlutterPackage() {
-    var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
-    writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'flutter', rootPath: flutterLib.parent.path),
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   /// Tests that there is refactoring of the given [kind] is available at the

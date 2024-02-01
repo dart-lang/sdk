@@ -26,8 +26,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       flutter: true,
     );
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);

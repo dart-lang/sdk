@@ -22,7 +22,7 @@ void main() {
 @reflectiveTest
 class ConvertElementNullableTest extends AbstractSingleUnitTest {
   @override
-  String? get testPackageLanguageVersion => '2.9';
+  String get testPackageLanguageVersion => '2.9';
 
   Future<void> test_CONSTRUCTOR_required_parameters_1() async {
     writeTestPackageConfig(meta: true);

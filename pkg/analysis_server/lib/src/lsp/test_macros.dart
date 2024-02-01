@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 mixin TestMacros {
+  // TODO(dantup): Merge this into `test\test_macros.dart`. Currently it uses
+  //  another helper (`addMacros`) that isn't accessible where these one is
+  //  used.
+
   /// A macro that can be applied to a class to add a `foo()` method that calls
   /// a bar() method.
   final withFooMethodMacro = r'''

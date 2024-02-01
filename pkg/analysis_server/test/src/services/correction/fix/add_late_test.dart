@@ -22,7 +22,7 @@ class AddLatePreNnbdTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_LATE;
 
   @override
-  String? get testPackageLanguageVersion => '2.9';
+  String get testPackageLanguageVersion => '2.9';
 
   Future<void> test_withFinal() async {
     await resolveTestCode('''
