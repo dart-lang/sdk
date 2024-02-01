@@ -348,7 +348,6 @@ class LinterContextImpl implements LinterContext {
 
     var evaluationEngine = ConstantEvaluationEngine(
       declaredVariables: _declaredVariables,
-      isNonNullableByDefault: isEnabled(Feature.non_nullable),
       configuration: ConstantEvaluationConfiguration(),
     );
 

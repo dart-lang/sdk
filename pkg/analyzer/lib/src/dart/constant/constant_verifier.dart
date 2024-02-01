@@ -94,8 +94,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     bool retainDataForTesting,
   )   : _evaluationEngine = ConstantEvaluationEngine(
           declaredVariables: declaredVariables,
-          isNonNullableByDefault:
-              _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
           configuration: ConstantEvaluationConfiguration(),
         ),
         _exhaustivenessCache =

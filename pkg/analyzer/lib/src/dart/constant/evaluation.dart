@@ -68,9 +68,6 @@ class ConstantEvaluationEngine {
   /// The set of variables declared on the command line using '-D'.
   final DeclaredVariables _declaredVariables;
 
-  /// Whether the `non-nullable` feature is enabled.
-  final bool _isNonNullableByDefault;
-
   final ConstantEvaluationConfiguration configuration;
 
   /// Initialize a newly created [ConstantEvaluationEngine].
@@ -79,10 +76,8 @@ class ConstantEvaluationEngine {
   /// line using '-D'.
   ConstantEvaluationEngine({
     required DeclaredVariables declaredVariables,
-    required bool isNonNullableByDefault,
     required this.configuration,
-  })  : _declaredVariables = declaredVariables,
-        _isNonNullableByDefault = isNonNullableByDefault;
+  }) : _declaredVariables = declaredVariables;
 
   /// Compute the constant value associated with the given [constant].
   void computeConstantValue(ConstantEvaluationTarget constant) {
@@ -135,10 +130,8 @@ class ConstantEvaluationEngine {
                     constantInitializer,
                     CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
                     arguments: [
-                      dartConstant.type.getDisplayString(
-                          withNullability: _isNonNullableByDefault),
-                      constant.type.getDisplayString(
-                          withNullability: _isNonNullableByDefault),
+                      dartConstant.type.getDisplayString(withNullability: true),
+                      constant.type.getDisplayString(withNullability: true),
                     ]);
                 return;
               }
@@ -354,7 +347,6 @@ class ConstantEvaluationEngine {
       typeArguments,
       arguments,
       constantVisitor,
-      isNullSafe: _isNonNullableByDefault,
       invocation: invocation,
     );
     if (result is! InvalidConstant) {
@@ -401,7 +393,6 @@ class ConstantEvaluationEngine {
       typeArguments,
       arguments,
       constantVisitor,
-      isNullSafe: _isNonNullableByDefault,
       invocation: invocation,
     );
   }
@@ -576,8 +567,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   /// Convenience getter to gain access to the [evaluationEngine]'s type system.
   TypeSystemImpl get typeSystem => _library.typeSystem;
-
-  bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
 
   /// Convenience getter to gain access to the [evaluationEngine]'s type
   /// provider.
@@ -1076,7 +1065,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant visitNamedType(NamedType node) {
     var type = node.typeOrThrow;
 
-    if ((!_isNonNullableByDefault || node.isTypeLiteralInConstantPattern) &&
+    if (node.isTypeLiteralInConstantPattern &&
         hasTypeParameterReference(type)) {
       return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.CONST_TYPE_PARAMETER);
@@ -1678,11 +1667,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     // No other property access is allowed except for `.length` of a `String`.
     return InvalidConstant.forEntity(
-        errorNode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
-        arguments: [
-          identifier.name,
-          targetType.getDisplayString(withNullability: _isNonNullableByDefault)
-        ]);
+        errorNode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, arguments: [
+      identifier.name,
+      targetType.getDisplayString(withNullability: true)
+    ]);
   }
 
   /// Returns a [Constant] based on the [element] provided.
@@ -2354,29 +2342,6 @@ class _InstanceCreationEvaluator {
   /// Parameter to "fromEnvironment" methods that denotes the default value.
   static const String _defaultValueParam = 'defaultValue';
 
-  /// Source of RegExp matching declarable operator names.
-  /// From sdk/lib/internal/symbol.dart.
-  static const String _operatorPattern =
-      "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
-
-  /// Source of RegExp matching any public identifier.
-  /// From sdk/lib/internal/symbol.dart.
-  static const String _publicIdentifierPattern =
-      "(?!$_reservedWordPattern\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
-
-  /// RegExp that validates a non-empty non-private symbol.
-  /// From sdk/lib/internal/symbol.dart.
-  static final RegExp _publicSymbolPattern = RegExp('^(?:$_operatorPattern\$|'
-      '$_publicIdentifierPattern(?:=?\$|[.](?!\$)))+?\$');
-
-  /// Source of RegExp matching Dart reserved words.
-  /// From sdk/lib/internal/symbol.dart.
-  static const String _reservedWordPattern =
-      "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|"
-      "d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|"
-      "i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|"
-      "r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
-
   final ConstantEvaluationEngine _evaluationEngine;
 
   /// The set of variables declared on the command line using '-D'.
@@ -2457,10 +2422,7 @@ class _InstanceCreationEvaluator {
   TypeSystemImpl get typeSystem => _library.typeSystem;
 
   /// Evaluates this constructor call as a factory constructor call.
-  Constant evaluateFactoryConstructorCall(
-    List<Expression> arguments, {
-    required bool isNullSafe,
-  }) {
+  Constant evaluateFactoryConstructorCall(List<Expression> arguments) {
     var definingClass = _constructor.enclosingElement;
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
@@ -2496,7 +2458,7 @@ class _InstanceCreationEvaluator {
     } else if (_constructor.name == "" &&
         definingClass == typeProvider.symbolElement &&
         argumentCount == 1) {
-      if (!_checkSymbolArguments(arguments, isNullSafe: isNullSafe)) {
+      if (!_checkSymbolArguments(arguments)) {
         return InvalidConstant.forEntity(
             _errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       }
@@ -2613,11 +2575,9 @@ class _InstanceCreationEvaluator {
           return InvalidConstant.forEntity(errorNode,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
               arguments: [
-                fieldValue.type.getDisplayString(
-                    withNullability: _library.isNonNullableByDefault),
+                fieldValue.type.getDisplayString(withNullability: true),
                 field.name,
-                fieldType.getDisplayString(
-                    withNullability: _library.isNonNullableByDefault),
+                fieldType.getDisplayString(withNullability: true),
               ],
               isRuntimeException: isRuntimeException);
         }
@@ -2712,11 +2672,10 @@ class _InstanceCreationEvaluator {
                         CompileTimeErrorCode
                             .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
                         arguments: [
-                          evaluationResult.type.getDisplayString(
-                              withNullability: _library.isNonNullableByDefault),
+                          evaluationResult.type
+                              .getDisplayString(withNullability: true),
                           fieldName,
-                          field.type.getDisplayString(
-                              withNullability: _library.isNonNullableByDefault),
+                          field.type.getDisplayString(withNullability: true),
                         ],
                         isRuntimeException: isRuntimeException),
                     evaluationIsComplete: true);
@@ -2864,10 +2823,8 @@ class _InstanceCreationEvaluator {
           return InvalidConstant.forEntity(errorTarget,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               arguments: [
-                argumentValue.type.getDisplayString(
-                    withNullability: _library.isNonNullableByDefault),
-                parameter.type.getDisplayString(
-                    withNullability: _library.isNonNullableByDefault),
+                argumentValue.type.getDisplayString(withNullability: true),
+                parameter.type.getDisplayString(withNullability: true),
               ],
               isRuntimeException: isEvaluationException);
         }
@@ -2884,10 +2841,9 @@ class _InstanceCreationEvaluator {
                 return InvalidConstant.forEntity(errorTarget,
                     CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
                     arguments: [
-                      argumentValue.type.getDisplayString(
-                          withNullability: _library.isNonNullableByDefault),
-                      fieldType.getDisplayString(
-                          withNullability: _library.isNonNullableByDefault),
+                      argumentValue.type
+                          .getDisplayString(withNullability: true),
+                      fieldType.getDisplayString(withNullability: true),
                     ]);
               }
             }
@@ -2976,8 +2932,7 @@ class _InstanceCreationEvaluator {
   /// are the values of the unnamed arguments. The [namedArgumentValues] are the
   /// values of the named arguments. Returns `true` if the arguments are
   /// correct, `false` otherwise.
-  bool _checkSymbolArguments(List<Expression> arguments,
-      {required bool isNullSafe}) {
+  bool _checkSymbolArguments(List<Expression> arguments) {
     if (arguments.length != 1) {
       return false;
     }
@@ -2991,10 +2946,7 @@ class _InstanceCreationEvaluator {
     if (name == null) {
       return false;
     }
-    if (isNullSafe) {
-      return true;
-    }
-    return _isValidPublicSymbol(name);
+    return true;
   }
 
   void _checkTypeParameters() {
@@ -3036,7 +2988,6 @@ class _InstanceCreationEvaluator {
     List<DartType>? typeArguments,
     List<Expression> arguments,
     ConstantVisitor constantVisitor, {
-    required bool isNullSafe,
     ConstructorInvocation? invocation,
   }) {
     if (!constructor.isConst) {
@@ -3121,8 +3072,7 @@ class _InstanceCreationEvaluator {
       // We couldn't find a non-factory constructor.
       // See if it's because we reached an external const factory constructor
       // that we can emulate.
-      return evaluator.evaluateFactoryConstructorCall(arguments,
-          isNullSafe: isNullSafe);
+      return evaluator.evaluateFactoryConstructorCall(arguments);
     } else {
       return evaluator.evaluateGenerativeConstructorCall(arguments);
     }
@@ -3157,11 +3107,6 @@ class _InstanceCreationEvaluator {
     }
     return constructor;
   }
-
-  /// Determine whether the given string is a valid name for a public symbol
-  /// (i.e. whether it is allowed for a call to the Symbol constructor).
-  static bool _isValidPublicSymbol(String name) =>
-      name.isEmpty || name == "void" || _publicSymbolPattern.hasMatch(name);
 }
 
 extension on NamedType {
@@ -3179,9 +3124,6 @@ extension RuntimeExtensions on TypeSystemImpl {
     DartType type,
   ) {
     type = type.extensionTypeErasure;
-    if (!isNonNullableByDefault) {
-      type = toLegacyTypeIfOptOut(type);
-    }
     var objType = obj.type;
     return isSubtypeOf(objType, type);
   }
