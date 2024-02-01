@@ -25,6 +25,7 @@ import 'package:unified_analytics/unified_analytics.dart';
 
 import 'mocks.dart';
 import 'support/configuration_files.dart';
+import 'test_macros.dart';
 
 // TODO(scheglov): this is duplicate
 class AnalysisOptionsFileConfig {
@@ -186,7 +187,7 @@ class ContextResolutionTest with ResourceProviderMixin {
   }
 
   Future<void> tearDown() async {
-    await server.dispose();
+    await server.shutdown();
   }
 
   /// Returns a [Future] that completes when the server's analysis is complete.
@@ -205,7 +206,7 @@ class ContextResolutionTest with ResourceProviderMixin {
 }
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest
-    with ConfigurationFilesMixin {
+    with ConfigurationFilesMixin, TestMacros {
   // If experiments are needed,
   // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
@@ -250,6 +251,25 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
         _analysisFileSubscriptions,
       ).toRequest('0'),
     );
+  }
+
+  /// Adds support for macros to the `package_config.json` file and creates a
+  /// `macros.dart` file that defines the given [macros]. The macros should not
+  /// include imports, the imports for macros will be added automatically.
+  void addMacros(List<String> macros) {
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder(),
+      temporaryMacroSupport: true,
+    );
+    newFile(
+        '$testPackageLibPath/macros.dart',
+        [
+          '''
+// There is no public API exposed yet, the in-progress API lives here.
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+''',
+          ...macros
+        ].join('\n'));
   }
 
   // TODO(scheglov): rename
@@ -308,6 +328,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     String? languageVersion,
     bool flutter = false,
     bool meta = false,
+    bool temporaryMacroSupport = false,
   }) {
     writePackageConfig(
       testPackageRoot.path,
@@ -315,6 +336,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
       languageVersion: languageVersion,
       flutter: flutter,
       meta: meta,
+      temporaryMacroSupport: temporaryMacroSupport,
     );
   }
 

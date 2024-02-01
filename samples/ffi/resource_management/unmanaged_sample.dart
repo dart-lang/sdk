@@ -25,7 +25,7 @@ main() {
   // For automatic management use a Arena.
   final p = calloc<Int64>(2);
   p[0] = 24;
-  memMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());
+  memMove((p + 1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());
   print(p[1]);
   Expect.equals(24, p[1]);
   calloc.free(p);

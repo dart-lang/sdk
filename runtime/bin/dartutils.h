@@ -245,8 +245,23 @@ class DartUtils {
     kKernelMagicNumber,
     kKernelListMagicNumber,
     kGzipMagicNumber,
+    kAotELFMagicNumber,
+    kAotMachO32MagicNumber,
+    kAotMachO64MagicNumber,
+    kAotCoffARM32MagicNumber,
+    kAotCoffARM64MagicNumber,
+    kAotCoffRISCV32MagicNumber,
+    kAotCoffRISCV64MagicNumber,
     kUnknownMagicNumber
   };
+  static constexpr int64_t kMaxMagicNumberSize = 8;
+
+  // Note: The check for AOT magic number must match up with the enum
+  // order above.
+  static bool IsAotMagicNumber(MagicNumber number) {
+    return (number >= DartUtils::kAotELFMagicNumber) &&
+           (number <= DartUtils::kAotCoffRISCV64MagicNumber);
+  }
 
   // Checks if the buffer is a script snapshot, kernel file, or gzip file.
   static MagicNumber SniffForMagicNumber(const char* filename);
@@ -629,6 +644,7 @@ struct MagicNumberData {
 };
 
 extern MagicNumberData appjit_magic_number;
+extern MagicNumberData aotelf_magic_number;
 extern MagicNumberData kernel_magic_number;
 extern MagicNumberData kernel_list_magic_number;
 extern MagicNumberData gzip_magic_number;

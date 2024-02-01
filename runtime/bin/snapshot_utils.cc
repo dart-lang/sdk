@@ -26,10 +26,28 @@
 namespace dart {
 namespace bin {
 
-static constexpr int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
+static constexpr int64_t kAppSnapshotHeaderSize = 4 * kInt64Size;
 static constexpr int64_t kAppSnapshotPageSize = 16 * KB;
 
 static const char kMachOAppSnapshotNoteName[] DART_UNUSED = "__dart_app_snap";
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class DummySnapshot : public AppSnapshot {
+ public:
+  explicit DummySnapshot(DartUtils::MagicNumber num) : AppSnapshot(num) {}
+
+  ~DummySnapshot() {}
+
+  void SetBuffers(const uint8_t** vm_data_buffer,
+                  const uint8_t** vm_instructions_buffer,
+                  const uint8_t** isolate_data_buffer,
+                  const uint8_t** isolate_instructions_buffer) {
+    UNREACHABLE();
+  }
+
+ private:
+};
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 class MappedAppSnapshot : public AppSnapshot {
  public:
@@ -37,7 +55,8 @@ class MappedAppSnapshot : public AppSnapshot {
                     MappedMemory* vm_snapshot_instructions,
                     MappedMemory* isolate_snapshot_data,
                     MappedMemory* isolate_snapshot_instructions)
-      : vm_data_mapping_(vm_snapshot_data),
+      : AppSnapshot(DartUtils::kAppJITMagicNumber),
+        vm_data_mapping_(vm_snapshot_data),
         vm_instructions_mapping_(vm_snapshot_instructions),
         isolate_data_mapping_(isolate_snapshot_data),
         isolate_instructions_mapping_(isolate_snapshot_instructions) {}
@@ -84,30 +103,24 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     return nullptr;
   }
 
-  int64_t header[5];
+  int64_t header[4];
   ASSERT(sizeof(header) == kAppSnapshotHeaderSize);
   if (!file->ReadFully(&header, kAppSnapshotHeaderSize)) {
     return nullptr;
   }
-  ASSERT(sizeof(header[0]) == appjit_magic_number.length);
-  if (memcmp(&header[0], appjit_magic_number.bytes,
-             appjit_magic_number.length) != 0) {
-    return nullptr;
-  }
-
-  int64_t vm_data_size = header[1];
+  int64_t vm_data_size = header[0];
   int64_t vm_data_position =
       Utils::RoundUp(file->Position(), kAppSnapshotPageSize);
-  int64_t vm_instructions_size = header[2];
+  int64_t vm_instructions_size = header[1];
   int64_t vm_instructions_position = vm_data_position + vm_data_size;
   if (vm_instructions_size != 0) {
     vm_instructions_position =
         Utils::RoundUp(vm_instructions_position, kAppSnapshotPageSize);
   }
-  int64_t isolate_data_size = header[3];
+  int64_t isolate_data_size = header[2];
   int64_t isolate_data_position = Utils::RoundUp(
       vm_instructions_position + vm_instructions_size, kAppSnapshotPageSize);
-  int64_t isolate_instructions_size = header[4];
+  int64_t isolate_instructions_size = header[3];
   int64_t isolate_instructions_position =
       isolate_data_position + isolate_data_size;
   if (isolate_instructions_size != 0) {
@@ -152,17 +165,10 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     }
   }
 
-  return new MappedAppSnapshot(vm_data_mapping, vm_instr_mapping,
-                               isolate_data_mapping, isolate_instr_mapping);
-}
-
-static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
-  File* file = File::Open(nullptr, script_name, File::kRead);
-  if (file == nullptr) {
-    return nullptr;
-  }
-  RefCntReleaseScope<File> rs(file);
-  return TryReadAppSnapshotBlobs(script_name, file);
+  auto app_snapshot =
+      new MappedAppSnapshot(vm_data_mapping, vm_instr_mapping,
+                            isolate_data_mapping, isolate_instr_mapping);
+  return app_snapshot;
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -173,7 +179,8 @@ class ElfAppSnapshot : public AppSnapshot {
                  const uint8_t* vm_snapshot_instructions,
                  const uint8_t* isolate_snapshot_data,
                  const uint8_t* isolate_snapshot_instructions)
-      : elf_(elf),
+      : AppSnapshot{DartUtils::kAotELFMagicNumber},
+        elf_(elf),
         vm_snapshot_data_(vm_snapshot_data),
         vm_snapshot_instructions_(vm_snapshot_instructions),
         isolate_snapshot_data_(isolate_snapshot_data),
@@ -432,7 +439,8 @@ class DylibAppSnapshot : public AppSnapshot {
                    const uint8_t* vm_snapshot_instructions,
                    const uint8_t* isolate_snapshot_data,
                    const uint8_t* isolate_snapshot_instructions)
-      : library_(library),
+      : AppSnapshot(DartUtils::kAotELFMagicNumber),
+        library_(library),
         vm_snapshot_data_(vm_snapshot_data),
         vm_snapshot_instructions_(vm_snapshot_instructions),
         isolate_snapshot_data_(isolate_snapshot_data),
@@ -597,11 +605,31 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
     // anyway if it was).
     return nullptr;
   }
-  AppSnapshot* snapshot = TryReadAppSnapshotBlobs(script_name);
-  if (snapshot != nullptr) {
-    return snapshot;
+  File* file = File::Open(nullptr, script_name, File::kRead);
+  if (file == nullptr) {
+    return nullptr;
+  }
+  RefCntReleaseScope<File> rs(file);
+  if ((file->Length() - file->Position()) < DartUtils::kMaxMagicNumberSize) {
+    return nullptr;
+  }
+
+  uint8_t header[DartUtils::kMaxMagicNumberSize];
+  ASSERT(sizeof(header) == DartUtils::kMaxMagicNumberSize);
+  if (!file->ReadFully(&header, DartUtils::kMaxMagicNumberSize)) {
+    return nullptr;
+  }
+  DartUtils::MagicNumber magic_number =
+      DartUtils::SniffForMagicNumber(header, sizeof(header));
+  if (magic_number == DartUtils::kAppJITMagicNumber) {
+    // Return the JIT snapshot.
+    return TryReadAppSnapshotBlobs(script_name, file);
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
+  if (!DartUtils::IsAotMagicNumber(magic_number)) {
+    return nullptr;
+  }
+
   // For testing AOT with the standalone embedder, we also support loading
   // from a dynamic library to simulate what happens on iOS.
 
@@ -613,16 +641,21 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
   script_name = absolute_path.get();
 #endif
 
+  AppSnapshot* snapshot = nullptr;
   if (!force_load_elf_from_memory) {
     snapshot = TryReadAppSnapshotDynamicLibrary(script_name);
     if (snapshot != nullptr) {
       return snapshot;
     }
   }
-
   return TryReadAppSnapshotElf(script_name, /*file_offset=*/0,
                                force_load_elf_from_memory);
+#else
+  // We create a dummy snapshot object just to remember the type which
+  // has already been identified by sniffing the magic number.
+  return new DummySnapshot(magic_number);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+
   return nullptr;
 }
 
@@ -667,7 +700,8 @@ void Snapshot::WriteAppSnapshot(const char* filename,
   WriteInt64(file, vm_instructions_size);
   WriteInt64(file, isolate_data_size);
   WriteInt64(file, isolate_instructions_size);
-  ASSERT(file->Position() == kAppSnapshotHeaderSize);
+  ASSERT(file->Position() ==
+         (kAppSnapshotHeaderSize + DartUtils::kMaxMagicNumberSize));
 
   file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
   if (LOG_SECTION_BOUNDARIES) {
@@ -720,7 +754,7 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
 
   uint8_t* kernel_buffer = nullptr;
   intptr_t kernel_buffer_size = 0;
-  dfe.ReadScript(script_name, &kernel_buffer, &kernel_buffer_size);
+  dfe.ReadScript(script_name, nullptr, &kernel_buffer, &kernel_buffer_size);
   if (kernel_buffer != nullptr) {
     WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
     free(kernel_buffer);
@@ -793,25 +827,6 @@ void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
-}
-
-bool Snapshot::IsAOTSnapshot(const char* snapshot_filename) {
-  // Header is simply "ELF" prefixed with the DEL character.
-  const char elf_header[] = {0x7F, 0x45, 0x4C, 0x46, 0x0};
-  const int64_t elf_header_len = strlen(elf_header);
-  File* file = File::Open(nullptr, snapshot_filename, File::kRead);
-  if (file == nullptr) {
-    return false;
-  }
-  if (file->Length() < elf_header_len) {
-    file->Release();
-    return false;
-  }
-  auto buf = std::unique_ptr<char[]>(new char[elf_header_len]);
-  bool success = file->ReadFully(buf.get(), elf_header_len);
-  file->Release();
-  ASSERT(success);
-  return (strncmp(elf_header, buf.get(), elf_header_len) == 0);
 }
 
 }  // namespace bin

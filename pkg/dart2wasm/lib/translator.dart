@@ -85,6 +85,8 @@ class Translator with KernelNodes {
   /// will have class info for superlass/superinterface at <I).
   late final List<ClassInfo> classesSupersFirst;
 
+  late final ClassIdNumbering classIdNumbering;
+
   /// [ClassInfo]s of classes in the compilation unit. Entries added by
   /// [ClassInfoCollector].
   final Map<Class, ClassInfo> classInfo = {};

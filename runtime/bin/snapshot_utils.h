@@ -5,6 +5,7 @@
 #ifndef RUNTIME_BIN_SNAPSHOT_UTILS_H_
 #define RUNTIME_BIN_SNAPSHOT_UTILS_H_
 
+#include "bin/dartutils.h"
 #include "platform/globals.h"
 
 namespace dart {
@@ -19,10 +20,21 @@ class AppSnapshot {
                           const uint8_t** isolate_data_buffer,
                           const uint8_t** isolate_instructions_buffer) = 0;
 
+  bool IsJIT() const { return magic_number_ == DartUtils::kAppJITMagicNumber; }
+  bool IsAOT() const { return DartUtils::IsAotMagicNumber(magic_number_); }
+  bool IsJITorAOT() const { return IsJIT() || IsAOT(); }
+  bool IsKernel() const {
+    return magic_number_ == DartUtils::kKernelMagicNumber;
+  }
+  bool IsKernelList() const {
+    return magic_number_ == DartUtils::kKernelListMagicNumber;
+  }
+
  protected:
-  AppSnapshot() {}
+  explicit AppSnapshot(DartUtils::MagicNumber num) : magic_number_(num) {}
 
  private:
+  DartUtils::MagicNumber magic_number_;
   DISALLOW_COPY_AND_ASSIGN(AppSnapshot);
 };
 
@@ -33,10 +45,6 @@ class Snapshot {
                              const char* package_config);
   static void GenerateAppJIT(const char* snapshot_filename);
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
-
-  // Returns true if snapshot_filename points to an AOT snapshot (aka,
-  // an ELF binary). May report false negatives.
-  static bool IsAOTSnapshot(const char* snapshot_filename);
 
 #if defined(DART_TARGET_OS_MACOS)
   static bool IsMachOFormattedBinary(const char* container_path);
