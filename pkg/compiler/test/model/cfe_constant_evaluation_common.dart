@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.constants.expressions.evaluate_test;
-
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
@@ -113,20 +111,20 @@ const List<TestData> DATA = [
           const {'foo': 'foo'}: 'StringConstant("foo")'
         }),
     ConstantData(
-        'const [0, 1]', 'ListConstant(<int*>[IntConstant(0), IntConstant(1)])'),
+        'const [0, 1]', 'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
     ConstantData('const <int>[0, 1]',
-        'ListConstant(<int*>[IntConstant(0), IntConstant(1)])'),
+        'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
     ConstantData(
-        'const {0, 1}', 'SetConstant(<int*>{IntConstant(0), IntConstant(1)})'),
+        'const {0, 1}', 'SetConstant(<int>{IntConstant(0), IntConstant(1)})'),
     ConstantData('const <int>{0, 1}',
-        'SetConstant(<int*>{IntConstant(0), IntConstant(1)})'),
+        'SetConstant(<int>{IntConstant(0), IntConstant(1)})'),
     ConstantData(
         'const {0: 1, 2: 3}',
-        'MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), '
+        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
             'IntConstant(2): IntConstant(3)})'),
     ConstantData(
         'const <int, int>{0: 1, 2: 3}',
-        'MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), '
+        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
             'IntConstant(2): IntConstant(3)})'),
   ]),
   TestData('env', '''
@@ -204,17 +202,17 @@ class C<U> {
     ConstantData(
         'const A()', 'ConstructedConstant(A<dynamic>(field1=IntConstant(42)))'),
     ConstantData('const A<int>(field1: 87)',
-        'ConstructedConstant(A<int*>(field1=IntConstant(87)))'),
+        'ConstructedConstant(A<int>(field1=IntConstant(87)))'),
     ConstantData('const B()',
-        'ConstructedConstant(A<B<dynamic>*>(field1=IntConstant(42)))'),
+        'ConstructedConstant(A<B<dynamic>>(field1=IntConstant(42)))'),
     ConstantData('const B<int>()',
-        'ConstructedConstant(A<B<int*>*>(field1=IntConstant(42)))'),
+        'ConstructedConstant(A<B<int>>(field1=IntConstant(42)))'),
     ConstantData('const B<int>(field1: 87)',
-        'ConstructedConstant(A<B<int*>*>(field1=IntConstant(87)))'),
+        'ConstructedConstant(A<B<int>>(field1=IntConstant(87)))'),
     ConstantData('const C<int>(field1: 87)',
-        'ConstructedConstant(A<B<double*>*>(field1=IntConstant(87)))'),
+        'ConstructedConstant(A<B<double>>(field1=IntConstant(87)))'),
     ConstantData('const B<int>.named()',
-        'ConstructedConstant(A<int*>(field1=IntConstant(42)))'),
+        'ConstructedConstant(A<int>(field1=IntConstant(42)))'),
   ]),
   TestData('env2', '''
 const c = int.fromEnvironment("foo", defaultValue: 5);
@@ -301,6 +299,8 @@ class B extends A {
  }
  class Class7 {
     const Class7();
+
+    bool operator ==(Object other) => true;
  }
  class Class8 {
     final field;
@@ -392,9 +392,9 @@ class B extends A {
     ConstantData('const Class6(2)', 'ConstructedConstant(Class6())'),
     ConstantData('const Class7()', 'ConstructedConstant(Class7())'),
     ConstantData('const Class7() == const Class7()', 'NonConstant',
-        expectedError: 'ConstEvalInvalidEqualsOperandType'),
+        expectedError: 'ConstEvalEqualsOperandNotPrimitiveEquality'),
     ConstantData('const Class7() != const Class7()', 'NonConstant',
-        expectedError: 'ConstEvalInvalidEqualsOperandType'),
+        expectedError: 'ConstEvalEqualsOperandNotPrimitiveEquality'),
     ConstantData('const Class8(not_string.length)', 'NonConstant',
         expectedError: 'ConstEvalInvalidPropertyGet'),
     ConstantData(
@@ -419,7 +419,7 @@ class B extends A {
       const D(c) : b = c + 2, super(c + 1);
     }
     class E {
-      const E() : assert(true_);
+      const E() : assert(true_!);
     }
   ''', [
     ConstantData(r'const A()', 'ConstructedConstant(A())'),
@@ -440,13 +440,13 @@ class C<T> {
     ConstantData('identity', 'FunctionConstant(identity)'),
     ConstantData(
         'const C<int>(0, identity)',
-        'ConstructedConstant(C<int*>(defaultValue=IntConstant(0),'
-            'identityFunction=InstantiationConstant([int*],'
+        'ConstructedConstant(C<int>(defaultValue=IntConstant(0),'
+            'identityFunction=InstantiationConstant([int],'
             'FunctionConstant(identity))))'),
     ConstantData(
         'const C<double>(0.5, identity)',
-        'ConstructedConstant(C<double*>(defaultValue=DoubleConstant(0.5),'
-            'identityFunction=InstantiationConstant([double*],'
+        'ConstructedConstant(C<double>(defaultValue=DoubleConstant(0.5),'
+            'identityFunction=InstantiationConstant([double],'
             'FunctionConstant(identity))))'),
   ]),
   TestData('generic class', '''
@@ -455,8 +455,8 @@ class C<T> {
   const C.redirect() : this.generative();
 }
   ''', <ConstantData>[
-    ConstantData('const C<int>.generative()', 'ConstructedConstant(C<int*>())'),
-    ConstantData('const C<int>.redirect()', 'ConstructedConstant(C<int*>())'),
+    ConstantData('const C<int>.generative()', 'ConstructedConstant(C<int>())'),
+    ConstantData('const C<int>.redirect()', 'ConstructedConstant(C<int>())'),
   ]),
   TestData('instance', '''
 const dynamic zero_ = bool.fromEnvironment("x") ? null : 0;
@@ -486,11 +486,11 @@ class C2<T> {
 }
 ''', <ConstantData>[
     ConstantData('const C1<A>(A())',
-        'ConstructedConstant(C1<A*>(a=ConstructedConstant(A())))'),
+        'ConstructedConstant(C1<A>(a=ConstructedConstant(A())))'),
     ConstantData(
         'const C2<A>(id)',
-        'ConstructedConstant(C2<A*>(a='
-            'InstantiationConstant([A*],FunctionConstant(id))))'),
+        'ConstructedConstant(C2<A>(a='
+            'InstantiationConstant([A],FunctionConstant(id))))'),
   ]),
   TestData('unused-arguments', '''
 class A {
@@ -520,16 +520,17 @@ class Subclass<T extends A> extends Class<T> {
     ConstantData('const Class<B>.redirect(C())', 'NonConstant',
         expectedError: 'ConstEvalInvalidType'),
     ConstantData('const Class<A>.method(A())', 'NonConstant',
-        expectedError: 'ConstEvalInvalidMethodInvocation'),
+        expectedError: 'The argument type \'A\' can\'t be '
+            'assigned to the parameter type \'T\'.'),
     ConstantData('const Subclass<B>(C())', 'NonConstant',
         expectedError: 'ConstEvalInvalidType'),
-    ConstantData('const Class<A>(A())', 'ConstructedConstant(Class<A*>())'),
+    ConstantData('const Class<A>(A())', 'ConstructedConstant(Class<A>())'),
     ConstantData(
-        'const Class<B>.redirect(B())', 'ConstructedConstant(Class<B*>())'),
+        'const Class<B>.redirect(B())', 'ConstructedConstant(Class<B>())'),
     ConstantData(
-        'const Subclass<A>(A())', 'ConstructedConstant(Subclass<A*>())'),
+        'const Subclass<A>(A())', 'ConstructedConstant(Subclass<A>())'),
     ConstantData(
-        'const Subclass<B>(B())', 'ConstructedConstant(Subclass<B*>())'),
+        'const Subclass<B>(B())', 'ConstructedConstant(Subclass<B>())'),
   ]),
   TestData('Nested Unevaluated', '''
 class Foo {
@@ -574,15 +575,6 @@ int bar(String o) => int.parse(o);
     ),
   ]),
 ];
-
-main(List<String> args) {
-  asyncTest(() async {
-    for (TestData data in DATA) {
-      if (args.isNotEmpty && !args.contains(data.name)) continue;
-      await testData(data);
-    }
-  });
-}
 
 Future testData(TestData data) async {
   // Group tests by environment and then by expected error so that we can
@@ -658,7 +650,6 @@ Future<void> runEnvTest(
     final field = elementEnvironment.lookupLibraryMember(library, name)!;
     compiler.reporter.withCurrentElement(field, () {
       final node = elementMap.getMemberNode(field) as ir.Field;
-      final initializer = node.initializer as ir.ConstantExpression;
       print('-- testing $field = ${data.code} --');
       Dart2jsConstantEvaluator evaluator = Dart2jsConstantEvaluator(
           elementMap.env.mainComponent, elementMap.typeEnvironment,
@@ -673,7 +664,7 @@ Future<void> runEnvTest(
               ? ir.EvaluationMode.weak
               : ir.EvaluationMode.strong);
       ir.Constant evaluatedConstant = evaluator.evaluate(
-          ir.StaticTypeContext(node, typeEnvironment), initializer);
+          ir.StaticTypeContext(node, typeEnvironment), node.initializer!);
 
       ConstantValue? value = evaluatedConstant is! ir.UnevaluatedConstant
           ? constantValuefier.visitConstant(evaluatedConstant)
@@ -687,17 +678,25 @@ Future<void> runEnvTest(
           "`${data.code}` in env $env, "
           "expected '${expectedText}'.");
 
-      var expectedError = data.expectedError;
       final errors = diagnosticCollector.contexts.map((e) => e.text).toList();
       if (expectedError != null) {
-        // There should be 2 errors per constant in this test group, 1 for the
-        // declaration and another for the print.
-        Expect.equals(envData.length * 2, errors.length);
-        Expect.isTrue(
-            errors.every((e) => e == expectedError),
-            "Error mismatch for `$field = ${data.code}`:\n"
-            "Expected: ${expectedError},\n"
-            "Found: ${errors}.");
+        if (node.initializer is ir.InvalidExpression) {
+          Expect.isTrue(
+              diagnosticCollector.errors
+                  .any((e) => e.text.contains(expectedError)),
+              "Error mismatch for `$field = ${data.code}`:\n"
+              "Expected to contain: ${expectedError},\n"
+              "Found: ${diagnosticCollector.errors.map((e) => e.text)}.");
+        } else {
+          // There should be 2 errors per constant in this test group, 1 for the
+          // declaration and another for the print.
+          Expect.equals(envData.length * 2, errors.length);
+          Expect.isTrue(
+              errors.every((e) => e == expectedError),
+              "Error mismatch for `$field = ${data.code}`:\n"
+              "Expected: ${expectedError},\n"
+              "Found: ${errors}.");
+        }
       } else {
         Expect.isTrue(
             diagnosticCollector.contexts.isEmpty,
@@ -706,4 +705,19 @@ Future<void> runEnvTest(
       }
     });
   }
+}
+
+const int totalShards = 2;
+
+void testShard(List<String> args, int shard) {
+  if (shard >= totalShards) throw ArgumentError('Shard number invalid: $shard');
+  asyncTest(() async {
+    int i = 0;
+    for (TestData data in DATA) {
+      i++;
+      if (i % totalShards != shard) continue;
+      if (args.isNotEmpty && !args.contains(data.name)) continue;
+      await testData(data);
+    }
+  });
 }
