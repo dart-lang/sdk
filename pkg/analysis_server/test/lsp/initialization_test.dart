@@ -1086,16 +1086,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([]));
   }
 
-  Future<void> test_survey_enabledByPreviewFlag() async {
-    await initialize(
-      initializationOptions: {'previewSurveys': true},
-    );
-    expect(server.surveyManager, isNotNull);
-  }
-
-  Future<void> test_survey_notEnabledByPreviewFlag() async {
+  Future<void> test_survey_alwaysEnabledForLsp() async {
     await initialize();
-    expect(server.surveyManager, isNull);
+    expect(server.surveyManager, isNotNull);
   }
 
   Future<void> test_uninitialized_dropsNotifications() async {
