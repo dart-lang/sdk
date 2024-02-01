@@ -469,6 +469,101 @@ int Function() foo() => throw 0;
     ]);
   }
 
+  test_diagnostic_report_atTypeAnnotation_kind_functionType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+void Function() foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 72, 15),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_fieldType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'variableType',
+  ])
+  final foo = 0;
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 98, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_formalParameterType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'positionalFormalParameterType 0',
+])
+void foo(a) {}
+''', [
+      error(WarningCode.MACRO_WARNING, 102, 1),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_functionReturnType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 72, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_methodReturnType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'returnType',
+  ])
+  foo() => throw 0;
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 90, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_topLevelVariableType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'variableType',
+])
+final foo = 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 80, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_recordType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+(int, String) foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 72, 13),
+    ]);
+  }
+
   test_diagnostic_report_atTypeAnnotation_method_formalParameter_positional() async {
     await assertErrorsInCode('''
 import 'diagnostic.dart';

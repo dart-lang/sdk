@@ -1420,6 +1420,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForMainFunction1(variable.name, variable.declaredElement!);
     }
 
+    for (final variable in node.variables.variables) {
+      var element = variable.declaredElement;
+      if (element is TopLevelVariableElementImpl) {
+        _reportMacroDiagnostics(element, node.metadata);
+      }
+    }
+
     super.visitTopLevelVariableDeclaration(node);
   }
 
@@ -5962,11 +5969,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           var node = locationNode(location.parent);
           switch (node) {
             case FunctionDeclaration():
-              return node.returnType;
+              if (node.returnType case var returnType?) {
+                return returnType;
+              }
+              // The type is omitted.
+              return SimpleIdentifierImpl(node.name);
             case GenericFunctionType():
-              return node.returnType;
+              return node.returnType ?? node;
             case MethodDeclaration():
-              return node.returnType;
+              if (node.returnType case var returnType?) {
+                return returnType;
+              }
+              // The type is omitted.
+              return SimpleIdentifierImpl(node.name);
             default:
               throw UnimplementedError('${node.runtimeType}');
           }
@@ -5978,10 +5993,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           var parent = node?.parent;
           switch (node) {
             case SimpleFormalParameter():
-              return node.type;
+              if (node.type case var type?) {
+                return type;
+              } else if (node.name case var nameToken?) {
+                return SimpleIdentifierImpl(nameToken);
+              }
+              return null;
             case VariableDeclaration():
               if (parent is VariableDeclarationList) {
-                return parent.type;
+                if (parent.type case var type?) {
+                  return type;
+                }
+                // The type is omitted.
+                return SimpleIdentifierImpl(node.name);
               }
           }
           throw UnimplementedError(
@@ -6085,13 +6109,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 diagnostic.contextMessages.map(convertMessage).toList(),
               );
             case TypeAnnotationMacroDiagnosticTarget():
-              var errorNode = locationNode(target.location)!;
-              errorReporter.reportErrorForNode(
-                errorCode,
-                errorNode,
-                [diagnostic.message.message],
-                diagnostic.contextMessages.map(convertMessage).toList(),
-              );
+              var errorNode = locationNode(target.location);
+              if (errorNode != null) {
+                errorReporter.reportErrorForNode(
+                  errorCode,
+                  errorNode,
+                  [diagnostic.message.message],
+                  diagnostic.contextMessages.map(convertMessage).toList(),
+                );
+              }
           }
       }
     }

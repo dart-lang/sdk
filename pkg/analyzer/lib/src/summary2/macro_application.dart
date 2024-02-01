@@ -720,7 +720,7 @@ class LibraryMacroApplier {
     macro.TypeAnnotationDiagnosticTarget macroTarget,
   ) {
     switch (macroTarget.typeAnnotation) {
-      case NamedTypeAnnotation typeAnnotation:
+      case TypeAnnotationWithLocation typeAnnotation:
         return TypeAnnotationMacroDiagnosticTarget(
           location: typeAnnotation.location,
         );

@@ -2550,6 +2550,7 @@ class TopLevelVariableElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
     if (element is ConstTopLevelVariableElementImpl) {
       var initializer = reader._readOptionalExpression();

@@ -1653,7 +1653,7 @@ class DeclarationBuilderFromNode {
     ast.NamedType node,
     TypeAnnotationLocation location,
   ) {
-    return NamedTypeAnnotation(
+    return _NamedTypeAnnotation(
       id: macro.RemoteInstance.uniqueId,
       identifier: _namedTypeIdentifier(node),
       isNullable: node.question != null,
@@ -1715,7 +1715,7 @@ class DeclarationBuilderFromNode {
           }
         }
 
-        return macro.FunctionTypeAnnotationImpl(
+        return _FunctionTypeAnnotation(
           id: macro.RemoteInstance.uniqueId,
           isNullable: node.question != null,
           namedParameters: namedParameters,
@@ -1725,11 +1725,12 @@ class DeclarationBuilderFromNode {
             ReturnTypeLocation(location),
           ),
           typeParameters: _typeParameters(node.typeParameters),
+          location: location,
         );
       case ast.NamedTypeImpl():
         return _namedType(node, location);
       case ast.RecordTypeAnnotationImpl():
-        return _typeAnnotationRecord(node);
+        return _typeAnnotationRecord(node, location);
     }
   }
 
@@ -1737,32 +1738,33 @@ class DeclarationBuilderFromNode {
     ast.FunctionDeclaration node,
   ) {
     final element = node.declaredElement!;
+    var location = ReturnTypeLocation(
+      ElementTypeLocation(element),
+    );
+
     final returnType = node.returnType;
     if (returnType == null) {
-      return _OmittedTypeAnnotationFunctionReturnType(element);
+      return _OmittedTypeAnnotationFunctionReturnType(element, location);
     }
-    return _typeAnnotation(
-      returnType,
-      ReturnTypeLocation(
-        ElementTypeLocation(element),
-      ),
-    );
+
+    return _typeAnnotation(returnType, location);
   }
 
   macro.TypeAnnotationImpl _typeAnnotationMethodReturnType(
     ast.MethodDeclaration node,
   ) {
     final element = node.declaredElement!;
+
+    var location = ReturnTypeLocation(
+      ElementTypeLocation(element),
+    );
+
     final returnType = node.returnType;
     if (returnType == null) {
-      return _OmittedTypeAnnotationFunctionReturnType(element);
+      return _OmittedTypeAnnotationFunctionReturnType(element, location);
     }
-    return _typeAnnotation(
-      returnType,
-      ReturnTypeLocation(
-        ElementTypeLocation(element),
-      ),
-    );
+
+    return _typeAnnotation(returnType, location);
   }
 
   macro.TypeAnnotationImpl _typeAnnotationOrDynamic(
@@ -1770,13 +1772,14 @@ class DeclarationBuilderFromNode {
     TypeAnnotationLocation location,
   ) {
     if (node == null) {
-      return _OmittedTypeAnnotationDynamic();
+      return _OmittedTypeAnnotationDynamic(location);
     }
     return _typeAnnotation(node, location);
   }
 
   macro.RecordTypeAnnotationImpl _typeAnnotationRecord(
     ast.RecordTypeAnnotation node,
+    TypeAnnotationLocation location,
   ) {
     final unitNode = node.thisOrAncestorOfType<ast.CompilationUnit>()!;
     final unitElement = unitNode.declaredElement!;
@@ -1801,7 +1804,7 @@ class DeclarationBuilderFromNode {
       );
     }
 
-    return macro.RecordTypeAnnotationImpl(
+    return _RecordTypeAnnotation(
       id: macro.RemoteInstance.uniqueId,
       positionalFields: node.positionalFields.indexed.map((pair) {
         return buildField(
@@ -1817,6 +1820,7 @@ class DeclarationBuilderFromNode {
           }).toList() ??
           [],
       isNullable: node.question != null,
+      location: location,
     );
   }
 
@@ -1839,15 +1843,13 @@ class DeclarationBuilderFromNode {
   macro.TypeAnnotationImpl _typeAnnotationVariable(
     ast.TypeAnnotation? type,
     VariableElement element,
-    TypeAnnotationLocation location,
+    TypeAnnotationLocation parentLocation,
   ) {
+    var location = VariableTypeLocation(parentLocation);
     if (type == null) {
-      return _OmittedTypeAnnotationVariable(element);
+      return _OmittedTypeAnnotationVariable(element, location);
     }
-    return _typeAnnotation(
-      type,
-      VariableTypeLocation(location),
-    );
+    return _typeAnnotation(type, location);
   }
 
   macro.TypeParameterDeclarationImpl _typeParameter(
@@ -2094,16 +2096,8 @@ class MixinDeclarationImpl extends macro.MixinDeclarationImpl
   });
 }
 
-class NamedTypeAnnotation extends macro.NamedTypeAnnotationImpl {
-  final TypeAnnotationLocation location;
-
-  NamedTypeAnnotation({
-    required super.id,
-    required super.isNullable,
-    required super.identifier,
-    required super.typeArguments,
-    required this.location,
-  });
+abstract class TypeAnnotationWithLocation implements macro.TypeAnnotation {
+  TypeAnnotationLocation get location;
 }
 
 class VariableDeclarationImpl extends macro.VariableDeclarationImpl
@@ -2135,6 +2129,36 @@ class _DeclaredIdentifierImpl extends IdentifierImpl {
   });
 }
 
+class _FunctionTypeAnnotation extends macro.FunctionTypeAnnotationImpl
+    implements TypeAnnotationWithLocation {
+  @override
+  final TypeAnnotationLocation location;
+
+  _FunctionTypeAnnotation({
+    required super.id,
+    required super.isNullable,
+    required super.namedParameters,
+    required super.positionalParameters,
+    required super.returnType,
+    required super.typeParameters,
+    required this.location,
+  });
+}
+
+class _NamedTypeAnnotation extends macro.NamedTypeAnnotationImpl
+    implements TypeAnnotationWithLocation {
+  @override
+  final TypeAnnotationLocation location;
+
+  _NamedTypeAnnotation({
+    required super.id,
+    required super.isNullable,
+    required super.identifier,
+    required super.typeArguments,
+    required this.location,
+  });
+}
+
 class _NamedTypeIdentifierImpl extends IdentifierImpl {
   final ast.NamedType node;
 
@@ -2155,20 +2179,46 @@ sealed class _OmittedTypeAnnotation extends macro.OmittedTypeAnnotationImpl {
         );
 }
 
-class _OmittedTypeAnnotationDynamic extends _OmittedTypeAnnotation {
-  _OmittedTypeAnnotationDynamic();
+class _OmittedTypeAnnotationDynamic extends _OmittedTypeAnnotation
+    implements TypeAnnotationWithLocation {
+  @override
+  final TypeAnnotationLocation location;
+
+  _OmittedTypeAnnotationDynamic(this.location);
 }
 
-class _OmittedTypeAnnotationFunctionReturnType extends _OmittedTypeAnnotation {
+class _OmittedTypeAnnotationFunctionReturnType extends _OmittedTypeAnnotation
+    implements TypeAnnotationWithLocation {
   final ExecutableElement element;
 
-  _OmittedTypeAnnotationFunctionReturnType(this.element);
+  @override
+  final TypeAnnotationLocation location;
+
+  _OmittedTypeAnnotationFunctionReturnType(this.element, this.location);
 }
 
-class _OmittedTypeAnnotationVariable extends _OmittedTypeAnnotation {
+class _OmittedTypeAnnotationVariable extends _OmittedTypeAnnotation
+    implements TypeAnnotationWithLocation {
   final VariableElement element;
 
-  _OmittedTypeAnnotationVariable(this.element);
+  @override
+  final TypeAnnotationLocation location;
+
+  _OmittedTypeAnnotationVariable(this.element, this.location);
+}
+
+class _RecordTypeAnnotation extends macro.RecordTypeAnnotationImpl
+    implements TypeAnnotationWithLocation {
+  @override
+  final TypeAnnotationLocation location;
+
+  _RecordTypeAnnotation({
+    required super.id,
+    required super.isNullable,
+    required super.namedFields,
+    required super.positionalFields,
+    required this.location,
+  });
 }
 
 class _VoidIdentifierImpl extends IdentifierImpl {

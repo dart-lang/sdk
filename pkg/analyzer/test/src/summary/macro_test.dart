@@ -4008,6 +4008,293 @@ library
 ''');
   }
 
+  test_macroDiagnostics_report_atTypeAnnotation_kind_functionType() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+void Function() foo() => throw 0;
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    functions
+      foo @88
+        returnType: void Function()
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: TypeAnnotationMacroDiagnosticTarget
+                ElementTypeLocation
+                  element: self::@function::foo
+                ReturnTypeLocation
+            severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_atTypeAnnotation_kind_omittedType_fieldType() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'variableType',
+  ])
+  final foo = 0;
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        fields
+          final foo @98
+            type: int
+            shouldUseTypeForInitializerInference: false
+            macroDiagnostics
+              MacroDiagnostic
+                message: MacroDiagnosticMessage
+                  message: Reported message
+                  target: TypeAnnotationMacroDiagnosticTarget
+                    ElementTypeLocation
+                      element: self::@class::A::@field::foo
+                    VariableTypeLocation
+                severity: warning
+        accessors
+          synthetic get foo @-1
+            returnType: int
+''');
+  }
+
+  test_macroDiagnostics_report_atTypeAnnotation_kind_omittedType_formalParameterType() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'positionalFormalParameterType 0',
+])
+void foo(a) {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    functions
+      foo @98
+        parameters
+          requiredPositional a @102
+            type: dynamic
+        returnType: void
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: TypeAnnotationMacroDiagnosticTarget
+                ElementTypeLocation
+                  element: self::@function::foo
+                FormalParameterTypeLocation
+                  index: 0
+                VariableTypeLocation
+            severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_atTypeAnnotation_kind_omittedType_functionReturnType() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+foo() => throw 0;
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    functions
+      foo @72
+        returnType: dynamic
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: TypeAnnotationMacroDiagnosticTarget
+                ElementTypeLocation
+                  element: self::@function::foo
+                ReturnTypeLocation
+            severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_atTypeAnnotation_kind_omittedType_methodReturnType() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'returnType',
+  ])
+  foo() => throw 0;
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        methods
+          foo @90
+            returnType: dynamic
+            macroDiagnostics
+              MacroDiagnostic
+                message: MacroDiagnosticMessage
+                  message: Reported message
+                  target: TypeAnnotationMacroDiagnosticTarget
+                    ElementTypeLocation
+                      element: self::@class::A::@method::foo
+                    ReturnTypeLocation
+                severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_atTypeAnnotation_kind_omittedType_topLevelVariableType() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'variableType',
+])
+final foo = 0;
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    topLevelVariables
+      static final foo @80
+        type: int
+        shouldUseTypeForInitializerInference: false
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: TypeAnnotationMacroDiagnosticTarget
+                ElementTypeLocation
+                  element: self::@variable::foo
+                VariableTypeLocation
+            severity: warning
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+''');
+  }
+
+  test_macroDiagnostics_report_atTypeAnnotation_kind_recordType() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+(int, String) foo() => throw 0;
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    functions
+      foo @86
+        returnType: (int, String)
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: TypeAnnotationMacroDiagnosticTarget
+                ElementTypeLocation
+                  element: self::@function::foo
+                ReturnTypeLocation
+            severity: warning
+''');
+  }
+
   test_macroDiagnostics_report_atTypeAnnotation_method_formalParameter_positional() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',

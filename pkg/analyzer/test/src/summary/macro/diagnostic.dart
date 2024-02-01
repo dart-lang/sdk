@@ -80,7 +80,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
         ClassDeclarationsMacro,
         FunctionDeclarationsMacro,
         FieldDeclarationsMacro,
-        MethodDeclarationsMacro {
+        MethodDeclarationsMacro,
+        VariableDeclarationsMacro {
   final List<String> pathList;
 
   const ReportAtTypeAnnotation(this.pathList);
@@ -102,6 +103,11 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
   @override
   buildDeclarationsForMethod(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForVariable(declaration, builder) {
     _report(declaration, builder);
   }
 
