@@ -736,6 +736,16 @@ class _TypeUniverse {
       assert(rootFunction == null);
       return substituteInterfaceTypeParameter(
           type.as<_InterfaceTypeParameterType>(), substitutions);
+    } else if (type.isRecord) {
+      final recordType = type.as<_RecordType>();
+      final fieldTypes = WasmArray<_Type>.filled(
+          recordType.fieldTypes.length, _literal<dynamic>());
+      for (int i = 0; i < recordType.fieldTypes.length; i++) {
+        fieldTypes[i] = substituteTypeArgument(
+            recordType.fieldTypes[i], substitutions, rootFunction);
+      }
+      return _RecordType(
+          recordType.names, fieldTypes, recordType.isDeclaredNullable);
     } else if (type.isFunction) {
       _FunctionType functionType = type.as<_FunctionType>();
       bool isRoot = identical(type, rootFunction);
