@@ -618,10 +618,6 @@ CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY:
   status: needsFix
   notes: |-
     Remove the export.
-CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL:
-  status: noFix
-  notes: |-
-    Removed as of Dart 3.0.
 CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY:
   status: needsFix
   notes: |-
@@ -1842,9 +1838,6 @@ HintCode.DIVISION_OPTIMIZATION:
   status: hasFix
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
   status: noFix
-HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
-  status: noFix
-  notes: Deprecated
 HintCode.MACRO_INFO:
   status: noFix
 HintCode.UNNECESSARY_CAST:

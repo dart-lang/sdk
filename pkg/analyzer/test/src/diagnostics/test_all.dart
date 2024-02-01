@@ -234,7 +234,6 @@ import 'expected_two_map_type_arguments_test.dart'
     as expected_two_map_type_arguments;
 import 'experiment_not_enabled_test.dart' as experiment_not_enabled;
 import 'export_internal_library_test.dart' as export_internal_library;
-import 'export_legacy_symbol_test.dart' as export_legacy_symbol;
 import 'export_of_non_library_test.dart' as export_of_non_library;
 import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_deferred_class_test.dart' as extends_deferred_class;
@@ -366,8 +365,6 @@ import 'implicit_this_reference_in_initializer_test.dart'
 import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
 import 'import_internal_library_test.dart' as import_internal_library;
-import 'import_of_legacy_library_into_null_safe_test.dart'
-    as import_of_legacy_library_into_null_safe;
 import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'import_of_not_augmentation_test.dart' as import_of_not_augmentation;
 import 'inconsistent_inheritance_getter_and_method_test.dart'
@@ -1061,7 +1058,6 @@ main() {
     expected_two_map_type_arguments.main();
     experiment_not_enabled.main();
     export_internal_library.main();
-    export_legacy_symbol.main();
     export_of_non_library.main();
     expression_in_map.main();
     extends_deferred_class.main();
@@ -1140,7 +1136,6 @@ main() {
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_internal_library.main();
-    import_of_legacy_library_into_null_safe.main();
     import_of_non_library.main();
     import_of_not_augmentation.main();
     inconsistent_inheritance_getter_and_method.main();

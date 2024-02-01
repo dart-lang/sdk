@@ -68,32 +68,6 @@ class C extends A with B {}
     ]);
   }
 
-  test_class_mixed_viaLegacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A<T> {}
-
-class Bi implements A<int> {}
-
-class Biq implements A<int?> {}
-''');
-
-    // Both `Bi` and `Biq` implement `A<int*>` in legacy, so identical.
-    newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 2.7
-import 'a.dart';
-
-class C extends Bi implements Biq {}
-''');
-
-    await assertErrorsInCode(r'''
-import 'b.dart';
-
-abstract class D implements C {}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
   test_class_topMerge() async {
     await assertNoErrorsInCode('''
 import 'dart:async';
@@ -104,28 +78,6 @@ class B extends A<FutureOr<Object>> {}
 
 class C extends B implements A<Object> {}
 ''');
-  }
-
-  test_class_topMerge_optIn_optOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A<T> {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 2.5
-import 'a.dart';
-
-class B extends A<int> {}
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-import 'b.dart';
-
-class C extends B implements A<int> {}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 24, 8),
-    ]);
   }
 
   test_classTypeAlias_extends_nonFunctionTypedef_with() async {

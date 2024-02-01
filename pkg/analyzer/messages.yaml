@@ -4750,6 +4750,7 @@ CompileTimeErrorCode:
 
       Remove the export directive.
   EXPORT_LEGACY_SYMBOL:
+    removedIn: "3.0"
     problemMessage: "The symbol '{0}' is defined in a legacy library, and can't be re-exported from a library with null safety enabled."
     correctionMessage: Try removing the export or migrating the legacy library.
     hasPublishedDocs: true
@@ -20657,6 +20658,7 @@ HintCode:
       }
       ```
   IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
+    removedIn: "3.0"
     problemMessage: "The library '{0}' is legacy, and shouldn't be imported into a null safe library."
     correctionMessage: Try migrating the imported library.
     comment: |-

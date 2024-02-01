@@ -133,25 +133,4 @@ void f() {
     expect(x.isLate, isTrue);
     expect(x.isStatic, isFalse);
   }
-
-  test_nonNullifyType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.7
-var a = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-void f() {
-  var x = a;
-  x;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-
-    var x = findElement.localVar('x');
-    assertType(x.type, 'int');
-  }
 }

@@ -54,7 +54,6 @@ import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
 import 'interpolation_string_test.dart' as interpolation_string;
 import 'is_expression_test.dart' as is_expression;
-import 'language_version_test.dart' as language_version;
 import 'library_augmentation_test.dart' as library_element2;
 import 'library_element_test.dart' as library_element;
 import 'library_export_test.dart' as library_export;
@@ -163,7 +162,6 @@ main() {
     instance_member_inference_mixin.main();
     interpolation_string.main();
     is_expression.main();
-    language_version.main();
     library_element2.main();
     library_element.main();
     library_export.main();

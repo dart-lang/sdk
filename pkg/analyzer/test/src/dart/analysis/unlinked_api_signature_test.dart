@@ -1212,24 +1212,24 @@ extension E<U> on int {}
     _assertNotSameSignature(r'''
 class A {}
 ''', r'''
-// @dart = 2.5
+// @dart = 3.2
 class A {}
 ''');
   }
 
   test_featureSet_change() async {
     _assertNotSameSignature(r'''
-// @dart = 2.6
+// @dart = 3.2
 class A {}
 ''', r'''
-// @dart = 2.2
+// @dart = 3.3
 class A {}
 ''');
   }
 
   test_featureSet_remove() async {
     _assertNotSameSignature(r'''
-// @dart = 2.5
+// @dart = 3.2
 class A {}
 ''', r'''
 class A {}

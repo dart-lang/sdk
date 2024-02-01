@@ -249,25 +249,6 @@ class A {
     assertType(findElement.field('f').type, 'dynamic');
   }
 
-  test_type_inferred_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.7
-var a = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-class A {
-  var f = a;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-
-    assertType(findElement.field('f').type, 'int');
-  }
-
   test_type_inferred_null() async {
     await resolveTestCode('''
 class A {

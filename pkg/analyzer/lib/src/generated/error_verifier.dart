@@ -675,7 +675,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var exportedLibrary = exportElement.exportedLibrary;
       _checkForAmbiguousExport(node, exportElement, exportedLibrary);
       _checkForExportInternalLibrary(node, exportElement);
-      _checkForExportLegacySymbol(node);
     }
     super.visitExportDirective(node);
   }
@@ -2925,35 +2924,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
         directive,
         [directive.uri.stringValue!]);
-  }
-
-  /// See [CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL].
-  void _checkForExportLegacySymbol(ExportDirective node) {
-    if (!_isNonNullableByDefault) {
-      return;
-    }
-
-    var element = node.element!;
-    // TODO(scheglov): Expose from ExportElement.
-    var namespace =
-        NamespaceBuilder().createExportNamespaceForDirective(element);
-
-    for (var element in namespace.definedNames.values) {
-      if (element == DynamicElementImpl.instance ||
-          element == NeverElementImpl.instance) {
-        continue;
-      }
-      if (!element.library!.isNonNullableByDefault) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL,
-          node.uri,
-          [element.displayName],
-        );
-        // Stop after the first symbol.
-        // We don't want to list them all.
-        break;
-      }
-    }
   }
 
   /// Verify that the given extends [clause] does not extend a deferred class.
