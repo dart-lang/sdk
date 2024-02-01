@@ -2017,6 +2017,42 @@ replacement
 suggestions
   assert
     kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
 ''');
   }
 

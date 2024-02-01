@@ -318,7 +318,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitAssertStatement(AssertStatement node) {
     if (offset <= node.assertKeyword.end) {
-      keywordHelper.addKeyword(Keyword.ASSERT);
+      _forStatement(node);
     }
   }
 
@@ -343,6 +343,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
+    if (node.leftBracket.isSynthetic && node.rightBracket.isSynthetic) {
+      node.parent?.accept(this);
+    }
     if (offset <= node.leftBracket.offset) {
       var parent = node.parent;
       if (parent is BlockFunctionBody) {
@@ -971,6 +974,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitForPartsWithExpression(ForPartsWithExpression node) {
+    if (node.isFullySynthetic) {
+      node.parent?.accept(this);
+    }
+  }
+
+  @override
   void visitForStatement(ForStatement node) {
     if (offset <= node.forKeyword.end) {
       _forStatement(node);
@@ -1150,7 +1160,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    if (node.rightParenthesis.isSynthetic) {
+    if (node.rightParenthesis.isSynthetic &&
+        !node.leftParenthesis.isSynthetic) {
       // analyzer parser
       // Actual: if (x i^)
       // Parsed: if (x) i^
