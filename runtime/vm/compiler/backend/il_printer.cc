@@ -423,8 +423,8 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
       "%s type check: compile type %s is %s specific than "
       "type '%s' of '%s'.\n",
       eliminated ? "Eliminated" : "Generated", compile_type_name,
-      eliminated ? "more" : "not more",
-      String::Handle(dst_type.Name()).ToCString(), dst_name.ToCString());
+      eliminated ? "more" : "not more", dst_type.NameCString(),
+      dst_name.ToCString());
 }
 
 static void PrintTargetsHelper(BaseTextBuffer* f,
@@ -970,7 +970,7 @@ void StoreStaticFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void InstanceOfInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
-  f->Printf(" IS %s,", String::Handle(type().Name()).ToCString());
+  f->Printf(" IS %s,", type().NameCString());
   f->AddString(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->AddString("), function_type_args(");
@@ -996,7 +996,7 @@ void AllocationInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void AllocateObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("cls=%s", String::Handle(cls().ScrubbedName()).ToCString());
+  f->Printf("cls=%s", cls().ScrubbedNameCString());
   if (InputCount() > 0 || Identity().IsNotAliased()) {
     f->AddString(", ");
   }
@@ -1004,7 +1004,7 @@ void AllocateObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void MaterializeObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", String::Handle(cls_.ScrubbedName()).ToCString());
+  f->Printf("%s", cls_.ScrubbedNameCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->AddString(", ");
     f->Printf("%s: ", slots_[i]->Name());
@@ -1117,6 +1117,9 @@ void DoubleTestOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
       break;
     case MethodRecognizer::kDouble_getIsInfinite:
       f->AddString("IsInfinite ");
+      break;
+    case MethodRecognizer::kDouble_getIsNegative:
+      f->AddString("IsNegative ");
       break;
     default:
       UNREACHABLE();

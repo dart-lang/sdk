@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -169,33 +168,6 @@ SimpleIdentifier
   parameter: self::@function::foo::@parameter::a
   staticElement: self::@getter::a
   staticType: int
-''');
-  }
-
-  test_functionReference() async {
-    noSoundNullSafety = false;
-    await assertErrorsInCode('''
-// @dart = 2.7
-import 'dart:math';
-
-class A {
-  const A(_);
-}
-
-@A([min])
-main() {}
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
-    ]);
-
-    final node = findNode.simple('min]');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: min
-  staticElement: FunctionMember
-    base: dart:math::@function::min
-    isLegacy: true
-  staticType: T* Function<T extends num*>(T*, T*)*
 ''');
   }
 

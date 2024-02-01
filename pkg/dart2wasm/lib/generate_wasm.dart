@@ -7,8 +7,8 @@ export 'package:dart2wasm/compiler_options.dart';
 typedef PrintError = void Function(String error);
 
 Future<int> generateWasm(WasmCompilerOptions options,
-    {bool verbose = false, PrintError errorPrinter = print}) async {
-  if (verbose) {
+    {PrintError errorPrinter = print}) async {
+  if (options.translatorOptions.verbose) {
     print('Running dart compile wasm...');
     print('  - input file name   = ${options.mainUri}');
     print('  - output file name  = ${options.outputFile}');

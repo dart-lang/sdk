@@ -7,5 +7,7 @@ class B<T> extends A<T> {
 }
 
 A<num> a = new B<int>();
+
 var b = (a as B<int>);
+
 main() {}

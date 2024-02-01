@@ -6,6 +6,21 @@ import 'dart:io';
 
 import "package:expect/expect.dart";
 
+/// Regression test for https://github.com/dart-lang/sdk/issues/54386.
+void testDriveLetterStat() {
+  // "C:" not acceptable
+  final cDrive = Directory("C:");
+  final cDriveStat = cDrive.statSync();
+  Expect.equals(cDriveStat.type, FileSystemEntityType.notFound);
+  // These are acceptable cases
+  final acceptablePathRootDrives = ["C: ", "C:\\", "C:/"];
+  for (final drivePath in acceptablePathRootDrives) {
+    final dir = Directory(drivePath);
+    final dirStat = dir.statSync();
+    Expect.equals(dirStat.type, FileSystemEntityType.directory);
+  }
+}
+
 void testDeleteLongPathPrefix() {
   var dir = Directory.systemTemp.createTempSync('dart_file_win');
   var dirPath = "\\\\?\\${dir.path}";
@@ -25,4 +40,5 @@ void testDeleteLongPathPrefix() {
 void main() {
   if (!Platform.isWindows) return;
   testDeleteLongPathPrefix();
+  testDriveLetterStat();
 }

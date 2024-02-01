@@ -15,10 +15,13 @@ class YamlMap extends YamlNode with MapMixin, UnmodifiableMapMixin {
 }
 
 main() {}
+
 mixin MapMixin<K, V> implements Map<K, V> {
   V operator [](Object key);
 }
+
 mixin MixinA<T> {
   T method(Object t);
 }
+
 mixin UnmodifiableMapMixin<K, V> implements Map<K, V> {}

@@ -194,6 +194,6 @@ base class CustomHashMap<K, V> extends InternalMap<K, V> {
   }
 }
 
-typedef bool _Equality<K>(K a, K b);
-typedef int _Hasher<K>(K object);
-typedef bool _Predicate<T>(T value);
+typedef _Equality<K> = bool Function(K a, K b);
+typedef _Hasher<K> = int Function(K object);
+typedef _Predicate<T> = bool Function(T value);

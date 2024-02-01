@@ -1,13 +1,10 @@
 class Foo {
-  foo.x() {
-    // Not OK.
-  }
-  foo.x() : initializer = true {
-    // Not OK.
-  }
-  foo() : initializer = true {
-    // Not OK.
-  }
+  // Not OK.
+  foo.x() { }
+  // Not OK.
+  foo.x() : initializer = true { }
+  // Not OK.
+  foo() : initializer = true { }
   get Foo => 0;
   get Foo {
     return 0;

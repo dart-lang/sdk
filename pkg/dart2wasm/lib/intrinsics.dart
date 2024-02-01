@@ -6,7 +6,6 @@ import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/dynamic_forwarders.dart';
 import 'package:dart2wasm/translator.dart';
-import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 
@@ -329,14 +328,7 @@ class Intrinsifier {
         return codeGen.wrap(element, typeOfExp(element));
       }
 
-      // Access the underlying array directly.
-      ClassInfo info = translator.classInfo[translator.listBaseClass]!;
-      codeGen.wrap(receiver, info.nonNullableType);
-      b.struct_get(info.struct, FieldIndex.listArray);
-      codeGen.wrap(arg, w.NumType.i64);
-      b.i32_wrap_i64();
-      b.array_get(translator.listArrayType);
-      return translator.topInfo.nullableType;
+      return null;
     }
 
     if (node.arguments.positional.length == 1) {
@@ -440,13 +432,43 @@ class Intrinsifier {
       return w.NumType.i32;
     }
 
-    if (target.enclosingLibrary.name == "dart.core" &&
-        target.name.text == "_isIntrinsified") {
-      // This is part of the VM's [BigInt] implementation. We just return false.
-      // TODO(joshualitt): Can we find another way to reuse this patch file
-      // without hardcoding this case?
-      b.i32_const(0);
-      return w.NumType.i32;
+    if (target.enclosingLibrary.name == "dart.core") {
+      if (target.name.text == "_isIntrinsified") {
+        // This is part of the VM's [BigInt] implementation. We just return false.
+        // TODO(joshualitt): Can we find another way to reuse this patch file
+        // without hardcoding this case?
+        b.i32_const(0);
+        return w.NumType.i32;
+      }
+      if (node.target.enclosingLibrary == translator.coreTypes.coreLibrary) {
+        switch (node.target.name.text) {
+          case "_typeCategoryAbstractClass":
+            translator.types.typeCategoryTable;
+            b.i32_const(translator.types.typeCategoryAbstractClass);
+            return w.NumType.i32;
+          case "_typeCategoryObject":
+            translator.types.typeCategoryTable;
+            b.i32_const(translator.types.typeCategoryObject);
+            return w.NumType.i32;
+          case "_typeCategoryFunction":
+            translator.types.typeCategoryTable;
+            b.i32_const(translator.types.typeCategoryFunction);
+            return w.NumType.i32;
+          case "_typeCategoryRecord":
+            translator.types.typeCategoryTable;
+            b.i32_const(translator.types.typeCategoryRecord);
+            return w.NumType.i32;
+          case "_typeCategoryNotMasqueraded":
+            translator.types.typeCategoryTable;
+            b.i32_const(translator.types.typeCategoryNotMasqueraded);
+            return w.NumType.i32;
+
+          case "_typeCategoryTable":
+            translator.types.typeCategoryTable;
+            b.global_get(translator.types.typeCategoryTable);
+            return translator.types.typeCategoryTable.type.type;
+        }
+      }
     }
 
     return null;
@@ -637,16 +659,6 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSubstitutions(b);
         case "_getTypeNames":
           return translator.types.makeTypeNames(b);
-        case "_getFunctionRuntimeType":
-          Expression f = node.arguments.positional.single;
-          final w.StructType closureBaseStruct =
-              translator.closureLayouter.closureBaseStruct;
-          final w.RefType closureBaseStructRef =
-              w.RefType.def(closureBaseStruct, nullable: false);
-          codeGen.wrap(f, closureBaseStructRef);
-          b.struct_get(closureBaseStruct, FieldIndex.closureRuntimeType);
-          return closureBaseStruct
-              .fields[FieldIndex.closureRuntimeType].type.unpacked;
         case "_isRecordInstance":
           Expression o = node.arguments.positional.single;
           b.global_get(translator.types.typeCategoryTable);
@@ -655,7 +667,7 @@ class Intrinsifier {
           b.array_get_u(
               (translator.types.typeCategoryTable.type.type as w.RefType)
                   .heapType as w.ArrayType);
-          b.i32_const(TypeCategory.record);
+          b.i32_const(translator.types.typeCategoryRecord);
           b.i32_eq();
           return w.NumType.i32;
       }
@@ -1008,7 +1020,7 @@ class Intrinsifier {
     b.local_set(receiverLocal);
 
     ClassInfo newInfo = translator.classInfo[newClass]!;
-    translator.functions.allocateClass(newInfo.classId);
+    translator.functions.recordClassAllocation(newInfo.classId);
     b.i32_const(newInfo.classId);
     b.i32_const(initialIdentityHash);
     b.local_get(receiverLocal);
@@ -1150,89 +1162,6 @@ class Intrinsifier {
       return true;
     }
 
-    // _getActualRuntimeType and _getMasqueradedRuntimeType
-    if (member.enclosingLibrary == translator.coreTypes.coreLibrary &&
-        (name == "_getActualRuntimeType" ||
-            name == "_getMasqueradedRuntimeType")) {
-      final bool masqueraded = name == "_getMasqueradedRuntimeType";
-
-      final w.Local object = paramLocals[0];
-      final w.Local classId = function.addLocal(w.NumType.i32);
-      final w.Local resultClassId = function.addLocal(w.NumType.i32);
-
-      w.Label interfaceType = b.block();
-      w.Label notMasqueraded = b.block();
-      w.Label recordType = b.block();
-      w.Label functionType = b.block();
-      w.Label objectType = b.block();
-      w.Label abstractClass = b.block();
-
-      // Look up the type category by class ID and switch on it.
-      b.global_get(translator.types.typeCategoryTable);
-      b.local_get(object);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.local_tee(classId);
-      b.array_get_u((translator.types.typeCategoryTable.type.type as w.RefType)
-          .heapType as w.ArrayType);
-      b.local_tee(resultClassId);
-      b.br_table([
-        abstractClass,
-        objectType,
-        functionType,
-        recordType,
-        if (masqueraded) notMasqueraded
-      ], masqueraded ? interfaceType : notMasqueraded);
-
-      b.end(); // abstractClass
-      // We should never see class IDs for abstract types.
-      b.unreachable();
-
-      b.end(); // objectType
-      translator.constants.instantiateConstant(
-          function,
-          b,
-          TypeLiteralConstant(InterfaceType(translator.coreTypes.objectClass,
-              Nullability.nonNullable, const [])),
-          function.type.outputs.single);
-      b.return_();
-
-      b.end(); // functionType
-      w.StructType closureBase = translator.closureLayouter.closureBaseStruct;
-      b.local_get(object);
-      b.ref_cast(w.RefType.def(closureBase, nullable: false));
-      b.struct_get(closureBase, FieldIndex.closureRuntimeType);
-      b.return_();
-
-      b.end(); // recordType
-      b.local_get(object);
-      translator.convertType(
-          function,
-          object.type,
-          translator.classInfo[translator.coreTypes.recordClass]!.repr
-              .nonNullableType);
-      codeGen.call(translator.recordGetRecordRuntimeType.reference);
-      b.return_();
-
-      b.end(); // notMasqueraded
-      b.local_get(classId);
-      b.local_set(resultClassId);
-
-      b.end(); // interfaceType
-      ClassInfo info = translator.classInfo[translator.interfaceTypeClass]!;
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
-      // Runtime types are never nullable.
-      b.i32_const(0);
-      // Set class ID of interface type.
-      b.local_get(resultClassId);
-      b.i64_extend_i32_u();
-      // Call _typeArguments to get the array of type arguments.
-      b.local_get(object);
-      codeGen.call(translator.objectGetTypeArguments.reference);
-      b.struct_new(info.struct);
-      b.return_();
-    }
-
     // identical
     if (member == translator.coreTypes.identicalProcedure) {
       w.Local first = paramLocals[0];
@@ -1315,6 +1244,16 @@ class Intrinsifier {
       b.end(); // fail
       b.i32_const(0);
 
+      return true;
+    }
+
+    // _Closure._getClosureRuntimeType
+    if (member == translator.getClosureRuntimeType) {
+      final w.Local object = paramLocals[0];
+      w.StructType closureBase = translator.closureLayouter.closureBaseStruct;
+      b.local_get(object);
+      b.ref_cast(w.RefType.def(closureBase, nullable: false));
+      b.struct_get(closureBase, FieldIndex.closureRuntimeType);
       return true;
     }
 
@@ -1717,35 +1656,21 @@ class Intrinsifier {
       final posArgsNullableLocal = function.locals[1]; // ref null Object,
       final namedArgsLocal = function.locals[2]; // ref null Object
 
-      final listArgumentType =
-          translator.classInfo[translator.listBaseClass]!.nonNullableType;
-
-      // Create type argument list. It will be initialized as empty and it
-      // needs to be growable as `_checkClosureShape` updates it with default
-      // bounds if the function being invokes has type parameters.
-      final typeArgsLocal = function.addLocal(listArgumentType);
-      translator.makeList(function, (b) {
-        translator.constants.instantiateConstant(
-            function,
-            b,
-            TypeLiteralConstant(
-                InterfaceType(translator.typeClass, Nullability.nonNullable)),
-            translator.types.nonNullableTypeType);
-      }, 0, (elementType, elementIndex) {}, isGrowable: true);
+      // Create empty type arguments array.
+      final typeArgsLocal = function.addLocal(translator.makeArray(function,
+          translator.typeArrayType, 0, (elementType, elementIndex) {}));
       b.local_set(typeArgsLocal);
 
       // Create empty list for positional args if the argument is null
-      final posArgsLocal = function.addLocal(listArgumentType);
+      final posArgsLocal =
+          function.addLocal(translator.nullableObjectArrayTypeRef);
       b.local_get(posArgsNullableLocal);
       b.ref_is_null();
-      b.if_([], [listArgumentType]);
-      translator.constants.instantiateConstant(
-          function,
-          b,
-          ListConstant(
-              InterfaceType(translator.objectInfo.cls!, Nullability.nullable),
-              []),
-          translator.objectInfo.nonNullableType);
+
+      b.if_([], [translator.nullableObjectArrayTypeRef]);
+      translator.makeArray(
+          function, translator.nullableObjectArrayType, 0, (_, __) {});
+
       b.else_();
       // List argument may be a custom list type, convert it to `_ListBase`
       // with `_List.of`.
@@ -1758,15 +1683,16 @@ class Intrinsifier {
       b.local_get(posArgsNullableLocal);
       b.ref_as_non_null();
       codeGen.call(translator.listOf.reference);
+      translator.getListBaseArray(b);
       b.end();
       b.local_set(posArgsLocal);
 
       // Convert named argument map to list, to be passed to shape and type
       // checkers and the dynamic call entry.
-      final namedArgsListLocal = function.addLocal(listArgumentType);
+      final namedArgsListLocal =
+          function.addLocal(translator.nullableObjectArrayTypeRef);
       b.local_get(namedArgsLocal);
-      codeGen.call(translator.namedParameterMapToList.reference);
-      b.ref_cast(listArgumentType); // ref Object -> ref _ListBase
+      codeGen.call(translator.namedParameterMapToArray.reference);
       b.local_set(namedArgsListLocal);
 
       final noSuchMethodBlock = b.block();

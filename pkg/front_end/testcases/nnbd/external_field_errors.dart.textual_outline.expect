@@ -1,5 +1,7 @@
 external int topLevelField = 0;
+
 external final int finalTopLevelField = 0;
+
 external const int constField = 0;
 
 abstract class A {

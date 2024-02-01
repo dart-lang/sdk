@@ -26,9 +26,19 @@ void f() {
   print(null) // parse error: missing ';'
 }''';
     await sendServerSetSubscriptions([ServerService.STATUS]);
+
     await sendAnalysisUpdateContent({filePath: AddContentOverlay(content)});
+    // Usually we get `server.status` pair of `true/false` here.
+
     await sendAnalysisSetAnalysisRoots([packagePath], []);
-    await analysisFinished;
+    // Usually we get `server.status` pair of `true/false` here.
+
+    // There is no guarantee how many times `server.status` will switch.
+    // So, we just wait for the errors.
+    // We should received them, eventually.
+    while (currentAnalysisErrors[filePath] == null) {
+      await pumpEventQueue();
+    }
 
     expect(currentAnalysisErrors[filePath], isList);
     var errors = existingErrorsForFile(filePath);

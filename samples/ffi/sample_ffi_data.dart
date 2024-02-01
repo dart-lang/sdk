@@ -71,7 +71,7 @@ main() {
     Pointer<Int32> p2 = p1.cast();
     print('${p2.runtimeType} value: ${p2.value}'); // -1
 
-    Pointer<Int32> p3 = p2.elementAt(1);
+    Pointer<Int32> p3 = p2 + 1;
     print('${p3.runtimeType} value: ${p3.value}'); // 2^31 - 1
 
     calloc.free(p1);
@@ -81,10 +81,10 @@ main() {
     // Data can be tightly packed in memory.
     Pointer<Int8> p = calloc(8);
     for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
-      p.elementAt(i).value = i * 3;
+      (p + i).value = i * 3;
     }
     for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
-      print('p.elementAt($i) value: ${p.elementAt(i).value}');
+      print('p.elementAt($i) value: ${(p + i).value}');
     }
     calloc.free(p);
   }

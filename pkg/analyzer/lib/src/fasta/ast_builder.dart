@@ -68,7 +68,7 @@ import 'package:analyzer/src/fasta/doc_comment_builder.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
-import 'package:collection/collection.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -1655,6 +1655,14 @@ class AstBuilder extends StackListener {
           rightParenthesis: rightParenthesis,
         );
       }
+      // Check for extension type name conflict.
+      var representationName = representation.fieldName;
+      if (representationName.lexeme == builder.name.lexeme) {
+        errorReporter.errorReporter?.reportErrorForToken(
+          ParserErrorCode.MEMBER_WITH_CLASS_NAME,
+          representationName,
+        );
+      }
       declarations.add(
         builder.build(
           typeKeyword: typeKeyword,
@@ -3071,7 +3079,7 @@ class AstBuilder extends StackListener {
     debugEvent("SwitchBlock");
 
     var membersList = popTypedList2<List<SwitchMemberImpl>>(caseCount);
-    var members = membersList.expand((members) => members).toList();
+    var members = membersList.flattenedToList2;
 
     Set<String> labels = <String>{};
     for (var member in members) {
@@ -3181,7 +3189,7 @@ class AstBuilder extends StackListener {
       assert(labelCount == 0);
     }
 
-    var members2 = members.whereNotNull().toList();
+    var members2 = members.nonNulls.toList();
     if (members2.isNotEmpty) {
       members2.last = updateSwitchMember(
         member: members2.last,
@@ -5567,7 +5575,7 @@ class AstBuilder extends StackListener {
 
     final tailList = List<T?>.filled(count, null, growable: true);
     stack.popList(count, tailList, null);
-    return tailList.whereNotNull().toList();
+    return tailList.nonNulls.toList();
   }
 
   // TODO(scheglov): This is probably not optimal.
@@ -5663,10 +5671,11 @@ class AstBuilder extends StackListener {
 
     if (modifiers?.externalKeyword != null) {
       for (final formalParameter in parameters.parameters) {
-        if (formalParameter is FieldFormalParameterImpl) {
+        final notDefault = formalParameter.notDefault;
+        if (notDefault is FieldFormalParameterImpl) {
           errorReporter.errorReporter?.reportErrorForToken(
             ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
-            formalParameter.thisKeyword,
+            notDefault.thisKeyword,
           );
         }
       }

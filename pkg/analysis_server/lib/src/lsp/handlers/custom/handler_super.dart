@@ -77,7 +77,7 @@ class SuperHandler
         return success(null);
       }
 
-      return success(toLocation(pathContext, location, locationLineInfo));
+      return success(toLocation(uriConverter, location, locationLineInfo));
     });
   }
 }

@@ -38,7 +38,11 @@ class E extends B with M1 implements D {
 }
 
 void acceptsInt(int x) {}
+
 void testConflictWithNoSuchMethodForwarderIfImplementedInMixin(C c) {}
+
 void testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin1(C c) {}
+
 void testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin2(C c) {}
+
 main() {}

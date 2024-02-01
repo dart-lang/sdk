@@ -7,8 +7,11 @@ class C {
 }
 
 class MA = Object with M;
+
 expect(expected, actual) {}
+
 main() {}
+
 mixin M {
   dynamic noSuchMethod(Invocation inv) {}
   int m1(int v, [String s = "s1"]);

@@ -32,7 +32,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     Builder? declaration = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
-    // TODO(johnniwinther): Handle patched extensions/extension type
+    // TODO(johnniwinther): Handle augmented extensions/extension type
     //  declarations.
     return declaration;
   }
@@ -70,7 +70,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   @override
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
-    // TODO(johnniwinther): Support patching on extensions/extension type
+    // TODO(johnniwinther): Support augmented on extensions/extension type
     //  declarations.
     Builder? builder = scope.lookupLocalMember(name, setter: setter);
     if (required && builder == null) {

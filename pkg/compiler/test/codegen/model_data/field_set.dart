@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:access=*,calls=*,params=0*/
 main() {
   method1(new Class1a());
@@ -27,7 +25,7 @@ main() {
 class Class1a {
   /*member: Class1a.field1:emitted*/
   @pragma('dart2js:noElision')
-  int field1;
+  int? field1;
 }
 
 /*member: method1:assign=[field1],params=1*/
@@ -66,7 +64,7 @@ method3(Class3a a) => a.field3 = 42;
 
 class Class5a {
   /*member: Class5a.field5:elided*/
-  int field5;
+  int? field5;
 }
 
 /*member: method5:params=1*/
@@ -90,7 +88,7 @@ method6(Class6a c) {
 
 /*member: field7:emitted*/
 @pragma('dart2js:noElision')
-int field7;
+int? field7;
 
 /*member: method7:assign=[field7],params=0*/
 @pragma('dart2js:noInline')
@@ -98,7 +96,7 @@ method7() {
   field7 = 42;
 }
 
-int field8;
+int? field8;
 
 /*member: method8:params=0*/
 @pragma('dart2js:noInline')

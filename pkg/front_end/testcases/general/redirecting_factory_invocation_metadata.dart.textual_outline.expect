@@ -1,10 +1,13 @@
 @Const()
+
 library name;
 
 @Const()
 import 'redirecting_factory_invocation_metadata.dart' as self;
+
 @Const()
 export 'redirecting_factory_invocation_metadata.dart';
+
 @Const()
 part 'redirecting_factory_invocation_metadata_lib.dart';
 
@@ -21,8 +24,10 @@ var field = <@Const() T>(@Const() var o1, [@Const() var o2]) {
   @Const()
   l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
 };
+
 @Const()
 method1<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+
 @Const()
 method2<@Const() T>(@Const() var o1, {@Const() var o2}) {}
 
@@ -45,11 +50,14 @@ class Class<@Const() T> {
 @Const()
 typedef Typedef1<@Const() T> = Function<@Const() T>(@Const() Class,
     [@Const() Class]);
+
 @Const()
 typedef Typedef2<@Const() T> = Function<@Const() T>(@Const() Class,
     {@Const() Class o2});
+
 @Const()
 typedef void Typedef3<@Const() T>(@Const() var o1, [@Const() var o2]);
+
 @Const()
 typedef void Typedef4<@Const() T>(@Const() var o1, {@Const() var o2});
 

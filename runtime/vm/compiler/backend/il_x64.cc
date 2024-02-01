@@ -1597,17 +1597,6 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LeaveCFrame();
 }
 
-static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
-  if (!index->definition()->IsConstant()) return false;
-  const Object& constant = index->definition()->AsConstant()->value();
-  if (!constant.IsSmi()) return false;
-  const Smi& smi_const = Smi::Cast(constant);
-  const intptr_t scale = Instance::ElementSizeFor(cid);
-  const intptr_t data_offset = Instance::DataOffsetFor(cid);
-  const int64_t disp = smi_const.AsInt64Value() * scale + data_offset;
-  return Utils::IsInt(32, disp);
-}
-
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -1827,8 +1816,12 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   const bool need_writable_index_register =
       (index_scale() == 1 && !index_unboxed_) ||
       (index_scale() == 16 && index_unboxed_);
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
   locs->set_in(
-      1, CanBeImmediateIndex(index(), class_id())
+      1, can_be_constant
              ? Location::Constant(index()->definition()->AsConstant())
              : (need_writable_index_register ? Location::WritableRegister()
                                              : Location::RequiresRegister()));
@@ -2029,8 +2022,12 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   const bool need_writable_index_register =
       (index_scale() == 1 && !index_unboxed_) ||
       (index_scale() == 16 && index_unboxed_);
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
   locs->set_in(
-      1, CanBeImmediateIndex(index(), class_id())
+      1, can_be_constant
              ? Location::Constant(index()->definition()->AsConstant())
              : (need_writable_index_register ? Location::WritableRegister()
                                              : Location::RequiresRegister()));
@@ -4143,12 +4140,17 @@ LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps =
-      (op_kind() == MethodRecognizer::kDouble_getIsInfinite) ? 1 : 0;
+      op_kind() == MethodRecognizer::kDouble_getIsNegative
+          ? 2
+          : (op_kind() == MethodRecognizer::kDouble_getIsInfinite ? 1 : 0);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+  if (kNumTemps > 0) {
     summary->set_temp(0, Location::RequiresRegister());
+    if (op_kind() == MethodRecognizer::kDouble_getIsNegative) {
+      summary->set_temp(1, Location::RequiresFpuRegister());
+    }
   }
   summary->set_out(0, Location::RequiresRegister());
   return summary;
@@ -4159,22 +4161,42 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   ASSERT(compiler->is_optimizing());
   const XmmRegister value = locs()->in(0).fpu_reg();
   const bool is_negated = kind() != Token::kEQ;
-  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
-    compiler::Label is_nan;
-    __ comisd(value, value);
-    return is_negated ? PARITY_ODD : PARITY_EVEN;
-  } else {
-    ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
-    const Register temp = locs()->temp(0).reg();
-    __ AddImmediate(RSP, compiler::Immediate(-kDoubleSize));
-    __ movsd(compiler::Address(RSP, 0), value);
-    __ movq(temp, compiler::Address(RSP, 0));
-    __ AddImmediate(RSP, compiler::Immediate(kDoubleSize));
-    // Mask off the sign.
-    __ AndImmediate(temp, compiler::Immediate(0x7FFFFFFFFFFFFFFFLL));
-    // Compare with +infinity.
-    __ CompareImmediate(temp, compiler::Immediate(0x7FF0000000000000LL));
-    return is_negated ? NOT_EQUAL : EQUAL;
+
+  switch (op_kind()) {
+    case MethodRecognizer::kDouble_getIsNaN: {
+      __ comisd(value, value);
+      return is_negated ? PARITY_ODD : PARITY_EVEN;
+    }
+    case MethodRecognizer::kDouble_getIsInfinite: {
+      const Register temp = locs()->temp(0).reg();
+      __ AddImmediate(RSP, compiler::Immediate(-kDoubleSize));
+      __ movsd(compiler::Address(RSP, 0), value);
+      __ movq(temp, compiler::Address(RSP, 0));
+      __ AddImmediate(RSP, compiler::Immediate(kDoubleSize));
+      // Mask off the sign.
+      __ AndImmediate(temp, compiler::Immediate(0x7FFFFFFFFFFFFFFFLL));
+      // Compare with +infinity.
+      __ CompareImmediate(temp, compiler::Immediate(0x7FF0000000000000LL));
+      return is_negated ? NOT_EQUAL : EQUAL;
+    }
+    case MethodRecognizer::kDouble_getIsNegative: {
+      const Register temp = locs()->temp(0).reg();
+      const FpuRegister temp_fpu = locs()->temp(1).fpu_reg();
+      compiler::Label not_zero;
+      __ xorpd(temp_fpu, temp_fpu);
+      __ comisd(value, temp_fpu);
+      // If it's NaN, it's not negative.
+      __ j(PARITY_EVEN, is_negated ? labels.true_label : labels.false_label);
+      __ j(NOT_EQUAL, &not_zero, compiler::Assembler::kNearJump);
+      // Check for negative zero by looking at the sign bit.
+      __ movmskpd(temp, value);
+      __ XorImmediate(temp, compiler::Immediate(1));
+      __ CompareImmediate(temp, compiler::Immediate(1));
+      __ Bind(&not_zero);
+      return is_negated ? ABOVE_EQUAL : BELOW;
+    }
+    default:
+      UNREACHABLE();
   }
 }
 

@@ -219,7 +219,7 @@ void main(List<String> args) async {
       break;
     case 'd8':
       d8 = true;
-      mod = 'legacy';
+      mod = 'ddc';
       break;
     case 'chrome':
       chrome = true;
@@ -362,7 +362,7 @@ try {
       if (await process.exitCode != 0) exit(await process.exitCode);
     } else if (d8) {
       var runjs = '''
-load("$ddcPath/lib/js/legacy/dart_library.js");
+load("$ddcPath/lib/js/ddc/ddc_module_loader.js");
 load("$sdkJsPath/dart_sdk.js");
 load("$out");
 

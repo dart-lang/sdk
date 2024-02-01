@@ -3590,6 +3590,28 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   MaybeTraceAllocation(temp_reg, trace);
 }
 
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  LoadAllocationTracingStateAddress(temp_reg, cid);
+  MaybeTraceAllocation(temp_reg, trace);
+}
+
+void Assembler::LoadAllocationTracingStateAddress(Register dest, Register cid) {
+  ASSERT(dest != kNoRegister);
+  ASSERT(dest != TMP);
+
+  LoadIsolateGroup(dest);
+  ldr(dest, Address(dest, target::IsolateGroup::class_table_offset()));
+  ldr(dest,
+      Address(dest,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddScaled(cid, cid, TIMES_1,
+            target::ClassTable::AllocationTracingStateSlotOffsetFor(0));
+  AddRegisters(dest, cid);
+}
+
 void Assembler::LoadAllocationTracingStateAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
@@ -3730,6 +3752,39 @@ void Assembler::GenerateUnRelocatedPcRelativeTailCall(
   PcRelativeTailCallPattern pattern(buffer_.contents() + buffer_.Size() -
                                     PcRelativeTailCallPattern::kLengthInBytes);
   pattern.set_distance(offset_into_target);
+}
+
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_load,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale,
+                                            bool* needs_base) {
+  ASSERT(needs_base != nullptr);
+  if ((cid == kTypedDataInt32x4ArrayCid) ||
+      (cid == kTypedDataFloat32x4ArrayCid) ||
+      (cid == kTypedDataFloat64x2ArrayCid)) {
+    // We are using vldmd/vstmd which do not support offset.
+    return false;
+  }
+
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const intptr_t offset_base =
+      (is_external ? 0
+                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  const int64_t offset = index * index_scale + offset_base;
+  ASSERT(Utils::IsInt(32, offset));
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
+    *needs_base = false;
+    return true;
+  }
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset - offset_base)) {
+    *needs_base = true;
+    return true;
+  }
+
+  return false;
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_load,

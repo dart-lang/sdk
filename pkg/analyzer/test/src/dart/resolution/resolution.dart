@@ -134,40 +134,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertDriverEventsText(
-    List<DriverEvent> events,
-    String expected, {
-    void Function(ResolvedLibraryResultPrinterConfiguration)? configure,
-  }) {
-    final configuration = ResolvedLibraryResultPrinterConfiguration();
-    configure?.call(configuration);
-
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(sink: buffer, indent: '');
-    final idProvider = IdProvider();
-
-    final elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-      selfUriStr: null,
-    );
-
-    DriverEventsPrinter(
-      configuration: configuration,
-      sink: sink,
-      elementPrinter: elementPrinter,
-      idProvider: idProvider,
-    ).write(events);
-
-    final actual = buffer.toString();
-    if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
-      NodeTextExpectationsCollector.add(actual);
-    }
-    expect(actual, expected);
-  }
-
   void assertElement(Object? nodeOrElement, Object? elementOrMatcher) {
     Element? element;
     if (nodeOrElement is AstNode) {
@@ -315,17 +281,32 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResult(const []);
   }
 
-  void assertParsedNodeText(
-    AstNode node,
-    String expected, {
-    bool skipArgumentList = false,
-  }) {
-    var actual = _parsedNodeText(
-      node,
-      skipArgumentList: skipArgumentList,
+  void assertParsedNodeText(AstNode node, String expected) {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
     );
+
+    final elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+      selfUriStr: null,
+    );
+
+    node.accept(
+      ResolvedAstPrinter(
+        sink: sink,
+        elementPrinter: elementPrinter,
+        configuration: ResolvedNodeTextConfiguration(),
+        withResolution: false,
+      ),
+    );
+
+    final actual = buffer.toString();
     if (actual != expected) {
-      print(actual);
+      print('-------- Actual --------');
+      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
@@ -439,17 +420,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
           messageContains: messageContains,
           expectedContextMessages: contextMessages);
 
-  List<ExpectedError> expectedErrorsByNullability({
-    required List<ExpectedError> nullable,
-    required List<ExpectedError> legacy,
-  }) {
-    if (isNullSafetyEnabled) {
-      return nullable;
-    } else {
-      return legacy;
-    }
-  }
-
   String getMacroCode(String relativePath) {
     final code = MacrosEnvironment.instance.packageAnalyzerFolder
         .getChildAssumingFile('test/src/summary/macro/$relativePath')
@@ -556,49 +526,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
   String typeString(DartType type) =>
       type.getDisplayString(withNullability: isNullSafetyEnabled);
 
-  String typeStringByNullability({
-    required String nullable,
-    required String legacy,
-  }) {
-    if (isNullSafetyEnabled) {
-      return nullable;
-    } else {
-      return legacy;
-    }
-  }
-
   Matcher _elementMatcher(Object? elementOrMatcher) {
     if (elementOrMatcher is Element) {
       return _ElementMatcher(this, declaration: elementOrMatcher);
     } else {
       return wrapMatcher(elementOrMatcher);
     }
-  }
-
-  String _parsedNodeText(
-    AstNode node, {
-    bool skipArgumentList = false,
-  }) {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
-    final elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-      selfUriStr: '${result.libraryElement.source.uri}',
-    );
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: ResolvedNodeTextConfiguration()
-          ..skipArgumentList = skipArgumentList,
-        withResolution: false,
-      ),
-    );
-    return buffer.toString();
   }
 
   String _resolvedNodeText(AstNode node) {
@@ -685,6 +618,10 @@ class _MultiplyDefinedElementMatcher extends Matcher {
 }
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
+  FindElement get findElement {
+    return FindElement(unit);
+  }
+
   FindNode get findNode {
     return FindNode(content, unit);
   }

@@ -4420,6 +4420,22 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
 }
 
 #ifndef PRODUCT
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  LoadIsolateGroup(temp_reg);
+  lx(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  lx(temp_reg,
+     Address(temp_reg,
+             target::ClassTable::allocation_tracing_state_table_offset()));
+  add(temp_reg, temp_reg, cid);
+  LoadFromOffset(temp_reg, temp_reg,
+                 target::ClassTable::AllocationTracingStateSlotOffsetFor(0),
+                 kUnsignedByte);
+  bnez(temp_reg, trace);
+}
+
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
                                      Register temp_reg,
@@ -4603,6 +4619,20 @@ static OperandSize OperandSizeFor(intptr_t cid) {
       UNREACHABLE();
       return kByte;
   }
+}
+
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
+  if (IsITypeImm(offset)) {
+    ASSERT(IsSTypeImm(offset));
+    return true;
+  }
+  return false;
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

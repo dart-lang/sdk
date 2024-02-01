@@ -200,7 +200,8 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     ClassMembersBuilder membersBuilder =
         new ClassMembersBuilder(hierarchyBuilder);
     for (ClassBuilder classBuilder in classes) {
-      assert(!classBuilder.isPatch, "Unexpected augment class $classBuilder");
+      assert(!classBuilder.isAugmenting,
+          "Unexpected augmentation class $classBuilder");
       membersBuilder.classNodes[classBuilder.cls] = new ClassMembersNodeBuilder(
               membersBuilder,
               hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
@@ -209,7 +210,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
         in extensionTypeDeclarations) {
       assert(
-          !extensionTypeDeclarationBuilder.isPatch,
+          !extensionTypeDeclarationBuilder.isAugmenting,
           "Unexpected augment extension type declaration "
           "$extensionTypeDeclarationBuilder");
       membersBuilder.extensionTypeDeclarationNodes[

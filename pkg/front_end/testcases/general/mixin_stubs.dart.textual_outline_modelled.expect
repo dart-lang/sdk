@@ -1,4 +1,5 @@
 abstract class ClassEqMixin = Super with Mixin;
+
 abstract class ClassEqMixinClass = Super with MixinClass;
 
 abstract class ClassExtendsMixin extends Super with Mixin {}
@@ -38,6 +39,7 @@ abstract mixin class MixinClass {
 }
 
 main() {}
+
 mixin Mixin {
   void abstractExtendsAbstractMixin();
   void abstractExtendsConcreteMixin() {}

@@ -52,7 +52,7 @@ static extension-type-member method Foo|constructor#redirectNamed2(core::int a, 
   ;
 static extension-type-member method Foo|constructor#_#redirectNamed2#tearOff(core::int a, core::int b) → self::Foo /* = core::int */
   return self::Foo|constructor#redirectNamed2(a, b);
-static extension-type-member method Foo|constructor#named(core::int value, {required core::int subtract = null}) → self::Foo /* = core::int */
+static extension-type-member method Foo|constructor#named(core::int value, {required core::int subtract}) → self::Foo /* = core::int */
   ;
 static extension-type-member method Foo|constructor#_#named#tearOff(core::int value, {required core::int subtract}) → self::Foo /* = core::int */
   return self::Foo|constructor#named(value, subtract: subtract);

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -11,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 
 /// An [AnalysisContext] in which analysis can be performed.
 class AnalysisContextImpl implements AnalysisContext {
-  AnalysisOptionsImpl _analysisOptions;
+  AnalysisOptionsMap _analysisOptionsMap;
 
   @override
   final DeclaredVariables declaredVariables;
@@ -26,20 +27,20 @@ class AnalysisContextImpl implements AnalysisContext {
   TypeSystemImpl? _typeSystemNonNullableByDefault;
 
   AnalysisContextImpl({
-    required AnalysisOptionsImpl analysisOptions,
+    required AnalysisOptionsMap analysisOptionsMap,
     required this.declaredVariables,
     required this.sourceFactory,
-  }) : _analysisOptions = analysisOptions;
+  }) : _analysisOptionsMap = analysisOptionsMap;
 
   @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   @override
   AnalysisOptionsImpl get analysisOptions {
-    return _analysisOptions;
+    return _analysisOptionsMap.firstOrDefault;
   }
 
   // TODO(scheglov): Remove it, exists only for Cider.
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
-    _analysisOptions = analysisOptions;
+    _analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(analysisOptions);
   }
 
   bool get hasTypeProvider {
@@ -71,7 +72,8 @@ class AnalysisContextImpl implements AnalysisContext {
   }
 
   @override
-  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) => _analysisOptions;
+  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
+      _analysisOptionsMap.getOptions(file);
 
   void setTypeProviders({
     required TypeProviderImpl legacy,

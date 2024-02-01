@@ -11,4 +11,5 @@ class A {
 }
 
 foo() {}
+
 main() {}

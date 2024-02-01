@@ -16,7 +16,6 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:collection/collection.dart';
 
 class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   final _Style _style;
@@ -36,10 +35,6 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       return fieldDeclaration?.ifTypeOrNull();
     }
     return null;
-  }
-
-  bool get _hasNonNullableFeature {
-    return unit.featureSet.isEnabled(Feature.non_nullable);
   }
 
   @override
@@ -189,9 +184,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.writeType(
           keyClass.instantiate(
             typeArguments: const [],
-            nullabilitySuffix: _hasNonNullableFeature
-                ? NullabilitySuffix.question
-                : NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.question,
           ),
         );
         builder.write(' key');
@@ -363,7 +356,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
     for (final field in childrenLast) {
       builder.write(', ');
-      if (_hasNonNullableFeature && field.hasNonNullableType) {
+      if (field.hasNonNullableType) {
         builder.write('required ');
       }
       builder.write('this.');

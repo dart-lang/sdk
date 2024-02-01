@@ -8,7 +8,11 @@ class Class {
 }
 
 int bar() => 0;
+
 int baz(int x) {}
+
 int boz(int x) => x;
+
 int foo() {}
+
 main() {}

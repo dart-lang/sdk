@@ -19,7 +19,11 @@ class Class4 {
 }
 
 dynamic set setter2(_) {}
+
 int set setter1(_) {}
+
 main() {}
+
 set setter4(_) {}
+
 void set setter3(_) {}

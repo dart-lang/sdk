@@ -13,4 +13,5 @@ class C<T> {
 }
 
 final A? a = null;
+
 main() {}

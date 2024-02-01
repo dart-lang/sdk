@@ -16,6 +16,7 @@ mixin Mixin {
   void extendedConcreteMixedInAbstractImplementedMethod(int i);
   void extendedConcreteMixedInConcreteImplementedMethod(int i) {}
 }
+
 class Class = Super with Mixin implements Interface;
 
 class Sub extends Class {

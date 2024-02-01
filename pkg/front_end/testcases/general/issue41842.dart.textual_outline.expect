@@ -1,4 +1,5 @@
 import './issue41842_lib.dart' as lib;
+
 class A<T> {
   A();
   factory A.foo1(int x) = B<T>;
@@ -27,9 +28,11 @@ class A<T> {
   T;
   operator>();
 }
+
 class B<T> extends A<T> {
   B(int x);
   B.foo(int x);
   factory B.bar(int x) => B.foo(x);
 }
+
 void main() {}

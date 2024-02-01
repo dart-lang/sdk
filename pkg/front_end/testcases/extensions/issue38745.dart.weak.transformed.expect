@@ -149,7 +149,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'field'.
   c.field = 23;
-    ^^^^^" in c{<unresolved>}.field = 23;
+    ^^^^^" in c.{<unresolved>}field = 23;
   invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:36:5: Error: The getter 'property' isn't defined for the class 'C<int>'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
@@ -165,7 +165,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'property2'.
   c.property2 = 23;
-    ^^^^^^^^^" in c{<unresolved>}.property2 = 23;
+    ^^^^^^^^^" in c.{<unresolved>}property2 = 23;
   invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:40:10: Error: Member not found: 'field'.
   ext(c).field;
          ^^^^^";

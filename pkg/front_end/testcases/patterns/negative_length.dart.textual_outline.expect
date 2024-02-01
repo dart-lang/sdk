@@ -14,5 +14,7 @@ int switchList(List<int> list) => switch (list) {
       [_] => 1,
       [] => 0,
     };
+
 main() {}
+
 expect(expected, actual) {}

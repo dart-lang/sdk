@@ -19,4 +19,5 @@ mixin Mixin {
 class ClassMixin extends Super with Mixin {}
 
 class NamedMixin = Super with Mixin;
+
 main() {}

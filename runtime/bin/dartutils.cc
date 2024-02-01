@@ -10,6 +10,7 @@
 #include "bin/io_buffer.h"
 #include "bin/namespace.h"
 #include "bin/platform.h"
+#include "bin/typed_data_utils.h"
 #include "bin/utils.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
@@ -36,6 +37,13 @@ const char* DartUtils::original_working_directory = nullptr;
 dart::SimpleHashMap* DartUtils::environment_ = nullptr;
 
 MagicNumberData appjit_magic_number = {8, {0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0}};
+MagicNumberData aotelf_magic_number = {4, {0x7F, 0x45, 0x4C, 0x46, 0x0}};
+MagicNumberData aotmacho32_magic_number = {4, {0xFE, 0xED, 0xFA, 0xCE}};
+MagicNumberData aotmacho64_magic_number = {4, {0xFE, 0xED, 0xFA, 0xCF}};
+MagicNumberData aotcoff_arm32_magic_number = {2, {0x01, 0xC0}};
+MagicNumberData aotcoff_arm64_magic_number = {2, {0xAA, 0x64}};
+MagicNumberData aotcoff_riscv32_magic_number = {2, {0x50, 0x32}};
+MagicNumberData aotcoff_riscv64_magic_number = {2, {0x50, 0x64}};
 MagicNumberData kernel_magic_number = {4, {0x90, 0xab, 0xcd, 0xef}};
 MagicNumberData kernel_list_magic_number = {
     7,
@@ -185,6 +193,14 @@ const char* DartUtils::GetNativeStringArgument(Dart_NativeArguments args,
   }
   ASSERT(cstring != nullptr);
   return cstring;
+}
+
+const char* DartUtils::GetNativeTypedDataArgument(Dart_NativeArguments args,
+                                                  intptr_t index) {
+  Dart_Handle handle = Dart_GetNativeArgument(args, index);
+  TypedDataScope data(handle);
+  ASSERT(data.type() == Dart_TypedData_kUint8);
+  return data.GetScopedCString();
 }
 
 Dart_Handle DartUtils::SetIntegerField(Dart_Handle handle,
@@ -389,22 +405,23 @@ static bool CheckMagicNumber(const uint8_t* buffer,
 
 DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
   MagicNumber magic_number = DartUtils::kUnknownMagicNumber;
+  ASSERT(kMaxMagicNumberSize == appjit_magic_number.length);
+  ASSERT(aotelf_magic_number.length <= appjit_magic_number.length);
+  ASSERT(aotmacho32_magic_number.length <= appjit_magic_number.length);
+  ASSERT(aotmacho64_magic_number.length <= appjit_magic_number.length);
+  ASSERT(aotcoff_arm32_magic_number.length <= appjit_magic_number.length);
+  ASSERT(aotcoff_arm64_magic_number.length <= appjit_magic_number.length);
+  ASSERT(aotcoff_riscv32_magic_number.length <= appjit_magic_number.length);
+  ASSERT(aotcoff_riscv64_magic_number.length <= appjit_magic_number.length);
+  ASSERT(kernel_magic_number.length <= appjit_magic_number.length);
+  ASSERT(kernel_list_magic_number.length <= appjit_magic_number.length);
+  ASSERT(gzip_magic_number.length <= appjit_magic_number.length);
   if (File::GetType(nullptr, filename, true) == File::kIsFile) {
     File* file = File::Open(nullptr, filename, File::kRead);
     if (file != nullptr) {
       RefCntReleaseScope<File> rs(file);
-      intptr_t max_magic_length = 0;
-      max_magic_length =
-          Utils::Maximum(max_magic_length, appjit_magic_number.length);
-      max_magic_length =
-          Utils::Maximum(max_magic_length, kernel_magic_number.length);
-      max_magic_length =
-          Utils::Maximum(max_magic_length, kernel_list_magic_number.length);
-      max_magic_length =
-          Utils::Maximum(max_magic_length, gzip_magic_number.length);
-      ASSERT(max_magic_length <= 8);
-      uint8_t header[8];
-      if (file->ReadFully(&header, max_magic_length)) {
+      uint8_t header[kMaxMagicNumberSize];
+      if (file->ReadFully(&header, kMaxMagicNumberSize)) {
         magic_number = DartUtils::SniffForMagicNumber(header, sizeof(header));
       }
     }
@@ -432,6 +449,34 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
 
   if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {
     return kGzipMagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, aotelf_magic_number)) {
+    return kAotELFMagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, aotmacho32_magic_number)) {
+    return kAotMachO32MagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, aotmacho64_magic_number)) {
+    return kAotMachO64MagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, aotcoff_arm32_magic_number)) {
+    return kAotCoffARM32MagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, aotcoff_arm64_magic_number)) {
+    return kAotCoffARM64MagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, aotcoff_riscv32_magic_number)) {
+    return kAotCoffRISCV32MagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, aotcoff_riscv64_magic_number)) {
+    return kAotCoffRISCV64MagicNumber;
   }
 
   return kUnknownMagicNumber;

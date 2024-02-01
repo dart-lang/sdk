@@ -350,6 +350,7 @@ class ExtensionMemberResolver {
         errorNode: SimpleIdentifierImpl(node.name),
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
+        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
       );
       inferrer.constrainArgument(
         receiverType,

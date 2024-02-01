@@ -319,8 +319,7 @@ class KernelToElementMap implements IrToElementMap {
       } else {
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
             coreTypes.legacyRawType(node), coreTypes.objectClass,
-            isNonNullableByDefault: node
-                .enclosingLibrary.isNonNullableByDefault) as ir.InterfaceType);
+            isNonNullableByDefault: true) as ir.InterfaceType);
       }
     }
   }
@@ -534,10 +533,8 @@ class KernelToElementMap implements IrToElementMap {
       // isCovariant implies this FunctionNode is a class Procedure.
       var isCovariant =
           variable.isCovariantByDeclaration || variable.isCovariantByClass;
-      var isFromNonNullableByDefaultLibrary = isCovariant &&
-          (node.parent as ir.Procedure).enclosingLibrary.isNonNullableByDefault;
-      return types.getTearOffParameterType(getDartType(variable.type),
-          isCovariant, isFromNonNullableByDefaultLibrary);
+      return types.getTearOffParameterType(
+          getDartType(variable.type), isCovariant);
     }
 
     for (ir.VariableDeclaration variable in node.positionalParameters) {
@@ -1176,8 +1173,7 @@ class KernelToElementMap implements IrToElementMap {
       String path = canonicalUri.path;
       name = path.substring(path.lastIndexOf('/') + 1);
     }
-    JLibrary library =
-        createLibrary(name, canonicalUri, node.isNonNullableByDefault);
+    JLibrary library = createLibrary(name, canonicalUri);
     return libraries.register<JLibrary, KLibraryData, KLibraryEnv>(library,
         KLibraryData(node), libraryEnv ?? env.lookupLibrary(canonicalUri)!);
   }
@@ -1584,9 +1580,8 @@ class KernelToElementMap implements IrToElementMap {
         isJsInterop: isJsInterop);
   }
 
-  JLibrary createLibrary(
-      String name, Uri canonicalUri, bool isNonNullableByDefault) {
-    return JLibrary(name, canonicalUri, isNonNullableByDefault);
+  JLibrary createLibrary(String name, Uri canonicalUri) {
+    return JLibrary(name, canonicalUri);
   }
 
   JClass createClass(JLibrary library, String name,

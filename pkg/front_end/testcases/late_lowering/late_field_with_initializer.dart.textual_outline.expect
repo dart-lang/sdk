@@ -19,4 +19,5 @@ extension Extension<T> on Class<T> {
 }
 
 main() {}
+
 expect(expected, actual) {}

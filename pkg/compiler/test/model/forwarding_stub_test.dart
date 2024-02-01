@@ -13,7 +13,7 @@ import 'package:compiler/src/util/memory_compiler.dart';
 
 const String source = '''
 
-class Mixin<T> {
+mixin Mixin<T> {
   void method(T t) {}
 }
 class Super {}

@@ -292,6 +292,18 @@ abstract class Type {
   }
 }
 
+class TypeSchema {
+  final Type _type;
+
+  TypeSchema(String typeString) : _type = Type(typeString);
+
+  TypeSchema.fromType(this._type);
+
+  String get typeString => _type.type;
+
+  Type toType() => _type;
+}
+
 class TypeSystem {
   static final Map<String, List<Type> Function(List<Type>)>
       _coreSuperInterfaceTemplates = {

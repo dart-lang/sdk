@@ -23,10 +23,10 @@ abstract class Interface extends core::Object {
   abstract method method4c([core::int? a = #C1, core::int? b = #C1]) → core::int?;
   abstract method method5a(core::int a, {core::int b = #C2}) → core::int;
   abstract method method5b({core::int a = #C2, core::int b = #C2}) → core::int;
-  abstract method method5c({required core::int a = #C1, required core::int b = #C1}) → core::int;
+  abstract method method5c({required core::int a, required core::int b}) → core::int;
   abstract method method6a(core::int? a, {core::int? b = #C1}) → core::int?;
   abstract method method6b({core::int? a = #C1, core::int? b = #C1}) → core::int?;
-  abstract method method6c({required core::int? a = #C1, required core::int? b = #C1}) → core::int?;
+  abstract method method6c({required core::int? a, required core::int? b}) → core::int?;
   abstract get getter1() → core::int;
   abstract get getter2() → core::int?;
   abstract set setter1(core::int value) → void;
@@ -119,13 +119,13 @@ class Class2b extends opt::LegacyClass implements self::Interface {
     return 0;
   method method5b({core::int a = #C2, core::int b = #C2}) → core::int
     return 0;
-  method method5c({required core::int a = #C1, required core::int b = #C1}) → core::int
+  method method5c({required core::int a, required core::int b}) → core::int
     return 0;
   method method6a(core::int? a, {core::int? b = #C1}) → core::int?
     return 0;
   method method6b({core::int? a = #C1, core::int? b = #C1}) → core::int?
     return 0;
-  method method6c({required core::int? a = #C1, required core::int? b = #C1}) → core::int?
+  method method6c({required core::int? a, required core::int? b}) → core::int?
     return 0;
   get getter1() → core::int
     return 0;

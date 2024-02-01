@@ -32,4 +32,5 @@ class F<S, T> extends A<S, T> {
 }
 
 void test() {}
+
 main() {}

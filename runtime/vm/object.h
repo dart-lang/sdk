@@ -1373,8 +1373,11 @@ class Class : public Object {
   }
 
   // Returns a canonicalized vector of the type parameters instantiated
-  // to bounds. If non-generic, the empty type arguments vector is returned.
-  TypeArgumentsPtr InstantiateToBounds(Thread* thread) const;
+  // to bounds (e.g., the type arguments used if no TAV is provided for class
+  // instantiation).
+  //
+  // If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr DefaultTypeArguments(Zone* zone) const;
 
   // If this class is parameterized, each instance has a type_arguments field.
   static constexpr intptr_t kNoTypeArguments = -1;
@@ -3219,18 +3222,22 @@ class Function : public Object {
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
-  using DefaultTypeArgumentsKind =
-      UntaggedClosureData::DefaultTypeArgumentsKind;
-
   // Returns a canonicalized vector of the type parameters instantiated
-  // to bounds. If non-generic, the empty type arguments vector is returned.
-  TypeArgumentsPtr InstantiateToBounds(
-      Thread* thread,
-      DefaultTypeArgumentsKind* kind_out = nullptr) const;
+  // to bounds (e.g., the local type arguments that are used if no TAV is
+  // provided when the function is invoked).
+  //
+  // If the function is owned by a generic class or has any generic parent
+  // functions, then the returned vector may require instantiation, see
+  // default_type_arguments_instantiation_mode() for Closure functions
+  // or TypeArguments::GetInstantiationMode() otherwise.
+  //
+  // If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr DefaultTypeArguments(Zone* zone) const;
 
   // Only usable for closure functions.
-  DefaultTypeArgumentsKind default_type_arguments_kind() const;
-  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
+  InstantiationMode default_type_arguments_instantiation_mode() const;
+  void set_default_type_arguments_instantiation_mode(
+      InstantiationMode value) const;
 
   // Enclosing outermost function of this local function.
   FunctionPtr GetOutermostFunction() const;
@@ -3565,6 +3572,9 @@ class Function : public Object {
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
   bool ForceOptimize() const;
+
+  // Whether this function should be inlined if at all possible.
+  bool IsPreferInline() const;
 
   // Whether this function is idempotent (i.e. calling it twice has the same
   // effect as calling it once - no visible side effects).
@@ -4230,10 +4240,6 @@ class Function : public Object {
     kTearOff,
     kLength,
   };
-  // Given the provided defaults type arguments, determines which
-  // DefaultTypeArgumentsKind applies.
-  DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
-      const TypeArguments& defaults) const;
 
   void set_ic_data_array(const Array& value) const;
   void set_name(const String& value) const;
@@ -4283,10 +4289,7 @@ class ClosureData : public Object {
     return OFFSET_OF(UntaggedClosureData, packed_fields_);
   }
 
-  using DefaultTypeArgumentsKind =
-      UntaggedClosureData::DefaultTypeArgumentsKind;
-  using PackedDefaultTypeArgumentsKind =
-      UntaggedClosureData::PackedDefaultTypeArgumentsKind;
+  using PackedInstantiationMode = UntaggedClosureData::PackedInstantiationMode;
 
   static constexpr uint8_t kNoAwaiterLinkDepth =
       UntaggedClosureData::kNoAwaiterLinkDepth;
@@ -4310,8 +4313,15 @@ class ClosureData : public Object {
   }
   void set_implicit_static_closure(const Closure& closure) const;
 
-  DefaultTypeArgumentsKind default_type_arguments_kind() const;
-  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
+  static InstantiationMode DefaultTypeArgumentsInstantiationMode(
+      ClosureDataPtr ptr) {
+    return ptr->untag()->packed_fields_.Read<PackedInstantiationMode>();
+  }
+  InstantiationMode default_type_arguments_instantiation_mode() const {
+    return DefaultTypeArgumentsInstantiationMode(ptr());
+  }
+  void set_default_type_arguments_instantiation_mode(
+      InstantiationMode value) const;
 
   static ClosureDataPtr New();
 
@@ -8242,6 +8252,7 @@ class Instance : public Object {
   // Equivalent to invoking identityHashCode with this instance.
   IntegerPtr IdentityHashCode(Thread* thread) const;
 
+  static intptr_t UnroundedSize() { return sizeof(UntaggedInstance); }
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedInstance));
   }
@@ -8581,6 +8592,22 @@ class TypeArguments : public Instance {
   // Concatenate [this] and [other] vectors of type parameters.
   TypeArgumentsPtr ConcatenateTypeParameters(Zone* zone,
                                              const TypeArguments& other) const;
+
+  // Returns an InstantiationMode for this type argument vector, which
+  // specifies whether the type argument vector requires instantiation and
+  // shortcuts to instantiate the vector when possible.
+  //
+  // If [function] is provided, any function type arguments used in the type
+  // arguments vector are assumed to be bound by the function or its parent
+  // functions.
+  //
+  // If [class] is provided, any class type arguments used in the type arguments
+  // vector are assumed to be bound by that class. If [function] is provided
+  // but [class] is not, then the owning class of the function is retrieved
+  // and used.
+  InstantiationMode GetInstantiationMode(Zone* zone,
+                                         const Function* function = nullptr,
+                                         const Class* cls = nullptr) const;
 
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
@@ -9060,15 +9087,18 @@ class AbstractType : public Instance {
   virtual const char* NullabilitySuffix(NameVisibility name_visibility) const;
 
   // The name of this type, including the names of its type arguments, if any.
-  virtual StringPtr Name() const;
+  StringPtr Name() const;
+  const char* NameCString() const;
 
   // The name of this type, including the names of its type arguments, if any.
   // Names of internal classes are mapped to their public interfaces.
-  virtual StringPtr UserVisibleName() const;
+  StringPtr UserVisibleName() const;
+  const char* UserVisibleNameCString() const;
 
   // The name of this type, including the names of its type arguments, if any.
   // Privacy suffixes are dropped.
-  virtual StringPtr ScrubbedName() const;
+  StringPtr ScrubbedName() const;
+  const char* ScrubbedNameCString() const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
@@ -11044,13 +11074,15 @@ class Array : public Instance {
     return 0;
   }
 
-  static constexpr intptr_t InstanceSize(intptr_t len) {
+  static constexpr intptr_t UnroundedSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(UntaggedArray) ==
            (sizeof(UntaggedInstance) + (2 * kBytesPerElement)));
     ASSERT(IsValidLength(len));
-    return RoundedAllocationSize(sizeof(UntaggedArray) +
-                                 (len * kBytesPerElement));
+    return sizeof(UntaggedArray) + (len * kBytesPerElement);
+  }
+  static constexpr intptr_t InstanceSize(intptr_t len) {
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;

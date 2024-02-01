@@ -5,7 +5,6 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_selection_ranges.dart'
     hide SelectionRange;
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -84,7 +83,7 @@ class SelectionRangeRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options =>
-      SelectionRangeRegistrationOptions(documentSelector: [dartFiles]);
+      SelectionRangeRegistrationOptions(documentSelector: dartFiles);
 
   @override
   Method get registrationMethod => Method.textDocument_selectionRange;

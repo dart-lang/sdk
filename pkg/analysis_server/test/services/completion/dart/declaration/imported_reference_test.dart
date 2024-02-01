@@ -2227,6 +2227,35 @@ suggestions
 ''');
   }
 
+  Future<void> test_dartHtml_imported() async {
+    allowedIdentifiers = {'KeyEvent'};
+    printerConfiguration.withLibraryUri = true;
+    await computeSuggestions('''
+import 'dart:html';
+KeyE^
+''');
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  KeyEvent
+    kind: class
+    libraryUri: dart:html
+''');
+  }
+
+  Future<void> test_dartHtml_notImported() async {
+    allowedIdentifiers = {'KeyEvent'};
+    await computeSuggestions('''
+KeyE^
+''');
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+''');
+  }
+
   Future<void> test_defaultFormalParameter_named_expression() async {
     // TODO(brianwilkerson): This is invalid code and there's no clear answer as
     //  to what ought to be suggested. Consider deleting the test, or making it
@@ -5356,7 +5385,7 @@ suggestions
   }
 
   Future<void> test_prefixedIdentifier_trailingStmt_function() async {
-    allowedIdentifiers = {'length'};
+    allowedIdentifiers = {'call', 'length', 'hashCode'};
     await computeSuggestions('''
 String g() => "one";
 f() {
@@ -5366,7 +5395,9 @@ f() {
 ''');
     assertResponse(r'''
 suggestions
-  length
+  call
+    kind: methodInvocation
+  hashCode
     kind: getter
 ''');
   }
@@ -5434,7 +5465,7 @@ suggestions
   }
 
   Future<void> test_prefixedIdentifier_trailingStmt_method() async {
-    allowedIdentifiers = {'length'};
+    allowedIdentifiers = {'call', 'length', 'hashCode'};
     await computeSuggestions('''
 class A {
   String g() {};
@@ -5446,7 +5477,9 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  length
+  call
+    kind: methodInvocation
+  hashCode
     kind: getter
 ''');
   }

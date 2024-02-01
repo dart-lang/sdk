@@ -5,4 +5,5 @@ extension on int {
 }
 
 int getter = 42;
+
 int setter = 42;

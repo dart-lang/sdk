@@ -2,12 +2,15 @@ class A {
   get A.named ()=> null;
   get bar => 1;
 }
+
 class B {
   B.named (): super();
   get bar => 1;
 }
+
 class C {
   C.named ()=> null;
   get bar => 1;
 }
+
 main() {}

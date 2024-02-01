@@ -35,7 +35,8 @@ class RecordType<Type extends Object> {
 /// Callback API used by the shared type analyzer to query and manipulate the
 /// client's representation of variables and types.
 abstract interface class TypeAnalyzerOperations<Variable extends Object,
-    Type extends Object> implements FlowAnalysisOperations<Variable, Type> {
+        Type extends Object, TypeSchema extends Object>
+    implements FlowAnalysisOperations<Variable, Type> {
   /// Returns the type `double`.
   Type get doubleType;
 
@@ -54,8 +55,8 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Returns the type `Object?`.
   Type get objectQuestionType;
 
-  /// Returns the unknown type context (`?`) used in type inference.
-  Type get unknownType;
+  /// Returns the unknown type schema (`?`) used in type inference.
+  TypeSchema get unknownType;
 
   /// Returns `true` if [type1] and [type2] are structurally equal.
   bool areStructurallyEqual(Type type1, Type type2);
@@ -77,14 +78,25 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Returns `true` if [type] is the type `dynamic`.
   bool isDynamic(Type type);
 
+  /// Returns `true` if the type [type] satisfies the type schema [typeSchema].
+  bool isTypeSchemaSatisfied(
+      {required TypeSchema typeSchema, required Type type});
+
+  /// Returns `true` if [type] is the unknown type context (`?`).
+  bool isUnknownType(Type type);
+
   /// Returns whether [node] is final.
   bool isVariableFinal(Variable node);
 
-  /// Returns the type `Iterable`, with type argument [elementType].
-  Type iterableType(Type elementType);
+  /// Returns the type schema `Iterable`, with type argument
+  /// [elementTypeSchema].
+  TypeSchema iterableTypeSchema(TypeSchema elementTypeSchema);
 
   /// Returns the type `List`, with type argument [elementType].
   Type listType(Type elementType);
+
+  /// Returns the type schema `List`, with type argument [elementTypeSchema].
+  TypeSchema listTypeSchema(TypeSchema elementTypeSchema);
 
   /// Computes the least upper bound of [type1] and [type2].
   Type lub(Type type1, Type type2);
@@ -93,25 +105,37 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// of [type] and `Null`.
   Type makeNullable(Type type);
 
+  /// Computes the nullable form of [typeSchema].
+  TypeSchema makeTypeSchemaNullable(TypeSchema typeSchema);
+
   /// Returns the type `Map`, with type arguments.
   Type mapType({
     required Type keyType,
     required Type valueType,
   });
 
-  /// If [type] is a subtype of the type `Iterable<T>` for some `T`, returns
+  /// Returns the type schema `Map`, with type arguments [keyTypeSchema] and
+  /// [elementTypeSchema].
+  TypeSchema mapTypeSchema(
+      {required TypeSchema keyTypeSchema, required TypeSchema valueTypeSchema});
+
+  /// If [type] is a subtype of the type `Iterable<T>?` for some `T`, returns
   /// the type `T`.  Otherwise returns `null`.
   Type? matchIterableType(Type type);
 
-  /// If [type] is a subtype of the type `List<T>` for some `T`, returns the
+  /// If [typeSchema] is the type schema `Iterable<T>?` (or a subtype thereof),
+  /// for some `T`, returns the type `T`. Otherwise returns `null`.
+  TypeSchema? matchIterableTypeSchema(TypeSchema typeSchema);
+
+  /// If [type] is a subtype of the type `List<T>?` for some `T`, returns the
   /// type `T`.  Otherwise returns `null`.
   Type? matchListType(Type type);
 
-  /// If [type] is a subtype of the type `Map<K, V>` for some `K` and `V`,
+  /// If [type] is a subtype of the type `Map<K, V>?` for some `K` and `V`,
   /// returns these `K` and `V`.  Otherwise returns `null`.
   MapPatternTypeArguments<Type>? matchMapType(Type type);
 
-  /// If [type] is a subtype of the type `Stream<T>` for some `T`, returns
+  /// If [type] is a subtype of the type `Stream<T>?` for some `T`, returns
   /// the type `T`.  Otherwise returns `null`.
   Type? matchStreamType(Type type);
 
@@ -124,6 +148,21 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   Type recordType(
       {required List<Type> positional, required List<NamedType<Type>> named});
 
-  /// Returns the type `Stream`, with type argument [elementType].
-  Type streamType(Type elementType);
+  /// Builds the client specific record type schema.
+  TypeSchema recordTypeSchema(
+      {required List<TypeSchema> positional,
+      required List<NamedType<TypeSchema>> named});
+
+  /// Returns the type schema `Stream`, with type argument [elementTypeSchema].
+  TypeSchema streamTypeSchema(TypeSchema elementTypeSchema);
+
+  /// Computes the greatest lower bound of [typeSchema1] and [typeSchema2].
+  TypeSchema typeSchemaGlb(TypeSchema typeSchema1, TypeSchema typeSchema2);
+
+  /// Determines whether the given type schema corresponds to the `dynamic`
+  /// type.
+  bool typeSchemaIsDynamic(TypeSchema typeSchema);
+
+  /// Converts a type into a corresponding type schema.
+  TypeSchema typeToSchema(Type type);
 }

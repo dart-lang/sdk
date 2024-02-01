@@ -1,3 +1,13 @@
+# 1.7.0
+- Added:
+  - `ClientName`
+  - `DdsExtension.getClientName`
+  - `DdsExtension.getLogHistorySize`
+  - `DdsExtension.setClientName`
+  - `DdsExtension.setLogHistorySize`
+  - `DdsExtension.requirePermissionToResume`
+  - `Size`
+
 # 1.6.3
 - Updated `vm_service` version to `^14.0.0`.
 

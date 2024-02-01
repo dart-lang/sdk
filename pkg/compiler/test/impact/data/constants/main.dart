@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'lib.dart';
 import 'lib.dart' deferred as defer;
 
@@ -153,7 +151,7 @@ symbolLiteral() => #foo;
 
 /*member: listLiteral:type=[
   inst:JSBool,
-  inst:List<bool*>]*/
+  inst:List<bool>]*/
 listLiteral() => const [true, false];
 
 /*member: mapLiteral:type=[
@@ -194,7 +192,7 @@ instanceConstant() => const Class(true, false);
  type=[
   inst:Type,
   inst:_Type,
-  lit:String*]
+  lit:String]
 */
 typeLiteral() {
   const dynamic local = String;
@@ -261,7 +259,7 @@ symbolLiteralRef() => symbolLiteralField;
 
 /*member: listLiteralRef:type=[
   inst:JSBool,
-  inst:List<bool*>]*/
+  inst:List<bool>]*/
 listLiteralRef() => listLiteralField;
 
 /*member: mapLiteralRef:type=[
@@ -302,7 +300,7 @@ instanceConstantRef() => instanceConstantField;
  type=[
   inst:Type,
   inst:_Type,
-  lit:String*]
+  lit:String]
 */
 typeLiteralRef() => typeLiteralField;
 
@@ -359,7 +357,7 @@ symbolLiteralDeferred() => defer.symbolLiteralField;
 // TODO(johnniwinther): Should we record that this is deferred?
 /*member: listLiteralDeferred:type=[
   inst:JSBool,
-  inst:List<bool*>]*/
+  inst:List<bool>]*/
 listLiteralDeferred() => defer.listLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
@@ -403,7 +401,7 @@ instanceConstantDeferred() => defer.instanceConstantField;
  type=[
   inst:Type,
   inst:_Type,
-  lit:String*{defer}]
+  lit:String{defer}]
 */
 typeLiteralDeferred() => defer.typeLiteralField;
 

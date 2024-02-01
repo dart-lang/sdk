@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
 class Class<T> {
@@ -12,12 +10,12 @@ class Class<T> {
 
 main() {
   /*needsArgs,needsSignature*/
-  T local1a<T>() => null;
+  T? local1a<T>() => null;
 
   /*needsArgs,needsSignature*/
-  T local1b<T>() => null;
+  T? local1b<T>() => null;
 
-  /*spec.explicit=[local2.T*],needsArgs,needsSignature,test*/
+  /*spec.explicit=[local2.T],needsArgs,needsSignature,test*/
   /*prod.needsArgs,needsSignature*/
   T local2<T>(T t, String s) => t;
 

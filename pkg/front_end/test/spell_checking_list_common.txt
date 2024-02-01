@@ -833,6 +833,7 @@ dereferenced
 derivation
 derive
 derived
+derives
 descendant
 descendants
 describe
@@ -1060,6 +1061,7 @@ enumerations
 enums
 environment
 equal
+equalities
 equality
 equals
 equate
@@ -3290,6 +3292,7 @@ unserializable
 unsigned
 unsized
 unskip
+unsolvable
 unsorted
 unsoundness
 unspecified

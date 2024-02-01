@@ -5,4 +5,5 @@ class C<T> {
 }
 
 use(x) {}
+
 main() {}

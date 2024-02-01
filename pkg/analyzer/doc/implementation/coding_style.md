@@ -62,10 +62,25 @@ a unique name, such as `filePath`.
 #### Extensions
 
 Public extensions (which are intended to be accessible outside their declaring
-library) are named in a consistent style. An extension on a class `Foo` is
-named `FooExtension`. While this can lead to long names (like
-`AnalysisOptionsImplExtension`), the extension name is rarely used (only in
-explicit extension overrides), and we value consistency.
+library) are named in a consistent style. An extension on a type `Foo` is
+named `FooExtension`. An extension on a nullable type `Foo?` uses the word
+"Nullable" in place of the question mark, like `FooNullableExtension`. While
+this can lead to long names (like `AnalysisOptionsImplExtension`), the
+extension name is rarely used (only in explicit extension overrides), and we
+value consistency.
+
+### Modifier usage
+
+#### Local variables
+
+We use `var` to declare local variables with two exceptions:
+
+- We use a type annotation if the type of the variable would be incorrectly
+  inferred without it, such as when a variable that needs to be nullable would
+  be inferred to be non-nullable because it's initialized to a non-null value.
+
+- We use `final` if the local variable shadows a field and is being used to
+  allow the type of the field to be promoted.
 
 ## Styles we're discussing
 

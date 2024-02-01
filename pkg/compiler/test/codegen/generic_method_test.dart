@@ -13,7 +13,7 @@ import '../helpers/compiler_helper.dart';
 
 const String TEST = r"""
 class A {
-  Object value;
+  Object? value;
   @pragma('dart2js:tryInline')
   @pragma('dart2js:as:trust')
   T foo<T>() => value as T;

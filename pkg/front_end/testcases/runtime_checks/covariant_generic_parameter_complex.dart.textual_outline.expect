@@ -8,7 +8,11 @@ class C<T> {
 }
 
 void g1(C<num> c, List<num> l) {}
+
 void g2(C<num> c, num callback()) {}
+
 void g3(C<num> c, num callback(num x)) {}
+
 void g4(C<num> c, void callback(num x)) {}
+
 main() {}

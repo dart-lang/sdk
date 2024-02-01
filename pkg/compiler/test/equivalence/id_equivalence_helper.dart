@@ -153,8 +153,7 @@ Future<CompiledData<T>?> computeData<T>(String name, Uri entryPoint,
         compiler.stopAfterGlobalTypeInferenceForTesting =
             options.contains(stopAfterTypeInference);
       },
-      packageConfig: packageConfig,
-      unsafeToTouchSourceFiles: true);
+      packageConfig: packageConfig);
   if (!result.isSuccess) {
     if (skipFailedCompilations) return null;
     Expect.isTrue(

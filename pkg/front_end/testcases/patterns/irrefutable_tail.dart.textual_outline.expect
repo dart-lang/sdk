@@ -13,6 +13,7 @@ abstract class C {
 }
 
 ifCase(o) {}
+
 switchExpression(o) => switch (o) {
       A a => a,
       A(:var b) => b,
@@ -24,4 +25,5 @@ switchExpression(o) => switch (o) {
       A(:var b, i: 5) && A(b: B(:var c, i: 7)) => '$b$c',
       _ => null,
     };
+
 switchStatement(o) {}

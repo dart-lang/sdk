@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
 main() {
@@ -29,12 +27,12 @@ test1() {
   makeLive(_test1(method1c));
 }
 
-B1 method1a() => null;
-A1<int> method1b() => null;
-A1<String> method1c() => null;
+B1? method1a() => null;
+A1<int>? method1b() => null;
+A1<String>? method1c() => null;
 
 @pragma('dart2js:noInline')
-bool _test1(f) => f is A1<int> Function();
+bool _test1(f) => f is A1<int>? Function();
 
 /*spec.class: A2:checkedInstance,checkedTypeArgument,typeArgument*/
 /*prod.class: A2:checkedTypeArgument,typeArgument*/
@@ -93,12 +91,12 @@ test4() {
   makeLive(_test4(method4c));
 }
 
-B4 method4a() => null;
-A4<int> method4b() => null;
-A4<String> method4c() => null;
+B4? method4a() => null;
+A4<int>? method4b() => null;
+A4<String>? method4c() => null;
 
 @pragma('dart4js:noInline')
-_test4(f) => f is B4 Function();
+_test4(f) => f is B4? Function();
 
 /*class: A5:checkedTypeArgument,typeArgument*/
 class A5<T> {}
@@ -133,12 +131,12 @@ test6() {
   makeLive(_test6(method6c));
 }
 
-void Function(B6) method6a() => null;
-void Function(A6<int>) method6b() => null;
-void Function(A6<String>) method6c() => null;
+void Function(B6)? method6a() => null;
+void Function(A6<int>)? method6b() => null;
+void Function(A6<String>)? method6c() => null;
 
 @pragma('dart6js:noInline')
-_test6(f) => f is void Function(B6) Function();
+_test6(f) => f is void Function(B6)? Function();
 
 /*class: A7:typeArgument*/
 class A7<T> {}

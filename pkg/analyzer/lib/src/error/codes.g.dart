@@ -656,6 +656,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the type variable
+  static const CompileTimeErrorCode
+      CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE = CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    "'{0}' can't be used to name both a type variable and the extension type "
+        "in which the type variable is defined.",
+    correctionMessage:
+        "Try renaming either the type variable or the extension.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the type variable
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
@@ -688,6 +701,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try renaming either the type variable or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the type variable
+  static const CompileTimeErrorCode
+      CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE =
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    "'{0}' can't be used to name both a type variable and a member in this "
+        "extension type.",
+    correctionMessage: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
   );
 
   ///  Parameters:
@@ -876,6 +902,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
     'CONST_EVAL_EXTENSION_METHOD',
     "Extension methods can't be used in constant expressions.",
+  );
+
+  static const CompileTimeErrorCode CONST_EVAL_EXTENSION_TYPE_METHOD =
+      CompileTimeErrorCode(
+    'CONST_EVAL_EXTENSION_TYPE_METHOD',
+    "Extension type methods can't be used in constant expressions.",
   );
 
   static const CompileTimeErrorCode CONST_EVAL_FOR_ELEMENT =
@@ -3016,6 +3048,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the introspected declaration
+  static const CompileTimeErrorCode
+      MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE = CompileTimeErrorCode(
+    'MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE',
+    "The declaration '{0}' can't be introspected because there is a cycle of "
+        "macro applications.",
+    correctionMessage:
+        "Try removing one or more macro applications to break the cycle.",
+  );
+
+  ///  Parameters:
   ///  0: the message
   static const CompileTimeErrorCode MACRO_ERROR = CompileTimeErrorCode(
     'MACRO_ERROR',
@@ -4372,6 +4415,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode
+      RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA = CompileTimeErrorCode(
+    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "A record literal with exactly one positional field requires a trailing "
+        "comma.",
+    correctionMessage: "Try adding a trailing comma.",
+    hasPublishedDocs: true,
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode RECURSIVE_COMPILE_TIME_CONSTANT =
       CompileTimeErrorCode(
@@ -4925,17 +4977,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'SWITCH_CASE_COMPLETES_NORMALLY',
     "The 'case' shouldn't complete normally.",
     correctionMessage: "Try adding 'break', 'return', or 'throw'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the static type of the switch expression
-  ///  1: the static type of the case expressions
-  static const CompileTimeErrorCode SWITCH_EXPRESSION_NOT_ASSIGNABLE =
-      CompileTimeErrorCode(
-    'SWITCH_EXPRESSION_NOT_ASSIGNABLE',
-    "Type '{0}' of the switch expression isn't assignable to the type '{1}' of "
-        "case expressions.",
     hasPublishedDocs: true,
   );
 
@@ -6817,17 +6858,6 @@ class WarningCode extends AnalyzerErrorCode {
     uniqueName: 'MISSING_REQUIRED_PARAM_WITH_DETAILS',
   );
 
-  ///  Parameters:
-  ///  0: the name of the declared return type
-  static const WarningCode MISSING_RETURN = WarningCode(
-    'MISSING_RETURN',
-    "This function has a return type of '{0}', but doesn't end with a return "
-        "statement.",
-    correctionMessage:
-        "Try adding a return statement, or changing the return type to 'void'.",
-    hasPublishedDocs: true,
-  );
-
   ///  This warning is generated anywhere where a `@sealed` class is used as a
   ///  a superclass constraint of a mixin.
   ///
@@ -7009,15 +7039,6 @@ class WarningCode extends AnalyzerErrorCode {
         "Try checking for throw expressions or type errors in the receiver",
   );
 
-  static const WarningCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =
-      WarningCode(
-    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-    "A record literal with exactly one positional field requires a trailing "
-        "comma.",
-    correctionMessage: "Try adding a trailing comma.",
-    hasPublishedDocs: true,
-  );
-
   ///  An error code indicating the use of a redeclare annotation on a member that does not redeclare.
   ///
   ///  Parameters:
@@ -7109,15 +7130,6 @@ class WarningCode extends AnalyzerErrorCode {
     'SDK_VERSION_GT_GT_GT_OPERATOR',
     "The operator '>>>' wasn't supported until version 2.14.0, but this code "
         "is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_NEVER = WarningCode(
-    'SDK_VERSION_NEVER',
-    "The type 'Never' wasn't supported until version 2.12.0, but this code is "
-        "required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );

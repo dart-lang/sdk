@@ -2050,6 +2050,23 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                  kUnsignedByte);
   cbnz(trace, temp_reg);
 }
+
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  ASSERT(temp_reg != cid);
+  LoadIsolateGroup(temp_reg);
+  ldr(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  ldr(temp_reg,
+      Address(temp_reg,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddRegisters(temp_reg, cid);
+  LoadFromOffset(temp_reg, temp_reg,
+                 target::ClassTable::AllocationTracingStateSlotOffsetFor(0),
+                 kUnsignedByte);
+  cbnz(trace, temp_reg);
+}
 #endif  // !PRODUCT
 
 void Assembler::TryAllocateObject(intptr_t cid,
@@ -2172,6 +2189,20 @@ void Assembler::GenerateUnRelocatedPcRelativeTailCall(
   PcRelativeTailCallPattern pattern(buffer_.contents() + buffer_.Size() -
                                     PcRelativeTailCallPattern::kLengthInBytes);
   pattern.set_distance(offset_into_target);
+}
+
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
+  if (!Utils::IsInt(32, offset)) {
+    return false;
+  }
+  return Address::CanHoldOffset(static_cast<int32_t>(offset), Address::Offset,
+                                Address::OperandSizeFor(cid));
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

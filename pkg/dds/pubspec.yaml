@@ -29,7 +29,7 @@ dependencies:
   sse: ^4.0.0
   stack_trace: ^1.10.0
   stream_channel: ^2.0.0
-  vm_service: ^14.0.0
+  vm_service: ^13.0.0
   web_socket_channel: ^2.0.0
 
 # We use 'any' version constraints here as we get our package versions from
@@ -37,7 +37,6 @@ dependencies:
 # best practice for packages is to specify their compatible version ranges.
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
-  http: any
   lints: any
   test: any
   webdriver: any

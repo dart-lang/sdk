@@ -125,7 +125,7 @@ class A extends core::Object {
       : this.i = i; // error
                  ^" in let core::int? #t2 = i in #t2 == null ?{core::int} #t2 as{TypeError} core::int : #t2{core::int}, super core::Object::•()
     ;
-  constructor constructor7({required core::int i = #C1}) → self::A
+  constructor constructor7({required core::int i}) → self::A
     : self::A::i = i, super core::Object::•()
     ;
   external constructor constructor8([core::int i = #C1]) → self::A;
@@ -138,7 +138,7 @@ class A extends core::Object {
     return new self::A::constructor5(i);
   static factory factory6({core::int? i = #C1}) → self::A /* redirection-target: self::A::constructor6 */
     return new self::A::constructor6(i: i);
-  static factory factory7({required core::int i = #C1}) → self::A /* redirection-target: self::A::constructor7 */
+  static factory factory7({required core::int i}) → self::A /* redirection-target: self::A::constructor7 */
     return new self::A::constructor7(i: i);
   static factory factory8([core::int i = #C1]) → self::A
     return new self::A::constructor3();
@@ -148,7 +148,7 @@ class A extends core::Object {
   method method4({core::int i = #C1}) → dynamic {}
   method method5([core::int? i = #C1]) → dynamic {}
   method method6({core::int? i = #C1}) → dynamic {}
-  method method7({required core::int i = #C1}) → dynamic {}
+  method method7({required core::int i}) → dynamic {}
   external method method8([core::int i = #C1]) → dynamic;
   external method method9({core::int i = #C1}) → dynamic;
 }
@@ -161,7 +161,7 @@ abstract class B extends core::Object {
   abstract method method4({core::int i = #C1}) → dynamic;
   abstract method method5([core::int? i = #C1]) → dynamic;
   abstract method method6({core::int? i = #C1}) → dynamic;
-  abstract method method7({required core::int i = #C1}) → dynamic;
+  abstract method method7({required core::int i}) → dynamic;
 }
 class C extends core::Object implements self::B {
   field core::int i;
@@ -187,7 +187,7 @@ class C extends core::Object implements self::B {
   C.constructor6({int? i}) : this.i = i; // error
                                       ^" in let core::int? #t4 = i in #t4 == null ?{core::int} #t4 as{TypeError} core::int : #t4{core::int}, super core::Object::•()
     ;
-  constructor constructor7({required core::int i = #C1}) → self::C
+  constructor constructor7({required core::int i}) → self::C
     : self::C::i = i, super core::Object::•()
     ;
   static factory factory3([core::int i = #C1]) → self::C /* redirection-target: self::C::constructor3 */
@@ -198,7 +198,7 @@ class C extends core::Object implements self::B {
     return new self::C::constructor5(i);
   static factory factory6({core::int? i = #C1}) → self::C /* redirection-target: self::C::constructor6 */
     return new self::C::constructor6(i: i);
-  static factory factory7({required core::int i = #C1}) → self::C /* redirection-target: self::C::constructor7 */
+  static factory factory7({required core::int i}) → self::C /* redirection-target: self::C::constructor7 */
     return new self::C::constructor7(i: i);
   static factory factory8([core::int i = #C1]) → self::C
     return new self::C::constructor3();
@@ -208,7 +208,7 @@ class C extends core::Object implements self::B {
   method method4({core::int i = #C1}) → dynamic {}
   method method5([core::int? i = #C1]) → dynamic {}
   method method6({core::int? i = #C1}) → dynamic {}
-  method method7({required core::int i = #C1}) → dynamic {}
+  method method7({required core::int i}) → dynamic {}
 }
 static method main() → void {}
 

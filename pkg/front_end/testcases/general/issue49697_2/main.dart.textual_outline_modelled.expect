@@ -10,11 +10,19 @@ enum B {
 }
 
 int? a1(A? a) {}
+
 int? a2(A? a) {}
+
 int? b2(B? b) {}
+
 int? c1(C? c) {}
+
 int? c2(C? c) {}
+
 int? d2(D? d) {}
+
 int b1(B b) {}
+
 int d1(D d) {}
+
 void test() {}

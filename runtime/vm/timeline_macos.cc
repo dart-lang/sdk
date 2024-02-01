@@ -10,7 +10,6 @@
 
 namespace dart {
 
-// Only available on iOS 12.0, macOS 10.14 or above
 TimelineEventMacosRecorder::TimelineEventMacosRecorder()
     : TimelineEventPlatformRecorder() {
   Timeline::set_recorder_discards_clock_values(true);
@@ -23,7 +22,6 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
     return;
   }
 
-#if defined(DART_HOST_OS_SUPPORTS_SIGNPOST)
   os_log_t log = event->stream_->macos_log();
   if (!os_signpost_enabled(log)) {
     return;
@@ -72,7 +70,6 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
     default:
       break;
   }
-#endif  // defined(DART_HOST_OS_SUPPORTS_SIGNPOST)
 }
 
 }  // namespace dart

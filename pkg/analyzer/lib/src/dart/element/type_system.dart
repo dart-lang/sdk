@@ -32,6 +32,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -153,6 +154,7 @@ class TypeSystemImpl implements TypeSystem {
   /// [left] is a subtype of [right], or [right] is a subtype of [left].
   bool canBeSubtypeOf(DartType left, DartType right) {
     left = left.extensionTypeErasure;
+    right = right.extensionTypeErasure;
 
     // If one is `Null`, then the other must be nullable.
     final leftIsNullable = isPotentiallyNullable(left);
@@ -180,6 +182,22 @@ class TypeSystemImpl implements TypeSystem {
       return left.isDartCoreFunction || left.isDartCoreObject;
     }
 
+    // FutureOr<T> = T || Future<T>
+    // So, we attempt to match both to the right.
+    if (left.isDartAsyncFutureOr) {
+      final base = futureOrBase(left);
+      final future = typeProvider.futureType(base);
+      return canBeSubtypeOf(base, right) || canBeSubtypeOf(future, right);
+    }
+
+    // FutureOr<T> = T || Future<T>
+    // So, we attempt to match both to the left.
+    if (right.isDartAsyncFutureOr) {
+      final base = futureOrBase(right);
+      final future = typeProvider.futureType(base);
+      return canBeSubtypeOf(left, base) || canBeSubtypeOf(left, future);
+    }
+
     if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
       final leftElement = left.element;
       final rightElement = right.element;
@@ -188,22 +206,6 @@ class TypeSystemImpl implements TypeSystem {
       if (left.isDartCoreInt && right.isDartCoreDouble ||
           left.isDartCoreDouble && right.isDartCoreInt) {
         return true;
-      }
-
-      // FutureOr<T> = T || Future<T>
-      // So, we attempt to match both to the right.
-      if (left.isDartAsyncFutureOr) {
-        final base = futureOrBase(left);
-        final future = typeProvider.futureType(base);
-        return canBeSubtypeOf(base, right) || canBeSubtypeOf(future, right);
-      }
-
-      // FutureOr<T> = T || Future<T>
-      // So, we attempt to match both to the left.
-      if (right.isDartAsyncFutureOr) {
-        final base = futureOrBase(right);
-        final future = typeProvider.futureType(base);
-        return canBeSubtypeOf(left, base) || canBeSubtypeOf(left, future);
       }
 
       bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
@@ -687,8 +689,10 @@ class TypeSystemImpl implements TypeSystem {
     FunctionType fnType, {
     ErrorReporter? errorReporter,
     AstNode? errorNode,
+    required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
     required bool strictInference,
+    required bool strictCasts,
   }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
       return const <DartType>[];
@@ -702,7 +706,8 @@ class TypeSystemImpl implements TypeSystem {
         errorReporter: errorReporter,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
-        strictInference: strictInference);
+        strictInference: strictInference,
+        typeSystemOperations: typeSystemOperations);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
@@ -982,11 +987,15 @@ class TypeSystemImpl implements TypeSystem {
 
   /// Return `true`  for things in the equivalence class of `Never`.
   bool isBottom(DartType type) {
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      assert(!type.isBottom);
+      return false;
+    }
+
     // BOTTOM(Never) is true
     if (type is NeverType) {
-      var result = type.nullabilitySuffix != NullabilitySuffix.question;
-      assert(type.isBottom == result);
-      return result;
+      assert(type.isBottom);
+      return true;
     }
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
@@ -1579,12 +1588,15 @@ class TypeSystemImpl implements TypeSystem {
     List<TypeParameterElement> typeParameters,
     List<DartType> srcTypes,
     List<DartType> destTypes, {
+    required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
     required bool strictInference,
+    required bool strictCasts,
   }) {
     var inferrer = GenericInferrer(this, typeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
-        strictInference: strictInference);
+        strictInference: strictInference,
+        typeSystemOperations: typeSystemOperations);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
       inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
@@ -1865,6 +1877,8 @@ class TypeSystemImpl implements TypeSystem {
     required bool genericMetadataIsEnabled,
     bool isConst = false,
     required bool strictInference,
+    required bool strictCasts,
+    required TypeSystemOperations typeSystemOperations,
   }) {
     // Create a GenericInferrer that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
@@ -1874,7 +1888,8 @@ class TypeSystemImpl implements TypeSystem {
         errorReporter: errorReporter,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
-        strictInference: strictInference);
+        strictInference: strictInference,
+        typeSystemOperations: typeSystemOperations);
 
     if (contextReturnType != null) {
       if (isConst) {
@@ -2110,7 +2125,8 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement is ExtensionElement) {
+    if (methodElement.enclosingElement is ExtensionElement ||
+        methodElement.enclosingElement is ExtensionTypeElement) {
       return currentType;
     }
 
@@ -2214,7 +2230,8 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement is ExtensionElement) {
+    if (methodElement.enclosingElement is ExtensionElement ||
+        methodElement.enclosingElement is ExtensionTypeElement) {
       return currentType;
     }
 

@@ -637,6 +637,14 @@ JsInteropFunctionToJSTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSTypeParameters/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
+JsInteropIsAInvalidType/analyzerCode: Fail # Web compiler specific
+JsInteropIsAInvalidType/example: Fail # Web compiler specific
+JsInteropIsAObjectLiteralType/analyzerCode: Fail # Web compiler specific
+JsInteropIsAObjectLiteralType/example: Fail # Web compiler specific
+JsInteropIsAPrimitiveExtensionType/analyzerCode: Fail # Web compiler specific
+JsInteropIsAPrimitiveExtensionType/example: Fail # Web compiler specific
+JsInteropIsATearoff/analyzerCode: Fail # Web compiler specific
+JsInteropIsATearoff/example: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
@@ -922,6 +930,9 @@ PrefixAfterCombinator/example: Fail
 PreviousUseOfName/analyzerCode: Fail
 PreviousUseOfName/example: Fail
 PrivateNamedParameter/example: Fail
+RecordUsedAsCallable/analyzerCode: Fail
+RecordUsedAsCallable/part_wrapped_script: Fail
+RecordUsedAsCallable/script: Fail
 RedirectingConstructorWithBody/part_wrapped_script1: Fail
 RedirectingConstructorWithBody/script1: Fail
 RedirectingFactoryIncompatibleTypeArgumentWarning/example: Fail
@@ -1035,6 +1046,8 @@ UndefinedExtensionSetter/analyzerCode: Fail
 UndefinedExtensionSetter/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
+UnhandledMacroApplication/analyzerCode: Fail
+UnhandledMacroApplication/example: Fail
 UnmatchedAugmentationClass/analyzerCode: Fail
 UnmatchedAugmentationClass/part_wrapped_script: Fail
 UnmatchedAugmentationClassMember/analyzerCode: Fail

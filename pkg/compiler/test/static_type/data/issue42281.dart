@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class {
   final Type componentType;
 
@@ -14,7 +12,7 @@ class SubClass extends Class {
   SubClass(Type componentType) : super(/*Type*/ componentType);
 }
 
-method1(Class c, Type type, [o]) {
+method1(Class? c, Type type, [o]) {
   if (/*Class*/ c == null) {
     if (/*dynamic*/ o != null) {
       c = Class(String);
@@ -24,7 +22,7 @@ method1(Class c, Type type, [o]) {
   }
 }
 
-method2(Class c, Type type, [o]) {
+method2(Class? c, Type type, [o]) {
   if (/*Class*/ c == null) {
     if (/*dynamic*/ o != null) {
       c = SubClass(String);
@@ -34,7 +32,7 @@ method2(Class c, Type type, [o]) {
   }
 }
 
-method3(Class c, Type type, [o]) {
+method3(Class? c, Type type, [o]) {
   if (/*Class*/ c is SubClass) {
     if (/*SubClass*/ c == null) {
       if (/*dynamic*/ o != null) {

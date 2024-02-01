@@ -1,6 +1,7 @@
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 
 import '../api.dart';
+import 'exception_impls.dart';
 import 'remote_instance.dart';
 import 'serialization.dart';
 
@@ -70,6 +71,12 @@ extension DeserializerExtensions on Deserializer {
         (this..moveNext())._expectTypeParameterDeclaration(id),
       RemoteInstanceKind.variableDeclaration =>
         (this..moveNext())._expectVariableDeclaration(id),
+
+      // Exceptions.
+      RemoteInstanceKind.macroImplementationException ||
+      RemoteInstanceKind.macroIntrospectionCycleException ||
+      RemoteInstanceKind.unexpectedMacroException =>
+        (this..moveNext())._expectException(kind, id),
     };
     RemoteInstance.cache(instance);
     return instance as T;
@@ -325,6 +332,14 @@ extension DeserializerExtensions on Deserializer {
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
         definingEnum: RemoteInstance.deserialize(this),
+      );
+
+  MacroExceptionImpl _expectException(RemoteInstanceKind kind, int id) =>
+      new MacroExceptionImpl(
+        id: id,
+        kind: kind,
+        message: expectString(),
+        stackTrace: (this..moveNext()).expectNullableString(),
       );
 
   ExtensionDeclarationImpl _expectExtensionDeclaration(int id) =>

@@ -28,6 +28,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'AnalysisDriver_PubPackageTest',
+      methodName: 'assertEventsText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
       className: 'ContextResolutionTest',
       methodName: 'assertDriverStateString',
       argument: _ArgumentIndex(1),
@@ -84,12 +89,12 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'ResolutionTest',
-      methodName: 'assertParsedNodeText',
+      methodName: 'assertDartObjectText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
       className: 'ResolutionTest',
-      methodName: 'assertDartObjectText',
+      methodName: 'assertParsedNodeText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(

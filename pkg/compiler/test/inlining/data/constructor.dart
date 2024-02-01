@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[]*/
 main() {
   forceInlineConstructor();
@@ -52,7 +50,7 @@ forceInlineConstructorBody() {
 
 class Class3<T> {
   @pragma('dart2js:tryInline')
-  /*member: Class3.:[forceInlineGenericConstructor:Class3<int*>]*/
+  /*member: Class3.:[forceInlineGenericConstructor:Class3<int>]*/
   Class3();
 }
 
@@ -68,13 +66,13 @@ forceInlineGenericConstructor() {
 
 class Class4a<T> implements Class4b<T> {
   @pragma('dart2js:tryInline')
-  /*member: Class4a.:[forceInlineGenericFactory:Class4a<int*>]*/
+  /*member: Class4a.:[forceInlineGenericFactory:Class4a<int>]*/
   Class4a();
 }
 
 class Class4b<T> {
   @pragma('dart2js:tryInline')
-  /*member: Class4b.:[forceInlineGenericFactory:Class4b<int*>]*/
+  /*member: Class4b.:[forceInlineGenericFactory:Class4b<int>]*/
   factory Class4b() => Class4a<T>();
 }
 

@@ -119,42 +119,6 @@ function mixinHard(cls, mixin) {
   cls.prototype.constructor = cls;
 }
 
-// Creates a lazy field.
-//
-// A lazy field has a storage entry, [name], which holds the value, and a
-// getter ([getterName]) to access the field. If the field wasn't set before
-// the first access, it is initialized with the [initializer].
-function lazyOld(holder, name, getterName, initializer) {
-  var uninitializedSentinel = holder;
-  holder[name] = uninitializedSentinel;
-  holder[getterName] = function() {
-    holder[getterName] = function() { #cyclicThrow(name) };
-    var result;
-    var sentinelInProgress = initializer;
-    try {
-      if (holder[name] === uninitializedSentinel) {
-        result = holder[name] = sentinelInProgress;
-        result = holder[name] = initializer();
-      } else {
-        result = holder[name];
-      }
-    } finally {
-      // Use try-finally, not try-catch/throw as it destroys the stack
-      // trace.
-      if (result === sentinelInProgress) {
-        // The lazy static (holder[name]) might have been set to a different
-        // value. According to spec we still have to reset it to null, if
-        // the initialization failed.
-        holder[name] = null;
-      }
-      // TODO(floitsch): for performance reasons the function should probably
-      // be unique for each static.
-      holder[getterName] = function() { return this[name]; };
-    }
-    return result;
-  };
-}
-
 // Creates a lazy field that uses non-nullable initialization semantics.
 //
 // A lazy field has a storage entry, [name], which holds the value, and a
@@ -404,7 +368,6 @@ var #hunkHelpers = (function(){
     makeConstList: makeConstList,
     lazy: lazy,
     lazyFinal: lazyFinal,
-    lazyOld: lazyOld,
     updateHolder: updateHolder,
     convertToFastObject: convertToFastObject,
     updateTypes: updateTypes,
@@ -710,8 +673,6 @@ class FragmentEmitter {
       // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
       'hunkHelpers': js.VariableDeclaration('hunkHelpers', allowRename: false),
       'directAccessTestExpression': js.js(_directAccessTestExpression),
-      'cyclicThrow': _emitter
-          .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
       'throwLateFieldADI': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.throwLateFieldADI),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
@@ -1652,11 +1613,9 @@ class FragmentEmitter {
     List<js.Statement> statements = [];
     LocalAliases locals = LocalAliases();
     for (StaticField field in fields) {
-      String helper = field.usesNonNullableInitialization
-          ? field.isFinal
-              ? locals.find('_lazyFinal', 'hunkHelpers.lazyFinal')
-              : locals.find('_lazy', 'hunkHelpers.lazy')
-          : locals.find('_lazyOld', 'hunkHelpers.lazyOld');
+      String helper = field.isFinal
+          ? locals.find('_lazyFinal', 'hunkHelpers.lazyFinal')
+          : locals.find('_lazy', 'hunkHelpers.lazy');
       js.Expression staticFieldCode = field.code;
       if (staticFieldCode is js.Fun) {
         // An arrow function `() => { ...; return e }` is smaller that

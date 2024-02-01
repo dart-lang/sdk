@@ -754,12 +754,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   ConstructorElement? lookUpConstructor(
       String? constructorName, LibraryElement library) {
+    var augmented = element.augmented;
+    if (augmented == null) {
+      return null;
+    }
+
     // prepare base ConstructorElement
     ConstructorElement? constructorElement;
     if (constructorName == null) {
-      constructorElement = element.unnamedConstructor;
+      constructorElement = augmented.unnamedConstructor;
     } else {
-      constructorElement = element.getNamedConstructor(constructorName);
+      constructorElement = augmented.getNamedConstructor(constructorName);
     }
     // not found or not accessible
     if (constructorElement == null ||
@@ -1436,6 +1441,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     Set<TypeParameterElement> seenTypes = {};
     TypeParameterType type = this;
     while (seenTypes.add(type.element)) {
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        return false;
+      }
       var bound = type.bound;
       if (bound is TypeParameterType) {
         type = bound;

@@ -2,25 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:compiler/src/util/testing.dart";
 
 /*class: M:checks=[]*/
-class M<T> {
+mixin M<T> {
   t() {
     return T;
   }
 }
 
 /*class: A:checks=[],indirectInstance*/
-class A<U> = Object with M<U>;
+mixin class A<U> = Object with M<U>;
 
 /*class: B:checks=[],indirectInstance*/
 class B<V> = Object with A<V>;
 
 /*class: C:checks=[],indirectInstance*/
-class C<U> = Object with M<List<U>>;
+mixin class C<U> = Object with M<List<U>>;
 
 /*class: D:checks=[],indirectInstance*/
 class D<V> = Object with C<Set<V>>;

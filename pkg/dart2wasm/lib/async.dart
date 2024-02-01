@@ -165,6 +165,8 @@ class _YieldFinder extends RecursiveVisitor {
   // transform the expression as expected.
   @override
   void visitAwaitExpression(AwaitExpression node) {
+    // Await expressions should've been converted to `VariableSet` statements
+    // by `_AwaitTransformer`.
     throw 'Unexpected await expression: $node (${node.location})';
   }
 
@@ -619,20 +621,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     }
 
     // _AsyncCompleter _completer
-    final DartType returnType = functionNode.returnType;
-    final DartType completerType;
-    if (returnType is InterfaceType &&
-        returnType.classNode == translator.coreTypes.futureClass) {
-      // Return type = Future<T>, completer type = _AsyncCompleter<T>.
-      completerType = returnType.typeArguments.single;
-    } else if (returnType is FutureOrType) {
-      // Return type = FutureOr<T>, completer type = _AsyncCompleter<T>.
-      completerType = returnType.typeArgument;
-    } else {
-      // In all other cases we use _AsyncCompleter<dynamic>.
-      completerType = const DynamicType();
-    }
-    types.makeType(this, completerType);
+    types.makeType(this, functionNode.emittedValueType!);
     call(translator.makeAsyncCompleter.reference);
 
     // Allocate `_AsyncSuspendState`
@@ -774,8 +763,6 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.local_get(suspendStateLocal);
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-    // Non-null Dart field represented as nullable Wasm field.
-    b.ref_as_non_null();
     b.ref_null(translator.topInfo.struct);
     call(translator.completerComplete.reference);
     b.return_();
@@ -790,7 +777,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      b.ref_as_non_null();
       b.local_get(exceptionLocal);
       b.local_get(stackTraceLocal);
       call(translator.completerCompleteError.reference);
@@ -1205,8 +1191,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      // Non-null Dart field represented as nullable Wasm field.
-      b.ref_as_non_null();
       b.local_get(suspendStateLocal);
       b.struct_get(asyncSuspendStateInfo.struct,
           FieldIndex.asyncSuspendStateCurrentReturnValue);
@@ -1264,8 +1248,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      // Non-null Dart field represented as nullable Wasm field.
-      b.ref_as_non_null();
     }
 
     final value = node.expression;
@@ -1394,9 +1376,25 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.struct_set(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateTargetIndex);
 
+    final DartType? runtimeType = node.runtimeCheckType;
+    DartType? futureTypeParam = null;
+    if (runtimeType != null) {
+      final futureType = runtimeType as InterfaceType;
+      assert(futureType.classNode == translator.coreTypes.futureClass);
+      assert(futureType.typeArguments.length == 1);
+      futureTypeParam = futureType.typeArguments[0];
+    }
+
+    if (futureTypeParam != null) {
+      types.makeType(this, futureTypeParam);
+    }
     b.local_get(suspendStateLocal);
     wrap(node.operand, translator.topInfo.nullableType);
-    call(translator.awaitHelper.reference);
+    if (runtimeType != null) {
+      call(translator.awaitHelperWithTypeCheck.reference);
+    } else {
+      call(translator.awaitHelper.reference);
+    }
     b.return_();
 
     // Generate resume label

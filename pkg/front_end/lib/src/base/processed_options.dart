@@ -152,6 +152,14 @@ class ProcessedOptions {
 
   Uri? get packagesUriRaw => _raw.packagesFileUri;
 
+  Uri? _resolvedPackagesFileUri;
+
+  /// The packages file used for this compile, if there is one.
+  Future<Uri?> resolvePackagesFileUri() async {
+    await _getPackages();
+    return _resolvedPackagesFileUri;
+  }
+
   bool get verbose => _raw.verbose;
 
   bool get verify => _raw.verify;
@@ -523,6 +531,7 @@ class ProcessedOptions {
     if (_packages != null) return _packages!;
     _packagesUri = null;
     if (_raw.packagesFileUri != null) {
+      _resolvedPackagesFileUri = _raw.packagesFileUri;
       return _packages = await createPackagesFromFile(_raw.packagesFileUri!);
     }
 
@@ -685,7 +694,10 @@ class ProcessedOptions {
       parentDir = dir.resolve('..');
     }
 
-    if (candidate != null) return await createPackagesFromFile(candidate);
+    if (candidate != null) {
+      _resolvedPackagesFileUri = candidate;
+      return await createPackagesFromFile(candidate);
+    }
     return PackageConfig.empty;
   }
 

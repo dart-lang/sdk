@@ -33,6 +33,9 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   /// The shared container into which drivers record files ownership.
   final OwnedFiles ownedFiles = OwnedFiles();
 
+  /// The scheduler used for all analysis contexts.
+  late final AnalysisDriverScheduler scheduler;
+
   /// The list of analysis contexts.
   @override
   final List<DriverBasedAnalysisContext> contexts = [];
@@ -57,9 +60,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
-    @Deprecated('Use updateAnalysisOptions2, which must be a function that '
-        'accepts a second parameter')
-    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
@@ -70,14 +70,21 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
+    performanceLog ??= PerformanceLog(null);
+
+    if (scheduler == null) {
+      scheduler = AnalysisDriverScheduler(performanceLog);
+      if (drainStreams) {
+        scheduler.events.drain<void>();
+      }
+      scheduler.start();
+    }
+    // TODO(scheglov): https://github.com/dart-lang/linter/issues/3134
+    // ignore: prefer_initializing_formals
+    this.scheduler = scheduler;
+
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
-
-    if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
-      throw ArgumentError(
-          'Either updateAnalysisOptions or updateAnalysisOptions2 must be '
-          'given, but not both.');
-    }
 
     this.macroSupport = macroSupport ??= KernelMacroSupport();
 
@@ -106,8 +113,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        // ignore: deprecated_member_use_from_same_package
-        updateAnalysisOptions: updateAnalysisOptions,
         updateAnalysisOptions2: updateAnalysisOptions2,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),

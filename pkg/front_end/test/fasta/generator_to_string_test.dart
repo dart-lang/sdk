@@ -82,7 +82,8 @@ Future<void> main() async {
                 uriTranslator)
             .loader,
         isUnsupported: false,
-        isAugmentation: false);
+        isAugmentation: false,
+        isPatch: false);
     libraryBuilder.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, dummyLibraryDependency, -1);

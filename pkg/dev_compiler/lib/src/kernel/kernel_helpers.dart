@@ -301,6 +301,23 @@ class LabelContinueFinder extends RecursiveVisitor<void> {
       found = true;
 }
 
+/// Returns `true` if any of [n]s children are a [FunctionExpression] node.
+bool containsFunctionExpression(Node n) {
+  var visitor = _FunctionExpressionFinder.instance;
+  visitor.found = false;
+  n.accept(visitor);
+  return visitor.found;
+}
+
+class _FunctionExpressionFinder extends RecursiveVisitor<void> {
+  var found = false;
+
+  static final instance = _FunctionExpressionFinder();
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) => found = true;
+}
+
 /// Whether [member] is declared native, as in:
 ///
 ///    void foo() native;
@@ -329,7 +346,7 @@ bool _isDartInternal(Uri uri) =>
 /// Collects all `TypeParameter`s from the `TypeParameterType`s present in the
 /// visited `DartType`.
 class TypeParameterFinder extends RecursiveVisitor<void> {
-  final _found = < /* TypeParameter | StructuralParameter */ Object>{};
+  final _found = <TypeParameter>{};
   static TypeParameterFinder? _instance;
 
   TypeParameterFinder._();
@@ -338,7 +355,7 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
     return TypeParameterFinder._();
   }
 
-  Set< /* TypeParameter | StructuralParameter */ Object> find(DartType type) {
+  Set<TypeParameter> find(DartType type) {
     _found.clear();
     type.accept(this);
     return _found;
@@ -346,10 +363,6 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
 
   @override
   void visitTypeParameterType(TypeParameterType node) =>
-      _found.add(node.parameter);
-
-  @override
-  void visitStructuralParameterType(StructuralParameterType node) =>
       _found.add(node.parameter);
 }
 

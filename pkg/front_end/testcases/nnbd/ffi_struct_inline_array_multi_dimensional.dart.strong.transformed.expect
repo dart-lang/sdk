@@ -37,7 +37,7 @@ static method main() → dynamic {
   final ffi::Array<ffi::Array<ffi::Uint8>> subArray = block {
     synthesized ffi::Array<dynamic> #array = array!;
     synthesized core::int #index = 0!;
-    #array.{ffi::Array::_checkIndex}(#index){(core::int) → dynamic};
+    #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
     synthesized core::int #singleElementSize = #C18;
     synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
     synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
@@ -48,7 +48,7 @@ static method main() → dynamic {
   block {
     synthesized ffi::Array<dynamic> #array = array!;
     synthesized core::int #index = 1!;
-    #array.{ffi::Array::_checkIndex}(#index){(core::int) → dynamic};
+    #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
     synthesized core::int #singleElementSize = #C18;
     synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
     synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};

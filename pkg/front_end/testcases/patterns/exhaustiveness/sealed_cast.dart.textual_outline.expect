@@ -12,4 +12,5 @@ method(M m) => switch (m) {
       A() as B => 0,
       B() => 1,
     };
+
 main() {}

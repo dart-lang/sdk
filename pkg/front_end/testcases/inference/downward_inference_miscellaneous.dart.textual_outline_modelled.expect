@@ -6,4 +6,5 @@ class A<T> {
 }
 
 typedef T Function2<S, T>(S x);
+
 void main() {}

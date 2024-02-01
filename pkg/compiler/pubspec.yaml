@@ -35,4 +35,3 @@ dev_dependencies:
   modular_test: any
   sourcemap_testing: any
   testing: any
-  vm: any

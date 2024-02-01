@@ -761,6 +761,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kDynamicInvocation:
       helper_.ReadByte();      // read kind.
+      helper_.ReadByte();      // read flags.
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read receiver.
       helper_.SkipName();      // read name.

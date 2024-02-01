@@ -1,6 +1,7 @@
 base class BaseClass {}
 
 base mixin BaseMixin {}
+
 base mixin BaseMixin2 {}
 
 class Extends extends BaseClass {}
@@ -24,7 +25,9 @@ class With2 with BaseMixin, BaseMixin2 {}
 final class FinalClass extends BaseClass {}
 
 mixin MixinImplements implements BaseMixin {}
+
 mixin MixinImplementsIndirect implements SubtypeOfBase {}
+
 mixin On on BaseClass {}
 
 sealed class SubtypeOfBase extends BaseClass {}

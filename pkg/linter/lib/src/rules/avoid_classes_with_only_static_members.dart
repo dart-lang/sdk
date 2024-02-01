@@ -88,12 +88,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var declaredElement = node.declaredElement;
-    if (declaredElement == null || declaredElement.isSealed) {
+    var element = node.declaredElement;
+    if (element == null || element.isAugmentation || element.isSealed) {
       return;
     }
 
-    var interface = context.inheritanceManager.getInterface(declaredElement);
+    var interface = context.inheritanceManager.getInterface(element);
     var map = interface.map;
     for (var member in map.values) {
       var enclosingElement = member.enclosingElement;
@@ -105,8 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (node.members.isNotEmpty &&
         node.members.every(_isStaticMember) &&
-        (declaredElement.methods.isNotEmpty ||
-            declaredElement.fields.any(_isNonConst))) {
+        (element.methods.isNotEmpty || element.fields.any(_isNonConst))) {
       rule.reportLint(node);
     }
   }

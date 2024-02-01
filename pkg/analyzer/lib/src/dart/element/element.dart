@@ -1016,6 +1016,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// and [offset].
   ConstructorElementImpl(super.name, super.offset);
 
+  ConstructorElementImpl? get augmentedDeclaration {
+    if (isAugmentation) {
+      return augmentationTarget?.augmentedDeclaration;
+    } else {
+      return this;
+    }
+  }
+
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
   List<ConstructorInitializer> get constantInitializers {
@@ -3285,6 +3293,12 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   List<String> hiddenNames = const [];
 
   @override
+  int offset = 0;
+
+  @override
+  int end = -1;
+
+  @override
   String toString() {
     StringBuffer buffer = StringBuffer();
     buffer.write("hide ");
@@ -4138,7 +4152,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<LibraryElementImpl> get exportedLibraries {
     return libraryExports
         .map((import) => import.exportedLibrary)
-        .whereNotNull()
+        .nonNulls
         .toSet()
         .toList();
   }
@@ -4200,7 +4214,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<LibraryElementImpl> get importedLibraries {
     return libraryImports
         .map((import) => import.importedLibrary)
-        .whereNotNull()
+        .nonNulls
         .toSet()
         .toList();
   }

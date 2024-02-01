@@ -38,19 +38,23 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
       throw new core::StateError::•("Pattern matching error");
   }
   {
-    hoisted core::int c;
     final synthesized self::MyList<core::int> /* = core::List<core::int> */ #2#0 = list;
-    if(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
-      c = #2#0.{core::List::[]}(0){(core::int) → core::int};
-      {}
+    {
+      hoisted core::int c;
+      if(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
+        c = #2#0.{core::List::[]}(0){(core::int) → core::int};
+        {}
+      }
     }
   }
   {
-    hoisted core::bool d;
     final synthesized self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ #3#0 = map;
-    if(#3#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) {
-      d = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?};
-      {}
+    {
+      hoisted core::bool d;
+      if(#3#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) {
+        d = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?};
+        {}
+      }
     }
   }
   #L1:

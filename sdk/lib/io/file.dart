@@ -496,6 +496,9 @@ abstract interface class File implements FileSystemEntity {
   /// is closed before signaling "done". If there are no writers attached
   /// to the pipe when it is opened, then [Stream.listen] will wait until
   /// a writer opens the pipe.
+  ///
+  /// Any errors opening or reading the file will appear as error events in
+  /// the returned [Stream].
   Stream<List<int>> openRead([int? start, int? end]);
 
   /// Creates a new independent [IOSink] for the file.
@@ -710,7 +713,7 @@ abstract interface class RandomAccessFile {
 
   /// Reads bytes into an existing [buffer].
   ///
-  /// Reads bytes and writes then into the range of [buffer]
+  /// Reads bytes and writes them into the range of [buffer]
   /// from [start] to [end].
   /// The [start] must be non-negative and no greater than [buffer].length.
   /// If [end] is omitted, it defaults to [buffer].length.

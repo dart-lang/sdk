@@ -14,7 +14,11 @@ class C {
 }
 
 void test1(B<num, F<num>> b) {}
+
 void test2(C c) {}
+
 void test3(C c) {}
+
 void test4(C c) {}
+
 void main() {}

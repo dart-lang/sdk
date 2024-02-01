@@ -17,7 +17,7 @@ import 'service_extension_registry.dart';
 
 export 'service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '4.13.0';
+const String vmServiceVersion = '4.14.0';
 
 /// A class representation of the Dart VM Service Protocol.
 abstract interface class VmServiceInterface {

@@ -120,7 +120,7 @@ class _ErrorCodeDocumentationParser {
 
   String get line => commentLines[currentLineNumber];
 
-  BlockSection computeCurrentBlockSection() {
+  BlockSection? computeCurrentBlockSection() {
     switch (currentSection) {
       case '#### Example':
       case '#### Examples':
@@ -130,7 +130,7 @@ class _ErrorCodeDocumentationParser {
       case null:
         problem('Code block before section header');
       default:
-        problem('Code block in invalid section ${json.encode(currentSection)}');
+        return null;
     }
   }
 
@@ -177,7 +177,7 @@ class _ErrorCodeDocumentationParser {
     List<String>? experiments;
     assert(line.startsWith('```'));
     var fileType = line.substring(3);
-    if (fileType.isEmpty) {
+    if (fileType.isEmpty && containingSection != null) {
       problem('Code blocks should have a file type, e.g. "```dart"');
     }
     ++currentLineNumber;
@@ -189,12 +189,15 @@ class _ErrorCodeDocumentationParser {
           problem('Code blocks should end with "```"');
         }
         ++currentLineNumber;
-        result.add(ErrorCodeDocumentationBlock(codeLines.join('\n'),
-            containingSection: containingSection,
-            experiments: experiments ?? const [],
-            fileType: fileType,
-            languageVersion: languageVersion,
-            uri: uri));
+        if (containingSection != null) {
+          // Ignore code blocks where they're allowed but aren't checked.
+          result.add(ErrorCodeDocumentationBlock(codeLines.join('\n'),
+              containingSection: containingSection,
+              experiments: experiments ?? const [],
+              fileType: fileType,
+              languageVersion: languageVersion,
+              uri: uri));
+        }
         return;
       } else if (line.startsWith('%')) {
         if (line.startsWith(languagePrefix)) {

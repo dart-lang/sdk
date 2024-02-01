@@ -1,11 +1,19 @@
 C1 c1 = throw '';
+
 C2 c2 = throw '';
+
 C3 c3 = throw '';
+
 C4 c4 = throw '';
+
 D1 d1 = throw '';
+
 D2 d2 = throw '';
+
 D3 d3 = throw '';
+
 D4 d4 = throw '';
+
 E e = throw '';
 
 class B<X, Y> {}

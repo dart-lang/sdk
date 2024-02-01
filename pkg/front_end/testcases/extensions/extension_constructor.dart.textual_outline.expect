@@ -1,4 +1,5 @@
 class Class {}
+
 extension Extension on Class {
   Extension() {}
   Extension.named() {}
@@ -6,4 +7,5 @@ extension Extension on Class {
   factory Extension.redirect() = Extension;
   method() {}
 }
+
 main() {}

@@ -5,6 +5,7 @@ class C<T> {
 }
 
 main() {}
+
 var v = new C<dynamic>(() {
   return 1;
 });

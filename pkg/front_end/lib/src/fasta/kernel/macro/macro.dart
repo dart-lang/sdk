@@ -4,45 +4,35 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
-    as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
-    as macro;
-import 'package:front_end/src/fasta/kernel/benchmarker.dart'
-    show BenchmarkSubdivides, Benchmarker;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/src/types.dart';
-import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import '../../../base/common.dart';
 import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
-import '../../builder/formal_parameter_builder.dart';
-import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
-import '../../builder/nullability_builder.dart';
+import '../../builder/prefix_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../fasta_codes.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
+import '../../source/source_extension_builder.dart';
 import '../../source/source_factory_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_procedure_builder.dart';
+import '../../source/source_type_alias_builder.dart';
+import '../benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../hierarchy/hierarchy_builder.dart';
-import 'identifiers.dart';
+import 'annotation_parser.dart';
+import 'introspectors.dart';
 
 const String augmentationScheme = 'org-dartlang-augmentation';
 
 final Uri macroLibraryUri =
     Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart');
 const String macroClassName = 'Macro';
-final IdentifierImpl omittedTypeIdentifier =
-    new OmittedTypeIdentifier(id: macro.RemoteInstance.uniqueId);
 
 class MacroDeclarationData {
   bool macrosAreAvailable = false;
@@ -56,9 +46,19 @@ class MacroApplication {
   final ClassBuilder classBuilder;
   final String constructorName;
   final macro.Arguments arguments;
+  final String? errorReason;
+  final Set<macro.Phase> appliedPhases = {};
 
   MacroApplication(this.classBuilder, this.constructorName, this.arguments,
-      {required this.fileOffset});
+      {required this.fileOffset})
+      : errorReason = null;
+
+  MacroApplication.error(String this.errorReason, this.classBuilder,
+      {required this.fileOffset})
+      : constructorName = '',
+        arguments = new macro.Arguments(const [], const {});
+
+  bool get isErroneous => errorReason != null;
 
   late macro.MacroInstanceIdentifier instanceIdentifier;
 
@@ -201,16 +201,16 @@ void checkMacroApplications(
     Class macroClass,
     List<SourceLibraryBuilder> sourceLibraryBuilders,
     MacroApplications? macroApplications) {
-  Map<Library, LibraryMacroApplicationData> libraryData = {};
+  Map<Library, List<LibraryMacroApplicationData>> libraryData = {};
   if (macroApplications != null) {
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
-        in macroApplications.libraryData.entries) {
-      libraryData[entry.key.library] = entry.value;
+        in macroApplications._libraryData.entries) {
+      (libraryData[entry.key.library] ??= []).add(entry.value);
     }
   }
   for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
-    void checkAnnotations(
-        List<Expression> annotations, ApplicationData? applicationData,
+    void checkAnnotations(List<Expression> annotations,
+        List<ApplicationData>? applicationDataList,
         {required Uri fileUri}) {
       if (annotations.isEmpty) {
         return;
@@ -218,12 +218,20 @@ void checkMacroApplications(
       // We cannot currently identify macro applications by offsets because
       // file offsets on annotations are not stable.
       // TODO(johnniwinther): Handle file uri + offset on annotations.
-      Map<Class, List<MacroApplication>> macroApplications = {};
-      if (applicationData != null) {
-        for (MacroApplication application
-            in applicationData.macroApplications) {
-          (macroApplications[application.classBuilder.cls] ??= [])
-              .add(application);
+      Map<Class, Map<int, MacroApplication>> macroApplications = {};
+      if (applicationDataList != null) {
+        for (ApplicationData applicationData in applicationDataList) {
+          for (MacroApplication application
+              in applicationData.macroApplications) {
+            Map<int, MacroApplication> applications =
+                macroApplications[application.classBuilder.cls] ??= {};
+            int fileOffset = application.fileOffset;
+            assert(
+                !applications.containsKey(fileOffset),
+                "Multiple annotations at offset $fileOffset: "
+                "${applications[fileOffset]} and ${application}.");
+            applications[fileOffset] = application;
+          }
         }
       }
       for (Expression annotation in annotations) {
@@ -231,13 +239,18 @@ void checkMacroApplications(
           Constant constant = annotation.constant;
           if (constant is InstanceConstant &&
               hierarchy.isSubInterfaceOf(constant.classNode, macroClass)) {
-            List<MacroApplication>? applications =
+            Map<int, MacroApplication>? applications =
                 macroApplications[constant.classNode];
-            if (applications != null) {
-              if (applications.length == 1) {
-                macroApplications.remove(constant.classNode);
-              } else {
-                applications.removeAt(0);
+            MacroApplication? macroApplication =
+                applications?.remove(annotation.fileOffset);
+            if (macroApplication != null) {
+              if (macroApplication.isErroneous) {
+                libraryBuilder.addProblem(
+                    templateUnhandledMacroApplication
+                        .withArguments(macroApplication.errorReason!),
+                    annotation.fileOffset,
+                    noLength,
+                    fileUri);
               }
             } else {
               // TODO(johnniwinther): Improve the diagnostics about why the
@@ -251,26 +264,29 @@ void checkMacroApplications(
     }
 
     void checkMembers(Iterable<Member> members,
-        Map<Annotatable, ApplicationData> memberData) {
+        Map<Annotatable, List<ApplicationData>> memberData) {
       for (Member member in members) {
         checkAnnotations(member.annotations, memberData[member],
             fileUri: member.fileUri);
       }
     }
 
-    Map<Class, ClassMacroApplicationData> classData = {};
-    Map<Annotatable, ApplicationData> libraryMemberData = {};
-    LibraryMacroApplicationData? libraryMacroApplicationData =
+    Map<Class, List<ClassMacroApplicationData>> classData = {};
+    Map<Annotatable, List<ApplicationData>> libraryMemberData = {};
+    List<LibraryMacroApplicationData>? libraryMacroApplicationDataList =
         libraryData[libraryBuilder.library];
-    if (libraryMacroApplicationData != null) {
-      for (MapEntry<SourceClassBuilder, ClassMacroApplicationData> entry
-          in libraryMacroApplicationData.classData.entries) {
-        classData[entry.key.cls] = entry.value;
-      }
-      for (MapEntry<MemberBuilder, ApplicationData> entry
-          in libraryMacroApplicationData.memberApplications.entries) {
-        for (Annotatable annotatable in entry.key.annotatables) {
-          libraryMemberData[annotatable] = entry.value;
+    if (libraryMacroApplicationDataList != null) {
+      for (LibraryMacroApplicationData libraryMacroApplicationData
+          in libraryMacroApplicationDataList) {
+        for (MapEntry<SourceClassBuilder, ClassMacroApplicationData> entry
+            in libraryMacroApplicationData.classData.entries) {
+          (classData[entry.key.cls] ??= []).add(entry.value);
+        }
+        for (MapEntry<MemberBuilder, ApplicationData> entry
+            in libraryMacroApplicationData.memberApplications.entries) {
+          for (Annotatable annotatable in entry.key.annotatables) {
+            (libraryMemberData[annotatable] ??= []).add(entry.value);
+          }
         }
       }
     }
@@ -278,18 +294,30 @@ void checkMacroApplications(
     Library library = libraryBuilder.library;
     checkMembers(library.members, libraryMemberData);
     for (Class cls in library.classes) {
-      ClassMacroApplicationData? classMacroApplications = classData[cls];
-      ApplicationData? macroApplications =
-          classMacroApplications?.classApplications;
-      checkAnnotations(cls.annotations, macroApplications,
+      List<ClassMacroApplicationData>? classMacroApplications = classData[cls];
+      List<ApplicationData> applicationDataList = [];
+      if (classMacroApplications != null) {
+        for (ClassMacroApplicationData classMacroApplicationData
+            in classMacroApplications) {
+          ApplicationData? classApplications =
+              classMacroApplicationData.classApplications;
+          if (classApplications != null) {
+            applicationDataList.add(classApplications);
+          }
+        }
+      }
+      checkAnnotations(cls.annotations, applicationDataList,
           fileUri: cls.fileUri);
 
-      Map<Annotatable, ApplicationData> classMemberData = {};
+      Map<Annotatable, List<ApplicationData>> classMemberData = {};
       if (classMacroApplications != null) {
-        for (MapEntry<MemberBuilder, ApplicationData> entry
-            in classMacroApplications.memberApplications.entries) {
-          for (Annotatable annotatable in entry.key.annotatables) {
-            classMemberData[annotatable] = entry.value;
+        for (ClassMacroApplicationData classMacroApplicationData
+            in classMacroApplications) {
+          for (MapEntry<MemberBuilder, ApplicationData> entry
+              in classMacroApplicationData.memberApplications.entries) {
+            for (Annotatable annotatable in entry.key.annotatables) {
+              (classMemberData[annotatable] ??= []).add(entry.value);
+            }
           }
         }
       }
@@ -300,26 +328,166 @@ void checkMacroApplications(
 
 class MacroApplications {
   final macro.MacroExecutor _macroExecutor;
-  final Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData;
+  final MacroIntrospection _macroIntrospection;
+  final Map<SourceLibraryBuilder, LibraryMacroApplicationData> _libraryData =
+      {};
   final MacroApplicationDataForTesting? dataForTesting;
-  bool _hasComputedApplicationData = false;
+
+  List<LibraryMacroApplicationData> _pendingLibraryData = [];
 
   MacroApplications(
-      this._macroExecutor, this.libraryData, this.dataForTesting) {
-    dataForTesting?.libraryData.addAll(libraryData);
+      SourceLoader sourceLoader, this._macroExecutor, this.dataForTesting)
+      : _macroIntrospection = new MacroIntrospection(sourceLoader) {}
+
+  macro.MacroExecutor get macroExecutor => _macroExecutor;
+
+  bool get hasLoadableMacroIds => _pendingLibraryData.isNotEmpty;
+
+  void computeLibrariesMacroApplicationData(
+      Iterable<SourceLibraryBuilder> libraryBuilders) {
+    for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
+      _computeSourceLibraryMacroApplicationData(libraryBuilder);
+    }
   }
 
-  static Future<MacroApplications> loadMacroIds(
-      macro.MultiMacroExecutor macroExecutor,
-      Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData,
-      MacroApplicationDataForTesting? dataForTesting,
-      Benchmarker? benchmarker) async {
+  void _computeSourceLibraryMacroApplicationData(
+      SourceLibraryBuilder libraryBuilder) {
+    // TODO(johnniwinther): Handle augmentation libraries.
+    LibraryMacroApplicationData libraryMacroApplicationData =
+        new LibraryMacroApplicationData();
+    Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      if (builder is SourceClassBuilder) {
+        SourceClassBuilder classBuilder = builder;
+        ClassMacroApplicationData classMacroApplicationData =
+            new ClassMacroApplicationData();
+        List<MacroApplication>? classMacroApplications = prebuildAnnotations(
+            enclosingLibrary: libraryBuilder,
+            scope: classBuilder.scope,
+            fileUri: classBuilder.fileUri,
+            metadataBuilders: classBuilder.metadata);
+        if (classMacroApplications != null) {
+          classMacroApplicationData.classApplications =
+              new ClassApplicationData(_macroIntrospection, libraryBuilder,
+                  classBuilder, classMacroApplications);
+        }
+        Iterator<Builder> memberIterator = classBuilder.localMemberIterator();
+        while (memberIterator.moveNext()) {
+          Builder memberBuilder = memberIterator.current;
+          if (memberBuilder is SourceProcedureBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: classBuilder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata);
+            if (macroApplications != null) {
+              classMacroApplicationData.memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else if (memberBuilder is SourceFieldBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: classBuilder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata);
+            if (macroApplications != null) {
+              classMacroApplicationData.memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else {
+            throw new UnsupportedError("Unexpected class member "
+                "$memberBuilder (${memberBuilder.runtimeType})");
+          }
+        }
+        Iterator<MemberBuilder> constructorIterator =
+            classBuilder.localConstructorIterator();
+        while (constructorIterator.moveNext()) {
+          MemberBuilder memberBuilder = constructorIterator.current;
+          if (memberBuilder is DeclaredSourceConstructorBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: classBuilder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata);
+            if (macroApplications != null) {
+              classMacroApplicationData.memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else if (memberBuilder is SourceFactoryBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: classBuilder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata);
+            if (macroApplications != null) {
+              classMacroApplicationData.memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else {
+            throw new UnsupportedError("Unexpected constructor "
+                "$memberBuilder (${memberBuilder.runtimeType})");
+          }
+        }
+
+        if (classMacroApplicationData.classApplications != null ||
+            classMacroApplicationData.memberApplications.isNotEmpty) {
+          libraryMacroApplicationData.classData[builder] =
+              classMacroApplicationData;
+        }
+      } else if (builder is SourceProcedureBuilder) {
+        List<MacroApplication>? macroApplications = prebuildAnnotations(
+            enclosingLibrary: libraryBuilder,
+            scope: libraryBuilder.scope,
+            fileUri: builder.fileUri,
+            metadataBuilders: builder.metadata);
+        if (macroApplications != null) {
+          libraryMacroApplicationData.memberApplications[builder] =
+              new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                  builder, macroApplications);
+        }
+      } else if (builder is SourceFieldBuilder) {
+        List<MacroApplication>? macroApplications = prebuildAnnotations(
+            enclosingLibrary: libraryBuilder,
+            scope: libraryBuilder.scope,
+            fileUri: builder.fileUri,
+            metadataBuilders: builder.metadata);
+        if (macroApplications != null) {
+          libraryMacroApplicationData.memberApplications[builder] =
+              new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                  builder, macroApplications);
+        }
+      } else if (builder is PrefixBuilder ||
+          builder is SourceExtensionBuilder ||
+          builder is SourceTypeAliasBuilder) {
+        // Macro applications are not supported.
+      } else {
+        throw new UnsupportedError("Unexpected library member "
+            "$builder (${builder.runtimeType})");
+      }
+    }
+    if (libraryMacroApplicationData.classData.isNotEmpty ||
+        libraryMacroApplicationData.memberApplications.isNotEmpty) {
+      _libraryData[libraryBuilder] = libraryMacroApplicationData;
+      dataForTesting?.libraryData[libraryBuilder] = libraryMacroApplicationData;
+      _pendingLibraryData.add(libraryMacroApplicationData);
+    }
+  }
+
+  Future<void> loadMacroIds(Benchmarker? benchmarker) async {
     Map<MacroApplication, macro.MacroInstanceIdentifier> instanceIdCache = {};
 
     Future<void> ensureMacroClassIds(
         List<MacroApplication>? applications) async {
       if (applications != null) {
         for (MacroApplication application in applications) {
+          if (application.isErroneous) {
+            continue;
+          }
           Uri libraryUri = application.classBuilder.libraryBuilder.importUri;
           String macroClassName = application.classBuilder.name;
           try {
@@ -338,19 +506,21 @@ class MacroApplications {
                       application.constructorName,
                       application.arguments);
               benchmarker?.endSubdivide();
-            } catch (e) {
-              throw "Error instantiating macro `${application}`: $e";
+            } catch (e, s) {
+              throw "Error instantiating macro `${application}`: "
+                  "$e\n$s";
             }
-          } catch (e) {
+          } catch (e, s) {
             throw "Error loading macro class "
                 "'${application.classBuilder.name}' from "
-                "'${application.classBuilder.libraryBuilder.importUri}': $e";
+                "'${application.classBuilder.libraryBuilder.importUri}': "
+                "$e\n$s";
           }
         }
       }
     }
 
-    for (LibraryMacroApplicationData libraryData in libraryData.values) {
+    for (LibraryMacroApplicationData libraryData in _pendingLibraryData) {
       for (ClassMacroApplicationData classData
           in libraryData.classData.values) {
         await ensureMacroClassIds(
@@ -365,134 +535,7 @@ class MacroApplications {
         await ensureMacroClassIds(applicationData.macroApplications);
       }
     }
-    return new MacroApplications(macroExecutor, libraryData, dataForTesting);
-  }
-
-  Map<ClassBuilder, macro.ParameterizedTypeDeclaration> _classDeclarations = {};
-  Map<macro.ParameterizedTypeDeclaration, ClassBuilder> _classBuilders = {};
-  Map<TypeAliasBuilder, macro.TypeAliasDeclaration> _typeAliasDeclarations = {};
-  Map<MemberBuilder, macro.Declaration?> _memberDeclarations = {};
-  Map<LibraryBuilder, macro.LibraryImpl> _libraries = {};
-
-  // TODO(johnniwinther): Support all members.
-  macro.Declaration? _getMemberDeclaration(MemberBuilder memberBuilder) {
-    return _memberDeclarations[memberBuilder] ??=
-        _createMemberDeclaration(memberBuilder);
-  }
-
-  macro.ParameterizedTypeDeclaration getClassDeclaration(ClassBuilder builder) {
-    return _classDeclarations[builder] ??= _createClassDeclaration(builder);
-  }
-
-  macro.TypeAliasDeclaration getTypeAliasDeclaration(TypeAliasBuilder builder) {
-    return _typeAliasDeclarations[builder] ??=
-        _createTypeAliasDeclaration(builder);
-  }
-
-  ClassBuilder _getClassBuilder(
-      macro.ParameterizedTypeDeclaration declaration) {
-    return _classBuilders[declaration]!;
-  }
-
-  macro.Declaration _createMemberDeclaration(MemberBuilder memberBuilder) {
-    if (memberBuilder is SourceProcedureBuilder) {
-      return _createFunctionDeclaration(memberBuilder);
-    } else if (memberBuilder is SourceFieldBuilder) {
-      return _createVariableDeclaration(memberBuilder);
-    } else if (memberBuilder is SourceConstructorBuilder) {
-      return _createConstructorDeclaration(memberBuilder);
-    } else if (memberBuilder is SourceFactoryBuilder) {
-      return _createFactoryDeclaration(memberBuilder);
-    } else {
-      // TODO(johnniwinther): Throw when all members are supported.
-      throw new UnimplementedError(
-          'Unsupported member ${memberBuilder} (${memberBuilder.runtimeType})');
-    }
-  }
-
-  macro.TypeDeclaration _resolveDeclaration(macro.Identifier identifier) {
-    if (identifier is MemberBuilderIdentifier) {
-      return getClassDeclaration(identifier.memberBuilder.classBuilder!);
-    } else if (identifier is TypeDeclarationBuilderIdentifier) {
-      final TypeDeclarationBuilder typeDeclarationBuilder =
-          identifier.typeDeclarationBuilder;
-      switch (typeDeclarationBuilder) {
-        case ClassBuilder():
-          return getClassDeclaration(typeDeclarationBuilder);
-        case TypeAliasBuilder():
-        case NominalVariableBuilder():
-        case StructuralVariableBuilder():
-        case ExtensionBuilder():
-        case ExtensionTypeDeclarationBuilder():
-        case InvalidTypeDeclarationBuilder():
-        case BuiltinTypeDeclarationBuilder():
-        // TODO(johnniwinther): How should we handle this case?
-        case OmittedTypeDeclarationBuilder():
-      }
-      throw new UnimplementedError(
-          'Resolving declarations is only supported for classes');
-    } else {
-      throw new UnimplementedError(
-          'Resolving declarations not supported for $identifier');
-    }
-  }
-
-  macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
-    if (identifier is IdentifierImpl) {
-      return identifier.resolveIdentifier();
-    } else {
-      throw new UnsupportedError(
-          'Unsupported identifier ${identifier} (${identifier.runtimeType})');
-    }
-  }
-
-  macro.TypeAnnotation? _inferOmittedType(
-      macro.OmittedTypeAnnotation omittedType) {
-    if (omittedType is _OmittedTypeAnnotationImpl) {
-      OmittedTypeBuilder typeBuilder = omittedType.typeBuilder;
-      if (typeBuilder.hasType) {
-        return _computeTypeAnnotation(
-            sourceLoader.coreLibrary,
-            sourceLoader.target.dillTarget.loader
-                .computeTypeBuilder(typeBuilder.type));
-      }
-    }
-    return null;
-  }
-
-  void _ensureApplicationData() {
-    if (_hasComputedApplicationData) return;
-    for (LibraryMacroApplicationData libraryMacroApplicationData
-        in libraryData.values) {
-      for (MapEntry<MemberBuilder, ApplicationData> memberEntry
-          in libraryMacroApplicationData.memberApplications.entries) {
-        MemberBuilder memberBuilder = memberEntry.key;
-        macro.Declaration? declaration = _getMemberDeclaration(memberBuilder);
-        if (declaration != null) {
-          memberEntry.value.declaration = declaration;
-        }
-      }
-      for (MapEntry<SourceClassBuilder, ClassMacroApplicationData> classEntry
-          in libraryMacroApplicationData.classData.entries) {
-        SourceClassBuilder classBuilder = classEntry.key;
-        ClassMacroApplicationData classData = classEntry.value;
-        ApplicationData? classApplicationData = classData.classApplications;
-        if (classApplicationData != null) {
-          macro.ParameterizedTypeDeclaration classDeclaration =
-              getClassDeclaration(classBuilder);
-          classApplicationData.declaration = classDeclaration;
-        }
-        for (MapEntry<MemberBuilder, ApplicationData> memberEntry
-            in classData.memberApplications.entries) {
-          MemberBuilder memberBuilder = memberEntry.key;
-          macro.Declaration? declaration = _getMemberDeclaration(memberBuilder);
-          if (declaration != null) {
-            memberEntry.value.declaration = declaration;
-          }
-        }
-      }
-    }
-    _hasComputedApplicationData = true;
+    _pendingLibraryData.clear();
   }
 
   Future<List<macro.MacroExecutionResult>> _applyTypeMacros(
@@ -501,6 +544,12 @@ class MacroApplications {
     List<macro.MacroExecutionResult> results = [];
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
+      if (!macroApplication.appliedPhases.add(macro.Phase.types)) {
+        continue;
+      }
+      if (macroApplication.isErroneous) {
+        continue;
+      }
       if (macroApplication.instanceIdentifier
           .shouldExecute(_declarationKind(declaration), macro.Phase.types)) {
         if (retainDataForTesting) {
@@ -511,7 +560,8 @@ class MacroApplications {
             await _macroExecutor.executeTypesPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
-                typePhaseIntrospector);
+                _macroIntrospection.typePhaseIntrospector);
+        result.reportDiagnostics(applicationData);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -524,17 +574,16 @@ class MacroApplications {
     return results;
   }
 
-  late macro.TypePhaseIntrospector typePhaseIntrospector;
-  late SourceLoader sourceLoader;
+  void enterTypeMacroPhase() {
+    _macroIntrospection.enterTypeMacroPhase();
+  }
 
-  Future<List<SourceLibraryBuilder>> applyTypeMacros(
-      SourceLoader sourceLoader) async {
-    this.sourceLoader = sourceLoader;
-    typePhaseIntrospector = new _TypePhaseIntrospector(sourceLoader);
+  Future<List<SourceLibraryBuilder>> applyTypeMacros() async {
+    // TODO(johnniwinther): Maintain a pending list instead of running through
+    // all annotations to find the once have to be applied now.
     List<SourceLibraryBuilder> augmentationLibraries = [];
-    _ensureApplicationData();
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
-        in libraryData.entries) {
+        in _libraryData.entries) {
       List<macro.MacroExecutionResult> executionResults = [];
       SourceLibraryBuilder libraryBuilder = entry.key;
       LibraryMacroApplicationData data = entry.value;
@@ -556,8 +605,11 @@ class MacroApplications {
       if (executionResults.isNotEmpty) {
         Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
         String result = _macroExecutor
-            .buildAugmentationLibrary(executionResults, _resolveDeclaration,
-                _resolveIdentifier, _inferOmittedType,
+            .buildAugmentationLibrary(
+                executionResults,
+                _macroIntrospection.resolveDeclaration,
+                _macroIntrospection.resolveIdentifier,
+                _macroIntrospection.types.inferOmittedType,
                 omittedTypes: omittedTypes)
             .trim();
         assert(
@@ -568,18 +620,11 @@ class MacroApplications {
           if (retainDataForTesting) {
             dataForTesting?.libraryTypesResult[libraryBuilder] = result;
           }
-          Map<String, OmittedTypeBuilder>? omittedTypeBuilders;
-          if (omittedTypes.isNotEmpty) {
-            omittedTypeBuilders = {};
-            for (MapEntry<macro.OmittedTypeAnnotation, String> entry
-                in omittedTypes.entries) {
-              _OmittedTypeAnnotationImpl omittedType =
-                  entry.key as _OmittedTypeAnnotationImpl;
-              omittedTypeBuilders[entry.value] = omittedType.typeBuilder;
-            }
-          }
-          augmentationLibraries.add(
-              await libraryBuilder.createAugmentationLibrary(result,
+          Map<String, OmittedTypeBuilder>? omittedTypeBuilders =
+              _macroIntrospection.types
+                  .computeOmittedTypeBuilders(omittedTypes);
+          augmentationLibraries.add(await libraryBuilder.origin
+              .createAugmentationLibrary(result,
                   omittedTypes: omittedTypeBuilders));
         }
       }
@@ -594,6 +639,12 @@ class MacroApplications {
     macro.Declaration declaration = applicationData.declaration;
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
+      if (!macroApplication.appliedPhases.add(macro.Phase.declarations)) {
+        continue;
+      }
+      if (macroApplication.isErroneous) {
+        continue;
+      }
       if (macroApplication.instanceIdentifier.shouldExecute(
           _declarationKind(declaration), macro.Phase.declarations)) {
         if (retainDataForTesting) {
@@ -604,28 +655,26 @@ class MacroApplications {
             await _macroExecutor.executeDeclarationsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
-                declarationPhaseIntrospector);
+                _macroIntrospection.declarationPhaseIntrospector);
+        result.reportDiagnostics(applicationData);
         if (result.isNotEmpty) {
           Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
-          String source = _macroExecutor.buildAugmentationLibrary([result],
-              _resolveDeclaration, _resolveIdentifier, _inferOmittedType,
+          String source = _macroExecutor.buildAugmentationLibrary(
+              [result],
+              _macroIntrospection.resolveDeclaration,
+              _macroIntrospection.resolveIdentifier,
+              _macroIntrospection.types.inferOmittedType,
               omittedTypes: omittedTypes);
           if (retainDataForTesting) {
             dataForTesting?.registerDeclarationsResult(
                 applicationData.builder, result, source);
           }
-          Map<String, OmittedTypeBuilder>? omittedTypeBuilders;
-          if (omittedTypes.isNotEmpty) {
-            omittedTypeBuilders = {};
-            for (MapEntry<macro.OmittedTypeAnnotation, String> entry
-                in omittedTypes.entries) {
-              _OmittedTypeAnnotationImpl omittedType =
-                  entry.key as _OmittedTypeAnnotationImpl;
-              omittedTypeBuilders[entry.value] = omittedType.typeBuilder;
-            }
-          }
+          Map<String, OmittedTypeBuilder>? omittedTypeBuilders =
+              _macroIntrospection.types
+                  .computeOmittedTypeBuilders(omittedTypes);
+
           SourceLibraryBuilder augmentationLibrary = await applicationData
-              .libraryBuilder
+              .libraryBuilder.origin
               .createAugmentationLibrary(source,
                   omittedTypes: omittedTypeBuilders);
           await onAugmentationLibrary(augmentationLibrary);
@@ -646,28 +695,23 @@ class MacroApplications {
     }
   }
 
-  late ClassHierarchyBuilder classHierarchy;
-  late Types types;
-  late macro.DeclarationPhaseIntrospector declarationPhaseIntrospector;
+  void enterDeclarationsMacroPhase(ClassHierarchyBuilder classHierarchy) {
+    _macroIntrospection.enterDeclarationsMacroPhase(classHierarchy);
+  }
 
   Future<void> applyDeclarationsMacros(
-      ClassHierarchyBuilder classHierarchy,
       List<SourceClassBuilder> sortedSourceClassBuilders,
       Future<void> Function(SourceLibraryBuilder) onAugmentationLibrary) async {
-    this.classHierarchy = classHierarchy;
-    types = new Types(classHierarchy);
-    declarationPhaseIntrospector =
-        new _DeclarationPhaseIntrospector(this, classHierarchy, sourceLoader);
-
-    // Apply macros to classes first, in class hierarchy order.
-    for (SourceClassBuilder classBuilder in sortedSourceClassBuilders) {
+    // TODO(johnniwinther): Maintain a pending list instead of running through
+    // all annotations to find the once have to be applied now.
+    Future<void> applyClassMacros(SourceClassBuilder classBuilder) async {
       LibraryMacroApplicationData? libraryApplicationData =
-          libraryData[classBuilder.libraryBuilder];
-      if (libraryApplicationData == null) continue;
+          _libraryData[classBuilder.libraryBuilder];
+      if (libraryApplicationData == null) return;
 
       ClassMacroApplicationData? classApplicationData =
           libraryApplicationData.classData[classBuilder];
-      if (classApplicationData == null) continue;
+      if (classApplicationData == null) return;
       for (ApplicationData applicationData
           in classApplicationData.memberApplications.values) {
         await _applyDeclarationsMacros(applicationData, onAugmentationLibrary);
@@ -678,9 +722,23 @@ class MacroApplications {
       }
     }
 
+    // Apply macros to classes first, in class hierarchy order.
+    for (SourceClassBuilder classBuilder in sortedSourceClassBuilders) {
+      await applyClassMacros(classBuilder);
+      // TODO(johnniwinther): Avoid accessing augmentations from the outside.
+      List<SourceClassBuilder>? augmentationClassBuilders =
+          classBuilder.augmentationsForTesting;
+      if (augmentationClassBuilders != null) {
+        for (SourceClassBuilder augmentationClassBuilder
+            in augmentationClassBuilders) {
+          await applyClassMacros(augmentationClassBuilder);
+        }
+      }
+    }
+
     // Apply macros to library members second.
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
-        in libraryData.entries) {
+        in _libraryData.entries) {
       LibraryMacroApplicationData data = entry.value;
       for (ApplicationData applicationData in data.memberApplications.values) {
         await _applyDeclarationsMacros(applicationData, onAugmentationLibrary);
@@ -694,6 +752,12 @@ class MacroApplications {
     macro.Declaration declaration = applicationData.declaration;
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
+      if (!macroApplication.appliedPhases.add(macro.Phase.definitions)) {
+        continue;
+      }
+      if (macroApplication.isErroneous) {
+        continue;
+      }
       if (macroApplication.instanceIdentifier.shouldExecute(
           _declarationKind(declaration), macro.Phase.definitions)) {
         if (retainDataForTesting) {
@@ -704,7 +768,8 @@ class MacroApplications {
             await _macroExecutor.executeDefinitionsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
-                definitionPhaseIntrospector);
+                _macroIntrospection.definitionPhaseIntrospector);
+        result.reportDiagnostics(applicationData);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -717,14 +782,16 @@ class MacroApplications {
     return results;
   }
 
-  late macro.DefinitionPhaseIntrospector definitionPhaseIntrospector;
+  void enterDefinitionMacroPhase() {
+    _macroIntrospection.enterDefinitionMacroPhase();
+  }
 
   Future<List<SourceLibraryBuilder>> applyDefinitionMacros() async {
-    definitionPhaseIntrospector =
-        new _DefinitionPhaseIntrospector(this, classHierarchy, sourceLoader);
+    // TODO(johnniwinther): Maintain a pending list instead of running through
+    // all annotations to find the once have to be applied now.
     List<SourceLibraryBuilder> augmentationLibraries = [];
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
-        in libraryData.entries) {
+        in _libraryData.entries) {
       List<macro.MacroExecutionResult> executionResults = [];
       SourceLibraryBuilder libraryBuilder = entry.key;
       LibraryMacroApplicationData data = entry.value;
@@ -746,8 +813,11 @@ class MacroApplications {
       }
       if (executionResults.isNotEmpty) {
         String result = _macroExecutor
-            .buildAugmentationLibrary(executionResults, _resolveDeclaration,
-                _resolveIdentifier, _inferOmittedType)
+            .buildAugmentationLibrary(
+                executionResults,
+                _macroIntrospection.resolveDeclaration,
+                _macroIntrospection.resolveIdentifier,
+                _macroIntrospection.types.inferOmittedType)
             .trim();
         assert(
             result.trim().isNotEmpty,
@@ -757,7 +827,7 @@ class MacroApplications {
           dataForTesting?.libraryDefinitionResult[libraryBuilder] = result;
         }
         augmentationLibraries
-            .add(await libraryBuilder.createAugmentationLibrary(result));
+            .add(await libraryBuilder.origin.createAugmentationLibrary(result));
       }
     }
     return augmentationLibraries;
@@ -765,611 +835,10 @@ class MacroApplications {
 
   void close() {
     _macroExecutor.close();
-    _staticTypeCache.clear();
-    _typeAnnotationCache.clear();
+    _macroIntrospection.clear();
     if (!retainDataForTesting) {
-      libraryData.clear();
+      _libraryData.clear();
     }
-  }
-
-  List<macro.NamedTypeAnnotationImpl> _typeBuildersToAnnotations(
-      LibraryBuilder libraryBuilder, List<TypeBuilder>? typeBuilders) {
-    return typeBuilders == null
-        ? []
-        : typeBuilders
-            .map((TypeBuilder typeBuilder) =>
-                computeTypeAnnotation(libraryBuilder, typeBuilder)
-                    as macro.NamedTypeAnnotationImpl)
-            .toList();
-  }
-
-  macro.LibraryImpl _libraryFor(LibraryBuilder builder) {
-    return _libraries[builder] ??= () {
-      final Version version = builder.library.languageVersion;
-      return new macro.LibraryImpl(
-          id: macro.RemoteInstance.uniqueId,
-          uri: builder.importUri,
-          languageVersion:
-              new macro.LanguageVersionImpl(version.major, version.minor),
-          // TODO: Provide metadata annotations.
-          metadata: const []);
-    }();
-  }
-
-  macro.ParameterizedTypeDeclaration _createClassDeclaration(
-      ClassBuilder builder) {
-    assert(
-        !builder.isAnonymousMixinApplication,
-        "Trying to create a ClassDeclaration for the mixin application "
-        "${builder}.");
-    TypeBuilder? supertypeBuilder = builder.supertypeBuilder;
-    List<TypeBuilder>? mixins;
-    while (supertypeBuilder != null) {
-      TypeDeclarationBuilder? declaration = supertypeBuilder.declaration;
-      if (declaration is ClassBuilder &&
-          declaration.isAnonymousMixinApplication) {
-        (mixins ??= []).add(declaration.mixedInTypeBuilder!);
-        supertypeBuilder = declaration.supertypeBuilder;
-      } else {
-        break;
-      }
-    }
-    if (mixins != null) {
-      mixins = mixins.reversed.toList();
-    }
-    final TypeDeclarationBuilderIdentifier identifier =
-        new TypeDeclarationBuilderIdentifier(
-            typeDeclarationBuilder: builder,
-            libraryBuilder: builder.libraryBuilder,
-            id: macro.RemoteInstance.uniqueId,
-            name: builder.name);
-    // TODO(johnniwinther): Support typeParameters
-    final List<macro.TypeParameterDeclarationImpl> typeParameters = [];
-    final List<macro.NamedTypeAnnotationImpl> interfaces =
-        _typeBuildersToAnnotations(
-            builder.libraryBuilder, builder.interfaceBuilders);
-    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
-
-    macro.ParameterizedTypeDeclaration declaration = builder.isMixinDeclaration
-        ? new macro.MixinDeclarationImpl(
-                id: macro.RemoteInstance.uniqueId,
-                identifier: identifier,
-                library: library,
-                // TODO: Provide metadata annotations.
-                metadata: const [],
-                typeParameters: typeParameters,
-                hasBase: builder.isBase,
-                interfaces: interfaces,
-                superclassConstraints: _typeBuildersToAnnotations(
-                    builder.libraryBuilder, builder.onTypes))
-            // This cast is not necessary but LUB doesn't give the desired type
-            // without it.
-            as macro.ParameterizedTypeDeclaration
-        : new macro.ClassDeclarationImpl(
-            id: macro.RemoteInstance.uniqueId,
-            identifier: identifier,
-            library: library,
-            // TODO: Provide metadata annotations.
-            metadata: const [],
-            typeParameters: typeParameters,
-            interfaces: interfaces,
-            hasAbstract: builder.isAbstract,
-            hasBase: builder.isBase,
-            hasExternal: builder.isExternal,
-            hasFinal: builder.isFinal,
-            hasInterface: builder.isInterface,
-            hasMixin: builder.isMixinClass,
-            hasSealed: builder.isSealed,
-            mixins: _typeBuildersToAnnotations(builder.libraryBuilder, mixins),
-            superclass: supertypeBuilder != null
-                ? _computeTypeAnnotation(
-                        builder.libraryBuilder, supertypeBuilder)
-                    as macro.NamedTypeAnnotationImpl
-                : null);
-    _classBuilders[declaration] = builder;
-    return declaration;
-  }
-
-  macro.TypeAliasDeclaration _createTypeAliasDeclaration(
-      TypeAliasBuilder builder) {
-    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
-    macro.TypeAliasDeclaration declaration = new macro.TypeAliasDeclarationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        identifier: new TypeDeclarationBuilderIdentifier(
-            typeDeclarationBuilder: builder,
-            libraryBuilder: builder.libraryBuilder,
-            id: macro.RemoteInstance.uniqueId,
-            name: builder.name),
-        library: library,
-        // TODO: Provide metadata annotations.
-        metadata: const [],
-        // TODO(johnniwinther): Support typeParameters
-        typeParameters: [],
-        aliasedType:
-            _computeTypeAnnotation(builder.libraryBuilder, builder.type));
-    return declaration;
-  }
-
-  List<List<macro.ParameterDeclarationImpl>> _createParameters(
-      MemberBuilder builder, List<FormalParameterBuilder>? formals) {
-    List<macro.ParameterDeclarationImpl>? positionalParameters;
-    List<macro.ParameterDeclarationImpl>? namedParameters;
-    if (formals == null) {
-      positionalParameters = namedParameters = const [];
-    } else {
-      positionalParameters = [];
-      namedParameters = [];
-      final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
-      for (FormalParameterBuilder formal in formals) {
-        macro.TypeAnnotationImpl type =
-            computeTypeAnnotation(builder.libraryBuilder, formal.type);
-        macro.IdentifierImpl identifier = new FormalParameterBuilderIdentifier(
-            id: macro.RemoteInstance.uniqueId,
-            name: formal.name,
-            parameterBuilder: formal,
-            libraryBuilder: builder.libraryBuilder);
-        if (formal.isNamed) {
-          namedParameters.add(new macro.ParameterDeclarationImpl(
-            id: macro.RemoteInstance.uniqueId,
-            identifier: identifier,
-            library: library,
-            // TODO: Provide metadata annotations.
-            metadata: const [],
-            isRequired: formal.isRequiredNamed,
-            isNamed: true,
-            type: type,
-          ));
-        } else {
-          positionalParameters.add(new macro.ParameterDeclarationImpl(
-            id: macro.RemoteInstance.uniqueId,
-            identifier: identifier,
-            library: library,
-            // TODO: Provide metadata annotations.
-            metadata: const [],
-            isRequired: formal.isRequiredPositional,
-            isNamed: false,
-            type: type,
-          ));
-        }
-      }
-    }
-    return [positionalParameters, namedParameters];
-  }
-
-  macro.ConstructorDeclaration _createConstructorDeclaration(
-      SourceConstructorBuilder builder) {
-    List<FormalParameterBuilder>? formals = null;
-    // TODO(johnniwinther): Support formals for other constructors.
-    if (builder is DeclaredSourceConstructorBuilder) {
-      formals = builder.formals;
-    }
-    List<List<macro.ParameterDeclarationImpl>> parameters =
-        _createParameters(builder, formals);
-    macro.ParameterizedTypeDeclaration definingClass =
-        getClassDeclaration(builder.classBuilder as SourceClassBuilder);
-    return new macro.ConstructorDeclarationImpl(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: new MemberBuilderIdentifier(
-          memberBuilder: builder,
-          id: macro.RemoteInstance.uniqueId,
-          name: builder.name),
-      library: _libraryFor(builder.libraryBuilder),
-      // TODO: Provide metadata annotations.
-      metadata: const [],
-      definingType: definingClass.identifier as macro.IdentifierImpl,
-      isFactory: builder.isFactory,
-      // TODO(johnniwinther): Real implementation of hasBody.
-      hasBody: true,
-      hasExternal: builder.isExternal,
-      positionalParameters: parameters[0],
-      namedParameters: parameters[1],
-      // TODO(johnniwinther): Support constructor return type.
-      returnType: computeTypeAnnotation(builder.libraryBuilder, null),
-      // TODO(johnniwinther): Support typeParameters
-      typeParameters: const [],
-    );
-  }
-
-  macro.ConstructorDeclaration _createFactoryDeclaration(
-      SourceFactoryBuilder builder) {
-    List<List<macro.ParameterDeclarationImpl>> parameters =
-        _createParameters(builder, builder.formals);
-    macro.ParameterizedTypeDeclaration definingClass =
-        // TODO(johnniwinther): Support extension type factories.
-        getClassDeclaration(builder.classBuilder!);
-
-    return new macro.ConstructorDeclarationImpl(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: new MemberBuilderIdentifier(
-          memberBuilder: builder,
-          id: macro.RemoteInstance.uniqueId,
-          name: builder.name),
-      library: _libraryFor(builder.libraryBuilder),
-      // TODO: Provide metadata annotations.
-      metadata: const [],
-      definingType: definingClass.identifier as macro.IdentifierImpl,
-      isFactory: builder.isFactory,
-      // TODO(johnniwinther): Real implementation of hasBody.
-      hasBody: true,
-      hasExternal: builder.isExternal,
-      positionalParameters: parameters[0],
-      namedParameters: parameters[1],
-      // TODO(johnniwinther): Support constructor return type.
-      returnType: computeTypeAnnotation(builder.libraryBuilder, null),
-      // TODO(johnniwinther): Support typeParameters
-      typeParameters: const [],
-    );
-  }
-
-  macro.FunctionDeclaration _createFunctionDeclaration(
-      SourceProcedureBuilder builder) {
-    List<List<macro.ParameterDeclarationImpl>> parameters =
-        _createParameters(builder, builder.formals);
-
-    macro.ParameterizedTypeDeclaration? definingClass = null;
-    if (builder.classBuilder != null) {
-      definingClass =
-          getClassDeclaration(builder.classBuilder as SourceClassBuilder);
-    }
-    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
-    if (definingClass != null) {
-      // TODO(johnniwinther): Should static fields be field or variable
-      //  declarations?
-      return new macro.MethodDeclarationImpl(
-          id: macro.RemoteInstance.uniqueId,
-          identifier: new MemberBuilderIdentifier(
-              memberBuilder: builder,
-              id: macro.RemoteInstance.uniqueId,
-              name: builder.name),
-          library: library,
-          // TODO: Provide metadata annotations.
-          metadata: const [],
-          definingType: definingClass.identifier as macro.IdentifierImpl,
-          // TODO(johnniwinther): Real implementation of hasBody.
-          hasBody: true,
-          hasExternal: builder.isExternal,
-          isGetter: builder.isGetter,
-          isOperator: builder.isOperator,
-          isSetter: builder.isSetter,
-          isStatic: builder.isStatic,
-          positionalParameters: parameters[0],
-          namedParameters: parameters[1],
-          returnType:
-              computeTypeAnnotation(builder.libraryBuilder, builder.returnType),
-          // TODO(johnniwinther): Support typeParameters
-          typeParameters: const []);
-    } else {
-      return new macro.FunctionDeclarationImpl(
-          id: macro.RemoteInstance.uniqueId,
-          identifier: new MemberBuilderIdentifier(
-              memberBuilder: builder,
-              id: macro.RemoteInstance.uniqueId,
-              name: builder.name),
-          library: library,
-          // TODO(johnniwinther): Provide metadata annotations.
-          metadata: const [],
-          // TODO(johnniwinther): Real implementation of hasBody.
-          hasBody: true,
-          hasExternal: builder.isExternal,
-          isGetter: builder.isGetter,
-          isOperator: builder.isOperator,
-          isSetter: builder.isSetter,
-          positionalParameters: parameters[0],
-          namedParameters: parameters[1],
-          returnType:
-              computeTypeAnnotation(builder.libraryBuilder, builder.returnType),
-          // TODO(johnniwinther): Support typeParameters
-          typeParameters: const []);
-    }
-  }
-
-  macro.VariableDeclaration _createVariableDeclaration(
-      SourceFieldBuilder builder) {
-    macro.ParameterizedTypeDeclaration? definingClass = null;
-    if (builder.classBuilder != null) {
-      definingClass =
-          getClassDeclaration(builder.classBuilder as SourceClassBuilder);
-    }
-    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
-    if (definingClass != null) {
-      // TODO(johnniwinther): Should static fields be field or variable
-      //  declarations?
-      return new macro.FieldDeclarationImpl(
-          id: macro.RemoteInstance.uniqueId,
-          identifier: new MemberBuilderIdentifier(
-              memberBuilder: builder,
-              id: macro.RemoteInstance.uniqueId,
-              name: builder.name),
-          library: library,
-          // TODO: Provide metadata annotations.
-          metadata: const [],
-          definingType: definingClass.identifier as macro.IdentifierImpl,
-          hasAbstract: builder.isAbstract,
-          hasExternal: builder.isExternal,
-          hasFinal: builder.isFinal,
-          hasLate: builder.isLate,
-          isStatic: builder.isStatic,
-          type: computeTypeAnnotation(builder.libraryBuilder, builder.type));
-    } else {
-      return new macro.VariableDeclarationImpl(
-          id: macro.RemoteInstance.uniqueId,
-          identifier: new MemberBuilderIdentifier(
-              memberBuilder: builder,
-              id: macro.RemoteInstance.uniqueId,
-              name: builder.name),
-          library: library,
-          // TODO: Provide metadata annotations.
-          metadata: const [],
-          hasExternal: builder.isExternal,
-          hasFinal: builder.isFinal,
-          hasLate: builder.isLate,
-          type: computeTypeAnnotation(builder.libraryBuilder, builder.type));
-    }
-  }
-
-  Map<TypeBuilder?, macro.TypeAnnotationImpl> _typeAnnotationCache = {};
-
-  List<macro.TypeAnnotationImpl> computeTypeAnnotations(
-      LibraryBuilder library, List<TypeBuilder>? typeBuilders) {
-    if (typeBuilders == null) return const [];
-    return new List.generate(typeBuilders.length,
-        (int index) => computeTypeAnnotation(library, typeBuilders[index]));
-  }
-
-  macro.TypeAnnotationImpl _computeTypeAnnotation(
-      LibraryBuilder libraryBuilder, TypeBuilder? typeBuilder) {
-    if (typeBuilder != null) {
-      if (typeBuilder is NamedTypeBuilder) {
-        List<macro.TypeAnnotationImpl> typeArguments =
-            computeTypeAnnotations(libraryBuilder, typeBuilder.typeArguments);
-        bool isNullable = typeBuilder.nullabilityBuilder.isNullable;
-        return new macro.NamedTypeAnnotationImpl(
-            id: macro.RemoteInstance.uniqueId,
-            identifier: new TypeBuilderIdentifier(
-                typeBuilder: typeBuilder,
-                libraryBuilder: libraryBuilder,
-                id: macro.RemoteInstance.uniqueId,
-                name: typeBuilder.typeName.name),
-            typeArguments: typeArguments,
-            isNullable: isNullable);
-      } else if (typeBuilder is OmittedTypeBuilder) {
-        return new _OmittedTypeAnnotationImpl(typeBuilder,
-            id: macro.RemoteInstance.uniqueId);
-      }
-    }
-    return new macro.NamedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        identifier: omittedTypeIdentifier,
-        isNullable: false,
-        typeArguments: const []);
-  }
-
-  macro.TypeAnnotationImpl computeTypeAnnotation(
-      LibraryBuilder libraryBuilder, TypeBuilder? typeBuilder) {
-    return _typeAnnotationCache[typeBuilder] ??=
-        _computeTypeAnnotation(libraryBuilder, typeBuilder);
-  }
-
-  DartType _typeForAnnotation(macro.TypeAnnotationCode typeAnnotation) {
-    NullabilityBuilder nullabilityBuilder;
-    if (typeAnnotation is macro.NullableTypeAnnotationCode) {
-      nullabilityBuilder = const NullabilityBuilder.nullable();
-      typeAnnotation = typeAnnotation.underlyingType;
-    } else {
-      nullabilityBuilder = const NullabilityBuilder.omitted();
-    }
-
-    if (typeAnnotation is macro.NamedTypeAnnotationCode) {
-      macro.NamedTypeAnnotationCode namedTypeAnnotation = typeAnnotation;
-      IdentifierImpl typeIdentifier = typeAnnotation.name as IdentifierImpl;
-      List<DartType> arguments = new List<DartType>.generate(
-          namedTypeAnnotation.typeArguments.length,
-          (int index) =>
-              _typeForAnnotation(namedTypeAnnotation.typeArguments[index]));
-      return typeIdentifier.buildType(nullabilityBuilder, arguments);
-    }
-    // TODO: Implement support for function types.
-    throw new UnimplementedError(
-        'Unimplemented type annotation kind ${typeAnnotation.kind}');
-  }
-
-  macro.StaticType resolveTypeAnnotation(
-      macro.TypeAnnotationCode typeAnnotation) {
-    return createStaticType(_typeForAnnotation(typeAnnotation));
-  }
-
-  Map<DartType, _StaticTypeImpl> _staticTypeCache = {};
-
-  macro.StaticType createStaticType(DartType dartType) {
-    return _staticTypeCache[dartType] ??= new _StaticTypeImpl(this, dartType);
-  }
-}
-
-class _StaticTypeImpl implements macro.StaticType {
-  final MacroApplications macroApplications;
-  final DartType type;
-
-  _StaticTypeImpl(this.macroApplications, this.type);
-
-  @override
-  Future<bool> isExactly(covariant _StaticTypeImpl other) {
-    return new Future.value(type == other.type);
-  }
-
-  @override
-  Future<bool> isSubtypeOf(covariant _StaticTypeImpl other) {
-    return new Future.value(macroApplications.types
-        .isSubtypeOf(type, other.type, SubtypeCheckMode.withNullabilities));
-  }
-}
-
-class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
-  final SourceLoader sourceLoader;
-
-  _TypePhaseIntrospector(this.sourceLoader);
-
-  @override
-  Future<macro.Identifier> resolveIdentifier(Uri library, String name) {
-    LibraryBuilder? libraryBuilder = sourceLoader.lookupLibraryBuilder(library);
-    if (libraryBuilder == null) {
-      return new Future.error(
-          new ArgumentError('Library at uri $library could not be resolved.'),
-          StackTrace.current);
-    }
-    bool isSetter = false;
-    String memberName = name;
-    if (name.endsWith('=')) {
-      memberName = name.substring(0, name.length - 1);
-      isSetter = true;
-    }
-    Builder? builder =
-        libraryBuilder.scope.lookupLocalMember(memberName, setter: isSetter);
-    if (builder == null) {
-      return new Future.error(
-          new ArgumentError(
-              'Unable to find top level identifier "$name" in $library'),
-          StackTrace.current);
-    } else if (builder is TypeDeclarationBuilder) {
-      return new Future.value(new TypeDeclarationBuilderIdentifier(
-          typeDeclarationBuilder: builder,
-          libraryBuilder: libraryBuilder,
-          id: macro.RemoteInstance.uniqueId,
-          name: name));
-    } else if (builder is MemberBuilder) {
-      return new Future.value(new MemberBuilderIdentifier(
-          memberBuilder: builder,
-          id: macro.RemoteInstance.uniqueId,
-          name: name));
-    } else {
-      return new Future.error(
-          new UnsupportedError('Unsupported identifier kind $builder'),
-          StackTrace.current);
-    }
-  }
-}
-
-class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
-    implements macro.DeclarationPhaseIntrospector {
-  final ClassHierarchyBuilder classHierarchy;
-  final MacroApplications macroApplications;
-
-  _DeclarationPhaseIntrospector(
-      this.macroApplications, this.classHierarchy, super.sourceLoader);
-
-  @override
-  Future<macro.TypeDeclaration> typeDeclarationOf(macro.Identifier identifier) {
-    if (identifier is IdentifierImpl) {
-      return identifier.resolveTypeDeclaration(macroApplications);
-    }
-    throw new UnsupportedError(
-        'Unsupported identifier $identifier (${identifier.runtimeType})');
-  }
-
-  @override
-  Future<List<macro.ConstructorDeclaration>> constructorsOf(
-      macro.TypeDeclaration type) {
-    if (type is! macro.ClassDeclaration) {
-      throw new UnsupportedError('Only introspection on classes is supported');
-    }
-    ClassBuilder classBuilder = macroApplications
-        ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
-    List<macro.ConstructorDeclaration> result = [];
-    Iterator<MemberBuilder> iterator = classBuilder.fullConstructorIterator();
-    while (iterator.moveNext()) {
-      MemberBuilder memberBuilder = iterator.current;
-      if (memberBuilder is DeclaredSourceConstructorBuilder) {
-        // TODO(johnniwinther): Should we support synthesized constructors?
-        result.add(macroApplications._getMemberDeclaration(memberBuilder)
-            as macro.ConstructorDeclaration);
-      } else if (memberBuilder is SourceFactoryBuilder) {
-        result.add(macroApplications._getMemberDeclaration(memberBuilder)
-            as macro.ConstructorDeclaration);
-      }
-    }
-    return new Future.value(result);
-  }
-
-  @override
-  Future<List<macro.EnumValueDeclaration>> valuesOf(
-      covariant macro.EnumDeclaration enumType) {
-    // TODO: implement valuesOf
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future<List<macro.FieldDeclaration>> fieldsOf(macro.TypeDeclaration type) {
-    if (type is! macro.ClassDeclaration) {
-      throw new UnsupportedError('Only introspection on classes is supported');
-    }
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
-    List<macro.FieldDeclaration> result = [];
-    Iterator<SourceFieldBuilder> iterator =
-        classBuilder.fullMemberIterator<SourceFieldBuilder>();
-    while (iterator.moveNext()) {
-      result.add(macroApplications._getMemberDeclaration(iterator.current)
-          as macro.FieldDeclaration);
-    }
-    return new Future.value(result);
-  }
-
-  @override
-  Future<List<macro.MethodDeclaration>> methodsOf(macro.TypeDeclaration type) {
-    if (type is! macro.ClassDeclaration && type is! macro.MixinDeclaration) {
-      throw new UnsupportedError(
-          'Only introspection on classes and mixins is supported');
-    }
-    ClassBuilder classBuilder = macroApplications
-        ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
-    List<macro.MethodDeclaration> result = [];
-    Iterator<SourceProcedureBuilder> iterator =
-        classBuilder.fullMemberIterator<SourceProcedureBuilder>();
-    while (iterator.moveNext()) {
-      result.add(macroApplications._getMemberDeclaration(iterator.current)
-          as macro.MethodDeclaration);
-    }
-    return new Future.value(result);
-  }
-
-  @override
-  Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
-    // TODO: implement typesOf
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future<macro.StaticType> resolve(macro.TypeAnnotationCode typeAnnotation) {
-    return new Future.value(
-        macroApplications.resolveTypeAnnotation(typeAnnotation));
-  }
-}
-
-class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
-    implements macro.DefinitionPhaseIntrospector {
-  _DefinitionPhaseIntrospector(
-      super.macroApplications, super.classHierarchy, super.sourceLoader);
-
-  @override
-  Future<macro.TypeDeclaration> typeDeclarationOf(
-          macro.Identifier identifier) async =>
-      (await super.typeDeclarationOf(identifier));
-
-  @override
-  Future<macro.TypeAnnotation> inferType(
-          macro.OmittedTypeAnnotation omittedType) =>
-      new Future.value(macroApplications._inferOmittedType(omittedType)!);
-
-  @override
-  Future<List<macro.Declaration>> topLevelDeclarationsOf(
-      macro.Library library) {
-    // TODO: implement topLevelDeclarationsOf
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future<macro.Declaration> declarationOf(
-      covariant macro.Identifier identifier) {
-    // TODO: implement declarationOf
-    throw new UnimplementedError();
   }
 }
 
@@ -1396,14 +865,53 @@ macro.DeclarationKind _declarationKind(macro.Declaration declaration) {
 }
 
 /// Data needed to apply a list of macro applications to a class or member.
-class ApplicationData {
+abstract class ApplicationData {
+  final MacroIntrospection _macroIntrospection;
   final SourceLibraryBuilder libraryBuilder;
-  final Builder builder;
   final List<MacroApplication> macroApplications;
 
-  late final macro.Declaration declaration;
+  ApplicationData(
+      this._macroIntrospection, this.libraryBuilder, this.macroApplications);
 
-  ApplicationData(this.libraryBuilder, this.builder, this.macroApplications);
+  macro.Declaration get declaration;
+
+  Builder get builder;
+}
+
+class ClassApplicationData extends ApplicationData {
+  final SourceClassBuilder _classBuilder;
+
+  macro.ParameterizedTypeDeclaration? _declaration;
+
+  ClassApplicationData(super.macroIntrospection, super.libraryBuilder,
+      this._classBuilder, super.macroApplications);
+
+  @override
+  macro.Declaration get declaration {
+    return _declaration ??=
+        _macroIntrospection.getClassDeclaration(_classBuilder);
+  }
+
+  @override
+  Builder get builder => _classBuilder;
+}
+
+class MemberApplicationData extends ApplicationData {
+  final MemberBuilder _memberBuilder;
+
+  macro.Declaration? _declaration;
+
+  MemberApplicationData(super.macroIntrospection, super.libraryBuilder,
+      this._memberBuilder, super.macroApplications);
+
+  @override
+  macro.Declaration get declaration {
+    return _declaration ??=
+        _macroIntrospection.getMemberDeclaration(_memberBuilder);
+  }
+
+  @override
+  Builder get builder => _memberBuilder;
 }
 
 extension on macro.MacroExecutionResult {
@@ -1411,12 +919,15 @@ extension on macro.MacroExecutionResult {
       enumValueAugmentations.isNotEmpty ||
       libraryAugmentations.isNotEmpty ||
       typeAugmentations.isNotEmpty;
-}
 
-// ignore: missing_override_of_must_be_overridden
-class _OmittedTypeAnnotationImpl extends macro.OmittedTypeAnnotationImpl {
-  final OmittedTypeBuilder typeBuilder;
-
-  _OmittedTypeAnnotationImpl(this.typeBuilder, {required int id})
-      : super(id: id);
+  void reportDiagnostics(ApplicationData applicationData) {
+    for (macro.Diagnostic diagnostic in diagnostics) {
+      // TODO(johnniwinther): Improve reporting.
+      applicationData.libraryBuilder.addProblem(
+          templateUnspecified.withArguments(diagnostic.message.message),
+          -1,
+          -1,
+          null);
+    }
+  }
 }

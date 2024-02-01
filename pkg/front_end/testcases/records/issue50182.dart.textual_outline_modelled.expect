@@ -9,4 +9,5 @@ class Value<T> {
 }
 
 typedef Hello<T> = (T, {T name});
+
 void main() {}

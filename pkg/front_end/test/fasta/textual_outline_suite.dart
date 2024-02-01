@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/util/textual_outline.dart';
@@ -25,6 +26,9 @@ import 'package:testing/testing.dart'
 import '../utils/kernel_chain.dart' show MatchContext;
 import 'testing/folder_options.dart';
 import 'testing/suite.dart' show UPDATE_EXPECTATIONS;
+
+const int minSupportedMajorVersion = 2;
+const int minSupportedMinorVersion = 12;
 
 const List<Map<String, String>> EXPECTATIONS = [
   {
@@ -117,7 +121,6 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         ),
         throwOnUnexpected: true,
         performModelling: modelled,
-        addMarkerForUnknownForTest: modelled,
         returnNullOnError: false,
         enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
             explicitExperimentalFlags: experimentalFlags),
@@ -128,25 +131,19 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
             null, context.expectationSet["EmptyOutput"], description.uri);
       }
 
-      // In an attempt to make it less sensitive to formatting first remove
-      // excess new lines, then format.
-      List<String> lines = result.split("\n");
-      bool containsUnknownChunk = false;
-      StringBuffer sb = new StringBuffer();
-      for (String line in lines) {
-        if (line.trim() != "") {
-          if (line == "---- unknown chunk starts ----") {
-            containsUnknownChunk = true;
-          }
-          sb.writeln(line);
+      bool containsUnknownChunk = info.hasUnknownChunk;
+      bool tryFormat = !containsUnknownChunk;
+      for (LanguageVersionToken version in info.languageVersionTokens) {
+        if (version.major < minSupportedMajorVersion) {
+          tryFormat = false;
+        } else if (version.major == minSupportedMajorVersion &&
+            version.minor < minSupportedMinorVersion) {
+          tryFormat = false;
         }
       }
-      result = sb.toString().trim();
-
       dynamic formatterException;
       StackTrace? formatterExceptionSt;
-      if (!containsUnknownChunk) {
-        // Try to format only if it doesn't contain the unknown chunk marker.
+      if (tryFormat) {
         try {
           List<String> experimentFlags = [];
           for (MapEntry<ExperimentalFlag, bool> entry

@@ -7,5 +7,7 @@ class A {
 }
 
 main() {}
+
 void Function({required String s}) g = ({required String s}) {};
+
 void foo({required String s}) {}

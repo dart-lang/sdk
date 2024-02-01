@@ -61,7 +61,7 @@ class _GetExpressionInfo extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
     var type =
         h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
     h.flow.forwardExpression(this, target);
@@ -79,7 +79,7 @@ class _GetSsaNodes extends Expression {
   void preVisit(PreVisitor visitor) {}
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
     callback(SsaNodeHarness(h.flow));
     h.irBuilder.atom('null', Kind.expression, location: location);
     return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
@@ -102,7 +102,7 @@ class _WhyNotPromoted extends Expression {
   String toString() => '$target (whyNotPromoted)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
     var type =
         h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
     h.flow.forwardExpression(this, target);
@@ -128,7 +128,7 @@ class _WhyNotPromoted_ImplicitThis extends Expression {
   String toString() => 'implicit this (whyNotPromoted)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
     Type.withComparisonsAllowed(() {
       callback(h.flow.whyNotPromotedImplicitThis(staticType)());
     });

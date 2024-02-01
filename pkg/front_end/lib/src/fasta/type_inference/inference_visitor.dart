@@ -97,7 +97,7 @@ abstract class InferenceVisitor {
 class InferenceVisitorImpl extends InferenceVisitorBase
     with
         TypeAnalyzer<TreeNode, Statement, Expression, VariableDeclaration,
-            DartType, Pattern, InvalidExpression>,
+            DartType, Pattern, InvalidExpression, DartType>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
@@ -807,6 +807,108 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const StatementInferenceResult();
   }
 
+  bool _derivesFutureType(DartType type) {
+    // TODO(cstefantsova): Update this method when
+    // https://github.com/dart-lang/language/pull/3574 is merged.
+    if (isNullableTypeConstructorApplication(type)) {
+      return false;
+    } else {
+      switch (type) {
+        case InterfaceType():
+          return typeSchemaEnvironment.hierarchy
+                  .getInterfaceTypeAsInstanceOfClass(
+                      type, coreTypes.futureClass,
+                      isNonNullableByDefault: isNonNullableByDefault) !=
+              null;
+        case ExtensionType():
+          return typeSchemaEnvironment.hierarchy
+                  .getExtensionTypeAsInstanceOfClass(
+                      type, coreTypes.futureClass,
+                      isNonNullableByDefault: isNonNullableByDefault) !=
+              null;
+        case TypeParameterType():
+          DartType boundedBy = type;
+          while (boundedBy is TypeParameterType &&
+              !isNullableTypeConstructorApplication(boundedBy)) {
+            boundedBy = boundedBy.parameter.bound;
+          }
+          return boundedBy is FutureOrType ||
+              boundedBy is InterfaceType &&
+                  boundedBy.classNode == coreTypes.futureClass &&
+                  boundedBy.nullability == Nullability.nullable;
+        case StructuralParameterType():
+          DartType boundedBy = type;
+          while (boundedBy is TypeParameterType &&
+              !isNullableTypeConstructorApplication(boundedBy)) {
+            boundedBy = boundedBy.parameter.bound;
+          }
+          return boundedBy is FutureOrType ||
+              boundedBy is InterfaceType &&
+                  boundedBy.classNode == coreTypes.futureClass &&
+                  boundedBy.nullability == Nullability.nullable;
+        case IntersectionType():
+          DartType boundedBy = type.right;
+          while (boundedBy is TypeParameterType &&
+              !isNullableTypeConstructorApplication(boundedBy)) {
+            boundedBy = boundedBy.parameter.bound;
+          }
+          return boundedBy is FutureOrType ||
+              boundedBy is InterfaceType &&
+                  boundedBy.classNode == coreTypes.futureClass &&
+                  boundedBy.nullability == Nullability.nullable;
+        case DynamicType():
+        case VoidType():
+        case FutureOrType():
+        case TypedefType():
+        case FunctionType():
+        case RecordType():
+        case NullType():
+        case NeverType():
+        case AuxiliaryType():
+        case InvalidType():
+          return false;
+      }
+    }
+  }
+
+  bool _isIncompatibleWithAwait(DartType type) {
+    if (isNullableTypeConstructorApplication(type)) {
+      return _isIncompatibleWithAwait(computeTypeWithoutNullabilityMarker(
+          (type),
+          isNonNullableByDefault: isNonNullableByDefault));
+    } else {
+      switch (type) {
+        case ExtensionType():
+          return typeSchemaEnvironment.hierarchy
+                  .getExtensionTypeAsInstanceOfClass(
+                      type, coreTypes.futureClass,
+                      isNonNullableByDefault:
+                          libraryBuilder.isNonNullableByDefault) ==
+              null;
+        case TypeParameterType():
+          return _isIncompatibleWithAwait(type.parameter.bound);
+        case StructuralParameterType():
+          return _isIncompatibleWithAwait(type.parameter.bound);
+        case IntersectionType():
+          return _isIncompatibleWithAwait(type.right) ||
+              !_derivesFutureType(type.right) &&
+                  _isIncompatibleWithAwait(type.left);
+        case DynamicType():
+        case VoidType():
+        case FutureOrType():
+        case InterfaceType():
+        case TypedefType():
+        case FunctionType():
+        case RecordType():
+        case NullType():
+        case NeverType():
+        case AuxiliaryType():
+        case InvalidType():
+          return false;
+      }
+    }
+  }
+
   @override
   ExpressionInferenceResult visitAwaitExpression(
       AwaitExpression node, DartType typeContext) {
@@ -818,12 +920,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: !isNonNullableByDefault);
     DartType operandType = operandResult.inferredType;
     DartType flattenType = typeSchemaEnvironment.flatten(operandType);
-    if (operandType is ExtensionType &&
-        typeSchemaEnvironment.hierarchy.getExtensionTypeAsInstanceOfClass(
-                operandType, coreTypes.futureClass,
-                isNonNullableByDefault:
-                    libraryBuilder.isNonNullableByDefault) ==
-            null) {
+    if (_isIncompatibleWithAwait(operandType)) {
       Expression wrapped = operandResult.expression;
       node.operand = helper.wrapInProblem(
           wrapped, messageAwaitOfExtensionTypeNotFuture, wrapped.fileOffset, 1);
@@ -2376,8 +2473,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       PatternVariableDeclaration patternVariableDeclaration =
           element.patternVariableDeclaration;
-      PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
-          analyzePatternVariableDeclaration(
+      PatternVariableDeclarationAnalysisResult<DartType, DartType>
+          analysisResult = analyzePatternVariableDeclaration(
               patternVariableDeclaration,
               patternVariableDeclaration.pattern,
               patternVariableDeclaration.initializer,
@@ -2625,7 +2722,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           listType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
-          isConst: node.isConst);
+          isConst: node.isConst,
+          typeOperations: operations);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -4262,8 +4360,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       PatternVariableDeclaration patternVariableDeclaration =
           entry.patternVariableDeclaration;
-      PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
-          analyzePatternVariableDeclaration(
+      PatternVariableDeclarationAnalysisResult<DartType, DartType>
+          analysisResult = analyzePatternVariableDeclaration(
               patternVariableDeclaration,
               patternVariableDeclaration.pattern,
               patternVariableDeclaration.initializer,
@@ -4637,7 +4735,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           mapType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
-          isConst: node.isConst);
+          isConst: node.isConst,
+          typeOperations: operations);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -4712,7 +4811,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             typeSchemaEnvironment.setupGenericTypeInference(
                 setType, typeParametersToInfer, typeContext,
                 isNonNullableByDefault: isNonNullableByDefault,
-                isConst: node.isConst);
+                isConst: node.isConst,
+                typeOperations: operations);
         List<DartType> inferredTypesForSet = typeSchemaEnvironment
             .choosePreliminaryTypes(gatherer, typeParametersToInfer, null,
                 isNonNullableByDefault: isNonNullableByDefault);
@@ -7946,7 +8046,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           setType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
-          isConst: node.isConst);
+          isConst: node.isConst,
+          typeOperations: operations);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -8850,8 +8951,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
-        analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
+    PatternVariableDeclarationAnalysisResult<DartType, DartType>
+        analysisResult = analyzePatternVariableDeclaration(
+            node, node.pattern, node.initializer,
             isFinal: node.isFinal);
     node.matchedValueType = analysisResult.initializerType;
 
@@ -10833,7 +10935,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    PatternAssignmentAnalysisResult<DartType> analysisResult =
+    PatternAssignmentAnalysisResult<DartType, DartType> analysisResult =
         analyzePatternAssignment(node, node.pattern, node.expression);
     node.matchedValueType = analysisResult.type;
 
@@ -10948,7 +11050,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeConstraintGatherer gatherer =
         typeSchemaEnvironment.setupGenericTypeInference(
             declaredType, typeParametersToInfer, contextType,
-            isNonNullableByDefault: isNonNullableByDefault);
+            isNonNullableByDefault: isNonNullableByDefault,
+            typeOperations: operations);
     return typeSchemaEnvironment.chooseFinalTypes(
         gatherer, typeParametersToInfer, null,
         isNonNullableByDefault: isNonNullableByDefault);

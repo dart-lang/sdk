@@ -95,7 +95,8 @@ mixin ErrorDetectionHelpers {
         if (typeSystem.isAssignableTo(field.type, actualStaticType,
             strictCasts: strictCasts)) {
           errorReporter.reportErrorForNode(
-            WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+            CompileTimeErrorCode
+                .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
             expression,
             [],
           );
@@ -293,6 +294,14 @@ mixin ErrorDetectionHelpers {
   /// > is a function type or the type `Function`, `e` is treated as `e.call`.
   MethodElement? getImplicitCallMethod(
       DartType type, DartType? context, SyntacticEntity errorNode) {
+    var visitedTypes = {type};
+    while (type is TypeParameterType) {
+      type = type.bound;
+      if (!visitedTypes.add(type)) {
+        // A cycle!
+        return null;
+      }
+    }
     if (context != null &&
         typeSystem.acceptsFunctionType(context) &&
         type is InterfaceType &&

@@ -8,7 +8,7 @@ library dart.js;
 import 'dart:collection' show HashMap, ListMixin;
 
 import 'dart:_js_helper' show NoReifyGeneric, Primitives;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, TYPE_REF;
 import 'dart:_interceptors' show LegacyJavaScriptObject;
 import 'dart:_internal' show patch;
 import 'dart:_runtime' as dart;
@@ -371,8 +371,7 @@ Object? _convertToDart(Object? o) {
     int ms = JS('!', '#.getTime()', o);
     return DateTime.fromMillisecondsSinceEpoch(ms);
   } else if (o is _DartObject &&
-      !identical(
-          dart.getReifiedType(o), dart.typeRep<LegacyJavaScriptObject>())) {
+      !identical(dart.getReifiedType(o), TYPE_REF<LegacyJavaScriptObject>())) {
     return o._dartObj;
   } else {
     return _wrapToDart(o);

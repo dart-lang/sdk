@@ -1,5 +1,7 @@
 // @dart = 2.14
+
 T id<T>(T t) => t;
+
 T Function<T>(T) alias = id;
 
 class Class {
@@ -7,5 +9,7 @@ class Class {
 }
 
 method(int Function(int) f) {}
+
 test() {}
+
 main() {}

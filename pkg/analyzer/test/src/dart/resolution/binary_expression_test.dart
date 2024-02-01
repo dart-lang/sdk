@@ -335,6 +335,38 @@ BinaryExpression
 ''');
   }
 
+  test_plus_extensionType_int() async {
+    await assertNoErrorsInCode('''
+extension type Int(int i) implements int {
+  Int operator +(int other) {
+    return Int(i + other);
+  }
+}
+
+void f(Int a, int b) {
+  a + b;
+}
+''');
+
+    final node = findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: Int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    parameter: self::@extensionType::Int::@method::+::@parameter::other
+    staticElement: self::@function::f::@parameter::b
+    staticType: int
+  staticElement: self::@extensionType::Int::@method::+
+  staticInvokeType: Int Function(int)
+  staticType: Int
+''');
+  }
+
   test_plus_int_never() async {
     await assertNoErrorsInCode('''
 f(int a, Never b) {
@@ -1531,17 +1563,15 @@ BinaryExpression
   }
 
   test_plus_num_context_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 T f<T>() => throw Error();
 g(num a) {
   h(a + f());
 }
 h(int x) {}
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
+    ]);
 
     final node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -1562,8 +1592,7 @@ MethodInvocation
   }
 
   test_plus_other_context_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 abstract class A {
   num operator+(String x);
 }
@@ -1572,10 +1601,9 @@ g(A a) {
   h(a + f());
 }
 h(int x) {}
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
+    ]);
 
     final node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''

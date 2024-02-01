@@ -128,6 +128,7 @@ import '../../testing_utils.dart' show checkEnvironment;
 import '../../utils/kernel_chain.dart'
     show
         ComponentResult,
+        ErrorCommentChecker,
         MatchContext,
         MatchExpectation,
         Print,
@@ -190,6 +191,10 @@ const String EXPECTATIONS = '''
   {
     "name": "SemiFuzzCrash",
     "group": "Fail"
+  },
+  {
+    "name": "ErrorCommentCheckFailure",
+    "group": "Fail"
   }
 ]
 ''';
@@ -211,7 +216,6 @@ class FastaContext extends ChainContext with MatchContext {
   @override
   final List<Step> steps;
   final Uri vm;
-  final bool onlyCrashes;
   final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
   final bool skipVm;
   final bool semiFuzz;
@@ -241,7 +245,6 @@ class FastaContext extends ChainContext with MatchContext {
       this.baseUri,
       this.vm,
       this.platformBinaries,
-      this.onlyCrashes,
       this.forcedExperimentalFlags,
       bool ignoreExpectations,
       this.updateExpectations,
@@ -253,6 +256,7 @@ class FastaContext extends ChainContext with MatchContext {
       this.soundNullSafety)
       : steps = <Step>[
           new Outline(compileMode, updateComments: updateComments),
+          new ErrorCommentChecker(compileMode),
           const Print(),
           new Verify(compileMode == CompileMode.full
               ? VerificationStage.afterConstantEvaluation
@@ -419,19 +423,6 @@ class FastaContext extends ChainContext with MatchContext {
   }
 
   @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    if (onlyCrashes) {
-      Expectation outcome = result.outcome;
-      if (outcome == Expectation.crash || outcome == verificationError) {
-        return result;
-      }
-      return result.copyWithOutcome(Expectation.pass);
-    }
-    return super.processTestResult(description, result, last);
-  }
-
-  @override
   Set<Expectation> processExpectedOutcomes(
       Set<Expectation> outcomes, TestDescription description) {
     // Remove outcomes related to phases not currently in effect.
@@ -473,7 +464,6 @@ class FastaContext extends ChainContext with MatchContext {
       "enableExtensionMethods",
       "enableNonNullable",
       "soundNullSafety",
-      "onlyCrashes",
       "ignoreExpectations",
       UPDATE_EXPECTATIONS,
       UPDATE_COMMENTS,
@@ -492,7 +482,6 @@ class FastaContext extends ChainContext with MatchContext {
         SuiteFolderOptions.computeForcedExperimentalFlags(environment);
 
     bool soundNullSafety = environment["soundNullSafety"] == "true";
-    bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
     bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
     bool updateComments = environment[UPDATE_COMMENTS] == "true";
@@ -509,7 +498,6 @@ class FastaContext extends ChainContext with MatchContext {
         platformBinaries == null
             ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
-        onlyCrashes,
         experimentalFlags,
         ignoreExpectations,
         updateExpectations,

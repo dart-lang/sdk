@@ -23,7 +23,6 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -35,7 +34,6 @@ import 'package:test/test.dart';
 import '../../../generated/test_support.dart';
 import '../../summary/macros_environment.dart';
 import '../analysis/analyzer_state_printer.dart';
-import 'context_collection_resolution_caching.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
 
@@ -121,7 +119,13 @@ abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
-  MemoryByteStore _byteStore = getContextResolutionTestByteStore();
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
+  MemoryByteStore _byteStore = _sharedByteStore;
 
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
@@ -170,6 +174,7 @@ abstract class ContextResolutionTest
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions2: updateAnalysisOptions,
       macroSupport: macroSupport,
+      drainStreams: false,
     );
 
     _analysisContextCollection = collection;
@@ -289,7 +294,6 @@ abstract class ContextResolutionTest
 
   @mustCallSuper
   Future<void> tearDown() async {
-    noSoundNullSafety = true;
     await disposeAnalysisContextCollection();
     KernelCompilationService.disposeDelayed(
       const Duration(milliseconds: 500),
@@ -554,14 +558,6 @@ mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
 mixin WithoutEnhancedEnumsMixin on PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => '2.16';
-}
-
-mixin WithoutNullSafetyMixin on PubPackageResolutionTest {
-  @override
-  bool get isNullSafetyEnabled => false;
-
-  @override
-  String? get testPackageLanguageVersion => '2.9';
 }
 
 mixin WithStrictCastsMixin on PubPackageResolutionTest {

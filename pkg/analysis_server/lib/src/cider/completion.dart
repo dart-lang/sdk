@@ -193,10 +193,7 @@ class CiderCompletionComputer {
     performance.getDataInt('libraryCount').increment();
 
     var path = element.source.fullName;
-    var signature = _fileResolver.getLibraryLinkedSignature(
-      path: path,
-      performance: performance,
-    );
+    var signature = _fileResolver.getLibraryLinkedSignature(path);
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {

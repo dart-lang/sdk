@@ -113,19 +113,15 @@ class CreateCommand extends DartdevCommand {
 
     if (args['pub']) {
       log.stdout('');
-      var progress = log.progress('Running pub get');
-      var process = await startDartProcess(
-        sdk,
-        ['pub', 'get'],
-        cwd: dir,
-      );
+      final progress = log.progress('Running pub get');
 
       // Run 'pub get'. We display output from the pub command, but keep the
       // output terse. This is to give the user a sense of the work that pub
       // did without scrolling the previous stdout sections off the screen.
-      var buffer = StringBuffer();
-      routeToStdout(
-        process,
+      final buffer = StringBuffer();
+      final exitCode = await runProcess(
+        [sdk.dart, 'pub', 'get'],
+        cwd: dir,
         logToTrace: true,
         listener: (str) {
           // Filter lines like '+ multi_server_socket 1.0.2'.
@@ -134,8 +130,7 @@ class CreateCommand extends DartdevCommand {
           }
         },
       );
-      int code = await process.exitCode;
-      if (code != 0) return code;
+      if (exitCode != 0) return exitCode;
       progress.finish(showTiming: true);
       log.stdout(buffer.toString().trimRight());
     }

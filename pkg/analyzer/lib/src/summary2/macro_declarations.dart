@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart'
+    as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
@@ -116,12 +118,13 @@ class DeclarationBuilder {
   /// See [macro.DefinitionPhaseIntrospector.declarationOf].
   macro.DeclarationImpl declarationOf(macro.Identifier identifier) {
     if (identifier is! IdentifierImpl) {
-      throw ArgumentError('Not analyzer identifier.');
+      throw macro.MacroImplementationExceptionImpl('Not analyzer identifier.');
     }
 
     final element = identifier.element;
     if (element == null) {
-      throw ArgumentError('Identifier without element.');
+      throw macro.MacroImplementationExceptionImpl(
+          'Identifier without element.');
     }
 
     return declarationOfElement(element);
@@ -293,7 +296,7 @@ class DeclarationBuilder {
       case macro.OmittedTypeAnnotationCode():
         return _resolveTypeCodeOmitted(typeCode);
       case macro.RawTypeAnnotationCode():
-        throw ArgumentError('Not supported');
+        throw macro.MacroImplementationExceptionImpl('Not supported');
       case macro.RecordTypeAnnotationCode():
         return _resolveTypeCodeRecord(typeCode);
     }
@@ -302,12 +305,13 @@ class DeclarationBuilder {
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(macro.Identifier identifier) {
     if (identifier is! IdentifierImpl) {
-      throw ArgumentError('Not analyzer identifier.');
+      throw macro.MacroImplementationExceptionImpl('Not analyzer identifier.');
     }
 
     final element = identifier.element;
     if (element == null) {
-      throw ArgumentError('Identifier without element.');
+      throw macro.MacroImplementationExceptionImpl(
+          'Identifier without element.');
     }
 
     final node = nodeOfElement(element);
@@ -322,7 +326,7 @@ class DeclarationBuilder {
     return element.withAugmentations
         .expand((current) => current.metadata)
         .map(_buildMetadataElement)
-        .whereNotNull()
+        .nonNulls
         .toList();
   }
 
@@ -334,7 +338,7 @@ class DeclarationBuilder {
 
     final importPrefixNames = annotation.library.libraryImports
         .map((e) => e.prefix?.element.name)
-        .whereNotNull()
+        .nonNulls
         .toSet();
 
     final identifiers = <ast.SimpleIdentifier>[];
@@ -678,7 +682,8 @@ class DeclarationBuilderFromElement {
         return mixinElement(element);
       default:
         // TODO(scheglov): other elements
-        throw ArgumentError('element: (${element.runtimeType}) $element');
+        throw macro.MacroImplementationExceptionImpl(
+            'element: (${element.runtimeType}) $element');
     }
   }
 
@@ -700,7 +705,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       interfaces: element.interfaces.map(_interfaceType).toList(),
       hasAbstract: element.isAbstract,
       hasBase: element.isBase,
@@ -731,7 +736,7 @@ class DeclarationBuilderFromElement {
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       definingType: identifier(enclosing),
     );
   }
@@ -744,6 +749,21 @@ class DeclarationBuilderFromElement {
           isNullable: false,
           identifier: identifier(DynamicElementImpl.instance),
           typeArguments: const [],
+        );
+      case FunctionType():
+        return macro.FunctionTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+          namedParameters: type.parameters
+              .where((e) => e.isNamed)
+              .map(_functionTypeFormalParameter)
+              .toList(),
+          positionalParameters: type.parameters
+              .where((e) => e.isPositional)
+              .map(_functionTypeFormalParameter)
+              .toList(),
+          returnType: _dartType(type.returnType),
+          typeParameters: _typeParameters(type.typeFormals),
         );
       case InterfaceType():
         return _interfaceType(type);
@@ -791,7 +811,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       interfaces: element.interfaces.map(_interfaceType).toList(),
       mixins: element.mixins.map(_interfaceType).toList(),
       element: element,
@@ -806,7 +826,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       onType: _dartType(element.extendedType),
       element: element,
     );
@@ -820,7 +840,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       representationType: _dartType(element.representation.type),
       element: element,
     );
@@ -871,7 +891,20 @@ class DeclarationBuilderFromElement {
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
+    );
+  }
+
+  macro.FunctionTypeParameterImpl _functionTypeFormalParameter(
+    ParameterElement element,
+  ) {
+    return macro.FunctionTypeParameterImpl(
+      id: macro.RemoteInstance.uniqueId,
+      isNamed: element.isNamed,
+      isRequired: element.isRequired,
+      metadata: _buildMetadata(element),
+      name: element.name,
+      type: _dartType(element.type),
     );
   }
 
@@ -901,7 +934,7 @@ class DeclarationBuilderFromElement {
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       definingType: identifier(enclosing),
     );
   }
@@ -914,7 +947,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      typeParameters: _typeParameters(element.typeParameters),
       hasBase: element.isBase,
       interfaces: element.interfaces.map(_interfaceType).toList(),
       superclassConstraints:
@@ -967,6 +1000,12 @@ class DeclarationBuilderFromElement {
       metadata: _buildMetadata(element),
       bound: element.bound.mapOrNull(_dartType),
     );
+  }
+
+  List<macro.TypeParameterDeclarationImpl> _typeParameters(
+    List<TypeParameterElement> elements,
+  ) {
+    return elements.map(typeParameter).toList();
   }
 }
 
@@ -1314,7 +1353,8 @@ class DeclarationBuilderFromNode {
         return mixinDeclaration(node);
       default:
         // TODO(scheglov): other nodes
-        throw ArgumentError('node: (${node.runtimeType}) $node');
+        throw macro.MacroImplementationExceptionImpl(
+            'node: (${node.runtimeType}) $node');
     }
   }
 

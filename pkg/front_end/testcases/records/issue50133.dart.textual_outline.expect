@@ -1,3 +1,5 @@
 typedef Foo = (int, int);
+
 test() {}
+
 main() {}

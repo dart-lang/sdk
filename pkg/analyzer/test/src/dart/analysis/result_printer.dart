@@ -5,9 +5,12 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test/test.dart';
 
@@ -18,7 +21,7 @@ import '../../summary/resolved_ast_printer.dart';
 sealed class DriverEvent {}
 
 class DriverEventsPrinter {
-  final ResolvedLibraryResultPrinterConfiguration configuration;
+  final DriverEventsPrinterConfiguration configuration;
   final TreeStringSink sink;
   final ElementPrinter elementPrinter;
   final IdProvider idProvider;
@@ -36,55 +39,177 @@ class DriverEventsPrinter {
     }
   }
 
+  void _writeAnalysisError(AnalysisError e) {
+    sink.writelnWithIndent('${e.offset} +${e.length} ${e.errorCode.name}');
+  }
+
+  void _writeErrorsEvent(GetErrorsEvent event) {
+    _writeGetEvent(event);
+    sink.withIndent(() {
+      _writeErrorsResult(event.result);
+    });
+  }
+
+  void _writeErrorsResult(SomeErrorsResult result) {
+    switch (result) {
+      case ErrorsResultImpl():
+        final id = idProvider[result];
+        sink.writelnWithIndent('ErrorsResult $id');
+
+        sink.withIndent(() {
+          sink.writelnWithIndent('path: ${result.file.posixPath}');
+          expect(result.path, result.file.path);
+
+          sink.writelnWithIndent('uri: ${result.uri}');
+
+          sink.writeFlags({
+            'isAugmentation': result.isAugmentation,
+            'isLibrary': result.isLibrary,
+            'isMacroAugmentation': result.isMacroAugmentation,
+            'isPart': result.isPart,
+          });
+
+          sink.writeElements('errors', result.errors, _writeAnalysisError);
+        });
+      default:
+        throw UnimplementedError('${result.runtimeType}');
+    }
+  }
+
   void _writeEvent(DriverEvent event) {
     switch (event) {
+      case GetCachedResolvedUnitEvent():
+        _writeGetCachedResolvedUnit(event);
+      case GetErrorsEvent():
+        _writeErrorsEvent(event);
+      case GetIndexEvent():
+        _writeIndexEvent(event);
+      case GetLibraryByUriEvent():
+        _writeGetLibraryByUriEvent(event);
+      case GetResolvedLibraryEvent():
+        _writeGetResolvedLibrary(event);
       case GetResolvedLibraryByUriEvent():
         _writeGetResolvedLibraryByUri(event);
       case GetResolvedUnitEvent():
         _writeGetResolvedUnit(event);
+      case GetUnitElementEvent():
+        _writeGetUnitElementEvent(event);
       case ResultStreamEvent():
         _writeResultStreamEvent(event);
+      case SchedulerStatusEvent():
+        _writeSchedulerStatusEvent(event);
       default:
         throw UnimplementedError('${event.runtimeType}');
     }
   }
 
-  void _writeGetResolvedLibraryByUri(GetResolvedLibraryByUriEvent event) {
-    sink.writelnWithIndent('[future] getResolvedLibraryByUri');
+  void _writeGetCachedResolvedUnit(GetCachedResolvedUnitEvent event) {
+    _writeGetEvent(event);
     sink.withIndent(() {
-      sink.writelnWithIndent('name: ${event.name}');
+      if (event.result case final result?) {
+        _writeResolvedUnitResult(result);
+      } else {
+        sink.writelnWithIndent('null');
+      }
+    });
+  }
+
+  void _writeGetEvent(GetDriverEvent event) {
+    sink.writelnWithIndent('[future] ${event.methodName} ${event.name}');
+  }
+
+  void _writeGetLibraryByUriEvent(GetLibraryByUriEvent event) {
+    _writeGetEvent(event);
+    sink.withIndent(() {
+      _writeLibraryElementResult(event.result);
+    });
+  }
+
+  void _writeGetResolvedLibrary(GetResolvedLibraryEvent event) {
+    _writeGetEvent(event);
+    sink.withIndent(() {
+      _writeResolvedLibraryResult(event.result);
+    });
+  }
+
+  void _writeGetResolvedLibraryByUri(GetResolvedLibraryByUriEvent event) {
+    _writeGetEvent(event);
+    sink.withIndent(() {
+      _writeResolvedLibraryResult(event.result);
+    });
+  }
+
+  void _writeGetResolvedUnit(GetResolvedUnitEvent event) {
+    _writeGetEvent(event);
+    sink.withIndent(() {
+      _writeResolvedUnitResult(event.result);
+    });
+  }
+
+  void _writeGetUnitElementEvent(GetUnitElementEvent event) {
+    _writeGetEvent(event);
+    sink.withIndent(() {
       final result = event.result;
       switch (result) {
-        case NotLibraryButAugmentationResult():
-          sink.writelnWithIndent('NotLibraryButAugmentationResult');
-        case ResolvedLibraryResult():
-          ResolvedLibraryResultPrinter(
-            configuration: configuration,
-            sink: sink,
-            idProvider: idProvider,
-            elementPrinter: ElementPrinter(
-              sink: sink,
-              configuration: ElementPrinterConfiguration(),
-              selfUriStr: null,
-            ),
-          ).write(result);
+        case UnitElementResult():
+          _writeUnitElementResult(result);
         default:
           throw UnimplementedError('${result.runtimeType}');
       }
     });
   }
 
-  void _writeGetResolvedUnit(GetResolvedUnitEvent event) {
-    sink.writelnWithIndent('[future] getResolvedUnit');
+  void _writeIndexEvent(GetIndexEvent event) {
+    _writeGetEvent(event);
     sink.withIndent(() {
-      sink.writelnWithIndent('name: ${event.name}');
-      _writeResolvedUnitResult(event.result);
+      if (event.result case var result?) {
+        sink.writeElements('strings', result.strings, (str) {
+          sink.writelnWithIndent(str);
+        });
+      }
     });
+  }
+
+  void _writeLibraryElementResult(SomeLibraryElementResult result) {
+    switch (result) {
+      case CannotResolveUriResult():
+        sink.writelnWithIndent('CannotResolveUriResult');
+      case NotLibraryButAugmentationResult():
+        sink.writelnWithIndent('NotLibraryButAugmentationResult');
+      case NotLibraryButPartResult():
+        sink.writelnWithIndent('NotLibraryButPartResult');
+      default:
+        throw UnimplementedError('${result.runtimeType}');
+    }
+  }
+
+  void _writeResolvedLibraryResult(SomeResolvedLibraryResult result) {
+    switch (result) {
+      case CannotResolveUriResult():
+        sink.writelnWithIndent('CannotResolveUriResult');
+      case NotLibraryButAugmentationResult():
+        sink.writelnWithIndent('NotLibraryButAugmentationResult');
+      case NotLibraryButPartResult():
+        sink.writelnWithIndent('NotLibraryButPartResult');
+      case ResolvedLibraryResult():
+        ResolvedLibraryResultPrinter(
+          configuration: configuration.libraryConfiguration,
+          sink: sink,
+          idProvider: idProvider,
+          elementPrinter: ElementPrinter(
+            sink: sink,
+            configuration: ElementPrinterConfiguration(),
+            selfUriStr: null,
+          ),
+        ).write(result);
+      default:
+        throw UnimplementedError('${result.runtimeType}');
+    }
   }
 
   void _writeResolvedUnitResult(SomeResolvedUnitResult result) {
     ResolvedUnitResultPrinter(
-      configuration: configuration.unitConfiguration,
+      configuration: configuration.libraryConfiguration.unitConfiguration,
       sink: sink,
       elementPrinter: elementPrinter,
       idProvider: idProvider,
@@ -95,22 +220,31 @@ class DriverEventsPrinter {
   void _writeResultStreamEvent(ResultStreamEvent event) {
     final object = event.object;
     switch (object) {
-      case events.ComputeAnalysis():
-        sink.writelnWithIndent('[operation] computeAnalysisResult');
+      case events.AnalyzeFile():
+        sink.writelnWithIndent('[operation] analyzeFile');
         sink.withIndent(() {
           final file = object.file.resource;
           sink.writelnWithIndent('file: ${file.posixPath}');
           final libraryFile = object.library.file.resource;
           sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
-      case events.ComputeResolvedLibrary():
-        sink.writelnWithIndent('[operation] computeResolvedLibrary');
+      case ErrorsResult():
+        sink.writelnWithIndent('[stream]');
         sink.withIndent(() {
-          final fileState = object.library.file;
-          final file = fileState.resource;
-          sink.writelnWithIndent('library: ${file.posixPath}');
+          _writeErrorsResult(object);
+        });
+      case events.GetErrorsFromBytes():
+        sink.writelnWithIndent('[operation] getErrorsFromBytes');
+        sink.withIndent(() {
+          final file = object.file.resource;
+          sink.writelnWithIndent('file: ${file.posixPath}');
+          final libraryFile = object.library.file.resource;
+          sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
       case ResolvedUnitResult():
+        if (!configuration.withStreamResolvedUnitResults) {
+          return;
+        }
         sink.writelnWithIndent('[stream]');
         sink.withIndent(() {
           _writeResolvedUnitResult(object);
@@ -119,28 +253,163 @@ class DriverEventsPrinter {
         throw UnimplementedError('${object.runtimeType}');
     }
   }
+
+  void _writeSchedulerStatusEvent(SchedulerStatusEvent event) {
+    sink.writeIndentedLine(() {
+      sink.write('[status] ');
+      switch (event.status) {
+        case AnalysisStatusIdle():
+          sink.write('idle');
+        case AnalysisStatusWorking():
+          sink.write('working');
+      }
+    });
+  }
+
+  void _writeUnitElementResult(UnitElementResult result) {
+    sink.writelnWithIndent('path: ${result.file.posixPath}');
+    expect(result.path, result.file.path);
+
+    sink.writelnWithIndent('uri: ${result.uri}');
+
+    sink.writeFlags({
+      'isAugmentation': result.isAugmentation,
+      'isLibrary': result.isLibrary,
+      'isMacroAugmentation': result.isMacroAugmentation,
+      'isPart': result.isPart,
+    });
+
+    final unitElement = result.element;
+
+    elementPrinter.writeNamedElement(
+      'enclosing',
+      unitElement.enclosingElement,
+    );
+
+    final elementsToWrite =
+        configuration.unitElementConfiguration.elementSelector(unitElement);
+    elementPrinter.writeElementList('selectedElements', elementsToWrite);
+  }
+}
+
+class DriverEventsPrinterConfiguration {
+  var libraryConfiguration = ResolvedLibraryResultPrinterConfiguration();
+  var unitElementConfiguration = UnitElementPrinterConfiguration();
+  var withStreamResolvedUnitResults = true;
+}
+
+/// The result of `getCachedResolvedUnit`.
+final class GetCachedResolvedUnitEvent extends GetDriverEvent {
+  final SomeResolvedUnitResult? result;
+
+  GetCachedResolvedUnitEvent({
+    required super.name,
+    required this.result,
+  });
+
+  @override
+  String get methodName => 'getCachedResolvedUnit';
+}
+
+sealed class GetDriverEvent extends DriverEvent {
+  final String name;
+
+  GetDriverEvent({
+    required this.name,
+  });
+
+  String get methodName;
+}
+
+/// The result of `getErrors`.
+final class GetErrorsEvent extends GetDriverEvent {
+  final SomeErrorsResult result;
+
+  GetErrorsEvent({
+    required super.name,
+    required this.result,
+  });
+
+  @override
+  String get methodName => 'getErrors';
+}
+
+/// The result of `getIndex`.
+final class GetIndexEvent extends GetDriverEvent {
+  final AnalysisDriverUnitIndex? result;
+
+  GetIndexEvent({
+    required super.name,
+    required this.result,
+  });
+
+  @override
+  String get methodName => 'getIndex';
+}
+
+/// The result of `getLibraryByUri`.
+final class GetLibraryByUriEvent extends GetDriverEvent {
+  final SomeLibraryElementResult result;
+
+  GetLibraryByUriEvent({
+    required super.name,
+    required this.result,
+  });
+
+  @override
+  String get methodName => 'getLibraryByUri';
 }
 
 /// The result of `getResolvedLibraryByUri`.
-final class GetResolvedLibraryByUriEvent extends DriverEvent {
-  final String name;
+final class GetResolvedLibraryByUriEvent extends GetDriverEvent {
   final SomeResolvedLibraryResult result;
 
   GetResolvedLibraryByUriEvent({
-    required this.name,
+    required super.name,
     required this.result,
   });
+
+  @override
+  String get methodName => 'getResolvedLibraryByUri';
+}
+
+/// The result of `getResolvedLibrary`.
+final class GetResolvedLibraryEvent extends GetDriverEvent {
+  final SomeResolvedLibraryResult result;
+
+  GetResolvedLibraryEvent({
+    required super.name,
+    required this.result,
+  });
+
+  @override
+  String get methodName => 'getResolvedLibrary';
 }
 
 /// The result of `getResolvedUnit`.
-final class GetResolvedUnitEvent extends DriverEvent {
-  final String name;
+final class GetResolvedUnitEvent extends GetDriverEvent {
   final SomeResolvedUnitResult result;
 
   GetResolvedUnitEvent({
-    required this.name,
+    required super.name,
     required this.result,
   });
+
+  @override
+  String get methodName => 'getResolvedUnit';
+}
+
+/// The result of `getUnitElement`.
+final class GetUnitElementEvent extends GetDriverEvent {
+  final SomeUnitElementResult result;
+
+  GetUnitElementEvent({
+    required super.name,
+    required this.result,
+  });
+
+  @override
+  String get methodName => 'getUnitElement';
 }
 
 class IdProvider {
@@ -180,9 +449,16 @@ class ResolvedLibraryResultPrinter {
   }
 
   void _writeResolvedLibraryResult(ResolvedLibraryResult result) {
+    if (idProvider.existing(result) case final id?) {
+      sink.writelnWithIndent('ResolvedLibraryResult $id');
+      return;
+    }
+
     _libraryElement = result.element;
 
-    sink.writelnWithIndent('ResolvedLibraryResult');
+    final id = idProvider[result];
+    sink.writelnWithIndent('ResolvedLibraryResult $id');
+
     sink.withIndent(() {
       elementPrinter.writeNamedElement('element', result.element);
       sink.writeElements('units', result.units, _writeResolvedUnitResult);
@@ -280,6 +556,28 @@ class ResolvedUnitResultPrinter {
           ),
         );
       }
+
+      final typesToWrite = configuration.typesSelector(result);
+      sink.writeElements(
+        'selectedTypes',
+        typesToWrite.entries.toList(),
+        (entry) {
+          sink.writeIndent();
+          sink.write('${entry.key}: ');
+          elementPrinter.writeType(entry.value);
+        },
+      );
+
+      final variableTypesToWrite = configuration.variableTypesSelector(result);
+      sink.writeElements(
+        'selectedVariableTypes',
+        variableTypesToWrite,
+        (variable) {
+          sink.writeIndent();
+          sink.write('${variable.name}: ');
+          elementPrinter.writeType(variable.type);
+        },
+      );
     });
   }
 }
@@ -287,6 +585,9 @@ class ResolvedUnitResultPrinter {
 class ResolvedUnitResultPrinterConfiguration {
   var nodeConfiguration = ResolvedNodeTextConfiguration();
   AstNode? Function(ResolvedUnitResult) nodeSelector = (_) => null;
+  Map<String, DartType> Function(ResolvedUnitResult) typesSelector = (_) => {};
+  List<VariableElement> Function(ResolvedUnitResult) variableTypesSelector =
+      (_) => [];
   bool Function(ResolvedUnitResult) withContentPredicate = (_) => false;
 }
 
@@ -297,4 +598,14 @@ final class ResultStreamEvent extends DriverEvent {
   ResultStreamEvent({
     required this.object,
   });
+}
+
+final class SchedulerStatusEvent extends DriverEvent {
+  final AnalysisStatus status;
+
+  SchedulerStatusEvent(this.status);
+}
+
+class UnitElementPrinterConfiguration {
+  List<Element> Function(CompilationUnitElement) elementSelector = (_) => [];
 }

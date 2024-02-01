@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -33,6 +34,9 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   String get projectFolderPath => convertPath(testPackageRootPath);
 
   Uri get testFileUri => toUri(convertPath(testFilePath));
+
+  @override
+  ClientUriConverter get uriConverter => server.uriConverter;
 
   Future<void> addOverlay(String filePath, String content) {
     return handleSuccessfulRequest(

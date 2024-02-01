@@ -455,7 +455,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               buildTypedefTearOffProcedure(
                   tearOff: tearOff,
                   declarationConstructor: target,
-                  // TODO(johnniwinther): Handle patched constructors.
+                  // TODO(johnniwinther): Handle augmented constructors.
                   implementationConstructor: target,
                   enclosingTypeDeclaration: declaration.cls,
                   typeParameters: typedef.typeParameters,
@@ -508,7 +508,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               buildTypedefTearOffProcedure(
                   tearOff: tearOff,
                   declarationConstructor: target,
-                  // TODO(johnniwinther): Handle patched constructors.
+                  // TODO(johnniwinther): Handle augmented constructors.
                   implementationConstructor: target,
                   enclosingTypeDeclaration:
                       declaration.extensionTypeDeclaration,

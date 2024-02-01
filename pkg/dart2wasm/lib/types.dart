@@ -14,18 +14,6 @@ import 'package:kernel/core_types.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
-/// Values for the type category table. Entries for masqueraded classes contain
-/// the class ID of the masquerade.
-class TypeCategory {
-  static const abstractClass = 0;
-  static const object = 1;
-  static const function = 2;
-  static const record = 3;
-  static const notMasqueraded = 4;
-  static const minMasqueradeClassId = 5;
-  static const maxMasqueradeClassId = 63; // Leaves 2 unused bits for future use
-}
-
 /// Values for the `_kind` field in `_TopType`. Must match the definitions in
 /// `_TopType`.
 class TopTypeKind {
@@ -120,9 +108,6 @@ class Types {
 
   w.ValueType classAndFieldToType(Class cls, int fieldIndex) =>
       translator.classInfo[cls]!.struct.fields[fieldIndex].type.unpacked;
-
-  Iterable<Class> _getConcreteSubtypes(Class cls) =>
-      translator.subtypes.getSubtypesOf(cls).where((c) => !c.isAbstract);
 
   /// Wasm value type for non-nullable `_Type` values
   w.ValueType get nonNullableTypeType => typeClassInfo.nonNullableType;
@@ -290,18 +275,44 @@ class Types {
     final arrayOfStringType = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [stringType]);
 
-    final arrayOfStrings = translator.constants.makeArrayOf(
-        stringType, [for (final name in typeNames) StringConstant(name)]);
-
     final typeNamesType =
         translator.translateStorageType(arrayOfStringType).unpacked;
-    translator.constants
-        .instantiateConstant(null, b, arrayOfStrings, typeNamesType);
+    if (translator.options.minify) {
+      b.ref_null((typeNamesType as w.RefType).heapType);
+    } else {
+      final arrayOfStrings = translator.constants.makeArrayOf(
+          stringType, [for (final name in typeNames) StringConstant(name)]);
+      translator.constants
+          .instantiateConstant(null, b, arrayOfStrings, typeNamesType);
+    }
     return typeNamesType;
   }
 
+  // None of these integers belong to masqueraded types like Uint8List.
+  late final int typeCategoryAbstractClass;
+  late final int typeCategoryObject;
+  late final int typeCategoryFunction;
+  late final int typeCategoryRecord;
+  late final int typeCategoryNotMasqueraded;
+
   /// Build a global array of byte values used to categorize runtime types.
   w.Global _buildTypeCategoryTable() {
+    // Find 5 class ids whose classes are not masqueraded.
+    final typeCategories = <int>[];
+    for (int i = 0; i < translator.classes.length; i++) {
+      final info = translator.classes[i];
+      if (!translator.classInfoCollector.masqueradeValues.contains(info.cls)) {
+        typeCategories.add(i);
+        if (typeCategories.length == 5) break;
+      }
+    }
+    assert(typeCategories.length == 5 && typeCategories.last <= 255);
+    typeCategoryAbstractClass = typeCategories[0];
+    typeCategoryObject = typeCategories[1];
+    typeCategoryFunction = typeCategories[2];
+    typeCategoryRecord = typeCategories[3];
+    typeCategoryNotMasqueraded = typeCategories[4];
+
     Set<Class> recordClasses = Set.from(translator.recordClasses.values);
     Uint8List table = Uint8List(translator.classes.length);
     for (int i = 0; i < translator.classes.length; i++) {
@@ -310,28 +321,28 @@ class Types {
       Class? cls = info.cls;
       int category;
       if (cls == null || cls.isAbstract) {
-        category = TypeCategory.abstractClass;
+        category = typeCategoryAbstractClass;
       } else if (cls == coreTypes.objectClass) {
-        category = TypeCategory.object;
+        category = typeCategoryObject;
       } else if (cls == translator.closureClass) {
-        category = TypeCategory.function;
+        category = typeCategoryFunction;
       } else if (recordClasses.contains(cls)) {
-        category = TypeCategory.record;
+        category = typeCategoryRecord;
       } else if (masquerade == null || masquerade.classId == i) {
-        category = TypeCategory.notMasqueraded;
+        category = typeCategoryNotMasqueraded;
       } else {
         // Masqueraded class
         assert(cls.enclosingLibrary.importUri.scheme == "dart");
-        assert(masquerade.classId >= TypeCategory.minMasqueradeClassId);
-        assert(masquerade.classId <= TypeCategory.maxMasqueradeClassId);
+        assert(!typeCategories.contains(masquerade.classId));
+        assert(masquerade.classId <= 255);
         category = masquerade.classId;
       }
       table[i] = category;
     }
 
     final segment = translator.m.dataSegments.define(table);
-    w.ArrayType arrayType =
-        translator.wasmArrayType(w.PackedType.i8, "const i8", mutable: false);
+    w.ArrayType arrayType = translator.arrayTypeForDartType(
+        InterfaceType(translator.wasmI8Class, Nullability.nonNullable));
     final global = translator.m.globals
         .define(w.GlobalType(w.RefType.def(arrayType, nullable: false)));
     // Initialize the global to a dummy array, since `array.new_data` is not
@@ -587,7 +598,7 @@ class Types {
       return info.nonNullableType;
     }
 
-    translator.functions.allocateClass(info.classId);
+    translator.functions.recordClassAllocation(info.classId);
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     if (type is InterfaceType) {
@@ -706,36 +717,54 @@ class Types {
       b.br_on_null(nullLabel);
     }
 
-    List<Class> concrete = _getConcreteSubtypes(type.classNode).toList();
-    if (type.classNode == coreTypes.objectClass) {
+    final interfaceClass = type.classNode;
+
+    if (interfaceClass == coreTypes.objectClass) {
       b.drop();
       b.i32_const(1);
-    } else if (type.classNode == coreTypes.functionClass) {
+    } else if (interfaceClass == coreTypes.functionClass) {
       b.ref_test(translator.closureInfo.nonNullableType);
-    } else if (concrete.isEmpty) {
-      b.drop();
-      b.i32_const(0);
-    } else if (concrete.length == 1) {
-      ClassInfo info = translator.classInfo[concrete.single]!;
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.i32_const(info.classId);
-      b.i32_eq();
     } else {
-      w.Local idLocal = codeGen.addLocal(w.NumType.i32);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.local_set(idLocal);
-      w.Label done = b.block(const [], const [w.NumType.i32]);
-      b.i32_const(1);
-      for (Class cls in concrete) {
-        ClassInfo info = translator.classInfo[cls]!;
-        b.i32_const(info.classId);
-        b.local_get(idLocal);
-        b.i32_eq();
-        b.br_if(done);
+      final ranges =
+          translator.classIdNumbering.getConcreteClassIdRanges(interfaceClass);
+      if (ranges.isEmpty) {
+        b.drop();
+        b.i32_const(0);
+      } else if (ranges.length == 1) {
+        final range = ranges[0];
+
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.i32_const(range.start);
+        if (range.length == 1) {
+          b.i32_eq();
+        } else {
+          b.i32_sub();
+          b.i32_const(range.length);
+          b.i32_lt_u();
+        }
+      } else {
+        w.Local idLocal = codeGen.addLocal(w.NumType.i32);
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.local_set(idLocal);
+        w.Label done = b.block(const [], const [w.NumType.i32]);
+        b.i32_const(1);
+
+        for (Range range in ranges) {
+          b.local_get(idLocal);
+          b.i32_const(range.start);
+          if (range.length == 1) {
+            b.i32_eq();
+          } else {
+            b.i32_sub();
+            b.i32_const(range.length);
+            b.i32_lt_u();
+          }
+          b.br_if(done);
+        }
+        b.drop();
+        b.i32_const(0);
+        b.end(); // done
       }
-      b.drop();
-      b.i32_const(0);
-      b.end(); // done
     }
 
     if (isPotentiallyNullable) {

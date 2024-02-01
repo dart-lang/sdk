@@ -415,17 +415,18 @@ class OptionsTest extends BaseTest {
     );
     expect(processorFor(unused_local_variable).severity, isNull);
 
-    // missing_return: error
-    var missing_return = AnalysisError.tmp(
+    // assignment_of_do_not_store: error
+    var assignment_of_do_not_store = AnalysisError.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.MISSING_RETURN,
+      errorCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
       arguments: [
         ['x'],
       ],
     );
-    expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
+    expect(
+        processorFor(assignment_of_do_not_store).severity, ErrorSeverity.ERROR);
     expect(bulletToDash(outSink),
         contains('error - The body might complete normally'));
     expect(outSink.toString(), contains('1 error and 1 warning found.'));

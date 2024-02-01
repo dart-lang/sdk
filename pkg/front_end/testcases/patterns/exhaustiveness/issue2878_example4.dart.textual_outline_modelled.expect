@@ -5,6 +5,7 @@ List<List<A>> perms<A>(List<A> list) => switch (list) {
             for (var perm in perms(xs)) [...perm.take(i), x, ...perm.skip(i)]
         ],
     };
+
 List<List<A>> subs<A>(List<A> list) => switch (list) {
       <A>[] => [],
       <A>[var x, ...var xs] => [
@@ -15,6 +16,7 @@ List<List<A>> subs<A>(List<A> list) => switch (list) {
           [x]
         ],
     };
+
 bool equals<A>(List<A> a, List<A> b) => switch ((a, b)) {
       (<A>[], <A>[]) => true,
       (<A>[_, ...], <A>[]) => false,
@@ -22,4 +24,5 @@ bool equals<A>(List<A> a, List<A> b) => switch ((a, b)) {
       (<A>[var l, ...var ls], <A>[var r, ...var rs]) =>
         l == r && equals(ls, rs),
     };
+
 void main() {}

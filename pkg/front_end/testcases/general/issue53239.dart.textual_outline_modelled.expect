@@ -4,8 +4,11 @@ class C1 {
 }
 
 expect(expected, actual) {}
+
 extension type ET1(int id) {
   ET1.n1(this.id, [String s = "b"]) {}
 }
+
 main() {}
+
 var log;

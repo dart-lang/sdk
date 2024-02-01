@@ -19,7 +19,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
-import 'package:collection/collection.dart';
 
 Uint8List writeUnitInformative(CompilationUnit unit) {
   var byteSink = ByteSink();
@@ -301,6 +300,10 @@ class InformativeDataApplier {
       infoList,
       (element, info) {
         if (element is ShowElementCombinatorImpl) {
+          element.offset = info.offset;
+          element.end = info.end;
+        }
+        if (element is HideElementCombinatorImpl) {
           element.offset = info.offset;
           element.end = info.end;
         }

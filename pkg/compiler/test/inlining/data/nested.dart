@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[]*/
 main() {
   nestedGenericInlining();
@@ -16,7 +14,7 @@ main() {
 
 class Class1<T> {
   @pragma('dart2js:tryInline')
-  /*member: Class1.:[nestedGenericInlining:Class1<int*>]*/
+  /*member: Class1.:[nestedGenericInlining:Class1<int>]*/
   Class1();
 
   /*member: Class1.method:[nestedGenericInlining]*/
@@ -30,7 +28,7 @@ class Class2<T> {
   // TODO(johnniwinther): Should the type have been Class<List<int>>?
   // Similarly below.
   @pragma('dart2js:tryInline')
-  /*member: Class2.:[nestedGenericInlining:Class2<List<Class1.T*>*>]*/
+  /*member: Class2.:[nestedGenericInlining:Class2<List<Class1.T>>]*/
   Class2();
 
   /*member: Class2.method:[nestedGenericInlining]*/
@@ -50,7 +48,7 @@ nestedGenericInlining() {
 
 class Class3a<T> implements Class3b<T> {
   @pragma('dart2js:tryInline')
-  /*member: Class3a.:[nestedGenericFactoryInlining:Class3a<int*>]*/
+  /*member: Class3a.:[nestedGenericFactoryInlining:Class3a<int>]*/
   Class3a();
 
   /*member: Class3a.method:[nestedGenericFactoryInlining]*/
@@ -62,7 +60,7 @@ class Class3a<T> implements Class3b<T> {
 
 abstract class Class3b<T> {
   @pragma('dart2js:tryInline')
-  /*member: Class3b.:[nestedGenericFactoryInlining:Class3b<int*>]*/
+  /*member: Class3b.:[nestedGenericFactoryInlining:Class3b<int>]*/
   factory Class3b() => Class3a<T>();
 
   method();
@@ -70,7 +68,7 @@ abstract class Class3b<T> {
 
 class Class4a<T> implements Class4b<T> {
   @pragma('dart2js:tryInline')
-  /*member: Class4a.:[nestedGenericFactoryInlining:Class4a<Class4b.T*>]*/
+  /*member: Class4a.:[nestedGenericFactoryInlining:Class4a<Class4b.T>]*/
   Class4a();
 
   /*member: Class4a.method:[nestedGenericFactoryInlining]*/
@@ -80,7 +78,7 @@ class Class4a<T> implements Class4b<T> {
 
 abstract class Class4b<T> {
   @pragma('dart2js:tryInline')
-  /*member: Class4b.:[nestedGenericFactoryInlining:Class4b<List<Class3a.T*>*>]*/
+  /*member: Class4b.:[nestedGenericFactoryInlining:Class4b<List<Class3a.T>>]*/
   factory Class4b() => Class4a<T>();
 
   method();

@@ -2802,7 +2802,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
   ReadByte();                                  // read kind.
 
   // read flags.
-  const uint8_t flags = is_dynamic ? 0 : ReadFlags();
+  const uint8_t flags = ReadFlags();
   const bool is_invariant = (flags & kInstanceInvocationFlagInvariant) != 0;
 
   const TokenPosition position = ReadPosition();  // read position.
@@ -2964,8 +2964,13 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
 Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     TokenPosition* p) {
+  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
   const TokenPosition position = ReadPosition();
   if (p != nullptr) *p = position;
+
+  const InferredTypeMetadata result_type =
+      inferred_type_metadata_helper_.GetInferredType(offset);
+
   // read variable kernel position.
   const intptr_t variable_kernel_position = ReadUInt();
   ReadUInt();  // read relative variable index.
@@ -3027,7 +3032,7 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     instructions += DebugStepCheck(position);
   }
   instructions += B->ClosureCall(target_function, position, type_args_len,
-                                 argument_count, argument_names);
+                                 argument_count, argument_names, &result_type);
   return instructions;
 }
 
@@ -3090,7 +3095,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
     }
     instructions +=
         B->ClosureCall(Function::null_function(), position, type_args_len,
-                       argument_count, argument_names);
+                       argument_count, argument_names, &result_type);
   } else {
     instructions += InstanceCall(
         position, Symbols::DynamicCall(), Token::kILLEGAL, type_args_len,
@@ -6064,7 +6069,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   if (function.IsGeneric()) {
     // Only generic functions need to have properly initialized
-    // delayed_type_arguments.
+    // delayed and default type arguments.
     instructions += LoadLocal(closure);
     instructions += Constant(Object::empty_type_arguments());
     instructions += flow_graph_builder_->StoreNativeField(

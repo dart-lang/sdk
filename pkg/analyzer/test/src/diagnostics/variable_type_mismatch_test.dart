@@ -10,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VariableTypeMismatchTest);
-    defineReflectiveTests(VariableTypeMismatchWithoutNullSafetyTest);
   });
 }
 
@@ -45,47 +44,43 @@ const Unresolved x = 'foo';
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10),
     ]);
   }
-}
 
-@reflectiveTest
-class VariableTypeMismatchWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
   test_int_to_double_variable_reference_is_not_promoted() async {
     // Note: in the following code, the declaration of `y` should produce an
     // error because we should only promote literal ints to doubles; we
     // shouldn't promote the reference to the variable `x`.
     await assertErrorsInCode('''
-const Object x = 0;
+const dynamic x = 0;
 const double y = x;
 ''', [
-      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 37, 1),
+      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 38, 1),
     ]);
   }
 
   test_listLiteral_inferredElementType() async {
     await assertErrorsInCode('''
-const Object x = [1];
+const dynamic x = [1];
 const List<String> y = x;
 ''', [
-      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 45, 1),
+      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 46, 1),
     ]);
   }
 
   test_mapLiteral_inferredKeyType() async {
     await assertErrorsInCode('''
-const Object x = {1: 1};
+const dynamic x = {1: 1};
 const Map<String, dynamic> y = x;
 ''', [
-      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 56, 1),
+      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 57, 1),
     ]);
   }
 
   test_mapLiteral_inferredValueType() async {
     await assertErrorsInCode('''
-const Object x = {1: 1};
+const dynamic x = {1: 1};
 const Map<dynamic, String> y = x;
 ''', [
-      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 56, 1),
+      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 57, 1),
     ]);
   }
 }

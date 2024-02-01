@@ -210,12 +210,16 @@ Matcher deepEqualsTypeAnnotation(TypeAnnotation declaration) =>
 Matcher deepEqualsArguments(Arguments arguments) =>
     _DeepEqualityMatcher(arguments);
 
+/// Checks if two [MacroException]s are identical
+Matcher deepEqualsMacroException(MacroException macroException) =>
+    _DeepEqualityMatcher(macroException);
+
 /// Checks if two [MetadataAnnotation]s are identical
 Matcher deepEqualsMetadataAnnotation(MetadataAnnotation metadata) =>
     _DeepEqualityMatcher(metadata);
 
-/// Checks if two [Declaration]s, [TypeAnnotation]s, or [Code] objects are of
-/// the same type and all their fields are equal.
+/// Checks if two [Declaration]s, [TypeAnnotation]s, [Code]s or
+/// [MacroException]s are of the same type and all their fields are equal.
 class _DeepEqualityMatcher extends Matcher {
   final Object? instance;
 
@@ -233,7 +237,8 @@ class _DeepEqualityMatcher extends Matcher {
     }
     if (instance is Declaration ||
         instance is TypeAnnotation ||
-        instance is MetadataAnnotation) {
+        instance is MetadataAnnotation ||
+        instance is MacroException) {
       var instanceReflector = reflect(instance);
       var itemReflector = reflect(item);
 
@@ -501,7 +506,7 @@ class Fixtures {
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myConstructor'),
       library: Fixtures.library,
       metadata: [],
-      hasBody: true,
+      hasBody: false, // we will augment with one
       hasExternal: false,
       namedParameters: [],
       positionalParameters: [
@@ -611,7 +616,7 @@ class Fixtures {
           id: RemoteInstance.uniqueId, name: 'myEnumConstructor'),
       library: Fixtures.library,
       metadata: [],
-      hasBody: true,
+      hasBody: false, // We will augment with one
       hasExternal: false,
       namedParameters: [],
       positionalParameters: [

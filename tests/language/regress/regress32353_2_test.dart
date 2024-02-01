@@ -19,6 +19,7 @@ class D<X, Y> extends B<X, Y> with C {}
 //    ^
 // [cfe] 'B with C' can't implement both 'B<X, Y>' and 'B<dynamic, A>'
 // [cfe] 'B<X, Y>' doesn't implement 'B<dynamic, A>' so it can't be used with 'C<dynamic>'.
+// [cfe] Type parameters couldn't be inferred for the mixin 'C' because 'B' does not implement the mixin's supertype constraint 'B<X, A>'.
 //                                 ^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE
 

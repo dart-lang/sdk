@@ -81,6 +81,7 @@ class Super {
 }
 
 main() {}
+
 mixin Mixin {
   int extendedMethodMixedInField = 0;
   int get extendedMethodMixedInGetter => 0;

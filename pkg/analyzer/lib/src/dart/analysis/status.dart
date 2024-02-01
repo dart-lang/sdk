@@ -5,22 +5,35 @@
 import 'dart:async';
 
 /// The status of analysis.
-class AnalysisStatus {
-  static const IDLE = AnalysisStatus._(false);
-  static const ANALYZING = AnalysisStatus._(true);
+sealed class AnalysisStatus {
+  const AnalysisStatus._();
 
-  final bool _analyzing;
+  bool get isIdle => !isWorking;
 
-  const AnalysisStatus._(this._analyzing);
+  bool get isWorking;
+}
 
-  /// Return `true` if the scheduler is analyzing.
-  bool get isAnalyzing => _analyzing;
-
-  /// Return `true` if the scheduler is idle.
-  bool get isIdle => !_analyzing;
+final class AnalysisStatusIdle extends AnalysisStatus {
+  const AnalysisStatusIdle._() : super._();
 
   @override
-  String toString() => _analyzing ? 'analyzing' : 'idle';
+  bool get isWorking => false;
+
+  @override
+  String toString() => 'idle';
+}
+
+final class AnalysisStatusWorking extends AnalysisStatus {
+  /// Will complete when we switch to [AnalysisStatusIdle].
+  final Completer<void> _idleCompleter = Completer<void>();
+
+  AnalysisStatusWorking._() : super._();
+
+  @override
+  bool get isWorking => true;
+
+  @override
+  String toString() => 'working';
 }
 
 /// [Monitor] can be used to wait for a signal.
@@ -48,56 +61,50 @@ class Monitor {
 
 /// Helper for managing transitioning [AnalysisStatus].
 class StatusSupport {
-  /// The controller for the [stream].
-  final _statusController = StreamController<AnalysisStatus>();
+  final StreamController<Object> _eventsController;
 
-  /// The last status sent to the [stream].
-  AnalysisStatus _currentStatus = AnalysisStatus.IDLE;
+  /// The last status sent to [_eventsController].
+  AnalysisStatus _currentStatus = const AnalysisStatusIdle._();
 
-  /// If non-null, a completer which should be completed on the next transition
-  /// to idle.
-  Completer<void>? _idleCompleter;
+  StatusSupport({
+    required StreamController<Object> eventsController,
+  }) : _eventsController = eventsController;
 
-  /// Return the last status sent to the [stream].
+  /// The last status sent to [_eventsController].
   AnalysisStatus get currentStatus => _currentStatus;
 
-  /// Return the stream that produces [AnalysisStatus] events.
-  Stream<AnalysisStatus> get stream => _statusController.stream;
-
-  /// Prepare for the scheduler to start analyzing, but do not notify the
-  /// [stream] yet.
-  ///
-  /// A call to [preTransitionToAnalyzing] has the same effect on [waitForIdle]
-  /// as a call to [transitionToAnalyzing], but it has no effect on the
-  /// [stream].
-  void preTransitionToAnalyzing() {
-    _idleCompleter ??= Completer<void>();
-  }
-
-  /// Send a notification to the [stream] that the scheduler started analyzing.
-  void transitionToAnalyzing() {
-    if (_currentStatus != AnalysisStatus.ANALYZING) {
-      preTransitionToAnalyzing();
-      _currentStatus = AnalysisStatus.ANALYZING;
-      _statusController.add(AnalysisStatus.ANALYZING);
-    }
-  }
-
-  /// Send a notification to the [stream] stream that the scheduler is idle.
+  /// If the current status is not [AnalysisStatusIdle] yet, set the
+  /// current status to it, and send it to the stream.
   void transitionToIdle() {
-    if (_currentStatus != AnalysisStatus.IDLE) {
-      _currentStatus = AnalysisStatus.IDLE;
-      _statusController.add(AnalysisStatus.IDLE);
+    if (_currentStatus case AnalysisStatusWorking status) {
+      var newStatus = const AnalysisStatusIdle._();
+      _currentStatus = newStatus;
+      _eventsController.add(newStatus);
+      status._idleCompleter.complete();
     }
-    _idleCompleter?.complete();
-    _idleCompleter = null;
   }
 
-  /// Return a future that will be completed the next time the status is idle.
+  /// If the current status is not [AnalysisStatusWorking] yet, set the
+  /// current status to it, and send it to the stream.
+  void transitionToWorking() {
+    if (_currentStatus is AnalysisStatusIdle) {
+      var newStatus = AnalysisStatusWorking._();
+      _currentStatus = newStatus;
+      _eventsController.add(newStatus);
+    }
+  }
+
+  /// If the current status is [AnalysisStatusIdle], returns the future that
+  /// will complete immediately.
   ///
-  /// If the status is currently idle, the returned future will be signaled
-  /// immediately.
+  /// If the current status is [AnalysisStatusWorking], returns the future
+  /// that will complete when the status changes to [AnalysisStatusIdle].
   Future<void> waitForIdle() {
-    return _idleCompleter?.future ?? Future<void>.value();
+    switch (_currentStatus) {
+      case AnalysisStatusIdle():
+        return Future<void>.value();
+      case AnalysisStatusWorking status:
+        return status._idleCompleter.future;
+    }
   }
 }

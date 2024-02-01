@@ -16,9 +16,15 @@ class D<U> extends C<U> {
 }
 
 void g1(C<num> c) {}
+
 void g2(I<num> i) {}
+
 void g3(C<num> c) {}
+
 void g4(D<num> d) {}
+
 void g5(D<num> d) {}
+
 void main() {}
+
 void test() {}

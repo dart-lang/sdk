@@ -27,6 +27,16 @@ ninja_path = rebase_path("//buildtools/ninja/ninja")
 
 if (use_goma) {
   compiler_prefix = "$goma_dir/gomacc.exe "
+} else if (use_rbe) {
+  compiler_args =
+      rewrapper_args + [ "--labels=type=compile,compiler=clang-cl,lang=cpp" ]
+  if (rbe_os != host_os || rbe_cpu != host_cpu) {
+    compiler_args += [
+      "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
+      "--remote_wrapper=../../build/rbe/llvm.sh",
+    ]
+  }
+  compiler_prefix = string_join(" ", compiler_args) + " "
 } else {
   compiler_prefix = ""
 }
@@ -272,6 +282,13 @@ template("win_toolchains") {
     environment = "environment." + toolchain_arch
     prefix = rebase_path("$clang_base_path/bin", root_build_dir)
     cl = "${compiler_prefix}$prefix/clang-cl.exe"
+    if (use_rbe) {
+      if (toolchain_arch == "x86") {
+        cl = "${cl} --target=i686-pc-windows-msvc"
+      } else if (toolchain_arch == "x64") {
+        cl = "${cl} --target=x86_64-pc-windows-msvc"
+      }
+    }
     toolchain_args = {
       if (defined(invoker.toolchain_args)) {
         forward_variables_from(invoker.toolchain_args, "*")

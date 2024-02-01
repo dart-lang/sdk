@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:collection/collection.dart';
 
 class FunctionExpressionResolver {
   final ResolverVisitor _resolver;
@@ -107,7 +106,7 @@ class FunctionExpressionResolver {
       }
     }
 
-    var parameters = node.parameterElements.whereNotNull();
+    var parameters = node.parameterElements.nonNulls;
     {
       Iterator<ParameterElement> positional =
           parameters.where((p) => p.isPositional).iterator;

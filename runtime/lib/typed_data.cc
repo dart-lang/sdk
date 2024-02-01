@@ -15,20 +15,6 @@ namespace dart {
 
 // TypedData.
 
-// Checks to see if offsetInBytes + num_bytes is in the range.
-static void RangeCheck(intptr_t offset_in_bytes,
-                       intptr_t access_size,
-                       intptr_t length_in_bytes,
-                       intptr_t element_size_in_bytes) {
-  if (!Utils::RangeCheck(offset_in_bytes, access_size, length_in_bytes)) {
-    const intptr_t index =
-        (offset_in_bytes + access_size) / element_size_in_bytes;
-    const intptr_t length = length_in_bytes / element_size_in_bytes;
-    Exceptions::ThrowRangeError("index", Integer::Handle(Integer::New(index)),
-                                0, length);
-  }
-}
-
 DEFINE_NATIVE_ENTRY(TypedDataBase_length, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, array, arguments->NativeArgAt(0));
   return Smi::New(array.Length());
@@ -130,55 +116,40 @@ DEFINE_NATIVE_ENTRY(TypedDataBase_setClampedRange, 0, 5) {
   return Object::null();
 }
 
-#define TYPED_DATA_GETTER(getter, object, ctor, access_size)                   \
+// The native getter and setter functions defined here are only called if
+// unboxing doubles or SIMD values is not supported by the flow graph compiler,
+// and the provided offsets have already been range checked by the calling code.
+
+#define TYPED_DATA_GETTER(getter, object, ctor)                                \
   DEFINE_NATIVE_ENTRY(TypedData_##getter, 0, 2) {                              \
     GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, array,                         \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \
                                  arguments->NativeArgAt(1));                   \
-    RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),      \
-               access_size);                                                   \
     return object::ctor(array.getter(offsetInBytes.Value()));                  \
   }
 
-#define TYPED_DATA_SETTER(setter, object, get_object_value, access_size,       \
-                          access_type)                                         \
+#define TYPED_DATA_SETTER(setter, object, get_object_value, access_type)       \
   DEFINE_NATIVE_ENTRY(TypedData_##setter, 0, 3) {                              \
     GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, array,                         \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \
                                  arguments->NativeArgAt(1));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(object, value, arguments->NativeArgAt(2));    \
-    RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),      \
-               access_size);                                                   \
     array.setter(offsetInBytes.Value(),                                        \
                  static_cast<access_type>(value.get_object_value()));          \
     return Object::null();                                                     \
   }
 
 #define TYPED_DATA_NATIVES(type_name, object, ctor, get_object_value,          \
-                           access_size, access_type)                           \
-  TYPED_DATA_GETTER(Get##type_name, object, ctor, access_size)                 \
-  TYPED_DATA_SETTER(Set##type_name, object, get_object_value, access_size,     \
-                    access_type)
+                           access_type)                                        \
+  TYPED_DATA_GETTER(Get##type_name, object, ctor)                              \
+  TYPED_DATA_SETTER(Set##type_name, object, get_object_value, access_type)
 
-TYPED_DATA_NATIVES(Int8, Integer, New, AsTruncatedUint32Value, 1, int8_t)
-TYPED_DATA_NATIVES(Uint8, Integer, New, AsTruncatedUint32Value, 1, uint8_t)
-TYPED_DATA_NATIVES(Int16, Integer, New, AsTruncatedUint32Value, 2, int16_t)
-TYPED_DATA_NATIVES(Uint16, Integer, New, AsTruncatedUint32Value, 2, uint16_t)
-TYPED_DATA_NATIVES(Int32, Integer, New, AsTruncatedUint32Value, 4, int32_t)
-TYPED_DATA_NATIVES(Uint32, Integer, New, AsTruncatedUint32Value, 4, uint32_t)
-TYPED_DATA_NATIVES(Int64, Integer, New, AsTruncatedInt64Value, 8, int64_t)
-TYPED_DATA_NATIVES(Uint64,
-                   Integer,
-                   NewFromUint64,
-                   AsTruncatedInt64Value,
-                   8,
-                   uint64_t)
-TYPED_DATA_NATIVES(Float32, Double, New, value, 4, float)
-TYPED_DATA_NATIVES(Float64, Double, New, value, 8, double)
-TYPED_DATA_NATIVES(Float32x4, Float32x4, New, value, 16, simd128_value_t)
-TYPED_DATA_NATIVES(Int32x4, Int32x4, New, value, 16, simd128_value_t)
-TYPED_DATA_NATIVES(Float64x2, Float64x2, New, value, 16, simd128_value_t)
+TYPED_DATA_NATIVES(Float32, Double, New, value, float)
+TYPED_DATA_NATIVES(Float64, Double, New, value, double)
+TYPED_DATA_NATIVES(Float32x4, Float32x4, New, value, simd128_value_t)
+TYPED_DATA_NATIVES(Int32x4, Int32x4, New, value, simd128_value_t)
+TYPED_DATA_NATIVES(Float64x2, Float64x2, New, value, simd128_value_t)
 
 }  // namespace dart

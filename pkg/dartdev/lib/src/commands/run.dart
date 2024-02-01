@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -14,12 +12,12 @@ import 'package:path/path.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
+import '../dds_runner.dart';
 import '../experiments.dart';
 import '../generate_kernel.dart';
 import '../native_assets.dart';
 import '../resident_frontend_constants.dart';
 import '../resident_frontend_utils.dart';
-import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
 import 'compilation_server.dart';
@@ -306,16 +304,16 @@ class RunCommand extends DartdevCommand {
       // service intermediary which implements the VM service protocol and
       // provides non-VM specific extensions (e.g., log caching, client
       // synchronization).
-      _DebuggingSession debugSession;
+      DDSRunner debugSession;
       if (launchDds) {
-        debugSession = _DebuggingSession();
-        if (!await debugSession.start(
-          ddsHost,
-          ddsPort,
-          disableServiceAuthCodes,
-          launchDevTools,
-          debugDds,
-          enableServicePortFallback,
+        debugSession = DDSRunner();
+        if (!await debugSession.startForCurrentProcess(
+          ddsHost: ddsHost,
+          ddsPort: ddsPort,
+          disableServiceAuthCodes: disableServiceAuthCodes,
+          enableDevTools: launchDevTools,
+          debugDds: debugDds,
+          enableServicePortFallback: enableServicePortFallback,
         )) {
           return errorExitCode;
         }
@@ -399,110 +397,6 @@ class RunCommand extends DartdevCommand {
       packageConfigOverride: args['packages'] ?? executable.packageConfig,
     );
     return 0;
-  }
-}
-
-class _DebuggingSession {
-  Future<bool> start(
-    String host,
-    String port,
-    bool disableServiceAuthCodes,
-    bool enableDevTools,
-    bool debugDds,
-    bool enableServicePortFallback,
-  ) async {
-    final sdkDir = dirname(sdk.dart);
-    final fullSdk = sdkDir.endsWith('bin');
-    final devToolsBinaries =
-        fullSdk ? sdk.devToolsBinaries : absolute(sdkDir, 'devtools');
-    String snapshotName = fullSdk
-        ? sdk.ddsAotSnapshot
-        : absolute(sdkDir, 'dds_aot.dart.snapshot');
-    String execName = sdk.dartAotRuntime;
-    // Check to see if the AOT snapshot and dartaotruntime are available.
-    // If not, fall back to running from the AppJIT snapshot.
-    //
-    // This can happen if:
-    //  - The SDK is built for IA32 which doesn't support AOT compilation
-    //  - We only have artifacts available from the 'runtime' build
-    //    configuration, which the VM SDK build bots frequently run from
-    if (!Sdk.checkArtifactExists(snapshotName, logError: false) ||
-        !Sdk.checkArtifactExists(sdk.dartAotRuntime, logError: false)) {
-      snapshotName =
-          fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
-      if (!Sdk.checkArtifactExists(snapshotName)) {
-        return false;
-      }
-      execName = sdk.dart;
-    }
-    ServiceProtocolInfo serviceInfo = await Service.getInfo();
-    // Wait for VM service to publish its connection info.
-    while (serviceInfo.serverUri == null) {
-      await Future.delayed(Duration(milliseconds: 10));
-      serviceInfo = await Service.getInfo();
-    }
-    final process = await Process.start(
-      execName,
-      [
-        if (debugDds) '--enable-vm-service=0',
-        snapshotName,
-        serviceInfo.serverUri.toString(),
-        host,
-        port,
-        disableServiceAuthCodes.toString(),
-        enableDevTools.toString(),
-        devToolsBinaries,
-        debugDds.toString(),
-        enableServicePortFallback.toString(),
-      ],
-      mode: ProcessStartMode.detachedWithStdio,
-    );
-    final completer = Completer<void>();
-    const devToolsMessagePrefix =
-        'The Dart DevTools debugger and profiler is available at:';
-    if (debugDds) {
-      late StreamSubscription stdoutSub;
-      stdoutSub = process.stdout.transform(utf8.decoder).listen((event) {
-        if (event.startsWith(devToolsMessagePrefix)) {
-          final ddsDebuggingUri = event.split(' ').last;
-          print(
-            'A DevTools debugger for DDS is available at: $ddsDebuggingUri',
-          );
-          stdoutSub.cancel();
-        }
-      });
-    }
-    late StreamSubscription stderrSub;
-    stderrSub = process.stderr.transform(utf8.decoder).listen((event) {
-      final result = json.decode(event) as Map<String, dynamic>;
-      final state = result['state'];
-      if (state == 'started') {
-        if (result.containsKey('devToolsUri')) {
-          final devToolsUri = result['devToolsUri'];
-          print('$devToolsMessagePrefix $devToolsUri');
-        }
-        stderrSub.cancel();
-        completer.complete();
-      } else {
-        stderrSub.cancel();
-        final error = result['error'] ?? event;
-        final stacktrace = result['stacktrace'] ?? '';
-        String message = 'Could not start the VM service: ';
-        if (error.contains('Failed to create server socket')) {
-          message += '$host:$port is already in use.\n';
-        } else {
-          message += '$error\n$stacktrace\n';
-        }
-        completer.completeError(message);
-      }
-    });
-    try {
-      await completer.future;
-      return true;
-    } catch (e) {
-      stderr.write(e);
-      return false;
-    }
   }
 }
 

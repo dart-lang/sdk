@@ -206,14 +206,15 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
     const TypeArguments& type_arguments) {
   Fragment instructions;
 
-  if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
-    // There are no type references to type parameters so we can just take it.
-    instructions += Constant(type_arguments);
-  } else {
-    // The [type_arguments] vector contains a type reference to a type
-    // parameter we need to resolve it.
-    if (type_arguments.CanShareInstantiatorTypeArguments(
-            *active_class_.klass)) {
+  auto const mode = type_arguments.GetInstantiationMode(
+      Z, &parsed_function_->function(), active_class_.klass);
+
+  switch (mode) {
+    case InstantiationMode::kIsInstantiated:
+      // There are no type references to type parameters so we can just take it.
+      instructions += Constant(type_arguments);
+      break;
+    case InstantiationMode::kSharesInstantiatorTypeArguments:
       // If the instantiator type arguments are just passed on, we don't need to
       // resolve the type parameters.
       //
@@ -224,10 +225,11 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
       // We just use the type argument vector from the [Foo] object and pass it
       // directly to the `new List<T>()` factory constructor.
       instructions += LoadInstantiatorTypeArguments();
-    } else if (type_arguments.CanShareFunctionTypeArguments(
-                   parsed_function_->function())) {
+      break;
+    case InstantiationMode::kSharesFunctionTypeArguments:
       instructions += LoadFunctionTypeArguments();
-    } else {
+      break;
+    case InstantiationMode::kNeedsInstantiation:
       // Otherwise we need to resolve [TypeParameterType]s in the type
       // expression based on the current instantiator type argument vector.
       if (!type_arguments.IsInstantiated(kCurrentClass)) {
@@ -241,7 +243,7 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
         instructions += NullConstant();
       }
       instructions += InstantiateTypeArguments(type_arguments);
-    }
+      break;
   }
   return instructions;
 }
@@ -942,6 +944,32 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kSuspendState_clone:
     case MethodRecognizer::kSuspendState_resume:
+    case MethodRecognizer::kTypedList_GetInt8:
+    case MethodRecognizer::kTypedList_SetInt8:
+    case MethodRecognizer::kTypedList_GetUint8:
+    case MethodRecognizer::kTypedList_SetUint8:
+    case MethodRecognizer::kTypedList_GetInt16:
+    case MethodRecognizer::kTypedList_SetInt16:
+    case MethodRecognizer::kTypedList_GetUint16:
+    case MethodRecognizer::kTypedList_SetUint16:
+    case MethodRecognizer::kTypedList_GetInt32:
+    case MethodRecognizer::kTypedList_SetInt32:
+    case MethodRecognizer::kTypedList_GetUint32:
+    case MethodRecognizer::kTypedList_SetUint32:
+    case MethodRecognizer::kTypedList_GetInt64:
+    case MethodRecognizer::kTypedList_SetInt64:
+    case MethodRecognizer::kTypedList_GetUint64:
+    case MethodRecognizer::kTypedList_SetUint64:
+    case MethodRecognizer::kTypedList_GetFloat32:
+    case MethodRecognizer::kTypedList_SetFloat32:
+    case MethodRecognizer::kTypedList_GetFloat64:
+    case MethodRecognizer::kTypedList_SetFloat64:
+    case MethodRecognizer::kTypedList_GetInt32x4:
+    case MethodRecognizer::kTypedList_SetInt32x4:
+    case MethodRecognizer::kTypedList_GetFloat32x4:
+    case MethodRecognizer::kTypedList_SetFloat32x4:
+    case MethodRecognizer::kTypedList_GetFloat64x2:
+    case MethodRecognizer::kTypedList_SetFloat64x2:
     case MethodRecognizer::kTypedData_memMove1:
     case MethodRecognizer::kTypedData_memMove2:
     case MethodRecognizer::kTypedData_memMove4:
@@ -1155,8 +1183,85 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += TailCall(resume_stub);
       break;
     }
+    case MethodRecognizer::kTypedList_GetInt8:
+      body += BuildTypedListGet(function, kTypedDataInt8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt8:
+      body += BuildTypedListSet(function, kTypedDataInt8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetUint8:
+      body += BuildTypedListGet(function, kTypedDataUint8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetUint8:
+      body += BuildTypedListSet(function, kTypedDataUint8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetInt16:
+      body += BuildTypedListGet(function, kTypedDataInt16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt16:
+      body += BuildTypedListSet(function, kTypedDataInt16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetUint16:
+      body += BuildTypedListGet(function, kTypedDataUint16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetUint16:
+      body += BuildTypedListSet(function, kTypedDataUint16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetInt32:
+      body += BuildTypedListGet(function, kTypedDataInt32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt32:
+      body += BuildTypedListSet(function, kTypedDataInt32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetUint32:
+      body += BuildTypedListGet(function, kTypedDataUint32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetUint32:
+      body += BuildTypedListSet(function, kTypedDataUint32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetInt64:
+      body += BuildTypedListGet(function, kTypedDataInt64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt64:
+      body += BuildTypedListSet(function, kTypedDataInt64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetUint64:
+      body += BuildTypedListGet(function, kTypedDataUint64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetUint64:
+      body += BuildTypedListSet(function, kTypedDataUint64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetFloat32:
+      body += BuildTypedListGet(function, kTypedDataFloat32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetFloat32:
+      body += BuildTypedListSet(function, kTypedDataFloat32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetFloat64:
+      body += BuildTypedListGet(function, kTypedDataFloat64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetFloat64:
+      body += BuildTypedListSet(function, kTypedDataFloat64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetInt32x4:
+      body += BuildTypedListGet(function, kTypedDataInt32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetInt32x4:
+      body += BuildTypedListSet(function, kTypedDataInt32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetFloat32x4:
+      body += BuildTypedListGet(function, kTypedDataFloat32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetFloat32x4:
+      body += BuildTypedListSet(function, kTypedDataFloat32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_GetFloat64x2:
+      body += BuildTypedListGet(function, kTypedDataFloat64x2ArrayCid);
+      break;
+    case MethodRecognizer::kTypedList_SetFloat64x2:
+      body += BuildTypedListSet(function, kTypedDataFloat64x2ArrayCid);
+      break;
     case MethodRecognizer::kTypedData_memMove1:
-      // Pick an appropriate typed data cid based on the element size.
       body += BuildTypedDataMemMove(function, 1);
       break;
     case MethodRecognizer::kTypedData_memMove2:
@@ -1815,6 +1920,127 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   return body;
 }
 
+static bool CanUnboxElements(intptr_t view_cid) {
+  switch (view_cid) {
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+      return FlowGraphCompiler::SupportsUnboxedDoubles();
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
+      return FlowGraphCompiler::SupportsUnboxedSimd128();
+    default:
+      return true;
+  }
+}
+
+static const Function& TypedListGetNativeFunction(Thread* thread,
+                                                  intptr_t view_cid) {
+  auto& state = thread->compiler_state();
+  switch (view_cid) {
+    case kTypedDataFloat32ArrayCid:
+      return state.TypedListGetFloat32();
+    case kTypedDataFloat64ArrayCid:
+      return state.TypedListGetFloat64();
+    case kTypedDataInt32x4ArrayCid:
+      return state.TypedListGetInt32x4();
+    case kTypedDataFloat32x4ArrayCid:
+      return state.TypedListGetFloat32x4();
+    case kTypedDataFloat64x2ArrayCid:
+      return state.TypedListGetFloat64x2();
+    default:
+      UNREACHABLE();
+      return Object::null_function();
+  }
+}
+
+Fragment FlowGraphBuilder::BuildTypedListGet(const Function& function,
+                                             intptr_t view_cid) {
+  const intptr_t kNumParameters = 2;
+  ASSERT_EQUAL(parsed_function_->function().NumParameters(), kNumParameters);
+  // Guaranteed to be non-null since it's only called internally from other
+  // instance methods.
+  LocalVariable* arg_receiver = parsed_function_->RawParameterVariable(0);
+  // Guaranteed to be a non-null Smi due to bounds checks prior to call.
+  LocalVariable* arg_offset_in_bytes =
+      parsed_function_->RawParameterVariable(1);
+
+  Fragment body;
+  if (CanUnboxElements(view_cid)) {
+    body += LoadLocal(arg_receiver);
+    body += LoadNativeField(Slot::PointerBase_data(),
+                            InnerPointerAccess::kMayBeInnerPointer);
+    body += LoadLocal(arg_offset_in_bytes);
+    body += LoadIndexed(view_cid, /*index_scale=*/1,
+                        /*index_unboxed=*/false, kUnalignedAccess);
+    body += Box(LoadIndexedInstr::RepresentationOfArrayElement(view_cid));
+  } else {
+    const auto& native_function = TypedListGetNativeFunction(thread_, view_cid);
+    body += LoadLocal(arg_receiver);
+    body += LoadLocal(arg_offset_in_bytes);
+    body += StaticCall(TokenPosition::kNoSource, native_function,
+                       kNumParameters, ICData::kNoRebind);
+  }
+  return body;
+}
+
+static const Function& TypedListSetNativeFunction(Thread* thread,
+                                                  intptr_t view_cid) {
+  auto& state = thread->compiler_state();
+  switch (view_cid) {
+    case kTypedDataFloat32ArrayCid:
+      return state.TypedListSetFloat32();
+    case kTypedDataFloat64ArrayCid:
+      return state.TypedListSetFloat64();
+    case kTypedDataInt32x4ArrayCid:
+      return state.TypedListSetInt32x4();
+    case kTypedDataFloat32x4ArrayCid:
+      return state.TypedListSetFloat32x4();
+    case kTypedDataFloat64x2ArrayCid:
+      return state.TypedListSetFloat64x2();
+    default:
+      UNREACHABLE();
+      return Object::null_function();
+  }
+}
+
+Fragment FlowGraphBuilder::BuildTypedListSet(const Function& function,
+                                             intptr_t view_cid) {
+  const intptr_t kNumParameters = 3;
+  ASSERT_EQUAL(parsed_function_->function().NumParameters(), kNumParameters);
+  // Guaranteed to be non-null since it's only called internally from other
+  // instance methods.
+  LocalVariable* arg_receiver = parsed_function_->RawParameterVariable(0);
+  // Guaranteed to be a non-null Smi due to bounds checks prior to call.
+  LocalVariable* arg_offset_in_bytes =
+      parsed_function_->RawParameterVariable(1);
+  LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
+
+  Fragment body;
+  if (CanUnboxElements(view_cid)) {
+    body += LoadLocal(arg_receiver);
+    body += LoadNativeField(Slot::PointerBase_data(),
+                            InnerPointerAccess::kMayBeInnerPointer);
+    body += LoadLocal(arg_offset_in_bytes);
+    body += LoadLocal(arg_value);
+    body +=
+        CheckNullOptimized(Symbols::Value(), CheckNullInstr::kArgumentError);
+    body += UnboxTruncate(
+        StoreIndexedInstr::RepresentationOfArrayElement(view_cid));
+    body += StoreIndexedTypedData(view_cid, /*index_scale=*/1,
+                                  /*index_unboxed=*/false, kUnalignedAccess);
+    body += NullConstant();
+  } else {
+    const auto& native_function = TypedListSetNativeFunction(thread_, view_cid);
+    body += LoadLocal(arg_receiver);
+    body += LoadLocal(arg_offset_in_bytes);
+    body += LoadLocal(arg_value);
+    body += StaticCall(TokenPosition::kNoSource, native_function,
+                       kNumParameters, ICData::kNoRebind);
+  }
+  return body;
+}
+
 Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
                                                  intptr_t element_size) {
   ASSERT_EQUAL(parsed_function_->function().NumParameters(), 5);
@@ -1978,7 +2204,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
 
   if (target.IsGeneric()) {
     // Only generic functions need to have properly initialized
-    // delayed_type_arguments.
+    // delayed and default type arguments.
     fragment += LoadLocal(closure);
     fragment += Constant(Object::empty_type_arguments());
     fragment += StoreNativeField(Slot::Closure_delayed_type_arguments(),
@@ -2722,8 +2948,7 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
 
   store_default += LoadLocal(closure_data);
   store_default += BuildExtractUnboxedSlotBitFieldIntoSmi<
-      ClosureData::PackedDefaultTypeArgumentsKind>(
-      Slot::ClosureData_packed_fields());
+      ClosureData::PackedInstantiationMode>(Slot::ClosureData_packed_fields());
   LocalVariable* default_tav_kind = MakeTemporary("default_tav_kind");
 
   // Two locals to drop after join, closure_data and default_tav_kind.
@@ -2732,22 +2957,22 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   store_default += LoadLocal(default_tav_kind);
   TargetEntryInstr* is_instantiated;
   TargetEntryInstr* is_not_instantiated;
-  store_default += IntConstant(static_cast<intptr_t>(
-      ClosureData::DefaultTypeArgumentsKind::kIsInstantiated));
+  store_default +=
+      IntConstant(static_cast<intptr_t>(InstantiationMode::kIsInstantiated));
   store_default += BranchIfEqual(&is_instantiated, &is_not_instantiated);
   store_default.current = is_not_instantiated;  // Check next case.
   store_default += LoadLocal(default_tav_kind);
   TargetEntryInstr* needs_instantiation;
   TargetEntryInstr* can_share;
-  store_default += IntConstant(static_cast<intptr_t>(
-      ClosureData::DefaultTypeArgumentsKind::kNeedsInstantiation));
+  store_default += IntConstant(
+      static_cast<intptr_t>(InstantiationMode::kNeedsInstantiation));
   store_default += BranchIfEqual(&needs_instantiation, &can_share);
   store_default.current = can_share;  // Check next case.
   store_default += LoadLocal(default_tav_kind);
   TargetEntryInstr* can_share_instantiator;
   TargetEntryInstr* can_share_function;
   store_default += IntConstant(static_cast<intptr_t>(
-      ClosureData::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments));
+      InstantiationMode::kSharesInstantiatorTypeArguments));
   store_default += BranchIfEqual(&can_share_instantiator, &can_share_function);
 
   Fragment instantiated(is_instantiated);
@@ -3773,22 +3998,65 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 }
 
 Fragment FlowGraphBuilder::BuildDefaultTypeHandling(const Function& function) {
-  if (function.IsGeneric()) {
-    auto& default_types =
-        TypeArguments::ZoneHandle(Z, function.InstantiateToBounds(thread_));
+  Fragment keep_same, use_defaults;
 
-    if (!default_types.IsNull()) {
-      Fragment then;
-      Fragment otherwise;
+  if (!function.IsGeneric()) return keep_same;
 
-      otherwise += TranslateInstantiatedTypeArguments(default_types);
-      otherwise += StoreLocal(TokenPosition::kNoSource,
-                              parsed_function_->function_type_arguments());
-      otherwise += Drop();
-      return TestAnyTypeArgs(then, otherwise);
+  const auto& default_types =
+      TypeArguments::ZoneHandle(Z, function.DefaultTypeArguments(Z));
+
+  if (default_types.IsNull()) return keep_same;
+
+  if (function.IsClosureFunction()) {
+    // Note that we can't use TranslateInstantiatedTypeArguments here as
+    // that uses LoadInstantiatorTypeArguments() and LoadFunctionTypeArguments()
+    // for the instantiator and function type argument vectors, but here we
+    // load the instantiator and parent function type argument vectors from
+    // the closure object instead.
+    LocalVariable* const closure = parsed_function_->ParameterVariable(0);
+    auto const mode = function.default_type_arguments_instantiation_mode();
+
+    switch (mode) {
+      case InstantiationMode::kIsInstantiated:
+        use_defaults += Constant(default_types);
+        break;
+      case InstantiationMode::kSharesInstantiatorTypeArguments:
+        use_defaults += LoadLocal(closure);
+        use_defaults +=
+            LoadNativeField(Slot::Closure_instantiator_type_arguments());
+        break;
+      case InstantiationMode::kSharesFunctionTypeArguments:
+        use_defaults += LoadLocal(closure);
+        use_defaults +=
+            LoadNativeField(Slot::Closure_function_type_arguments());
+        break;
+      case InstantiationMode::kNeedsInstantiation:
+        // Only load the instantiator or function type arguments from the
+        // closure if they're needed for instantiation.
+        if (!default_types.IsInstantiated(kCurrentClass)) {
+          use_defaults += LoadLocal(closure);
+          use_defaults +=
+              LoadNativeField(Slot::Closure_instantiator_type_arguments());
+        } else {
+          use_defaults += NullConstant();
+        }
+        if (!default_types.IsInstantiated(kFunctions)) {
+          use_defaults += LoadLocal(closure);
+          use_defaults +=
+              LoadNativeField(Slot::Closure_function_type_arguments());
+        } else {
+          use_defaults += NullConstant();
+        }
+        use_defaults += InstantiateTypeArguments(default_types);
+        break;
     }
+  } else {
+    use_defaults += TranslateInstantiatedTypeArguments(default_types);
   }
-  return Fragment();
+  use_defaults += StoreLocal(parsed_function_->function_type_arguments());
+  use_defaults += Drop();
+
+  return TestAnyTypeArgs(keep_same, use_defaults);
 }
 
 FunctionEntryInstr* FlowGraphBuilder::BuildSharedUncheckedEntryPoint(
@@ -5230,14 +5498,6 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
   }
 
   body += FfiCall(marshaller, function.FfiIsLeaf());
-
-  for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    if (marshaller.IsPointer(i)) {
-      body += LoadLocal(parsed_function_->ParameterVariable(
-          first_argument_parameter_offset + i));
-      body += ReachabilityFence();
-    }
-  }
 
   const intptr_t num_defs = marshaller.NumReturnDefinitions();
   ASSERT(num_defs >= 1);

@@ -40,6 +40,9 @@ abstract class ExtensionTypeDeclarationBuilder
   /// Calls [f] for each member declared in this extension.
   void forEach(void f(String name, Builder builder));
 
+  /// Returns `true` if the interfaces of the declaration are built.
+  bool get hasInterfacesBuilt;
+
   @override
   Uri get fileUri;
 }
@@ -79,4 +82,14 @@ abstract class ExtensionTypeDeclarationBuilderImpl
 
   @override
   String get debugName => "ExtensionTypeDeclarationBuilder";
+
+  @override
+  bool get hasInterfacesBuilt {
+    if (interfaceBuilders == null) {
+      return true;
+    } else {
+      return interfaceBuilders!.length ==
+          extensionTypeDeclaration.implements.length;
+    }
+  }
 }

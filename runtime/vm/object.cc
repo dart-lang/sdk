@@ -1634,8 +1634,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           UntaggedObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
       const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::OldBit::update(is_old, new_tags);
-      new_tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, new_tags);
+      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
+      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
       new_tags =
           UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
       new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
@@ -1644,11 +1644,12 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-      raw->untag()->tags_ = new_tags;
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->untag()->set_length(Smi::New(leftover_len));
+      raw->untag()->set_length<std::memory_order_release>(
+          Smi::New(leftover_len));
+      raw->untag()->tags_ = new_tags;
       raw->untag()->RecomputeDataField();
     } else {
       // Update the leftover space as a basic object.
@@ -1657,8 +1658,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       uword new_tags = UntaggedObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
       const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::OldBit::update(is_old, new_tags);
-      new_tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, new_tags);
+      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
+      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
       new_tags =
           UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
       new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
@@ -1667,6 +1668,16 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
+
+      // The array might have an uninitialized alignment gap since the visitors
+      // for Arrays are precise based on element count, but the visitors for
+      // Instance are based on the size rounded to the allocation unit, so we
+      // need to ensure the alignment gap is initialized.
+      for (intptr_t offset = Instance::UnroundedSize();
+           offset < Instance::InstanceSize(); offset += sizeof(uword)) {
+        reinterpret_cast<std::atomic<uword>*>(addr + offset)
+            ->store(0, std::memory_order_release);
+      }
       raw->untag()->tags_ = new_tags;
     }
   }
@@ -2798,8 +2809,8 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::SizeTag::update(size, tags);
   const bool is_old =
       (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  tags = UntaggedObject::OldBit::update(is_old, tags);
-  tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, tags);
+  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
+  tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewBit::update(!is_old, tags);
   tags = UntaggedObject::ImmutableBit::update(
@@ -3111,7 +3122,7 @@ TypePtr Class::RareType() const {
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   const auto& inst_to_bounds =
-      TypeArguments::Handle(zone, InstantiateToBounds(thread));
+      TypeArguments::Handle(zone, DefaultTypeArguments(zone));
   ASSERT(inst_to_bounds.ptr() != Object::empty_type_arguments().ptr());
   auto& type = Type::Handle(
       zone, Type::New(*this, inst_to_bounds, Nullability::kNonNullable));
@@ -3705,13 +3716,11 @@ intptr_t Class::NumTypeArguments() const {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-TypeArgumentsPtr Class::InstantiateToBounds(Thread* thread) const {
-  const auto& type_params =
-      TypeParameters::Handle(thread->zone(), type_parameters());
-  if (type_params.IsNull()) {
+TypeArgumentsPtr Class::DefaultTypeArguments(Zone* zone) const {
+  if (type_parameters() == TypeParameters::null()) {
     return Object::empty_type_arguments().ptr();
   }
-  return type_params.defaults();
+  return TypeParameters::Handle(zone, type_parameters()).defaults();
 }
 
 ClassPtr Class::SuperClass(ClassTable* class_table /* = nullptr */) const {
@@ -4504,7 +4513,9 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   if (changed) {
     auto class_table = isolate_group->class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
+#ifdef TARGET_ARCH_IA32
     DisableAllocationStub();
+#endif
   }
 #else
   UNREACHABLE();
@@ -4933,6 +4944,12 @@ ObjectPtr Instance::EvaluateCompiledExpression(
   if (result.IsError()) return result.ptr();
 
   const auto& eval_function = Function::Cast(result);
+
+#if defined(DEBUG)
+  for (intptr_t i = 0; i < arguments.Length(); ++i) {
+    ASSERT(arguments.At(i) != Object::optimized_out().ptr());
+  }
+#endif  // defined(DEBUG)
 
   auto& all_arguments = Array::Handle(zone, arguments.ptr());
   if (!eval_function.is_static()) {
@@ -6928,6 +6945,28 @@ TypeArgumentsPtr TypeArguments::ConcatenateTypeParameters(
   return result.ptr();
 }
 
+InstantiationMode TypeArguments::GetInstantiationMode(Zone* zone,
+                                                      const Function* function,
+                                                      const Class* cls) const {
+  if (IsNull() || IsInstantiated()) {
+    return InstantiationMode::kIsInstantiated;
+  }
+  if (function != nullptr) {
+    if (CanShareFunctionTypeArguments(*function)) {
+      return InstantiationMode::kSharesFunctionTypeArguments;
+    }
+    if (cls == nullptr) {
+      cls = &Class::Handle(zone, function->Owner());
+    }
+  }
+  if (cls != nullptr) {
+    if (CanShareInstantiatorTypeArguments(*cls)) {
+      return InstantiationMode::kSharesInstantiatorTypeArguments;
+    }
+  }
+  return InstantiationMode::kNeedsInstantiation;
+}
+
 StringPtr TypeArguments::Name() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
@@ -8259,65 +8298,29 @@ void Function::set_parent_function(const Function& value) const {
   ClosureData::Cast(obj).set_parent_function(value);
 }
 
-TypeArgumentsPtr Function::InstantiateToBounds(
-    Thread* thread,
-    DefaultTypeArgumentsKind* kind_out) const {
+TypeArgumentsPtr Function::DefaultTypeArguments(Zone* zone) const {
   if (type_parameters() == TypeParameters::null()) {
-    if (kind_out != nullptr) {
-      *kind_out = DefaultTypeArgumentsKind::kIsInstantiated;
-    }
     return Object::empty_type_arguments().ptr();
   }
-  auto& type_params = TypeParameters::Handle(thread->zone(), type_parameters());
-  auto& result = TypeArguments::Handle(thread->zone(), type_params.defaults());
-  if (kind_out != nullptr) {
-    if (IsClosureFunction()) {
-      *kind_out = default_type_arguments_kind();
-    } else {
-      // We just return is/is not instantiated if the value isn't cached, as
-      // the other checks may be more overhead at runtime than just doing the
-      // instantiation.
-      *kind_out = result.IsNull() || result.IsInstantiated()
-                      ? DefaultTypeArgumentsKind::kIsInstantiated
-                      : DefaultTypeArgumentsKind::kNeedsInstantiation;
-    }
-  }
-  return result.ptr();
+  return TypeParameters::Handle(zone, type_parameters()).defaults();
 }
 
-Function::DefaultTypeArgumentsKind Function::default_type_arguments_kind()
-    const {
+InstantiationMode Function::default_type_arguments_instantiation_mode() const {
+  if (!IsClosureFunction()) {
+    UNREACHABLE();
+  }
+  return ClosureData::DefaultTypeArgumentsInstantiationMode(
+      ClosureData::RawCast(data()));
+}
+
+void Function::set_default_type_arguments_instantiation_mode(
+    InstantiationMode value) const {
   if (!IsClosureFunction()) {
     UNREACHABLE();
   }
   const auto& closure_data = ClosureData::Handle(ClosureData::RawCast(data()));
   ASSERT(!closure_data.IsNull());
-  return closure_data.default_type_arguments_kind();
-}
-
-void Function::set_default_type_arguments_kind(
-    Function::DefaultTypeArgumentsKind value) const {
-  if (!IsClosureFunction()) {
-    UNREACHABLE();
-  }
-  const auto& closure_data = ClosureData::Handle(ClosureData::RawCast(data()));
-  ASSERT(!closure_data.IsNull());
-  closure_data.set_default_type_arguments_kind(value);
-}
-
-Function::DefaultTypeArgumentsKind Function::DefaultTypeArgumentsKindFor(
-    const TypeArguments& value) const {
-  if (value.IsNull() || value.IsInstantiated()) {
-    return DefaultTypeArgumentsKind::kIsInstantiated;
-  }
-  if (value.CanShareFunctionTypeArguments(*this)) {
-    return DefaultTypeArgumentsKind::kSharesFunctionTypeArguments;
-  }
-  const auto& cls = Class::Handle(Owner());
-  if (value.CanShareInstantiatorTypeArguments(cls)) {
-    return DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments;
-  }
-  return DefaultTypeArgumentsKind::kNeedsInstantiation;
+  closure_data.set_default_type_arguments_instantiation_mode(value);
 }
 
 // Enclosing outermost function of this local function.
@@ -8664,13 +8667,13 @@ void Function::SetSignature(const FunctionType& value) const {
   set_signature(value);
   ASSERT(NumImplicitParameters() == value.num_implicit_parameters());
   if (IsClosureFunction() && value.IsGeneric()) {
+    Zone* zone = Thread::Current()->zone();
     const TypeParameters& type_params =
-        TypeParameters::Handle(value.type_parameters());
+        TypeParameters::Handle(zone, value.type_parameters());
     const TypeArguments& defaults =
-        TypeArguments::Handle(type_params.defaults());
-    auto kind = DefaultTypeArgumentsKindFor(defaults);
-    ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
-    set_default_type_arguments_kind(kind);
+        TypeArguments::Handle(zone, type_params.defaults());
+    auto mode = defaults.GetInstantiationMode(zone, this);
+    set_default_type_arguments_instantiation_mode(mode);
   }
 }
 
@@ -9149,6 +9152,13 @@ bool Function::ForceOptimize() const {
   return InVmTests(*this);
 }
 
+bool Function::IsPreferInline() const {
+  if (!has_pragma()) return false;
+
+  return Library::FindPragma(Thread::Current(), /*only_core=*/false, *this,
+                             Symbols::vm_prefer_inline());
+}
+
 bool Function::IsIdempotent() const {
   if (!has_pragma()) return false;
 
@@ -9244,6 +9254,32 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kDouble_hashCode:
+    case MethodRecognizer::kTypedList_GetInt8:
+    case MethodRecognizer::kTypedList_SetInt8:
+    case MethodRecognizer::kTypedList_GetUint8:
+    case MethodRecognizer::kTypedList_SetUint8:
+    case MethodRecognizer::kTypedList_GetInt16:
+    case MethodRecognizer::kTypedList_SetInt16:
+    case MethodRecognizer::kTypedList_GetUint16:
+    case MethodRecognizer::kTypedList_SetUint16:
+    case MethodRecognizer::kTypedList_GetInt32:
+    case MethodRecognizer::kTypedList_SetInt32:
+    case MethodRecognizer::kTypedList_GetUint32:
+    case MethodRecognizer::kTypedList_SetUint32:
+    case MethodRecognizer::kTypedList_GetInt64:
+    case MethodRecognizer::kTypedList_SetInt64:
+    case MethodRecognizer::kTypedList_GetUint64:
+    case MethodRecognizer::kTypedList_SetUint64:
+    case MethodRecognizer::kTypedList_GetFloat32:
+    case MethodRecognizer::kTypedList_SetFloat32:
+    case MethodRecognizer::kTypedList_GetFloat64:
+    case MethodRecognizer::kTypedList_SetFloat64:
+    case MethodRecognizer::kTypedList_GetInt32x4:
+    case MethodRecognizer::kTypedList_SetInt32x4:
+    case MethodRecognizer::kTypedList_GetFloat32x4:
+    case MethodRecognizer::kTypedList_SetFloat32x4:
+    case MethodRecognizer::kTypedList_GetFloat64x2:
+    case MethodRecognizer::kTypedList_SetFloat64x2:
     case MethodRecognizer::kTypedData_memMove1:
     case MethodRecognizer::kTypedData_memMove2:
     case MethodRecognizer::kTypedData_memMove4:
@@ -9282,6 +9318,7 @@ bool Function::CanBeInlined() const {
     // idempotent becase if deoptimization is needed in inlined body, the
     // execution of the force-optimized will be restarted at the beginning of
     // the function.
+    ASSERT(!IsPreferInline() || IsIdempotent());
     return IsIdempotent();
   }
 
@@ -9528,24 +9565,23 @@ static TypeArgumentsPtr RetrieveFunctionTypeArguments(
   } else if (!has_delayed_type_args) {
     // We have no explicitly provided function type arguments, so instantiate
     // the type parameters to bounds or replace as appropriate.
-    Function::DefaultTypeArgumentsKind kind;
-    function_type_args = function.InstantiateToBounds(thread, &kind);
-    switch (kind) {
-      case Function::DefaultTypeArgumentsKind::kInvalid:
-        // We shouldn't hit the invalid case.
-        UNREACHABLE();
-        break;
-      case Function::DefaultTypeArgumentsKind::kIsInstantiated:
+    function_type_args = function.DefaultTypeArguments(zone);
+    auto const mode =
+        function.IsClosureFunction()
+            ? function.default_type_arguments_instantiation_mode()
+            : function_type_args.GetInstantiationMode(zone, &function);
+    switch (mode) {
+      case InstantiationMode::kIsInstantiated:
         // Nothing left to do.
         break;
-      case Function::DefaultTypeArgumentsKind::kNeedsInstantiation:
+      case InstantiationMode::kNeedsInstantiation:
         function_type_args = function_type_args.InstantiateAndCanonicalizeFrom(
             instantiator_type_args, parent_type_args);
         break;
-      case Function::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments:
+      case InstantiationMode::kSharesInstantiatorTypeArguments:
         function_type_args = instantiator_type_args.ptr();
         break;
-      case Function::DefaultTypeArgumentsKind::kSharesFunctionTypeArguments:
+      case InstantiationMode::kSharesFunctionTypeArguments:
         function_type_args = parent_type_args.ptr();
         break;
     }
@@ -11624,18 +11660,9 @@ void FunctionType::set_num_implicit_parameters(intptr_t value) const {
   untag()->packed_parameter_counts_.Update<PackedNumImplicitParameters>(value);
 }
 
-ClosureData::DefaultTypeArgumentsKind ClosureData::default_type_arguments_kind()
-    const {
-  return untag()
-      ->packed_fields_
-      .Read<UntaggedClosureData::PackedDefaultTypeArgumentsKind>();
-}
-
-void ClosureData::set_default_type_arguments_kind(
-    DefaultTypeArgumentsKind value) const {
-  untag()
-      ->packed_fields_
-      .Update<UntaggedClosureData::PackedDefaultTypeArgumentsKind>(value);
+void ClosureData::set_default_type_arguments_instantiation_mode(
+    InstantiationMode value) const {
+  untag()->packed_fields_.Update<PackedInstantiationMode>(value);
 }
 
 Function::AwaiterLink ClosureData::awaiter_link() const {
@@ -21419,24 +21446,36 @@ const char* AbstractType::NullabilitySuffix(
 }
 
 StringPtr AbstractType::Name() const {
+  return Symbols::New(Thread::Current(), NameCString());
+}
+
+const char* AbstractType::NameCString() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
   PrintName(kInternalName, &printer);
-  return Symbols::New(thread, printer.buffer());
+  return printer.buffer();
 }
 
 StringPtr AbstractType::UserVisibleName() const {
+  return Symbols::New(Thread::Current(), UserVisibleNameCString());
+}
+
+const char* AbstractType::UserVisibleNameCString() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
   PrintName(kUserVisibleName, &printer);
-  return Symbols::New(thread, printer.buffer());
+  return printer.buffer();
 }
 
 StringPtr AbstractType::ScrubbedName() const {
+  return Symbols::New(Thread::Current(), ScrubbedNameCString());
+}
+
+const char* AbstractType::ScrubbedNameCString() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
   PrintName(kScrubbedName, &printer);
-  return Symbols::New(thread, printer.buffer());
+  return printer.buffer();
 }
 
 void AbstractType::PrintName(NameVisibility name_visibility,
@@ -26801,12 +26840,10 @@ SuspendStatePtr SuspendState::Clone(Thread* thread,
     dst.set_pc(src.pc());
     // Trigger write barrier if needed.
     if (dst.ptr()->IsOldObject()) {
-      if (!dst.untag()->IsRemembered()) {
-        dst.untag()->EnsureInRememberedSet(thread);
-      }
-      if (thread->is_marking()) {
-        thread->DeferredMarkingStackAddObject(dst.ptr());
-      }
+      dst.untag()->EnsureInRememberedSet(thread);
+    }
+    if (thread->is_marking()) {
+      thread->DeferredMarkingStackAddObject(dst.ptr());
     }
   }
   return dst.ptr();

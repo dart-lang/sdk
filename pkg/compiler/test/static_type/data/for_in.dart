@@ -2,16 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class {
-  Iterable<Class> next;
+  Iterable<Class>? next;
 }
 
-abstract class Class2<E> implements Iterable<E> {
-  @override
-  Iterator<E> iterator;
-}
+abstract class Class2<E> implements Iterable<E> {}
 
 main() {
   forIn1(null);
@@ -26,7 +21,7 @@ forIn1(dynamic c) {
   if (/*dynamic*/ c is Class) {
     /*Class*/ c.next;
     // ignore: unused_local_variable
-    for (var b in /*Class*/ c.next) {
+    for (var b in /*Class*/ c.next!) {
       /*dynamic*/ c.next;
       if (/*dynamic*/ c is Class) {
         /*Class*/ c.next;
@@ -41,7 +36,7 @@ forIn2(dynamic c) {
   if (/*dynamic*/ c is Class) {
     /*Class*/ c.next;
     // ignore: unused_local_variable
-    for (var b in /*Class*/ c.next) {
+    for (var b in /*Class*/ c.next!) {
       /*Class*/ c.next;
     }
     /*Class*/ c.next;
@@ -52,23 +47,23 @@ forIn3(o) {
   /*dynamic*/ o;
   for (var e in /*dynamic*/ o) {
     /*dynamic*/ e;
-    /*Iterable<dynamic>*/ o;
+    /*dynamic*/ o;
   }
-  /*Iterable<dynamic>*/ o;
+  /*dynamic*/ o;
 }
 
 forIn4(o) {
   /*dynamic*/ o;
   for (int e in /*dynamic*/ o) {
     /*int*/ e;
-    /*Iterable<dynamic>*/ o;
+    /*dynamic*/ o;
   }
-  /*Iterable<dynamic>*/ o;
+  /*dynamic*/ o;
 }
 
-forIn5(Class2<int> o) {
+forIn5(Class2<int>? o) {
   /*Class2<int>*/ o;
-  for (var e in /*Class2<int>*/ o) {
+  for (var e in /*Class2<int>*/ o!) {
     /*int*/ e;
     /*Class2<int>*/ o;
   }
@@ -80,9 +75,9 @@ forIn6(o, p) {
   /*dynamic*/ p;
   for (int e in /*dynamic*/ o) {
     /*int*/ e;
-    /*Iterable<dynamic>*/ o;
+    /*dynamic*/ o;
   }
-  /*Iterable<dynamic>*/ o;
+  /*dynamic*/ o;
   o = /*dynamic*/ p;
   /*dynamic*/ o;
   /*dynamic*/ p;

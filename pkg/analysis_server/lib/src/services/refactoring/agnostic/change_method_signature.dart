@@ -22,7 +22,6 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:collection/collection.dart';
 
 /// Analyzes the selection in [refactoringContext], and either returns
 /// a [Available], or [NotAvailable].
@@ -1080,7 +1079,7 @@ class _SignatureUpdater {
   }
 }
 
-extension _AstNodeExtension on AstNode {
+extension on AstNode {
   AstNode? get declaration {
     final self = this;
     if (self is FunctionExpression) {

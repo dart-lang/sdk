@@ -288,14 +288,14 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations.dart:96:3: Error: Can't declare a member that conflicts with an inherited one.
 //   index,
 //   ^^^^^
-// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
+// sdk/lib/core/enum.dart:*: Context: This is the inherited member.
 //   final int index;
 //             ^^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:97:3: Error: Can't declare a member that conflicts with an inherited one.
 //   toString,
 //   ^^^^^^^^
-// sdk/lib/core/enum.dart:113:10: Context: This is the inherited member.
+// sdk/lib/core/enum.dart:*: Context: This is the inherited member.
 //   String toString() => _enumToString();
 //          ^^^^^^^^
 //
@@ -495,7 +495,7 @@ static method main() → dynamic {
 static method foo() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:36:3: Error: Can't use 'main' because it is declared more than once.
   main();
-  ^"{dynamic}.call();
+  ^"{dynamic}();
   core::print(invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:37:9: Error: Can't use 'field' because it is declared more than once.
   print(field);
         ^");

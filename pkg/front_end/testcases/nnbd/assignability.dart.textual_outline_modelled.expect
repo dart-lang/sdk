@@ -29,7 +29,9 @@ error<
     YnonNull? yNonNullNullableArg,
     YpotentiallyNull yPotentiallyNullArg,
     YpotentiallyNull? yPotentiallyNullNullableArg) {}
+
 main() {}
+
 ok<
         XnonNull extends Object,
         YnonNull extends XnonNull,

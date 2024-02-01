@@ -11,13 +11,11 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelVariableResolutionTest);
-    defineReflectiveTests(TopLevelVariableResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
-class TopLevelVariableResolutionTest extends PubPackageResolutionTest
-    with TopLevelVariableTestCases {
+class TopLevelVariableResolutionTest extends PubPackageResolutionTest {
   /// See https://github.com/dart-lang/sdk/issues/51137
   test_initializer_contextType_dontUseInferredType() async {
     await assertErrorsInCode('''
@@ -151,30 +149,6 @@ VariableDeclaration
 ''');
   }
 
-  test_type_inferred_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.7
-var a = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-var v = a;
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-
-    assertType(findElement.topVar('v').type, 'int');
-  }
-}
-
-@reflectiveTest
-class TopLevelVariableResolutionTest_WithoutNullSafety
-    extends PubPackageResolutionTest
-    with TopLevelVariableTestCases, WithoutNullSafetyMixin {}
-
-mixin TopLevelVariableTestCases on PubPackageResolutionTest {
   test_session_getterSetter() async {
     await resolveTestCode('''
 var v = 0;
@@ -197,13 +171,7 @@ var v = 0;
     await resolveTestCode('''
 var v = throw 42;
 ''');
-    assertType(
-      findElement.topVar('v').type,
-      typeStringByNullability(
-        nullable: 'Never',
-        legacy: 'dynamic',
-      ),
-    );
+    assertType(findElement.topVar('v').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {
@@ -211,6 +179,23 @@ var v = throw 42;
 var v;
 ''');
     assertType(findElement.topVar('v').type, 'dynamic');
+  }
+
+  test_type_inferred_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 2.7
+var a = 0;
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+var v = a;
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
+
+    assertType(findElement.topVar('v').type, 'int');
   }
 
   test_type_inferred_null() async {

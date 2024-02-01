@@ -4,8 +4,10 @@ class C {
 }
 
 class MA = Object with M;
+
 mixin M {
   String foo();
   noSuchMethod(Invocation i) => "M";
 }
+
 void main() {}

@@ -458,7 +458,7 @@ void main(List<String> args) async {
         'does not step into external package code with debugExternalPackageLibraries=false',
         () async {
       final client = dap.client;
-      final otherPackageUri = await dap.createFooPackage();
+      final (otherPackageUri, _) = await dap.createFooPackage();
       final testFile = dap.createTestFile('''
 import '$otherPackageUri';
 
@@ -491,7 +491,7 @@ void main(List<String> args) async {
         'steps into external package code with debugExternalPackageLibraries=true',
         () async {
       final client = dap.client;
-      final otherPackageUri = await dap.createFooPackage();
+      final (otherPackageUri, _) = await dap.createFooPackage();
       final testFile = dap.createTestFile('''
 import '$otherPackageUri';
 
@@ -523,7 +523,7 @@ void main(List<String> args) async {
         'steps into other-project package code with debugExternalPackageLibraries=false',
         () async {
       final client = dap.client;
-      final otherPackageUri = await dap.createFooPackage();
+      final (otherPackageUri, _) = await dap.createFooPackage();
       final testFile = dap.createTestFile('''
 import '$otherPackageUri';
 

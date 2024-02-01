@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -18,7 +19,6 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -200,6 +200,7 @@ class AbstractContextTest with ResourceProviderMixin {
     if (!_lintRulesAreRegistered) {
       registerLintRules();
       _lintRulesAreRegistered = true;
+      registerBuiltInProducers();
     }
 
     setupResourceProvider();
@@ -219,7 +220,6 @@ class AbstractContextTest with ResourceProviderMixin {
   void setupResourceProvider() {}
 
   void tearDown() {
-    noSoundNullSafety = true;
     AnalysisEngine.instance.clearCaches();
   }
 

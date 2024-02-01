@@ -6,6 +6,9 @@ class C {
 }
 
 void g(C c) {}
+
 void h(int i) {}
+
 void test() {}
+
 main() {}

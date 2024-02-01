@@ -288,7 +288,6 @@ class AnalyzerOptions {
     language,
     optionalChecks,
     plugins,
-    propagateLinterExceptions,
     strongMode,
   ];
 
@@ -309,6 +308,7 @@ class AnalyzerOptions {
   /// Supported 'analyzer' optional checks options.
   static const List<String> optionalChecksOptions = [
     chromeOsManifestChecks,
+    propagateLinterExceptions,
   ];
 
   /// Supported 'code-style' options.
@@ -344,6 +344,13 @@ class CannotIgnoreOptionValidator extends OptionsValidator {
   static final Set<String> _errorCodes =
       errorCodeValues.map((ErrorCode code) => code.name).toSet();
 
+  /// The error code names that existed, but were removed.
+  /// We don't want to report these, this breaks clients.
+  // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
+  static const Set<String> _removedErrorCodes = {
+    'MISSING_RETURN',
+  };
+
   /// Lazily populated set of lint codes.
   late final Set<String> _lintCodes = Registry.ruleRegistry.rules
       .map((rule) => rule.name.toUpperCase())
@@ -365,7 +372,8 @@ class CannotIgnoreOptionValidator extends OptionsValidator {
             }
             var upperCaseName = unignorableName.toUpperCase();
             if (!_errorCodes.contains(upperCaseName) &&
-                !_lintCodes.contains(upperCaseName)) {
+                !_lintCodes.contains(upperCaseName) &&
+                !_removedErrorCodes.contains(upperCaseName)) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                   unignorableNameNode.span,
@@ -557,6 +565,13 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   static final Set<String> _errorCodes =
       errorCodeValues.map((ErrorCode code) => code.name).toSet();
 
+  /// The error code names that existed, but were removed.
+  /// We don't want to report these, this breaks clients.
+  // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
+  static const Set<String> _removedErrorCodes = {
+    'MISSING_RETURN',
+  };
+
   /// Lazily populated set of lint codes.
   late final Set<String> _lintCodes = Registry.ruleRegistry.rules
       .map((rule) => rule.name.toUpperCase())
@@ -572,7 +587,9 @@ class ErrorFilterOptionValidator extends OptionsValidator {
           String? value;
           if (k is YamlScalar) {
             value = toUpperCase(k.value);
-            if (!_errorCodes.contains(value) && !_lintCodes.contains(value)) {
+            if (!_errorCodes.contains(value) &&
+                !_lintCodes.contains(value) &&
+                !_removedErrorCodes.contains(value)) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                   k.span,

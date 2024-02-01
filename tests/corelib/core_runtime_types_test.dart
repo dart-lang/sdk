@@ -85,6 +85,7 @@ class CoreRuntimeTypesTest {
   }
 
   static testOperatorErrors() {
+    if (dart2jsProductionMode) return; // Argument checks not performed.
     var objs = [
       1,
       '2',

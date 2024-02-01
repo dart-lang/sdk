@@ -6,4 +6,5 @@ class C {
 }
 
 main() async {}
+
 expect(expected, actual) {}

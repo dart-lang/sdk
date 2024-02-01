@@ -57,11 +57,11 @@ Try removing the extra positional arguments.
        ^" in f1a{<inapplicable>}.(42, 87);
   };
   dynamic f1b = #C2;
-  dynamic c1c = f1b{dynamic}.call();
+  dynamic c1c = f1b{dynamic}();
   self::expect(42, c1c{dynamic}.field);
-  dynamic c1d = f1b{dynamic}.call(87);
+  dynamic c1d = f1b{dynamic}(87);
   self::expect(87, c1d{dynamic}.field);
-  self::throws(() → dynamic => f1b{dynamic}.call(42, 87));
+  self::throws(() → dynamic => f1b{dynamic}(42, 87));
   ({field: core::int}) → self::Class2 f2a = #C3;
   self::Class2 c2a = f2a(){({field: core::int}) → self::Class2};
   self::expect(42, c2a.{self::Class2::field}{core::int});
@@ -74,11 +74,11 @@ Try removing the extra positional arguments.
        ^" in f2a{<inapplicable>}.(87);
   };
   dynamic f2b = #C3;
-  dynamic c2c = f2b{dynamic}.call();
+  dynamic c2c = f2b{dynamic}();
   self::expect(42, c2c{dynamic}.field);
-  dynamic c2d = f2b{dynamic}.call(field: 87);
+  dynamic c2d = f2b{dynamic}(field: 87);
   self::expect(87, c2d{dynamic}.field);
-  self::throws(() → dynamic => f2b{dynamic}.call(87));
+  self::throws(() → dynamic => f2b{dynamic}(87));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

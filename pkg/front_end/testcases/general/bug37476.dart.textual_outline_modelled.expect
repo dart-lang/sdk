@@ -1,4 +1,5 @@
 A<num> a = new A<int>();
+
 B<num> b = new B<int>();
 
 class A<T extends num> {

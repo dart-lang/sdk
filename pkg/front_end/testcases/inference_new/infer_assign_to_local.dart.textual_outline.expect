@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 library test;
 
 class A {}
@@ -13,5 +14,7 @@ class B extends A {
 class C extends B {}
 
 T f<T>() => null;
+
 void test() {}
+
 main() {}

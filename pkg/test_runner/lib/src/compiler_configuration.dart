@@ -526,26 +526,25 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
 
   @override
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
-    if (_isHostChecked) {
-      if (_useSdk) {
+    if (_useSdk) {
+      if (_isHostChecked) {
         throw "--host-checked and --use-sdk cannot be used together";
       }
-      // The script dart2wasm_developer is not included in the
-      // shipped SDK, that is the script is not installed in
-      // "$buildDir/dart-sdk/bin/"
-      return '$prefix/dart2wasm_developer$shellScriptExtension';
+      return '${_configuration.buildDirectory}/dart-sdk/bin/dart';
     }
-    if (_useSdk) {
-      prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
-    }
-    return '$prefix/dart2wasm$shellScriptExtension';
+    return 'pkg/dart2wasm/tool/compile_benchmark';
   }
 
   @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
+      if (_useSdk) ...[
+        'compile',
+        'wasm',
+      ] else ...[
+        if (_isHostChecked) '--compiler-asserts',
+      ],
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -557,8 +556,11 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
 
   Command computeCompilationCommand(String outputFileName,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    arguments = arguments.toList();
-    arguments.add(outputFileName);
+    arguments = [
+      ...arguments,
+      if (_useSdk) '-o',
+      outputFileName,
+    ];
 
     var command = CompilationCommand(
         'dart2wasm',
@@ -602,11 +604,12 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     final filename = artifact!.filename;
     final args = testFile.dartOptions;
     final isD8 = runtimeConfiguration is D8RuntimeConfiguration;
+    final isJSC = runtimeConfiguration is JSCRuntimeConfiguration;
     return [
       if (isD8) '--turboshaft-wasm',
       if (isD8) '--experimental-wasm-imported-strings',
       'pkg/dart2wasm/bin/run_wasm.js',
-      if (isD8) '--',
+      if (isD8 || isJSC) '--',
       '${filename.substring(0, filename.lastIndexOf('.'))}.mjs',
       filename,
       ...testFile.sharedObjects
@@ -695,14 +698,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     args.addAll([
       "--ignore-unrecognized-flags",
       "--no-summarize",
-      if (d8Runtime) "--modules=legacy",
+      if (d8Runtime) "--modules=ddc",
       "-o",
       outputFile,
       inputFile,
     ]);
 
     if (!d8Runtime) {
-      // TODO(sigmund): allow caching of shared packages in legacy mode too.
+      // TODO(sigmund): allow caching of shared packages for DDC modules too.
       // Link to the summaries for the available packages, so that they don't
       // get recompiled into the test's own module.
       for (var package in testPackages) {
@@ -760,7 +763,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       var weakNullSafetyWarnings = !(weakNullSafetyErrors || _soundNullSafety);
       var repositoryUri = Uri.directory(Repository.dir.toNativePath());
       var dartLibraryPath = repositoryUri
-          .resolve('pkg/dev_compiler/lib/js/legacy/dart_library.js')
+          .resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js')
           .path;
       var sdkJsDir =
           Uri.directory(_configuration.buildDirectory).resolve('$genDir/sdk');

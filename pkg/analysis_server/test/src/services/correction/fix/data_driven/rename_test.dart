@@ -32,6 +32,52 @@ class RenameClassTest extends _AbstractRenameTest {
   @override
   String get _kind => 'class';
 
+  Future<void> test_as_deprecated() async {
+    setPackageContent('''
+class A {}
+@deprecated
+class Old extends A {}
+class New extends A {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(A o) {
+  print(o as Old);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(A o) {
+  print(o as New);
+}
+''');
+  }
+
+  Future<void> test_as_removed() async {
+    setPackageContent('''
+class A {}
+class New extends A {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(A o) {
+  print(o as Old);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(A o) {
+  print(o as New);
+}
+''');
+  }
+
   Future<void> test_constructor_named_deprecated() async {
     setPackageContent('''
 @deprecated

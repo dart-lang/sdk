@@ -23,7 +23,7 @@ abstract class AbstractIgnoreDiagnostic extends ResolvedCorrectionProducer {
 
   Future<void> _computeEdit(
     ChangeBuilder builder,
-    CorrectionUtils_InsertDesc insertDesc,
+    InsertionLocation insertDesc,
     RegExp existingIgnorePattern,
     String ignoreCommentType,
   ) async {
@@ -79,7 +79,7 @@ class IgnoreDiagnosticInFile extends AbstractIgnoreDiagnostic {
   Future<void> compute(ChangeBuilder builder) async {
     if (_isCodeUnignorable()) return;
 
-    final insertDesc = utils.getInsertDescIgnoreForFile();
+    final insertDesc = utils.getInsertionLocationIgnoreForFile();
     await _computeEdit(
       builder,
       insertDesc,
@@ -98,8 +98,8 @@ class IgnoreDiagnosticOnLine extends AbstractIgnoreDiagnostic {
     if (_isCodeUnignorable()) return;
 
     final diagnostic = this.diagnostic!; // Enforced by _isCodeUnignorable
-    final insertDesc = CorrectionUtils_InsertDesc();
-    insertDesc.offset = diagnostic.problemMessage.offset;
+    final insertDesc = InsertionLocation(
+        prefix: '', offset: diagnostic.problemMessage.offset, suffix: '');
     await _computeEdit(
       builder,
       insertDesc,

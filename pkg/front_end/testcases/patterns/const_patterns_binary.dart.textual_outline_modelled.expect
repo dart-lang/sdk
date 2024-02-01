@@ -5,4 +5,5 @@ class Class {
 }
 
 const value = 1;
+
 method<T>(o) {}

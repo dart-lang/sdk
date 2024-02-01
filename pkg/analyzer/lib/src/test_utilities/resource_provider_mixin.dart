@@ -24,6 +24,8 @@ mixin ResourceProviderMixin {
           ? MemoryResourceProvider(context: path.windows)
           : MemoryResourceProvider();
 
+  path.Context get pathContext => resourceProvider.pathContext;
+
   String convertPath(String path) => resourceProvider.convertPath(path);
 
   void deleteAnalysisOptionsYamlFile(String directoryPath) {
@@ -34,6 +36,10 @@ mixin ResourceProviderMixin {
   void deleteFile(String path) {
     String convertedPath = convertPath(path);
     resourceProvider.deleteFile(convertedPath);
+  }
+
+  void deleteFile2(File file) {
+    deleteFile(file.path);
   }
 
   void deleteFolder(String path) {
@@ -78,6 +84,10 @@ mixin ResourceProviderMixin {
   void modifyFile(String path, String content) {
     String convertedPath = convertPath(path);
     resourceProvider.modifyFile(convertedPath, content);
+  }
+
+  void modifyFile2(File file, String content) {
+    modifyFile(file.path, content);
   }
 
   File newAnalysisOptionsYamlFile(String directoryPath, String content) {

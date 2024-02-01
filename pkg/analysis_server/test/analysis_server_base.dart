@@ -24,7 +24,8 @@ import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'mocks.dart';
-import 'src/utilities/mock_packages.dart';
+import 'support/configuration_files.dart';
+import 'test_macros.dart';
 
 // TODO(scheglov): this is duplicate
 class AnalysisOptionsFileConfig {
@@ -186,7 +187,7 @@ class ContextResolutionTest with ResourceProviderMixin {
   }
 
   Future<void> tearDown() async {
-    await server.dispose();
+    await server.shutdown();
   }
 
   /// Returns a [Future] that completes when the server's analysis is complete.
@@ -204,7 +205,8 @@ class ContextResolutionTest with ResourceProviderMixin {
   }
 }
 
-class PubPackageAnalysisServerTest extends ContextResolutionTest {
+class PubPackageAnalysisServerTest extends ContextResolutionTest
+    with ConfigurationFilesMixin, TestMacros {
   // If experiments are needed,
   // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
@@ -251,6 +253,25 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
     );
   }
 
+  /// Adds support for macros to the `package_config.json` file and creates a
+  /// `macros.dart` file that defines the given [macros]. The macros should not
+  /// include imports, the imports for macros will be added automatically.
+  void addMacros(List<String> macros) {
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder(),
+      temporaryMacroSupport: true,
+    );
+    newFile(
+        '$testPackageLibPath/macros.dart',
+        [
+          '''
+// There is no public API exposed yet, the in-progress API lives here.
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+''',
+          ...macros
+        ].join('\n'));
+  }
+
   // TODO(scheglov): rename
   void addTestFile(String content) {
     newFile(testFilePath, content);
@@ -295,13 +316,6 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
     return offset;
   }
 
-  void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
-    newPackageConfigJsonFile(
-      root.path,
-      config.toContent(toUriStr: toUriStr),
-    );
-  }
-
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
@@ -314,36 +328,16 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
     String? languageVersion,
     bool flutter = false,
     bool meta = false,
+    bool temporaryMacroSupport = false,
   }) {
-    if (config == null) {
-      config = PackageConfigFileBuilder();
-    } else {
-      config = config.copy();
-    }
-
-    config.add(
-      name: 'test',
-      rootPath: testPackageRootPath,
+    writePackageConfig(
+      testPackageRoot.path,
+      config: config,
       languageVersion: languageVersion,
+      flutter: flutter,
+      meta: meta,
+      temporaryMacroSupport: temporaryMacroSupport,
     );
-
-    if (meta || flutter) {
-      var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
-    }
-
-    if (flutter) {
-      {
-        var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
-      }
-      {
-        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
-      }
-    }
-
-    writePackageConfig(testPackageRoot, config);
   }
 
   void writeTestPackagePubspecYamlFile(String content) {

@@ -17,16 +17,24 @@ class C<T> {
 }
 
 typedef ACI = C<int>;
+
 typedef ACR<T> = C<T>;
+
 typedef ACN<T extends num> = C<T>;
+
 void checkClass() {}
+
 extension type E<T>(T value) {
   E.named(this.value);
   E.redirect(T value) : this.named(value);
   factory E.factory(T value) => E<T>(value);
   factory E.factoryRedirect(T value) = E<T>;
 }
+
 typedef AEI = E<int>;
+
 typedef AER<T> = E<T>;
+
 typedef AEN<T extends num> = E<T>;
+
 void checkExtensionType() {}

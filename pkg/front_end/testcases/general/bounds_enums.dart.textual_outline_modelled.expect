@@ -7,4 +7,5 @@ enum E2<Y extends B<Y>> { e2<Never>() }
 enum E3<Y extends E3<Y>> { e3<Never>() }
 
 main() {}
+
 typedef A<X> = X Function(X);

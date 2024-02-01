@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 @JS()
 library foo;
 
@@ -14,8 +12,7 @@ import 'package:js/js.dart';
 
 @JS()
 @anonymous
-/*spec.class: A:checkedInstance,checkedTypeArgument,typeArgument*/
-/*prod.class: A:checkedTypeArgument,typeArgument*/
+/*class: A:checkedInstance,checkedTypeArgument,typeArgument*/
 class A<T> {
   external factory A();
 }

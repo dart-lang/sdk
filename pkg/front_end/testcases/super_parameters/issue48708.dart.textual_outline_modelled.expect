@@ -14,4 +14,5 @@ class C extends B<A> with Mixin {
 }
 
 main() {}
+
 mixin Mixin {}

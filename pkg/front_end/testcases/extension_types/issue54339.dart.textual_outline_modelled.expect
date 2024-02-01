@@ -31,5 +31,7 @@ class E {
 extension type Ext(Function it) {
   String call() => 'call from Ext: ${it()}';
 }
+
 extension type Ext2(C c) implements C {}
+
 void main() {}

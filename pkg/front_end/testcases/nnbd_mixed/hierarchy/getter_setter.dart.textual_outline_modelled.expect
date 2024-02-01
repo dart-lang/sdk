@@ -72,6 +72,7 @@ abstract class Super {
 }
 
 main() {}
+
 mixin Mixin {
   String get extendedSetterMixedInGetter => '';
   String get mixedInGetterDeclaredField => '';

@@ -24,7 +24,6 @@ import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' show NonExistingSource;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:collection/collection.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 

@@ -24,7 +24,6 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
-import 'package:collection/collection.dart';
 
 class BundleWriter {
   late final _BundleWriterReferences _references;
@@ -954,9 +953,12 @@ class ResolutionSink extends _SummaryDataWriter {
         writeStringUtf8(diagnostic.message);
       case DeclarationsIntrospectionCycleDiagnostic():
         writeByte(0x01);
+        writeUInt30(diagnostic.annotationIndex);
+        writeElement(diagnostic.introspectedElement);
         writeList(diagnostic.components, (component) {
           writeElement(component.element);
           writeUInt30(component.annotationIndex);
+          writeElement(component.introspectedElement);
         });
       case ExceptionMacroDiagnostic():
         writeByte(0x02);
@@ -1083,7 +1085,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
       return typeParameters
           .map((typeParameter) => substitution[typeParameter])
-          .whereNotNull()
+          .nonNulls
           .toList(growable: false);
     }
 

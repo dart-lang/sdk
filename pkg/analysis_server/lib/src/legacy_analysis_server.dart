@@ -406,7 +406,8 @@ class LegacyAnalysisServer extends AnalysisServer {
         ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.status.listen(handleAnalysisStatusChange);
+    analysisDriverSchedulerEventsSubscription =
+        analysisDriverScheduler.events.listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
     onAnalysisStarted.first.then((_) {
@@ -486,8 +487,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     cancellationTokens[id]?.cancel();
   }
 
-  Future<void> dispose() async {}
-
   /// The socket from which requests are being read has been closed.
   void done() {}
 
@@ -503,7 +502,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
 
     var driver = getAnalysisDriver(path);
-    return driver?.getCachedResult(path);
+    return driver?.getCachedResolvedUnit(path);
   }
 
   /// Gets the current version number of a document.
@@ -612,7 +611,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Return `true` if analysis is complete.
   bool isAnalysisComplete() {
-    return !analysisDriverScheduler.isAnalyzing;
+    return !analysisDriverScheduler.isWorking;
   }
 
   /// Return `true` if the given path is a valid `FilePath`.
@@ -691,7 +690,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
   void sendStatusNotificationNew(analysis.AnalysisStatus status) {
-    var isAnalyzing = status.isAnalyzing;
+    var isAnalyzing = status.isWorking;
     if (isAnalyzing) {
       _onAnalysisStartedController.add(true);
     }
@@ -707,6 +706,7 @@ class LegacyAnalysisServer extends AnalysisServer {
         sendAnalysisNotificationAnalyzedFiles(this);
       }
       _scheduleAnalysisImplementedNotification();
+      filesResolvedSinceLastIdle.clear();
     }
     // Only send status when subscribed.
     if (!serverServices.contains(ServerService.STATUS)) {
@@ -747,7 +747,6 @@ class LegacyAnalysisServer extends AnalysisServer {
         throw RequestFailure(Response.unsupportedFeature(
             requestId, e.message ?? 'Unsupported feature.'));
       }
-      analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
     } finally {
       completer.complete();
     }
@@ -952,10 +951,17 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   void _scheduleAnalysisImplementedNotification() {
-    var files = analysisServices[AnalysisService.IMPLEMENTED];
-    if (files != null) {
-      scheduleImplementedNotification(this, files);
+    final subscribed = analysisServices[AnalysisService.IMPLEMENTED];
+    if (subscribed == null) {
+      return;
     }
+
+    final toSend = subscribed.intersection(filesResolvedSinceLastIdle);
+    if (toSend.isEmpty) {
+      return;
+    }
+
+    scheduleImplementedNotification(this, toSend);
   }
 
   void _sendSubscriptions({bool analysis = false, bool flutter = false}) {

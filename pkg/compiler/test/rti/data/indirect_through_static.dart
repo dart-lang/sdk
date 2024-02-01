@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*class: A:implicit=[A]*/
 abstract class A {}
 
 class B implements A {}
 
-/*spec.class: C:deps=[lookup],explicit=[C<lookup.T*>*,Map<String*,C*>*],implicit=[C],needsArgs*/
-/*prod.class: C:deps=[lookup],explicit=[C<lookup.T*>*],needsArgs*/
+/*spec.class: C:deps=[lookup],explicit=[C<lookup.T>,Map<String,C>],implicit=[C],needsArgs*/
+/*prod.class: C:deps=[lookup],explicit=[C<lookup.T>],needsArgs*/
 class C<T> {}
 
 final Map<String, C> map = {};
@@ -19,7 +17,7 @@ void setup() {
   map['x'] = C<B>();
 }
 
-/*member: lookup:explicit=[C<lookup.T*>*],needsArgs,test*/
+/*member: lookup:explicit=[C<lookup.T>],needsArgs,test*/
 C<T> lookup<T>(String key) {
   final value = map[key];
   if (value != null && value is C<T>) {

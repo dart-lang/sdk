@@ -24,9 +24,15 @@ extension E6 on double {
 }
 
 main() {}
+
 test1() {}
+
 test2(A2 a) {}
+
 test3() {}
+
 test4() {}
+
 test6() {}
+
 test7(A7? a) {}

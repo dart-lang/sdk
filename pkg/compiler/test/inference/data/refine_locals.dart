@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   refineToClass();
@@ -85,7 +83,8 @@ _noRefinementNullSelectors(/*[null|exact=Class2]*/ o) {
   o. /*[null|exact=Class2]*/ toString;
   o. /*[null|exact=Class2]*/ noSuchMethod;
   o. /*invoke: [null|exact=Class2]*/ toString();
-  o. /*invoke: [null|exact=Class2]*/ noSuchMethod(null); // assumed to throw.
+  o. /*invoke: [null|exact=Class2]*/ noSuchMethod(
+      null as dynamic); // assumed to throw.
   o. /*[exact=Class2]*/ toString;
   return o;
 }

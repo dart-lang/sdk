@@ -2184,6 +2184,8 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
         assert(buffer == null);
         done();
       }, cancelOnError: true);
+    } else {
+      done();
     }
     return completer.future;
   }

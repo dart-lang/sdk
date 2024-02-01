@@ -30,6 +30,7 @@ aligns
 allocations
 allowlist
 allowlisting
+alphabetically
 alt
 amend
 amended
@@ -124,6 +125,7 @@ caption
 captions
 carefully
 categorization
+categorize
 causal
 cb
 cc
@@ -137,6 +139,7 @@ characteristics
 charset
 checkme
 checkout
+chk
 chromes
 chunked
 cipd
@@ -234,6 +237,7 @@ dijkstra
 dijkstras
 dinteractive
 dirname
+dirs
 disagree
 disagreement
 disconnect
@@ -281,6 +285,7 @@ equally
 erase
 err
 esc
+est
 estat
 et
 everytime
@@ -333,6 +338,7 @@ forty
 fortytwo
 foundation
 fox
+fq
 frequency
 frozen
 fruits
@@ -441,6 +447,7 @@ kitty
 ko
 koo
 la
+lambdas
 lat
 launch
 launching
@@ -520,8 +527,11 @@ nondefault
 nonexisting
 noo
 noted
+noting
 nottest
+nq
 null'ed
+numbered
 numerator
 nums
 ob
@@ -580,12 +590,14 @@ pooled
 population
 portions
 pp
+pr
 preliminary
 prematurely
 prerequisite
 press
 pretends
 preventing
+primitives
 printouts
 processes
 processors
@@ -632,6 +644,7 @@ rendition
 reorder
 reordering
 repaint
+representative
 repro
 reproduce
 reproduction
@@ -687,6 +700,7 @@ sigint
 signalled
 sigwinch
 silence
+simplistic
 slashes
 slight
 sliver
@@ -786,6 +800,7 @@ ugly
 unassignment
 unawaited
 unbreak
+uncaught
 unconverted
 uncover
 uncovers
@@ -804,6 +819,7 @@ unusual
 unversioned
 upgrade
 upload
+upstream
 upward
 uuid
 val
@@ -829,7 +845,10 @@ worlds
 wrongly
 ws
 x's
+xf
+xfq
 xlate
+xnq
 xrequired
 xxx
 xxxxxxxx

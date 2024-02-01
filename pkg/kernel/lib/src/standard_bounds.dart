@@ -486,8 +486,10 @@ mixin StandardBounds {
     }
 
     // DOWN(T1, T2) = Never otherwise.
-    return NeverType.fromNullability(intersectNullabilities(
-        type1.declaredNullability, type2.declaredNullability));
+    return NeverType.fromNullability(combineNullabilitiesForSubstitution(
+        Nullability.nonNullable,
+        intersectNullabilities(
+            type1.declaredNullability, type2.declaredNullability)));
   }
 
   DartType _getNullabilityObliviousStandardLowerBound(

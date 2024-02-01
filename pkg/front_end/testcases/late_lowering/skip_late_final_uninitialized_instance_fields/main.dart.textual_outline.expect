@@ -1,8 +1,13 @@
 main() {}
+
 method() {}
+
 late int uninitializedNonFinalTopLevelField;
+
 late final int uninitializedFinalTopLevelField;
+
 late int initializedNonFinalTopLevelField = 0;
+
 late final int initializedFinalTopLevelField = 0;
 
 class Class {

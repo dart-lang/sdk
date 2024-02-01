@@ -5,5 +5,7 @@ class C {
 }
 
 C f() => throw '';
+
 var x = f().g;
+
 main() {}

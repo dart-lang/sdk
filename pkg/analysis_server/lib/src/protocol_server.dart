@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
 import 'package:analysis_server/src/utilities/extensions/element.dart';
@@ -147,12 +146,15 @@ AnalysisError newAnalysisError_fromEngine(
         .toList();
   }
   var correction = error.correction;
-  var fix = hasFix(error.errorCode);
   var url = errorCode.url;
   return AnalysisError(severity, type, location, message, code,
       contextMessages: contextMessages,
       correction: correction,
-      hasFix: fix,
+      // This parameter is only necessary for deprecated IDE support.
+      // Whether the error actually has a fix or not is not important to report
+      // here.
+      // TODO(srawlins): Remove it.
+      hasFix: false,
       url: url);
 }
 

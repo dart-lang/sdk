@@ -14,11 +14,13 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
 import 'package:analyzer/src/summary2/extension_type.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
@@ -460,7 +462,13 @@ class TypesBuilder {
           if (toDeclaration.map.isEmpty) {
             return element;
           }
-          return ConstructorMember(typeProvider, element, toDeclaration, false);
+          return ConstructorMember(
+            typeProvider: typeProvider,
+            declaration: element,
+            augmentationSubstitution: toDeclaration,
+            substitution: Substitution.empty,
+            isLegacy: false,
+          );
         }),
       ];
     }
@@ -477,7 +485,8 @@ class TypesBuilder {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return FieldMember(typeProvider, element, toDeclaration, false);
+        return FieldMember(
+            typeProvider, element, toDeclaration, Substitution.empty, false);
       }),
     ];
 
@@ -488,7 +497,7 @@ class TypesBuilder {
           return element;
         }
         return PropertyAccessorMember(
-            typeProvider, element, toDeclaration, false);
+            typeProvider, element, toDeclaration, Substitution.empty, false);
       }),
     ];
 
@@ -498,7 +507,8 @@ class TypesBuilder {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return MethodMember(typeProvider, element, toDeclaration, false);
+        return MethodMember(
+            typeProvider, element, toDeclaration, Substitution.empty, false);
       }),
     ];
   }
@@ -521,10 +531,12 @@ class _MixinInference {
   final TypeSystemImpl typeSystem;
   final FeatureSet featureSet;
   final InterfaceType classType;
+  final TypeSystemOperations typeSystemOperations;
 
   late final InterfacesMerger interfacesMerger;
 
-  _MixinInference(this.element, this.featureSet)
+  _MixinInference(this.element, this.featureSet,
+      {required this.typeSystemOperations})
       : typeSystem = element.library.typeSystem,
         classType = element.thisType {
     interfacesMerger = InterfacesMerger(typeSystem);
@@ -652,6 +664,8 @@ class _MixinInference {
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
       strictInference: false,
+      strictCasts: false,
+      typeSystemOperations: typeSystemOperations,
     );
     if (inferredTypeArguments == null) {
       return mixinType;
@@ -717,15 +731,21 @@ class _MixinsInference {
     final declarationMixins = <InterfaceType>[];
 
     try {
+      // Casts aren't relevant for mixin inference.
+      var typeSystemOperations =
+          TypeSystemOperations(element.library.typeSystem, strictCasts: false);
+
       if (declaration.withClause case final withClause?) {
-        final inference = _MixinInference(element, featureSet);
+        final inference = _MixinInference(element, featureSet,
+            typeSystemOperations: typeSystemOperations);
         final inferred = inference.perform(withClause);
         element.mixins = inferred;
         declarationMixins.addAll(inferred);
       }
 
       for (final augmentation in declaration.augmentations) {
-        final inference = _MixinInference(element, featureSet);
+        final inference = _MixinInference(element, featureSet,
+            typeSystemOperations: typeSystemOperations);
         inference.addTypes(
           augmentation.fromDeclaration.mapInterfaceTypes(declarationMixins),
         );
@@ -792,15 +812,5 @@ extension<T extends ExecutableElement> on List<T> {
 extension<T extends PropertyInducingElement> on List<T> {
   Iterable<T> get notAugmented {
     return where((e) => e.augmentation == null);
-  }
-}
-
-extension on List<TypeParameterElement> {
-  List<TypeParameterType> instantiateNone() {
-    return map((e) {
-      return e.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }).toList();
   }
 }

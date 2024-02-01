@@ -3,12 +3,12 @@ library from "org-dartlang-test:///lib.dart" as lib {
 
   class FooX extends dart.core::Object implements lib::BarX /*hasConstConstructor*/  {
     final field lib::HelperClassX bar;
-    const constructor •({required lib::HelperClassX bar = #C1}) → lib::FooX
+    const constructor •({required lib::HelperClassX bar}) → lib::FooX
       : lib::FooX::bar = bar, super dart.core::Object::•()
       ;
   }
   abstract class BarX extends dart.core::Object {
-    static factory •({required lib::HelperClassX bar = #C1}) → lib::BarX /* redirection-target: lib::FooX::• */
+    static factory •({required lib::HelperClassX bar}) → lib::BarX /* redirection-target: lib::FooX::• */
       return new lib::FooX::•(bar: bar);
   }
   class HelperClassX extends dart.core::Object {
@@ -37,14 +37,14 @@ library from "org-dartlang-test:///main.dart" as main {
 
   class Foo extends dart.core::Object implements main::Bar /*hasConstConstructor*/  {
     final field main::HelperClass bar;
-    const constructor •({required main::HelperClass bar = #C1}) → main::Foo
+    const constructor •({required main::HelperClass bar}) → main::Foo
       : main::Foo::bar = bar, super dart.core::Object::•() {
       ;
       dart._internal::reachabilityFence(bar);
     }
   }
   abstract class Bar extends dart.core::Object {
-    static factory •({required main::HelperClass bar = #C1}) → main::Bar /* redirection-target: main::Foo::• */
+    static factory •({required main::HelperClass bar}) → main::Bar /* redirection-target: main::Foo::• */
       return block {
         final synthesized main::Foo :expressionValueWrappedFinalizable = new main::Foo::•(bar: bar);
         dart._internal::reachabilityFence(bar);
@@ -55,7 +55,4 @@ library from "org-dartlang-test:///main.dart" as main {
       : super dart.core::Object::•()
       ;
   }
-}
-constants  {
-  #C1 = null
 }

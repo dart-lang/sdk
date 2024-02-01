@@ -23,6 +23,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
@@ -297,6 +298,17 @@ class DartUnitHighlightsComputer {
         type = accessor.isGetter
             ? HighlightRegionType.INSTANCE_GETTER_REFERENCE
             : HighlightRegionType.INSTANCE_SETTER_REFERENCE;
+      }
+    }
+    // Handle tokens that are references to record fields.
+    if (element == null &&
+        parent is PropertyAccess &&
+        nameToken == parent.propertyName.token) {
+      var staticType = parent.realTarget.staticType;
+      if (staticType is RecordType) {
+        type = staticType.fieldByName(nameToken.lexeme) != null
+            ? HighlightRegionType.INSTANCE_FIELD_REFERENCE
+            : HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
       }
     }
     // add region

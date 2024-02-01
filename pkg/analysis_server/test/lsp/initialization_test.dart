@@ -722,7 +722,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // analysis root it will not occur.
     // https://github.com/dart-lang/sdk/issues/37338
     for (var driver in server.driverMap.values) {
-      expect(driver.getCachedResult(nestedFilePath), isNotNull);
+      expect(driver.getCachedResolvedUnit(nestedFilePath), isNotNull);
     }
 
     // Closing the file should remove it.
@@ -929,7 +929,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   /// Verifies a workspace that contains non-file workspace folders is handled.
   ///
-  /// Related tests for didChangeWorkspcaeFolders are in
+  /// Related tests for didChangeWorkspaceFolders are in
   /// [ChangeWorkspaceFoldersTest].
   Future<void> test_nonFileScheme_workspaceFolders() async {
     newPubspecYamlFile(projectFolderPath, '');
@@ -1078,7 +1078,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // analysis root it will not occur.
     // https://github.com/dart-lang/sdk/issues/37338
     for (var driver in server.driverMap.values) {
-      expect(driver.getCachedResult(nestedFilePath), isNotNull);
+      expect(driver.getCachedResolvedUnit(nestedFilePath), isNotNull);
     }
 
     // Closing the file should remove it.

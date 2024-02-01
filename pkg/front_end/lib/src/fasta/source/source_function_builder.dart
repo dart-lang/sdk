@@ -121,9 +121,9 @@ abstract class SourceFunctionBuilder
 
   void becomeNative(SourceLoader loader);
 
-  bool checkPatch(SourceFunctionBuilder patch);
+  bool checkAugmentation(SourceFunctionBuilder augmentation);
 
-  void reportPatchMismatch(Builder patch);
+  void reportAugmentationMismatch(Builder augmentation);
 }
 
 /// Common base class for constructor and procedure builders.
@@ -531,23 +531,22 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  bool checkPatch(SourceFunctionBuilder patch) {
-    if (!isExternal && !patch.libraryBuilder.isAugmentation) {
-      patch.libraryBuilder.addProblem(
-          messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri!,
-          context: [
-            messagePatchDeclarationOrigin.withLocation(
-                fileUri, charOffset, noLength)
-          ]);
+  bool checkAugmentation(SourceFunctionBuilder augmentation) {
+    if (!isExternal && !augmentation.libraryBuilder.isAugmentationLibrary) {
+      augmentation.libraryBuilder.addProblem(messagePatchNonExternal,
+          augmentation.charOffset, noLength, augmentation.fileUri!, context: [
+        messagePatchDeclarationOrigin.withLocation(
+            fileUri, charOffset, noLength)
+      ]);
       return false;
     }
     return true;
   }
 
   @override
-  void reportPatchMismatch(Builder patch) {
-    libraryBuilder.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
-        noLength, patch.fileUri!, context: [
+  void reportAugmentationMismatch(Builder augmentation) {
+    libraryBuilder.addProblem(messagePatchDeclarationMismatch,
+        augmentation.charOffset, noLength, augmentation.fileUri!, context: [
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
     ]);
   }

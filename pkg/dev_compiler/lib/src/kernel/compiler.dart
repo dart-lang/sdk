@@ -11,8 +11,6 @@ import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
     show eraseStaticInteropTypesForJSCompilers;
-import 'package:collection/collection.dart'
-    show IterableExtension, IterableNullableExtension;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName, JsBuiltin;
 import 'package:kernel/class_hierarchy.dart';
@@ -1086,16 +1084,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     assert(formals.isNotEmpty);
     var jsFormals = _emitTypeFormals(formals);
 
-    // Checks for explicitly set variance to avoid emitting legacy covariance
-    // Variance annotations are not necessary when variance experiment flag is
-    // not enabled or when no type parameters have explicitly defined
-    // variances.
-    var hasOnlyLegacyCovariance = formals.every((t) => t.isLegacyCovariant);
-    if (!hasOnlyLegacyCovariance) {
-      var varianceList = formals.map(_emitVariance);
-      var varianceStatement = runtimeStatement(
-          'setGenericArgVariances(#, [#])', [className, varianceList]);
-      body = js_ast.Statement.from([body, varianceStatement]);
+    if (!_options.newRuntimeTypes) {
+      // In the new runtime type system variances are emitted as seperate rules
+      // saved in the type universe. There is no need to attach them to the
+      // class itself like in the old type system.
+      //
+      // Checks for explicitly set variance to avoid emitting legacy covariance
+      // Variance annotations are not necessary when variance experiment flag is
+      // not enabled or when no type parameters have explicitly defined
+      // variances.
+      var hasOnlyLegacyCovariance = formals.every((t) => t.isLegacyCovariant);
+      if (!hasOnlyLegacyCovariance) {
+        var varianceList = formals.map(_emitVariance);
+        var varianceStatement = runtimeStatement(
+            'setGenericArgVariances(#, [#])', [className, varianceList]);
+        body = js_ast.Statement.from([body, varianceStatement]);
+      }
     }
 
     var typeConstructor = js.call('(#) => { #; #; #; return #; }', [
@@ -2350,7 +2354,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Add all of the super helper methods
     jsMethods.addAll(_superHelpers.values);
 
-    return jsMethods.whereNotNull().toList();
+    return jsMethods.nonNulls.toList();
   }
 
   bool _isForwardingStub(Procedure member) {
@@ -3395,9 +3399,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ///
     /// At runtime the expression will evaluate to an rti object that has been
     /// extended to include the provided [parameter].
-    js_ast.Expression emitRtiBind(js_ast.Expression environment,
-        /* TypeParameter | StructuralParameter */ Object parameter) {
-      assert(parameter is TypeParameter || parameter is StructuralParameter);
+    js_ast.Expression emitRtiBind(
+        js_ast.Expression environment, TypeParameter parameter) {
       return js.call('#.#(#)', [
         environment,
         _emitMemberName('_bind', memberClass: rtiClass),
@@ -4540,7 +4543,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // [s].
     // TODO(jmesserly): is the `is! Block` still necessary?
     if (!(s is Block || result is js_ast.DebuggerStatement)) {
-      result.sourceInformation = _nodeStart(s);
+      result.sourceInformation ??= _nodeStart(s);
     }
 
     // The statement might be the target of a break or continue with a label.
@@ -4921,12 +4924,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.For visitForStatement(ForStatement node) {
+  js_ast.Statement visitForStatement(ForStatement node) {
     return _translateLoop(node, () {
       js_ast.VariableInitialization emitForInitializer(VariableDeclaration v) =>
           js_ast.VariableInitialization(_emitVariableDef(v),
               _visitInitializer(v.initializer, v.annotations));
 
+      if (node.variables.any(containsFunctionExpression)) {
+        return _rewriteAsWhile(node);
+      }
       var init = node.variables.map(emitForInitializer).toList();
       var initList =
           init.isEmpty ? null : js_ast.VariableDeclarationList('let', init);
@@ -4943,6 +4949,119 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       return js_ast.For(initList, condition, update, body);
     });
+  }
+
+  /// Rewrites a `for(;;)` style loop as a while loop to produce the correct
+  /// semantics when loop variable initialziers contain function expressions
+  /// that close over other loop variables.
+  ///
+  /// The Dart semantics expect that every loop iteration gets fresh loop
+  /// variables that can be closed over. The initialization is only executed
+  /// for the first iteration. In later iterations, the fresh loop variables are
+  /// initalized to the values from the end of the previous iteration.
+  ///
+  /// These semantics differ from JavaScript when there are closures capturing
+  /// loop variables so the simple lowering doesn't work as expected.
+  ///
+  /// A for loop like:
+  ///
+  /// ```
+  /// for(var v1 = init1, v2 = init2; condition; updates) { body }
+  /// ```
+  ///
+  /// Produces a rewrite like:
+  ///
+  /// ```
+  /// var initFlag = true;
+  /// var prev_v1, prev_v2;
+  /// while (true) {
+  ///   var v1, v2;
+  ///   if (initFlag) {
+  ///     initFlag = false;
+  ///     v1 = inti1;
+  ///     v2 = init2;
+  ///   } else {
+  ///     v1 = prev_v1;
+  ///     v2 = prev_v2;
+  ///     updates;
+  ///   }
+  ///   if (!condition) break;
+  ///   body;
+  ///   prev_v1 = v1;
+  ///   prev_v2 = v2;
+  /// }
+  /// ```
+  js_ast.Statement _rewriteAsWhile(ForStatement node) {
+    var initFlagTempId = _emitTemporaryId('t#_init');
+    var loopVariableIds = {
+      for (var variable in node.variables) variable: _emitVariableDef(variable),
+    };
+    var prevVariableTempIds = {
+      for (var variable in node.variables)
+        variable: _emitTemporaryId('t#_prev_${variable.name!}'),
+    };
+    var inits = js_ast.Block([
+      // Set init flag to false so the initialization only happens on the first
+      // iteration of the while loop.
+      js.statement('# = false;', [initFlagTempId]),
+      // Initialize fresh loop variables to initial values.
+      for (var variable in node.variables)
+        js.statement('# = #;', [
+          loopVariableIds[variable]!,
+          _visitInitializer(variable.initializer, variable.annotations)
+        ]),
+    ]);
+    var prevInits = js_ast.Block([
+      // Intialize fresh loop variables with the value from the previous
+      // iteration.
+      for (var variable in node.variables)
+        js.statement('# = #;',
+            [loopVariableIds[variable], prevVariableTempIds[variable]]),
+      // Original update expressions.
+      for (var update in node.updates) _visitExpression(update).toStatement(),
+    ]);
+    return js_ast.Block([
+      // Create temporary variables for the intialization flag and previous
+      // loop variables.
+      js_ast.VariableDeclarationList('let', [
+        js_ast.VariableInitialization(initFlagTempId, js_ast.LiteralBool(true)),
+        for (var variable in node.variables)
+          js_ast.VariableInitialization(prevVariableTempIds[variable]!, null),
+      ]).toStatement(),
+      // The for loop transformed into a while loop.
+      js_ast.While(
+          js_ast.LiteralBool(true),
+          js_ast.Block([
+            // Create fresh loop variables every iteration.
+            if (node.variables.isNotEmpty)
+              js_ast.VariableDeclarationList('let', [
+                for (var variable in node.variables)
+                  js_ast.VariableInitialization(
+                      loopVariableIds[variable]!, null)
+              ]).toStatement(),
+            // Initialize loop variables.
+            js_ast.If(initFlagTempId, inits, prevInits),
+            // Loop condition guard.
+            if (node.condition != null)
+              js.statement('if (!#) break;', [_visitTest(node.condition!)])
+                ..sourceInformation = _nodeStart(node.condition!),
+            // Original loop body.
+            _visitScope(_effectiveBodyOf(node, node.body)),
+            // Save previous loop variables
+            for (var variable in node.variables)
+              js.statement('# = #;',
+                  [prevVariableTempIds[variable]!, _emitVariableRef(variable)])
+                // Map these locations to the variable declaration so stepping
+                // in the Dart debugger doesn't jump to the previous line when
+                // stepping.
+                ..sourceInformation = _nodeStart(variable),
+          ]))
+        // The while loop gets mapped to the orginal for loop location.
+        ..sourceInformation = _nodeStart(node),
+    ])
+      // Clear the source mapping on the outer block so it doesn't automatically
+      // get mapped to the for loop node in _visitStatement.
+      ..sourceInformation = continueSourceMap;
   }
 
   @override
@@ -6535,40 +6654,34 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (name == 'JS_GET_FLAG') {
           var flag = args.single as StringLiteral;
           var value = flag.value;
-          switch (value) {
-            case 'DEV_COMPILER':
-              return js.boolean(true);
-            case 'PRINT_LEGACY_STARS':
-              return js.boolean(_options.printLegacyStars);
-            case 'LEGACY':
-              return _options.soundNullSafety
-                  ? js.boolean(false)
-                  // When running the new runtime type system with weak null
-                  // safety this flag gets toggled when performing `is` and `as`
-                  // checks. This allows DDC to produce optional warnings or
-                  // errors when tests pass but would fail in sound null safety.
-                  : runtimeCall('legacyTypeChecks');
-            case 'EXTRA_NULL_SAFETY_CHECKS':
-              return _options.soundNullSafety
-                  ? js.boolean(false)
-                  // When running the new runtime type system with weak null
-                  // safety this flag gets toggled when performing `is` and `as`
-                  // checks. This allows DDC to produce optional warnings or
-                  // errors when tests pass but would fail in sound null safety.
-                  : runtimeCall('extraNullSafetyChecks');
-            case 'MINIFIED':
-              return js.boolean(false);
-            case 'NEW_RUNTIME_TYPES':
-              return js.boolean(_options.newRuntimeTypes);
-            case 'VARIANCE':
+          return switch (value) {
+            'DEV_COMPILER' => js.boolean(true),
+            'PRINT_LEGACY_STARS' => js.boolean(_options.printLegacyStars),
+            'LEGACY' => _options.soundNullSafety
+                ? js.boolean(false)
+                // When running the new runtime type system with weak null
+                // safety this flag gets toggled when performing `is` and `as`
+                // checks. This allows DDC to produce optional warnings or
+                // errors when tests pass but would fail in sound null safety.
+                : runtimeCall('legacyTypeChecks'),
+            'SOUND_NULL_SAFETY' => js.boolean(_options.soundNullSafety),
+            'EXTRA_NULL_SAFETY_CHECKS' => _options.soundNullSafety
+                ? js.boolean(false)
+                // When running the new runtime type system with weak null
+                // safety this flag gets toggled when performing `is` and `as`
+                // checks. This allows DDC to produce optional warnings or
+                // errors when tests pass but would fail in sound null safety.
+                : runtimeCall('extraNullSafetyChecks'),
+            'MINIFIED' => js.boolean(false),
+            'NEW_RUNTIME_TYPES' => js.boolean(_options.newRuntimeTypes),
+            'VARIANCE' =>
               // Variance is turned on by default, but only interfaces that have
               // at least one type parameter with non-legacy variance will have
               // extra information recorded.
-              return js.boolean(true);
-            default:
-              throw UnsupportedError(
-                  'Unknown JS_GET_FLAG "$value" at ${node.location}');
-          }
+              js.boolean(true),
+            _ => throw UnsupportedError(
+                'Unknown JS_GET_FLAG "$value" at ${node.location}')
+          };
         }
       } else if (args.length == 2) {
         if (name == 'JS_EMBEDDED_GLOBAL') return _emitEmbeddedGlobal(node);
@@ -6590,10 +6703,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (node.arguments.positional.isEmpty &&
           node.arguments.types.length == 1) {
         var type = node.arguments.types.single;
-        if (name == 'typeRep') return _emitType(type);
-        if (name == 'legacyTypeRep') {
-          return _emitType(type.withDeclaredNullability(Nullability.legacy));
-        }
         if (name == 'getGenericClassStatic') {
           if (type is InterfaceType) {
             return _emitTopLevelNameNoExternalInterop(type.classNode,
@@ -6615,17 +6724,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         }
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {
           return getSymbol(getExtensionSymbolInternal(firstArg.value));
-        }
-
-        if (name == 'compileTimeFlag' && firstArg is StringLiteral) {
-          var flagName = firstArg.value;
-          if (flagName == 'soundNullSafety') {
-            return js.boolean(_options.soundNullSafety);
-          }
-          if (flagName == 'newRuntimeTypes') {
-            return js.boolean(_options.newRuntimeTypes);
-          }
-          throw UnsupportedError('Invalid flag in call to $name: $flagName');
         }
       } else if (node.arguments.positional.length == 2) {
         var firstArg = node.arguments.positional[0];

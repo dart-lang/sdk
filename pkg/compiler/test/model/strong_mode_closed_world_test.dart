@@ -73,7 +73,7 @@ class F extends B {
   set setter(_) {}
 }
 
-class G {
+mixin G {
   method1() {}
   method2() {}
   method4() {}
@@ -93,14 +93,14 @@ class I {
 
 class J extends I implements A {}
 
-class K {
+mixin K {
   method1() {}
   method2() {}
   get getter => 42;
   set setter(_) {}
 }
 
-class L = Object with K;
+mixin class L = Object with K;
 class L2 = Object with L;
 class M extends L {}
 class M2 extends L2 {}
@@ -134,7 +134,7 @@ class Class1b {
 }
 
 class Class2 {
-  Class1a c;
+  Class1a? c;
 }
 
 main() {
@@ -161,12 +161,12 @@ method1() {
   o.method1();
   o.getter;
   o.setter = 42;
-  R r;
-  r.method3();
+  R? r;
+  r!.method3();
   r = R(); // Create R after call.
   Class1a();
   Class1b();
-  Class2().c(0, 1, 2);
+  Class2().c!(0, 1, 2);
 }
 
 method2() {

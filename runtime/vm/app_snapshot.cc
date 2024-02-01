@@ -875,8 +875,8 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::ClassIdTag::update(class_id, tags);
   tags = UntaggedObject::SizeTag::update(size, tags);
   tags = UntaggedObject::CanonicalBit::update(is_canonical, tags);
-  tags = UntaggedObject::OldBit::update(true, tags);
-  tags = UntaggedObject::OldAndNotMarkedBit::update(true, tags);
+  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
+  tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
   tags = UntaggedObject::NewBit::update(false, tags);
   raw->untag()->tags_ = tags;
@@ -2447,6 +2447,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       d.ReadFromTo(lib);
       lib->untag()->native_entry_resolver_ = nullptr;
       lib->untag()->native_entry_symbol_resolver_ = nullptr;
+      lib->untag()->ffi_native_resolver_ = nullptr;
       lib->untag()->index_ = d.Read<int32_t>();
       lib->untag()->num_imports_ = d.Read<uint16_t>();
       lib->untag()->load_state_ = d.Read<int8_t>();

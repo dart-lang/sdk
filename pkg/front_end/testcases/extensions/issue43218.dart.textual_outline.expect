@@ -11,4 +11,5 @@ extension Ext on C {
 }
 
 test() {}
+
 main() {}

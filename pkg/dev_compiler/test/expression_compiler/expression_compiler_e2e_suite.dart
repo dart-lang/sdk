@@ -11,6 +11,7 @@ import 'package:async/async.dart';
 import 'package:browser_launcher/browser_launcher.dart' as browser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:path/path.dart' as p;
+import 'package:source_maps/source_maps.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     as wip;
@@ -28,11 +29,13 @@ class ExpressionEvaluationTestDriver {
   late TestExpressionCompiler compiler;
   late Uri htmlBootstrapper;
   late Uri input;
+  Uri? inputPart;
   late Uri output;
   late Uri packagesFile;
   String? preemptiveBp;
   late SetupCompilerOptions setup;
   late String source;
+  String? partSource;
   late Directory testDir;
   late String dartSdkPath;
 
@@ -102,6 +105,7 @@ class ExpressionEvaluationTestDriver {
     SetupCompilerOptions setup,
     String source, {
     Map<String, bool> experiments = const {},
+    String? partSource,
   }) async {
     // Perform setup sanity checks.
     var summaryPath = setup.options.sdkSummary!.toFilePath();
@@ -110,6 +114,7 @@ class ExpressionEvaluationTestDriver {
     }
     this.setup = setup;
     this.source = source;
+    this.partSource = partSource;
     testDir = chromeDir.createTempSync('ddc_eval_test');
     var scriptPath = Platform.script.normalizePath().toFilePath();
     var ddcPath = p.dirname(p.dirname(p.dirname(scriptPath)));
@@ -118,6 +123,14 @@ class ExpressionEvaluationTestDriver {
     File(input.toFilePath())
       ..createSync()
       ..writeAsStringSync(source);
+    if (partSource != null) {
+      inputPart = testDir.uri.resolve('part.dart');
+      File(inputPart!.toFilePath())
+        ..createSync()
+        ..writeAsStringSync(partSource);
+    } else {
+      inputPart = null;
+    }
 
     packagesFile = testDir.uri.resolve('package_config.json');
     File(packagesFile.toFilePath())
@@ -159,14 +172,14 @@ class ExpressionEvaluationTestDriver {
                 '${setup.canaryFeatures ? 'canary' : 'stable'}'
                     '${setup.soundNullSafety ? '' : '_unsound'}',
                 'sdk',
-                'legacy',
+                'ddc',
                 'dart_sdk.js'))
             .toFilePath());
         if (!File(dartSdkPath).existsSync()) {
           throw Exception('Unable to find Dart SDK at $dartSdkPath');
         }
-        var dartLibraryPath =
-            escaped(p.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js'));
+        var dartLibraryPath = escaped(
+            p.join(ddcPath, 'lib', 'js', 'ddc', 'ddc_module_loader.js'));
         var outputPath = output.toFilePath();
         // This is used in the DDC module system for multiapp workflows and is
         // stubbed here.
@@ -369,7 +382,8 @@ class ExpressionEvaluationTestDriver {
 
     // Breakpoint at the first WIP location mapped from its Dart line.
     var dartLine = _findBreakpointLine(breakpointId);
-    var location = await _jsLocationFromDartLine(script, dartLine);
+    var location =
+        await _jsLocationFromDartLine(script, dartLine.value, dartLine.key);
 
     var bp = await debugger.setBreakpoint(location);
     final pauseQueue = StreamQueue(pauseController.stream);
@@ -434,12 +448,10 @@ class ExpressionEvaluationTestDriver {
     required String breakpointId,
     required String expression,
   }) async {
-    var dartLine = _findBreakpointLine(breakpointId);
     return await _onBreakpoint(breakpointId, onPause: (event) async {
       var result = await _evaluateDartExpressionInFrame(
         event,
         expression,
-        dartLine,
       );
       return await stringifyRemoteObject(result);
     });
@@ -527,12 +539,10 @@ class ExpressionEvaluationTestDriver {
     assert(expectedError == null || expectedResult == null,
         'Cannot expect both an error and result.');
 
-    var dartLine = _findBreakpointLine(breakpointId);
     return await _onBreakpoint(breakpointId, onPause: (event) async {
       var evalResult = await _evaluateDartExpressionInFrame(
         event,
         expression,
-        dartLine,
       );
 
       var error = evalResult.json['error'];
@@ -620,15 +630,60 @@ class ExpressionEvaluationTestDriver {
   }
 
   Future<TestCompilationResult> _compileDartExpressionInFrame(
-      wip.WipCallFrame frame, String expression, int dartLine) async {
+      wip.WipCallFrame frame, String expression) async {
     // Retrieve the call frame and its scope variables.
     var scope = await _collectScopeVariables(frame);
+    var searchLine = frame.location.lineNumber;
+    var searchColumn = frame.location.columnNumber;
+    var inputSourceUrl = input.pathSegments.last;
+    var inputPartSourceUrl = inputPart?.pathSegments.last;
+    // package:dwds - which I think is what actually provides line and column
+    // when debugging e.g. via flutter - basically finds the closest point
+    // before or on the line/column, so we do the same here.
+    // If there is no javascript column we pick the smallest column value on
+    // that line.
+    TargetEntry? best;
+    for (var lineEntry in compiler.sourceMap.lines) {
+      if (lineEntry.line != searchLine) continue;
+      for (var entry in lineEntry.entries) {
+        if (entry.sourceUrlId != null) {
+          var sourceMapUrl = compiler.sourceMap.urls[entry.sourceUrlId!];
+          if (sourceMapUrl == inputSourceUrl ||
+              sourceMapUrl == inputPartSourceUrl) {
+            if (best == null) {
+              best = entry;
+            } else if (searchColumn != null &&
+                entry.column > best.column &&
+                entry.column <= searchColumn) {
+              best = entry;
+            } else if (searchColumn == null && entry.column < best.column) {
+              best = entry;
+            }
+          }
+        }
+      }
+    }
+    if (best == null || best.sourceLine == null || best.sourceColumn == null) {
+      throw StateError('Unable to find the matching dart line and column '
+          ' for where the javascript paused.');
+    }
+
+    final bestUrl = compiler.sourceMap.urls[best.sourceUrlId!];
+    var scriptUrl = input;
+    if (bestUrl == inputPartSourceUrl) {
+      scriptUrl = inputPart!;
+    }
+
+    // Convert from 0-indexed to 1-indexed.
+    var dartLine = best.sourceLine! + 1;
+    var dartColumn = best.sourceColumn! + 1;
 
     // Perform an incremental compile.
     return await compiler.compileExpression(
-      input: input,
+      libraryUri: input,
+      scriptUri: scriptUrl,
       line: dartLine,
-      column: 1,
+      column: dartColumn,
       scope: scope,
       expression: expression,
     );
@@ -638,7 +693,7 @@ class ExpressionEvaluationTestDriver {
       String expression) async {
     // Perform an incremental compile.
     return await compiler.compileExpression(
-      input: input,
+      libraryUri: input,
       line: 1,
       column: 1,
       scope: {},
@@ -648,15 +703,13 @@ class ExpressionEvaluationTestDriver {
 
   Future<wip.RemoteObject> _evaluateDartExpressionInFrame(
     wip.DebuggerPausedEvent event,
-    String expression,
-    int dartLine, {
+    String expression, {
     bool returnByValue = false,
   }) async {
     var frame = event.getCallFrames().first;
     var result = await _compileDartExpressionInFrame(
       frame,
       expression,
-      dartLine,
     );
 
     if (!result.isSuccess) {
@@ -719,7 +772,8 @@ class ExpressionEvaluationTestDriver {
   ///           }
   Future<String> stringifyRemoteObject(wip.RemoteObject obj) async {
     String str;
-    switch (obj.type) {
+    final type = obj.json.containsKey('type') ? obj.type : null;
+    switch (type) {
       case 'function':
         str = obj.description ?? '';
         break;
@@ -782,29 +836,48 @@ class ExpressionEvaluationTestDriver {
     return matches(RegExp(unindented, multiLine: true));
   }
 
-  /// Finds the line number in [source] matching [breakpointId].
+  /// Finds the first line number in [source] or [partSource] matching
+  /// [breakpointId].
   ///
   /// A breakpoint ID is found by looking for a line that ends with a comment
   /// of exactly this form: `// Breakpoint: <id>`.
   ///
-  /// Throws if it can't find the matching line.
+  /// Throws if it can't find a matching line.
+  ///
+  /// The returned map entry is the uri (key) and the 1-indexed line number of
+  /// the comment (value).
+  /// Note that we often put the comment on the line *before* where we actually
+  /// want the breakpoint, and that the value can thus be seen as being that
+  /// line but then being 0-indexed.
   ///
   /// Adapted from webdev/blob/master/dwds/test/fixtures/context.dart.
-  int _findBreakpointLine(String breakpointId) {
-    var lines = LineSplitter.split(source).toList();
-    var lineNumber =
-        lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
-    if (lineNumber == -1) {
-      throw StateError(
-          'Unable to find breakpoint in $input with id: $breakpointId');
+  MapEntry<Uri, int> _findBreakpointLine(String breakpointId) {
+    var lineNumber = _findBreakpointLineImpl(breakpointId, source);
+    if (lineNumber >= 0) {
+      return MapEntry(input, lineNumber + 1);
     }
-    return lineNumber + 1;
+    if (partSource != null) {
+      lineNumber = _findBreakpointLineImpl(breakpointId, partSource!);
+      if (lineNumber >= 0) {
+        return MapEntry(inputPart!, lineNumber + 1);
+      }
+    }
+    throw StateError(
+        'Unable to find breakpoint in $input with id: $breakpointId');
+  }
+
+  /// Finds the 0-indexed line number in [source] for the given breakpoint id.
+  static int _findBreakpointLineImpl(String breakpointId, String source) {
+    var lines = LineSplitter.split(source).toList();
+    return lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
   }
 
   /// Finds the corresponding JS WipLocation for a given line in Dart.
+  /// The input [dartLine] is 1-indexed, but really refers to the following line
+  /// meaning that it talks about the following line in a 0-indexed manner.
   Future<wip.WipLocation> _jsLocationFromDartLine(
-      wip.WipScript script, int dartLine) async {
-    var inputSourceUrl = input.pathSegments.last;
+      wip.WipScript script, int dartLine, Uri lineIn) async {
+    var inputSourceUrl = lineIn.pathSegments.last;
     for (var lineEntry in compiler.sourceMap.lines) {
       for (var entry in lineEntry.entries) {
         if (entry.sourceUrlId != null &&

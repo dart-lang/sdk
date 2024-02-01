@@ -1,8 +1,13 @@
 (Object?, Object?) testGetter0(E e) => e.getter;
+
 (Object?, Object?) testMethod0(E e) => e.method();
+
 (Object?, int) testGetter2(E e) => e.getter;
+
 (Object?, int) testMethod2(E e) => e.method();
+
 (int, Object?) testGetter1(E e) => e.getter;
+
 (int, Object?) testMethod1(E e) => e.method();
 
 abstract class A {
@@ -26,6 +31,9 @@ class D implements E {
 }
 
 expect(expected, actual) {}
+
 main() {}
+
 void method(E e) {}
+
 void testSetter(E e) {}

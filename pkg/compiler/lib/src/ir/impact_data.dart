@@ -50,9 +50,6 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       : super(
             staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
 
-  bool get isNonNullableByDefault =>
-      staticTypeContext.enclosingLibrary.isNonNullableByDefault;
-
   @override
   VariableScopeModel get variableScopeModel => _variableScopeModel!;
 
@@ -552,12 +549,6 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  ir.DartType visitSwitchStatement(ir.SwitchStatement node) {
-    registerSwitchStatementNode(node);
-    return super.visitSwitchStatement(node);
-  }
-
-  @override
   void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType? argumentType) {
     if (_options.omitImplicitChecks) {
@@ -987,11 +978,6 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerSwitchStatementNode(ir.SwitchStatement node) {
-    (_data._switchStatementNodes ??= []).add(node);
-  }
-
-  @override
   void registerConstSymbolConstructorInvocationNode() {
     _data._hasConstSymbolConstructorInvocation = true;
   }
@@ -1042,7 +1028,6 @@ class ImpactData {
   List<ir.Constructor>? _externalConstructorNodes;
   List<ir.Field>? _fieldNodes;
   List<ir.Procedure>? _externalProcedureNodes;
-  List<ir.SwitchStatement>? _switchStatementNodes;
   List<ir.StaticInvocation>? _foreignStaticInvocationNodes;
   bool _hasConstSymbolConstructorInvocation = false;
 
@@ -1112,7 +1097,6 @@ class ImpactData {
     _externalConstructorNodes = source.readMemberNodesOrNull<ir.Constructor>();
     _fieldNodes = source.readMemberNodesOrNull<ir.Field>();
     _externalProcedureNodes = source.readMemberNodesOrNull<ir.Procedure>();
-    _switchStatementNodes = source.readTreeNodesOrNull<ir.SwitchStatement>();
     _foreignStaticInvocationNodes =
         source.readTreeNodesOrNull<ir.StaticInvocation>();
     _hasConstSymbolConstructorInvocation = source.readBool();
@@ -1179,7 +1163,6 @@ class ImpactData {
     sink.writeMemberNodesOrNull(_externalConstructorNodes);
     sink.writeMemberNodesOrNull(_fieldNodes);
     sink.writeMemberNodesOrNull(_externalProcedureNodes);
-    sink.writeTreeNodesOrNull(_switchStatementNodes);
     sink.writeTreeNodesOrNull(_foreignStaticInvocationNodes);
     sink.writeBool(_hasConstSymbolConstructorInvocation);
 
@@ -1506,11 +1489,6 @@ class ImpactData {
     if (_externalProcedureNodes != null) {
       for (ir.Procedure data in _externalProcedureNodes!) {
         registry.registerExternalProcedureNode(data);
-      }
-    }
-    if (_switchStatementNodes != null) {
-      for (ir.SwitchStatement data in _switchStatementNodes!) {
-        registry.registerSwitchStatementNode(data);
       }
     }
     if (_foreignStaticInvocationNodes != null) {

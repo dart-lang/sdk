@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -24,10 +23,10 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
@@ -48,11 +47,9 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 class AnalysisForCompletionResult {
@@ -80,14 +77,23 @@ class LibraryAnalyzer {
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
-  final LibraryVerificationContext _libraryVerificationContext =
-      LibraryVerificationContext();
+  late final LibraryVerificationContext _libraryVerificationContext;
+
   final TestingData? _testingData;
+  final TypeSystemOperations _typeSystemOperations;
 
   LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
       this._libraryElement, this._inheritance, this._library, this._pathContext,
-      {TestingData? testingData})
-      : _testingData = testingData;
+      {TestingData? testingData,
+      required TypeSystemOperations typeSystemOperations})
+      : _testingData = testingData,
+        _typeSystemOperations = typeSystemOperations {
+    _libraryVerificationContext = LibraryVerificationContext(
+      constructorFieldsVerifier: ConstructorFieldsVerifier(
+        typeSystem: _typeSystem,
+      ),
+    );
+  }
 
   TypeProviderImpl get _typeProvider => _libraryElement.typeProvider;
 
@@ -136,6 +142,7 @@ class LibraryAnalyzer {
           featureSet: _libraryElement.featureSet,
           nameScope: _libraryElement.scope,
           strictInference: _analysisOptions.strictInference,
+          strictCasts: _analysisOptions.strictCasts,
           elementWalker: ElementWalker.forCompilationUnit(
             unitElement,
             libraryFilePath: _library.file.path,
@@ -149,20 +156,16 @@ class LibraryAnalyzer {
           _libraryElement, file.source, _typeProvider, errorListener,
           nameScope: _libraryElement.scope));
 
-      // TODO(pq): precache options in file state and fetch them from there
-      var analysisOptions = _libraryElement.context
-          .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
-
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-          _typeSystem, _testingData != null, _libraryElement.featureSet,
-          strictCasts: analysisOptions.strictCasts);
+          _testingData != null, _libraryElement.featureSet,
+          typeSystemOperations: _typeSystemOperations);
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting!);
 
       var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
           file.source, _typeProvider, errorListener,
           featureSet: _libraryElement.featureSet,
-          analysisOptions: analysisOptions,
+          analysisOptions: _library.file.analysisOptions,
           flowAnalysisHelper: flowAnalysisHelper);
 
       var nodeToResolve = node?.thisOrAncestorMatching((e) {
@@ -272,6 +275,8 @@ class LibraryAnalyzer {
       _computeVerifyErrors(file, unit);
     });
 
+    _libraryVerificationContext.constructorFieldsVerifier.report();
+
     if (_analysisOptions.warning) {
       var usedImportedElements = <UsedImportedElements>[];
       var usedLocalElements = <UsedLocalElements>[];
@@ -308,15 +313,13 @@ class LibraryAnalyzer {
               return null;
             }
           })
-          .whereNotNull()
+          .nonNulls
           .toList();
       for (final linterUnit in allUnits) {
         _computeLints(linterUnit.file, linterUnit, allUnits,
             analysisOptions: _analysisOptions);
       }
     }
-
-    assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
 
     _checkForInconsistentLanguageVersionOverride(units);
 
@@ -382,16 +385,6 @@ class LibraryAnalyzer {
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    if (!unit.featureSet.isEnabled(Feature.non_nullable)) {
-      CodeChecker checker = CodeChecker(
-        _typeProvider,
-        _typeSystem,
-        errorReporter,
-        strictCasts: _analysisOptions.strictCasts,
-      );
-      checker.visitCompilationUnit(unit);
-    }
-
     //
     // Use the ConstantVerifier to compute errors.
     //
@@ -409,12 +402,14 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = ErrorVerifier(
-        errorReporter,
-        _libraryElement,
-        _typeProvider,
-        _inheritance,
-        _libraryVerificationContext,
-        _analysisOptions);
+      errorReporter,
+      _libraryElement,
+      _typeProvider,
+      _inheritance,
+      _libraryVerificationContext,
+      _analysisOptions,
+      typeSystemOperations: _typeSystemOperations,
+    );
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
@@ -431,15 +426,6 @@ class LibraryAnalyzer {
   }) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
-
-    if (!_libraryElement.isNonNullableByDefault) {
-      unit.accept(
-        LegacyDeadCodeVerifier(
-          errorReporter,
-          typeSystem: _typeSystem,
-        ),
-      );
-    }
 
     UnicodeTextVerifier(errorReporter).verify(unit, file.content);
 
@@ -508,7 +494,6 @@ class LibraryAnalyzer {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
         errorReporter,
         _libraryElement,
-        _typeProvider,
         sdkVersionConstraint.withoutPreRelease,
       );
       unit.accept(verifier);
@@ -796,6 +781,7 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet,
         nameScope: unitElement.enclosingElement.scope,
         strictInference: _analysisOptions.strictInference,
+        strictCasts: _analysisOptions.strictCasts,
         elementWalker: ElementWalker.forCompilationUnit(
           unitElement,
           libraryFilePath: _library.file.path,
@@ -806,25 +792,21 @@ class LibraryAnalyzer {
 
     unit.accept(ScopeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        nameScope: _libraryElement.scope));
+        nameScope: unitElement.enclosingElement.scope));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    // TODO(pq): precache options in file state and fetch them from there
-    var analysisOptions = _libraryElement.context
-        .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
-
     FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-        _typeSystem, _testingData != null, unit.featureSet,
-        strictCasts: analysisOptions.strictCasts);
+        _testingData != null, unit.featureSet,
+        typeSystemOperations: _typeSystemOperations);
     _testingData?.recordFlowAnalysisDataForTesting(
         file.uri, flowAnalysisHelper.dataForTesting!);
 
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
-        analysisOptions: analysisOptions,
+        analysisOptions: _library.file.analysisOptions,
         featureSet: unit.featureSet,
         flowAnalysisHelper: flowAnalysisHelper));
   }
@@ -885,12 +867,8 @@ class LibraryAnalyzer {
   }) {
     directive.element = element;
     _resolveNamespaceDirective(
-      directive: directive,
-      primaryUriNode: directive.uri,
-      primaryUriState: state.uris.primary,
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
-      selectedUriState: state.selectedUri,
     );
     if (state is LibraryExportWithUri) {
       final selectedUriStr = state.selectedUri.relativeUriStr;
@@ -944,12 +922,8 @@ class LibraryAnalyzer {
     directive.element = element;
     directive.prefix?.staticElement = element.prefix?.element;
     _resolveNamespaceDirective(
-      directive: directive,
-      primaryUriNode: directive.uri,
-      primaryUriState: state.uris.primary,
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
-      selectedUriState: state.selectedUri,
     );
     if (state is LibraryImportWithUri) {
       final selectedUriStr = state.selectedUri.relativeUriStr;
@@ -995,10 +969,6 @@ class LibraryAnalyzer {
   }
 
   void _resolveNamespaceDirective({
-    required NamespaceDirectiveImpl directive,
-    required StringLiteralImpl primaryUriNode,
-    required file_state.DirectiveUri primaryUriState,
-    required file_state.DirectiveUri selectedUriState,
     required List<Configuration> configurationNodes,
     required List<file_state.DirectiveUri> configurationUris,
   }) {

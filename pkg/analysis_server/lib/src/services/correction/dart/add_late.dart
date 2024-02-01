@@ -60,6 +60,7 @@ class AddLate extends ResolvedCorrectionProducer {
           getter.isGetter &&
           getter.isSynthetic &&
           !getter.variable.isSynthetic &&
+          !getter.variable.isLate &&
           getter.variable.setter == null &&
           getter.enclosingElement is InterfaceElement) {
         var declarationResult =

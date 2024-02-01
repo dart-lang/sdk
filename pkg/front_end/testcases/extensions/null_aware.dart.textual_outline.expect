@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class Class {
   int field;
 }
@@ -11,4 +12,5 @@ extension Extension on Class {
 }
 
 main() {}
+
 expect(expected, actual) {}

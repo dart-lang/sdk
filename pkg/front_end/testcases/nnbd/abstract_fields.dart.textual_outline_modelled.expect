@@ -5,6 +5,7 @@ abstract class A {
 }
 
 main() {}
+
 mixin B {
   abstract covariant num covariantInstanceField;
   abstract final int finalInstanceField;

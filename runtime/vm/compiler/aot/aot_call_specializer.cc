@@ -402,7 +402,7 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
     Value* right_value) {
   auto unboxed_constant = [&](int64_t value) -> Definition* {
     ASSERT(compiler::target::IsSmi(value));
-#if defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_IS_32_BIT)
     Definition* const const_def = new (Z) UnboxedConstantInstr(
         Smi::ZoneHandle(Z, Smi::New(value)), kUnboxedInt32);
     InsertBefore(instr, const_def, /*env=*/nullptr, FlowGraph::kValue);

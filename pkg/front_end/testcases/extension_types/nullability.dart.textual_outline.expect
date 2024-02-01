@@ -1,10 +1,16 @@
 extension type E1<T>(T foo) {}
+
 extension type E2(Object? foo) {}
+
 extension type E3(E1<String?> foo) {}
+
 extension type E4(E1<int> foo) {}
+
 extension type E5(E2 foo) {}
+
 testNotNonNullable(E1<num?> e1numNullableNNN, E1<double> e1doubleNNN, E2 e2NNN,
     E3 e3NNN, E4 e4NNN, E5 e5NNN) {}
+
 testNotNullable(
   E1<num?> e1numNullableNN,
   E1<double> e1doubleNN,
@@ -48,6 +54,7 @@ testOptionalPositional(
     E3? e3OPNullable,
     E4? e4OPNullable,
     E5? e5OPNullable]) {}
+
 testNamedNotRequired(
     {E1<num?> e1numNullableNNR,
     E1<double> e1doubleNNR,

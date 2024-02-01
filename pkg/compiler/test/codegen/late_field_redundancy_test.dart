@@ -31,8 +31,7 @@ void main() {
         entry: 'entry',
         methodName: 'test',
         disableTypeInference: false,
-        disableInlining: false,
-        soundNullSafety: true, check: (String generated) {
+        disableInlining: false, check: (String generated) {
       RegExp regexp = RegExp(r'=== \$');
       Expect.equals(1, regexp.allMatches(generated).length);
     });

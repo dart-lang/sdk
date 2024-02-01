@@ -13,11 +13,15 @@ class E with A, D {}
 class G with A, F {}
 
 main() {}
+
 mixin A implements Interface {
   String method(num i, {String s = "hello"}) => s;
 }
+
 mixin B implements Interface {
   String method(num i);
 }
+
 mixin D implements Interface, Interface2 {}
+
 mixin F implements Interface {}

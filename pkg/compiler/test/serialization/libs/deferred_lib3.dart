@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library deferred_constants1_lib3;
 
 import 'dart:async';
@@ -14,7 +12,7 @@ class C {
   const C(this.value);
 }
 
-FutureOr<T> func<T>(@Deprecated('bar') foo) => null;
+FutureOr<T>? func<T>(@Deprecated('bar') foo) => null;
 
 /// ---------------------------------------------------------------------------
 /// Constant used from main: not deferred.
@@ -47,6 +45,6 @@ const C5 = const {};
 /// Deferred constants, used after a deferred load.
 /// ---------------------------------------------------------------------------
 
-const FutureOr<int> Function(dynamic) C6 = func;
+const FutureOr<int>? Function(dynamic) C6 = func;
 
 const C7 = null;

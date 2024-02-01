@@ -12,6 +12,7 @@ main() {
     defineReflectiveTests(ConflictingTypeVariableAndClassTest);
     defineReflectiveTests(ConflictingTypeVariableAndEnumTest);
     defineReflectiveTests(ConflictingTypeVariableAndExtensionTest);
+    defineReflectiveTests(ConflictingTypeVariableAndExtensionTypeTest);
     defineReflectiveTests(ConflictingTypeVariableAndMixinTest);
   });
 }
@@ -48,6 +49,19 @@ extension T<T> on String {}
 ''', [
       error(
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION, 12, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class ConflictingTypeVariableAndExtensionTypeTest
+    extends PubPackageResolutionTest {
+  test_conflict() async {
+    await assertErrorsInCode(r'''
+extension type T<T>(int it) {}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
+          17, 1),
     ]);
   }
 }

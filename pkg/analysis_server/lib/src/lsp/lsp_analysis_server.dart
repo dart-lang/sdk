@@ -38,7 +38,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -46,6 +45,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -178,7 +178,8 @@ class LspAnalysisServer extends AnalysisServer {
         LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.status.listen(handleAnalysisStatusChange);
+    analysisDriverSchedulerEventsSubscription =
+        analysisDriverScheduler.events.listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
     _channelSubscription =
@@ -306,7 +307,7 @@ class LspAnalysisServer extends AnalysisServer {
             // Dart settings for each workspace folder.
             for (final folder in folders)
               ConfigurationItem(
-                scopeUri: pathContext.toUri(folder),
+                scopeUri: uriConverter.toClientUri(folder),
                 section: 'dart',
               ),
             // Global Dart settings. This comes last to simplify matching up the
@@ -363,7 +364,7 @@ class LspAnalysisServer extends AnalysisServer {
   OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
       String path) {
     return OptionalVersionedTextDocumentIdentifier(
-        uri: pathContext.toUri(path), version: getDocumentVersion(path));
+        uri: uriConverter.toClientUri(path), version: getDocumentVersion(path));
   }
 
   @override
@@ -381,6 +382,14 @@ class LspAnalysisServer extends AnalysisServer {
     _clientCapabilities = LspClientCapabilities(capabilities);
     _clientInfo = clientInfo;
     _initializationOptions = LspInitializationOptions(initializationOptions);
+
+    /// Enable virtual file support.
+    var supportsVirtualFiles = _clientCapabilities
+            ?.supportsDartExperimentalTextDocumentContentProvider ??
+        false;
+    if (supportsVirtualFiles) {
+      uriConverter = ClientUriConverter.withVirtualFileSupport(pathContext);
+    }
 
     performanceAfterStartup = ServerPerformance();
     performance = performanceAfterStartup!;
@@ -622,7 +631,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
     final params = PublishClosingLabelsParams(
-        uri: pathContext.toUri(path), labels: labels);
+        uri: uriConverter.toClientUri(path), labels: labels);
     final message = NotificationMessage(
       method: CustomMethods.publishClosingLabels,
       params: params,
@@ -644,7 +653,7 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     final params = PublishDiagnosticsParams(
-        uri: pathContext.toUri(path), diagnostics: errors);
+        uri: uriConverter.toClientUri(path), diagnostics: errors);
     final message = NotificationMessage(
       method: Method.textDocument_publishDiagnostics,
       params: params,
@@ -655,7 +664,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
     final params = PublishFlutterOutlineParams(
-        uri: pathContext.toUri(path), outline: outline);
+        uri: uriConverter.toClientUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishFlutterOutline,
       params: params,
@@ -665,8 +674,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishOutline(String path, Outline outline) {
-    final params =
-        PublishOutlineParams(uri: pathContext.toUri(path), outline: outline);
+    final params = PublishOutlineParams(
+        uri: uriConverter.toClientUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishOutline,
       params: params,
@@ -758,7 +767,7 @@ class LspAnalysisServer extends AnalysisServer {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
-    var isAnalyzing = status.isAnalyzing;
+    var isAnalyzing = status.isWorking;
     if (wasAnalyzing && !isAnalyzing) {
       wasAnalyzing = isAnalyzing;
       // Only send analysis analytics after analysis is complete.
@@ -891,6 +900,7 @@ class LspAnalysisServer extends AnalysisServer {
       channel.close();
     }));
     unawaited(_pluginChangeSubscription?.cancel());
+    _pluginChangeSubscription = null;
   }
 
   /// There was an error related to the socket from which messages are being
@@ -1157,6 +1167,24 @@ class LspServerContextManagerCallbacks
     if (analysisServer.suppressAnalysisResults) {
       return;
     }
+
+    // If this is a virtual file, we need to notify the client that it's been
+    // updated.
+    var lspUri = analysisServer.uriConverter.toClientUri(result.path);
+    if (!lspUri.isScheme('file')) {
+      // TODO(dantup): Should we do any kind of tracking here to avoid sending
+      //  lots of notifications if there aren't actual changes?
+      // TODO(dantup): We may be able to skip sending this if the file is not
+      //  open (priority) depending on the response to
+      //  https://github.com/microsoft/vscode/issues/202017
+      var message = NotificationMessage(
+        method: CustomMethods.dartTextDocumentContentDidChange,
+        params: DartTextDocumentContentDidChangeParams(uri: lspUri),
+        jsonrpc: jsonRpcVersion,
+      );
+      analysisServer.sendNotification(message);
+    }
+
     super.handleFileResult(result);
   }
 
@@ -1186,19 +1214,6 @@ class LspServerContextManagerCallbacks
       final lspOutline = toFlutterOutline(result.lineInfo, outline);
       analysisServer.publishFlutterOutline(path, lspOutline);
     }
-  }
-
-  @override
-  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
-    // TODO(dantup): Is this required, or covered by
-    // addContextsToDeclarationsTracker? The original server does not appear to
-    // have an equivalent call.
-    final analysisContext = driver.analysisContext;
-    if (analysisContext != null) {
-      analysisServer.declarationsTracker?.addContext(analysisContext);
-    }
-
-    super.listenAnalysisDriver(driver);
   }
 
   @override

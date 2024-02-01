@@ -32,6 +32,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
 /// for additional errors and warnings not covered by the parser and resolver.
@@ -457,10 +458,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _typeSystem.isAlwaysExhaustive(node.expression.typeOrThrow),
           isSwitchExpression: false,
         );
-      } else if (_currentLibrary.isNonNullableByDefault) {
-        _validateSwitchStatement_nullSafety(node);
       } else {
-        _validateSwitchStatement_legacy(node);
+        _validateSwitchStatement_nullSafety(node);
       }
     });
   }
@@ -622,6 +621,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     ErrorCode errorCode = error.errorCode;
     if (identical(
             errorCode, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD) ||
+        identical(
+            errorCode, CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD) ||
         identical(errorCode, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT) ||
         identical(
             errorCode, CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION) ||
@@ -967,61 +968,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         } else if (reportNonExhaustive) {
           exhaustivenessDataForTesting.errors[node] = error;
         }
-      }
-    }
-  }
-
-  void _validateSwitchStatement_legacy(SwitchStatement node) {
-    // TODO(paulberry): to minimize error messages, it would be nice to
-    // compare all types with the most popular type rather than the first
-    // type.
-    bool foundError = false;
-    DartObjectImpl? firstValue;
-    DartType? firstType;
-    for (var switchMember in node.members) {
-      if (switchMember is SwitchCase) {
-        Expression expression = switchMember.expression;
-
-        var expressionValue = _evaluateAndReportError(
-          expression,
-          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
-        );
-        if (expressionValue is! DartObjectImpl) {
-          continue;
-        }
-        firstValue ??= expressionValue;
-
-        var expressionValueType = _typeSystem.toLegacyTypeIfOptOut(
-          expressionValue.type,
-        );
-
-        if (firstType == null) {
-          firstType = expressionValueType;
-        } else {
-          if (firstType != expressionValueType) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
-              expression,
-              [expression.toSource(), firstType],
-            );
-            foundError = true;
-          }
-        }
-      }
-    }
-
-    if (foundError) {
-      return;
-    }
-
-    if (firstValue != null) {
-      final featureSet = _currentLibrary.featureSet;
-      if (!firstValue.hasPrimitiveEquality(featureSet)) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-          node.switchKeyword,
-          [firstValue.type],
-        );
       }
     }
   }

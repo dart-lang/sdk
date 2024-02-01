@@ -5,4 +5,5 @@ class A {
 }
 
 test5() {}
+
 main() {}

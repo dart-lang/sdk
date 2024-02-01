@@ -145,7 +145,7 @@ class DillLoader extends Loader {
     if (accessor != null) {
       libraryBuilder.recordAccess(
           accessor, charOffset, noLength, accessor.fileUri);
-      if (!accessor.isPatch &&
+      if (!accessor.isAugmenting &&
           !accessor.isPart &&
           !target.backendTarget
               .allowPlatformPrivateLibraryAccess(accessor.importUri, uri)) {

@@ -1,8 +1,13 @@
 var g = e.field;
+
 var f = d.field;
+
 E e = E(C(42));
+
 D d = D(C(42));
+
 extension type E(C c) implements C {}
+
 extension type D(C c) implements B {}
 
 class C implements B {

@@ -800,6 +800,9 @@ class _Printer {
   Future<void> _writeTypeAnnotationDeclaration(TypeAnnotation type) async {
     await sink.withIndent(() async {
       switch (type) {
+        case FunctionTypeAnnotation():
+          // No declaration.
+          break;
         case NamedTypeAnnotation():
           final identifier = type.identifier;
           if (identifier.name == 'void') {
@@ -809,7 +812,7 @@ class _Printer {
           TypeDeclaration declaration;
           try {
             declaration = await introspector.typeDeclarationOf(identifier);
-          } on ArgumentError {
+          } on MacroImplementationException {
             sink.writelnWithIndent('noDeclaration');
             return;
           }

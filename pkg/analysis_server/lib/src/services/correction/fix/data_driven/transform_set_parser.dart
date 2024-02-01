@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/variable
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
@@ -350,9 +351,8 @@ class TransformSetParser {
     var firstEntry = entries.firstOrNull;
     if (firstEntry == null) {
       if (required) {
-        var validKeysList = translators.keys
-            .expand((keys) => keys)
-            .quotedAndCommaSeparatedWithOr;
+        var validKeysList =
+            translators.keys.flattenedToList2.quotedAndCommaSeparatedWithOr;
         _reportError(TransformSetErrorCode.missingOneOfMultipleKeys, errorNode,
             [validKeysList]);
       }

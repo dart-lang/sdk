@@ -11,14 +11,10 @@
 /// functionality like the conversion functions e.g. `toJS` and not runtime
 /// mechanisms like type checks and casts.
 ///
-/// **WARNING**:
-/// This library is still a work in progress. As such, JS types, allowed syntax,
-/// semantics, and functionality may all change, so avoid using this library in
-/// production.
-///
 /// {@category Web}
 library dart.js_interop;
 
+import "dart:_internal" show Since;
 import 'dart:_js_types';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
@@ -73,6 +69,7 @@ extension type JSAny._(JSAnyRepType _jsAny) implements Object {}
 /// This is the supertype of all JS objects, but not other JS types, like
 /// primitives. See https://dart.dev/web/js-interop for more details on how to
 /// use JS interop.
+@JS('Object')
 extension type JSObject._(JSObjectRepType _jsObject) implements JSAny {
   /// Constructor to go from an object from previous interop, like the types
   /// from `package:js` or `dart:html`, to [JSObject].
@@ -91,12 +88,14 @@ extension type JSObject._(JSObjectRepType _jsObject) implements JSAny {
 external JSObjectRepType _createObjectLiteral();
 
 /// The type of all JS functions.
+@JS('Function')
 extension type JSFunction._(JSFunctionRepType _jsFunction)
     implements JSObject {}
 
 /// The type of all Dart functions adapted to be callable from JS. We only allow
 /// a subset of Dart functions to be callable from JS.
 // TODO(joshualitt): Detail exactly what are the requirements.
+@JS('Function')
 extension type JSExportedDartFunction._(
         JSExportedDartFunctionRepType _jsExportedDartFunction)
     implements JSFunction {}
@@ -143,14 +142,17 @@ extension type JSPromise<T extends JSAny?>._(JSPromiseRepType _jsPromise)
 /// The type of the boxed Dart object that can be passed to JS safely. There is
 /// no interface specified of this boxed object, and you may get a new box each
 /// time you box the same Dart object.
+@JS('Object')
 extension type JSBoxedDartObject._(JSBoxedDartObjectRepType _jsBoxedDartObject)
     implements JSObject {}
 
 /// The type of JS' `ArrayBuffer`.
+@JS('ArrayBuffer')
 extension type JSArrayBuffer._(JSArrayBufferRepType _jsArrayBuffer)
     implements JSObject {}
 
 /// The type of JS' `DataView`.
+@JS('DataView')
 extension type JSDataView._(JSDataViewRepType _jsDataView)
     implements JSObject {}
 
@@ -159,38 +161,47 @@ extension type JSTypedArray._(JSTypedArrayRepType _jsTypedArray)
     implements JSObject {}
 
 /// The type of JS' `Int8Array`.
+@JS('Int8Array')
 extension type JSInt8Array._(JSInt8ArrayRepType _jsInt8Array)
     implements JSTypedArray {}
 
 /// The type of JS' `Uint8Array`.
+@JS('Uint8Array')
 extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
     implements JSTypedArray {}
 
 /// The type of JS' `Uint8ClampedArray`.
+@JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
     JSUint8ClampedArrayRepType _jsUint8ClampedArray) implements JSTypedArray {}
 
 /// The type of JS' `Int16Array`.
+@JS('Int16Array')
 extension type JSInt16Array._(JSInt16ArrayRepType _jsInt16Array)
     implements JSTypedArray {}
 
 /// The type of JS' `Uint16Array`.
+@JS('Uint16Array')
 extension type JSUint16Array._(JSUint16ArrayRepType _jsUint16Array)
     implements JSTypedArray {}
 
 /// The type of JS' `Int32Array`.
+@JS('Int32Array')
 extension type JSInt32Array._(JSInt32ArrayRepType _jsInt32Array)
     implements JSTypedArray {}
 
 /// The type of JS' `Uint32Array`.
+@JS('Uint32Array')
 extension type JSUint32Array._(JSUint32ArrayRepType _jsUint32Array)
     implements JSTypedArray {}
 
 /// The type of JS' `Float32Array`.
+@JS('Float32Array')
 extension type JSFloat32Array._(JSFloat32ArrayRepType _jsFloat32Array)
     implements JSTypedArray {}
 
 /// The type of JS' `Float64Array`.
+@JS('Float64Array')
 extension type JSFloat64Array._(JSFloat64ArrayRepType _jsFloat64Array)
     implements JSTypedArray {}
 
@@ -258,12 +269,61 @@ extension JSAnyUtilityExtension on JSAny? {
   /// Returns whether this [JSAny]? is an `instanceof` [constructor].
   external bool instanceof(JSFunction constructor);
 
-  /// Like [instanceof], but only takes a [String] for the constructor name,
-  /// which is then looked up in the [globalContext].
+  /// Returns whether this [JSAny]? is an `instanceof` the constructor that is
+  /// defined by [constructorName], which is looked up in the [globalContext].
+  ///
+  /// If [constructorName] contains '.'s, we split the name into several parts
+  /// in order to get the constructor. For example, `library1.JSClass` would
+  /// involve fetching `library1` off of the [globalContext], and then fetching
+  /// `JSClass` off of `library1` to get the constructor.
+  ///
+  /// If [constructorName] is empty or any of the parts or the constructor don't
+  /// exist, returns false.
   bool instanceOfString(String constructorName) {
-    final constructor = globalContext[constructorName] as JSFunction?;
-    return constructor != null && instanceof(constructor);
+    if (constructorName.isEmpty) return false;
+    final parts = constructorName.split('.');
+    JSObject? constructor = globalContext;
+    for (final part in parts) {
+      constructor = constructor?[part] as JSObject?;
+      if (constructor == null) return false;
+    }
+    return instanceof(constructor as JSFunction);
   }
+
+  /// Returns whether this [JSAny]? is the actual JS type that is declared by
+  /// [T].
+  ///
+  /// This method uses a combination of null, `typeof`, and `instanceof` checks
+  /// in order to do this check. Use this instead of `is` checks.
+  ///
+  /// If [T] is a primitive JS type e.g. [JSString], this uses a `typeof` check
+  /// that corresponds to that primitive type e.g. `typeofEquals('string')`.
+  ///
+  /// If [T] is a non-primitive JS type e.g. [JSArray] or an interop extension
+  /// type on one, this uses an `instanceof` check using the name or @[JS]
+  /// rename of the given type e.g. `instanceOfString('Array')`. Note that if
+  /// you rename the library using the @[JS] annotation, this uses the rename in
+  /// the `instanceof` check e.g. `instanceOfString('library1.JSClass')`.
+  ///
+  /// In order to determine the right value for the `instanceof` check, this
+  /// uses the name or the rename of the extension type. So, if you had an
+  /// interop extension type `JSClass` that wraps `JSArray`, this does an
+  /// `instanceOfString('JSClass')` check and not an `instanceOfString('Array')`
+  /// check.
+  ///
+  /// There are two expeptions to this rule. The first exception is
+  /// `JSTypedArray`. As `TypedArray` does not exist as a property in JS, this
+  /// does some prototype checking to make `isA<JSTypedArray>` do the right
+  /// thing. The other exception is `JSAny`. If you do a `isA<JSAny>` check, it
+  /// will only do a null-check.
+  ///
+  /// Using this method with a [T] that has an object literal constructor will
+  /// result in an error as you likely want to use [JSObject] instead.
+  ///
+  /// Using this method with a [T] that wraps a primitive JS type will result in
+  /// an error telling you to use the primitive JS type instead.
+  @Since('3.4')
+  external bool isA<T extends JSAny?>();
 
   /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object,
   /// and converts it to a Dart based object. Only JS primitives, arrays, or

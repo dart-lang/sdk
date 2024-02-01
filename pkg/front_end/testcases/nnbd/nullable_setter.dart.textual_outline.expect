@@ -10,4 +10,5 @@ extension on C? {
 }
 
 main() {}
+
 expect(expected, actual) {}

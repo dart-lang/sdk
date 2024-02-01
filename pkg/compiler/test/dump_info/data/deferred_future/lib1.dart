@@ -11,8 +11,6 @@
   "canonicalUri": "memory:sdk/tests/web/native/lib1.dart"
 }]*/
 
-// @dart = 2.7
-
 import 'lib2.dart';
 
 const dynamic field = const A();

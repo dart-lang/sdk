@@ -41,8 +41,7 @@ Future<String> compile(String code,
     bool omitImplicitChecks = true,
     bool enableVariance = false,
     void check(String generatedEntry)?,
-    bool returnAll = false,
-    bool soundNullSafety = false}) async {
+    bool returnAll = false}) async {
   OutputCollector? outputCollector = returnAll ? OutputCollector() : null;
   List<String> options = <String>[];
   if (disableTypeInference) {
@@ -62,12 +61,6 @@ Future<String> compile(String code,
   }
   if (enableVariance) {
     options.add('${Flags.enableLanguageExperiments}=variance');
-  }
-
-  if (soundNullSafety) {
-    options.add(Flags.soundNullSafety);
-  } else {
-    options.add(Flags.noSoundNullSafety);
   }
 
   Uri entryPoint = Uri.parse('memory:$_commonTestPath/main.dart');
@@ -105,7 +98,6 @@ Future<String> compile(String code,
 Future<String> compileAll(String code,
     {bool disableInlining = true,
     bool minify = false,
-    bool soundNullSafety = false,
     int? expectedErrors,
     int? expectedWarnings}) async {
   OutputCollector outputCollector = OutputCollector();
@@ -116,11 +108,6 @@ Future<String> compileAll(String code,
   }
   if (minify) {
     options.add(Flags.minify);
-  }
-  if (soundNullSafety) {
-    options.add(Flags.soundNullSafety);
-  } else {
-    options.add(Flags.noSoundNullSafety);
   }
 
   Uri entryPoint = Uri.parse('memory:$_commonTestPath/main.dart');

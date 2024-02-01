@@ -415,7 +415,7 @@ class _SuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     var result = <InterfaceType>[];
-    final classesSeen = <InterfaceElement>{};
+    var classesSeen = <InterfaceElement>{};
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();

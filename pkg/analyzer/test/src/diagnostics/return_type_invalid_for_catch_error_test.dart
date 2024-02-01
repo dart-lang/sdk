@@ -10,25 +10,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnTypeInvalidForCatchErrorTest);
-    defineReflectiveTests(ReturnTypeInvalidForCatchErrorWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ReturnTypeInvalidForCatchErrorTest extends PubPackageResolutionTest
-    with ReturnTypeInvalidForCatchErrorTestCases {
-  test_nullableReturnType() async {
-    await assertErrorsInCode('''
-void f(Future<int> future, String? Function(dynamic, StackTrace) cb) {
-  future.catchError(cb);
-}
-''', [
-      error(WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 91, 2),
-    ]);
-  }
-}
-
-mixin ReturnTypeInvalidForCatchErrorTestCases on PubPackageResolutionTest {
+class ReturnTypeInvalidForCatchErrorTest extends PubPackageResolutionTest {
   test_dynamic_returnTypeIsUnrelatedFuture() async {
     await assertNoErrorsInCode('''
 void f(
@@ -53,6 +39,16 @@ void f(Future<int> future, String Function(dynamic, StackTrace) cb) {
 }
 ''', [
       error(WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 90, 2),
+    ]);
+  }
+
+  test_nullableReturnType() async {
+    await assertErrorsInCode('''
+void f(Future<int> future, String? Function(dynamic, StackTrace) cb) {
+  future.catchError(cb);
+}
+''', [
+      error(WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 91, 2),
     ]);
   }
 
@@ -97,8 +93,3 @@ void f(Future<void> future, String Function(dynamic, StackTrace) cb) {
 ''');
   }
 }
-
-@reflectiveTest
-class ReturnTypeInvalidForCatchErrorWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with ReturnTypeInvalidForCatchErrorTestCases, WithoutNullSafetyMixin {}

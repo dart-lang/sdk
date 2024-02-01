@@ -800,24 +800,37 @@ class _ElementWriter {
               _sink.writelnWithIndent(
                 'DeclarationsIntrospectionCycleDiagnostic',
               );
-              _sink.writeElements(
-                'components',
-                diagnostic.components,
-                (component) {
-                  _sink.writelnWithIndent(
-                    'DeclarationsIntrospectionCycleComponent',
-                  );
-                  _sink.withIndent(() {
-                    _elementPrinter.writeNamedElement(
-                      'element',
-                      component.element,
-                    );
+              _sink.withIndent(() {
+                _sink.writelnWithIndent(
+                  'annotationIndex: ${diagnostic.annotationIndex}',
+                );
+                _elementPrinter.writeNamedElement(
+                  'introspectedElement',
+                  diagnostic.introspectedElement,
+                );
+                _sink.writeElements(
+                  'components',
+                  diagnostic.components,
+                  (component) {
                     _sink.writelnWithIndent(
-                      'annotationIndex: ${component.annotationIndex}',
+                      'DeclarationsIntrospectionCycleComponent',
                     );
-                  });
-                },
-              );
+                    _sink.withIndent(() {
+                      _elementPrinter.writeNamedElement(
+                        'element',
+                        component.element,
+                      );
+                      _sink.writelnWithIndent(
+                        'annotationIndex: ${component.annotationIndex}',
+                      );
+                      _elementPrinter.writeNamedElement(
+                        'introspectedElement',
+                        component.introspectedElement,
+                      );
+                    });
+                  },
+                );
+              });
             case ExceptionMacroDiagnostic():
               _sink.writelnWithIndent('ExceptionMacroDiagnostic');
               _sink.withIndent(() {

@@ -13,6 +13,7 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 typedef StaticOptions
@@ -65,8 +66,7 @@ abstract class AbstractSemanticTokensHandler<T>
 
       return toSourceRangeNullable(lineInfo, range).mapResult((range) async {
         final serverTokens = await getServerResult(path, range);
-        final pluginHighlightRegions =
-            getPluginResults(path).expand((results) => results).toList();
+        final pluginHighlightRegions = getPluginResults(path).flattenedToList2;
 
         if (token.isCancellationRequested) {
           return cancelled();

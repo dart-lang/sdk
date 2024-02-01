@@ -28,6 +28,7 @@ import 'src/commands/info.dart';
 import 'src/commands/language_server.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
+import 'src/commands/tooling_daemon.dart';
 import 'src/core.dart';
 import 'src/experiments.dart';
 import 'src/unified_analytics.dart';
@@ -121,14 +122,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(FormatCommand(verbose: verbose));
     addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
-    addCommand(
-      pubCommand(
-        analytics: PubAnalytics(
-          () => unifiedAnalytics,
-        ),
-        isVerbose: () => verbose,
-      ),
-    );
+    addCommand(pubCommand(isVerbose: () => verbose));
     addCommand(RunCommand(
       verbose: verbose,
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
@@ -136,6 +130,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(TestCommand(
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
     ));
+    addCommand(ToolingDaemonCommand(verbose: verbose));
   }
 
   @visibleForTesting

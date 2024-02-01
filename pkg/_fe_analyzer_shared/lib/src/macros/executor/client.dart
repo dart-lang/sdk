@@ -8,14 +8,15 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/execute_macro.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/message_grouper.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/response_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /// Implements the client side of the macro instantiation/expansion protocol.
 final class MacroExpansionClient {
@@ -197,9 +198,8 @@ final class MacroExpansionClient {
           serializationZoneId: request.serializationZoneId);
     } catch (e, s) {
       return new SerializableResponse(
-          responseType: MessageType.error,
-          error: e.toString(),
-          stackTrace: s.toString(),
+          responseType: MessageType.exception,
+          exception: new MacroExceptionImpl.from(e, s),
           requestId: request.id,
           serializationZoneId: request.serializationZoneId);
     }
@@ -226,9 +226,8 @@ final class MacroExpansionClient {
           serializationZoneId: request.serializationZoneId);
     } catch (e, s) {
       return new SerializableResponse(
-          responseType: MessageType.error,
-          error: e.toString(),
-          stackTrace: s.toString(),
+          responseType: MessageType.exception,
+          exception: new MacroExceptionImpl.from(e, s),
           requestId: request.id,
           serializationZoneId: request.serializationZoneId);
     }
@@ -256,9 +255,8 @@ final class MacroExpansionClient {
           serializationZoneId: request.serializationZoneId);
     } catch (e, s) {
       return new SerializableResponse(
-          responseType: MessageType.error,
-          error: e.toString(),
-          stackTrace: s.toString(),
+          responseType: MessageType.exception,
+          exception: new MacroExceptionImpl.from(e, s),
           requestId: request.id,
           serializationZoneId: request.serializationZoneId);
     }
@@ -285,9 +283,8 @@ final class MacroExpansionClient {
           serializationZoneId: request.serializationZoneId);
     } catch (e, s) {
       return new SerializableResponse(
-          responseType: MessageType.error,
-          error: e.toString(),
-          stackTrace: s.toString(),
+          responseType: MessageType.exception,
+          exception: new MacroExceptionImpl.from(e, s),
           requestId: request.id,
           serializationZoneId: request.serializationZoneId);
     }

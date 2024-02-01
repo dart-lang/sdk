@@ -211,7 +211,6 @@ ClassInfo upperBound(Set<ClassInfo> classes) {
 /// Constructs the Wasm type hierarchy.
 class ClassInfoCollector {
   final Translator translator;
-  int _nextClassId = 0;
   late final ClassInfo topInfo;
 
   /// Maps number of record fields to the struct type to be used for a record
@@ -221,6 +220,9 @@ class ClassInfoCollector {
   /// Masquerades for implementation classes. For each entry of the map, all
   /// subtypes of the key masquerade as the value.
   late final Map<Class, Class> _masquerades = _computeMasquerades();
+
+  /// Masqueraded types are mapped to these classes.
+  late final Set<Class> masqueradeValues = _masquerades.values.toSet();
 
   Map<Class, Class> _computeMasquerades() {
     final map = {
@@ -311,32 +313,31 @@ class ClassInfoCollector {
 
   TranslatorOptions get options => translator.options;
 
-  void _initializeTop() {
+  void _createStructForClassTop(int classCount) {
     final w.StructType struct = m.types.defineStruct("#Top");
-    topInfo = ClassInfo(null, _nextClassId++, 0, struct, null);
-    translator.classes.add(topInfo);
+    topInfo = ClassInfo(null, 0, 0, struct, null);
     translator.classForHeapType[struct] = topInfo;
   }
 
-  void _initialize(Class cls) {
+  void _createStructForClass(Map<Class, int> classIds, Class cls) {
     ClassInfo? info = translator.classInfo[cls];
     if (info != null) return;
 
+    final classId = classIds[cls]!;
     Class? superclass = cls.superclass;
     if (superclass == null) {
       ClassInfo superInfo = topInfo;
       final w.StructType struct =
           m.types.defineStruct(cls.name, superType: superInfo.struct);
-      info = ClassInfo(
-          cls, _nextClassId++, superInfo.depth + 1, struct, superInfo);
+      info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo);
       // Mark Top type as implementing Object to force the representation
       // type of Object to be Top.
       info.implementedBy.add(topInfo);
     } else {
       // Recursively initialize all supertypes before initializing this class.
-      _initialize(superclass);
+      _createStructForClass(classIds, superclass);
       for (Supertype interface in cls.implementedTypes) {
-        _initialize(interface.classNode);
+        _createStructForClass(classIds, interface.classNode);
       }
 
       // In the Wasm type hierarchy, Object, bool and num sit directly below
@@ -372,8 +373,7 @@ class ClassInfoCollector {
 
       w.StructType struct =
           m.types.defineStruct(cls.name, superType: superInfo.struct);
-      info = ClassInfo(
-          cls, _nextClassId++, superInfo.depth + 1, struct, superInfo,
+      info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
 
       // Mark all interfaces as being implemented by this class. This is
@@ -386,7 +386,8 @@ class ClassInfoCollector {
         }
       }
     }
-    translator.classes.add(info);
+    translator.classesSupersFirst.add(info);
+    translator.classes[classId] = info;
     translator.classInfo[cls] = info;
     translator.classForHeapType.putIfAbsent(info.struct, () => info!);
 
@@ -414,7 +415,7 @@ class ClassInfoCollector {
     info.masquerade = computeMasquerade();
   }
 
-  void _initializeRecordClass(Class cls) {
+  void _createStructForRecordClass(Map<Class, int> classIds, Class cls) {
     final numFields = cls.fields.length;
 
     final struct = _recordStructs.putIfAbsent(
@@ -426,10 +427,12 @@ class ClassInfoCollector {
 
     final ClassInfo superInfo = translator.recordInfo;
 
+    final classId = classIds[cls]!;
     final info =
-        ClassInfo(cls, _nextClassId++, superInfo.depth + 1, struct, superInfo);
+        ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo);
 
-    translator.classes.add(info);
+    translator.classesSupersFirst.add(info);
+    translator.classes[classId] = info;
     translator.classInfo[cls] = info;
     translator.classForHeapType.putIfAbsent(info.struct, () => info);
   }
@@ -498,46 +501,49 @@ class ClassInfoCollector {
 
   /// Create class info and Wasm struct for all classes.
   void collect() {
-    _initializeTop();
+    // `0` is occupied by artificial non-Dart top class.
+    const int firstClassId = 1;
 
-    // Initialize the record base class early to give enough space for special
-    // values in the type category table before the first masquerade class
-    // (which is `Type`).
-    _initialize(translator.coreTypes.recordClass);
+    translator.classIdNumbering =
+        ClassIdNumbering._number(translator, masqueradeValues, firstClassId);
+    final classIds = translator.classIdNumbering.classIds;
+    final dfsOrder = translator.classIdNumbering.dfsOrder;
+
+    _createStructForClassTop(dfsOrder.length);
+
+    // Class infos by class-id, will be populated by the calls to
+    // [_createStructForClass] and [_createStructForRecordClass] below.
+    translator.classes = List<ClassInfo>.filled(1 + dfsOrder.length, topInfo);
+
+    // Class infos in different order: Infos of super class and super interfaces
+    // before own info.
+    translator.classesSupersFirst = [topInfo];
 
     // Subclasses of the `_Closure` class are generated on the fly as fields
     // with function types are encountered. Therefore, `_Closure` class must
     // be early in the initialization order.
-    _initialize(translator.closureClass);
+    _createStructForClass(classIds, translator.closureClass);
 
     // Similarly `_Type` is needed for type parameter fields in classes and
     // needs to be initialized before we encounter a class with type
     // parameters.
-    _initialize(translator.typeClass);
+    _createStructForClass(classIds, translator.typeClass);
 
-    // Initialize value classes to make sure they have low class IDs.
-    for (Class cls in translator.valueClasses.keys) {
-      _initialize(cls);
-    }
+    // Similarly the `Record` class needs to be handled before the loop below as
+    // the [_createStructForRecordClass] needs it.
+    _createStructForClass(classIds, translator.coreTypes.recordClass);
 
-    // Initialize masquerade classes to make sure they have low class IDs.
-    for (Class cls in _masquerades.values) {
-      _initialize(cls);
-    }
-
-    for (Library library in translator.component.libraries) {
-      for (Class cls in library.classes) {
-        if (cls.superclass == translator.coreTypes.recordClass) {
-          _initializeRecordClass(cls);
-        } else {
-          _initialize(cls);
-        }
+    for (final cls in dfsOrder) {
+      if (cls.superclass == translator.coreTypes.recordClass) {
+        _createStructForRecordClass(classIds, cls);
+      } else {
+        _createStructForClass(classIds, cls);
       }
     }
 
     // Now that the representation types for all classes have been computed,
     // fill in the types of the fields in the generated Wasm structs.
-    for (ClassInfo info in translator.classes) {
+    for (final info in translator.classesSupersFirst) {
       if (info.superInfo == translator.recordInfo) {
         _generateRecordFields(info);
       } else {
@@ -547,5 +553,255 @@ class ClassInfoCollector {
 
     // Validate that all internally used fields have the expected indices.
     FieldIndex.validate(translator);
+  }
+}
+
+class ClassIdNumbering {
+  final Map<Class, List<Class>> _subclasses;
+  final Map<Class, List<Class>> _implementors;
+  final List<Range> _concreteSubclassIdRanges;
+
+  final List<Class> dfsOrder;
+  final Map<Class, int> classIds;
+
+  ClassIdNumbering._(this._subclasses, this._implementors,
+      this._concreteSubclassIdRanges, this.dfsOrder, this.classIds);
+
+  final Map<Class, Set<Class>> _transitiveImplementors = {};
+  Set<Class> _getTransitiveImplementors(Class klass) {
+    var transitiveImplementors = _transitiveImplementors[klass];
+    if (transitiveImplementors != null) return transitiveImplementors;
+
+    transitiveImplementors = {};
+
+    List<Class>? classes = _subclasses[klass];
+    if (classes != null) {
+      for (final cls in classes) {
+        transitiveImplementors.addAll(_getTransitiveImplementors(cls));
+      }
+    }
+    classes = _implementors[klass];
+    if (classes != null) {
+      for (final cls in classes) {
+        transitiveImplementors.add(cls);
+        transitiveImplementors.addAll(_getTransitiveImplementors(cls));
+      }
+    }
+
+    return _transitiveImplementors[klass] = transitiveImplementors;
+  }
+
+  // Maps a class to a list of class id ranges that implement/extend the given
+  // class directly or transitively.
+  final Map<Class, List<Range>> _concreteClassIdRanges = {};
+  List<Range> getConcreteClassIdRanges(Class klass) {
+    var ranges = _concreteClassIdRanges[klass];
+    if (ranges != null) return ranges;
+
+    ranges = [];
+    final transitiveImplementors = _getTransitiveImplementors(klass);
+    final range = _concreteSubclassIdRanges[classIds[klass]!];
+    if (!range.isEmpty) ranges.add(range);
+    for (final implementor in transitiveImplementors) {
+      final range = _concreteSubclassIdRanges[classIds[implementor]!];
+      if (!range.isEmpty) ranges.add(range);
+    }
+    ranges.normalize();
+
+    return _concreteClassIdRanges[klass] = ranges;
+  }
+
+  static ClassIdNumbering _number(
+      Translator translator, Set<Class> masqueradeValues, int firstClassId) {
+    // Make graph from class to its subclasses.
+    late final Class root;
+    final subclasses = <Class, List<Class>>{};
+    final implementors = <Class, List<Class>>{};
+    int abstractClassCount = 0;
+    int concreteClassCount = 0;
+    for (final library in translator.component.libraries) {
+      for (final cls in library.classes) {
+        cls.isAbstract ? abstractClassCount++ : concreteClassCount++;
+        final superClass = cls.superclass;
+        if (superClass == null) {
+          root = cls;
+        } else {
+          subclasses.putIfAbsent(superClass, () => []).add(cls);
+        }
+        for (final interface in cls.implementedTypes) {
+          implementors.putIfAbsent(interface.classNode, () => []).add(cls);
+        }
+      }
+    }
+    final int classCount = abstractClassCount + concreteClassCount;
+
+    // We have a preference in which order we explore the direct subclasses of
+    // `Object` as that allows us to keep class ids of certain hierarchies
+    // low.
+    // TODO: If we had statistics (e.g. number of class allocations, number of
+    // times class is mentioned in type, ...) we'd have an estimate of how often
+    // we have to encode a class-id. Then we could reorder the subclasses
+    // depending on usage count of the subclass trees.
+    final fixedOrder = <Class, int>{
+      translator.coreTypes.boolClass: -10,
+      translator.coreTypes.numClass: -9,
+      if (!translator.options.jsCompatibility) translator.stringBaseClass: -8,
+      translator.jsStringClass: -7,
+      translator.typeClass: -6,
+      translator.listBaseClass: -5,
+      translator.hashFieldBaseClass: -4,
+    };
+    int order(Class klass) {
+      final order = fixedOrder[klass];
+      if (order != null) return order;
+
+      final importUri = klass.enclosingLibrary.importUri.toString();
+      if (importUri.startsWith('dart:')) {
+        if (masqueradeValues.contains(klass)) return -1;
+        // Bundle the typed data and collection together, they may not have
+        // common base class except for `Object` but most of them have similar
+        // selectors.
+        if (importUri.startsWith('dart:typed_data')) return 0;
+        if (importUri.startsWith('dart:collection')) return 1;
+        if (importUri.startsWith('dart:core')) return 2;
+
+        // The dart:wasm classes are marked as entrypoints, therefore retained by
+        // TFA but they can never be instantiated, as they represent raw wasm
+        // types that aren't part of the dart object hierarchy.
+        // Move them to the very end of the class table.
+        if (klass.name.startsWith('_WasmBase')) return 0xffffff;
+        return 3;
+      }
+      return 10;
+    }
+
+    subclasses[root]!.sort((Class a, Class b) => order(a).compareTo(order(b)));
+
+    // Traverse class inheritence graph in depth-first pre-order.
+    void dfs(
+        Class root, int Function(Class) pre, void Function(Class, int) post) {
+      final classId = pre(root);
+      final children = subclasses[root];
+      if (children != null) {
+        for (final sub in children) {
+          dfs(sub, pre, post);
+        }
+      }
+      post(root, classId);
+    }
+
+    // Make a list of the depth-first pre-order traversal.
+    final dfsOrder = <Class>[];
+    final classIds = <Class, int>{};
+
+    // Maps any class to a dense range of concrete class ids that are subclasses
+    // of that class.
+    final concreteSubclassRanges = List<Range>.filled(
+        firstClassId + classCount, Range.empty(),
+        growable: false);
+
+    // TODO: We may consider removing the type category table. But until we do
+    // we have to make sure that all masqueraded types that concrete classes may
+    // be mapped to have class ids that are <=255.
+    //
+    // We still want to maintain that all classes's concrete subclasses form a
+    // single continious class-id range.
+    //
+    // => So we move the abstract masqeraded classes before all the concrete
+    // ones.
+    int nextAbstractClassId = firstClassId;
+    for (Class cls in masqueradeValues) {
+      if (cls.isAbstract) {
+        assert(classIds[cls] == null);
+        classIds[cls] = nextAbstractClassId++;
+      }
+    }
+    int nextConcreteClassId = nextAbstractClassId;
+    nextAbstractClassId = firstClassId +
+        (nextAbstractClassId - firstClassId) +
+        concreteClassCount;
+    dfs(root, (Class cls) {
+      dfsOrder.add(cls);
+      if (cls.isAbstract) {
+        var classId = classIds[cls];
+        if (classId == null) classIds[cls] = nextAbstractClassId++;
+        return nextConcreteClassId;
+      }
+
+      assert(classIds[cls] == null);
+      classIds[cls] = nextConcreteClassId++;
+      return nextConcreteClassId - 1;
+    }, (Class cls, int firstClassId) {
+      final range = Range(firstClassId, nextConcreteClassId - 1);
+      if (!cls.isAbstract) {
+        assert(classIds[cls] == firstClassId);
+        concreteSubclassRanges[firstClassId] = range;
+      } else {
+        concreteSubclassRanges[classIds[cls]!] = range;
+      }
+    });
+    for (Class cls in masqueradeValues) {
+      assert(classIds[cls]! <= 255);
+    }
+    return ClassIdNumbering._(
+        subclasses, implementors, concreteSubclassRanges, dfsOrder, classIds);
+  }
+}
+
+// A range of class ids, both ends inclusive.
+class Range {
+  final int start;
+  final int end;
+
+  Range._(this.start, this.end) : assert(start <= end);
+  const Range.empty()
+      : start = 0,
+        end = -1;
+  factory Range(int start, int end) {
+    if (end < start) return Range.empty();
+    return Range._(start, end);
+  }
+
+  int get length => 1 + (end - start);
+  bool get isEmpty => length == 0;
+
+  bool contains(int id) => start <= id && id <= end;
+  bool containsRange(Range other) => start <= other.start && other.end <= end;
+
+  Range shiftBy(int offset) {
+    if (isEmpty) return this;
+    return Range(start + offset, end + offset);
+  }
+
+  String toString() => isEmpty ? '[]' : '[$start, $end]';
+}
+
+extension RangeListExtention on List<Range> {
+  void normalize() {
+    if (isEmpty) return;
+
+    // Ensure we sort ranges by start of the range.
+    sort((a, b) => a.start.compareTo(b.start));
+
+    int current = 0;
+    Range currentRange = this[0];
+    for (int read = 1; read < length; ++read) {
+      final nextRange = this[read];
+      if (currentRange.isEmpty) {
+        currentRange = nextRange;
+        continue;
+      }
+      if (nextRange.isEmpty) continue;
+      if (currentRange.containsRange(nextRange)) continue;
+      if (currentRange.contains(nextRange.start)) {
+        currentRange = Range(currentRange.start, nextRange.end);
+        continue;
+      }
+
+      this[current++] = currentRange;
+      currentRange = nextRange;
+    }
+    this[current++] = currentRange;
+    this.length = current;
   }
 }

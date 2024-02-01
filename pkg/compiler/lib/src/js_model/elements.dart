@@ -28,19 +28,16 @@ class JLibrary with EntityMapKey implements LibraryEntity {
   final String name;
   @override
   final Uri canonicalUri;
-  @override
-  final bool isNonNullableByDefault;
 
-  JLibrary(this.name, this.canonicalUri, this.isNonNullableByDefault);
+  JLibrary(this.name, this.canonicalUri);
 
   /// Deserializes a [JLibrary] object from [source].
   factory JLibrary.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     String name = source.readString();
     Uri canonicalUri = source.readUri();
-    bool isNonNullableByDefault = source.readBool();
     source.end(tag);
-    return JLibrary(name, canonicalUri, isNonNullableByDefault);
+    return JLibrary(name, canonicalUri);
   }
 
   /// Serializes this [JLibrary] to [sink].
@@ -48,7 +45,6 @@ class JLibrary with EntityMapKey implements LibraryEntity {
     sink.begin(tag);
     sink.writeString(name);
     sink.writeUri(canonicalUri);
-    sink.writeBool(isNonNullableByDefault);
     sink.end(tag);
   }
 

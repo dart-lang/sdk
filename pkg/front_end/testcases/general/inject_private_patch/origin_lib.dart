@@ -32,7 +32,7 @@ class ClassExtends extends Class /* Ok */ {
   void _privateInstanceMember() {}
 }
 
-class ClassImplements
-    implements Class /* // Error, missing (injected) members. */ {
+// Error, missing (injected) members.
+class ClassImplements implements Class {
   void _privateInstanceMember() {}
 }

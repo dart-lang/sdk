@@ -24,6 +24,8 @@ class FunctionCollector {
   final Map<Reference, String> _exports = {};
   // Functions for which code has not yet been generated
   final List<Reference> _worklist = [];
+  // Selector IDs that are invoked via GDT.
+  final Set<int> _calledSelectors = {};
   // Class IDs for classes that are allocated somewhere in the program
   final Set<int> _allocatedClasses = {};
   // For each class ID, which functions should be added to the worklist if an
@@ -120,9 +122,12 @@ class FunctionCollector {
     }
 
     // Value classes are always implicitly allocated.
-    allocateClass(translator.classInfo[translator.boxedBoolClass]!.classId);
-    allocateClass(translator.classInfo[translator.boxedIntClass]!.classId);
-    allocateClass(translator.classInfo[translator.boxedDoubleClass]!.classId);
+    recordClassAllocation(
+        translator.classInfo[translator.boxedBoolClass]!.classId);
+    recordClassAllocation(
+        translator.classInfo[translator.boxedIntClass]!.classId);
+    recordClassAllocation(
+        translator.classInfo[translator.boxedDoubleClass]!.classId);
   }
 
   w.BaseFunction? getExistingFunction(Reference target) {
@@ -182,21 +187,23 @@ class FunctionCollector {
     }
   }
 
-  void activateSelector(SelectorInfo selector) {
-    selector.targets.forEach((classId, target) {
-      if (!target.asMember.isAbstract) {
-        if (_allocatedClasses.contains(classId)) {
-          // Class declaring or inheriting member is allocated somewhere.
-          getFunction(target);
-        } else {
-          // Remember the member in case an allocation is encountered later.
-          _pendingAllocation.putIfAbsent(classId, () => []).add(target);
+  void recordSelectorUse(SelectorInfo selector) {
+    if (_calledSelectors.add(selector.id)) {
+      selector.targets.forEach((classId, target) {
+        if (!target.asMember.isAbstract) {
+          if (_allocatedClasses.contains(classId)) {
+            // Class declaring or inheriting member is allocated somewhere.
+            getFunction(target);
+          } else {
+            // Remember the member in case an allocation is encountered later.
+            _pendingAllocation.putIfAbsent(classId, () => []).add(target);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
-  void allocateClass(int classId) {
+  void recordClassAllocation(int classId) {
     if (_allocatedClasses.add(classId)) {
       // Schedule all members that were pending allocation of this class.
       for (Reference target in _pendingAllocation[classId] ?? const []) {

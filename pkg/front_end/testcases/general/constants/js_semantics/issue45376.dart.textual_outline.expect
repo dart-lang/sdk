@@ -7,4 +7,5 @@ class MyClass {
 }
 
 test() {}
+
 main() {}

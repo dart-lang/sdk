@@ -363,7 +363,7 @@ class LibraryBuilder {
   /// of interfaces declared in other libraries that, and we have not run yet
   /// declarations phase macro applications for them.
   Future<MacroDeclarationsPhaseStepResult> executeMacroDeclarationsPhase({
-    required Element? targetElement,
+    required ElementImpl? targetElement,
   }) async {
     final macroApplier = linker.macroApplier;
     if (macroApplier == null) {
@@ -460,13 +460,13 @@ class LibraryBuilder {
     }
 
     final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      _macroResults.expand((e) => e).toList(),
+      _macroResults.flattenedToList2,
     );
     if (augmentationCode == null) {
       return;
     }
 
-    kind.disposeMacroAugmentations();
+    kind.disposeMacroAugmentations(disposeFiles: true);
 
     // Remove import for partial macro augmentations.
     element.augmentationImports = element.augmentationImports
@@ -823,8 +823,10 @@ class LibraryBuilder {
           ..end = unlinked.endOffset
           ..shownNames = unlinked.names;
       } else {
-        // TODO(scheglov): Why no offsets?
-        return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
+        return HideElementCombinatorImpl()
+          ..offset = unlinked.keywordOffset
+          ..end = unlinked.endOffset
+          ..hiddenNames = unlinked.names;
       }
     }).toFixedList();
   }

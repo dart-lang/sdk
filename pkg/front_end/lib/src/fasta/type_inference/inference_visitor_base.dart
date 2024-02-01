@@ -9,8 +9,6 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.d
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-import 'package:front_end/src/fasta/source/source_field_builder.dart';
-import 'package:front_end/src/fasta/source/source_procedure_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
@@ -43,8 +41,10 @@ import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 import '../names.dart';
 import '../problems.dart' show internalProblem, unhandled;
 import '../source/source_constructor_builder.dart';
+import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
+import '../source/source_procedure_builder.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
@@ -1011,7 +1011,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new List<DartType>.filled(typeParameters.length, const UnknownType());
     TypeConstraintGatherer gatherer = typeSchemaEnvironment
         .setupGenericTypeInference(null, typeParameters, null,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
+            typeOperations: cfeOperations);
     gatherer.constrainArguments([onType], [receiverType]);
     inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
         gatherer, typeParameters, inferredTypes,
@@ -1710,14 +1711,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // type parameters for the callee (see dartbug.com/31759).
       // TODO(paulberry): is it possible to find a narrower set of circumstances
       // in which me must do this, to avoid a performance regression?
-      if (calleeTypeParameters.isNotEmpty) {
-        FreshStructuralParameters fresh =
-            getFreshStructuralParameters(calleeTypeParameters);
-        calleeType = fresh.applyToFunctionType(calleeType);
-        calleeTypeParameters = fresh.freshTypeParameters;
-      } else {
-        calleeTypeParameters = const <StructuralParameter>[];
-      }
+      FreshStructuralParameters fresh =
+          getFreshStructuralParameters(calleeTypeParameters);
+      calleeType = fresh.applyToFunctionType(calleeType);
+      calleeTypeParameters = fresh.freshTypeParameters;
     }
 
     List<DartType>? explicitTypeArguments = getExplicitTypeArguments(arguments);
@@ -1755,7 +1752,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               : legacyErasure(calleeType.returnType),
           calleeTypeParameters,
           typeContext,
-          isNonNullableByDefault: isNonNullableByDefault);
+          isNonNullableByDefault: isNonNullableByDefault,
+          typeOperations: cfeOperations);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, calleeTypeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -2168,9 +2166,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     for (VariableDeclaration parameter in function.namedParameters) {
       flowAnalysis.declare(parameter, parameter.type, initialized: true);
       inferMetadata(visitor, parameter, parameter.annotations);
-      ExpressionInferenceResult initializerResult =
-          visitor.inferExpression(parameter.initializer!, parameter.type);
-      parameter.initializer = initializerResult.expression..parent = parameter;
+      if (parameter.initializer != null) {
+        ExpressionInferenceResult initializerResult =
+            visitor.inferExpression(parameter.initializer!, parameter.type);
+        parameter.initializer = initializerResult.expression
+          ..parent = parameter;
+      }
     }
 
     // Let `<T0, ..., Tn>` be the set of type parameters of the closure (with
@@ -2386,6 +2387,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(name != equalsName);
     Expression expression = new DynamicInvocation(
         DynamicAccessKind.Dynamic, receiver, name, arguments)
+      ..isImplicitCall = isImplicitCall
       ..fileOffset = fileOffset;
     return createNullAwareExpressionInferenceResult(
         result.inferredType, result.applyResult(expression), nullAwareGuards);
@@ -2736,6 +2738,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // the parameters.
       expression = new DynamicInvocation(
           DynamicAccessKind.Dynamic, receiver, methodName, arguments)
+        ..isImplicitCall = isImplicitCall
         ..fileOffset = fileOffset;
     } else if (result.isInapplicable) {
       // This was a method invocation whose arguments didn't match
@@ -3377,6 +3380,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             hoistedExpressions: hoistedExpressions);
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordNamed:
+        if (isImplicitCall && !target.isNullable) {
+          libraryBuilder.addProblem(messageRecordUsedAsCallable,
+              receiver.fileOffset, noLength, libraryBuilder.fileUri);
+        }
         DartType type = target.getGetterType(this);
         Expression read = new RecordNameGet(receiver,
             target.receiverType as RecordType, target.recordFieldName!)
@@ -3605,7 +3612,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         TypeConstraintGatherer gatherer =
             typeSchemaEnvironment.setupGenericTypeInference(
                 instantiatedType, typeParameters, context,
-                isNonNullableByDefault: isNonNullableByDefault);
+                isNonNullableByDefault: isNonNullableByDefault,
+                typeOperations: cfeOperations);
         inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParameters, inferredTypes,
             isNonNullableByDefault: isNonNullableByDefault);
@@ -4466,10 +4474,10 @@ class _WhyNotPromotedVisitor
         this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
       // `fieldPromotabilityInfo` is computed for all library builders except
-      // those for patch files.
-      assert(this.inferrer.libraryBuilder.isPatch);
-      // "why not promoted" functionality is not supported in patch files, so
-      // just don't generate a context message.
+      // those for augmentation libraries.
+      assert(this.inferrer.libraryBuilder.isAugmenting);
+      // "why not promoted" functionality is not supported in augmentation
+      // libraries, so just don't generate a context message.
       return const [];
     }
     FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,

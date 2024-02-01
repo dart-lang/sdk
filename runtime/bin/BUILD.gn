@@ -120,7 +120,7 @@ static_library("crashpad") {
     "..:dart_arch_config",
     "..:dart_config",
     "..:dart_product_config",
-    "..:dart_os_fuchsia_config",
+    "..:dart_os_config",
   ]
   include_dirs = [ ".." ]
   sources = [ "crashpad.cc" ]
@@ -144,7 +144,7 @@ template("build_elf_loader") {
     configs += [
       "..:dart_arch_config",
       "..:dart_config",
-      "..:dart_os_fuchsia_config",
+      "..:dart_os_config",
       "..:dart_product_config",
       "..:dart_shared_lib",
     ]

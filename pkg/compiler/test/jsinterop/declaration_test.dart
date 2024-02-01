@@ -217,7 +217,9 @@ import 'package:js/js.dart';
 
 @JS()
 class A {
-  factory A() => null;
+  external A._();
+
+  factory A() => A._();
 }
 
 main() => A();
@@ -258,7 +260,9 @@ import 'package:js/js.dart';
 @JS()
 @anonymous
 class A {
-  factory A() => null;
+  external A._();
+
+  factory A() => A._();
 }
 
 main() => A();
@@ -304,7 +308,7 @@ import 'package:js/js.dart';
 @JS()
 @anonymous
 class A {
-  external factory A({a: 1, b: 2});
+  external factory A({a = 1, b = 2});
 }
 
 main() => A(a: 1);
@@ -333,14 +337,14 @@ import 'package:js/js.dart';
 @JS()
 @anonymous
 class B {
-  int Function() callback;
+  int Function()? callback;
 }
 
 @JS('makeB')
 external B makeB();
 
 main() {
-  makeB().callback();
+  makeB().callback!();
 }
 ''',
     // TODO(34174): Disallow js-interop fields.

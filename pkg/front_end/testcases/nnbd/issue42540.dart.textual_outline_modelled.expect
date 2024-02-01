@@ -1,3 +1,5 @@
 Future<Object> fn() async {}
+
 dynamic getNull() => null;
+
 main() {}

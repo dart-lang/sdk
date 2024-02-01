@@ -43,7 +43,7 @@ extension type SomeExtensionType(core::int foo) {
   return #this;
 }
 static method testTypeCheckRemoval() → void {
-  final core::List<self::SomeExtensionType% /* = core::int */> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::generate<self::SomeExtensionType% /* = core::int */>(10, (final core::int a) → self::SomeExtensionType /* = core::int */ => self::SomeExtensionType|constructor#(a));
+  final core::List<self::SomeExtensionType% /* = core::int */> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::generate<self::SomeExtensionType% /* = core::int */>(10, (final core::int a) → self::SomeExtensionType /* = core::int */ => [@vm.inferred-type.metadata=int] self::SomeExtensionType|constructor#(a));
   final self::Run<self::SomeExtensionType% /* = core::int */> obj = new self::Run::•<self::SomeExtensionType /* = core::int */>();
   [@vm.call-site-attributes.metadata=receiverType:#lib::Run<#lib::SomeExtensionType%>] [@vm.direct-call.metadata=#lib::Run.execute] [@vm.inferred-type.metadata=!? (skip check)] obj.{self::Run::execute}(list){(core::List<self::SomeExtensionType% /* = core::int */>) → void};
 }

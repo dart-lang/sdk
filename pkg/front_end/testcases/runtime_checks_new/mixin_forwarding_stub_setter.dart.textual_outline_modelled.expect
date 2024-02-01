@@ -15,13 +15,18 @@ class B {
 }
 
 class C = B with M implements I<int>;
+
 mixin M {
   int get x => 1;
   int get y => 3;
   void set x(int value) {}
   void set y(int value) {}
 }
+
 void expect(Object value, Object expected) {}
+
 void expectTypeError(void callback()) {}
+
 void main() {}
+
 void test(I<Object> i) {}

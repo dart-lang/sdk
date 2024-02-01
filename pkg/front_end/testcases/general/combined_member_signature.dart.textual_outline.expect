@@ -19,12 +19,21 @@ class D implements E {
 }
 
 (Object?, Object?) testMethod0(E e) => e.method();
+
 (int, Object?) testMethod1(E e) => e.method();
+
 (Object?, int) testMethod2(E e) => e.method();
+
 (Object?, Object?) testGetter0(E e) => e.getter;
+
 (int, Object?) testGetter1(E e) => e.getter;
+
 (Object?, int) testGetter2(E e) => e.getter;
+
 void testSetter(E e) {}
+
 void method(E e) {}
+
 main() {}
+
 expect(expected, actual) {}

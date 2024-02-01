@@ -99,7 +99,6 @@ class Forwarder {
     final selectors =
         translator.dispatchTable.dynamicGetterSelectors(memberName);
     for (final selector in selectors) {
-      translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
         final Reference target = selector.targets[classID]!;
         final targetMember = target.asMember;
@@ -159,7 +158,6 @@ class Forwarder {
     final selectors =
         translator.dispatchTable.dynamicSetterSelectors(memberName);
     for (final selector in selectors) {
-      translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
         final Reference target = selector.targets[classID]!;
         final Member targetMember = target.asMember;
@@ -200,9 +198,9 @@ class Forwarder {
     final b = function.body;
 
     final receiverLocal = function.locals[0]; // ref #Top
-    final typeArgsLocal = function.locals[1]; // ref _ListBase
-    final positionalArgsLocal = function.locals[2]; // ref _ListBase
-    final namedArgsLocal = function.locals[3]; // ref _ListBase
+    final typeArgsLocal = function.locals[1]; // ref WasmArray
+    final positionalArgsLocal = function.locals[2]; // ref WasmArray
+    final namedArgsLocal = function.locals[3]; // ref WasmArray
 
     final classIdLocal = function.addLocal(w.NumType.i32);
 
@@ -214,8 +212,6 @@ class Forwarder {
     final methodSelectors =
         translator.dispatchTable.dynamicMethodSelectors(memberName);
     for (final selector in methodSelectors) {
-      translator.functions.activateSelector(selector);
-
       // Map methods to classes that inherit them, to avoid generating
       // duplicate blocks when a method is inherited by multiple classes.
       final Map<Reference, List<int>> targets = {};
@@ -277,12 +273,12 @@ class Forwarder {
         if (targetMemberParamInfo.typeParamCount == 0) {
           // typeArgs.length == 0
           b.local_get(typeArgsLocal);
-          translator.getListLength(b);
+          b.array_len();
           b.i32_eqz();
         } else {
           // typeArgs.length == 0 || typeArgs.length == typeParams.length
           b.local_get(typeArgsLocal);
-          translator.getListLength(b);
+          b.array_len();
           b.local_tee(numArgsLocal);
           b.i32_eqz();
           b.local_get(numArgsLocal);
@@ -302,7 +298,7 @@ class Forwarder {
         // positionalArgs.length >= nRequired &&
         //   positionalArgs.length <= nTotal
         b.local_get(positionalArgsLocal);
-        translator.getListLength(b);
+        b.array_len();
         b.local_tee(numArgsLocal);
         b.i32_const(nRequired);
         b.i32_ge_u();
@@ -316,9 +312,10 @@ class Forwarder {
         // Add default values of optional positional parameters if needed
         w.Local? adjustedPositionalArgsLocal;
         if (nRequired != nTotal) {
-          adjustedPositionalArgsLocal = function.addLocal(translator
-              .classInfo[translator.growableListClass]!.nonNullableType);
-          _makeEmptyGrowableList(translator, function, nTotal);
+          adjustedPositionalArgsLocal =
+              function.addLocal(translator.nullableObjectArrayTypeRef);
+          b.i32_const(nTotal);
+          b.array_new_default(translator.nullableObjectArrayType);
           b.local_set(adjustedPositionalArgsLocal);
 
           // Copy passed arguments
@@ -332,11 +329,11 @@ class Forwarder {
           b.i32_lt_u();
           b.if_();
           b.local_get(adjustedPositionalArgsLocal);
+          b.local_get(argIdxLocal);
           b.local_get(positionalArgsLocal);
-          translator.indexList(b, (b) => b.local_get(argIdxLocal));
-          b.call(translator.functions
-              .getFunction(translator.growableListAdd.reference));
-          b.drop();
+          b.local_get(argIdxLocal);
+          b.array_get(translator.nullableObjectArrayType);
+          b.array_set(translator.nullableObjectArrayType);
           b.local_get(argIdxLocal);
           b.i32_const(1);
           b.i32_add();
@@ -353,17 +350,14 @@ class Forwarder {
             b.i32_const(optionalParamIdx);
             b.i32_le_u();
             b.if_();
-            b.local_get(adjustedPositionalArgsLocal);
 
             final param = targetMemberParamInfo.positional[optionalParamIdx]!;
 
+            b.local_get(adjustedPositionalArgsLocal);
+            b.i32_const(optionalParamIdx);
             translator.constants.instantiateConstant(
                 function, b, param, translator.topInfo.nullableType);
-
-            b.call(translator.functions
-                .getFunction(translator.growableListAdd.reference));
-            b.drop();
-
+            b.array_set(translator.nullableObjectArrayType);
             b.end();
           }
         }
@@ -375,15 +369,15 @@ class Forwarder {
         if (targetMemberParamInfo.named.isEmpty) {
           // namedArgs.length == 0
           b.local_get(namedArgsLocal);
-          translator.getListLength(b);
+          b.array_len();
           b.i32_eqz();
           b.i32_eqz();
           b.br_if(noSuchMethodBlock);
         } else {
-          adjustedNamedArgsLocal = function.addLocal(translator
-              .classInfo[translator.growableListClass]!.nonNullableType);
-          _makeEmptyGrowableList(
-              translator, function, targetMemberParamInfo.named.length);
+          adjustedNamedArgsLocal =
+              function.addLocal(translator.nullableObjectArrayTypeRef);
+          b.i32_const(targetMemberParamInfo.named.length);
+          b.array_new_default(translator.nullableObjectArrayType);
           b.local_set(adjustedNamedArgsLocal);
 
           final namedParameterIdxLocal = function.addLocal(
@@ -391,7 +385,7 @@ class Forwarder {
 
           final remainingNamedArgsLocal = numArgsLocal;
           b.local_get(namedArgsLocal);
-          translator.getListLength(b);
+          b.array_len();
           b.i32_const(1);
           b.i32_shr_u();
           b.local_set(remainingNamedArgsLocal);
@@ -409,9 +403,12 @@ class Forwarder {
             return null;
           }
 
-          for (final name in targetMemberParamInfo.names) {
+          for (int nameIdx = 0;
+              nameIdx < targetMemberParamInfo.names.length;
+              ++nameIdx) {
+            final String name = targetMemberParamInfo.names[nameIdx];
             final Constant? paramInfoDefaultValue =
-                targetMemberParamInfo.named[name]!;
+                targetMemberParamInfo.named[name];
             final Expression? functionNodeDefaultValue =
                 initializerForNamedParamInMember(name);
 
@@ -441,23 +438,27 @@ class Forwarder {
                 paramInfoDefaultValue == null) {
               // Required parameter missing
               b.br_if(noSuchMethodBlock);
+
+              // Copy provided named parameter.
+
               b.local_get(adjustedNamedArgsLocal);
+              b.i32_const(nameIdx);
+
               b.local_get(namedArgsLocal);
-              translator.indexList(b, (b) {
-                b.local_get(namedParameterIdxLocal);
-                translator.convertType(
-                    function, namedParameterIdxLocal.type, w.NumType.i64);
-                b.i32_wrap_i64();
-              });
-              b.call(translator.functions
-                  .getFunction(translator.growableListAdd.reference));
-              b.drop();
+              b.local_get(namedParameterIdxLocal);
+              translator.convertType(
+                  function, namedParameterIdxLocal.type, w.NumType.i64);
+              b.i32_wrap_i64();
+              b.array_get(translator.nullableObjectArrayType);
+
+              b.array_set(translator.nullableObjectArrayType);
             } else {
               // Optional, either has a default in the member or not used by
               // the member
               b.if_();
 
               b.local_get(adjustedNamedArgsLocal);
+              b.i32_const(nameIdx);
 
               if (functionNodeDefaultValue != null) {
                 // Used by the member, has a default value
@@ -475,24 +476,19 @@ class Forwarder {
                   translator.topInfo.nullableType,
                 );
               }
-
-              b.call(translator.functions
-                  .getFunction(translator.growableListAdd.reference));
-              b.drop();
+              b.array_set(translator.nullableObjectArrayType);
 
               b.else_();
 
               b.local_get(adjustedNamedArgsLocal);
+              b.i32_const(nameIdx);
               b.local_get(namedArgsLocal);
-              translator.indexList(b, (b) {
-                b.local_get(namedParameterIdxLocal);
-                translator.convertType(
-                    function, namedParameterIdxLocal.type, w.NumType.i64);
-                b.i32_wrap_i64();
-              });
-              b.call(translator.functions
-                  .getFunction(translator.growableListAdd.reference));
-              b.drop();
+              b.local_get(namedParameterIdxLocal);
+              translator.convertType(
+                  function, namedParameterIdxLocal.type, w.NumType.i64);
+              b.i32_wrap_i64();
+              b.array_get(translator.nullableObjectArrayType);
+              b.array_set(translator.nullableObjectArrayType);
 
               b.end();
             }
@@ -522,7 +518,6 @@ class Forwarder {
         translator.dispatchTable.dynamicGetterSelectors(memberName);
     final getterValueLocal = function.addLocal(translator.topInfo.nullableType);
     for (final selector in getterSelectors) {
-      translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
         final Reference target = selector.targets[classID]!;
         final targetMember = target.asMember;
@@ -673,11 +668,9 @@ void generateDynamicFunctionCall(
   w.Local namedArgsLocal,
   w.Label noSuchMethodBlock,
 ) {
-  final listArgumentType =
-      translator.classInfo[translator.listBaseClass]!.nonNullableType;
-  assert(typeArgsLocal.type == listArgumentType);
-  assert(posArgsLocal.type == listArgumentType);
-  assert(namedArgsLocal.type == listArgumentType);
+  assert(typeArgsLocal.type == translator.typeArrayTypeRef);
+  assert(posArgsLocal.type == translator.nullableObjectArrayTypeRef);
+  assert(namedArgsLocal.type == translator.nullableObjectArrayTypeRef);
 
   final b = function.body;
 
@@ -688,6 +681,20 @@ void generateDynamicFunctionCall(
   b.struct_get(translator.closureLayouter.closureBaseStruct,
       FieldIndex.closureRuntimeType);
   b.local_tee(functionTypeLocal);
+
+  // If no type arguments were supplied but the closure has type parameters, use
+  // the default values.
+  b.local_get(typeArgsLocal);
+  b.array_len();
+  b.i32_eqz();
+  b.if_();
+  b.local_get(functionTypeLocal);
+  b.struct_get(
+      translator.classInfo[translator.functionTypeClass]!.struct,
+      translator
+          .fieldIndex[translator.functionTypeTypeParameterDefaultsField]!);
+  b.local_set(typeArgsLocal);
+  b.end();
 
   // Check closure shape
   b.local_get(typeArgsLocal);
@@ -700,7 +707,7 @@ void generateDynamicFunctionCall(
   b.br_if(noSuchMethodBlock);
 
   // Shape check passed, check types
-  if (!translator.options.omitTypeChecks) {
+  if (!translator.options.omitImplicitTypeChecks) {
     b.local_get(functionTypeLocal);
     b.local_get(typeArgsLocal);
     b.local_get(posArgsLocal);
@@ -743,10 +750,14 @@ void createInvocationObject(
       translator.classInfo[translator.symbolClass]!.nonNullableType);
 
   b.local_get(typeArgsLocal);
+  b.call(translator.functions
+      .getFunction(translator.typeArgumentsToList.reference));
   b.local_get(positionalArgsLocal);
+  b.call(translator.functions
+      .getFunction(translator.positionalParametersToList.reference));
   b.local_get(namedArgsLocal);
   b.call(translator.functions
-      .getFunction(translator.namedParameterListToMap.reference));
+      .getFunction(translator.namedParametersToMap.reference));
   b.call(translator.functions
       .getFunction(translator.invocationGenericMethodFactory.reference));
 }
@@ -799,7 +810,7 @@ void generateNoSuchMethodCall(
 
   final SelectorInfo noSuchMethodSelector = translator.dispatchTable
       .selectorForTarget(translator.objectNoSuchMethod.reference);
-  translator.functions.activateSelector(noSuchMethodSelector);
+  translator.functions.recordSelectorUse(noSuchMethodSelector);
 
   final noSuchMethodParamInfo = noSuchMethodSelector.paramInfo;
   final noSuchMethodWasmFunctionType = noSuchMethodSelector.signature;
@@ -851,27 +862,6 @@ void generateNoSuchMethodCall(
   }
 
   b.call_indirect(noSuchMethodWasmFunctionType);
-}
-
-void _makeEmptyGrowableList(
-    Translator translator, w.FunctionBuilder function, int capacity) {
-  final b = function.body;
-  Class cls = translator.growableListClass;
-  ClassInfo info = translator.classInfo[cls]!;
-  translator.functions.allocateClass(info.classId);
-  w.ArrayType arrayType = translator.listArrayType;
-
-  b.i32_const(info.classId);
-  b.i32_const(initialIdentityHash);
-  translator.constants.instantiateConstant(
-      function,
-      b,
-      TypeLiteralConstant(DynamicType()),
-      translator.classInfo[translator.typeClass]!.nonNullableType);
-  b.i64_const(0); // _length
-  b.i32_const(capacity);
-  b.array_new_default(arrayType); // _data
-  b.struct_new(info.struct);
 }
 
 class ClassIdRange {

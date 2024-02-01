@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 main() {
   effectivelyFinalList();
   notEffectivelyFinalList();
@@ -24,7 +22,7 @@ notEffectivelyFinalList() {
   c = null;
 }
 
-num _method1() => null;
+num? _method1() => null;
 
 effectivelyFinalPromoted() {
   dynamic c = _method1();
@@ -34,7 +32,7 @@ effectivelyFinalPromoted() {
   }
 }
 
-String _method2() => null;
+String? _method2() => null;
 
 effectivelyFinalPromotedInvalid() {
   dynamic c = _method2();

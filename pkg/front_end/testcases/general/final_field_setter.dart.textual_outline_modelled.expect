@@ -4,5 +4,7 @@ class Class {
 }
 
 final int field = 42;
+
 main() {}
+
 void set field(int value) {}

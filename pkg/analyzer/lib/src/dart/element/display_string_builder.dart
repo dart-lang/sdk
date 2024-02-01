@@ -341,7 +341,7 @@ class ElementDisplayStringBuilder {
     var multiline = allowMultiline && _multiline && parameters.length >= 3;
 
     // The prefix for open groups is included in separator for single-line but
-    // not for multline so must be added explicitly.
+    // not for multiline so must be added explicitly.
     var openGroupPrefix = multiline ? ' ' : '';
     var separator = multiline ? ',' : ', ';
     var trailingComma = multiline ? ',\n' : '';

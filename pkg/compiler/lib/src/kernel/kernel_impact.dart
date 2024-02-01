@@ -16,7 +16,6 @@ import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/runtime_type_analysis.dart';
 import '../ir/static_type.dart';
-import '../ir/util.dart';
 import '../ir/visitors.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/backend_impact.dart';
@@ -833,52 +832,6 @@ class KernelImpactConverter implements ImpactRegistry {
     impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.loadDeferredLibrary, CallStructure.ONE_ARG));
     registerBackendImpact(_impacts.loadLibrary);
-  }
-
-  @override
-  void registerSwitchStatementNode(ir.SwitchStatement node) {
-    bool overridesEquals(InterfaceType type) {
-      if (type == commonElements.symbolImplementationType) {
-        // Treat symbol constants as if Symbol doesn't override `==`.
-        return false;
-      }
-      ClassEntity? cls = type.element;
-      while (cls != null) {
-        MemberEntity member = elementMap.elementEnvironment
-            .lookupClassMember(cls, Names.EQUALS_NAME)!;
-        if (member.isAbstract) {
-          cls = elementMap.elementEnvironment.getSuperClass(cls);
-        } else {
-          return member.enclosingClass != commonElements.objectClass &&
-              member.enclosingClass != commonElements.jsInterceptorClass;
-        }
-      }
-      return false;
-    }
-
-    for (ir.SwitchCase switchCase in node.cases) {
-      for (ir.Expression expression in switchCase.expressions) {
-        ConstantValue value =
-            elementMap.getConstantValue(staticTypeContext, expression)!;
-        DartType type = value.getType(elementMap.commonElements);
-        if (type == commonElements.doubleType) {
-          reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(expression),
-              MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
-              {'type': "double"});
-        } else if (type == commonElements.functionType) {
-          reporter.reportErrorMessage(computeSourceSpanFromTreeNode(node),
-              MessageKind.SWITCH_CASE_FORBIDDEN, {'type': "Function"});
-        } else if (value is ObjectConstantValue &&
-            type != commonElements.typeLiteralType &&
-            overridesEquals(type as InterfaceType)) {
-          reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(expression),
-              MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
-              {'type': typeToString(type)});
-        }
-      }
-    }
   }
 
   /// Converts a [ImpactData] object based on kernel to the corresponding

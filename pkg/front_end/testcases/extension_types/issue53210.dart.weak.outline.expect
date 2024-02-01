@@ -47,7 +47,7 @@ static extension-type-member method ET1|constructor#c5(core::int a, {core::int b
   ;
 static extension-type-member method ET1|constructor#_#c5#tearOff(core::int a, {has-declared-initializer core::int b}) → self::ET1 /* = core::int */
   return self::ET1|constructor#c5(a, b: b);
-static extension-type-member method ET1|constructor#c6(core::int a, {required core::int b = null}) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#c6(core::int a, {required core::int b}) → self::ET1 /* = core::int */
   ;
 static extension-type-member method ET1|constructor#_#c6#tearOff(core::int a, {required core::int b}) → self::ET1 /* = core::int */
   return self::ET1|constructor#c6(a, b: b);

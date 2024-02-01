@@ -1,6 +1,9 @@
 // @dart = 2.9
+
 library test;
 
 typedef num FunctionReturningNum();
+
 test() {}
+
 main() {}

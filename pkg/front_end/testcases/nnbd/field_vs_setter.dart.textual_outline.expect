@@ -1,19 +1,35 @@
 int? topLevelFieldAndSetter;
+
 void set topLevelFieldAndSetter(int? value) {}
+
 int? topLevelFieldAndDuplicateSetter;
+
 void set topLevelFieldAndDuplicateSetter(int? value) {}
+
 void set topLevelFieldAndDuplicateSetter(int? value) {}
+
 int? duplicateTopLevelFieldAndSetter1;
+
 final int? duplicateTopLevelFieldAndSetter1 = null;
+
 void set duplicateTopLevelFieldAndSetter1(int? value) {}
+
 final int? duplicateTopLevelFieldAndSetter2 = null;
+
 int? duplicateTopLevelFieldAndSetter2;
+
 void set duplicateTopLevelFieldAndSetter2(int? value) {}
+
 late final int? topLevelLateFinalFieldAndSetter;
+
 void set topLevelLateFinalFieldAndSetter(int? value) {}
+
 late final int? topLevelLateFinalFieldAndDuplicateSetter;
+
 void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
+
 void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
+
 class Class {
   int? instanceFieldAndSetter;
   void set instanceFieldAndSetter(int? value) {}
@@ -70,6 +86,7 @@ class Class {
   static int? duplicateStaticFieldAndInstanceSetter2;
   void set duplicateStaticFieldAndInstanceSetter2(int? value) {}
 }
+
 extension Extension on int? {
   int? extensionInstanceFieldAndSetter;
   void set extensionInstanceFieldAndSetter(int? value) {}
@@ -121,5 +138,7 @@ extension Extension on int? {
   static int? duplicateExtensionStaticFieldAndInstanceSetter2;
   void set duplicateExtensionStaticFieldAndInstanceSetter2(int? value) {}
 }
+
 test() {}
+
 main() {}

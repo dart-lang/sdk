@@ -17,7 +17,9 @@ const int BELOW_ZERO_CHECK = 6;
 
 final List TESTS = [
   """
-main(bool check) {
+@pragma('dart2js:assumeDynamic')
+test(check) {
+  check as bool;
   var a = check ? [1] : [1, 2];
   var sum = 0;
   for (int i = 0; i < a.length; i++) {
@@ -28,7 +30,9 @@ main(bool check) {
 """,
   REMOVED,
   """
-main(int value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as int;
   var a = [1, 2];
   var sum = 0;
   for (int i = 0; i < value; i++) {
@@ -39,7 +43,9 @@ main(int value) {
 """,
   ABOVE_ZERO,
   """
-main(bool check) {
+@pragma('dart2js:assumeDynamic')
+test(check) {
+  check as bool;
   // Make sure value is an int.
   var value = check ? 42 : 54;
   var a = List.filled(value, 1);
@@ -52,77 +58,90 @@ main(bool check) {
 """,
   REMOVED,
   """
-main() {
+test() {
   var a = [];
   return a[0];
 }
 """,
   KEPT,
   """
-main() {
+test() {
   var a = [];
   return a.removeLast();
 }
 """,
   KEPT,
   """
-main() {
+test() {
   var a = List.filled(4, null);
   return a[0];
 }
 """,
   REMOVED,
   """
-main() {
+test() {
   var a = List.filled(4, null);
   return a.removeLast();
 }
 """,
   REMOVED,
   """
-main(int value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as int;
   var a = List.filled(value, null);
   return a[value];
 }
 """,
   KEPT,
   """
-main(int value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as int;
   var a = List.filled(1024, null);
   return a[1023 & value];
 }
 """,
   REMOVED,
   """
-main(int value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as int;
   var a = List.filled(1024, null);
   return a[1024 & value];
 }
 """,
   ABOVE_ZERO,
   """
-main() {
+test() {
   var a = [];
   return a[1];
 }
 """,
   ABOVE_ZERO,
   """
-main(int value, int Function() call) {
+@pragma('dart2js:assumeDynamic')
+test(value, call) {
+  value as int;
+  call as int Function();
   var a = [];
   return a[value] + call() + a[value];
 }
 """,
   ONE_ZERO_CHECK,
   """
-main(bool value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as bool;
   var a = value ? [1, 2, 3] : [];
   return a[1] + a[0];
 }
 """,
   ONE_CHECK,
   """
-main(int n) {
+@pragma('dart2js:assumeDynamic')
+test(n) {
+  n as int;
   var a = List.filled(n, 1);
   var sum = 0;
   for (int i = 0; i <= a.length - 1; i++) {
@@ -133,7 +152,9 @@ main(int n) {
 """,
   REMOVED,
   """
-main(int n) {
+@pragma('dart2js:assumeDynamic')
+test(n) {
+  n as int;
   var a = List.filled(n, 1);
   var sum = 0;
   for (int i = a.length - 1; i >= 0; i--) {
@@ -144,7 +165,8 @@ main(int n) {
 """,
   REMOVED,
   """
-main(dynamic value) {
+@pragma('dart2js:assumeDynamic')
+test(dynamic value) {
   value = value is int ? value as int : 42;
   int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
@@ -156,7 +178,8 @@ main(dynamic value) {
 """,
   REMOVED,
   """
-main(value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
   value = value is int ? value as int : 42;
   int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
@@ -170,7 +193,8 @@ main(value) {
 """,
   REMOVED,
   """
-main(value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
   value = value is int ? value as int : 42;
   int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
@@ -182,7 +206,9 @@ main(value) {
 """,
   REMOVED,
   """
-main(int value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as int;
   var a = List.filled(value, 1);
   var sum = 0;
   for (int i = 0; i < a.length; i++) {
@@ -194,9 +220,11 @@ main(int value) {
 """,
   REMOVED,
   """
-main(int value) {
-  var a = List.filled(value, null);
-  var sum = 0;
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as int;
+  var a = List<dynamic>.filled(value, null);
+  num sum = 0;
   for (int i = a.length - 1; i >= 0; i--) {
     sum += a[i];
     if (sum == 0) i--;
@@ -206,7 +234,9 @@ main(int value) {
 """,
   REMOVED,
   """
-main(int value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as int;
   var a = List.filled(6, value);
   var sum = 0;
   for (int i = 0; i < a.length; i++) {
@@ -218,7 +248,9 @@ main(int value) {
 """,
   REMOVED,
   """
-main(int value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as int;
   var a = List.filled(7, value);
   var sum = 0;
   for (int i = 0; i < a.length;) {
@@ -230,7 +262,9 @@ main(int value) {
 """,
   BELOW_ZERO_CHECK,
   """
-main(int value) {
+@pragma('dart2js:assumeDynamic')
+test(value) {
+  value as int;
   var a = List.filled(7, value);
   var sum = 0;
   for (int i = -2; i < a.length; i = 0) {
@@ -243,7 +277,8 @@ main(int value) {
 ];
 
 Future expect(String code, int kind) {
-  return compile(code, disableTypeInference: false, check: (String generated) {
+  return compile(code, entry: 'test', disableTypeInference: false,
+      check: (String generated) {
     switch (kind) {
       case REMOVED:
         Expect.isFalse(generated.contains('ioore'));

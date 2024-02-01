@@ -382,7 +382,7 @@ class CfeEnumOperations
   }
 
   @override
-  EnumValue getEnumElementValue(Field enumField) {
+  EnumValue? getEnumElementValue(Field enumField) {
     // Enum field initializers might not have been replaced by
     // [ConstantExpression]s. Either because we haven't visited them yet during
     // normal constant evaluation or because they are from outlines that are
@@ -392,7 +392,7 @@ class CfeEnumOperations
     StaticTypeContext context =
         new StaticTypeContext(enumField, _constantEvaluator.typeEnvironment);
     return constantToEnumValue(_constantEvaluator.coreTypes,
-        _constantEvaluator.evaluate(context, enumField.initializer!))!;
+        _constantEvaluator.evaluate(context, enumField.initializer!));
   }
 
   @override

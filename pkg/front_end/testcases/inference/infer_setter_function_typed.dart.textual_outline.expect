@@ -11,5 +11,7 @@ abstract class B extends A {
 }
 
 T f<T>() => throw '';
+
 g(B b) {}
+
 main() {}

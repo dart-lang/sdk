@@ -1,4 +1,5 @@
 typedef R = Record;
+
 typedef RR = R;
 
 class G<X> {}

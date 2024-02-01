@@ -32,7 +32,7 @@ class VerifyTests {
         resourceProvider: provider,
         includedPaths: <String>[testDirPath],
         excludedPaths: excludedPaths);
-    final singleAnalysisContext = collection.contexts
+    var singleAnalysisContext = collection.contexts
         .where(analysisContextPredicate ?? (_) => true)
         .toList()
         .singleOrNull;

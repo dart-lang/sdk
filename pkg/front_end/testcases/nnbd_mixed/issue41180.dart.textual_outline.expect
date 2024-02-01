@@ -1,4 +1,5 @@
 // @dart = 2.5
+
 import 'issue41180_lib.dart';
 
 class D<Y> {
@@ -6,4 +7,5 @@ class D<Y> {
 }
 
 void main() {}
+
 void findKey(Map<String, dynamic> m, dynamic search) {}

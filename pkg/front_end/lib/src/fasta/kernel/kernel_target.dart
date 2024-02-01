@@ -348,18 +348,22 @@ class KernelTarget extends TargetImplementation {
 
   /// Builds [augmentationLibraries] to the state expected after applying phase
   /// 1 macros.
-  Future<void> _buildForPhase1(
+  Future<void> _buildForPhase1(MacroApplications macroApplications,
       Iterable<SourceLibraryBuilder> augmentationLibraries) async {
     await loader.buildOutlines();
-    // Normally patch libraries are applied in [SourceLoader.resolveParts].
-    // For augmentation libraries we instead apply them directly here.
-    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      augmentationLibrary.applyPatches();
+    if (augmentationLibraries.isNotEmpty) {
+      // Normally augmentation libraries are applied in
+      // [SourceLoader.resolveParts]. For macro-generated augmentation libraries
+      // we instead apply them directly here.
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.applyAugmentations();
+      }
+      loader.computeLibraryScopes(augmentationLibraries);
+      loader.resolveTypes(augmentationLibraries);
+
+      await loader.computeAdditionalMacroApplications(
+          macroApplications, augmentationLibraries);
     }
-    loader.computeLibraryScopes(augmentationLibraries);
-    // TODO(johnniwinther): Support computation of macro applications in
-    // augmentation libraries?
-    loader.resolveTypes(augmentationLibraries);
   }
 
   /// Builds [augmentationLibraries] to the state expected after applying phase
@@ -368,10 +372,35 @@ class KernelTarget extends TargetImplementation {
     loader.finishTypeVariables(
         augmentationLibraries, objectClassBuilder, dynamicType);
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      augmentationLibrary.buildOutlineNodes(loader.coreLibrary,
-          modifyTarget: false);
+      augmentationLibrary.buildOutlineNodes(loader.coreLibrary);
     }
     loader.resolveConstructors(augmentationLibraries);
+  }
+
+  Future<void> _applyMacroPhase2(MacroApplications macroApplications,
+      List<SourceClassBuilder> sortedSourceClassBuilders) async {
+    benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
+    macroApplications.enterDeclarationsMacroPhase(loader.hierarchyBuilder);
+
+    Future<void> applyDeclarationMacros() async {
+      await macroApplications.applyDeclarationsMacros(sortedSourceClassBuilders,
+          (SourceLibraryBuilder augmentationLibrary) async {
+        List<SourceLibraryBuilder> augmentationLibraries = [
+          augmentationLibrary
+        ];
+        // TODO(johnniwinther): How should we use the benchmarker here?
+        benchmarker?.enterPhase(
+            BenchmarkPhases.outline_buildMacroDeclarationsForPhase1);
+        await _buildForPhase1(macroApplications, augmentationLibraries);
+        benchmarker?.enterPhase(
+            BenchmarkPhases.outline_buildMacroDeclarationsForPhase2);
+        _buildForPhase2(augmentationLibraries);
+
+        await applyDeclarationMacros();
+      });
+    }
+
+    await applyDeclarationMacros();
   }
 
   /// Builds [augmentationLibraries] to the state expected after applying phase
@@ -420,11 +449,12 @@ class KernelTarget extends TargetImplementation {
 
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyTypeMacros);
+        macroApplications.enterTypeMacroPhase();
         List<SourceLibraryBuilder> augmentationLibraries =
-            await macroApplications.applyTypeMacros(loader);
+            await macroApplications.applyTypeMacros();
         benchmarker
             ?.enterPhase(BenchmarkPhases.outline_buildMacroTypesForPhase1);
-        await _buildForPhase1(augmentationLibraries);
+        await _buildForPhase1(macroApplications, augmentationLibraries);
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
@@ -468,20 +498,7 @@ class KernelTarget extends TargetImplementation {
           underscoreEnumClass);
 
       if (macroApplications != null) {
-        benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
-        await macroApplications.applyDeclarationsMacros(
-            loader.hierarchyBuilder, sortedSourceClassBuilders,
-            (SourceLibraryBuilder augmentationLibrary) async {
-          List<SourceLibraryBuilder> augmentationLibraries = [
-            augmentationLibrary
-          ];
-          benchmarker?.enterPhase(
-              BenchmarkPhases.outline_buildMacroDeclarationsForPhase1);
-          await _buildForPhase1(augmentationLibraries);
-          benchmarker?.enterPhase(
-              BenchmarkPhases.outline_buildMacroDeclarationsForPhase2);
-          _buildForPhase2(augmentationLibraries);
-        });
+        await _applyMacroPhase2(macroApplications, sortedSourceClassBuilders);
       }
 
       benchmarker
@@ -581,11 +598,12 @@ class KernelTarget extends TargetImplementation {
 
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.body_applyDefinitionMacros);
+        macroApplications.enterDefinitionMacroPhase();
         List<SourceLibraryBuilder> augmentationLibraries =
             await macroApplications.applyDefinitionMacros();
         benchmarker
             ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase1);
-        await _buildForPhase1(augmentationLibraries);
+        await _buildForPhase1(macroApplications, augmentationLibraries);
         benchmarker
             ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase2);
         _buildForPhase2(augmentationLibraries);
@@ -619,7 +637,7 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
       loader.finishNativeMethods();
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_finishPatchMethods);
+      benchmarker?.enterPhase(BenchmarkPhases.body_finishAugmentationMethods);
       loader.buildBodyNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
@@ -814,8 +832,8 @@ class KernelTarget extends TargetImplementation {
   void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      if (builder.cls != objectClass && !builder.isPatch) {
-        if (builder.isPatch ||
+      if (builder.cls != objectClass && !builder.isAugmenting) {
+        if (builder.isAugmenting ||
             builder.isMixinDeclaration ||
             builder.isExtension) {
           continue;
@@ -847,7 +865,8 @@ class KernelTarget extends TargetImplementation {
   void installDefaultConstructor(SourceClassBuilder builder) {
     assert(!builder.isMixinApplication);
     assert(!builder.isExtension);
-    // TODO(askesc): Make this check light-weight in the absence of patches.
+    // TODO(askesc): Make this check light-weight in the absence of
+    //  augmentations.
     if (builder.cls.constructors.isNotEmpty) return;
     for (Procedure proc in builder.cls.procedures) {
       if (proc.isFactory) return;
@@ -1271,7 +1290,7 @@ class KernelTarget extends TargetImplementation {
   /// Ensure constructors of [classBuilder] have the correct initializers and
   /// other requirements.
   void finishConstructors(SourceClassBuilder classBuilder) {
-    if (classBuilder.isPatch) return;
+    if (classBuilder.isAugmenting) return;
     Class cls = classBuilder.cls;
 
     Constructor? superTarget;
@@ -1649,7 +1668,8 @@ class KernelTarget extends TargetImplementation {
         library.loader.read(patch, -1,
             fileUri: patch,
             origin: library,
-            accessor: library) as SourceLibraryBuilder;
+            accessor: library,
+            isPatch: true) as SourceLibraryBuilder;
       }
     }
   }

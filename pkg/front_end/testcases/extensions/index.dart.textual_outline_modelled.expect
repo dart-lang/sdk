@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class MapLike<K, V> {
   V get(Object key) => _map[key];
   V put(K key, V value) => _map[key] = value;
@@ -6,7 +7,9 @@ class MapLike<K, V> {
 }
 
 expect(expected, actual) {}
+
 explicitInferredTypeArguments() {}
+
 explicitWithTypeArguments() {}
 
 extension Extension<K, V> on MapLike<K, V> {
@@ -15,4 +18,5 @@ extension Extension<K, V> on MapLike<K, V> {
 }
 
 implicit() {}
+
 main() {}

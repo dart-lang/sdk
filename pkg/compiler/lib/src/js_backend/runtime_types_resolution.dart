@@ -1210,11 +1210,10 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       type = type.withoutNullability;
       if (type is InterfaceType) {
         return [type.element];
-      } else if (type is NeverType ||
-          type is DynamicType ||
-          type is VoidType ||
-          type is AnyType ||
-          type is ErasedType) {
+      } else if (closedWorld.dartTypes.isTopType(type)) {
+        neededOnAll = true;
+        return const [];
+      } else if (type is NeverType) {
         // No classes implied.
         return const [];
       } else if (type is FunctionType) {

@@ -1768,6 +1768,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitDynamicInvocation(DynamicInvocation node) {
     writeByte(Tag.DynamicInvocation);
     writeByte(node.kind.index);
+    writeByte(node.flags);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
     writeName(node.name);

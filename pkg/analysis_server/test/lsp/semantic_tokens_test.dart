@@ -1167,6 +1167,40 @@ class!] MyClass {}
     await _verifyTokensInRange(content, expected);
   }
 
+  Future<void> test_record_fields() async {
+    final content = r'''
+void f((int, {int field1}) record) {
+  [!
+  record.$1;
+  record.field1;
+  (1,).$1;
+  (field1: 1).field1;
+  (1,).unresolved;
+  !]
+}
+''';
+
+    final expected = [
+      _Token('record', SemanticTokenTypes.parameter),
+      _Token(r'$1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('record', SemanticTokenTypes.parameter),
+      _Token('field1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token(r'$1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('field1', SemanticTokenTypes.parameter),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('field1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('unresolved', CustomSemanticTokenTypes.source),
+    ];
+
+    await _verifyTokensInRange(content, expected);
+  }
+
   Future<void> test_sort_sameOffsets() async {
 // This code initially (before merging) produces a String token starting at
 // offset 11 (as it drops out of one interpolated variable) and then a new

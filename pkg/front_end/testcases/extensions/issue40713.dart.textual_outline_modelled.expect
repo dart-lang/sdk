@@ -1,8 +1,11 @@
 // @dart = 2.9
+
 extension SafeAccess<T> on Iterable<T> {
   T get safeFirst {}
 }
 
 main() {}
+
 void errors() {}
+
 void test() {}

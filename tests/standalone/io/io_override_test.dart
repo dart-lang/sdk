@@ -293,8 +293,19 @@ globalIOOverridesZoneTest() {
   Expect.isTrue(dir is Directory);
 }
 
+class EmptyOverride extends IOOverrides {}
+
+void emptyIOOverride() {
+  IOOverrides.runWithIOOverrides(
+    () => Expect.equals(
+        FileSystemEntity.typeSync('/'), FileSystemEntityType.directory),
+    EmptyOverride(),
+  );
+}
+
 main() async {
   await ioOverridesRunTest();
   globalIOOverridesTest();
   globalIOOverridesZoneTest();
+  emptyIOOverride();
 }

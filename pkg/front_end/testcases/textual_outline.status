@@ -17,7 +17,6 @@ extension_types/issue53625: FormatterCrash
 extension_types/representation: FormatterCrash
 general/base_class_declaration: FormatterCrash
 general/constants/non_const_constructor: FormatterCrash
-general/constants/various: FormatterCrash
 general/constants/various2: FormatterCrash
 general/enum_super_constructor: FormatterCrash
 general/extension_type_declaration_disabled: FormatterCrash
@@ -32,15 +31,10 @@ general/issue48487b: FormatterCrash
 general/issue48919: FormatterCrash
 general/macro_class: FormatterCrash
 general/mixin_class_declaration: FormatterCrash
-general/null_safety_invalid_experiment_and_language_version: FormatterCrash
-general/null_safety_invalid_experiment: FormatterCrash
 general/records_opt_out: FormatterCrash
 general/sealed_class_declaration: FormatterCrash
-nnbd_mixed/inheritance_from_opt_in: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
-nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nonfunction_type_aliases/old_version: FormatterCrash
-records/record_type_unsupported: FormatterCrash
 regress/issue_30994: FormatterCrash
 regress/issue_31198: FormatterCrash
 super_parameters/opt_out: FormatterCrash
@@ -63,9 +57,16 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
+extension_types/with_dependencies/issue53209_2/main: UnknownChunk
 general/bad_import: UnknownChunk # Test has parser errors
+general/error_recovery/constructor_recovery_operator.crash: UnknownChunk # Test has parser errors
 general/error_recovery/issue_39058_prime.crash: UnknownChunk # Test has parser errors
 general/error_recovery/issue_39202.crash: UnknownChunk # Test has parser errors
+general/factory_var: UnknownChunk # Test has parser errors
+general/issue41842: UnknownChunk # Test has parser errors
+general/issue43363: UnknownChunk # Test has parser errors
+general/issue54006: UnknownChunk # Test has parser errors
+rasta/issue_000046: UnknownChunk # Test has parser errors
+rasta/malformed_const_constructor: UnknownChunk # Test has parser errors
 regress/ambiguous_builder_01: UnknownChunk # Test has parser errors
 regress/issue_34850: UnknownChunk # Test has parser errors
-extension_types/with_dependencies/issue53209_2/main: UnknownChunk

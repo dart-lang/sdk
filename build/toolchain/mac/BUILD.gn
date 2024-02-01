@@ -20,6 +20,18 @@ if (use_goma) {
   assembler_prefix = "$goma_dir/gomacc "
   compiler_prefix = "$goma_dir/gomacc "
   link_prefix = "$goma_dir/gomacc "
+} else if (use_rbe) {
+  compiler_args =
+      rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
+  if (rbe_os != host_os || rbe_cpu != host_cpu) {
+    compiler_args += [
+      "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
+      "--remote_wrapper=../../build/rbe/llvm.sh",
+    ]
+  }
+  assembler_prefix = ""
+  compiler_prefix = string_join(" ", compiler_args) + " "
+  link_prefix = ""
 } else {
   assembler_prefix = ""
   compiler_prefix = ""
@@ -270,6 +282,10 @@ mac_toolchain("clang_x64") {
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
+  if (use_rbe) {
+    cc = "${cc} --target=x86_64-apple-macos"
+    cxx = "${cxx} --target=x86_64-apple-macos"
+  }
   asm = "${assembler_prefix}${prefix}/clang"
   ar = "${prefix}/llvm-ar"
   ld = "${link_prefix}${prefix}/clang++"
@@ -288,6 +304,10 @@ mac_toolchain("clang_arm64") {
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
+  if (use_rbe) {
+    cc = "${cc} --target=arm64-apple-macos"
+    cxx = "${cxx} --target=arm64-apple-macos"
+  }
   asm = "${assembler_prefix}${prefix}/clang"
   ar = "${prefix}/llvm-ar"
   ld = "${link_prefix}${prefix}/clang++"

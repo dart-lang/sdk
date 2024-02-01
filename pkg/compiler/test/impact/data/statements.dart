@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:
  static=[
   testAssert(0),
@@ -33,10 +31,12 @@ main() {
   testAssertWithMessage();
 }
 
-/*member: flag:
+/*member: flag=:
+ dynamic=[_Cell.value=],
  static=[
   Rti._bind(1),
   Rti._eval(1),
+  _#flag,
   _arrayInstanceType(1),
   _asBool(1),
   _asBoolQ(1),
@@ -73,10 +73,55 @@ main() {
  type=[
   inst:Closure,
   inst:JSBool,
-  inst:JSNull,
-  param:bool*]
+  param:bool]
 */
-bool flag; // late
+/*member: _#flag:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _Cell.named(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1),
+  throwCyclicInit(1),
+  throwLateFieldADI(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSString,
+  param:_Cell]
+*/
+late bool flag;
 
 /*member: testIfThen:
  static=[set:flag],
@@ -155,7 +200,7 @@ testIfThenElse() {
   findType(1),
   instanceType(1)],
  type=[
-  impl:Iterable<dynamic>*,
+  impl:Iterable<dynamic>,
   inst:Closure,
   inst:JSBool,
   inst:JSNull,
@@ -209,8 +254,8 @@ testForIn(o) {
   findType(1),
   instanceType(1)],
  type=[
-  impl:Iterable<dynamic>*,
-  impl:int*,
+  impl:Iterable<dynamic>,
+  impl:int,
   inst:Closure,
   inst:JSBool,
   inst:JSNull,
@@ -222,8 +267,47 @@ testForInTyped(o) {
 }
 
 /*member: testTryCatch:
- static=[unwrapException(1)],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1),
+  unwrapException(1)],
  type=[
+  catch:Object,
+  inst:Closure,
+  inst:JSBool,
   inst:PlainJavaScriptObject,
   inst:UnknownJavaScriptObject]
 */
@@ -270,7 +354,7 @@ testTryCatch() {
   instanceType(1),
   unwrapException(1)],
  type=[
-  catch:String*,
+  catch:String,
   inst:Closure,
   inst:JSBool,
   inst:PlainJavaScriptObject,
@@ -283,9 +367,47 @@ testTryCatchOn() {
 
 /*member: testTryCatchStackTrace:
  static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
   getTraceFromException(1),
+  instanceType(1),
   unwrapException(1)],
  type=[
+  catch:Object,
+  inst:Closure,
+  inst:JSBool,
   inst:PlainJavaScriptObject,
   inst:UnknownJavaScriptObject,
   inst:_StackTrace]

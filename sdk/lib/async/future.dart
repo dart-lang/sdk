@@ -219,6 +219,7 @@ abstract class FutureOr<T> {
 ///
 /// Futures can have more than one callback-pair registered. Each successor is
 /// treated independently and is handled as if it was the only successor.
+/// The order in which the individual successors are completed is undefined.
 ///
 /// A future may also fail to ever complete. In that case, no callbacks are
 /// called. That situation should generally be avoided if possible, unless

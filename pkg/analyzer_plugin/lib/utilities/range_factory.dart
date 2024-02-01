@@ -152,7 +152,7 @@ class RangeFactory {
       }
       return node(item);
     }
-    final index = list.indexOf(item);
+    var index = list.indexOf(item);
     if (index == 0) {
       // Remove the trailing comma.
       return startStart(item, list[1]);

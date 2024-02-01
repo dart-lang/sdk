@@ -9,7 +9,7 @@ class C {
   final A a1;
   final A a2;
   external C();
-  C.named(this.a1, this.as2);
+  C.named(this.a1, this.a2);
 }
 
 class D {
@@ -29,6 +29,6 @@ class E {
 class F {
   final A a1;
   final A a2;
-  F(this.a1, this.as2);
+  F(this.a1, this.a2);
   external F.named();
 }

@@ -25,13 +25,6 @@ class Context extends ChainContext {
     const DartDocTestStep(),
   ];
 
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
-
   @override
   Stream<DartDocTestTestDescription> list(Chain suite) async* {
     await for (TestDescription entry in super.list(suite)) {

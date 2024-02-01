@@ -48,6 +48,6 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'y'.
   c.y = null;
-    ^" in c{<unresolved>}.y = null;
+    ^" in c.{<unresolved>}y = null;
 }
 static method main() → dynamic {}

@@ -30,17 +30,8 @@
 #include <lib/trace-engine/context.h>
 #include <lib/trace-engine/instrumentation.h>
 #elif defined(DART_HOST_OS_MACOS)
-#include <os/availability.h>
-#if defined(__MAC_10_14) || defined (__IPHONE_12_0)
-#define DART_HOST_OS_SUPPORTS_SIGNPOST 1
-#endif
-// signpost.h exists in macOS 10.14, iOS 12 or above
-#if defined(DART_HOST_OS_SUPPORTS_SIGNPOST)
 #include <os/signpost.h>
-#else
-#include <os/log.h>
-#endif
-#endif
+#endif  // defined(FUCHSIA_SDK) || defined(DART_HOST_OS_FUCHSIA)
 
 namespace dart {
 
@@ -1248,18 +1239,18 @@ class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
 #endif  // defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
 
 #if defined(DART_HOST_OS_MACOS)
-// A recorder that sends events to Macos's tracing app. See:
+// A recorder that sends events to macOS's tracing app. See:
 // https://developer.apple.com/documentation/os/logging?language=objc
 class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
  public:
-  TimelineEventMacosRecorder() API_AVAILABLE(ios(12.0), macos(10.14));
-  virtual ~TimelineEventMacosRecorder() API_AVAILABLE(ios(12.0), macos(10.14));
+  TimelineEventMacosRecorder();
+  virtual ~TimelineEventMacosRecorder();
 
   const char* name() const { return MACOS_RECORDER_NAME; }
   intptr_t Size() { return 0; }
 
  private:
-  void OnEvent(TimelineEvent* event) API_AVAILABLE(ios(12.0), macos(10.14));
+  void OnEvent(TimelineEvent* event);
 };
 #endif  // defined(DART_HOST_OS_MACOS)
 

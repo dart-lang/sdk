@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -1590,14 +1589,9 @@ class SuggestionBuilder {
       var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
-
-    var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-
     return element.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -1608,14 +1602,9 @@ class SuggestionBuilder {
       var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
-
-    var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-
     return element.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 

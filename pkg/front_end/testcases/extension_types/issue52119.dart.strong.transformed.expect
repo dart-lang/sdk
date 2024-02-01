@@ -76,11 +76,11 @@ static extension-type-member method Foo|constructor#redirectNamed2(core::int a, 
 }
 static extension-type-member method Foo|constructor#_#redirectNamed2#tearOff(core::int a, core::int b) → self::Foo /* = core::int */
   return self::Foo|constructor#redirectNamed2(a, b);
-static extension-type-member method Foo|constructor#named(core::int value, {required core::int subtract = #C1}) → self::Foo /* = core::int */ {
+static extension-type-member method Foo|constructor#named(core::int value, {required core::int subtract}) → self::Foo /* = core::int */ {
   lowered final self::Foo /* = core::int */ #this = value.{core::num::-}(subtract){(core::num) → core::int};
   return #this;
 }
-static extension-type-member method Foo|constructor#_#named#tearOff(core::int value, {required core::int subtract = #C1}) → self::Foo /* = core::int */
+static extension-type-member method Foo|constructor#_#named#tearOff(core::int value, {required core::int subtract}) → self::Foo /* = core::int */
   return self::Foo|constructor#named(value, subtract: subtract);
 static extension-type-member method Foo|constructor#erroneous() → self::Foo /* = core::int */ {
   lowered final self::Foo /* = core::int */ #this;
@@ -117,8 +117,4 @@ static method main() → dynamic {
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
-}
-
-constants  {
-  #C1 = null
 }

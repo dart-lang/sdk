@@ -13,6 +13,9 @@ class B extends A {
 }
 
 int? method() => null;
+
 late var nonNullableTopLevelField = 0;
+
 late var nullableTopLevelField = method();
+
 main() {}

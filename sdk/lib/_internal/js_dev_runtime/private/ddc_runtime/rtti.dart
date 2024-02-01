@@ -164,7 +164,7 @@ getReifiedType(obj) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     switch (JS<String>('!', 'typeof #', obj)) {
       case "object":
-        if (obj == null) return typeRep<Null>();
+        if (obj == null) return TYPE_REF<Null>();
         if (_jsInstanceOf(obj, RecordImpl)) return getRtiForRecord(obj);
         if (_jsInstanceOf(obj, Object) ||
             JS('', '#[#]', obj, _extensionType) != null) {
@@ -172,28 +172,28 @@ getReifiedType(obj) {
           return rti.instanceType(obj);
         }
         // Otherwise assume this is a JS interop object.
-        return typeRep<LegacyJavaScriptObject>();
+        return TYPE_REF<LegacyJavaScriptObject>();
       case "function":
         // Dart functions are tagged with a signature.
         var signature =
             JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
         if (signature != null) return signature;
-        return typeRep<JavaScriptFunction>();
+        return TYPE_REF<JavaScriptFunction>();
       case "undefined":
-        return typeRep<Null>();
+        return TYPE_REF<Null>();
       case "number":
-        return JS('', 'Math.floor(#) == # ? # : #', obj, obj, typeRep<int>(),
-            typeRep<double>());
+        return JS('', 'Math.floor(#) == # ? # : #', obj, obj, TYPE_REF<int>(),
+            TYPE_REF<double>());
       case "boolean":
-        return typeRep<bool>();
+        return TYPE_REF<bool>();
       case "string":
-        return typeRep<String>();
+        return TYPE_REF<String>();
       case "symbol":
-        return typeRep<JavaScriptSymbol>();
+        return TYPE_REF<JavaScriptSymbol>();
       case "bigint":
-        return typeRep<JavaScriptBigInt>();
+        return TYPE_REF<JavaScriptBigInt>();
       default:
-        return typeRep<LegacyJavaScriptObject>();
+        return TYPE_REF<LegacyJavaScriptObject>();
     }
   } else {
     switch (JS<String>('!', 'typeof #', obj)) {
@@ -206,13 +206,13 @@ getReifiedType(obj) {
           return JS('', '#.constructor', obj);
         }
         var result = JS('', '#[#]', obj, _extensionType);
-        if (result == null) return typeRep<LegacyJavaScriptObject>();
+        if (result == null) return TYPE_REF<LegacyJavaScriptObject>();
         return result;
       case "function":
         // All Dart functions and callable classes must set _runtimeType
         var result = JS('', '#[#]', obj, _runtimeType);
         if (result != null) return result;
-        return typeRep<LegacyJavaScriptObject>();
+        return TYPE_REF<LegacyJavaScriptObject>();
       case "undefined":
         return JS('', '#', Null);
       case "number":
@@ -222,11 +222,11 @@ getReifiedType(obj) {
       case "string":
         return JS('', '#', String);
       case "symbol":
-        return typeRep<JavaScriptSymbol>();
+        return TYPE_REF<JavaScriptSymbol>();
       case "bigint":
-        return typeRep<JavaScriptBigInt>();
+        return TYPE_REF<JavaScriptBigInt>();
       default:
-        return typeRep<LegacyJavaScriptObject>();
+        return TYPE_REF<LegacyJavaScriptObject>();
     }
   }
 }

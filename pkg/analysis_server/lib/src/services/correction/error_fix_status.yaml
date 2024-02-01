@@ -358,6 +358,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
   status: noFix
   notes: |-
@@ -368,6 +372,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
@@ -406,6 +414,8 @@ CompileTimeErrorCode.CONST_DEFERRED_CLASS:
 CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
   status: needsEvaluation
@@ -1029,6 +1039,8 @@ CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
     Remove `final`.
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
+CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
+  status: needsEvaluation
 CompileTimeErrorCode.MACRO_ERROR:
   status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
@@ -1368,6 +1380,8 @@ CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
   status: noFix
+CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  status: hasFix
 CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR:
   status: noFix
 CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT:
@@ -1506,8 +1520,6 @@ CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST:
   status: hasFix
 CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY:
   status: hasFix
-CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE:
-  status: noFix
 CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS:
   status: noFix
   since: 2.15
@@ -1753,14 +1765,6 @@ FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
   status: needsEvaluation
 FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
   status: needsEvaluation
-FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER:
-  status: needsFix
-  notes: |-
-    The fix is to remove the initializer and add the `external` modifier.
-FfiCode.FIELD_INITIALIZER_IN_STRUCT:
-  status: needsFix
-  notes: |-
-    The fix is to remove the initializer and add the `external` modifier.
 FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
   status: needsFix
   since: ~2.15
@@ -3696,8 +3700,6 @@ WarningCode.MISSING_REQUIRED_PARAM:
   status: hasFix
 WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
   status: hasFix
-WarningCode.MISSING_RETURN:
-  status: hasFix
 WarningCode.MIXIN_ON_SEALED_CLASS:
   status: noFix
   notes: |-
@@ -3743,8 +3745,6 @@ WarningCode.RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
-WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
-  status: hasFix
 WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER:
   status: hasFix
 WarningCode.REMOVED_LINT_USE:
@@ -3764,9 +3764,6 @@ WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS:
   since: 2.15
 WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR:
   status: hasFix
-WarningCode.SDK_VERSION_NEVER:
-  status: noFix
-  notes: Deprecated
 WarningCode.SDK_VERSION_SINCE:
   status: needsFix
   notes: |-

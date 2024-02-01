@@ -672,7 +672,7 @@ void f() {
         Uri.parse(mainFileUri.toString() + r'###***\\\///:::.dart'),
       ),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'File URI did not contain a valid file path')),
+          message: 'URI does not contain a valid file path')),
     );
   }
 
@@ -682,7 +682,8 @@ void f() {
     await expectLater(
       formatDocument(Uri.parse('a:/a.dart')),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI was not a valid file:// URI')),
+          message:
+              "URI scheme 'a' is not supported. Allowed schemes are 'file'.")),
     );
   }
 

@@ -1987,6 +1987,10 @@ CompileTimeErrorCode:
         }
       }
       ```
+  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+    problemMessage: "A record literal with exactly one positional field requires a trailing comma."
+    correctionMessage: Try adding a trailing comma.
+    hasPublishedDocs: true
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
@@ -2295,6 +2299,14 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the type variable
+  CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
+    sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
+    problemMessage: "'{0}' can't be used to name both a type variable and the extension type in which the type variable is defined."
+    correctionMessage: Try renaming either the type variable or the extension.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the type variable
   CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
     problemMessage: "'{0}' can't be used to name both a type variable and the mixin in which the type variable is defined."
@@ -2357,6 +2369,14 @@ CompileTimeErrorCode:
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
     problemMessage: "'{0}' can't be used to name both a type variable and a member in this extension."
+    correctionMessage: Try renaming either the type variable or the member.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the type variable
+  CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
+    sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+    problemMessage: "'{0}' can't be used to name both a type variable and a member in this extension type."
     correctionMessage: Try renaming either the type variable or the member.
     hasPublishedDocs: true
     comment: |-
@@ -2689,6 +2709,8 @@ CompileTimeErrorCode:
     problemMessage: "The assertion in this constant expression failed."
   CONST_EVAL_EXTENSION_METHOD:
     problemMessage: "Extension methods can't be used in constant expressions."
+  CONST_EVAL_EXTENSION_TYPE_METHOD:
+    problemMessage: "Extension type methods can't be used in constant expressions."
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
@@ -8765,12 +8787,12 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a member of a class is found
       that overrides a member from a supertype and the override isn't valid. An
       override is valid if all of these are true:
-      * It allows all of the arguments allowed by the overridden member.
-      * It doesn't require any arguments that aren't required by the overridden
+      - It allows all of the arguments allowed by the overridden member.
+      - It doesn't require any arguments that aren't required by the overridden
         member.
-      * The type of every parameter of the overridden member is assignable to the
+      - The type of every parameter of the overridden member is assignable to the
         corresponding parameter of the override.
-      * The return type of the override is assignable to the return type of the
+      - The return type of the override is assignable to the return type of the
         overridden member.
 
       #### Example
@@ -9526,6 +9548,12 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the message
+  MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
+    problemMessage: "The declaration '{0}' can't be introspected because there is a cycle of macro applications."
+    correctionMessage: Try removing one or more macro applications to break the cycle.
+    comment: |-
+      Parameters:
+      0: the name of the introspected declaration
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.
@@ -15896,6 +15924,7 @@ CompileTimeErrorCode:
       - a `continue`, or
       - an invocation of a function or method whose return type is `Never`.
   SWITCH_EXPRESSION_NOT_ASSIGNABLE:
+    removedIn: "3.0"
     problemMessage: "Type '{0}' of the switch expression isn't assignable to the type '{1}' of case expressions."
     hasPublishedDocs: true
     comment: |-
@@ -19192,6 +19221,7 @@ FfiCode:
     correctionMessage: "Try removing the extra annotation."
     comment: No parameters
   FIELD_INITIALIZER_IN_STRUCT:
+    removedIn: "3.0"
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.
     comment: No parameters.
@@ -19237,6 +19267,7 @@ FfiCode:
       }
       ```
   FIELD_IN_STRUCT_WITH_INITIALIZER:
+    removedIn: "3.0"
     problemMessage: "Fields in subclasses of 'Struct' and 'Union' can't have initializers."
     correctionMessage: Try removing the initializer and marking the field as external.
     comment: No parameters.
@@ -24626,6 +24657,7 @@ WarningCode:
       0: the name of the parameter
       1: message details
   MISSING_RETURN:
+    removedIn: "3.0"
     problemMessage: "This function has a return type of '{0}', but doesn't end with a return statement."
     correctionMessage: "Try adding a return statement, or changing the return type to 'void'."
     hasPublishedDocs: true
@@ -25087,10 +25119,6 @@ WarningCode:
       the call are unreachable.
 
       Parameters: none
-  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
-    problemMessage: "A record literal with exactly one positional field requires a trailing comma."
-    correctionMessage: Try adding a trailing comma.
-    hasPublishedDocs: true
   REDECLARE_ON_NON_REDECLARING_MEMBER:
     problemMessage: "The {0} doesn't redeclare a {0} declared in a superinterface."
     correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.
@@ -25671,6 +25699,7 @@ WarningCode:
       var y = x is int ? 0 : 1;
       ```
   SDK_VERSION_NEVER:
+    removedIn: "3.0"
     problemMessage: "The type 'Never' wasn't supported until version 2.12.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true

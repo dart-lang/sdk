@@ -106,14 +106,14 @@ class JSSyntaxRegExp implements RegExp {
     // The returned value is the JavaScript exception. Turn it into a
     // Dart exception.
     String errorMessage = JS('String', r'String(#)', regexp);
-    throw new FormatException('Illegal RegExp pattern ($errorMessage)', source);
+    throw FormatException('Illegal RegExp pattern ($errorMessage)', source);
   }
 
   RegExpMatch? firstMatch(String string) {
     JSArray? m = JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp,
         checkString(string));
     if (m == null) return null;
-    return new _MatchImplementation(this, m);
+    return _MatchImplementation(this, m);
   }
 
   bool hasMatch(String string) {
@@ -130,9 +130,9 @@ class JSSyntaxRegExp implements RegExp {
     checkString(string);
     checkInt(start);
     if (start < 0 || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
+      throw RangeError.range(start, 0, string.length);
     }
-    return new _AllMatchesIterable(this, string, start);
+    return _AllMatchesIterable(this, string, start);
   }
 
   RegExpMatch? _execGlobal(String string, int start) {
@@ -140,7 +140,7 @@ class JSSyntaxRegExp implements RegExp {
     JS('void', '#.lastIndex = #', regexp, start);
     JSArray? match = JS('JSExtendableArray|Null', '#.exec(#)', regexp, string);
     if (match == null) return null;
-    return new _MatchImplementation(this, match);
+    return _MatchImplementation(this, match);
   }
 
   RegExpMatch? _execAnchored(String string, int start) {
@@ -151,12 +151,12 @@ class JSSyntaxRegExp implements RegExp {
     // If the last capture group participated, the original regexp did not
     // match at the start position.
     if (match.removeLast() != null) return null;
-    return new _MatchImplementation(this, match);
+    return _MatchImplementation(this, match);
   }
 
   RegExpMatch? matchAsPrefix(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
+      throw RangeError.range(start, 0, string.length);
     }
     return _execAnchored(string, start);
   }
@@ -222,7 +222,7 @@ class _MatchImplementation implements RegExpMatch {
   Iterable<String> get groupNames {
     var groups = JS('=Object|Null', '#.groups', _match);
     if (groups != null) {
-      var keys = new JSArray<String>.markGrowable(
+      var keys = JSArray<String>.markGrowable(
           JS('returns:JSExtendableArray;new:true', 'Object.keys(#)', groups));
       return SubListIterable(keys, 0, null);
     }
@@ -238,7 +238,7 @@ class _AllMatchesIterable extends Iterable<RegExpMatch> {
   _AllMatchesIterable(this._re, this._string, this._start);
 
   Iterator<RegExpMatch> get iterator =>
-      new _AllMatchesIterator(_re, _string, _start);
+      _AllMatchesIterator(_re, _string, _start);
 }
 
 class _AllMatchesIterator implements Iterator<RegExpMatch> {

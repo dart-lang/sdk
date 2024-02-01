@@ -27,10 +27,10 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     final field dart.core::int column;
     final field dart.core::String name;
     final field dart.core::List<wid::_Location> parameterLocations;
-    const constructor •({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+    const constructor •({required dart.core::String file, required dart.core::int line, required dart.core::int column, required dart.core::String name, required dart.core::List<wid::_Location> parameterLocations}) → wid::_Location
       : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
       ;
-    static method _#new#tearOff({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+    static method _#new#tearOff({required dart.core::String file, required dart.core::int line, required dart.core::int column, required dart.core::String name, required dart.core::List<wid::_Location> parameterLocations}) → wid::_Location
       return new wid::_Location::•(file: file, line: line, column: column, name: name, parameterLocations: parameterLocations);
   }
 }
@@ -80,7 +80,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
     const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Boz
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
-    static factory •({required dart.core::bool createNew = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Boz {
+    static factory •({required dart.core::bool createNew, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Boz {
       if(createNew) {
         return new foo::Boz::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
       }
@@ -88,7 +88,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
         return #C32;
       }
     }
-    static method _#new#tearOff({required dart.core::bool createNew = #C1}) → foo::Boz
+    static method _#new#tearOff({required dart.core::bool createNew}) → foo::Boz
       return foo::Boz::•(createNew: createNew, $creationLocationd_0dea112b090073317d4: #C33);
     static method _#_#tearOff() → foo::Boz
       return new foo::Boz::_($creationLocationd_0dea112b090073317d4: #C35);

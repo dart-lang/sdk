@@ -5,6 +5,8 @@
 // Test for unhandled exception treatment on Windows.
 //
 // SharedObjects=ffi_test_functions
+// VMOptions=
+// VMOptions=--force_load_elf_from_memory
 
 import 'dart:ffi';
 import 'dart:io';

@@ -241,7 +241,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (type is ir.TypeDeclarationType) {
       ir.TypeDeclarationType? upcastType = typeEnvironment.getTypeAsInstanceOf(
           type, superclass, typeEnvironment.coreTypes,
-          isNonNullableByDefault: currentLibrary.isNonNullableByDefault);
+          isNonNullableByDefault: true);
       if (upcastType is ir.InterfaceType) return upcastType;
     }
     // TODO(johnniwinther): Should we assert that this doesn't happen?
@@ -964,9 +964,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitEqualsNull(ir.EqualsNull node) {
     ir.DartType expressionType = visitNode(node.expression);
     if (expressionType is ir.DynamicType) {
-      expressionType = currentLibrary.isNonNullableByDefault
-          ? typeEnvironment.objectNullableRawType
-          : typeEnvironment.objectLegacyRawType;
+      expressionType = typeEnvironment.objectNullableRawType;
     }
     _registerEqualsNull(typeMap, node.expression);
     handleEqualsNull(node, expressionType);
@@ -1006,19 +1004,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitVariableGet(ir.VariableGet node) {
-    ir.DartType frontendType = node.getStaticType(staticTypeContext);
-    ir.DartType staticType;
-    if (currentLibrary.isNonNullableByDefault) {
-      staticType = frontendType;
-    } else {
-      typeMapsForTesting?[node] = typeMap;
-      staticType = typeMap.typeOf(node, typeEnvironment);
-      assert(
-          typeEnvironment.isSubtypeOf(staticType, frontendType,
-              ir.SubtypeCheckMode.ignoringNullabilities),
-          "Unexpected promotion of ${node.variable} in ${node.parent}. "
-          "Expected $frontendType, found $staticType");
-    }
+    ir.DartType staticType = node.getStaticType(staticTypeContext);
     _staticTypeCache._expressionTypes[node] = staticType;
     handleVariableGet(node, staticType);
     return staticType;
@@ -1126,7 +1112,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     } else {
       ir.TypeDeclarationType receiver = typeEnvironment.getTypeAsInstanceOf(
           thisType, declaringClass, typeEnvironment.coreTypes,
-          isNonNullableByDefault: currentLibrary.isNonNullableByDefault)!;
+          isNonNullableByDefault: true)!;
       resultType = ir.Substitution.fromTypeDeclarationType(receiver)
           .substituteType(interfaceTarget.superGetterType);
     }
@@ -1156,7 +1142,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.Class superclass = interfaceTarget.enclosingClass!;
     ir.TypeDeclarationType receiverType = typeEnvironment.getTypeAsInstanceOf(
         thisType, superclass, typeEnvironment.coreTypes,
-        isNonNullableByDefault: currentLibrary.isNonNullableByDefault)!;
+        isNonNullableByDefault: true)!;
     returnType = ir.Substitution.fromTypeDeclarationType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
     returnType = ir.Substitution.fromPairs(
@@ -1594,8 +1580,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           iteratorType = ir.Substitution.fromTypeDeclarationType(
                   typeEnvironment.getTypeAsInstanceOf(iterableInterfaceType,
                       member.enclosingClass!, typeEnvironment.coreTypes,
-                      isNonNullableByDefault:
-                          currentLibrary.isNonNullableByDefault)!)
+                      isNonNullableByDefault: true)!)
               .substituteType(member.getterType);
         }
       }

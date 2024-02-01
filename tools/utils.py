@@ -307,7 +307,7 @@ def GuessCpus():
             subprocess.check_output(
                 '/usr/bin/hostinfo |'
                 ' grep "processors are logically available." |'
-                ' awk "{ print \$1 }"',
+                ' awk "{ print \\$1 }"',
                 shell=True))
     win_cpu_count = os.getenv("NUMBER_OF_PROCESSORS")
     if win_cpu_count:
@@ -398,11 +398,11 @@ def ReadVersionFile(version_file=None):
         return None
 
     channel = match_against('^CHANNEL ([A-Za-z0-9]+)$', content)
-    major = match_against('^MAJOR (\d+)$', content)
-    minor = match_against('^MINOR (\d+)$', content)
-    patch = match_against('^PATCH (\d+)$', content)
-    prerelease = match_against('^PRERELEASE (\d+)$', content)
-    prerelease_patch = match_against('^PRERELEASE_PATCH (\d+)$', content)
+    major = match_against('^MAJOR (\\d+)$', content)
+    minor = match_against('^MINOR (\\d+)$', content)
+    patch = match_against('^PATCH (\\d+)$', content)
+    prerelease = match_against('^PRERELEASE (\\d+)$', content)
+    prerelease_patch = match_against('^PRERELEASE_PATCH (\\d+)$', content)
 
     if (channel and major and minor and prerelease and prerelease_patch):
         return Version(channel, major, minor, patch, prerelease,
@@ -1009,6 +1009,7 @@ def Main():
     print('IsWindows() -> ', IsWindows())
     print('GetGitRevision() -> ', GetGitRevision())
     print('GetGitTimestamp() -> ', GetGitTimestamp())
+    print('ReadVersionFile() -> ', ReadVersionFile())
 
 
 if __name__ == '__main__':

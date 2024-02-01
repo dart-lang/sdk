@@ -2550,6 +2550,9 @@ variable is defined._
 _'{0}' can't be used to name both a type variable and the extension in which the
 type variable is defined._
 
+_'{0}' can't be used to name both a type variable and the extension type in
+which the type variable is defined._
+
 _'{0}' can't be used to name both a type variable and the mixin in which the
 type variable is defined._
 
@@ -2581,6 +2584,9 @@ class C<T> {}
 _'{0}' can't be used to name both a type variable and a member in this class._
 
 _'{0}' can't be used to name both a type variable and a member in this enum._
+
+_'{0}' can't be used to name both a type variable and a member in this extension
+type._
 
 _'{0}' can't be used to name both a type variable and a member in this
 extension._
@@ -10527,12 +10533,12 @@ _The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}')._
 The analyzer produces this diagnostic when a member of a class is found
 that overrides a member from a supertype and the override isn't valid. An
 override is valid if all of these are true:
-* It allows all of the arguments allowed by the overridden member.
-* It doesn't require any arguments that aren't required by the overridden
+- It allows all of the arguments allowed by the overridden member.
+- It doesn't require any arguments that aren't required by the overridden
   member.
-* The type of every parameter of the overridden member is assignable to the
+- The type of every parameter of the overridden member is assignable to the
   corresponding parameter of the override.
-* The return type of the override is assignable to the return type of the
+- The return type of the override is assignable to the return type of the
   overridden member.
 
 #### Example

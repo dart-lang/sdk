@@ -4,12 +4,14 @@ import "package:macro/data_class.dart" as dat;
 import "dart:core" as core;
 
 import "package:macro/data_class.dart";
+import "dart:core" as prefix0;
+import "dart:core" as prefix0;
 
 @#C1
 class Foo extends core::Object {
   final field core::int bar;
   final field core::String baz;
-  const constructor •({required core::int bar = #C2, required core::String baz = #C2}) → self::Foo
+  const constructor •({required core::int bar, required core::String baz}) → self::Foo
     : self::Foo::bar = bar, self::Foo::baz = baz, super core::Object::•()
     ;
   get /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ hashCode() → core::int {
@@ -27,5 +29,4 @@ class Foo extends core::Object {
 
 constants  {
   #C1 = dat::DataClass {}
-  #C2 = null
 }

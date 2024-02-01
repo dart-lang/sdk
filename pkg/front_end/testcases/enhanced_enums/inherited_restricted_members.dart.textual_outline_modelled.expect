@@ -25,20 +25,25 @@ enum E8 with M8 { element }
 enum E9 with A9 { element }
 
 main() {}
+
 mixin M10 {
   bool operator ==(Object other);
   int get hashCode;
   int get index;
 }
+
 mixin M5 {
   int get hashCode => 42;
 }
+
 mixin M6 {
   int get values => 42;
 }
+
 mixin M7 {
   int get index => 42;
 }
+
 mixin M8 {
   bool operator ==(Object other) => true;
 }

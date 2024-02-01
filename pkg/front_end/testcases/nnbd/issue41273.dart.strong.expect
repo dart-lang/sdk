@@ -12,8 +12,8 @@ static method test(Never x) → void {
   Never n7 = x{Never}.call();
   Never n8 = x{Never}.runtimeType();
   Never n9 = x{Never}.toString;
-  x{Never}.runtimeType = #C1;
-  x{Never}.toString = () → core::String => "";
+  x.{Never}runtimeType = #C1;
+  x.{Never}toString = () → core::String => "";
   Never v1 = x{Never}.toString();
   Never v2 = x{Never}.runtimeType;
   Never v3 = x{Never}.someGetter;

@@ -3,34 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/extensions.dart';
-import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-
-/// Return `true` if this [errorCode] is likely to have a fix associated with
-/// it.
-bool hasFix(ErrorCode errorCode) {
-  if (errorCode is LintCode) {
-    var lintName = errorCode.name;
-    return FixProcessor.lintProducerMap.containsKey(lintName) ||
-        FixProcessor.lintMultiProducerMap.containsKey(lintName);
-  }
-  // TODO(brianwilkerson): Either deprecate the part of the protocol supported
-  //  by this function, or handle error codes associated with non-dart files.
-  return FixProcessor.nonLintProducerMap.containsKey(errorCode) ||
-      FixProcessor.nonLintMultiProducerMap.containsKey(errorCode) ||
-      AnalysisOptionsFixGenerator.codesWithFixes.contains(errorCode) ||
-      PubspecFixGenerator.codesWithFixes.contains(errorCode);
-}
 
 /// An enumeration of quick fix kinds for the errors found in an analysis
 /// options file.
@@ -85,8 +66,28 @@ class DartFixContextImpl implements DartFixContext {
   }
 
   @override
-  Stream<LibraryElement> librariesWithExtensions(String memberName) {
-    return Extensions(resolveResult).libraries(memberName);
+  Stream<LibraryElement> librariesWithExtensions(String memberName) async* {
+    var analysisContext = resolveResult.session.analysisContext;
+    var analysisDriver = (analysisContext as DriverBasedAnalysisContext).driver;
+    await analysisDriver.discoverAvailableFiles();
+
+    var fsState = analysisDriver.fsState;
+    var filter = FileStateFilter(
+      fsState.getFileForPath(resolveResult.path),
+    );
+
+    for (var file in fsState.knownFiles.toList()) {
+      if (!filter.shouldInclude(file)) {
+        continue;
+      }
+
+      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
+      if (elementResult is! LibraryElementResult) {
+        continue;
+      }
+
+      yield elementResult.element;
+    }
   }
 }
 

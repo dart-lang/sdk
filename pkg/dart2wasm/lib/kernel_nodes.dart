@@ -71,6 +71,8 @@ mixin KernelNodes {
       index.getClass("dart:core", "_AbstractFunctionType");
   late final Class functionTypeClass =
       index.getClass("dart:core", "_FunctionType");
+  late final Field functionTypeTypeParameterDefaultsField =
+      index.getField("dart:core", "_FunctionType", "typeParameterDefaults");
   late final Class functionTypeParameterTypeClass =
       index.getClass("dart:core", "_FunctionTypeParameterType");
   late final Class futureOrTypeClass =
@@ -119,6 +121,8 @@ mixin KernelNodes {
       index.getProcedure("dart:async", "_Completer", "completeError");
   late final Procedure awaitHelper =
       index.getTopLevelProcedure("dart:async", "_awaitHelper");
+  late final Procedure awaitHelperWithTypeCheck =
+      index.getTopLevelProcedure("dart:async", "_awaitHelperWithTypeCheck");
   late final Procedure newAsyncSuspendState =
       index.getTopLevelProcedure("dart:async", "_newAsyncSuspendState");
 
@@ -247,10 +251,12 @@ mixin KernelNodes {
   late final Class errorClass = index.getClass("dart:core", "Error");
   late final Field errorClassStackTraceField =
       index.getField("dart:core", "Error", "_stackTrace");
-  late final Procedure errorThrow =
-      index.getProcedure("dart:core", "Error", "_throw");
+  late final Procedure errorThrowWithCurrentStackTrace =
+      index.getProcedure("dart:core", "Error", "_throwWithCurrentStackTrace");
 
   // dart:core type procedures
+  late final Procedure getClosureRuntimeType =
+      index.getProcedure("dart:core", '_Closure', "_getClosureRuntimeType");
   late final Procedure getActualRuntimeType =
       index.getTopLevelProcedure("dart:core", "_getActualRuntimeType");
   late final Procedure getMasqueradedRuntimeType =
@@ -275,10 +281,14 @@ mixin KernelNodes {
   // dart:core dynamic invocation helper procedures
   late final Procedure getNamedParameterIndex =
       index.getTopLevelProcedure("dart:core", "_getNamedParameterIndex");
-  late final Procedure namedParameterListToMap =
-      index.getTopLevelProcedure("dart:core", "_namedParameterListToMap");
-  late final Procedure namedParameterMapToList =
-      index.getTopLevelProcedure("dart:core", "_namedParameterMapToList");
+  late final Procedure typeArgumentsToList =
+      index.getTopLevelProcedure("dart:core", "_typeArgumentsToList");
+  late final Procedure positionalParametersToList =
+      index.getTopLevelProcedure("dart:core", "_positionalParametersToList");
+  late final Procedure namedParametersToMap =
+      index.getTopLevelProcedure("dart:core", "_namedParametersToMap");
+  late final Procedure namedParameterMapToArray =
+      index.getTopLevelProcedure("dart:core", "_namedParameterMapToArray");
   late final Procedure listOf = index.getProcedure("dart:core", "_List", "of");
 
   // dart:_wasm procedures

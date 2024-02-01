@@ -2102,45 +2102,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ StoreFieldToOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
 }
 
-static bool CanBeImmediateIndex(Value* value,
-                                intptr_t cid,
-                                bool is_external,
-                                bool is_load,
-                                bool* needs_base) {
-  if ((cid == kTypedDataInt32x4ArrayCid) ||
-      (cid == kTypedDataFloat32x4ArrayCid) ||
-      (cid == kTypedDataFloat64x2ArrayCid)) {
-    // We are using vldmd/vstmd which do not support offset.
-    return false;
-  }
-
-  ConstantInstr* constant = value->definition()->AsConstant();
-  if ((constant == nullptr) ||
-      !compiler::Assembler::IsSafeSmi(constant->value())) {
-    return false;
-  }
-  const int64_t index = compiler::target::SmiValue(constant->value());
-  const intptr_t scale = compiler::target::Instance::ElementSizeFor(cid);
-  const intptr_t base_offset =
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
-  const int64_t offset = index * scale + base_offset;
-  if (!Utils::MagnitudeIsUint(12, offset)) {
-    return false;
-  }
-  if (compiler::Address::CanHoldImmediateOffset(is_load, cid, offset)) {
-    *needs_base = false;
-    return true;
-  }
-
-  if (compiler::Address::CanHoldImmediateOffset(is_load, cid,
-                                                offset - base_offset)) {
-    *needs_base = true;
-    return true;
-  }
-
-  return false;
-}
-
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const bool directly_addressable =
@@ -2158,15 +2119,17 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  bool needs_base = false;
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
-                          true,  // Load.
-                          &needs_base)) {
-    // CanBeImmediateIndex must return false for unsafe smis.
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    locs->set_in(1, Location::RequiresRegister());
-  }
+  bool needs_base;
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), /*load=*/true, IsExternal(), class_id(),
+          index_scale(), &needs_base);
+  // We don't need to check if [needs_base] is true, since we use TMP as the
+  // temp register in this case and so don't need to allocate a temp register.
+  locs->set_in(1, can_be_constant
+                      ? Location::Constant(index()->definition()->AsConstant())
+                      : Location::RequiresRegister());
   if ((representation() == kUnboxedFloat) ||
       (representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
@@ -2382,11 +2345,14 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 3;
   LocationSummary* locs;
 
-  bool needs_base = false;
   intptr_t kNumTemps = 0;
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
-                          false,  // Store.
-                          &needs_base)) {
+  bool needs_base = false;
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), /*load=*/false, IsExternal(), class_id(),
+          index_scale(), &needs_base);
+  if (can_be_constant) {
     if (!directly_addressable) {
       kNumTemps += 2;
     } else if (needs_base) {
@@ -2396,7 +2362,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
-    // CanBeImmediateIndex must return false for unsafe smis.
     locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
   } else {
     if (!directly_addressable) {
@@ -4691,13 +4656,13 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
+  const bool needs_temp = op_kind() != MethodRecognizer::kDouble_getIsNaN;
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      (op_kind() == MethodRecognizer::kDouble_getIsInfinite) ? 1 : 0;
+  const intptr_t kNumTemps = needs_temp ? 1 : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+  if (needs_temp) {
     summary->set_temp(0, Location::RequiresRegister());
   }
   summary->set_out(0, Location::RequiresRegister());
@@ -4706,26 +4671,43 @@ LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
 
 Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
+  ASSERT(compiler->is_optimizing());
   const DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
   const bool is_negated = kind() != Token::kEQ;
-  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
-    __ vcmpd(value, value);
-    __ vmstat();
-    return is_negated ? VC : VS;
-  } else {
-    ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
-    const Register temp = locs()->temp(0).reg();
-    compiler::Label done;
-    // TMP <- value[0:31], result <- value[32:63]
-    __ vmovrrd(TMP, temp, value);
-    __ cmp(TMP, compiler::Operand(0));
-    __ b(is_negated ? labels.true_label : labels.false_label, NE);
 
-    // Mask off the sign bit.
-    __ AndImmediate(temp, temp, 0x7FFFFFFF);
-    // Compare with +infinity.
-    __ CompareImmediate(temp, 0x7FF00000);
-    return is_negated ? NE : EQ;
+  switch (op_kind()) {
+    case MethodRecognizer::kDouble_getIsNaN: {
+      __ vcmpd(value, value);
+      __ vmstat();
+      return is_negated ? VC : VS;
+    }
+    case MethodRecognizer::kDouble_getIsInfinite: {
+      const Register temp = locs()->temp(0).reg();
+      compiler::Label done;
+      // TMP <- value[0:31], result <- value[32:63]
+      __ vmovrrd(TMP, temp, value);
+      __ cmp(TMP, compiler::Operand(0));
+      __ b(is_negated ? labels.true_label : labels.false_label, NE);
+
+      // Mask off the sign bit.
+      __ AndImmediate(temp, temp, 0x7FFFFFFF);
+      // Compare with +infinity.
+      __ CompareImmediate(temp, 0x7FF00000);
+      return is_negated ? NE : EQ;
+    }
+    case MethodRecognizer::kDouble_getIsNegative: {
+      const Register temp = locs()->temp(0).reg();
+      __ vcmpdz(value);
+      __ vmstat();
+      // If it's NaN, it's not negative.
+      __ b(is_negated ? labels.true_label : labels.false_label, VS);
+      // Check for negative zero with a signed comparison.
+      __ vmovrrd(TMP, temp, value, ZERO);
+      __ cmp(temp, compiler::Operand(0), ZERO);
+      return is_negated ? GE : LT;
+    }
+    default:
+      UNREACHABLE();
   }
 }
 

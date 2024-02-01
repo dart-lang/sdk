@@ -96,6 +96,7 @@ main() {
         });
       }));
 
+  asyncTest(testNonExistantPath);
   asyncTest(testLinkTargetTypeChangedAfterCreation);
 }
 
@@ -155,6 +156,13 @@ Future testLink(String name) {
         .then((targetName) => FileSystemEntity.identical(targetName, resolved))
         .then((identical) => Expect.isTrue(identical));
   });
+}
+
+Future testNonExistantPath() async {
+  try {
+    await File('/tmp/foo/doesnotexist').resolveSymbolicLinks();
+    Expect.fail("expected FileSystemException");
+  } on FileSystemException {}
 }
 
 Future testLinkTargetTypeChangedAfterCreation() async {

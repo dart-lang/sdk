@@ -8,6 +8,9 @@ class Class {
 }
 
 final bool inStrongMode = _inStrongMode();
+
 main() {}
+
 test(Class? c) {}
+
 void throwsInStrong(void Function() f) {}

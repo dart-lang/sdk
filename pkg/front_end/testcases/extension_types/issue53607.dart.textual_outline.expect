@@ -3,4 +3,5 @@ extension type E._(int i) {
   int get value => i;
   int get foo => i;
 }
+
 void main() {}

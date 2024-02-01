@@ -20,7 +20,7 @@ class ThrowStatement {
   });
 }
 
-extension AnnotatedNodeExtensions on AnnotatedNode {
+extension AnnotatedNodeExtension on AnnotatedNode {
   /// Return the first token in this node that is not a comment.
   Token get firstNonCommentToken {
     final metadata = this.metadata;
@@ -31,7 +31,7 @@ extension AnnotatedNodeExtensions on AnnotatedNode {
   }
 }
 
-extension AstNodeExtensions on AstNode {
+extension AstNodeExtension on AstNode {
   /// Returns [ExtensionElement] declared by an enclosing node.
   ExtensionElement? get enclosingExtensionElement {
     for (final node in withParents) {
@@ -134,7 +134,7 @@ extension AstNodeExtensions on AstNode {
   }
 }
 
-extension BinaryExpressionExtensions on BinaryExpression {
+extension BinaryExpressionExtension on BinaryExpression {
   bool get isNotEqNull {
     return operator.type == TokenType.BANG_EQ && rightOperand is NullLiteral;
   }
@@ -203,7 +203,7 @@ extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
   }
 }
 
-extension DirectiveExtensions on Directive {
+extension DirectiveExtension on Directive {
   /// If the target imports or exports a [LibraryElement], returns it.
   LibraryElement? get referencedLibrary {
     final element = this.element;
@@ -241,7 +241,7 @@ extension DirectiveExtensions on Directive {
   }
 }
 
-extension ExpressionExtensions on Expression {
+extension ExpressionExtension on Expression {
   /// Return `true` if this expression is an invocation of the method `cast`
   /// from either Iterable`, `List`, `Map`, or `Set`.
   bool get isCastMethodInvocation {
@@ -273,7 +273,7 @@ extension ExpressionExtensions on Expression {
   }
 }
 
-extension FunctionBodyExtensions on FunctionBody {
+extension FunctionBodyExtension on FunctionBody {
   bool get isEmpty =>
       this is EmptyFunctionBody ||
       (this is BlockFunctionBody && beginToken.isSynthetic);

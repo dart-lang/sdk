@@ -60,9 +60,7 @@ class KeywordHelper {
     addKeyword(Keyword.STATIC);
     addKeyword(Keyword.VAR);
     addKeyword(Keyword.VOID);
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      addKeyword(Keyword.LATE);
-    }
+    addKeyword(Keyword.LATE);
   }
 
   /// Add the keywords that are appropriate when the selection is in a class
@@ -139,6 +137,7 @@ class KeywordHelper {
     addKeyword(Keyword.CONST);
     addKeyword(Keyword.COVARIANT);
     addKeyword(Keyword.DYNAMIC);
+    addKeyword(Keyword.ENUM);
     addKeyword(Keyword.EXTERNAL);
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.MIXIN);
@@ -148,9 +147,7 @@ class KeywordHelper {
     if (featureSet.isEnabled(Feature.extension_methods)) {
       addKeyword(Keyword.EXTENSION);
     }
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      addKeyword(Keyword.LATE);
-    }
+    addKeyword(Keyword.LATE);
     if (featureSet.isEnabled(Feature.class_modifiers)) {
       addKeyword(Keyword.BASE);
       addKeyword(Keyword.INTERFACE);
@@ -379,9 +376,7 @@ class KeywordHelper {
           keyword != Keyword.COVARIANT) {
         addKeyword(Keyword.COVARIANT);
       }
-      if (_isAbsentOrIn(fields.lateKeyword) &&
-          keyword != Keyword.LATE &&
-          featureSet.isEnabled(Feature.non_nullable)) {
+      if (_isAbsentOrIn(fields.lateKeyword) && keyword != Keyword.LATE) {
         addKeyword(Keyword.LATE);
       }
       addKeyword(Keyword.STATIC);
@@ -515,9 +510,7 @@ class KeywordHelper {
     addKeyword(Keyword.STATIC);
     addKeyword(Keyword.VAR);
     addKeyword(Keyword.VOID);
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      addKeyword(Keyword.LATE);
-    }
+    addKeyword(Keyword.LATE);
   }
 
   /// Add the keywords that are appropriate when the selection is in a mixin
@@ -584,9 +577,7 @@ class KeywordHelper {
       addKeyword(Keyword.YIELD);
       addKeywordFromText(Keyword.YIELD, '*');
     }
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      addKeyword(Keyword.LATE);
-    }
+    addKeyword(Keyword.LATE);
   }
 
   /// Add the keywords that are appropriate when the selection is after the

@@ -22,7 +22,7 @@ class LspNotificationManager extends AbstractNotificationManager {
       String filePath, List<protocol.AnalysisError> errors) {
     final diagnostics = errors
         .map((error) => pluginToDiagnostic(
-              pathContext,
+              server.uriConverter,
               (path) => server.getLineInfo(path),
               error,
               supportedTags: server.lspClientCapabilities?.diagnosticTags,

@@ -1,5 +1,7 @@
 // @dart = 2.9
+
 library test;
 
-String foo(obj) => obj is String ? obj.toUpperCase() : null;
+String foo(obj) => obj is String ? obj . toUpperCase() : null;
+
 main() {}

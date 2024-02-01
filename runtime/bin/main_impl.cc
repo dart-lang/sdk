@@ -430,11 +430,12 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   IsolateData* isolate_data = nullptr;
   bool isolate_run_app_snapshot = false;
   AppSnapshot* app_snapshot = nullptr;
-  // Kernel isolate uses an app snapshot or uses the dill file.
+  // Kernel isolate uses an app JIT snapshot or uses the dill file.
   if ((kernel_snapshot_uri != nullptr) &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(
-           kernel_snapshot_uri, /*force_load_elf_from_memory=*/false,
-           /*decode_uri=*/false)) != nullptr) {
+      ((app_snapshot = Snapshot::TryReadAppSnapshot(
+            kernel_snapshot_uri, /*force_load_elf_from_memory=*/false,
+            /*decode_uri=*/false)) != nullptr) &&
+      app_snapshot->IsJIT()) {
     const uint8_t* isolate_snapshot_data = nullptr;
     const uint8_t* isolate_snapshot_instructions = nullptr;
     const uint8_t* ignore_vm_snapshot_data;
@@ -611,9 +612,11 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   IsolateData* isolate_data = nullptr;
   AppSnapshot* app_snapshot = nullptr;
   bool isolate_run_app_snapshot = true;
-  if ((app_snapshot = Snapshot::TryReadAppSnapshot(
-           dartdev_path.get(), /*force_load_elf_from_memory=*/false,
-           /*decode_uri=*/false)) != nullptr) {
+  // dartdev isolate uses an app JIT snapshot or uses the dill file.
+  if (((app_snapshot = Snapshot::TryReadAppSnapshot(
+            dartdev_path.get(), /*force_load_elf_from_memory=*/false,
+            /*decode_uri=*/false)) != nullptr) &&
+      app_snapshot->IsJIT()) {
     const uint8_t* isolate_snapshot_data = nullptr;
     const uint8_t* isolate_snapshot_instructions = nullptr;
     const uint8_t* ignore_vm_snapshot_data;
@@ -647,7 +650,7 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
                              isolate_run_app_snapshot);
     uint8_t* application_kernel_buffer = nullptr;
     intptr_t application_kernel_buffer_size = 0;
-    dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
+    dfe.ReadScript(dartdev_path.get(), nullptr, &application_kernel_buffer,
                    &application_kernel_buffer_size, /*decode_uri=*/false);
     isolate_group_data->SetKernelBufferNewlyOwned(
         application_kernel_buffer, application_kernel_buffer_size);
@@ -702,10 +705,11 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     const bool kForceLoadElfFromMemory = false;
     app_snapshot =
         Snapshot::TryReadAppSnapshot(script_uri, kForceLoadElfFromMemory);
-    if (app_snapshot == nullptr) {
-      *error = Utils::StrDup(
-          "The uri provided to `Isolate.spawnUri()` does not "
-          "contain a valid AOT snapshot.");
+    if (app_snapshot == nullptr || !app_snapshot->IsAOT()) {
+      *error = Utils::SCreate(
+          "The uri(%s) provided to `Isolate.spawnUri()` does not "
+          "contain a valid AOT snapshot.",
+          script_uri);
       return nullptr;
     }
 
@@ -735,7 +739,14 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     isolate_snapshot_instructions = app_isolate_snapshot_instructions;
   } else if (!is_main_isolate) {
     app_snapshot = Snapshot::TryReadAppSnapshot(script_uri);
-    if (app_snapshot != nullptr) {
+    if (app_snapshot != nullptr && app_snapshot->IsJITorAOT()) {
+      if (app_snapshot->IsAOT()) {
+        *error = Utils::SCreate(
+            "The uri(%s) provided to `Isolate.spawnUri()` is an "
+            "AOT snapshot and the JIT VM cannot spawn an isolate using it.",
+            script_uri);
+        return nullptr;
+      }
       isolate_run_app_snapshot = true;
       const uint8_t* ignore_vm_snapshot_data;
       const uint8_t* ignore_vm_snapshot_instructions;
@@ -754,8 +765,9 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   }
 
   if (kernel_buffer == nullptr && !isolate_run_app_snapshot) {
-    dfe.ReadScript(script_uri, &kernel_buffer, &kernel_buffer_size,
-                   /*decode_uri=*/true, &kernel_buffer_ptr);
+    dfe.ReadScript(script_uri, app_snapshot, &kernel_buffer,
+                   &kernel_buffer_size, /*decode_uri=*/true,
+                   &kernel_buffer_ptr);
   }
   PathSanitizer script_uri_sanitizer(script_uri);
   PathSanitizer packages_config_sanitizer(packages_config);
@@ -1271,7 +1283,13 @@ void main(int argc, char** argv) {
       app_snapshot =
           Snapshot::TryReadAppSnapshot(script_name, force_load_elf_from_memory);
     }
-    if (app_snapshot != nullptr) {
+    if (app_snapshot != nullptr && app_snapshot->IsJITorAOT()) {
+      if (app_snapshot->IsAOT() && !Dart_IsPrecompiledRuntime()) {
+        Syslog::PrintErr(
+            "%s is an AOT snapshot and should be run with 'dartaotruntime'\n",
+            script_name);
+        Platform::Exit(kErrorExitCode);
+      }
       vm_run_app_snapshot = true;
       app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
                                &app_isolate_snapshot_data,
@@ -1331,7 +1349,7 @@ void main(int argc, char** argv) {
   if (script_name != nullptr) {
     uint8_t* application_kernel_buffer = nullptr;
     intptr_t application_kernel_buffer_size = 0;
-    dfe.ReadScript(script_name, &application_kernel_buffer,
+    dfe.ReadScript(script_name, app_snapshot, &application_kernel_buffer,
                    &application_kernel_buffer_size);
     if (application_kernel_buffer != nullptr) {
       // Since we loaded the script anyway, save it.
@@ -1415,21 +1433,12 @@ void main(int argc, char** argv) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (should_run_user_program) {
-    if (!Dart_IsPrecompiledRuntime() && Snapshot::IsAOTSnapshot(script_name)) {
-      Syslog::PrintErr(
-          "%s is an AOT snapshot and should be run with 'dartaotruntime'\n",
-          script_name);
-      Platform::Exit(kErrorExitCode);
+    if (Options::gen_snapshot_kind() == kKernel) {
+      CompileAndSaveKernel(script_name, package_config_override, &dart_options);
     } else {
-      if (Options::gen_snapshot_kind() == kKernel) {
-        CompileAndSaveKernel(script_name, package_config_override,
-                             &dart_options);
-
-      } else {
-        // Run the main isolate until we aren't told to restart.
-        RunMainIsolate(script_name, package_config_override,
-                       force_no_sound_null_safety, &dart_options);
-      }
+      // Run the main isolate until we aren't told to restart.
+      RunMainIsolate(script_name, package_config_override,
+                     force_no_sound_null_safety, &dart_options);
     }
   }
 

@@ -7,5 +7,7 @@ class I {
 abstract class C implements I {}
 
 C f() => throw '';
+
 var x = f().g;
+
 main() {}

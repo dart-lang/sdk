@@ -5,5 +5,7 @@ abstract class Foo {
 }
 
 method1(o) {}
+
 method2(o) {}
+
 method3(o) {}

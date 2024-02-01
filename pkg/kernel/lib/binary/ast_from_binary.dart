@@ -141,6 +141,10 @@ class BinaryBuilder {
   List<Uri> _sourceUriTable = const [];
   List<Constant> _constantTable = const <Constant>[];
   late List<CanonicalName> _linkTable;
+
+  /// Advanced use only. Coordinate with the kernel team.
+  List<CanonicalName> get linkTable => _linkTable;
+
   late Map<int, DartType?> _cachedSimpleInterfaceTypes;
   List<FunctionType?> _voidFunctionFunctionTypesCache = [
     null,
@@ -664,6 +668,28 @@ class BinaryBuilder {
     }
   }
 
+  /// Splits the input into views of the sub-components.
+  ///
+  /// Note that the result will not have the libraries filled out.
+  static List<SubComponentView> index(Uint8List bytes) {
+    BinaryBuilder bb = new BinaryBuilder(bytes);
+    bb._verifyComponentInitialBytes(resetOffset: true);
+    List<int> componentFileSizes = bb._indexComponents();
+    int componentFileIndex = 0;
+    List<SubComponentView> views = [];
+    while (bb._byteOffset < bb._bytes.length) {
+      int componentStartOffset = bb._byteOffset;
+      int componentFileSize = componentFileSizes[componentFileIndex];
+      bb._verifyComponentInitialBytes(resetOffset: true);
+      views.add(new SubComponentView(
+          const [], componentStartOffset, componentFileSize));
+
+      bb._byteOffset = componentStartOffset + componentFileSize;
+      ++componentFileIndex;
+    }
+    return views;
+  }
+
   /// Deserializes a kernel component and stores it in [component].
   ///
   /// When linking with a non-empty component, canonical names must have been
@@ -678,23 +704,8 @@ class BinaryBuilder {
       {bool checkCanonicalNames = false, bool createView = false}) {
     return Timeline.timeSync<List<SubComponentView>?>(
         "BinaryBuilder.readComponent", () {
-      _checkEmptyInput();
+      _verifyComponentInitialBytes(resetOffset: true);
 
-      // Check that we have a .dill file and it has the correct version before
-      // we start decoding it.  Otherwise we will fail for cryptic reasons.
-      int offset = _byteOffset;
-      int magic = readUint32();
-      if (magic != Tag.ComponentFile) {
-        throw ArgumentError('Not a .dill file (wrong magic number).');
-      }
-      int version = readUint32();
-      if (version != Tag.BinaryFormatVersion) {
-        throw InvalidKernelVersionError(filename, version);
-      }
-
-      _readAndVerifySdkHash();
-
-      _byteOffset = offset;
       List<int> componentFileSizes = _indexComponents();
       if (componentFileSizes.length > 1) {
         _disableLazyReading = true;
@@ -834,18 +845,7 @@ class BinaryBuilder {
 
   void _readOneComponentSource(Component component, int componentFileSize) {
     _componentStartOffset = _byteOffset;
-
-    final int magic = readUint32();
-    if (magic != Tag.ComponentFile) {
-      throw ArgumentError('Not a .dill file (wrong magic number).');
-    }
-
-    final int formatVersion = readUint32();
-    if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(filename, formatVersion);
-    }
-
-    _readAndVerifySdkHash();
+    _verifyComponentInitialBytes(resetOffset: false);
 
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
@@ -857,22 +857,42 @@ class BinaryBuilder {
     _byteOffset = _componentStartOffset + componentFileSize;
   }
 
+  /// Verify the initial bytes could correspond to a valid component.
+  ///
+  /// * Checks we have non-empty input.
+  /// * Verifies that the magic number is correct.
+  /// * Verifies the binary format version.
+  /// * Verifies the sdk hash.
+  ///
+  /// If [resetOffset] is true the [_byteOffset] will be reset to match what it
+  /// was before this method was called. If false it will be so we read passed
+  /// the sdk hash.
+  void _verifyComponentInitialBytes({required bool resetOffset}) {
+    // Check that we have a .dill file and it has the correct version before
+    // we start decoding it.  Otherwise we will fail for cryptic reasons.
+    _checkEmptyInput();
+    int offset = _byteOffset;
+    int magic = readUint32();
+    if (magic != Tag.ComponentFile) {
+      throw ArgumentError('Not a .dill file (wrong magic number).');
+    }
+    int version = readUint32();
+    if (version != Tag.BinaryFormatVersion) {
+      throw InvalidKernelVersionError(filename, version);
+    }
+
+    _readAndVerifySdkHash();
+
+    if (resetOffset) {
+      _byteOffset = offset;
+    }
+  }
+
   SubComponentView? _readOneComponent(
       Component component, int componentFileSize,
       {bool createView = false}) {
     _componentStartOffset = _byteOffset;
-
-    final int magic = readUint32();
-    if (magic != Tag.ComponentFile) {
-      throw ArgumentError('Not a .dill file (wrong magic number).');
-    }
-
-    final int formatVersion = readUint32();
-    if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(filename, formatVersion);
-    }
-
-    _readAndVerifySdkHash();
+    _verifyComponentInitialBytes(resetOffset: false);
 
     List<String>? problemsAsJson = readListOfStrings();
     if (problemsAsJson != null) {
@@ -2557,10 +2577,12 @@ class BinaryBuilder {
 
   Expression _readDynamicInvocation() {
     DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int flags = readByte();
     int offset = readOffset();
     return new DynamicInvocation(
         kind, readExpression(), readName(), readArguments())
-      ..fileOffset = offset;
+      ..fileOffset = offset
+      ..flags = flags;
   }
 
   Expression _readFunctionInvocation() {

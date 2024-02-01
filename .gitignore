@@ -108,3 +108,4 @@ tools/xcodebuild
 logs/logs.json
 logs/results.json
 .dart_tool/bisect_dart/
+doc/api/

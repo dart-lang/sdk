@@ -149,7 +149,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     with
         ErrorDetectionHelpers,
         TypeAnalyzer<AstNode, Statement, Expression, PromotableElement,
-            DartType, DartPattern, void> {
+            DartType, DartPattern, void, DartType> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -452,8 +452,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  shared.TypeAnalyzerOperations<PromotableElement, DartType> get operations =>
-      flowAnalysis.typeOperations;
+  shared.TypeAnalyzerOperations<PromotableElement, DartType, DartType>
+      get operations => flowAnalysis.typeOperations;
 
   /// Gets the current depth of the [_rewriteStack].  This may be used in
   /// assertions to verify that pushes and pops are properly balanced.
@@ -1209,6 +1209,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // generic-metadata.
       genericMetadataIsEnabled: true,
       strictInference: analysisOptions.strictInference,
+      strictCasts: analysisOptions.strictCasts,
+      typeSystemOperations: flowAnalysis.typeOperations,
     );
     if (typeArgumentTypes.isNotEmpty) {
       staticType = staticType.instantiate(typeArgumentTypes);
@@ -3669,6 +3671,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorNode: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       strictInference: analysisOptions.strictInference,
+      typeSystemOperations: flowAnalysis.typeOperations,
     );
     inferrer.constrainReturnType(declaredType, contextType);
     return inferrer.chooseFinalTypes();
@@ -3713,6 +3716,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // generic-metadata.
         genericMetadataIsEnabled: true,
         strictInference: analysisOptions.strictInference,
+        strictCasts: analysisOptions.strictCasts,
+        typeSystemOperations: flowAnalysis.typeOperations,
       );
       if (typeArgumentTypes.isNotEmpty) {
         callMethodType = callMethodType.instantiate(typeArgumentTypes);

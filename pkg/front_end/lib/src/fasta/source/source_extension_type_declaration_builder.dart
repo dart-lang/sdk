@@ -9,7 +9,6 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -52,7 +51,6 @@ class SourceExtensionTypeDeclarationBuilder
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
   SourceExtensionTypeDeclarationBuilder? _origin;
-  SourceExtensionTypeDeclarationBuilder? patchForTesting;
 
   MergedClassMemberScope? _mergedScope;
 
@@ -103,14 +101,15 @@ class SourceExtensionTypeDeclarationBuilder
   SourceExtensionTypeDeclarationBuilder get origin => _origin ?? this;
 
   // TODO(johnniwinther): Add merged scope for extension type declarations.
-  MergedClassMemberScope get mergedScope => _mergedScope ??= isPatch
+  MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ? origin.mergedScope
       : throw new UnimplementedError(
           "SourceExtensionTypeDeclarationBuilder.mergedScope");
 
   @override
-  ExtensionTypeDeclaration get extensionTypeDeclaration =>
-      isPatch ? origin._extensionTypeDeclaration : _extensionTypeDeclaration;
+  ExtensionTypeDeclaration get extensionTypeDeclaration => isAugmenting
+      ? origin._extensionTypeDeclaration
+      : _extensionTypeDeclaration;
 
   @override
   Annotatable get annotatable => extensionTypeDeclaration;
@@ -191,16 +190,21 @@ class SourceExtensionTypeDeclarationBuilder
           }
         } else if (interface is InterfaceType) {
           if (interface.isPotentiallyNullable) {
-            errorMessage =
-                templateSuperExtensionTypeIsNullableAliased.withArguments(
-                    typeBuilder.fullNameForErrors,
-                    interface,
-                    libraryBuilder.isNonNullableByDefault);
-            if (aliasBuilder != null) {
-              errorContext = [
-                messageTypedefCause.withLocation(
-                    aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
-              ];
+            if (typeBuilder.nullabilityBuilder.isNullable) {
+              errorMessage = templateNullableInterfaceError
+                  .withArguments(typeBuilder.fullNameForErrors);
+            } else {
+              errorMessage =
+                  templateSuperExtensionTypeIsNullableAliased.withArguments(
+                      typeBuilder.fullNameForErrors,
+                      interface,
+                      libraryBuilder.isNonNullableByDefault);
+              if (aliasBuilder != null) {
+                errorContext = [
+                  messageTypedefCause.withLocation(
+                      aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                ];
+              }
             }
           } else {
             Class cls = interface.classNode;
@@ -677,24 +681,21 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is SourceExtensionTypeDeclarationBuilder) {
-      patch._origin = this;
-      if (retainDataForTesting) {
-        patchForTesting = patch;
-      }
+  void applyAugmentation(Builder augmentation) {
+    if (augmentation is SourceExtensionTypeDeclarationBuilder) {
+      augmentation._origin = this;
       scope.forEachLocalMember((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: false);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+        Builder? memberAugmentation =
+            augmentation.scope.lookupLocalMember(name, setter: false);
+        if (memberAugmentation != null) {
+          member.applyAugmentation(memberAugmentation);
         }
       });
       scope.forEachLocalSetter((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: true);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+        Builder? memberAugmentation =
+            augmentation.scope.lookupLocalMember(name, setter: true);
+        if (memberAugmentation != null) {
+          member.applyAugmentation(memberAugmentation);
         }
       });
 
@@ -702,7 +703,7 @@ class SourceExtensionTypeDeclarationBuilder
       // with origin declaration.
     } else {
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          patch.charOffset, noLength, patch.fileUri, context: [
+          augmentation.charOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, charOffset, noLength)
       ]);
@@ -730,7 +731,7 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
       new ClassDeclarationMemberIterator<SourceExtensionTypeDeclarationBuilder,
-              T>(
+              T>.full(
           const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
           this,
           includeDuplicates: false);
@@ -746,7 +747,7 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
       new ClassDeclarationConstructorIterator<
-              SourceExtensionTypeDeclarationBuilder, T>(
+              SourceExtensionTypeDeclarationBuilder, T>.full(
           const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
           this,
           includeDuplicates: false);

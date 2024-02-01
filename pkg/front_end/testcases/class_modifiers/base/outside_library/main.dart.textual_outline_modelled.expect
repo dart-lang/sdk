@@ -5,7 +5,9 @@ base class ImplementsBaseClass implements A {}
 base class ImplementsBaseMixin implements M {}
 
 base mixin MixinOnA on A {}
+
 base mixin MixinOnAM on A, M {}
+
 base mixin MixinOnM on M {}
 
 enum EnumImplementsBaseMixin implements M { x }

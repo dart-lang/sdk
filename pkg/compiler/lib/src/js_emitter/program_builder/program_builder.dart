@@ -364,8 +364,7 @@ class ProgramBuilder {
     return StaticField(element, name, null, code,
         isFinal: false,
         isLazy: false,
-        isInitializedByConstant: initialValue != null,
-        usesNonNullableInitialization: element.library.isNonNullableByDefault);
+        isInitializedByConstant: initialValue != null);
   }
 
   List<StaticField> _buildStaticLazilyInitializedFields(
@@ -393,9 +392,7 @@ class ProgramBuilder {
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
     return StaticField(element, name, getterName, code,
-        isFinal: !element.isAssignable,
-        isLazy: true,
-        usesNonNullableInitialization: element.library.isNonNullableByDefault);
+        isFinal: !element.isAssignable, isLazy: true);
   }
 
   List<Library> _buildLibraries(LibrariesMap librariesMap) {

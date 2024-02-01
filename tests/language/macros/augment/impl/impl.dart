@@ -18,9 +18,7 @@ extension TypePhaseIntrospecterExtension on TypePhaseIntrospector {
   ///
   /// If [string] is `null`, just return `null`; or throw if `T` is not
   /// nullable.
-  Future<T> code<T extends Code?>(String? string) async {
-    if (string == null) return null as T;
-
+  Future<T> code<T extends Code>(String string) async {
     final parts = <Object>[];
     final chunks = string.split('`');
     var isIdentifier = false;
@@ -33,14 +31,22 @@ extension TypePhaseIntrospecterExtension on TypePhaseIntrospector {
       isIdentifier = !isIdentifier;
     }
 
-    if (T == DeclarationCode) {
+    if (T == CommentCode) {
+      return CommentCode.fromParts(parts) as T;
+    } else if (T == DeclarationCode) {
       return DeclarationCode.fromParts(parts) as T;
+    } else if (T == ExpressionCode) {
+      return ExpressionCode.fromParts(parts) as T;
     } else if (T == FunctionBodyCode) {
       return FunctionBodyCode.fromParts(parts) as T;
-    } else if (T == CommentCode) {
-      return CommentCode.fromParts(parts) as T;
     } else {
-      throw UnsupportedError(T.toString());
+      throw UnsupportedError(T.runtimeType.toString());
     }
+  }
+
+  /// As [code] but returns `null` for `null` input
+  Future<T?> maybeCode<T extends Code>(String? string) async {
+    if (string == null) return null;
+    return await code<T>(string);
   }
 }

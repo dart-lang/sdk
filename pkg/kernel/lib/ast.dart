@@ -753,7 +753,16 @@ class LibraryDependency extends TreeNode implements Annotatable {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    if (isExport) {
+      printer.write('export ');
+    } else {
+      printer.write('import ');
+    }
+    if (isDeferred) {
+      printer.write('deferred ');
+    }
+    printer.writeLibraryReference(importedLibraryReference);
+    printer.write(';');
   }
 }
 
@@ -2971,8 +2980,11 @@ class Procedure extends Member implements GenericFunction {
   /// Since `Super.method` allows `num` as argument, the inserted covariant
   /// check must be against `num` and not `int`, and the parameter type of the
   /// forwarding semi stub must be changed to `num`. Still, the interface of
-  /// `Class` requires that `Class.method` is `void Function(int)`, so for this,
-  /// it is stored explicitly as the [signatureType] on the procedure.
+  /// `Class` requires that `Class.method` is `void Function(int)`, so for
+  /// this, it is stored explicitly as the [signatureType] on the procedure.
+  ///
+  /// When [signatureType] is null, you can compute the function type with
+  /// `function.computeFunctionType(Nullability.nonNullable)`.
   FunctionType? signatureType;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
@@ -5538,6 +5550,9 @@ abstract class InstanceInvocationExpression extends InvocationExpression {
 }
 
 class DynamicInvocation extends InstanceInvocationExpression {
+  // Must match serialized bit positions.
+  static const int FlagImplicitCall = 1 << 0;
+
   final DynamicAccessKind kind;
 
   @override
@@ -5549,9 +5564,23 @@ class DynamicInvocation extends InstanceInvocationExpression {
   @override
   Arguments arguments;
 
+  int flags = 0;
+
   DynamicInvocation(this.kind, this.receiver, this.name, this.arguments) {
     receiver.parent = this;
     arguments.parent = this;
+  }
+
+  /// If `true` this is an implicit call to 'call'. For instance
+  ///
+  ///    method(dynamic d) {
+  ///      d(); // Implicit call.
+  ///      d.call(); // Explicit call.
+  ///
+  bool get isImplicitCall => flags & FlagImplicitCall != 0;
+
+  void set isImplicitCall(bool value) {
+    flags = value ? (flags | FlagImplicitCall) : (flags & ~FlagImplicitCall);
   }
 
   @override
@@ -5606,8 +5635,10 @@ class DynamicInvocation extends InstanceInvocationExpression {
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver,
         minimumPrecedence: astToText.Precedence.PRIMARY);
-    printer.write('.');
-    printer.writeName(name);
+    if (!isImplicitCall) {
+      printer.write('.');
+      printer.writeName(name);
+    }
     printer.writeArguments(arguments);
   }
 }
@@ -11326,9 +11357,8 @@ class NeverType extends DartType {
 
   const NeverType.legacy() : this.internal(Nullability.legacy);
 
-  const NeverType.undetermined() : this.internal(Nullability.undetermined);
-
-  const NeverType.internal(this.declaredNullability);
+  const NeverType.internal(this.declaredNullability)
+      : assert(declaredNullability != Nullability.undetermined);
 
   static NeverType fromNullability(Nullability nullability) {
     switch (nullability) {
@@ -11339,7 +11369,8 @@ class NeverType extends DartType {
       case Nullability.legacy:
         return const NeverType.legacy();
       case Nullability.undetermined:
-        return const NeverType.undetermined();
+        throw new StateError("Unsupported nullability for 'NeverType': "
+            "'${nullability}'");
     }
   }
 
@@ -13966,7 +13997,24 @@ class RecordConstant extends Constant {
   /// Named field values, sorted by name.
   final Map<String, Constant> named;
 
-  /// The static type of the constant.
+  /// The runtime type of the constant.
+  ///
+  /// [recordType] is computed from the individual types of the record fields
+  /// and reflects runtime type of the record constant, as opposed to the
+  /// static type of the expression that defined the constant.
+  ///
+  /// The following program shows the distinction between the static and the
+  /// runtime types of the constant. The static type of the first record in the
+  /// invocation of `identical` is `(E, String)`, the static type of the second
+  /// — `(int, String)`. The runtime type of both constants is `(int, String)`,
+  /// and the assertion condition should be satisfied.
+  ///
+  ///   extension type const E(Object? it) {}
+  ///
+  ///   main() {
+  ///     const bool check = identical(const (E(1), "foo"), const (1, "foo"));
+  ///     assert(check);
+  ///   }
   final RecordType recordType;
 
   RecordConstant(this.positional, this.named, this.recordType)
@@ -13989,6 +14037,16 @@ class RecordConstant extends Constant {
         }(),
             "Named fields of a RecordConstant aren't sorted lexicographically: "
             "${named.keys.join(", ")}");
+
+  RecordConstant.fromTypeContext(
+      this.positional, this.named, StaticTypeContext staticTypeContext)
+      : recordType = new RecordType([
+          for (Constant constant in positional)
+            constant.getType(staticTypeContext)
+        ], [
+          for (var MapEntry(key: name, value: constant) in named.entries)
+            new NamedType(name, constant.getType(staticTypeContext))
+        ], staticTypeContext.nonNullable);
 
   @override
   void visitChildren(Visitor v) {
@@ -14045,14 +14103,13 @@ class RecordConstant extends Constant {
   String toString() => "RecordConstant(${toStringInternal()})";
 
   @override
-  late final int hashCode = _Hash.combineFinish(recordType.hashCode,
-      _Hash.combineMapHashUnordered(named, _Hash.combineListHash(positional)));
+  late final int hashCode =
+      _Hash.combineMapHashUnordered(named, _Hash.combineListHash(positional));
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is RecordConstant &&
-          other.recordType == recordType &&
           listEquals(other.positional, positional) &&
           mapEquals(other.named, named));
 

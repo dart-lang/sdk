@@ -1,5 +1,9 @@
+## 6.4.1
+* Patch for crash in ffi_verifier.
+
 ## 6.3.0
 * Updated the current language version to `3.3`.
+* Removed generated `ConstantEvaluator`.
 
 ## 6.2.0
 * Improvements for extension types.

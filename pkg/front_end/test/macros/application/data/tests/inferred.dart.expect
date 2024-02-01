@@ -4,6 +4,11 @@ import "dart:core" as core;
 import "package:macro/macro.dart" as mac;
 
 import "package:macro/macro.dart";
+import "dart:core" as prefix0;
+import "dart:core" as prefix0;
+import "dart:core" as prefix0;
+import "dart:core" as prefix0;
+import "dart:core" as prefix0;
 
 abstract class Interface extends core::Object {
   synthetic constructor •() → self::Interface

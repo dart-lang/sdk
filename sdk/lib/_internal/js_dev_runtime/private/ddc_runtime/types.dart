@@ -5,14 +5,6 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
-/// Returns the state of [flag] that is determined at compile time.
-///
-/// The constant value itself is inlined by the compiler in place of the call
-/// to this method.
-// TODO(nshahan) Remove in favor of `JS_GET_FLAG()`.
-@notNull
-external bool compileTimeFlag(String flag);
-
 _throwInvalidFlagError(String message) =>
     throw UnsupportedError('Invalid flag combination.\n$message');
 
@@ -23,7 +15,7 @@ _throwInvalidFlagError(String message) =>
 /// This allows DDC to produce optional warnings or errors when tests pass but
 /// would fail in sound null safety.
 @notNull
-bool legacyTypeChecks = !compileTimeFlag("soundNullSafety");
+bool legacyTypeChecks = !JS_GET_FLAG('SOUND_NULL_SAFETY');
 
 /// Signals if the next type check should be considered to to be sound when
 /// running without sound null safety.
@@ -44,7 +36,7 @@ bool _weakNullSafetyWarnings = false;
 /// This option is not compatible with weak null safety errors or sound null
 /// safety (the warnings will be errors).
 void weakNullSafetyWarnings(bool showWarnings) {
-  if (showWarnings && compileTimeFlag('soundNullSafety')) {
+  if (showWarnings && JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     _throwInvalidFlagError(
         'Null safety violations cannot be shown as warnings when running with '
         'sound null safety.');
@@ -61,7 +53,7 @@ bool _weakNullSafetyErrors = false;
 /// This option is not compatible with weak null safety warnings (the warnings
 /// are now errors) or sound null safety (the errors are already errors).
 void weakNullSafetyErrors(bool showErrors) {
-  if (showErrors && compileTimeFlag('soundNullSafety')) {
+  if (showErrors && JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     _throwInvalidFlagError(
         'Null safety violations are already thrown as errors when running with '
         'sound null safety.');
@@ -90,7 +82,7 @@ void nonNullAsserts(bool enable) {
 }
 
 @notNull
-bool _nativeNonNullAsserts = compileTimeFlag('soundNullSafety');
+bool _nativeNonNullAsserts = JS_GET_FLAG('SOUND_NULL_SAFETY');
 
 /// Enables null assertions on native APIs to make sure values returned from the
 /// browser are sound.
@@ -98,7 +90,7 @@ bool _nativeNonNullAsserts = compileTimeFlag('soundNullSafety');
 /// These apply to dart:html and similar web libraries. Note that these only are
 /// added in sound null-safety only.
 void nativeNonNullAsserts(bool enable) {
-  if (enable && !compileTimeFlag('soundNullSafety')) {
+  if (enable && !JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     _warn('Enabling `native-null-assertions` is only supported when sound null '
         'safety is enabled.');
   }
@@ -200,8 +192,8 @@ class DynamicType extends DartType {
 @notNull
 bool _isJsObject(obj) => JS_GET_FLAG("NEW_RUNTIME_TYPES")
     ? obj is LegacyJavaScriptObject
-    : JS(
-        '!', '# === #', getReifiedType(obj), typeRep<LegacyJavaScriptObject>());
+    : JS('!', '# === #', getReifiedType(obj),
+        TYPE_REF<LegacyJavaScriptObject>());
 
 /// Asserts that [f] is a native JS function and returns it if so.
 ///
@@ -760,7 +752,7 @@ FunctionType _createSmall(returnType, List required) => JS('', '''(() => {
  }
  let result = map.get($returnType);
  if (result !== void 0) return result;
- result = ${new FunctionType(JS<Type>('!', '#', returnType), required, [], JS('', '{}'), JS('', '{}'))};
+ result = ${FunctionType(JS<Type>('!', '#', returnType), required, [], JS('', '{}'), JS('', '{}'))};
  map.set($returnType, result);
  return result;
 })()''');
@@ -986,7 +978,7 @@ class GenericFunctionTypeIdentifier extends AbstractFunctionType {
       var bound = typeBounds[i];
       if (_equalType(bound, dynamic) ||
           JS<bool>('!', '# === #', bound, nullable(unwrapType(Object))) ||
-          (!compileTimeFlag('soundNullSafety') && _equalType(bound, Object))) {
+          (!JS_GET_FLAG('SOUND_NULL_SAFETY') && _equalType(bound, Object))) {
         // Do not print the bound when it is a top type. In weak mode the bounds
         // of Object and Object* will also be elided.
         continue;
@@ -1086,7 +1078,7 @@ class GenericFunctionType extends AbstractFunctionType {
       // difference is rare.
       if (_equalType(type, dynamic)) return true;
       if (_jsInstanceOf(type, NullableType) ||
-          (!compileTimeFlag('soundNullSafety') &&
+          (!JS_GET_FLAG('SOUND_NULL_SAFETY') &&
               _jsInstanceOf(type, LegacyType))) {
         return _equalType(JS('!', '#.type', type), Object);
       }
@@ -1452,7 +1444,7 @@ bool isSubtypeOf(@notNull t1, @notNull t2) {
   // never trigger another subtype check but implicit downcasts from
   // dynamic do happen in the SDK code occasionally on accident.
   _typeVariableCount = currentTypeVariableCount;
-  if (!validSubtype && !compileTimeFlag('soundNullSafety')) {
+  if (!validSubtype && !JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     // Reset count before performing subtype check.
     currentTypeVariableCount = _typeVariableCount;
     _typeVariableCount = 0;
@@ -1507,22 +1499,6 @@ external bool _jsInstanceOf(obj, cls);
 @notNull
 external bool _equalType(type, cls);
 
-/// Extracts the type argument as an unwrapped type preserving all forms of
-/// nullability.
-///
-/// Acts as a way to bypass extra calls of [wrapType] and [unwrapType]. For
-/// example `typeRep<Object?>()` emits `dart.nullable(core.Object)` directly.
-@notNull
-external Type typeRep<T>();
-
-/// Extracts the type argument as an unwrapped type and performs a shallow
-/// replacement of the nullability to a legacy type.
-///
-/// Acts as a way to bypass extra calls of [wrapType] and [unwrapType]. For
-/// example `legacyTypeRep<Object>()` emits `dart.legacy(core.Object)` directly.
-@notNull
-external Type legacyTypeRep<T>();
-
 @notNull
 bool _isFutureOr(type) {
   var genericClass = getGenericClass(type);
@@ -1554,14 +1530,14 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
 
   // "Left Top".
   if (_equalType(t1, dynamic) || JS<bool>('!', '# === #', t1, void_)) {
-    return _isSubtype(typeRep<Object?>(), t2, strictMode);
+    return _isSubtype(TYPE_REF<Object?>(), t2, strictMode);
   }
 
   // "Right Object".
   if (_equalType(t2, Object)) {
     if (_isFutureOr(t1)) {
       var t1TypeArg = JS('', '#[0]', getGenericArgs(t1));
-      return _isSubtype(t1TypeArg, typeRep<Object>(), strictMode);
+      return _isSubtype(t1TypeArg, TYPE_REF<Object>(), strictMode);
     }
 
     if (_jsInstanceOf(t1, LegacyType)) {
@@ -1579,7 +1555,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
   if (_equalType(t1, Null)) {
     if (_isFutureOr(t2)) {
       var t2TypeArg = JS('', '#[0]', getGenericArgs(t2));
-      return _isSubtype(typeRep<Null>(), t2TypeArg, strictMode);
+      return _isSubtype(TYPE_REF<Null>(), t2TypeArg, strictMode);
     }
 
     return _equalType(t2, Null) ||
@@ -1620,7 +1596,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
   // "Left Nullable".
   if (_jsInstanceOf(t1, NullableType)) {
     return _isSubtype(JS<NullableType>('!', '#', t1).type, t2, strictMode) &&
-        _isSubtype(typeRep<Null>(), t2, strictMode);
+        _isSubtype(TYPE_REF<Null>(), t2, strictMode);
   }
 
   if (_isFutureOr(t2)) {
@@ -1635,7 +1611,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
   // "Right Nullable".
   if (_jsInstanceOf(t2, NullableType)) {
     return _isSubtype(t1, JS<NullableType>('!', '#', t2).type, strictMode) ||
-        _isSubtype(t1, typeRep<Null>(), strictMode);
+        _isSubtype(t1, TYPE_REF<Null>(), strictMode);
   }
 
   // Abstract Record.
@@ -1673,7 +1649,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
     // non-`@staticInterop` package:js types <: LegacyJavaScriptObject
 
     if (_isInterfaceSubtype(
-            t1, typeRep<LegacyJavaScriptObject>(), strictMode) &&
+            t1, TYPE_REF<LegacyJavaScriptObject>(), strictMode) &&
         // TODO(srujzs): We don't have a mechanism to determine if *some*
         // PackageJSType implements t2. This will possibly require keeping a map
         // of these relationships for this subtyping check. For now, this will
@@ -1684,7 +1660,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
 
     if (_isInterfaceSubtype(t1, _packageJSTypeForSubtyping, strictMode) &&
         _isInterfaceSubtype(
-            typeRep<LegacyJavaScriptObject>(), t2, strictMode)) {
+            TYPE_REF<LegacyJavaScriptObject>(), t2, strictMode)) {
       return true;
     }
 
@@ -1995,7 +1971,7 @@ class _TypeInferrer {
     var supertypeRequiredNamed = supertype.getRequiredNamedParameters();
     var subtypeNamed = supertype.getNamedParameters();
     var subtypeRequiredNamed = supertype.getRequiredNamedParameters();
-    if (!compileTimeFlag('soundNullSafety')) {
+    if (!JS_GET_FLAG('SOUND_NULL_SAFETY')) {
       // In weak mode, treat required named params as optional named params.
       supertypeNamed = {...supertypeNamed, ...supertypeRequiredNamed};
       subtypeNamed = {...subtypeNamed, ...subtypeRequiredNamed};

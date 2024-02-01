@@ -5824,6 +5824,22 @@ JsInteropExportNoExportableMembers:
   problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
   correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
 
+JsInteropIsAInvalidType:
+  problemMessage: "Type argument '#type' needs to be an interop 'ExtensionType'."
+  correctionMessage: "Use a valid interop extension type as the type argument instead."
+
+JsInteropIsAObjectLiteralType:
+  problemMessage: "Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check."
+  correctionMessage: "Use 'JSObject' as the type argument instead."
+
+JsInteropIsAPrimitiveExtensionType:
+  problemMessage: "Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'."
+  correctionMessage: "Use the primitive JS type '#string' as the type argument instead."
+
+JsInteropIsATearoff:
+  problemMessage: "'isA' can't be torn off."
+  correctionMessage: "Use a method that calls 'isA' and tear off that method instead."
+
 JsInteropExtensionTypeNotInterop:
   problemMessage: "Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
   correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types."
@@ -5896,8 +5912,8 @@ JsInteropNonStaticWithStaticInteropSupertype:
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
 JsInteropStaticInteropExternalTypeViolation:
-  problemMessage: "Type '#type' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type."
-  correctionMessage: "Use one of the valid types instead."
+  problemMessage: "Type '#type' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', '@staticInterop' types, 'dart:html' types when compiling to JS, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop or 'dart:html' type."
 
 JsInteropStaticInteropGenerativeConstructor:
   problemMessage: "`@staticInterop` classes should not contain any generative constructors."
@@ -7310,6 +7326,9 @@ JointPatternVariableWithLabelDefault:
 UnsupportedMacroApplication:
   problemMessage: "This macro application didn't apply correctly."
 
+UnhandledMacroApplication:
+  problemMessage: "This macro application didn't apply correctly due to an unhandled #name."
+
 ScriptTagInPartFile:
   problemMessage: "A part file cannot have script tag."
   correctionMessage: "Try removing the script tag or the 'part of' directive."
@@ -7579,3 +7598,8 @@ ExtensionTypeImplementsDeferred:
       extension type ET(d.A id) implements d.A {}
     lib.dart: |
       class A {}
+
+RecordUsedAsCallable:
+  problemMessage: "The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`"
+  script: |
+    test(({dynamic call} r) => r(0);

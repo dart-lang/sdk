@@ -6,6 +6,7 @@ class C<T> {
 }
 
 mixin M {}
+
 class D = C<String> with M;
 
 class E extends D {}

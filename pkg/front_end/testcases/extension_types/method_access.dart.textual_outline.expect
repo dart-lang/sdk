@@ -15,4 +15,5 @@ extension type InlineClass(int it) {
   T genericMethod<T>(T t) => t;
   int call() => 321;
 }
+
 test(InlineClass ic) {}

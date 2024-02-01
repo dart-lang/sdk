@@ -3275,8 +3275,8 @@ class BodyBuilder extends StackListenerImpl
     }
     bool isQualified = prefixToken != null;
     Builder? declaration = scope.lookup(name, nameOffset, uri);
-    if (declaration == null && prefix == null && _context.isPatchClass) {
-      // The scope of a patched method includes the origin class.
+    if (declaration == null && prefix == null && _context.isAugmentationClass) {
+      // The scope of an augmented method includes the origin class.
       declaration = _context.lookupStaticOriginMember(name, nameOffset, uri);
     }
     if (declaration != null &&
@@ -5441,7 +5441,7 @@ class BodyBuilder extends StackListenerImpl
           variable.initializer = initializer..parent = variable;
         }
       }
-    } else if (kind != FormalParameterKind.requiredPositional) {
+    } else if (kind.isOptional) {
       variable.initializer ??= forest.createNullLiteral(noLocation)
         ..parent = variable;
     }

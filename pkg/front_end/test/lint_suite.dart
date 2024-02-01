@@ -87,13 +87,6 @@ class Context extends ChainContext {
     const LintStep(),
   ];
 
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
-
   @override
   Stream<LintTestDescription> list(Chain suite) async* {
     late Set<Uri> gitFiles;

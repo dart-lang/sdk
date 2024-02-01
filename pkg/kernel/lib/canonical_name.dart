@@ -285,37 +285,41 @@ class CanonicalName implements Comparable<CanonicalName?> {
     return _reference ??= (new Reference()..canonicalName = this);
   }
 
+  Reference? get referenceOrNull {
+    return _reference;
+  }
+
+  void checkThisCanonicalName() {
+    if (isSymbolicName(name)) return;
+    if (_reference == null) {
+      // OK for "if private: URI of library" part of "Qualified name"...
+      // TODO(johnniwinther): This wrongfully skips checking of variable
+      // synthesized by the VM transformations. The kind of canonical
+      // name types maybe should be directly available.
+      if (parent?.parent != null && name.contains(':')) {
+        // OK then.
+        return;
+      } else {
+        throw buildCanonicalNameError(
+            "Null reference (${name}) ($this).", this);
+      }
+    }
+    if (_reference!.canonicalName != this) {
+      throw buildCanonicalNameError(
+          "Canonical name and reference doesn't agree.", this);
+    }
+    if (_reference!.node == null) {
+      throw buildCanonicalNameError(
+          "Reference is null (${name}) ($this).", this);
+    }
+  }
+
   void checkCanonicalNameChildren() {
-    CanonicalName parent = this;
+    final CanonicalName parent = this;
     Iterable<CanonicalName>? parentChildren = parent.childrenOrNull;
     if (parentChildren != null) {
       for (CanonicalName child in parentChildren) {
-        if (!isSymbolicName(child.name)) {
-          bool checkReferenceNode = true;
-          if (child._reference == null) {
-            // OK for "if private: URI of library" part of "Qualified name"...
-            // TODO(johnniwinther): This wrongfully skips checking of variable
-            // synthesized by the VM transformations. The kind of canonical
-            // name types maybe should be directly available.
-            if (parent.parent != null && child.name.contains(':')) {
-              // OK then.
-              checkReferenceNode = false;
-            } else {
-              throw buildCanonicalNameError(
-                  "Null reference (${child.name}) ($child).", child);
-            }
-          }
-          if (checkReferenceNode) {
-            if (child._reference!.canonicalName != child) {
-              throw buildCanonicalNameError(
-                  "Canonical name and reference doesn't agree.", child);
-            }
-            if (child._reference!.node == null) {
-              throw buildCanonicalNameError(
-                  "Reference is null (${child.name}) ($child).", child);
-            }
-          }
-        }
+        child.checkThisCanonicalName();
         child.checkCanonicalNameChildren();
       }
     }
@@ -375,7 +379,12 @@ class CanonicalName implements Comparable<CanonicalName?> {
     typedefsName,
   };
 
-  static bool isSymbolicName(String name) => symbolicNames.contains(name);
+  static const int $AT = 64;
+
+  static bool isSymbolicName(String name) =>
+      name.isNotEmpty &&
+      name.codeUnitAt(0) == $AT &&
+      symbolicNames.contains(name);
 
   static String getProcedureQualifier(Procedure procedure) {
     if (procedure.isGetter) return gettersName;

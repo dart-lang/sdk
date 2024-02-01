@@ -1857,6 +1857,25 @@ void f() {
 ''');
   }
 
+  Future<void> test_record_field() async {
+    addTestFile(r'''
+void f((int, {int field1}) record) {
+  record.$1; // 1
+  record.field1; // 2
+  (1,).$1; // 3
+  (field1: 1).field1; // 4
+  (1,).notResolved;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, r'$1; // 1');
+    assertHasRegion(
+        HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'field1; // 2');
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, r'$1; // 3');
+    assertHasRegion(HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
+        'notResolved');
+  }
+
   Future<void> test_recordTypeAnnotation_named() async {
     addTestFile('''
 ({int f1, String f2})? r;
@@ -2323,7 +2342,8 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
         }
         if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
             c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-            c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+            c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0) ||
+            c == r'$'.codeUnitAt(0))) {
           break;
         }
         length++;

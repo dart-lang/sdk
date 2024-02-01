@@ -263,7 +263,7 @@ static extension-type-member method E14|constructor#({core::String? foo = null})
   ;
 static extension-type-member method E14|constructor#_#new#tearOff({core::String? foo}) → self::E14 /* = core::String? */
   return self::E14|constructor#(foo: foo);
-static extension-type-member method E15|constructor#({required core::double foo = null}) → self::E15 /* = core::double */
+static extension-type-member method E15|constructor#({required core::double foo}) → self::E15 /* = core::double */
   ;
 static extension-type-member method E15|constructor#_#new#tearOff({required core::double foo}) → self::E15 /* = core::double */
   return self::E15|constructor#(foo: foo);
@@ -275,7 +275,7 @@ static extension-type-member method E17|constructor#(core::Object foo, {core::nu
   ;
 static extension-type-member method E17|constructor#_#new#tearOff(core::Object foo, {core::num? bar, core::String? baz}) → self::E17 /* = core::Object */
   return self::E17|constructor#(foo, bar: bar, baz: baz);
-static extension-type-member method E18|constructor#(core::double foo, {required core::int bar = null}) → self::E18 /* = core::double */
+static extension-type-member method E18|constructor#(core::double foo, {required core::int bar}) → self::E18 /* = core::double */
   ;
 static extension-type-member method E18|constructor#_#new#tearOff(core::double foo, {required core::int bar}) → self::E18 /* = core::double */
   return self::E18|constructor#(foo, bar: bar);

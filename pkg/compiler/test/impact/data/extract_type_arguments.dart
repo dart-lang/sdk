@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_internal';
 
@@ -51,11 +49,11 @@ class C implements A<int>, B<String, bool> {}
   _isString(1),
   _isTop(1),
   _setArrayType(2),
-  extractTypeArguments<A<dynamic>*>(2),
+  extractTypeArguments<A<dynamic>>(2),
   findType(1),
   instanceType(1)],
  type=[
-  impl:A<dynamic>*,
+  impl:A<dynamic>,
   impl:Function,
   inst:Closure,
   inst:JSArray<dynamic>,
@@ -105,11 +103,11 @@ testA(c, f) => extractTypeArguments<A>(c, f);
   _isString(1),
   _isTop(1),
   _setArrayType(2),
-  extractTypeArguments<B<dynamic,dynamic>*>(2),
+  extractTypeArguments<B<dynamic,dynamic>>(2),
   findType(1),
   instanceType(1)],
  type=[
-  impl:B<dynamic,dynamic>*,
+  impl:B<dynamic,dynamic>,
   impl:Function,
   inst:Closure,
   inst:JSArray<dynamic>,

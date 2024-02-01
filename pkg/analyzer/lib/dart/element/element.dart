@@ -85,7 +85,10 @@ abstract class AugmentedClassElement implements AugmentedInterfaceElement {
 /// The result of applying augmentations to an [EnumElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedEnumElement implements AugmentedInterfaceElement {}
+abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
+  @override
+  EnumElement get declaration;
+}
 
 /// The result of applying augmentations to an [ExtensionElement].
 ///
@@ -1424,9 +1427,16 @@ abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class HideElementCombinator implements NamespaceCombinator {
+  /// The offset of the character immediately following the last character of
+  /// this node.
+  int get end;
+
   /// The names that are not to be made visible in the importing library even
   /// if they are defined in the imported library.
   List<String> get hiddenNames;
+
+  /// The offset of the 'hide' keyword of this element.
+  int get offset;
 }
 
 /// Usage of a [PrefixElement] in an `import` directive.

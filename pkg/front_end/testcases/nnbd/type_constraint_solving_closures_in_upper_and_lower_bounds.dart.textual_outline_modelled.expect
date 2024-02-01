@@ -5,4 +5,5 @@ class C<X> {
 }
 
 main() {}
+
 void test() {}

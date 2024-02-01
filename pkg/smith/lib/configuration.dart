@@ -868,6 +868,7 @@ class Compiler extends NamedEnum {
       case Compiler.dart2wasm:
         return const [
           Runtime.none,
+          Runtime.jsc,
           Runtime.jsshell,
           Runtime.d8,
           Runtime.chrome,
@@ -980,6 +981,7 @@ class Runtime extends NamedEnum {
   static const flutter = Runtime._('flutter');
   static const dartPrecompiled = Runtime._('dart_precompiled');
   static const d8 = Runtime._('d8');
+  static const jsc = Runtime._('jsc');
   static const jsshell = Runtime._('jsshell');
   static const firefox = Runtime._('firefox');
   static const chrome = Runtime._('chrome');
@@ -998,6 +1000,7 @@ class Runtime extends NamedEnum {
     flutter,
     dartPrecompiled,
     d8,
+    jsc,
     jsshell,
     firefox,
     chrome,
@@ -1035,7 +1038,7 @@ class Runtime extends NamedEnum {
   bool get isSafari => name.startsWith("safari");
 
   /// Whether this runtime is a command-line JavaScript environment.
-  bool get isJSCommandLine => const [d8, jsshell].contains(this);
+  bool get isJSCommandLine => const [d8, jsc, jsshell].contains(this);
 
   /// If the runtime doesn't support `Window.open`, we use iframes instead.
   bool get requiresIFrame => !const [ie11, ie10].contains(this);
@@ -1062,6 +1065,9 @@ class Runtime extends NamedEnum {
       case edge:
       case chromeOnAndroid:
         return Compiler.dart2js;
+
+      case jsc:
+        return Compiler.dart2wasm;
 
       case none:
         // If we aren't running it, we probably just want to analyze it.

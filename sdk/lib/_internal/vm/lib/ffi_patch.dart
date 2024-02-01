@@ -72,7 +72,7 @@ void _checkPointerAlignment(int address, int elementSize) {
 }
 
 @patch
-int sizeOf<T extends NativeType>() {
+int sizeOf<T extends SizedNativeType>() {
   // This case should have been rewritten in pre-processing.
   throw UnimplementedError("$T");
 }
@@ -199,7 +199,7 @@ external dynamic _nativeIsolateLocalCallbackFunction<NS extends Function>(
 
 @patch
 @pragma("vm:entry-point")
-final class Pointer<T extends NativeType> {
+final class Pointer<T extends NativeType> implements SizedNativeType {
   @patch
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
 
@@ -341,7 +341,7 @@ final class Array<T extends NativeType> {
   List<int> get _nestedDimensionsRest =>
       _nestedDimensionsRestCache ??= _nestedDimensions.sublist(1);
 
-  _checkIndex(int index) {
+  void _checkIndex(int index) {
     if (index < 0 || index >= _size) {
       throw RangeError.range(index, 0, _size - 1);
     }
@@ -1208,12 +1208,16 @@ extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
 @patch
 extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   @patch
-  Pointer<T> operator [](int index) =>
-      _loadPointer(_typedDataBase, _intPtrSize * index);
+  Pointer<T> operator [](int index) {
+    _checkIndex(index);
+    return _loadPointer(_typedDataBase, _intPtrSize * index);
+  }
 
   @patch
-  void operator []=(int index, Pointer<T> value) =>
-      _storePointer(_typedDataBase, _intPtrSize * index, value);
+  void operator []=(int index, Pointer<T> value) {
+    _checkIndex(index);
+    return _storePointer(_typedDataBase, _intPtrSize * index, value);
+  }
 }
 
 @patch

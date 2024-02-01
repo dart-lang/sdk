@@ -219,7 +219,17 @@ abstract class Builder {
 
   bool get isLocal;
 
-  bool get isPatch;
+  /// Returns `true` if this builder is augmenting another builder.
+  ///
+  /// If `true`, the augmented builder is found through [origin] which is
+  /// a different builder than this builder.
+  ///
+  /// A class/member builder can be augmented through 'augment' modifier in
+  /// augmentation libraries or through the `@patch` annotation in patch
+  /// libraries. A library builder can be augmented through the augmentation
+  /// libraries feature, through macro generated augmentation libraries or
+  /// through patch libraries.
+  bool get isAugmenting;
 
   bool get isRegularMethod;
 
@@ -237,8 +247,8 @@ abstract class Builder {
 
   bool get isTypeVariable;
 
-  /// Applies [patch] to this declaration.
-  void applyPatch(Builder patch);
+  /// Applies [augmentation] to this declaration.
+  void applyAugmentation(Builder augmentation);
 
   /// Return `true` if this builder is a duplicate of another with the same
   /// name. This is `false` for the builder first declared amongst duplicates.
@@ -306,7 +316,7 @@ abstract class BuilderImpl implements Builder {
   bool get isLocal => false;
 
   @override
-  bool get isPatch => this != origin;
+  bool get isAugmenting => this != origin;
 
   @override
   bool get isRegularMethod => false;
@@ -336,8 +346,8 @@ abstract class BuilderImpl implements Builder {
   bool get isTypeVariable => false;
 
   @override
-  void applyPatch(Builder patch) {
-    unsupported("${runtimeType}.applyPatch", charOffset, fileUri);
+  void applyAugmentation(Builder augmentation) {
+    unsupported("${runtimeType}.applyAugmentation", charOffset, fileUri);
   }
 
   @override

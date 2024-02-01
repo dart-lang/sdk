@@ -5,4 +5,5 @@ class Callable {
 }
 
 foo() {}
+
 main() {}

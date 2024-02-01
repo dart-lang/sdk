@@ -3,4 +3,5 @@ extension A<T> on List<T> {
 }
 
 final list = ["a", "b", "c"].myMap((it) => it);
+
 main() {}

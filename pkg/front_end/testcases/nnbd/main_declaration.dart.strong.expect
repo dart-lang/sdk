@@ -117,7 +117,7 @@ library;
 import self as self11;
 import "dart:core" as core;
 
-static method main({required core::List<core::String> args = #C1}) → void {}
+static method main({required core::List<core::String> args}) → void {}
 
 library;
 //

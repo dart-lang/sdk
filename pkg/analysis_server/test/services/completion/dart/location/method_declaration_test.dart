@@ -8,26 +8,16 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MethodDeclarationTest);
+    defineReflectiveTests(MethodDeclarationInClassTest);
+    defineReflectiveTests(MethodDeclarationInExtensionTypeTest);
   });
 }
 
-mixin MethodDeclarationInClassTestCases on AbstractCompletionDriverTest {
-  Future<void> test__afterParameterList_beforeRightBrace_partial() async {
-    await computeSuggestions('''
-class A { foo() a^}
-''');
-    assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  async
-    kind: keyword
-  async*
-    kind: keyword
-''');
-  }
+@reflectiveTest
+class MethodDeclarationInClassTest extends AbstractCompletionDriverTest
+    with MethodDeclarationInClassTestCases {}
 
+mixin MethodDeclarationInClassTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterAnnotation_beforeName() async {
     await computeSuggestions('''
 class A { @override ^ foo() {}}
@@ -360,8 +350,68 @@ class A { foo() ^}
 suggestions
 ''');
   }
+
+  Future<void> test_afterParameterList_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+class A { foo() a^}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  async
+    kind: keyword
+  async*
+    kind: keyword
+''');
+  }
 }
 
 @reflectiveTest
-class MethodDeclarationTest extends AbstractCompletionDriverTest
-    with MethodDeclarationInClassTestCases {}
+class MethodDeclarationInExtensionTypeTest extends AbstractCompletionDriverTest
+    with MethodDeclarationInExtensionTypeTestCases {}
+
+mixin MethodDeclarationInExtensionTypeTestCases
+    on AbstractCompletionDriverTest {
+  Future<void> test_afterArrow_beforeRightBrace_sync() async {
+    await computeSuggestions('''
+extension type C(int v0) {
+  int m() => ^
+}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  true
+    kind: keyword
+  v0
+    kind: field
+''');
+  }
+
+  Future<void> test_afterArrow_beforeRightBrace_sync_partial() async {
+    await computeSuggestions('''
+extension type C(int v0) {
+  int m() => v^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  v0
+    kind: field
+''');
+  }
+}

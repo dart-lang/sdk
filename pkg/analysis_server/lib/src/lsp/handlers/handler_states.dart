@@ -15,6 +15,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folder
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion_resolve.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_dart_text_document_content_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color_presentation.dart';
@@ -113,6 +114,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
   /// Generators for handlers that work with any [AnalysisServer].
   static const sharedHandlerGenerators =
       <_RequestHandlerGenerator<AnalysisServer>>[
+    DartTextDocumentContentProviderHandler.new,
     DocumentColorHandler.new,
     DocumentColorPresentationHandler.new,
     DocumentHighlightsHandler.new,

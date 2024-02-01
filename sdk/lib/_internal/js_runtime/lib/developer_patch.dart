@@ -243,7 +243,7 @@ final class _FakeUserTag implements UserTag {
     return old;
   }
 
-  static final UserTag _defaultTag = new _FakeUserTag('Default');
+  static final UserTag _defaultTag = _FakeUserTag('Default');
 }
 
 var _currentTag = _FakeUserTag._defaultTag;

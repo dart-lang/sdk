@@ -27,5 +27,7 @@ extension Extension2 on Class2 {
 }
 
 main() {}
+
 testExtension1(Class1 c0, Class1 c1, Class1? c0n, Class1? c1n) {}
+
 testExtension2(Class2 c0, Class2 c1, Class2? c0n) {}

@@ -430,11 +430,12 @@ class PropertyElementResolver with ScopeHelpers {
 
     var targetType = target.typeOrThrow;
 
-    if (targetType is FunctionType &&
-        propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-      return PropertyElementResolverResult(
-        functionTypeCallType: targetType,
-      );
+    if (propertyName.name == FunctionElement.CALL_METHOD_NAME) {
+      if (targetType is FunctionType || targetType.isDartCoreFunction) {
+        return PropertyElementResolverResult(
+          functionTypeCallType: targetType,
+        );
+      }
     }
 
     if (targetType is VoidType) {

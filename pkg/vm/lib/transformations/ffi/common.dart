@@ -651,6 +651,9 @@ class FfiTransformer extends Transformer {
       return nativeType;
     }
     if (hierarchy.isSubclassOf(nativeClass, abiSpecificIntegerClass)) {
+      if (nativeClass == abiSpecificIntegerClass) {
+        return null;
+      }
       return InterfaceType(intClass, Nullability.legacy);
     }
     if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {

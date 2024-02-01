@@ -20,6 +20,7 @@ mixin M {
   static int staticFieldOfM;
   int fieldOfM;
 }
+
 mixin N<X extends Object?, Y extends Object> {
   X fieldOfN;
   Y fieldOfN2;
@@ -30,7 +31,9 @@ extension P on Foo {
 }
 
 int? nullableTopLevelField;
+
 late int lateTopLevelField;
+
 int topLevelFieldWithInitializer = 42;
 
 class C<X extends Object?, Y extends Object> {

@@ -28,9 +28,15 @@ class ClassB extends UsedAsBaseClass
 }
 
 void baseClassCall(UsedAsBaseClass object) {}
+
 void interfaceCall(UsedAsInterface object) {}
+
 void exactCallA(ClassA object) {}
+
 void exactCallB(ClassB object) {}
+
 unusedTopLevel() {}
+
 usedTopLevel() {}
+
 main() {}

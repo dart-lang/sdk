@@ -7143,7 +7143,7 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'int?'),
-            x.pattern().assign(expr('int').checkContext('int?')),
+            x.pattern().assign(expr('int').checkSchema('int?')),
           ]);
         });
 
@@ -7153,7 +7153,7 @@ main() {
             declare(x, type: 'int?'),
             x.nonNullAssert,
             checkPromoted(x, 'int'),
-            x.pattern().assign(expr('int').checkContext('int')),
+            x.pattern().assign(expr('int').checkSchema('int')),
           ]);
         });
       });

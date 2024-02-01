@@ -8,4 +8,5 @@ class Foo {
 }
 
 main() {}
+
 var list = [1, 2, 3];

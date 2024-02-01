@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 @JS()
 library js_interop;
 
@@ -23,7 +21,7 @@ class Class1 {
       {/*[exact=JSUInt31]*/ a, /*Value([exact=JSString], value: "")*/ b});
 }
 
-/*member: anonymousClass:[null|subclass=LegacyJavaScriptObject]*/
+/*member: anonymousClass:[subclass=LegacyJavaScriptObject]*/
 anonymousClass() => Class1(a: 1, b: '');
 
 @JS()
@@ -43,8 +41,8 @@ class JsInteropClass {
 /*member: jsInteropClass:[subclass=JSInt]*/
 jsInteropClass() {
   JsInteropClass cls = JsInteropClass();
-  return cls. /*update: [null|subclass=LegacyJavaScriptObject]*/ setter =
-      cls. /*[null|subclass=LegacyJavaScriptObject]*/ getter /*invoke: [null|subclass=JSInt]*/ +
+  return cls. /*update: [subclass=LegacyJavaScriptObject]*/ setter =
+      cls. /*[subclass=LegacyJavaScriptObject]*/ getter /*invoke: [subclass=JSInt]*/ +
           cls. /*invoke: [subclass=LegacyJavaScriptObject]*/ method(
               0) /*invoke: [subclass=JSInt]*/ +
           10;

@@ -173,6 +173,7 @@ class AnalyzeCommand extends DartdevCommand {
       cacheDirectoryPath: args['cache'],
       commandName: 'analyze',
       argResults: args,
+      disableStatusNotificationDebouncing: true,
       enabledExperiments: args.enabledExperiments,
       suppressAnalytics: suppressAnalytics,
     );

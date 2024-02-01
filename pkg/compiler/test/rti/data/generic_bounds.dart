@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: Class1a:explicit=[Class1a*]*/
+/*spec.class: Class1a:explicit=[Class1a]*/
 class Class1a {}
 
 class Class1b extends Class1a {}
 
-/*spec.class: Class2a:explicit=[Class2a<num*>*],needsArgs*/
+/*spec.class: Class2a:explicit=[Class2a<num>],needsArgs*/
 class Class2a<T> {}
 
 class Class2b<T> extends Class2a<T> {}
@@ -34,7 +32,7 @@ class Class3 {
   method6<T>() => null;
 }
 
-/*spec.class: Class4:explicit=[Class4*]*/
+/*spec.class: Class4:explicit=[Class4]*/
 class Class4 {}
 
 /*spec.member: method10:needsArgs*/

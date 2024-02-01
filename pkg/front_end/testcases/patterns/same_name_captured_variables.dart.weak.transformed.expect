@@ -4,26 +4,32 @@ import "dart:core" as core;
 
 static method test(dynamic x1, dynamic x2) → dynamic {
   {
-    hoisted dynamic y;
     final synthesized dynamic #0#0 = x1;
-    if(true) {
-      y = #0#0;
-      {}
+    {
+      hoisted dynamic y;
+      if(true) {
+        y = #0#0;
+        {}
+      }
     }
   }
   {
-    hoisted dynamic y;
     final synthesized dynamic #1#0 = x1;
-    if(true) {
-      y = #1#0;
-      {
+    {
+      hoisted dynamic y;
+      if(true) {
+        y = #1#0;
         {
-          hoisted dynamic y;
-          final synthesized dynamic #2#0 = x2;
-          if(true) {
-            y = #2#0;
+          {
+            final synthesized dynamic #2#0 = x2;
             {
-              return y;
+              hoisted dynamic y;
+              if(true) {
+                y = #2#0;
+                {
+                  return y;
+                }
+              }
             }
           }
         }

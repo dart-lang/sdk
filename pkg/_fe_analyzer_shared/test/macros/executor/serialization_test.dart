@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
@@ -615,6 +616,19 @@ void main() {
     });
   });
 
+  group('Exceptions', () {
+    group('can be serialized and deserialized', () {
+      for (var mode in [SerializationMode.byteData, SerializationMode.json]) {
+        test('with mode $mode', () {
+          final exception = UnexpectedMacroExceptionImpl('something happened',
+              stackTrace: 'here');
+          expectSerializationEquality<UnexpectedMacroExceptionImpl>(
+              exception, mode, RemoteInstance.deserialize);
+        });
+      }
+    });
+  });
+
   group('metadata annotations can be serialized and deserialized', () {
     for (var mode in [SerializationMode.byteData, SerializationMode.json]) {
       group('with mode $mode', () {
@@ -678,6 +692,7 @@ void expectSerializationEquality<T extends Serializable>(T serializable,
             TypeAnnotation() =>
               deepEqualsTypeAnnotation(deserialized as TypeAnnotation),
             Arguments() => deepEqualsArguments(deserialized),
+            MacroExceptionImpl() => deepEqualsMacroException(deserialized),
             MetadataAnnotation() =>
               deepEqualsMetadataAnnotation(deserialized as MetadataAnnotation),
             _ => throw new UnsupportedError(

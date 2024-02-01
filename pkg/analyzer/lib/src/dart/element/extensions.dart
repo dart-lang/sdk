@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:collection/collection.dart';
 import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
@@ -57,7 +56,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
               return field?.toStringValue();
             })
             .map((name) => _targetKindsByName[name])
-            .whereNotNull()
+            .nonNulls
             .toSet();
       }
     }

@@ -14,7 +14,7 @@ import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -49,7 +49,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
 
 import 'fix/pubspec/fix_generator.dart';
@@ -86,6 +85,9 @@ class BulkFixProcessor {
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
     CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      DataDriven.new,
+    ],
+    CompileTimeErrorCode.CAST_TO_NON_TYPE: [
       DataDriven.new,
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
@@ -522,7 +524,7 @@ class BulkFixProcessor {
 
     var lintRules = syntacticLintCodes
         .map((name) => Registry.ruleRegistry.getRule(name))
-        .whereNotNull()
+        .nonNulls
         .toList();
     for (var linter in lintRules) {
       linter.reporter = errorReporter;

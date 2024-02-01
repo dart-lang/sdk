@@ -4541,7 +4541,7 @@ suggestions
   }
 
   Future<void> test_prefixedIdentifier_trailingStmt_function() async {
-    allowedIdentifiers = {'length'};
+    allowedIdentifiers = {'call', 'length', 'hashCode'};
     await computeSuggestions('''
 String g() => "one";
 f() {
@@ -4551,7 +4551,9 @@ f() {
 ''');
     assertResponse(r'''
 suggestions
-  length
+  call
+    kind: methodInvocation
+  hashCode
     kind: getter
 ''');
   }
@@ -4605,7 +4607,7 @@ suggestions
   }
 
   Future<void> test_prefixedIdentifier_trailingStmt_method() async {
-    allowedIdentifiers = {'length'};
+    allowedIdentifiers = {'call', 'length', 'hashCode'};
     await computeSuggestions('''
 class A {
   String g() {};
@@ -4617,7 +4619,9 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  length
+  call
+    kind: methodInvocation
+  hashCode
     kind: getter
 ''');
   }
@@ -4896,8 +4900,8 @@ void f(Derived d) {
     assertResponse(r'''
 suggestions
   x0
-    kind: setter
-    declaringType: Base
+    kind: getter
+    declaringType: Derived
 ''');
   }
 

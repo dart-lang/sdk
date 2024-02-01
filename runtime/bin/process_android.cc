@@ -451,7 +451,7 @@ class ProcessStarter {
   // be reported to the parent.
   bool FindPathInNamespace(char* realpath, intptr_t realpath_size) {
     // Perform a PATH search if there's no slash in the path.
-    if (strchr(path_, '/') == nullptr) {
+    if (Namespace::IsDefault(namespc_) || strchr(path_, '/') == nullptr) {
       // TODO(zra): If there is a non-default namespace, the entries in PATH
       // should be treated as relative to the namespace.
       strncpy(realpath, path_, realpath_size);

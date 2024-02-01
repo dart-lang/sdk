@@ -577,7 +577,9 @@ Future runGlobalTransformations(
   final os = targetOS != null ? TargetOS.fromString(targetOS)! : null;
   final evaluator = vm_constant_evaluator.VMConstantEvaluator.create(
       target, component, os, nnbdMode,
-      environmentDefines: environmentDefines, coreTypes: coreTypes);
+      enableAsserts: enableAsserts,
+      environmentDefines: environmentDefines,
+      coreTypes: coreTypes);
   unreachable_code_elimination.transformComponent(
       target, component, evaluator, enableAsserts);
 

@@ -15,7 +15,6 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:collection/collection.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart'
     show CommandParameter, SaveUriCommandParameter;
 import 'package:language_server_protocol/protocol_generated.dart';
@@ -198,7 +197,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
         builder.importLibrary(
           library.source.uri,
           prefix: import.prefix?.element.name,
-          showName: hasShowCombinator ? element.name : null,
+          showName: element.name,
+          useShow: hasShowCombinator,
         );
       }
     }
@@ -262,7 +262,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       unitResult.unit,
       candidateElements: candidateMembers.keys
           .map((member) => member.declaredElement)
-          .whereNotNull()
+          .nonNulls
           .toSet(),
     );
 

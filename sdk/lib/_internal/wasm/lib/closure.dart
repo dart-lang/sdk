@@ -22,6 +22,10 @@ final class _Closure implements Function {
 
   external static bool _equals(Function a, Function b);
 
+  @pragma("wasm:entry-point")
+  @pragma("wasm:prefer-inline")
+  external static _FunctionType _getClosureRuntimeType(_Closure closure);
+
   // Simple hash code for now, we can optimize later
   @override
   int get hashCode => runtimeType.hashCode;

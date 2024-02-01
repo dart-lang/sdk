@@ -5,4 +5,5 @@ extension on A? {
 }
 
 void main() {}
+
 expect(expected, actual) {}

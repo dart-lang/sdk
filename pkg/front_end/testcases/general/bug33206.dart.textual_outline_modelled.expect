@@ -1,9 +1,13 @@
 import 'dart:async';
 
 Future<List<Object>> f1() async {}
+
 Future<Object> f3() async {}
+
 Future<X> foo() async {}
+
 Future<void> main() async {}
+
 List<Object> f2() => [2];
 
 class X {

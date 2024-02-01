@@ -215,7 +215,7 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     if (args.length != length && args.length != 0) {
       $throwInternalError('requires ' + length + ' or 0 type arguments');
     }
-    while (args.length < length) args.push(${typeRep<dynamic>()});
+    while (args.length < length) args.push(${TYPE_REF<dynamic>()});
 
     let value = resultMap;
     for (let i = 0; i < length; i++) {

@@ -7,4 +7,5 @@ class C {
 }
 
 LegacyFoo test() {}
+
 main() {}

@@ -481,6 +481,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kDynamicInvocation:
       ReadByte();                                // read kind.
+      ReadByte();                                // read flags.
       ReadPosition();                            // read position.
       CalculateExpressionFingerprint();          // read receiver.
       BuildHash(ReadNameAsMethodName().Hash());  // read name.

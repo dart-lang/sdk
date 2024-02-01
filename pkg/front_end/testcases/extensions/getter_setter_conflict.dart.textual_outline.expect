@@ -16,5 +16,7 @@ extension Extension1 on Class {
 }
 
 main() {}
+
 errors() {}
+
 expect(expected, actual) {}

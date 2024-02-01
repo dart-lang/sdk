@@ -6,8 +6,13 @@ class A {
 }
 
 var a = new A();
+
 var b = () => a.f(c);
+
 var c = () => a.f(b);
+
 var d = () => a.f(e);
+
 var e = () => a.g(d);
+
 main() {}

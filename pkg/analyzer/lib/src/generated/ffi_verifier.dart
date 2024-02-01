@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -165,19 +164,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     super.visitClassDeclaration(node);
     inCompound = false;
-  }
-
-  @override
-  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (!noSoundNullSafety &&
-        !typeSystem.isNonNullableByDefault &&
-        inCompound) {
-      _errorReporter.reportErrorForNode(
-        FfiCode.FIELD_INITIALIZER_IN_STRUCT,
-        node,
-      );
-    }
-    super.visitConstructorFieldInitializer(node);
   }
 
   @override
@@ -1256,17 +1242,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             fieldType, [fieldType.toSource()]);
       }
     }
-
-    if (!noSoundNullSafety && !typeSystem.isNonNullableByDefault) {
-      for (VariableDeclaration field in fields.variables) {
-        if (field.initializer != null) {
-          _errorReporter.reportErrorForToken(
-            FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
-            field.name,
-          );
-        }
-      }
-    }
   }
 
   /// Validate the invocation of the static method
@@ -1584,7 +1559,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate the invocation of the extension method
   /// `Pointer<T extends Struct>.ref`.
   void _validateRefPrefixedIdentifier(PrefixedIdentifier node) {
-    var targetType = node.prefix.typeOrThrow;
+    var targetType = node.prefix.staticType;
     if (!_isValidFfiNativeType(targetType,
         allowVoid: false, allowEmptyStruct: true)) {
       final AstNode errorNode = node;

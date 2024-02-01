@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class Foo<T> {
   Callback<T> mutableCallbackField;
   Foo(this.finalField, this.callbackField);
@@ -11,4 +12,5 @@ class Foo<T> {
 }
 
 main() {}
+
 typedef void Callback<T>(T x);

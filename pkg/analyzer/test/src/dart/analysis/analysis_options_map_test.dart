@@ -35,7 +35,7 @@ class AnalysisOptionsMapTest with ResourceProviderMixin {
 
   test_noOptions() {
     var file = newFile('/home/test/a.dart', '');
-    expect(map.getOptions(file), null);
+    expect(map.getOptions(file).file, isNull);
   }
 
   test_singleOptions() {
