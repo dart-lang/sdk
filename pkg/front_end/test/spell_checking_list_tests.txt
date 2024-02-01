@@ -306,6 +306,7 @@ extern
 f\u
 fa
 fac
+failsafe
 faking
 falling
 faults
@@ -835,6 +836,7 @@ walt
 warmup
 week
 weekly
+went
 wherever
 whiskers
 wildcards

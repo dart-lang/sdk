@@ -1,19 +1,17 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show File;
-
-import 'package:dart_style/dart_style.dart' show DartFormatter;
+import 'dart:io';
 
 import '../../test/utils/io_utils.dart' show computeRepoDirUri;
+
 import 'generate_messages_lib.dart';
 
-export 'generate_messages_lib.dart';
-
 void main(List<String> arguments) {
+  print("Running the fail-safe version.");
   final Uri repoDir = computeRepoDirUri();
-  Messages message = generateMessagesFiles(repoDir);
+  Messages message = generateMessagesFilesRaw(repoDir, (s) => s);
   if (message.sharedMessages.trim().isEmpty ||
       message.cfeMessages.trim().isEmpty) {
     print("Bailing because of errors: "
@@ -24,9 +22,18 @@ void main(List<String> arguments) {
     new File.fromUri(computeCfeGeneratedFile(repoDir))
         .writeAsStringSync(message.cfeMessages, flush: true);
   }
-}
 
-Messages generateMessagesFiles(Uri repoDir) {
-  return generateMessagesFilesRaw(
-      repoDir, (s) => new DartFormatter().format(s));
+  if (exitCode != 0) {
+    print("Something went wrong.");
+    return;
+  }
+
+  print("Now executing the non-failsafe version.");
+
+  ProcessResult run = Process.runSync(Platform.resolvedExecutable,
+      [Platform.script.resolve("generate_messages.dart").toFilePath()]);
+  stderr.writeln(run.stderr);
+  stdout.writeln(run.stdout);
+  if (run.exitCode != 0) exitCode = 1;
+  print("Done with exit code $exitCode");
 }
