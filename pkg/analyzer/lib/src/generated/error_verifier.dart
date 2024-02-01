@@ -5940,13 +5940,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     MacroTargetElement element,
     List<Annotation> metadata,
   ) {
-    AstNode? locationNode(TypeAnnotationLocation location) {
+    /// Usually returns [AstNode], sometimes [Token] if the type is omitted.
+    SyntacticEntity? locationEntity(TypeAnnotationLocation location) {
       switch (location) {
         case ElementTypeLocation():
           var element = location.element;
           return libraryVerificationContext.declarationByElement(element);
         case FormalParameterTypeLocation():
-          var node = locationNode(location.parent);
+          var node = locationEntity(location.parent);
           switch (node) {
             case FunctionDeclaration():
               var parameterList = node.functionExpression.parameters;
@@ -5958,7 +5959,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               throw UnimplementedError('${node.runtimeType}');
           }
         case ListIndexTypeLocation():
-          var node = locationNode(location.parent);
+          var node = locationEntity(location.parent);
           switch (node) {
             case NamedType():
               return node.typeArguments?.arguments[location.index];
@@ -5966,53 +5967,36 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               throw UnimplementedError('${node.runtimeType}');
           }
         case ReturnTypeLocation():
-          var node = locationNode(location.parent);
+          var node = locationEntity(location.parent);
           switch (node) {
             case FunctionDeclaration():
-              if (node.returnType case var returnType?) {
-                return returnType;
-              }
-              // The type is omitted.
-              return SimpleIdentifierImpl(node.name);
+              return node.returnType ?? node.name;
             case GenericFunctionType():
               return node.returnType ?? node;
             case MethodDeclaration():
-              if (node.returnType case var returnType?) {
-                return returnType;
-              }
-              // The type is omitted.
-              return SimpleIdentifierImpl(node.name);
+              return node.returnType ?? node.name;
             default:
               throw UnimplementedError('${node.runtimeType}');
           }
         case VariableTypeLocation():
-          var node = locationNode(location.parent);
+          var node = locationEntity(location.parent);
           if (node is DefaultFormalParameter) {
             node = node.parameter;
           }
-          var parent = node?.parent;
+          var parent = node.ifTypeOrNull<AstNode>()?.parent;
           switch (node) {
             case SimpleFormalParameter():
-              if (node.type case var type?) {
-                return type;
-              } else if (node.name case var nameToken?) {
-                return SimpleIdentifierImpl(nameToken);
-              }
-              return null;
+              return node.type ?? node.name;
             case VariableDeclaration():
               if (parent is VariableDeclarationList) {
-                if (parent.type case var type?) {
-                  return type;
-                }
-                // The type is omitted.
-                return SimpleIdentifierImpl(node.name);
+                return parent.type ?? node.name;
               }
           }
           throw UnimplementedError(
             '${node.runtimeType} ${parent.runtimeType}',
           );
         case ExtendsClauseTypeLocation():
-          var node = locationNode(location.parent);
+          var node = locationEntity(location.parent);
           switch (node) {
             case ClassDeclaration():
               return node.extendsClause!.superclass;
@@ -6109,14 +6093,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 diagnostic.contextMessages.map(convertMessage).toList(),
               );
             case TypeAnnotationMacroDiagnosticTarget():
-              var errorNode = locationNode(target.location);
-              if (errorNode != null) {
-                errorReporter.reportErrorForNode(
-                  errorCode,
-                  errorNode,
-                  [diagnostic.message.message],
-                  diagnostic.contextMessages.map(convertMessage).toList(),
-                );
+              var errorEntity = locationEntity(target.location);
+              switch (errorEntity) {
+                case AstNode():
+                  errorReporter.reportErrorForNode(
+                    errorCode,
+                    errorEntity,
+                    [diagnostic.message.message],
+                    diagnostic.contextMessages.map(convertMessage).toList(),
+                  );
+                case Token():
+                  errorReporter.reportErrorForToken(
+                    errorCode,
+                    errorEntity,
+                    [diagnostic.message.message],
+                    diagnostic.contextMessages.map(convertMessage).toList(),
+                  );
               }
           }
       }
