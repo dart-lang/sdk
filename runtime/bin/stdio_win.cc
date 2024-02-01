@@ -5,8 +5,8 @@
 #include "platform/globals.h"
 #if defined(DART_HOST_OS_WINDOWS)
 
+#include "bin/file.h"
 #include "bin/stdio.h"
-
 // These are not always defined in the header files. See:
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms686033(v=vs.85).aspx
 #ifndef ENABLE_VIRTUAL_TERMINAL_INPUT
@@ -19,6 +19,18 @@
 
 namespace dart {
 namespace bin {
+
+
+HANDLE GetInpStdHandle(int stdioMode) {
+
+if(stdioMode == File::StdioHandleType::kPipe) {
+    return CreateFileA("CONIN$", GENERIC_READ | GENERIC_WRITE, 0, 
+    NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+  }
+  else {
+    return GetStdHandle(STD_INPUT_HANDLE);
+  }     
+}
 
 bool Stdin::ReadByte(intptr_t fd, int* byte) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
@@ -42,8 +54,8 @@ bool Stdin::GetEchoMode(intptr_t fd, bool* enabled) {
   return true;
 }
 
-bool Stdin::SetEchoMode(intptr_t fd, bool enabled) {
-  HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+bool Stdin::SetEchoMode(intptr_t fd, bool enabled, int stdioMode) {
+  HANDLE h = GetInpStdHandle(stdioMode);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
     return false;
@@ -79,8 +91,8 @@ bool Stdin::GetLineMode(intptr_t fd, bool* enabled) {
   return true;
 }
 
-bool Stdin::SetLineMode(intptr_t fd, bool enabled) {
-  HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+bool Stdin::SetLineMode(intptr_t fd, bool enabled, int stdioMode) {
+  HANDLE h = GetInpStdHandle(stdioMode);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
     return false;
