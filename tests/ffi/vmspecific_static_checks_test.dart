@@ -65,6 +65,7 @@ void main() {
   testEmptyStructFromFunctionReturn();
   testAllocateGeneric();
   testAllocateInvalidType();
+  testCreateInvalidType();
   testRefStruct();
   testSizeOfGeneric();
   testSizeOfInvalidType();
@@ -1061,6 +1062,20 @@ void testAllocateInvalidType() {
   // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
   //         ^
   // [cfe] Expected type 'AbiSpecificInteger' to be a valid and instantiated subtype of 'NativeType'.
+}
+
+// TODO(https://dartbug.com/36780): Improve error messages.
+void testCreateInvalidType() {
+  /**/ Struct.create<Struct>();
+  //   ^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+  //          ^
+  // [cfe] Expected type 'Struct' to be a valid and instantiated subtype of 'NativeType'.
+  /**/ Union.create<Union>();
+  //   ^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+  //         ^
+  // [cfe] Expected type 'Union' to be a valid and instantiated subtype of 'NativeType'.
 }
 
 void testRefStruct() {
