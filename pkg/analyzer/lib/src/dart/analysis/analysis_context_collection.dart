@@ -104,6 +104,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       var context = contextBuilder.createContext(
         byteStore: byteStore,
         contextRoot: root,
+        definedOptionsFile: optionsFile != null,
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
         drainStreams: drainStreams,
         enableIndex: enableIndex,
