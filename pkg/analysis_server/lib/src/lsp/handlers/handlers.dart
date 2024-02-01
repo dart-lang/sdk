@@ -124,8 +124,9 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     var supportedSchemes = server.uriConverter.supportedSchemes;
     var isValidScheme = supportedSchemes.contains(uri.scheme);
     if (!isValidScheme) {
-      var supportedSchemesString =
-          supportedSchemes.map((scheme) => "'$scheme'").join(', ');
+      var supportedSchemesString = supportedSchemes.isEmpty
+          ? '(none)'
+          : supportedSchemes.map((scheme) => "'$scheme'").join(', ');
       return ErrorOr<String>.error(ResponseError(
         code: ServerErrorCodes.InvalidFilePath,
         message: "URI scheme '${uri.scheme}' is not supported. "

@@ -804,16 +804,6 @@ mixin LspAnalysisServerTestMixin
   /// list.
   final diagnostics = <Uri, List<Diagnostic>>{};
 
-  /// A stream of [OpenUriParams] for any `dart/openUri` notifications.
-  Stream<DartTextDocumentContentDidChangeParams>
-      get dartTextDocumentContentDidChangeNotifications =>
-          notificationsFromServer
-              .where((notification) =>
-                  notification.method ==
-                  CustomMethods.dartTextDocumentContentDidChange)
-              .map((message) => DartTextDocumentContentDidChangeParams.fromJson(
-                  message.params as Map<String, Object?>));
-
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
@@ -833,6 +823,7 @@ mixin LspAnalysisServerTestMixin
   Uri get mainFileMacroUri => mainFileUri.replace(scheme: macroClientUriScheme);
 
   /// A stream of [NotificationMessage]s from the server.
+  @override
   Stream<NotificationMessage> get notificationsFromServer {
     return serverToClient
         .where((m) => m is NotificationMessage)
