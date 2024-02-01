@@ -152,8 +152,8 @@ class ScopedSSLStackType {
 
   ~ScopedSSLStackType() {
     if (obj_ != nullptr) {
-      func(reinterpret_cast<E*>(
-          OPENSSL_sk_pop(reinterpret_cast<OPENSSL_STACK*>(obj_))));
+      OPENSSL_sk_pop_free_ex(reinterpret_cast<OPENSSL_STACK*>(obj_),
+                             call_free_func, free_func);
     }
   }
 
@@ -167,6 +167,11 @@ class ScopedSSLStackType {
   }
 
  private:
+  static void free_func(void* element) { func(reinterpret_cast<E*>(element)); }
+  static void call_free_func(void (*free_func)(void*), void* element) {
+    free_func(element);
+  }
+
   T* obj_;
 
   DISALLOW_ALLOCATION();

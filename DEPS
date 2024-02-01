@@ -141,7 +141,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "633b01cba68f4b42ddc2985c3d521c22149d5ce3", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "0f13e6443595f8e49cc86d783210d78c93d3502e",
+  "dartdoc_rev": "5cac62b6071c899d52553fcd417ca5faeeb507c1",
   "ecosystem_rev": "9ee08a41b85973e5cc2f6144ff4de69bf9aed244",
   "file_rev": "cd3a9324f6483f313ba1f0f3ff382ea4e6982ef2",
   "fixnum_rev": "3e08c0d7ce1a0cd832a17391444898ec610b5f89",
@@ -162,7 +162,7 @@ vars = {
   "mime_rev": "99fbdcc745e2f2cfb85be4a4c6c7b520cd25c2dd",
   "mockito_rev": "0422551a774cbf72eea87ba80e71f7b5d81199f3",
   "native_rev": "0eafd544d6ebce07b42007560ae9e0858c885d89",
-  "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
+  "package_config_rev": "5a0bc197fde3db2907d0e35e0470e601bee20845",
   "path_rev": "57a049cff2e2be7a302dd9683b2b194c6d06e2d4",
   "pool_rev": "4c490001446d8ba3d361b99d8befd6a4f61abc7a",
   "protobuf_rev": "a293fb9c866b1def3d3e7fffc5f6763a2ec59cc9",
