@@ -638,6 +638,15 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
+    computer._addRegion_token(node.importKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
+    super.visitAugmentationImportDirective(node);
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
@@ -719,6 +728,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
+    // TODO(brianwilkerson): Update the interface to expose the token.
+    // computer._addRegion_token(
+    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.sealedKeyword, HighlightRegionType.BUILT_IN);
@@ -738,6 +750,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
@@ -836,6 +850,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
+    // TODO(brianwilkerson): Uncomment the following lines when the token is
+    //  supported.
+    // computer._addRegion_token(
+    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.enumKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.name, HighlightRegionType.ENUM);
     super.visitEnumDeclaration(node);
@@ -863,6 +881,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
+    // TODO(brianwilkerson): Uncomment the following lines when the token is
+    //  supported.
+    // computer._addRegion_token(
+    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.extensionKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.name, HighlightRegionType.EXTENSION);
@@ -908,6 +930,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    // TODO(brianwilkerson): Update the interface to expose the token.
+    // computer._addRegion_token(
+    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
@@ -983,6 +1008,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    // TODO(brianwilkerson): Update the interface to expose the token.
+    // computer._addRegion_token(
+    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
@@ -1146,6 +1174,16 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
+    computer._addRegion_token(
+        node.libraryKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
+    super.visitLibraryAugmentationDirective(node);
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(
@@ -1168,6 +1206,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
@@ -1198,6 +1238,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.baseKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.name, HighlightRegionType.MIXIN);
@@ -1494,6 +1536,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    // TODO(brianwilkerson): Uncomment the following lines when the token is
+    //  supported.
+    // computer._addRegion_token(
+    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
 
