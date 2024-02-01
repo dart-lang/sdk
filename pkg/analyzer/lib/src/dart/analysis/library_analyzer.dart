@@ -590,6 +590,55 @@ class LibraryAnalyzer {
     _computeConstants(_libraryUnits.values);
   }
 
+  /// Reports URI-related import directive errors to the [errorReporter].
+  void _reportImportDirectiveErrors({
+    required ImportDirectiveImpl directive,
+    required LibraryImportState state,
+    required ErrorReporter errorReporter,
+  }) {
+    if (state is LibraryImportWithUri) {
+      final selectedUriStr = state.selectedUri.relativeUriStr;
+      if (selectedUriStr.startsWith('dart-ext:')) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
+          directive.uri,
+        );
+      } else if (state.importedSource == null) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+          directive.uri,
+          [selectedUriStr],
+        );
+      } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
+        final errorCode = isGeneratedSource(state.importedSource)
+            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        errorReporter.reportErrorForNode(
+          errorCode,
+          directive.uri,
+          [selectedUriStr],
+        );
+      } else if (state.importedLibrarySource == null) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+          directive.uri,
+          [selectedUriStr],
+        );
+      }
+    } else if (state is LibraryImportWithUriStr) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_URI,
+        directive.uri,
+        [state.selectedUri.relativeUriStr],
+      );
+    } else {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        directive.uri,
+      );
+    }
+  }
+
   void _resolveAugmentationImportDirective({
     required AugmentationImportDirectiveImpl? directive,
     required AugmentationImportElementImpl element,
@@ -757,6 +806,21 @@ class LibraryAnalyzer {
         );
       }
     }
+
+    final docImports = containerUnit.directives
+        .whereType<LibraryDirective>()
+        .firstOrNull
+        ?.documentationComment
+        ?.docImports;
+    if (docImports != null) {
+      for (var i = 0; i < docImports.length; i++) {
+        _resolveLibraryDocImportDirective(
+          directive: docImports[i].import as ImportDirectiveImpl,
+          state: containerKind.libraryDocImports[i],
+          errorReporter: containerErrorReporter,
+        );
+      }
+    }
   }
 
   void _resolveFile(FileState file, CompilationUnitImpl unit) {
@@ -850,6 +914,24 @@ class LibraryAnalyzer {
     );
   }
 
+  /// Resolves the `@docImport` directive URI and reports any import errors of
+  /// the [directive] to the [errorReporter].
+  void _resolveLibraryDocImportDirective({
+    required ImportDirectiveImpl directive,
+    required LibraryImportState state,
+    required ErrorReporter errorReporter,
+  }) {
+    _resolveNamespaceDirective(
+      configurationNodes: directive.configurations,
+      configurationUris: state.uris.configurations,
+    );
+    _reportImportDirectiveErrors(
+      directive: directive,
+      state: state,
+      errorReporter: errorReporter,
+    );
+  }
+
   void _resolveLibraryExportDirective({
     required ExportDirectiveImpl directive,
     required LibraryExportElement element,
@@ -916,47 +998,11 @@ class LibraryAnalyzer {
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
     );
-    if (state is LibraryImportWithUri) {
-      final selectedUriStr = state.selectedUri.relativeUriStr;
-      if (selectedUriStr.startsWith('dart-ext:')) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
-          directive.uri,
-        );
-      } else if (state.importedSource == null) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-          directive.uri,
-          [selectedUriStr],
-        );
-      } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
-        final errorCode = isGeneratedSource(state.importedSource)
-            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-        errorReporter.reportErrorForNode(
-          errorCode,
-          directive.uri,
-          [selectedUriStr],
-        );
-      } else if (state.importedLibrarySource == null) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-          directive.uri,
-          [selectedUriStr],
-        );
-      }
-    } else if (state is LibraryImportWithUriStr) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_URI,
-        directive.uri,
-        [state.selectedUri.relativeUriStr],
-      );
-    } else {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-        directive.uri,
-      );
-    }
+    _reportImportDirectiveErrors(
+      directive: directive,
+      state: state,
+      errorReporter: errorReporter,
+    );
   }
 
   void _resolveNamespaceDirective({
