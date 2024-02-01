@@ -259,8 +259,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var newKeyword = node.newKeyword;
     if (newKeyword != null &&
         _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-      _errorReporter.reportErrorForToken(
-          WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, newKeyword, []);
+      _errorReporter.atToken(
+        newKeyword,
+        WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE,
+        arguments: [],
+      );
     }
     super.visitCommentReference(node);
   }
@@ -304,11 +307,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // This is a warning in code whose language version is < 3.0, but an error
       // in code whose language version is >= 3.0.
       if (_currentLibrary.languageVersion.effective.major < 3) {
-        _errorReporter.reportErrorForToken(
-            HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE, separator);
+        _errorReporter.atToken(
+          separator,
+          HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE,
+        );
       } else {
-        _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE, separator);
+        _errorReporter.atToken(
+          separator,
+          CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE,
+        );
       }
     }
     _deprecatedVerifier
@@ -412,11 +419,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           // Overridden members are always inside classes or mixins, which are
           // always named, so we can safely assume
           // `overriddenElement.enclosingElement3.name` is non-`null`.
-          _errorReporter.reportErrorForToken(
-              WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, field.name, [
-            field.name.lexeme,
-            overriddenElement.enclosingElement.displayName
-          ]);
+          _errorReporter.atToken(
+            field.name,
+            WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+            arguments: [
+              field.name.lexeme,
+              overriddenElement.enclosingElement.displayName
+            ],
+          );
         }
         if (!_invalidAccessVerifier._inTestDirectory) {
           _checkForAssignmentOfDoNotStore(field.initializer);
@@ -604,10 +614,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // Overridden members are always inside classes or mixins, which are
         // always named, so we can safely assume
         // `overriddenElement.enclosingElement3.name` is non-`null`.
-        _errorReporter.reportErrorForToken(
-            WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
-            node.name,
-            [node.name.lexeme, overriddenElement.enclosingElement.displayName]);
+        _errorReporter.atToken(
+          node.name,
+          WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+          arguments: [
+            node.name.lexeme,
+            overriddenElement.enclosingElement.displayName
+          ],
+        );
       }
 
       super.visitMethodDeclaration(node);
@@ -660,10 +674,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if ((type is InterfaceType && type.element == _nullType.element ||
               (type is DynamicType && node.name2.lexeme == 'dynamic')) &&
           type.alias == null) {
-        _errorReporter.reportErrorForToken(
-          WarningCode.UNNECESSARY_QUESTION_MARK,
+        _errorReporter.atToken(
           question,
-          [node.qualifiedName],
+          WarningCode.UNNECESSARY_QUESTION_MARK,
+          arguments: [node.qualifiedName],
         );
       }
     }
@@ -826,9 +840,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkFinalParameter(FormalParameter node, Token? keyword) {
     if (node.isFinal) {
-      _errorReporter.reportErrorForToken(
-        WarningCode.UNNECESSARY_FINAL,
+      _errorReporter.atToken(
         keyword!,
+        WarningCode.UNNECESSARY_FINAL,
       );
     }
   }
@@ -973,8 +987,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           definedOrInheritedNonFinalInstanceFields(
               element, HashSet<InterfaceElement>());
       if (nonFinalFields.isNotEmpty) {
-        _errorReporter.reportErrorForToken(WarningCode.MUST_BE_IMMUTABLE,
-            node.name, [nonFinalFields.join(', ')]);
+        _errorReporter.atToken(
+          node.name,
+          WarningCode.MUST_BE_IMMUTABLE,
+          arguments: [nonFinalFields.join(', ')],
+        );
       }
     }
   }
@@ -1228,8 +1245,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_typeSystem.isNullable(parameterElement.type)) {
-      _errorReporter.reportErrorForToken(
-          WarningCode.NON_NULLABLE_EQUALS_PARAMETER, node.name);
+      _errorReporter.atToken(
+        node.name,
+        WarningCode.NON_NULLABLE_EQUALS_PARAMETER,
+      );
     }
   }
 
@@ -1303,8 +1322,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     FunctionBody body = node.body;
     if (body is ExpressionFunctionBody) {
       if (isNonObjectNoSuchMethodInvocation(body.expression)) {
-        _errorReporter.reportErrorForToken(
-            WarningCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
+        _errorReporter.atToken(
+          node.name,
+          WarningCode.UNNECESSARY_NO_SUCH_METHOD,
+        );
         return true;
       }
     } else if (body is BlockFunctionBody) {
@@ -1313,8 +1334,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         Statement returnStatement = statements.first;
         if (returnStatement is ReturnStatement &&
             isNonObjectNoSuchMethodInvocation(returnStatement.expression)) {
-          _errorReporter.reportErrorForToken(
-              WarningCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
+          _errorReporter.atToken(
+            node.name,
+            WarningCode.UNNECESSARY_NO_SUCH_METHOD,
+          );
           return true;
         }
       }
@@ -1454,16 +1477,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     switch (reportNode) {
       case MethodDeclaration():
-        _errorReporter.reportErrorForToken(
-          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+        _errorReporter.atToken(
           reportNode.name,
-          [displayName],
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          arguments: [displayName],
         );
       case FunctionDeclaration():
-        _errorReporter.reportErrorForToken(
-          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+        _errorReporter.atToken(
           reportNode.name,
-          [displayName],
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          arguments: [displayName],
         );
       case _:
         _errorReporter.reportErrorForNode(
@@ -1676,10 +1699,11 @@ class _InvalidAccessVerifier {
         }
       }
 
-      _errorReporter.reportErrorForToken(
-          WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
-          operator,
-          [operator.type.lexeme]);
+      _errorReporter.atToken(
+        operator,
+        WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+        arguments: [operator.type.lexeme],
+      );
     }
   }
 

@@ -96,8 +96,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           inCompound = true;
           compound = node;
           if (node.declaredElement!.isEmptyStruct) {
-            _errorReporter.reportErrorForToken(
-                FfiCode.EMPTY_STRUCT, node.name, [node.name.lexeme, className]);
+            _errorReporter.atToken(
+              node.name,
+              FfiCode.EMPTY_STRUCT,
+              arguments: [node.name.lexeme, className],
+            );
           }
           if (className == _structClassName) {
             _validatePackedAnnotation(node.metadata);
@@ -144,8 +147,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (inCompound) {
       if (node.declaredElement!.typeParameters.isNotEmpty) {
-        _errorReporter.reportErrorForToken(
-            FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.lexeme]);
+        _errorReporter.atToken(
+          node.name,
+          FfiCode.GENERIC_STRUCT_SUBCLASS,
+          arguments: [node.name.lexeme],
+        );
       }
       final implementsClause = node.implementsClause;
       if (implementsClause != null) {
@@ -155,10 +161,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final finalizableElement = ffiLibrary.getClass(_finalizableClassName)!;
         final finalizableType = finalizableElement.thisType;
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
-          _errorReporter.reportErrorForToken(
-              FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
-              node.name,
-              [node.name.lexeme]);
+          _errorReporter.atToken(
+            node.name,
+            FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
+            arguments: [node.name.lexeme],
+          );
         }
       }
     }
@@ -857,8 +864,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         node.members.length != 1 ||
         node.members.single is! ConstructorDeclaration ||
         (node.members.single as ConstructorDeclaration).constKeyword == null) {
-      _errorReporter.reportErrorForToken(
-          FfiCode.ABI_SPECIFIC_INTEGER_INVALID, node.name);
+      _errorReporter.atToken(
+        node.name,
+        FfiCode.ABI_SPECIFIC_INTEGER_INVALID,
+      );
     }
   }
 
@@ -870,8 +879,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         .toList();
 
     if (ffiPackedAnnotations.isEmpty) {
-      _errorReporter.reportErrorForToken(
-          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, errorToken);
+      _errorReporter.atToken(
+        errorToken,
+        FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING,
+      );
       return;
     }
 
@@ -1216,17 +1227,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (typeSystem.isNonNullableByDefault) {
       if (node.externalKeyword == null) {
-        _errorReporter.reportErrorForToken(
-          FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
+        _errorReporter.atToken(
           fields.variables[0].name,
+          FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
         );
       }
     }
 
     var fieldType = fields.type;
     if (fieldType == null) {
-      _errorReporter.reportErrorForToken(
-          FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name);
+      _errorReporter.atToken(
+        fields.variables[0].name,
+        FfiCode.MISSING_FIELD_TYPE_IN_STRUCT,
+      );
     } else {
       DartType declaredType = fieldType.typeOrThrow;
       if (declaredType.nullabilitySuffix == NullabilitySuffix.question) {

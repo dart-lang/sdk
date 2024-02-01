@@ -153,10 +153,11 @@ class PrefixExpressionResolver {
         if (member == null) {
           // Extension overrides always refer to named extensions, so we can
           // safely assume `element.name` is non-`null`.
-          _errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-              node.operator,
-              [methodName, element.name!]);
+          _errorReporter.atToken(
+            node.operator,
+            CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+            arguments: [methodName, element.name!],
+          );
         }
         node.staticElement = member;
         return;
@@ -184,16 +185,16 @@ class PrefixExpressionResolver {
       node.staticElement = result.getter as MethodElement?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+          _errorReporter.atToken(
             operator,
-            [methodName, readType],
+            CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+            arguments: [methodName, readType],
           );
         } else {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.UNDEFINED_OPERATOR,
+          _errorReporter.atToken(
             operator,
-            [methodName, readType],
+            CompileTimeErrorCode.UNDEFINED_OPERATOR,
+            arguments: [methodName, readType],
           );
         }
       }

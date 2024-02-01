@@ -192,16 +192,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.element = element;
 
     if (element == null) {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+      _errorReporter.atToken(
         node.name,
-        [name],
+        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        arguments: [name],
       );
     } else if (!(element is LocalVariableElement ||
         element is ParameterElement)) {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
+      _errorReporter.atToken(
         node.name,
+        CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
       );
     }
   }

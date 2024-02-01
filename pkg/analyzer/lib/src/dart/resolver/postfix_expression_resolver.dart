@@ -147,16 +147,16 @@ class PostfixExpressionResolver {
     node.staticElement = result.getter as MethodElement?;
     if (result.needsGetterError) {
       if (operand is SuperExpression) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+        _errorReporter.atToken(
           node.operator,
-          [methodName, receiverType],
+          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+          arguments: [methodName, receiverType],
         );
       } else {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        _errorReporter.atToken(
           node.operator,
-          [methodName, receiverType],
+          CompileTimeErrorCode.UNDEFINED_OPERATOR,
+          arguments: [methodName, receiverType],
         );
       }
     }

@@ -220,9 +220,9 @@ class AssignmentExpressionResolver {
     // Example: `y += 0`, is not allowed.
     if (operatorType != TokenType.EQ) {
       if (leftType is VoidType) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        _errorReporter.atToken(
           operator,
+          CompileTimeErrorCode.USE_OF_VOID_RESULT,
         );
         return;
       }
@@ -250,10 +250,10 @@ class AssignmentExpressionResolver {
     );
     node.staticElement = result.getter as MethodElement?;
     if (result.needsGetterError) {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.UNDEFINED_OPERATOR,
+      _errorReporter.atToken(
         operator,
-        [methodName, leftType],
+        CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        arguments: [methodName, leftType],
       );
     }
   }

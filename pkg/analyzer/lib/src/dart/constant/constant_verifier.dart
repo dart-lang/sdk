@@ -840,11 +840,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             // TODO(kallentu): Report the specific error we got from the
             // evaluator to make it clear to the user what's wrong.
             if (result is! DartObjectImpl) {
-              _errorReporter.reportErrorForToken(
-                  CompileTimeErrorCode
-                      .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-                  constKeyword,
-                  [variableDeclaration.name.lexeme]);
+              _errorReporter.atToken(
+                constKeyword,
+                CompileTimeErrorCode
+                    .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+                arguments: [variableDeclaration.name.lexeme],
+              );
             }
           }
         }
@@ -922,9 +923,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         } else {
           throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
         }
-        _errorReporter.reportErrorForToken(
-          WarningCode.UNREACHABLE_SWITCH_CASE,
+        _errorReporter.atToken(
           errorToken,
+          WarningCode.UNREACHABLE_SWITCH_CASE,
         );
       } else if (error is NonExhaustiveError && reportNonExhaustive) {
         var errorBuffer = SimpleDartBuffer();
@@ -933,18 +934,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         var correctionDataBuffer = AnalyzerDartTemplateBuffer();
         error.witness.toDart(correctionTextBuffer, forCorrection: true);
         error.witness.toDart(correctionDataBuffer, forCorrection: true);
-        _errorReporter.reportErrorForToken(
+        _errorReporter.atToken(
+          switchKeyword,
           isSwitchExpression
               ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
               : CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
-          switchKeyword,
-          [
+          arguments: [
             scrutineeType,
             errorBuffer.toString(),
             correctionTextBuffer.toString(),
           ],
-          [],
-          correctionDataBuffer.isComplete ? correctionDataBuffer.parts : null,
+          messages: [],
+          data: correctionDataBuffer.isComplete
+              ? correctionDataBuffer.parts
+              : null,
         );
       }
     }

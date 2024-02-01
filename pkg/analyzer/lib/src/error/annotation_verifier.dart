@@ -83,10 +83,11 @@ class AnnotationVerifier {
     }
     var returnType = parent.returnType?.type;
     if (returnType is VoidType) {
-      _errorReporter.reportErrorForToken(
-          WarningCode.INVALID_FACTORY_METHOD_DECL,
-          parent.name,
-          [parent.name.lexeme]);
+      _errorReporter.atToken(
+        parent.name,
+        WarningCode.INVALID_FACTORY_METHOD_DECL,
+        arguments: [parent.name.lexeme],
+      );
       return;
     }
 
@@ -112,8 +113,11 @@ class AnnotationVerifier {
       }
     }
 
-    _errorReporter.reportErrorForToken(WarningCode.INVALID_FACTORY_METHOD_IMPL,
-        parent.name, [parent.name.lexeme]);
+    _errorReporter.atToken(
+      parent.name,
+      WarningCode.INVALID_FACTORY_METHOD_IMPL,
+      arguments: [parent.name.lexeme],
+    );
   }
 
   /// Reports a warning at [node] if it's parent is not a valid target for an

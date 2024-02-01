@@ -72,10 +72,11 @@ class BinaryExpressionResolver {
 
     // Report an error if not already reported by the parser.
     if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
-      _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.NOT_BINARY_OPERATOR,
-          node.operator,
-          [operator.lexeme]);
+      _errorReporter.atToken(
+        node.operator,
+        CompileTimeErrorCode.NOT_BINARY_OPERATOR,
+        arguments: [operator.lexeme],
+      );
     }
 
     _resolveUnsupportedOperator(node, contextType: contextType);
@@ -319,10 +320,10 @@ class BinaryExpressionResolver {
       if (member == null) {
         // Extension overrides can only be used with named extensions so it is
         // safe to assume `extension.name` is non-`null`.
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+        _errorReporter.atToken(
           node.operator,
-          [methodName, extension.name!],
+          CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+          arguments: [methodName, extension.name!],
         );
       }
       node.staticElement = member;
@@ -357,16 +358,16 @@ class BinaryExpressionResolver {
     node.staticInvokeType = result.getter?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+        _errorReporter.atToken(
           node.operator,
-          [methodName, leftType],
+          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+          arguments: [methodName, leftType],
         );
       } else {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        _errorReporter.atToken(
           node.operator,
-          [methodName, leftType],
+          CompileTimeErrorCode.UNDEFINED_OPERATOR,
+          arguments: [methodName, leftType],
         );
       }
     }

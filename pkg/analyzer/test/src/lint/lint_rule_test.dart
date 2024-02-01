@@ -76,6 +76,17 @@ class CollectingReporter extends ErrorReporter {
   CollectingReporter(super.listener, super.source);
 
   @override
+  void atToken(
+    Token token,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  }) {
+    code = errorCode;
+  }
+
+  @override
   void reportErrorForElement(ErrorCode errorCode, Element element,
       [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     code = errorCode;

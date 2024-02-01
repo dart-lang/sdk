@@ -363,8 +363,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitAwaitExpression(AwaitExpression node) {
     if (!_enclosingExecutable.isAsynchronous) {
-      errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, node.awaitKeyword);
+      errorReporter.atToken(
+        node.awaitKeyword,
+        CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+      );
     }
     if (_isNonNullableByDefault) {
       checkForUseOfVoidResult(node.expression);
@@ -773,8 +775,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !node.isStatic && !node.fields.isLate;
     if (!_isInStaticVariableDeclaration) {
       if (fields.isConst) {
-        errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.CONST_INSTANCE_FIELD, fields.keyword!);
+        errorReporter.atToken(
+          fields.keyword!,
+          CompileTimeErrorCode.CONST_INSTANCE_FIELD,
+        );
       }
     }
     try {
@@ -820,9 +824,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (_checkForEachParts(node, loopVariable.declaredElement)) {
       if (loopVariable.isConst) {
-        errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE,
-            loopVariable.keyword!);
+        errorReporter.atToken(
+          loopVariable.keyword!,
+          CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE,
+        );
       }
     }
     super.visitForEachPartsWithDeclaration(node);
@@ -1315,10 +1320,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     super.visitSuperFormalParameter(node);
 
     if (_enclosingClass is ExtensionTypeElement) {
-      errorReporter.reportErrorForToken(
+      errorReporter.atToken(
+        node.superKeyword,
         CompileTimeErrorCode
             .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
-        node.superKeyword,
       );
       return;
     }
@@ -1326,9 +1331,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var constructor = node.parentFormalParameterList.parent;
     if (!(constructor is ConstructorDeclaration &&
         constructor.isNonRedirectingGenerative)) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+      errorReporter.atToken(
         node.superKeyword,
+        CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
       );
       return;
     }
@@ -1337,24 +1342,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superParameter = element.superConstructorParameter;
 
     if (superParameter == null) {
-      errorReporter.reportErrorForToken(
+      errorReporter.atToken(
+        node.name,
         node.isNamed
             ? CompileTimeErrorCode
                 .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED
             : CompileTimeErrorCode
                 .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
-        node.name,
       );
       return;
     }
 
     if (!_currentLibrary.typeSystem
         .isSubtypeOf(element.type, superParameter.type)) {
-      errorReporter.reportErrorForToken(
+      errorReporter.atToken(
+        node.name,
         CompileTimeErrorCode
             .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
-        node.name,
-        [element.type, superParameter.type],
+        arguments: [element.type, superParameter.type],
       );
     }
   }
@@ -1546,8 +1551,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (int i = 0; i < count; i++) {
         var deferredToken = directives[i].deferredKeyword;
         if (deferredToken != null) {
-          errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
+          errorReporter.atToken(
+            deferredToken,
+            CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,
+          );
         }
       }
     }
@@ -1556,14 +1563,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForAbstractOrExternalFieldConstructorInitializer(
       Token identifier, FieldElement fieldElement) {
     if (fieldElement.isAbstract) {
-      errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
-          identifier);
+      errorReporter.atToken(
+        identifier,
+        CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
+      );
     }
     if (fieldElement.isExternal) {
-      errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER,
-          identifier);
+      errorReporter.atToken(
+        identifier,
+        CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER,
+      );
     }
   }
 
@@ -1573,17 +1582,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (node.initializer != null) {
       if (declaredElement is FieldElement) {
         if (declaredElement.isAbstract) {
-          errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, node.name);
+          errorReporter.atToken(
+            node.name,
+            CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER,
+          );
         }
         if (declaredElement.isExternal) {
-          errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER, node.name);
+          errorReporter.atToken(
+            node.name,
+            CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER,
+          );
         }
       } else if (declaredElement is TopLevelVariableElement) {
         if (declaredElement.isExternal) {
-          errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER, node.name);
+          errorReporter.atToken(
+            node.name,
+            CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER,
+          );
         }
       }
     }
@@ -1738,10 +1753,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+      errorReporter.atToken(
         name,
-        [name.lexeme, libraryNames.quotedAndCommaSeparatedWithAnd],
+        CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+        arguments: [name.lexeme, libraryNames.quotedAndCommaSeparatedWithAnd],
       );
     }
   }
@@ -1821,9 +1836,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForAwaitInLateLocalVariableInitializer(AwaitExpression node) {
     if (_isInLateLocalVariable.last) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
+      errorReporter.atToken(
         node.awaitKeyword,
+        CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
       );
     }
   }
@@ -1836,9 +1851,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         typeSystem.objectQuestion,
       );
       if (!typeSystem.isSubtypeOf(expressionType, anyFuture)) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE,
+        errorReporter.atToken(
           node.awaitKeyword,
+          CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE,
         );
       }
     }
@@ -1943,7 +1958,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME].
   void _checkForBuiltInIdentifierAsName(Token token, ErrorCode errorCode) {
     if (token.type.isKeyword && token.keyword?.isPseudo != true) {
-      errorReporter.reportErrorForToken(errorCode, token, [token.lexeme]);
+      errorReporter.atToken(
+        token,
+        errorCode,
+        arguments: [token.lexeme],
+      );
     }
   }
 
@@ -1985,8 +2004,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED, switchCase.keyword);
+    errorReporter.atToken(
+      switchCase.keyword,
+      CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED,
+    );
   }
 
   /// Verify that the switch cases in the given switch [statement] are
@@ -2301,10 +2322,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     for (var error in errors) {
       if (error is IncompatibleInterfacesClassHierarchyError) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+        errorReporter.atToken(
           node.name,
-          [
+          CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+          arguments: [
             _enclosingClass!.kind.displayName,
             _enclosingClass!.name,
             error.first.getDisplayString(withNullability: true),
@@ -2369,9 +2390,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         redirectingInitializerCount++;
       } else if (initializer is SuperConstructorInvocation) {
         if (enclosingClass is EnumElement) {
-          errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR,
+          errorReporter.atToken(
             initializer.superKeyword,
+            CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR,
           );
         } else if (superInitializerCount == 1) {
           // Only report the second (first illegal) superinitializer.
@@ -2415,10 +2436,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (constructorName != null) {
         constructorStrName += '.${constructorName.name}';
       }
-      errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
-          superInitializer.superKeyword,
-          [constructorStrName]);
+      errorReporter.atToken(
+        superInitializer.superKeyword,
+        CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
+        arguments: [constructorStrName],
+      );
     }
   }
 
@@ -2608,8 +2630,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var constructorElement = expression.constructorName.staticElement;
     if (constructorElement != null && !constructorElement.isConst) {
       if (expression.keyword != null) {
-        errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.CONST_WITH_NON_CONST, expression.keyword!);
+        errorReporter.atToken(
+          expression.keyword!,
+          CompileTimeErrorCode.CONST_WITH_NON_CONST,
+        );
       } else {
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CONST_WITH_NON_CONST, expression);
@@ -2857,9 +2881,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         allowSuperBounded: true,
       );
       if (isWellBounded is NotWellBoundedTypeResult) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED,
+        errorReporter.atToken(
           node.name,
+          CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED,
         );
       }
     }
@@ -3002,18 +3026,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
     if (_enclosingExtension != null) {
       if (node.hasObjectMemberName) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
+        errorReporter.atToken(
           node.name,
+          CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
         );
       }
     }
 
     if (_enclosingClass is ExtensionTypeElement) {
       if (node.hasObjectMemberName) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+        errorReporter.atToken(
           node.name,
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
         );
       }
     }
@@ -3023,9 +3047,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     SuperConstructorInvocation node,
   ) {
     if (_enclosingClass is ExtensionTypeElement) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
+      errorReporter.atToken(
         node.superKeyword,
+        CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
       );
     }
   }
@@ -3040,9 +3064,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     for (final field in node.fields.variables) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
+      errorReporter.atToken(
         field.name,
+        CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
       );
     }
   }
@@ -3068,9 +3092,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeElementImpl element,
   ) {
     if (element.hasImplementsSelfReference) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF,
+      errorReporter.atToken(
         node.name,
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF,
       );
     }
   }
@@ -3090,11 +3114,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           url: null,
         );
       }).toList();
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+      errorReporter.atToken(
         node.name,
-        [node.name.lexeme, memberName],
-        contextMessages,
+        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+        arguments: [node.name.lexeme, memberName],
+        messages: contextMessages,
       );
     }
 
@@ -3119,9 +3143,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeElementImpl element,
   ) {
     if (element.hasRepresentationSelfReference) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+      errorReporter.atToken(
         node.name,
+        CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
       );
     }
   }
@@ -3217,10 +3241,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (VariableDeclaration variable in variables) {
       if (variable.initializer == null) {
         if (isConst) {
-          errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
-              variable.name,
-              [variable.name.lexeme]);
+          errorReporter.atToken(
+            variable.name,
+            CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+            arguments: [variable.name.lexeme],
+          );
         } else {
           var variableElement = variable.declaredElement;
           if (variableElement is FieldElement &&
@@ -3230,10 +3255,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               variableElement.isExternal) {
             // External top level variables can't be initialized, so no error.
           } else if (!_isNonNullableByDefault || !variable.isLate) {
-            errorReporter.reportErrorForToken(
-                CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
-                variable.name,
-                [variable.name.lexeme]);
+            errorReporter.atToken(
+              variable.name,
+              CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+              arguments: [variable.name.lexeme],
+            );
           }
         }
       }
@@ -3383,10 +3409,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var languageVersionToken = node.languageVersionToken;
     if (languageVersionToken != null) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
+      errorReporter.atToken(
         languageVersionToken,
-        ['$sourceLanguageConstraint'],
+        CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
+        arguments: ['$sourceLanguageConstraint'],
       );
     }
   }
@@ -3658,7 +3684,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       FunctionBody body, CompileTimeErrorCode errorCode) {
     var keyword = body.keyword;
     if (keyword != null) {
-      errorReporter.reportErrorForToken(errorCode, keyword, [keyword.lexeme]);
+      errorReporter.atToken(
+        keyword,
+        errorCode,
+        arguments: [keyword.lexeme],
+      );
     }
   }
 
@@ -3691,9 +3721,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _enclosingClass!.constructors.any((c) => c.isConst && !c.isFactory);
     if (!hasGenerativeConstConstructor) return;
 
-    errorReporter.reportErrorForToken(
-      CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
+    errorReporter.atToken(
       lateKeyword,
+      CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
     );
   }
 
@@ -3744,9 +3774,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (declaredElement is! FunctionElement) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION,
+      errorReporter.atToken(
         nameToken,
+        CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION,
       );
     }
   }
@@ -3775,16 +3805,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         parameters.where((e) => e.isRequiredPositional).toList();
 
     if (requiredPositional.length > 2) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+      errorReporter.atToken(
         functionDeclaration.name,
+        CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
       );
     }
 
     if (parameters.any((e) => e.isRequiredNamed)) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS,
+      errorReporter.atToken(
         functionDeclaration.name,
+        CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS,
       );
     }
 
@@ -4022,10 +4052,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!isSatisfied) {
         // This error can only occur if [mixinName] resolved to an actual mixin,
         // so we can safely rely on `mixinName.type` being non-`null`.
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+        errorReporter.atToken(
           mixinName.name2,
-          [
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          arguments: [
             mixinName.type!,
             superType,
             constraint,
@@ -4393,9 +4423,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    errorReporter.reportErrorForToken(
-      CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM,
+    errorReporter.atToken(
       variableList.variables.first.name,
+      CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM,
     );
   }
 
@@ -4509,10 +4539,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     for (var variable in node.variables) {
       if (variable.initializer == null) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+        errorReporter.atToken(
           variable.name,
-          [variable.name.lexeme],
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          arguments: [variable.name.lexeme],
         );
       }
     }
@@ -4631,8 +4661,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, name);
+    errorReporter.atToken(
+      name,
+      CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER,
+    );
   }
 
   /// Check whether the given constructor [declaration] is the redirecting
@@ -4694,10 +4726,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (FormalParameter parameter in declaration.parameters.parameters) {
       if (parameter is DefaultFormalParameter &&
           parameter.defaultValue != null) {
-        errorReporter.reportErrorForToken(
-            CompileTimeErrorCode
-                .DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
-            parameter.name!);
+        errorReporter.atToken(
+          parameter.name!,
+          CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
+        );
       }
     }
     var redirectedElement = redirectedConstructor.staticElement;
@@ -4946,9 +4978,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     TypeAliasElementImpl element,
   ) {
     if (element.hasSelfReference) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+      errorReporter.atToken(
         nameToken,
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
       );
     }
   }
@@ -4994,10 +5026,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             var element = parameter.declaredElement!;
             // This error can only occur if there is a bound, so we can safely
             // assume `element.bound` is non-`null`.
-            errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+            errorReporter.atToken(
               parameter.name,
-              [element.displayName, element.bound!],
+              CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+              arguments: [element.displayName, element.bound!],
             );
             break;
           }
@@ -5016,9 +5048,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
+        errorReporter.atToken(
           name,
+          CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
         );
       }
     }
@@ -5384,16 +5416,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       expected = 0;
     }
     if (expected != -1 && numParameters != expected) {
-      errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
-          nameToken,
-          [name, expected, numParameters]);
+      errorReporter.atToken(
+        nameToken,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
+        arguments: [name, expected, numParameters],
+      );
       return true;
     } else if ("-" == name && numParameters > 1) {
-      errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
-          nameToken,
-          [numParameters]);
+      errorReporter.atToken(
+        nameToken,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
+        arguments: [numParameters],
+      );
       return true;
     }
     return false;
@@ -5415,9 +5449,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     NodeList<FormalParameter> parameters = parameterList.parameters;
     if (parameters.length != 1 || !parameters[0].isRequiredPositional) {
-      errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-          setterName);
+      errorReporter.atToken(
+        setterName,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+      );
     }
   }
 
@@ -5691,9 +5726,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var parameter = parameters[i].notDefault;
       var keyword = parameter.covariantKeyword;
       if (keyword != null) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
+        errorReporter.atToken(
           keyword,
+          CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
         );
       }
     }

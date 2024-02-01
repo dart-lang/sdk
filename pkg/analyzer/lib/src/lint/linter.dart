@@ -757,8 +757,12 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       ErrorCode? errorCode,
       bool ignoreSyntheticTokens = true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
-      reporter.reportErrorForToken(
-          errorCode ?? lintCode, token, arguments, contextMessages);
+      reporter.atToken(
+        token,
+        errorCode ?? lintCode,
+        arguments: arguments,
+        messages: contextMessages,
+      );
     }
   }
 
