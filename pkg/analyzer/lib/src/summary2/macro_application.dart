@@ -527,7 +527,9 @@ class LibraryMacroApplier {
         case macro.DeclarationDiagnosticTarget macroTarget:
           final element = (macroTarget.declaration as HasElement).element;
           target = ElementMacroDiagnosticTarget(element: element);
-        default:
+        case macro.TypeAnnotationDiagnosticTarget macroTarget:
+          target = _typeAnnotationTarget(application, macroTarget);
+        case null:
           target = ApplicationMacroDiagnosticTarget(
             annotationIndex: application.annotationIndex,
           );
@@ -711,6 +713,23 @@ class LibraryMacroApplier {
       }
     }
     return null;
+  }
+
+  MacroDiagnosticTarget _typeAnnotationTarget(
+    _MacroApplication application,
+    macro.TypeAnnotationDiagnosticTarget macroTarget,
+  ) {
+    switch (macroTarget.typeAnnotation) {
+      case NamedTypeAnnotation typeAnnotation:
+        return TypeAnnotationMacroDiagnosticTarget(
+          location: typeAnnotation.location,
+        );
+    }
+
+    // We don't know anything better.
+    return ApplicationMacroDiagnosticTarget(
+      annotationIndex: application.annotationIndex,
+    );
   }
 
   static macro.Arguments _buildArguments({

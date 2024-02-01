@@ -25,6 +25,122 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   });
 }
 
+/// A visitor which locates the [AstNode] which declares [element].
+class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
+  // TODO(srawlins): This visitor could be further optimized by special casing each static
+  // type of [element]. For example, for library-level elements (classes etc),
+  // we can iterate over the compilation unit's declarations.
+
+  final Element element;
+  final int _nameOffset;
+  AstNode? result;
+
+  DeclarationByElementLocator(this.element) : _nameOffset = element.nameOffset;
+
+  @override
+  void visitNode(AstNode node) {
+    if (result != null) return;
+
+    if (node.endToken.end < _nameOffset || node.offset > _nameOffset) {
+      return;
+    }
+
+    if (element is InterfaceElement) {
+      if (node is ClassDeclaration) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      } else if (node is ClassTypeAlias) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      } else if (node is EnumDeclaration) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      } else if (node is MixinDeclaration) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      } else if (node is ExtensionTypeDeclaration) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      }
+    } else if (element is ConstructorElement) {
+      if (node is ConstructorDeclaration) {
+        if (node.name != null) {
+          if (_hasOffset2(node.name)) {
+            result = node;
+          }
+        } else {
+          if (_hasOffset(node.returnType)) {
+            result = node;
+          }
+        }
+      }
+    } else if (element is ExtensionElement) {
+      if (node is ExtensionDeclaration) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      }
+    } else if (element is FieldElement) {
+      if (node is EnumConstantDeclaration) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      } else if (node is VariableDeclaration) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      }
+    } else if (element is FunctionElement) {
+      if (node is FunctionDeclaration && _hasOffset2(node.name)) {
+        result = node;
+      }
+    } else if (element is LocalVariableElement) {
+      if (node is VariableDeclaration && _hasOffset2(node.name)) {
+        result = node;
+      }
+    } else if (element is MethodElement) {
+      if (node is MethodDeclaration && _hasOffset2(node.name)) {
+        result = node;
+      }
+    } else if (element is ParameterElement) {
+      if (node is FormalParameter && _hasOffset2(node.name)) {
+        result = node;
+      }
+    } else if (element is PropertyAccessorElement) {
+      if (node is FunctionDeclaration) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      } else if (node is MethodDeclaration) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      }
+    } else if (element is TopLevelVariableElement) {
+      if (node is VariableDeclaration && _hasOffset2(node.name)) {
+        result = node;
+      }
+    }
+
+    if (result == null) {
+      node.visitChildren(this);
+    }
+  }
+
+  bool _hasOffset(AstNode? node) {
+    return node?.offset == _nameOffset;
+  }
+
+  bool _hasOffset2(Token? token) {
+    return token?.offset == _nameOffset;
+  }
+}
+
 class ElementDeclarationResultImpl implements ElementDeclarationResult {
   @override
   final Element element;
@@ -175,7 +291,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       },
     );
 
-    var locator = _DeclarationByElementLocator(element);
+    var locator = DeclarationByElementLocator(element);
     unitResult.unit.accept(locator);
     var declaration = locator.result;
 
@@ -298,7 +414,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       },
     );
 
-    var locator = _DeclarationByElementLocator(element);
+    var locator = DeclarationByElementLocator(element);
     unitResult.unit.accept(locator);
     var declaration = locator.result;
 
@@ -360,120 +476,4 @@ class UnitElementResultImpl extends FileResultImpl
     required super.fileState,
     required this.element,
   });
-}
-
-/// A visitor which locates the [AstNode] which declares [element].
-class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
-  // TODO(srawlins): This visitor could be further optimized by special casing each static
-  // type of [element]. For example, for library-level elements (classes etc),
-  // we can iterate over the compilation unit's declarations.
-
-  final Element element;
-  final int _nameOffset;
-  AstNode? result;
-
-  _DeclarationByElementLocator(this.element) : _nameOffset = element.nameOffset;
-
-  @override
-  void visitNode(AstNode node) {
-    if (result != null) return;
-
-    if (node.endToken.end < _nameOffset || node.offset > _nameOffset) {
-      return;
-    }
-
-    if (element is InterfaceElement) {
-      if (node is ClassDeclaration) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      } else if (node is ClassTypeAlias) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      } else if (node is EnumDeclaration) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      } else if (node is MixinDeclaration) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      } else if (node is ExtensionTypeDeclaration) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      }
-    } else if (element is ConstructorElement) {
-      if (node is ConstructorDeclaration) {
-        if (node.name != null) {
-          if (_hasOffset2(node.name)) {
-            result = node;
-          }
-        } else {
-          if (_hasOffset(node.returnType)) {
-            result = node;
-          }
-        }
-      }
-    } else if (element is ExtensionElement) {
-      if (node is ExtensionDeclaration) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      }
-    } else if (element is FieldElement) {
-      if (node is EnumConstantDeclaration) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      } else if (node is VariableDeclaration) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      }
-    } else if (element is FunctionElement) {
-      if (node is FunctionDeclaration && _hasOffset2(node.name)) {
-        result = node;
-      }
-    } else if (element is LocalVariableElement) {
-      if (node is VariableDeclaration && _hasOffset2(node.name)) {
-        result = node;
-      }
-    } else if (element is MethodElement) {
-      if (node is MethodDeclaration && _hasOffset2(node.name)) {
-        result = node;
-      }
-    } else if (element is ParameterElement) {
-      if (node is FormalParameter && _hasOffset2(node.name)) {
-        result = node;
-      }
-    } else if (element is PropertyAccessorElement) {
-      if (node is FunctionDeclaration) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      } else if (node is MethodDeclaration) {
-        if (_hasOffset2(node.name)) {
-          result = node;
-        }
-      }
-    } else if (element is TopLevelVariableElement) {
-      if (node is VariableDeclaration && _hasOffset2(node.name)) {
-        result = node;
-      }
-    }
-
-    if (result == null) {
-      node.visitChildren(this);
-    }
-  }
-
-  bool _hasOffset(AstNode? node) {
-    return node?.offset == _nameOffset;
-  }
-
-  bool _hasOffset2(Token? token) {
-    return token?.offset == _nameOffset;
-  }
 }

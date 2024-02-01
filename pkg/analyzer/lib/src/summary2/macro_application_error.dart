@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/summary2/macro_type_location.dart';
 
 /// Base for all macro related diagnostics.
 sealed class AnalyzerMacroDiagnostic {}
@@ -100,3 +101,11 @@ final class MacroDiagnosticMessage {
 }
 
 sealed class MacroDiagnosticTarget {}
+
+final class TypeAnnotationMacroDiagnosticTarget extends MacroDiagnosticTarget {
+  final TypeAnnotationLocation location;
+
+  TypeAnnotationMacroDiagnosticTarget({
+    required this.location,
+  });
+}

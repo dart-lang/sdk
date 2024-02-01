@@ -75,6 +75,106 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 }
 
+/*macro*/ class ReportAtTypeAnnotation
+    implements
+        ClassDeclarationsMacro,
+        FunctionDeclarationsMacro,
+        FieldDeclarationsMacro,
+        MethodDeclarationsMacro {
+  final List<String> pathList;
+
+  const ReportAtTypeAnnotation(this.pathList);
+
+  @override
+  buildDeclarationsForClass(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForField(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForFunction(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForMethod(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  TypeAnnotation _getTarget(Declaration declaration) {
+    var current = _nextTarget(declaration, pathList.first);
+    for (var step in pathList.skip(1)) {
+      current = _nextTarget(current, step);
+    }
+    return current;
+  }
+
+  TypeAnnotation _nextTarget(Object current, String step) {
+    if (current is ClassDeclaration) {
+      if (step == 'superclass') {
+        return current.superclass!;
+      }
+    }
+
+    if (current is FunctionDeclaration) {
+      if (step == 'returnType') {
+        return current.returnType;
+      }
+      if (_verbIndex(step, 'namedFormalParameterType') case var index?) {
+        return current.namedParameters.elementAt(index).type;
+      }
+      if (_verbIndex(step, 'positionalFormalParameterType') case var index?) {
+        return current.positionalParameters.elementAt(index).type;
+      }
+    }
+
+    if (current is FunctionTypeAnnotation) {
+      if (step == 'returnType') {
+        return current.returnType;
+      }
+    }
+
+    if (current is NamedTypeAnnotation) {
+      if (_verbIndex(step, 'namedTypeArgument') case var index?) {
+        return current.typeArguments.elementAt(index);
+      }
+    }
+
+    if (current is VariableDeclaration) {
+      if (step == 'variableType') {
+        return current.type;
+      }
+    }
+
+    throw UnimplementedError('[current: $current][step: $step]');
+  }
+
+  void _report(Declaration declaration, DeclarationBuilder builder) {
+    builder.report(
+      Diagnostic(
+        DiagnosticMessage(
+          'Reported message',
+          target: _getTarget(declaration).asDiagnosticTarget,
+        ),
+        Severity.warning,
+      ),
+    );
+  }
+
+  static int? _verbIndex(String step, String verb) {
+    var prefix = '$verb ';
+    if (step.startsWith(prefix)) {
+      var indexStr = step.substring(prefix.length);
+      return int.parse(indexStr);
+    }
+    return null;
+  }
+}
+
 /*macro*/ class ReportErrorAtTargetDeclaration
     extends ReportAtTargetDeclaration {
   const ReportErrorAtTargetDeclaration();

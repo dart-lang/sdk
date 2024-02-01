@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 
@@ -416,6 +417,7 @@ class BundleWriter {
     FunctionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink.writeType(element.returnType);
@@ -978,6 +980,35 @@ class ResolutionSink extends _SummaryDataWriter {
 
   void _writeMacroDiagnosticMessage(MacroDiagnosticMessage object) {
     writeStringUtf8(object.message);
+
+    void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
+      switch (location) {
+        case ElementTypeLocation():
+          writeByte(TypeAnnotationLocationKind.element.index);
+          writeElement(location.element);
+        case ExtendsClauseTypeLocation():
+          writeByte(TypeAnnotationLocationKind.extendsClause.index);
+          writeTypeAnnotationLocation(location.parent);
+        case FormalParameterTypeLocation():
+          writeByte(TypeAnnotationLocationKind.formalParameter.index);
+          writeTypeAnnotationLocation(location.parent);
+          writeUInt30(location.index);
+        case ListIndexTypeLocation():
+          writeByte(TypeAnnotationLocationKind.listIndex.index);
+          writeTypeAnnotationLocation(location.parent);
+          writeUInt30(location.index);
+        case ReturnTypeLocation():
+          writeByte(TypeAnnotationLocationKind.returnType.index);
+          writeTypeAnnotationLocation(location.parent);
+        case VariableTypeLocation():
+          writeByte(TypeAnnotationLocationKind.variableType.index);
+          writeTypeAnnotationLocation(location.parent);
+        default:
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError('${location.runtimeType}');
+      }
+    }
+
     final target = object.target;
     switch (target) {
       case ApplicationMacroDiagnosticTarget():
@@ -986,6 +1017,9 @@ class ResolutionSink extends _SummaryDataWriter {
       case ElementMacroDiagnosticTarget():
         writeByte(0x01);
         writeElement(target.element);
+      case TypeAnnotationMacroDiagnosticTarget():
+        writeByte(0x02);
+        writeTypeAnnotationLocation(target.location);
     }
   }
 

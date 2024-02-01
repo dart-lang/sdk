@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -740,6 +741,40 @@ class _ElementWriter {
   }
 
   void _writeMacroDiagnostics(Element e) {
+    void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
+      switch (location) {
+        case ElementTypeLocation():
+          _sink.writelnWithIndent('ElementTypeLocation');
+          _sink.withIndent(() {
+            _elementPrinter.writeNamedElement('element', location.element);
+          });
+        case ExtendsClauseTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('ExtendsClauseTypeLocation');
+        case FormalParameterTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('FormalParameterTypeLocation');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('index: ${location.index}');
+          });
+        case ListIndexTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('ListIndexTypeLocation');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('index: ${location.index}');
+          });
+        case ReturnTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('ReturnTypeLocation');
+        case VariableTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('VariableTypeLocation');
+        default:
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError('${location.runtimeType}');
+      }
+    }
+
     void writeMessage(MacroDiagnosticMessage object) {
       // Write the message.
       final validator = configuration.macroDiagnosticMessageValidator;
@@ -775,6 +810,13 @@ class _ElementWriter {
           _sink.writelnWithIndent('target: ElementMacroDiagnosticTarget');
           _sink.withIndent(() {
             _elementPrinter.writeNamedElement('element', target.element);
+          });
+        case TypeAnnotationMacroDiagnosticTarget():
+          _sink.writelnWithIndent(
+            'target: TypeAnnotationMacroDiagnosticTarget',
+          );
+          _sink.withIndent(() {
+            writeTypeAnnotationLocation(target.location);
           });
       }
     }

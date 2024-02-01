@@ -17,6 +17,8 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -50,8 +52,10 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:collection/collection.dart';
 
 class EnclosingExecutableContext {
   final ExecutableElement? element;
@@ -848,13 +852,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement functionElement = node.declaredElement!;
-    if (functionElement.enclosingElement is! CompilationUnitElement) {
-      _hiddenElements!.declare(functionElement);
+  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
+    var element = node.declaredElement!;
+    if (element.enclosingElement is! CompilationUnitElement) {
+      _hiddenElements!.declare(element);
     }
 
-    _withEnclosingExecutable(functionElement, () {
+    _withEnclosingExecutable(element, () {
       TypeAnnotation? returnType = node.returnType;
       if (node.isSetter) {
         FunctionExpression functionExpression = node.functionExpression;
@@ -866,6 +870,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _returnTypeVerifier.verifyReturnType(returnType);
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMainFunction2(node);
+      _reportMacroDiagnostics(element, node.metadata);
       super.visitFunctionDeclaration(node);
     });
   }
@@ -5928,6 +5933,73 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     MacroTargetElement element,
     List<Annotation> metadata,
   ) {
+    AstNode? locationNode(TypeAnnotationLocation location) {
+      switch (location) {
+        case ElementTypeLocation():
+          var element = location.element;
+          return libraryVerificationContext.declarationByElement(element);
+        case FormalParameterTypeLocation():
+          var node = locationNode(location.parent);
+          switch (node) {
+            case FunctionDeclaration():
+              var parameterList = node.functionExpression.parameters;
+              return parameterList!.parameters[location.index];
+            case MethodDeclaration():
+              var parameterList = node.parameters;
+              return parameterList!.parameters[location.index];
+            default:
+              throw UnimplementedError('${node.runtimeType}');
+          }
+        case ListIndexTypeLocation():
+          var node = locationNode(location.parent);
+          switch (node) {
+            case NamedType():
+              return node.typeArguments?.arguments[location.index];
+            default:
+              throw UnimplementedError('${node.runtimeType}');
+          }
+        case ReturnTypeLocation():
+          var node = locationNode(location.parent);
+          switch (node) {
+            case FunctionDeclaration():
+              return node.returnType;
+            case GenericFunctionType():
+              return node.returnType;
+            case MethodDeclaration():
+              return node.returnType;
+            default:
+              throw UnimplementedError('${node.runtimeType}');
+          }
+        case VariableTypeLocation():
+          var node = locationNode(location.parent);
+          if (node is DefaultFormalParameter) {
+            node = node.parameter;
+          }
+          var parent = node?.parent;
+          switch (node) {
+            case SimpleFormalParameter():
+              return node.type;
+            case VariableDeclaration():
+              if (parent is VariableDeclarationList) {
+                return parent.type;
+              }
+          }
+          throw UnimplementedError(
+            '${node.runtimeType} ${parent.runtimeType}',
+          );
+        case ExtendsClauseTypeLocation():
+          var node = locationNode(location.parent);
+          switch (node) {
+            case ClassDeclaration():
+              return node.extendsClause!.superclass;
+            default:
+              throw UnimplementedError('${node.runtimeType}');
+          }
+        default:
+          throw UnimplementedError('${location.runtimeType}');
+      }
+    }
+
     DiagnosticMessage convertMessage(MacroDiagnosticMessage object) {
       final target = object.target;
       switch (target) {
@@ -5949,6 +6021,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             offset: element.nameOffset,
             url: null,
           );
+        case TypeAnnotationMacroDiagnosticTarget():
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError();
       }
     }
 
@@ -6006,6 +6081,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               errorReporter.reportErrorForElement(
                 errorCode,
                 target.element,
+                [diagnostic.message.message],
+                diagnostic.contextMessages.map(convertMessage).toList(),
+              );
+            case TypeAnnotationMacroDiagnosticTarget():
+              var errorNode = locationNode(target.location)!;
+              errorReporter.reportErrorForNode(
+                errorCode,
+                errorNode,
                 [diagnostic.message.message],
                 diagnostic.contextMessages.map(convertMessage).toList(),
               );
@@ -6155,10 +6238,30 @@ class HiddenElements {
 class LibraryVerificationContext {
   final duplicationDefinitionContext = DuplicationDefinitionContext();
   final ConstructorFieldsVerifier constructorFieldsVerifier;
+  final Map<FileState, CompilationUnitImpl> units;
 
   LibraryVerificationContext({
     required this.constructorFieldsVerifier,
+    required this.units,
   });
+
+  AstNode? declarationByElement(Element element) {
+    var uri = element.library?.source.uri;
+    if (uri == null) {
+      return null;
+    }
+
+    var unit = units.entries.firstWhereOrNull((entry) {
+      return entry.key.uri == uri;
+    })?.value;
+    if (unit == null) {
+      return null;
+    }
+
+    var locator = DeclarationByElementLocator(element);
+    unit.accept(locator);
+    return locator.result;
+  }
 }
 
 /// Recursively visits a type annotation, looking uninstantiated bounds.
