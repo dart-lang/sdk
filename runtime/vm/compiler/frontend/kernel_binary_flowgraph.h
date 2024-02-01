@@ -215,7 +215,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                           const Class& klass,
                           intptr_t argument_count);
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& context_slots);
-  Fragment LoadNativeField(const Slot& field);
+  Fragment LoadNativeField(const Slot& field,
+                           InnerPointerAccess loads_inner_pointer =
+                               InnerPointerAccess::kNotUntagged);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StringInterpolate(TokenPosition position);
