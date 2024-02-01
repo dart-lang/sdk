@@ -100,7 +100,6 @@ class ConstantEvaluationEngine {
           var errorReporter = ErrorReporter(
             errorListener,
             constant.source!,
-            isNonNullableByDefault: library.isNonNullableByDefault,
           );
           var constantVisitor = ConstantVisitor(this, library, errorReporter);
           var dartConstant = constantVisitor.evaluateConstant(defaultValue);
@@ -116,7 +115,6 @@ class ConstantEvaluationEngine {
         var errorReporter = ErrorReporter(
           errorListener,
           constant.source!,
-          isNonNullableByDefault: library.isNonNullableByDefault,
         );
         var constantVisitor = ConstantVisitor(this, library, errorReporter);
         var dartConstant =
@@ -192,7 +190,6 @@ class ConstantEvaluationEngine {
         var errorReporter = ErrorReporter(
           errorListener,
           constant.source,
-          isNonNullableByDefault: library.isNonNullableByDefault,
         );
         var constantVisitor = ConstantVisitor(this, library, errorReporter);
         final result = evaluateAndFormatErrorsInConstructorCall(
@@ -422,7 +419,6 @@ class ConstantEvaluationEngine {
       ErrorReporter errorReporter = ErrorReporter(
         errorListener,
         constant.source!,
-        isNonNullableByDefault: constant.library!.isNonNullableByDefault,
       );
       // TODO(paulberry): It would be really nice if we could extract enough
       // information from the 'cycle' argument to provide the user with a
@@ -2399,7 +2395,6 @@ class _InstanceCreationEvaluator {
   late final ErrorReporter _externalErrorReporter = ErrorReporter(
     _externalErrorListener,
     _constructor.source,
-    isNonNullableByDefault: _library.isNonNullableByDefault,
   );
 
   late final ConstantVisitor _initializerVisitor = ConstantVisitor(

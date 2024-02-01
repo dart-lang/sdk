@@ -351,11 +351,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       FeatureSet featureSet,
       this.analysisOptions,
       this.flowAnalysis)
-      : errorReporter = ErrorReporter(
-          errorListener,
-          source,
-          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
-        ),
+      : errorReporter = ErrorReporter(errorListener, source),
         _featureSet = featureSet,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata),
@@ -4085,11 +4081,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ScopeResolverVisitor(this.definingLibrary, this.source, this.typeProvider,
       AnalysisErrorListener errorListener,
       {Scope? nameScope})
-      : errorReporter = ErrorReporter(
-          errorListener,
-          source,
-          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
-        ),
+      : errorReporter = ErrorReporter(errorListener, source),
         nameScope = nameScope ?? LibraryOrAugmentationScope(definingLibrary);
 
   /// Return the implicit label scope in which the current node is being

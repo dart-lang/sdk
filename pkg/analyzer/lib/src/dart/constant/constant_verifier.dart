@@ -593,7 +593,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var subErrorReporter = ErrorReporter(
       errorListener,
       _errorReporter.source,
-      isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
     );
     var constantVisitor =
         ConstantVisitor(_evaluationEngine, _currentLibrary, subErrorReporter);
@@ -837,7 +836,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             ErrorReporter subErrorReporter = ErrorReporter(
               errorListener,
               _errorReporter.source,
-              isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
             );
             var result = initializer.accept(ConstantVisitor(
                 _evaluationEngine, _currentLibrary, subErrorReporter));

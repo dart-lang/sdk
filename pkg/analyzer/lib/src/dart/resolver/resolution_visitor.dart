@@ -119,11 +119,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var typeProvider = libraryElement.typeProvider;
     var unitSource = unitElement.source;
     var isNonNullableByDefault = featureSet.isEnabled(Feature.non_nullable);
-    var errorReporter = ErrorReporter(
-      errorListener,
-      unitSource,
-      isNonNullableByDefault: isNonNullableByDefault,
-    );
+    var errorReporter = ErrorReporter(errorListener, unitSource);
 
     final typeSystemOperations = TypeSystemOperations(
       unitElement.library.typeSystem,

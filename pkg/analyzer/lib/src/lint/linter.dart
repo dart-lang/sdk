@@ -104,11 +104,7 @@ class DartLinter implements AnalysisErrorListener {
         // processing gets pushed down, this hack can go away.)
         if (sourceUrl != null) {
           var source = createSource(sourceUrl);
-          rule.reporter = ErrorReporter(
-            this,
-            source,
-            isNonNullableByDefault: true,
-          );
+          rule.reporter = ErrorReporter(this, source);
         }
         try {
           spec.accept(visitor);
@@ -348,11 +344,7 @@ class LinterContextImpl implements LinterContext {
     var libraryElement = unitElement.library as LibraryElementImpl;
 
     var errorListener = RecordingErrorListener();
-    var errorReporter = ErrorReporter(
-      errorListener,
-      source,
-      isNonNullableByDefault: libraryElement.isNonNullableByDefault,
-    );
+    var errorReporter = ErrorReporter(errorListener, source);
 
     var evaluationEngine = ConstantEvaluationEngine(
       declaredVariables: _declaredVariables,
@@ -489,11 +481,7 @@ class LinterContextImpl implements LinterContext {
     );
 
     var listener = _ConstantAnalysisErrorListener();
-    var errorReporter = ErrorReporter(
-      listener,
-      unitElement.source,
-      isNonNullableByDefault: libraryElement.isNonNullableByDefault,
-    );
+    var errorReporter = ErrorReporter(listener, unitElement.source);
 
     node.accept(
       ConstantVerifier(

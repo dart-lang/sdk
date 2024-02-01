@@ -496,7 +496,6 @@ class BulkFixProcessor {
             var errorReporter = ErrorReporter(
               errorListener,
               StringSource(linterUnit.content, null),
-              isNonNullableByDefault: false,
             );
             _computeLints(
               linterUnit,

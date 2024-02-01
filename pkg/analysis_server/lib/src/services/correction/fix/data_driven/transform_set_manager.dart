@@ -114,7 +114,6 @@ class TransformSetManager {
           ErrorReporter(
             AnalysisErrorListener.NULL_LISTENER,
             file.createSource(),
-            isNonNullableByDefault: false,
           ),
           packageName);
       return parser.parse(content);

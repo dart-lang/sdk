@@ -441,7 +441,6 @@ class ContextManagerImpl implements ContextManager {
       var errorReporter = ErrorReporter(
         errorListener,
         file.createSource(),
-        isNonNullableByDefault: false,
       );
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);

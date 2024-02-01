@@ -559,7 +559,6 @@ class LibraryAnalyzer {
       return ErrorReporter(
         listener,
         file.source,
-        isNonNullableByDefault: _libraryElement.isNonNullableByDefault,
       );
     });
   }

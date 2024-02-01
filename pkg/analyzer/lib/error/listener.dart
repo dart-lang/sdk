@@ -46,9 +46,6 @@ class ErrorReporter {
   /// The error listener to which errors will be reported.
   final AnalysisErrorListener _errorListener;
 
-  /// Is `true` if the library being analyzed is non-nullable by default.
-  final bool isNonNullableByDefault;
-
   /// The source to be used when reporting errors.
   final Source _source;
 
@@ -60,8 +57,11 @@ class ErrorReporter {
   /// Initialize a newly created error reporter that will report errors to the
   /// given [_errorListener]. Errors will be reported against the
   /// [_defaultSource] unless another source is provided later.
-  ErrorReporter(this._errorListener, this._source,
-      {required this.isNonNullableByDefault});
+  ErrorReporter(
+    this._errorListener,
+    this._source, {
+    @Deprecated('Will be removed') bool isNonNullableByDefault = true,
+  });
 
   Source get source => _source;
 
@@ -183,7 +183,7 @@ class ErrorReporter {
       var argument = arguments[i];
       if (argument is Element) {
         arguments[i] = argument.getDisplayString(
-          withNullability: isNonNullableByDefault,
+          withNullability: true,
         );
       } else if (!(argument is String ||
           argument is DartType ||
@@ -211,7 +211,7 @@ class ErrorReporter {
       var argument = arguments[i];
       if (argument is DartType) {
         String displayName = argument.getDisplayString(
-          withNullability: isNonNullableByDefault,
+          withNullability: true,
         );
         List<_TypeToConvert> types =
             typeGroups.putIfAbsent(displayName, () => <_TypeToConvert>[]);

@@ -4478,11 +4478,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var unit = this.result.unit;
     var source = unit.declaredElement!.source;
     var errorListener = GatheringErrorListener();
-    var errorReporter = ErrorReporter(
-      errorListener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    var errorReporter = ErrorReporter(errorListener, source);
     var constantVisitor = ConstantVisitor(
       ConstantEvaluationEngine(
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
