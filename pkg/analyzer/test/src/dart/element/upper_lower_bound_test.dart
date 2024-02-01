@@ -2178,39 +2178,6 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     _checkLeastUpperBound(typeB, typeC, typeB);
   }
 
-  test_directInterface_legacy() {
-    typeSystem = analysisContext.typeSystemLegacy;
-
-    // (null safe) class A<T> {}
-    // (legacy)    class B implements A<int> {}
-    // (null safe) class C implements A<int> {}
-
-    var A = class_(
-      name: 'A',
-      typeParameters: [typeParameter('T')],
-    );
-
-    var B = class_(
-      name: 'B',
-      interfaces: [
-        interfaceTypeStar(A, typeArguments: [intStar])
-      ],
-    );
-
-    var C = class_(
-      name: 'C',
-      interfaces: [
-        interfaceTypeNone(A, typeArguments: [intStar])
-      ],
-    );
-
-    _checkLeastUpperBound(
-      interfaceTypeStar(B),
-      interfaceTypeStar(C),
-      interfaceTypeStar(A, typeArguments: [intStar]),
-    );
-  }
-
   test_directSuperclass() {
     // class A
     // class B extends A
