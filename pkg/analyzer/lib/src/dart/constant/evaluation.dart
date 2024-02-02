@@ -368,7 +368,6 @@ class ConstantEvaluationEngine {
       final errorNode = configuration.errorNode(node);
       result = InvalidConstant.forEntity(
           errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-          arguments: [],
           contextMessages: [...result.contextMessages, contextMessage]);
     }
 

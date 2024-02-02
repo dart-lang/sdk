@@ -356,7 +356,6 @@ class ReturnTypeVerifier {
               expression,
               CompileTimeErrorCode
                   .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-              arguments: [],
             );
             return;
           }

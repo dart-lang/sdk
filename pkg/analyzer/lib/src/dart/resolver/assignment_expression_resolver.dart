@@ -147,7 +147,6 @@ class AssignmentExpressionResolver {
         _errorReporter.atNode(
           right,
           CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-          arguments: [],
         );
         return;
       }
@@ -178,13 +177,11 @@ class AssignmentExpressionResolver {
       _errorReporter.atNode(
         methodName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        arguments: [],
       );
     } else {
       _errorReporter.atNode(
         expression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        arguments: [],
       );
     }
 

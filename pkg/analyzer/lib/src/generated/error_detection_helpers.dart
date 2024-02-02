@@ -98,7 +98,6 @@ mixin ErrorDetectionHelpers {
             expression,
             CompileTimeErrorCode
                 .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-            arguments: [],
           );
           return;
         }
@@ -239,13 +238,11 @@ mixin ErrorDetectionHelpers {
       errorReporter.atNode(
         methodName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        arguments: [],
       );
     } else {
       errorReporter.atNode(
         expression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        arguments: [],
       );
     }
 

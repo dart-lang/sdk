@@ -179,7 +179,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.atNode(
           node.returnType,
           CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR,
-          arguments: [],
         );
       }
 
@@ -953,7 +952,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             errorBuffer.toString(),
             correctionTextBuffer.toString(),
           ],
-          messages: [],
           data: correctionDataBuffer.isComplete
               ? correctionDataBuffer.parts
               : null,

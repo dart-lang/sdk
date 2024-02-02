@@ -80,7 +80,6 @@ class AnnotationVerifier {
       _errorReporter.atNode(
         node,
         WarningCode.INVALID_FACTORY_ANNOTATION,
-        arguments: [],
       );
       return;
     }
@@ -135,7 +134,6 @@ class AnnotationVerifier {
       _errorReporter.atNode(
         node,
         WarningCode.INVALID_IMMUTABLE_ANNOTATION,
-        arguments: [],
       );
     }
   }
@@ -153,7 +151,6 @@ class AnnotationVerifier {
           _errorReporter.atNode(
             variable,
             WarningCode.INVALID_INTERNAL_ANNOTATION,
-            arguments: [],
           );
         }
       }
@@ -164,7 +161,6 @@ class AnnotationVerifier {
           _errorReporter.atNode(
             variable,
             WarningCode.INVALID_INTERNAL_ANNOTATION,
-            arguments: [],
           );
         }
       }
@@ -174,20 +170,17 @@ class AnnotationVerifier {
         _errorReporter.atNode(
           node,
           WarningCode.INVALID_INTERNAL_ANNOTATION,
-          arguments: [],
         );
       }
     } else if (parentElementIsPrivate) {
       _errorReporter.atNode(
         node,
         WarningCode.INVALID_INTERNAL_ANNOTATION,
-        arguments: [],
       );
     } else if (_inPackagePublicApi) {
       _errorReporter.atNode(
         node,
         WarningCode.INVALID_INTERNAL_ANNOTATION,
-        arguments: [],
       );
     }
   }
@@ -229,7 +222,6 @@ class AnnotationVerifier {
       _errorReporter.atNode(
         node,
         WarningCode.INVALID_LITERAL_ANNOTATION,
-        arguments: [],
       );
     }
   }

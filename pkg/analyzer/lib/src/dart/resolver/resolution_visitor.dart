@@ -977,7 +977,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _errorReporter.atNode(
           node,
           WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
-          arguments: [],
         );
       }
       return newNode.accept(this);
