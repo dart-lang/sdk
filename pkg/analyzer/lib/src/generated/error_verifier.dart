@@ -6108,11 +6108,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                     diagnostic.contextMessages.map(convertMessage).toList(),
                   );
                 case Token():
-                  errorReporter.reportErrorForToken(
-                    errorCode,
+                  errorReporter.atToken(
                     errorEntity,
-                    [diagnostic.message.message],
-                    diagnostic.contextMessages.map(convertMessage).toList(),
+                    errorCode,
+                    arguments: [diagnostic.message.message],
+                    messages:
+                        diagnostic.contextMessages.map(convertMessage).toList(),
                   );
               }
           }
