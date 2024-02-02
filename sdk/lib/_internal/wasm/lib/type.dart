@@ -537,7 +537,8 @@ class _RecordType extends _Type {
 
   @override
   bool _checkInstance(Object o) {
-    return _typeUniverse.isSubtype(_getActualRuntimeType(o), null, this, null);
+    if (!_isRecordInstance(o)) return false;
+    return unsafeCast<Record>(o)._checkRecordType(fieldTypes, names);
   }
 
   @override
@@ -1296,7 +1297,6 @@ void _checkClosureType(
   }
 }
 
-@pragma("wasm:entry-point")
 _Type _getActualRuntimeType(Object object) {
   final classId = ClassID.getID(object);
   final category = _typeCategoryTable.readUnsigned(classId);
@@ -1332,7 +1332,7 @@ _Type _getMasqueradedRuntimeType(Object object) {
     return _Closure._getClosureRuntimeType(unsafeCast<_Closure>(object));
   }
   if (category == _typeCategoryRecord.toIntUnsigned()) {
-    return Record._getRecordRuntimeType(unsafeCast<Record>(object));
+    return Record._getMasqueradedRecordRuntimeType(unsafeCast<Record>(object));
   }
   if (category == _typeCategoryObject.toIntUnsigned()) {
     return _literal<Object>();
