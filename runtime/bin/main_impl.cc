@@ -745,6 +745,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
             "The uri(%s) provided to `Isolate.spawnUri()` is an "
             "AOT snapshot and the JIT VM cannot spawn an isolate using it.",
             script_uri);
+        delete app_snapshot;
         return nullptr;
       }
       isolate_run_app_snapshot = true;
