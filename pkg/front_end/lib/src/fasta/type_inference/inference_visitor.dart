@@ -807,70 +807,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const StatementInferenceResult();
   }
 
-  bool _derivesFutureType(DartType type) {
-    // TODO(cstefantsova): Update this method when
-    // https://github.com/dart-lang/language/pull/3574 is merged.
-    if (isNullableTypeConstructorApplication(type)) {
-      return false;
-    } else {
-      switch (type) {
-        case InterfaceType():
-          return typeSchemaEnvironment.hierarchy
-                  .getInterfaceTypeAsInstanceOfClass(
-                      type, coreTypes.futureClass,
-                      isNonNullableByDefault: isNonNullableByDefault) !=
-              null;
-        case ExtensionType():
-          return typeSchemaEnvironment.hierarchy
-                  .getExtensionTypeAsInstanceOfClass(
-                      type, coreTypes.futureClass,
-                      isNonNullableByDefault: isNonNullableByDefault) !=
-              null;
-        case TypeParameterType():
-          DartType boundedBy = type;
-          while (boundedBy is TypeParameterType &&
-              !isNullableTypeConstructorApplication(boundedBy)) {
-            boundedBy = boundedBy.parameter.bound;
-          }
-          return boundedBy is FutureOrType ||
-              boundedBy is InterfaceType &&
-                  boundedBy.classNode == coreTypes.futureClass &&
-                  boundedBy.nullability == Nullability.nullable;
-        case StructuralParameterType():
-          DartType boundedBy = type;
-          while (boundedBy is TypeParameterType &&
-              !isNullableTypeConstructorApplication(boundedBy)) {
-            boundedBy = boundedBy.parameter.bound;
-          }
-          return boundedBy is FutureOrType ||
-              boundedBy is InterfaceType &&
-                  boundedBy.classNode == coreTypes.futureClass &&
-                  boundedBy.nullability == Nullability.nullable;
-        case IntersectionType():
-          DartType boundedBy = type.right;
-          while (boundedBy is TypeParameterType &&
-              !isNullableTypeConstructorApplication(boundedBy)) {
-            boundedBy = boundedBy.parameter.bound;
-          }
-          return boundedBy is FutureOrType ||
-              boundedBy is InterfaceType &&
-                  boundedBy.classNode == coreTypes.futureClass &&
-                  boundedBy.nullability == Nullability.nullable;
-        case DynamicType():
-        case VoidType():
-        case FutureOrType():
-        case TypedefType():
-        case FunctionType():
-        case RecordType():
-        case NullType():
-        case NeverType():
-        case AuxiliaryType():
-        case InvalidType():
-          return false;
-      }
-    }
-  }
-
   bool _isIncompatibleWithAwait(DartType type) {
     if (isNullableTypeConstructorApplication(type)) {
       return _isIncompatibleWithAwait(computeTypeWithoutNullabilityMarker(
@@ -890,9 +826,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case StructuralParameterType():
           return _isIncompatibleWithAwait(type.parameter.bound);
         case IntersectionType():
-          return _isIncompatibleWithAwait(type.right) ||
-              !_derivesFutureType(type.right) &&
-                  _isIncompatibleWithAwait(type.left);
+          return _isIncompatibleWithAwait(type.right);
         case DynamicType():
         case VoidType():
         case FutureOrType():
