@@ -144,6 +144,7 @@ class WasmTarget extends Target {
         'dart:_internal',
         'dart:_js_helper',
         'dart:_js_types',
+        'dart:_macros',
         'dart:_wasm',
         'dart:async',
         'dart:developer',

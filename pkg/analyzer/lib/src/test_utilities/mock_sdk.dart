@@ -1368,6 +1368,18 @@ class Isolate {
   )
 ]);
 
+final MockSdkLibrary _LIB_MACROS = MockSdkLibrary(
+  '_macros',
+  [
+    MockSdkLibraryUnit(
+      '_macros/_macros.dart',
+      '''
+library dart._macros;
+''',
+    )
+  ],
+);
+
 final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
   'math',
   [
@@ -1444,6 +1456,7 @@ final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_INTERNAL,
   _LIB_IO,
   _LIB_ISOLATE,
+  _LIB_MACROS,
   _LIB_MATH,
   _LIB_TYPED_DATA,
   _LIB_WASM,
