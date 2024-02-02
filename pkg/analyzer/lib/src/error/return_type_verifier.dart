@@ -56,9 +56,9 @@ class ReturnTypeVerifier {
 
     if (enclosingExecutable.isGenerativeConstructor) {
       if (expression != null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
+        _errorReporter.atNode(
           expression,
+          CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
         );
       }
       return;
@@ -88,7 +88,10 @@ class ReturnTypeVerifier {
     ) {
       void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
-        _errorReporter.reportErrorForNode(errorCode, returnType);
+        _errorReporter.atNode(
+          returnType,
+          errorCode,
+        );
       }
 
       // It is a compile-time error if the declared return type of
@@ -158,46 +161,46 @@ class ReturnTypeVerifier {
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
-        _errorReporter.reportErrorForNode(
-          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+        _errorReporter.atNode(
           expression,
-          [S, T],
+          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          arguments: [S, T],
         );
       } else if (enclosingExecutable.isClosure) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+        _errorReporter.atNode(
           expression,
-          [S, T],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          arguments: [S, T],
         );
       } else if (enclosingExecutable.isConstructor) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+        _errorReporter.atNode(
           expression,
-          [S, T, enclosingExecutable.displayName!],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isFunction) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+        _errorReporter.atNode(
           expression,
-          [S, T, enclosingExecutable.displayName!],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isMethod) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+        _errorReporter.atNode(
           expression,
-          [S, T, enclosingExecutable.displayName!],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+          arguments: [S, T, enclosingExecutable.displayName!],
         );
       }
     }
@@ -278,46 +281,46 @@ class ReturnTypeVerifier {
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
-        _errorReporter.reportErrorForNode(
-          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+        _errorReporter.atNode(
           expression,
-          [S, T],
+          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          arguments: [S, T],
         );
       } else if (enclosingExecutable.isClosure) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+        _errorReporter.atNode(
           expression,
-          [S, T],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          arguments: [S, T],
         );
       } else if (enclosingExecutable.isConstructor) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+        _errorReporter.atNode(
           expression,
-          [S, T, enclosingExecutable.displayName!],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isFunction) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+        _errorReporter.atNode(
           expression,
-          [S, T, enclosingExecutable.displayName!],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isMethod) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+        _errorReporter.atNode(
           expression,
-          [S, T, enclosingExecutable.displayName!],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+          arguments: [S, T, enclosingExecutable.displayName!],
         );
       }
     }
@@ -349,11 +352,11 @@ class ReturnTypeVerifier {
           var field = T.positionalFields.first;
           if (_typeSystem.isAssignableTo(field.type, S,
               strictCasts: _strictCasts)) {
-            _errorReporter.reportErrorForNode(
+            _errorReporter.atNode(
+              expression,
               CompileTimeErrorCode
                   .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-              expression,
-              [],
+              arguments: [],
             );
             return;
           }

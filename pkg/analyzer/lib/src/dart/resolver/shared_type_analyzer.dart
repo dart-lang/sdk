@@ -35,11 +35,12 @@ class SharedTypeAnalyzerErrors
       required DartType scrutineeType,
       required DartType caseExpressionType,
       required bool nullSafetyEnabled}) {
-    _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode
-            .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-        caseExpression,
-        [caseExpressionType, scrutineeType]);
+    _errorReporter.atNode(
+      caseExpression,
+      CompileTimeErrorCode
+          .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+      arguments: [caseExpressionType, scrutineeType],
+    );
   }
 
   @override
@@ -97,9 +98,9 @@ class SharedTypeAnalyzerErrors
   void emptyMapPattern({
     required DartPattern pattern,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.EMPTY_MAP_PATTERN,
+    _errorReporter.atNode(
       pattern,
+      CompileTimeErrorCode.EMPTY_MAP_PATTERN,
     );
   }
 
@@ -149,9 +150,9 @@ class SharedTypeAnalyzerErrors
 
   @override
   void nonBooleanCondition({required Expression node}) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.NON_BOOL_CONDITION,
+    _errorReporter.atNode(
       node,
+      CompileTimeErrorCode.NON_BOOL_CONDITION,
     );
   }
 
@@ -161,10 +162,10 @@ class SharedTypeAnalyzerErrors
     required Expression expression,
     required DartType expressionType,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+    _errorReporter.atNode(
       expression,
-      [expressionType, 'Iterable'],
+      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+      arguments: [expressionType, 'Iterable'],
     );
   }
 
@@ -175,19 +176,19 @@ class SharedTypeAnalyzerErrors
     required DartType matchedType,
     required DartType requiredType,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+    _errorReporter.atNode(
       pattern,
-      [matchedType, requiredType],
+      CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+      arguments: [matchedType, requiredType],
     );
   }
 
   @override
   void refutablePatternInIrrefutableContext(
       {required AstNode pattern, required AstNode context}) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+    _errorReporter.atNode(
       pattern,
+      CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
     );
   }
 
@@ -197,10 +198,10 @@ class SharedTypeAnalyzerErrors
     required DartType operandType,
     required DartType parameterType,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+    _errorReporter.atNode(
       pattern.operand,
-      [operandType, parameterType, pattern.operator.lexeme],
+      CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+      arguments: [operandType, parameterType, pattern.operator.lexeme],
     );
   }
 
@@ -221,9 +222,9 @@ class SharedTypeAnalyzerErrors
     required covariant MapPatternImpl node,
     required covariant RestPatternElementImpl element,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN,
+    _errorReporter.atNode(
       element,
+      CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN,
     );
   }
 
@@ -243,9 +244,9 @@ class SharedTypeAnalyzerErrors
   }) {
     switch (kind) {
       case UnnecessaryWildcardKind.logicalAndPatternOperand:
-        _errorReporter.reportErrorForNode(
-          WarningCode.UNNECESSARY_WILDCARD_PATTERN,
+        _errorReporter.atNode(
           pattern,
+          WarningCode.UNNECESSARY_WILDCARD_PATTERN,
         );
     }
   }

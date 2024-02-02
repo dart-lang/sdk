@@ -76,6 +76,17 @@ class CollectingReporter extends ErrorReporter {
   CollectingReporter(super.listener, super.source);
 
   @override
+  void atNode(
+    AstNode node,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  }) {
+    code = errorCode;
+  }
+
+  @override
   void atToken(
     Token token,
     ErrorCode errorCode, {
@@ -92,6 +103,7 @@ class CollectingReporter extends ErrorReporter {
     code = errorCode;
   }
 
+  @Deprecated('Use atNode() instead')
   @override
   void reportErrorForNode(
     ErrorCode errorCode,
@@ -103,6 +115,7 @@ class CollectingReporter extends ErrorReporter {
     code = errorCode;
   }
 
+  @Deprecated('Use atToken() instead')
   @override
   void reportErrorForToken(
     ErrorCode errorCode,

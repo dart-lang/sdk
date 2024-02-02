@@ -480,8 +480,11 @@ class TypedLiteralResolver {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _errorReporter.reportErrorForNode(
-          WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, node, ['List']);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+        arguments: ['List'],
+      );
     }
 
     inferrer.constrainArguments(
@@ -574,11 +577,15 @@ class TypedLiteralResolver {
     // because it will interfere with future type inference (see
     // dartbug.com/36210), so we return a type of `dynamic`.
     if (mustBeAMap && mustBeASet) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, literal);
+      _errorReporter.atNode(
+        literal,
+        CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
+      );
     } else {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, literal);
+      _errorReporter.atNode(
+        literal,
+        CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER,
+      );
     }
     return _typeProvider.dynamicType;
   }
@@ -689,10 +696,11 @@ class TypedLiteralResolver {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _errorReporter.reportErrorForNode(
-          WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
-          node,
-          [node.isMap ? 'Map' : 'Set']);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+        arguments: [node.isMap ? 'Map' : 'Set'],
+      );
     }
     // TODO(brianwilkerson): Decide whether the literalType needs to be made
     //  non-nullable here or whether that will have happened in

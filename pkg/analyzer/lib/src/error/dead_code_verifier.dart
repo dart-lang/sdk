@@ -112,8 +112,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       Element? element = namespace.get(nameStr);
       element ??= namespace.get("$nameStr=");
       if (element == null) {
-        _errorReporter.reportErrorForNode(
-            warningCode, name, [library.identifier, nameStr]);
+        _errorReporter.atNode(
+          name,
+          warningCode,
+          arguments: [library.identifier, nameStr],
+        );
       }
     }
   }
@@ -125,8 +128,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       f();
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
-        _errorReporter.reportErrorForNode(
-            WarningCode.UNUSED_LABEL, label, [label.label.name]);
+        _errorReporter.atNode(
+          label,
+          WarningCode.UNUSED_LABEL,
+          arguments: [label.label.name],
+        );
       }
       _labelTracker = labelTracker.outerTracker;
     }
@@ -389,7 +395,10 @@ class NullSafetyDeadCodeVerifier {
           node = parent!;
           parent = node.parent;
         }
-        _errorReporter.reportErrorForNode(WarningCode.DEAD_CODE, node);
+        _errorReporter.atNode(
+          node,
+          WarningCode.DEAD_CODE,
+        );
       }
     }
   }

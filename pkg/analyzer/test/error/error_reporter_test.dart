@@ -85,10 +85,10 @@ main() {
 
     var reporter = ErrorReporter(listener, firstType.element.source);
 
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    reporter.atNode(
       findNode.simple('x'),
-      [firstType, secondType, ''],
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      arguments: [firstType, secondType, ''],
     );
 
     var error = listener.errors[0];
@@ -119,10 +119,10 @@ main() {
     );
 
     var reporter = ErrorReporter(listener, firstType.element.source);
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    reporter.atNode(
       findNode.simple('x'),
-      [firstType, secondType, ''],
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      arguments: [firstType, secondType, ''],
     );
 
     var error = listener.errors[0];
@@ -148,10 +148,10 @@ main() {
 
     var source = result.unit.declaredElement!.source;
     var reporter = ErrorReporter(listener, source);
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    reporter.atNode(
       findNode.simple('x'),
-      [fa.variables.type!.type!, fb.variables.type!.type!, ''],
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      arguments: [fa.variables.type!.type!, fb.variables.type!.type!, ''],
     );
 
     var error = listener.errors[0];
@@ -179,10 +179,10 @@ main() {
 
     var source = result.unit.declaredElement!.source;
     var reporter = ErrorReporter(listener, source);
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    reporter.atNode(
       findNode.simple('x'),
-      [ba.variables.type!.type!, bb.variables.type!.type!, ''],
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      arguments: [ba.variables.type!.type!, bb.variables.type!.type!, ''],
     );
 
     var error = listener.errors[0];

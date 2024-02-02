@@ -49,8 +49,12 @@ class NullableDereferenceVerifier {
       arguments = [];
     }
     if (errorEntity is AstNode) {
-      _errorReporter.reportErrorForNode(
-          errorCode, errorEntity, arguments, messages);
+      _errorReporter.atNode(
+        errorEntity,
+        errorCode,
+        arguments: arguments,
+        messages: messages,
+      );
     } else if (errorEntity is Token) {
       _errorReporter.atToken(
         errorEntity,

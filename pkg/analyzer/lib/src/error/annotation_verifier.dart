@@ -77,8 +77,11 @@ class AnnotationVerifier {
   void _checkFactory(AstNode node) {
     var parent = node.parent;
     if (parent is! MethodDeclaration) {
-      _errorReporter
-          .reportErrorForNode(WarningCode.INVALID_FACTORY_ANNOTATION, node, []);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_FACTORY_ANNOTATION,
+        arguments: [],
+      );
       return;
     }
     var returnType = parent.returnType?.type;
@@ -129,8 +132,11 @@ class AnnotationVerifier {
         parent is! ClassTypeAlias &&
         parent is! ExtensionTypeDeclaration &&
         parent is! MixinDeclaration) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_IMMUTABLE_ANNOTATION,
+        arguments: [],
+      );
     }
   }
 
@@ -144,30 +150,45 @@ class AnnotationVerifier {
       for (var variable in parent.variables.variables) {
         var element = variable.declaredElement as TopLevelVariableElement;
         if (Identifier.isPrivateName(element.name)) {
-          _errorReporter.reportErrorForNode(
-              WarningCode.INVALID_INTERNAL_ANNOTATION, variable, []);
+          _errorReporter.atNode(
+            variable,
+            WarningCode.INVALID_INTERNAL_ANNOTATION,
+            arguments: [],
+          );
         }
       }
     } else if (parent is FieldDeclaration) {
       for (var variable in parent.fields.variables) {
         var element = variable.declaredElement as FieldElement;
         if (Identifier.isPrivateName(element.name)) {
-          _errorReporter.reportErrorForNode(
-              WarningCode.INVALID_INTERNAL_ANNOTATION, variable, []);
+          _errorReporter.atNode(
+            variable,
+            WarningCode.INVALID_INTERNAL_ANNOTATION,
+            arguments: [],
+          );
         }
       }
     } else if (parent is ConstructorDeclaration) {
       var class_ = parent.declaredElement!.enclosingElement;
       if (class_.isPrivate || parentElementIsPrivate) {
-        _errorReporter.reportErrorForNode(
-            WarningCode.INVALID_INTERNAL_ANNOTATION, node, []);
+        _errorReporter.atNode(
+          node,
+          WarningCode.INVALID_INTERNAL_ANNOTATION,
+          arguments: [],
+        );
       }
     } else if (parentElementIsPrivate) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_INTERNAL_ANNOTATION, node, []);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_INTERNAL_ANNOTATION,
+        arguments: [],
+      );
     } else if (_inPackagePublicApi) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_INTERNAL_ANNOTATION, node, []);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_INTERNAL_ANNOTATION,
+        arguments: [],
+      );
     }
   }
 
@@ -190,8 +211,11 @@ class AnnotationVerifier {
         var validKinds = kindNames.commaSeparatedWithOr;
         // Annotations always refer to named elements, so we can safely assume
         // that `name` is non-`null`.
-        _errorReporter.reportErrorForNode(WarningCode.INVALID_ANNOTATION_TARGET,
-            node.name, [name!, validKinds]);
+        _errorReporter.atNode(
+          node.name,
+          WarningCode.INVALID_ANNOTATION_TARGET,
+          arguments: [name!, validKinds],
+        );
         return;
       }
     }
@@ -202,8 +226,11 @@ class AnnotationVerifier {
   void _checkLiteral(AstNode node) {
     var parent = node.parent;
     if (parent is! ConstructorDeclaration || parent.constKeyword == null) {
-      _errorReporter
-          .reportErrorForNode(WarningCode.INVALID_LITERAL_ANNOTATION, node, []);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_LITERAL_ANNOTATION,
+        arguments: [],
+      );
     }
   }
 
@@ -216,10 +243,10 @@ class AnnotationVerifier {
         parent.parent is ExtensionDeclaration ||
         parent.parent is ExtensionTypeDeclaration ||
         parent.parent is EnumDeclaration) {
-      _errorReporter.reportErrorForNode(
-        WarningCode.INVALID_ANNOTATION_TARGET,
+      _errorReporter.atNode(
         node,
-        [node.name.name, 'instance members of classes and mixins'],
+        WarningCode.INVALID_ANNOTATION_TARGET,
+        arguments: [node.name.name, 'instance members of classes and mixins'],
       );
     }
   }
@@ -233,10 +260,10 @@ class AnnotationVerifier {
         parent.parent is ExtensionDeclaration ||
         parent.parent is ExtensionTypeDeclaration ||
         parent.parent is EnumDeclaration) {
-      _errorReporter.reportErrorForNode(
-        WarningCode.INVALID_ANNOTATION_TARGET,
+      _errorReporter.atNode(
         node,
-        [node.name.name, 'instance members of classes and mixins'],
+        WarningCode.INVALID_ANNOTATION_TARGET,
+        arguments: [node.name.name, 'instance members of classes and mixins'],
       );
     }
   }
@@ -247,20 +274,26 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (parent is FieldDeclaration) {
       if (parent.isStatic) {
-        _errorReporter.reportErrorForNode(
-            WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
+        _errorReporter.atNode(
+          node,
+          WarningCode.INVALID_NON_VIRTUAL_ANNOTATION,
+        );
       }
     } else if (parent is MethodDeclaration) {
       if (parent.parent is ExtensionDeclaration ||
           parent.parent is ExtensionTypeDeclaration ||
           parent.isStatic ||
           parent.isAbstract) {
-        _errorReporter.reportErrorForNode(
-            WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
+        _errorReporter.atNode(
+          node,
+          WarningCode.INVALID_NON_VIRTUAL_ANNOTATION,
+        );
       }
     } else {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_NON_VIRTUAL_ANNOTATION,
+      );
     }
   }
 
@@ -270,10 +303,10 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (parent.parent is! ExtensionTypeDeclaration ||
         parent is MethodDeclaration && parent.isStatic) {
-      _errorReporter.reportErrorForNode(
-        WarningCode.INVALID_ANNOTATION_TARGET,
+      _errorReporter.atNode(
         node,
-        [node.name.name, 'instance members of extension types'],
+        WarningCode.INVALID_ANNOTATION_TARGET,
+        arguments: [node.name.name, 'instance members of extension types'],
       );
     }
   }
@@ -306,19 +339,25 @@ class AnnotationVerifier {
     if (classElement.isFinal ||
         classElement.isMixinClass ||
         classElement.isSealed) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_REOPEN_ANNOTATION, node);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_REOPEN_ANNOTATION,
+      );
       return;
     }
     if (classElement.library != superElement.library) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_REOPEN_ANNOTATION, node);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_REOPEN_ANNOTATION,
+      );
       return;
     }
     if (classElement.isBase) {
       if (!superElement.isFinal && !superElement.isInterface) {
-        _errorReporter.reportErrorForNode(
-            WarningCode.INVALID_REOPEN_ANNOTATION, node);
+        _errorReporter.atNode(
+          node,
+          WarningCode.INVALID_REOPEN_ANNOTATION,
+        );
         return;
       }
     } else if (!classElement.isBase &&
@@ -326,8 +365,10 @@ class AnnotationVerifier {
         !classElement.isInterface &&
         !classElement.isSealed) {
       if (!superElement.isInterface) {
-        _errorReporter.reportErrorForNode(
-            WarningCode.INVALID_REOPEN_ANNOTATION, node);
+        _errorReporter.atNode(
+          node,
+          WarningCode.INVALID_REOPEN_ANNOTATION,
+        );
         return;
       }
     }
@@ -338,8 +379,10 @@ class AnnotationVerifier {
   void _checkSealed(AstNode node) {
     var parent = node.parent;
     if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_SEALED_ANNOTATION, node);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_SEALED_ANNOTATION,
+      );
     }
   }
 
@@ -360,10 +403,11 @@ class AnnotationVerifier {
         var parameterName = undefinedParameter is SimpleStringLiteral
             ? undefinedParameter.value
             : undefinedParameter.staticParameterElement?.name;
-        _errorReporter.reportErrorForNode(
-            WarningCode.UNDEFINED_REFERENCED_PARAMETER,
-            undefinedParameter,
-            [parameterName ?? undefinedParameter, name]);
+        _errorReporter.atNode(
+          undefinedParameter,
+          WarningCode.UNDEFINED_REFERENCED_PARAMETER,
+          arguments: [parameterName ?? undefinedParameter, name],
+        );
       }
     }
   }
@@ -377,15 +421,18 @@ class AnnotationVerifier {
       void reportInvalidAnnotation(String name) {
         // This method is only called on named elements, so it is safe to
         // assume that `declaredElement.name` is non-`null`.
-        _errorReporter.reportErrorForNode(
-            WarningCode.INVALID_VISIBILITY_ANNOTATION,
-            node,
-            [name, node.name.name]);
+        _errorReporter.atNode(
+          node,
+          WarningCode.INVALID_VISIBILITY_ANNOTATION,
+          arguments: [name, node.name.name],
+        );
       }
 
       void reportInvalidVisibleForOverriding() {
-        _errorReporter.reportErrorForNode(
-            WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, node);
+        _errorReporter.atNode(
+          node,
+          WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
+        );
       }
 
       if (parent is TopLevelVariableDeclaration) {
@@ -440,9 +487,9 @@ class AnnotationVerifier {
   /// `@visibleOutsideTemplate` annotation.
   void _checkVisibleOutsideTemplate(Annotation node) {
     void reportError() {
-      _errorReporter.reportErrorForNode(
-        WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION,
+      _errorReporter.atNode(
         node,
+        WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION,
       );
     }
 

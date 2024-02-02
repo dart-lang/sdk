@@ -358,15 +358,17 @@ class ElementResolver {
     element = _resolver.toLegacyElement(element);
     if (element == null || !element.isAccessibleIn(_definingLibrary)) {
       if (name != null) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
-            node,
-            [superType, name.name]);
+        _errorReporter.atNode(
+          node,
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
+          arguments: [superType, name.name],
+        );
       } else {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-            node,
-            [superType]);
+        _errorReporter.atNode(
+          node,
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+          arguments: [superType],
+        );
       }
       return;
     } else {
@@ -374,8 +376,11 @@ class ElementResolver {
           // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
           !element.enclosingElement.constructors
               .every((constructor) => constructor.isFactory)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, [element]);
+        _errorReporter.atNode(
+          node,
+          CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+          arguments: [element],
+        );
       }
     }
     if (name != null) {
@@ -407,14 +412,20 @@ class ElementResolver {
     switch (context) {
       case SuperContext.annotation:
       case SuperContext.static:
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
+        _errorReporter.atNode(
+          node,
+          CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
+        );
       case SuperContext.extension:
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.SUPER_IN_EXTENSION, node);
+        _errorReporter.atNode(
+          node,
+          CompileTimeErrorCode.SUPER_IN_EXTENSION,
+        );
       case SuperContext.extensionType:
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, node);
+        _errorReporter.atNode(
+          node,
+          CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE,
+        );
     }
   }
 

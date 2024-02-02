@@ -177,9 +177,9 @@ class ExtensionMemberResolver {
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
+        _errorReporter.atNode(
           node,
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
         );
       }
       nodeImpl.staticType = _dynamicType;
@@ -187,9 +187,9 @@ class ExtensionMemberResolver {
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
+      _errorReporter.atNode(
         node.argumentList,
+        CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
       );
       nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
       nodeImpl.extendedType = _dynamicType;
@@ -222,17 +222,19 @@ class ExtensionMemberResolver {
     );
 
     if (receiverType is VoidType) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
+      _errorReporter.atNode(
+        receiverExpression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
     } else if (!_typeSystem.isAssignableTo(receiverType, extendedType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {
       var whyNotPromoted =
           whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+      _errorReporter.atNode(
         receiverExpression,
-        [receiverType, extendedType],
-        _resolver.computeWhyNotPromotedMessages(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+        arguments: [receiverType, extendedType],
+        messages: _resolver.computeWhyNotPromotedMessages(
             receiverExpression, whyNotPromoted?.call()),
       );
     }
@@ -253,10 +255,10 @@ class ExtensionMemberResolver {
           parameterBound = substitution.substituteType(parameterBound);
           parameterBound = _typeSystem.toLegacyTypeIfOptOut(parameterBound);
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+            _errorReporter.atNode(
               typeArgumentList.arguments[i],
-              [argument, parameter.name, parameterBound],
+              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              arguments: [argument, parameter.name, parameterBound],
             );
           }
         }
@@ -335,10 +337,10 @@ class ExtensionMemberResolver {
         // We can safely assume `element.name` is non-`null` because type
         // arguments can only be applied to explicit extension overrides, and
         // explicit extension overrides cannot refer to unnamed extensions.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+        _errorReporter.atNode(
           typeArguments,
-          [element.name!, typeParameters.length, arguments.length],
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          arguments: [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);
       }

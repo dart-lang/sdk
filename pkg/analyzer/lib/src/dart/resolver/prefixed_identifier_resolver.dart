@@ -170,10 +170,10 @@ class PrefixedIdentifierResolver {
       return;
     }
 
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+    _resolver.errorReporter.atNode(
       node,
-      [node.name],
+      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+      arguments: [node.name],
     );
 
     if (node is PrefixedIdentifierImpl) {

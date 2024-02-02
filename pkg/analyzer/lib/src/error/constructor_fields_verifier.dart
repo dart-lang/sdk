@@ -154,22 +154,22 @@ class _Constructor {
     names.sort();
 
     if (names.length == 1) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+      errorReporter.atNode(
         node.returnType,
-        names,
+        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+        arguments: names,
       );
     } else if (names.length == 2) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
+      errorReporter.atNode(
         node.returnType,
-        names,
+        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
+        arguments: names,
       );
     } else {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+      errorReporter.atNode(
         node.returnType,
-        [names[0], names[1], names.length - 2],
+        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+        arguments: [names[0], names[1], names.length - 2],
       );
     }
   }
@@ -186,11 +186,11 @@ class _Constructor {
     names.sort();
 
     for (var name in names) {
-      errorReporter.reportErrorForNode(
+      errorReporter.atNode(
+        node.returnType,
         CompileTimeErrorCode
             .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
-        node.returnType,
-        [name],
+        arguments: [name],
       );
     }
   }
@@ -212,23 +212,23 @@ class _Constructor {
             fields[element] = _InitState.initInInitializer;
           } else if (state == _InitState.initInDeclaration) {
             if (element.isFinal || element.isConst) {
-              errorReporter.reportErrorForNode(
+              errorReporter.atNode(
+                fieldName,
                 CompileTimeErrorCode
                     .FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-                fieldName,
               );
             }
           } else if (state == _InitState.initInFieldFormal) {
-            errorReporter.reportErrorForNode(
+            errorReporter.atNode(
+              fieldName,
               CompileTimeErrorCode
                   .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-              fieldName,
             );
           } else if (state == _InitState.initInInitializer) {
-            errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+            errorReporter.atNode(
               fieldName,
-              [element.displayName],
+              CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+              arguments: [element.displayName],
             );
           }
         }

@@ -2625,8 +2625,10 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValues.WithClause) as WithClauseImpl;
     var superclass = pop() as TypeAnnotationImpl;
     if (superclass is! NamedTypeImpl) {
-      errorReporter.errorReporter?.reportErrorForNode(
-          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, superclass);
+      errorReporter.errorReporter?.atNode(
+        superclass,
+        ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
+      );
       var beginToken = superclass.beginToken;
       var endToken = superclass.endToken;
       var currentToken = beginToken;
@@ -3778,9 +3780,9 @@ class AstBuilder extends StackListener {
       //  any type annotation for recovery purposes, and (b) extending the
       //  parser to parse a generic function type at this location.
       if (supertype != null) {
-        errorReporter.errorReporter?.reportErrorForNode(
-          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
+        errorReporter.errorReporter?.atNode(
           supertype,
+          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
         );
       }
     }
@@ -5827,7 +5829,10 @@ class AstBuilder extends StackListener {
       if (type is NamedTypeImpl) {
         namedTypes.add(type);
       } else {
-        errorReporter.errorReporter?.reportErrorForNode(errorCode, type);
+        errorReporter.errorReporter?.atNode(
+          type,
+          errorCode,
+        );
       }
     }
     return namedTypes;

@@ -974,8 +974,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         //
         // This is a case where the parser does not report an error, because the
         // parser thinks this could be an InstanceCreationExpression.
-        _errorReporter.reportErrorForNode(
-            WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
+        _errorReporter.atNode(
+          node,
+          WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
+          arguments: [],
+        );
       }
       return newNode.accept(this);
     }
@@ -1789,10 +1792,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     final typeSystem = _libraryElement.typeSystem;
 
     if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+      _errorReporter.atNode(
         node,
-        [type],
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+        arguments: [type],
       );
       return;
     }
@@ -1810,11 +1813,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           declaredRepresentation,
           implementedRepresentation,
         )) {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.atNode(
+            node,
             CompileTimeErrorCode
                 .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
-            node,
-            [
+            arguments: [
               implementedRepresentation,
               type.element.name,
               declaredRepresentation,
@@ -1826,10 +1829,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+    _errorReporter.atNode(
       node,
-      [type, declaredRepresentation],
+      CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+      arguments: [type, declaredRepresentation],
     );
   }
 
@@ -1989,10 +1992,10 @@ class _VariableBinderErrors
     required String name,
     required PromotableElement variable,
   }) {
-    visitor._errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
+    visitor._errorReporter.atNode(
       hasInLeft ? node.rightOperand : node.leftOperand,
-      [name],
+      CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
+      arguments: [name],
     );
   }
 }

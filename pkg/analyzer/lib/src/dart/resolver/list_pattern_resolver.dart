@@ -22,10 +22,10 @@ class ListPatternResolver {
       // Check that we have exactly one type argument.
       var length = typeArguments.arguments.length;
       if (length != 1) {
-        resolverVisitor.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS,
+        resolverVisitor.errorReporter.atNode(
           typeArguments,
-          [length],
+          CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS,
+          arguments: [length],
         );
       }
     }

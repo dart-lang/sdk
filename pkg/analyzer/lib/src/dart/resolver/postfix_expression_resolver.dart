@@ -83,10 +83,10 @@ class PostfixExpressionResolver {
     var operandWriteType = node.writeType!;
     if (!_typeSystem.isAssignableTo(type, operandWriteType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      _resolver.errorReporter.atNode(
         node,
-        [type, operandWriteType],
+        CompileTimeErrorCode.INVALID_ASSIGNMENT,
+        arguments: [type, operandWriteType],
       );
     }
   }
@@ -129,9 +129,9 @@ class PostfixExpressionResolver {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.reportErrorForNode(
-        WarningCode.RECEIVER_OF_TYPE_NEVER,
+      _resolver.errorReporter.atNode(
         operand,
+        WarningCode.RECEIVER_OF_TYPE_NEVER,
       );
       return;
     }
@@ -198,9 +198,9 @@ class PostfixExpressionResolver {
     var operand = node.operand;
 
     if (operand is SuperExpression) {
-      _resolver.errorReporter.reportErrorForNode(
-        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+      _resolver.errorReporter.atNode(
         node,
+        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
       );
       _inferenceHelper.recordStaticType(operand, DynamicTypeImpl.instance,
           contextType: contextType);

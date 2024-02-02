@@ -738,8 +738,12 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       ErrorCode? errorCode,
       bool ignoreSyntheticNodes = true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
-      reporter.reportErrorForNode(
-          errorCode ?? lintCode, node, arguments, contextMessages);
+      reporter.atNode(
+        node,
+        errorCode ?? lintCode,
+        arguments: arguments,
+        messages: contextMessages,
+      );
     }
   }
 

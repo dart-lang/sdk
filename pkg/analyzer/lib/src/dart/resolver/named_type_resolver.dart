@@ -140,10 +140,10 @@ class NamedTypeResolver with ScopeHelpers {
     var argumentCount = arguments.length;
 
     if (argumentCount != parameterCount) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+      errorReporter.atNode(
         node,
-        [node.name2.lexeme, parameterCount, argumentCount],
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+        arguments: [node.name2.lexeme, parameterCount, argumentCount],
       );
       return List.filled(parameterCount, InvalidTypeImpl.instance,
           growable: false);
@@ -338,10 +338,10 @@ class NamedTypeResolver with ScopeHelpers {
         constructorName.name == null) {
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        errorReporter.atNode(
           typeArguments,
-          [importPrefix.name.lexeme, nameToken.lexeme],
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          arguments: [importPrefix.name.lexeme, nameToken.lexeme],
         );
         var instanceCreation = constructorName.parent;
         if (instanceCreation is InstanceCreationExpressionImpl) {
@@ -390,24 +390,24 @@ class NamedTypeResolver with ScopeHelpers {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         var parent = node.parent;
         if (parent is ExtendsClause || parent is ClassTypeAlias) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE,
+          errorReporter.atNode(
             node,
+            CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE,
           );
         } else if (parent is ImplementsClause) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
+          errorReporter.atNode(
             node,
+            CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
           );
         } else if (parent is OnClause) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE,
+          errorReporter.atNode(
             node,
+            CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE,
           );
         } else if (parent is WithClause) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE,
+          errorReporter.atNode(
             node,
+            CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE,
           );
         }
         return (type as TypeImpl).withNullability(NullabilitySuffix.none);
@@ -633,9 +633,9 @@ class _ErrorHelper {
     }
 
     if (node.importPrefix == null && node.name2.lexeme == 'await') {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
+      errorReporter.atNode(
         node,
+        CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
       );
       return;
     }
