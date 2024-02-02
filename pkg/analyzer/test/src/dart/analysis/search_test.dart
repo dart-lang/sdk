@@ -2426,25 +2426,6 @@ self::@function::f
 ''');
   }
 
-  test_searchReferences_TypeAliasElement_fromLegacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef A<T> = Map<int, T>;
-''');
-    await resolveTestCode('''
-// @dart = 2.9
-import 'a.dart';
-
-void f(A<String> a) {}
-''');
-
-    final element =
-        findElement.importFind('package:test/a.dart').typeAlias('A');
-    await assertElementReferencesText(element, r'''
-self::@function::f::@parameter::a
-  40 4:8 |A| REFERENCE
-''');
-  }
-
   test_searchReferences_TypeAliasElement_inConstructorName() async {
     await resolveTestCode('''
 class A<T> {}

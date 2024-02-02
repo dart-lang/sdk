@@ -198,18 +198,6 @@ class A<T> {
 ''', () => _xInitializer());
   }
 
-  test_asExpression_typeParameter_29() async {
-    await _assertNotConst(r'''
-// @dart = 2.9
-const a = 0;
-class A<T> {
-  m() {
-    var x = a as T;
-  }
-}
-''', () => _xInitializer(), () => [findNode.namedType('T;')]);
-  }
-
   test_asExpression_typeParameter_nested() async {
     await _assertConst(r'''
 const a = 0;
@@ -580,18 +568,6 @@ class A<T> {
   }
 }
 ''', () => _xInitializer());
-  }
-
-  test_isExpression_typeParameter_29() async {
-    await _assertNotConst(r'''
-// @dart = 2.9
-const a = 0;
-class A<T> {
-  m() {
-    var x = a is T;
-  }
-}
-''', () => _xInitializer(), () => [findNode.namedType('T;')]);
   }
 
   test_isExpression_typeParameter_nested() async {
