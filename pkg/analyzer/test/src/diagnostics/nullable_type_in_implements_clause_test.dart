@@ -51,6 +51,42 @@ class C implements B {}
     ]);
   }
 
+  test_extensionType_nonNullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension type E(A _) implements A {}
+''');
+  }
+
+  test_extensionType_nullable() async {
+    await assertErrorsInCode('''
+class A {}
+extension type E(A _) implements A? {}
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 44, 2),
+    ]);
+  }
+
+  test_extensionType_nullable_alias() async {
+    await assertErrorsInCode('''
+class A {}
+typedef B = A;
+extension type E(A _) implements B? {}
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 59, 2),
+    ]);
+  }
+
+  test_extensionType_nullable_alias2() async {
+    await assertErrorsInCode('''
+class A {}
+typedef B = A?;
+extension type E(A _) implements B {}
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 60, 1),
+    ]);
+  }
+
   test_mixin_nonNullable() async {
     await assertNoErrorsInCode('''
 class A {}

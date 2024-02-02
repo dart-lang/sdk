@@ -4123,7 +4123,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE =
       CompileTimeErrorCode(
     'NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
-    "A class or mixin can't implement a nullable type.",
+    "A class, mixin, or extension type can't implement a nullable type.",
     correctionMessage: "Try removing the question mark.",
     hasPublishedDocs: true,
   );

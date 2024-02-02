@@ -16269,12 +16269,13 @@ class B extends A {}
 
 ### nullable_type_in_implements_clause
 
-_A class or mixin can't implement a nullable type._
+_A class, mixin, or extension type can't implement a nullable type._
 
 #### Description
 
-The analyzer produces this diagnostic when a class or mixin declaration has
-an `implements` clause, and an interface is followed by a `?`.
+The analyzer produces this diagnostic when a class, mixin, or
+extension type declaration has an `implements` clause, and an
+interface is followed by a `?`.
 
 It isn't valid to specify a nullable interface because doing so would have
 no meaning; it wouldn't change the interface being inherited by the class
