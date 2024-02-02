@@ -111,15 +111,19 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (element is ConstructorElement) {
       // should be 'const' constructor
       if (!element.isConst) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
+        _errorReporter.atNode(
+          node,
+          CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR,
+        );
         return;
       }
       // should have arguments
       var argumentList = node.arguments;
       if (argumentList == null) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
+        _errorReporter.atNode(
+          node,
+          CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
+        );
         return;
       }
       // arguments should be constants
@@ -147,10 +151,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           matchedValueType = matchedValueType?.extensionTypeErasure;
           if (matchedValueType != null) {
             if (!_canBeEqual(constantType, matchedValueType)) {
-              _errorReporter.reportErrorForNode(
-                WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE,
+              _errorReporter.atNode(
                 node,
-                [matchedValueType, constantType],
+                WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE,
+                arguments: [matchedValueType, constantType],
               );
               return;
             }
@@ -172,9 +176,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (element is ConstructorElementImpl &&
           !element.isCycleFree &&
           !element.isFactory) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR,
-            node.returnType, []);
+        _errorReporter.atNode(
+          node.returnType,
+          CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR,
+          arguments: [],
+        );
       }
 
       _validateConstructorInitializers(node);
@@ -543,7 +549,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (type is NamedType) {
       // Should not be a type parameter.
       if (type.element is TypeParameterElement) {
-        _errorReporter.reportErrorForNode(errorCode, type);
+        _errorReporter.atNode(
+          type,
+          errorCode,
+        );
         return;
       }
       // Check type arguments.
@@ -723,9 +732,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (notPotentiallyConstants.isEmpty) return;
 
     for (var notConst in notPotentiallyConstants) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_CONSTANT,
+      _errorReporter.atNode(
         notConst,
+        CompileTimeErrorCode.INVALID_CONSTANT,
       );
     }
   }
@@ -985,10 +994,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (!featureSet.isEnabled(Feature.patterns)) {
         var expressionType = expressionValue.type;
         if (!expressionValue.hasPrimitiveEquality(featureSet)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          _errorReporter.atNode(
             expression,
-            [expressionType],
+            CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+            arguments: [expressionType],
           );
         }
       }
@@ -1058,8 +1067,10 @@ class _ConstLiteralVerifier {
 
       return true;
     } else if (element is ForElement) {
-      verifier._errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, element);
+      verifier._errorReporter.atNode(
+        element,
+        CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT,
+      );
       return false;
     } else if (element is IfElement) {
       var conditionValue =
@@ -1143,7 +1154,10 @@ class _ConstLiteralVerifier {
       } else {
         throw UnimplementedError();
       }
-      verifier._errorReporter.reportErrorForNode(errorCode, notConst);
+      verifier._errorReporter.atNode(
+        notConst,
+        errorCode,
+      );
     }
 
     return false;
@@ -1152,10 +1166,10 @@ class _ConstLiteralVerifier {
   bool _validateListExpression(
       DartType listElementType, Expression expression, DartObjectImpl value) {
     if (!verifier._runtimeTypeMatch(value, listElementType)) {
-      verifier._errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      verifier._errorReporter.atNode(
         expression,
-        [value.type, listElementType],
+        CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+        arguments: [value.type, listElementType],
       );
       return false;
     }
@@ -1175,9 +1189,9 @@ class _ConstLiteralVerifier {
       // TODO(kallentu): Consolidate this with
       // [ConstantVisitor._addElementsToList] and the other similar
       // _addElementsTo methods..
-      verifier._errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
+      verifier._errorReporter.atNode(
         element.expression,
+        CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
       );
       return false;
     }
@@ -1190,10 +1204,10 @@ class _ConstLiteralVerifier {
     if (listValue != null) {
       final featureSet = verifier._currentLibrary.featureSet;
       if (!listValue.every((e) => e.hasPrimitiveEquality(featureSet))) {
-        verifier._errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
+        verifier._errorReporter.atNode(
           element,
-          [value.type],
+          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
+          arguments: [value.type],
         );
         return false;
       }
@@ -1232,19 +1246,19 @@ class _ConstLiteralVerifier {
       var keyType = keyValue.type;
 
       if (!verifier._runtimeTypeMatch(keyValue, config.keyType)) {
-        verifier._errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+        verifier._errorReporter.atNode(
           keyExpression,
-          [keyType, config.keyType],
+          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+          arguments: [keyType, config.keyType],
         );
       }
 
       final featureSet = verifier._currentLibrary.featureSet;
       if (!keyValue.hasPrimitiveEquality(featureSet)) {
-        verifier._errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
+        verifier._errorReporter.atNode(
           keyExpression,
-          [keyType],
+          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
+          arguments: [keyType],
         );
       }
 
@@ -1258,10 +1272,10 @@ class _ConstLiteralVerifier {
 
     if (valueValue is DartObjectImpl) {
       if (!verifier._runtimeTypeMatch(valueValue, config.valueType)) {
-        verifier._errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+        verifier._errorReporter.atNode(
           valueExpression,
-          [valueValue.type, config.valueType],
+          CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+          arguments: [valueValue.type, config.valueType],
         );
       }
     }
@@ -1293,9 +1307,9 @@ class _ConstLiteralVerifier {
       }
       return true;
     }
-    verifier._errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
+    verifier._errorReporter.atNode(
       element.expression,
+      CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
     );
     return false;
   }
@@ -1306,20 +1320,20 @@ class _ConstLiteralVerifier {
     DartObjectImpl value,
   ) {
     if (!verifier._runtimeTypeMatch(value, config.elementType)) {
-      verifier._errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      verifier._errorReporter.atNode(
         expression,
-        [value.type, config.elementType],
+        CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+        arguments: [value.type, config.elementType],
       );
       return false;
     }
 
     final featureSet = verifier._currentLibrary.featureSet;
     if (!value.hasPrimitiveEquality(featureSet)) {
-      verifier._errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
+      verifier._errorReporter.atNode(
         expression,
-        [value.type],
+        CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
+        arguments: [value.type],
       );
       return false;
     }

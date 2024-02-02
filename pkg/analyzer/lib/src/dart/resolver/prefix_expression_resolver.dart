@@ -95,10 +95,10 @@ class PrefixExpressionResolver {
     var operandWriteType = node.writeType!;
     if (!_typeSystem.isAssignableTo(type, operandWriteType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      _resolver.errorReporter.atNode(
         node,
-        [type, operandWriteType],
+        CompileTimeErrorCode.INVALID_ASSIGNMENT,
+        arguments: [type, operandWriteType],
       );
     }
   }
@@ -168,9 +168,9 @@ class PrefixExpressionResolver {
         return;
       }
       if (identical(readType, NeverTypeImpl.instance)) {
-        _resolver.errorReporter.reportErrorForNode(
-          WarningCode.RECEIVER_OF_TYPE_NEVER,
+        _resolver.errorReporter.atNode(
           operand,
+          WarningCode.RECEIVER_OF_TYPE_NEVER,
         );
         return;
       }

@@ -82,9 +82,9 @@ class AnnotationResolver {
       _propertyAccessorElement(node, getterName, getter, whyNotPromotedList);
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ANNOTATION,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
       );
     }
 
@@ -106,9 +106,9 @@ class AnnotationResolver {
     node.element = constructorElement;
 
     if (constructorElement == null) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ANNOTATION,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
       );
       AnnotationInferrer(
               resolver: _resolver,
@@ -156,9 +156,9 @@ class AnnotationResolver {
       _propertyAccessorElement(node, getterName, getter, whyNotPromotedList);
       _resolveAnnotationElementGetter(node, getter);
     } else {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ANNOTATION,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
       );
     }
 
@@ -171,8 +171,10 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     if (!element.isConst || node.arguments != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION, node);
+      _errorReporter.atNode(
+        node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
+      );
     }
 
     _visitArguments(node, whyNotPromotedList);
@@ -212,10 +214,10 @@ class AnnotationResolver {
     name1.staticElement = element1;
 
     if (element1 == null) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+      _errorReporter.atNode(
         node,
-        [name1.name],
+        CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+        arguments: [name1.name],
       );
       _visitArguments(node, whyNotPromotedList);
       return;
@@ -278,10 +280,10 @@ class AnnotationResolver {
         }
         // undefined
         if (element == null) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+          _errorReporter.atNode(
             node,
-            [name2.name],
+            CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+            arguments: [name2.name],
           );
           _visitArguments(node, whyNotPromotedList);
           return;
@@ -313,9 +315,9 @@ class AnnotationResolver {
       return;
     }
 
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.INVALID_ANNOTATION,
+    _errorReporter.atNode(
       node,
+      CompileTimeErrorCode.INVALID_ANNOTATION,
     );
 
     _visitArguments(node, whyNotPromotedList);
@@ -329,8 +331,10 @@ class AnnotationResolver {
     if (!accessorElement.isSynthetic ||
         !variableElement.isConst ||
         annotation.arguments != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      _errorReporter.atNode(
+        annotation,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
+      );
     }
   }
 
@@ -387,9 +391,9 @@ class AnnotationResolver {
       _propertyAccessorElement(node, getterName, getter, whyNotPromotedList);
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ANNOTATION,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
       );
     }
 

@@ -73,10 +73,11 @@ class NullSafeApiVerifier {
         argument == null || _typeSystem.isNull(argumentType!);
 
     if (argumentIsNull) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE,
-          argument ?? node,
-          [memberName, type.getDisplayString(withNullability: true)]);
+      _errorReporter.atNode(
+        argument ?? node,
+        WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE,
+        arguments: [memberName, type.getDisplayString(withNullability: true)],
+      );
     }
   }
 }

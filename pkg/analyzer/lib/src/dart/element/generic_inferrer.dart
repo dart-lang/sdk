@@ -234,10 +234,14 @@ class GenericInferrer {
       if (!success) {
         if (failAtError) return null;
         hasErrorReported = true;
-        errorReporter?.reportErrorForNode(
-            CompileTimeErrorCode.COULD_NOT_INFER,
-            errorNode!,
-            [parameter.name, _formatError(parameter, inferred, constraints)]);
+        errorReporter?.atNode(
+          errorNode!,
+          CompileTimeErrorCode.COULD_NOT_INFER,
+          arguments: [
+            parameter.name,
+            _formatError(parameter, inferred, constraints)
+          ],
+        );
 
         // Heuristic: even if we failed, keep the erroneous type.
         // It should satisfy at least some of the constraints (e.g. the return
@@ -253,13 +257,16 @@ class GenericInferrer {
         hasErrorReported = true;
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
-        errorReporter!.reportErrorForNode(
-            CompileTimeErrorCode.COULD_NOT_INFER, errorNode!, [
-          parameter.name,
-          ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
-              ' [$typeFormalsStr], but a function with'
-              ' type parameters cannot be used as a type argument.'
-        ]);
+        errorReporter!.atNode(
+          errorNode!,
+          CompileTimeErrorCode.COULD_NOT_INFER,
+          arguments: [
+            parameter.name,
+            ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
+                ' [$typeFormalsStr], but a function with'
+                ' type parameters cannot be used as a type argument.'
+          ],
+        );
       }
 
       if (UnknownInferredType.isKnown(inferred)) {
@@ -291,13 +298,16 @@ class GenericInferrer {
         var typeParamBound = Substitution.fromPairs(_typeFormals, inferredTypes)
             .substituteType(typeParam.bound ?? typeProvider.objectType);
         // TODO(jmesserly): improve this error message.
-        errorReporter?.reportErrorForNode(
-            CompileTimeErrorCode.COULD_NOT_INFER, errorNode!, [
-          typeParam.name,
-          "\nRecursive bound cannot be instantiated: '$typeParamBound'."
-              "\nConsider passing explicit type argument(s) "
-              "to the generic.\n\n'"
-        ]);
+        errorReporter?.atNode(
+          errorNode!,
+          CompileTimeErrorCode.COULD_NOT_INFER,
+          arguments: [
+            typeParam.name,
+            "\nRecursive bound cannot be instantiated: '$typeParamBound'."
+                "\nConsider passing explicit type argument(s) "
+                "to the generic.\n\n'"
+          ],
+        );
       }
     }
 
@@ -332,10 +342,10 @@ class GenericInferrer {
       var substitution = Substitution.fromPairs(_typeFormals, typeArguments);
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argument, bound)) {
-        errorReporter?.reportErrorForNode(
-          CompileTimeErrorCode.COULD_NOT_INFER,
+        errorReporter?.atNode(
           errorNode!,
-          [
+          CompileTimeErrorCode.COULD_NOT_INFER,
+          arguments: [
             parameter.name,
             "\n'${_typeStr(argument)}' doesn't conform to "
                 "the bound '${_typeStr(bound)}'"
@@ -579,10 +589,11 @@ class GenericInferrer {
       String constructorName = errorNode.name == null
           ? errorNode.type.qualifiedName
           : '${errorNode.type}.${errorNode.name}';
-      errorReporter.reportErrorForNode(
-          WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
-          errorNode,
-          [constructorName]);
+      errorReporter.atNode(
+        errorNode,
+        WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+        arguments: [constructorName],
+      );
     } else if (errorNode is Annotation) {
       if (genericMetadataIsEnabled) {
         // Only report an error if generic metadata is valid syntax.
@@ -591,10 +602,11 @@ class GenericInferrer {
           String constructorName = errorNode.constructorName == null
               ? errorNode.name.name
               : '${errorNode.name.name}.${errorNode.constructorName}';
-          errorReporter.reportErrorForNode(
-              WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
-              errorNode,
-              [constructorName]);
+          errorReporter.atNode(
+            errorNode,
+            WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+            arguments: [constructorName],
+          );
         }
       }
     } else if (errorNode is SimpleIdentifier) {
@@ -614,10 +626,11 @@ class GenericInferrer {
           }
         }
         if (!element.hasOptionalTypeArgs) {
-          errorReporter.reportErrorForNode(
-              WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
-              errorNode,
-              [errorNode.name]);
+          errorReporter.atNode(
+            errorNode,
+            WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
+            arguments: [errorNode.name],
+          );
           return;
         }
       }
@@ -626,10 +639,11 @@ class GenericInferrer {
       if (type != null) {
         var typeDisplayString = type.getDisplayString(
             withNullability: _typeSystem.isNonNullableByDefault);
-        errorReporter.reportErrorForNode(
-            WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
-            errorNode,
-            [typeDisplayString]);
+        errorReporter.atNode(
+          errorNode,
+          WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
+          arguments: [typeDisplayString],
+        );
         return;
       }
     }

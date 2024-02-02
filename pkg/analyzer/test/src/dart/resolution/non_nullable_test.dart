@@ -58,23 +58,11 @@ class C {
   }
 
   test_library_typeProvider_typeSystem() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-    await resolveTestCode(r'''
-// @dart = 2.5
-import 'a.dart';
-''');
+    await resolveTestCode('');
     var testLibrary = result.libraryElement;
     var testTypeSystem = testLibrary.typeSystem as TypeSystemImpl;
-    assertType(testLibrary.typeProvider.intType, 'int*');
-    expect(testTypeSystem.isNonNullableByDefault, isFalse);
-
-    var aImport = findElement.importFind('package:test/a.dart');
-    var aLibrary = aImport.importedLibrary;
-    var aTypeSystem = aLibrary.typeSystem as TypeSystemImpl;
-    assertType(aLibrary.typeProvider.intType, 'int');
-    expect(aTypeSystem.isNonNullableByDefault, isTrue);
+    assertType(testLibrary.typeProvider.intType, 'int');
+    expect(testTypeSystem.isNonNullableByDefault, isTrue);
   }
 
   test_local_getterNullAwareAccess_interfaceType() async {

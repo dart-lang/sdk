@@ -152,15 +152,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     if (isUnnecessaryCast(node, _typeSystem)) {
-      _errorReporter.reportErrorForNode(WarningCode.UNNECESSARY_CAST, node);
+      _errorReporter.atNode(
+        node,
+        WarningCode.UNNECESSARY_CAST,
+      );
     }
     var type = node.type.type;
     if (_isNonNullableByDefault &&
         type != null &&
         _typeSystem.isNonNullable(type) &&
         node.expression.typeOrThrow.isDartCoreNull) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, node);
+      _errorReporter.atNode(
+        node,
+        WarningCode.CAST_FROM_NULL_ALWAYS_FAILS,
+      );
     }
     super.visitAsExpression(node);
   }
@@ -189,8 +194,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _typeSystem.isNonNullable(type) &&
         matchedValueType != null &&
         matchedValueType.isDartCoreNull) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, node);
+      _errorReporter.atNode(
+        node,
+        WarningCode.CAST_FROM_NULL_ALWAYS_FAILS,
+      );
     }
     super.visitCastPattern(node);
   }
@@ -271,9 +278,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstantPattern(ConstantPattern node) {
     if (node.expression.isDoubleNan) {
-      _errorReporter.reportErrorForNode(
-        WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE,
+      _errorReporter.atNode(
         node,
+        WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE,
       );
     }
     super.visitConstantPattern(node);
@@ -551,7 +558,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForLoadLibraryFunction(node, importElement);
     }
     _invalidAccessVerifier.verifyImport(node);
-    _checkForImportOfLegacyLibraryIntoNullSafe(node);
     super.visitImportDirective(node);
   }
 
@@ -696,8 +702,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _deprecatedVerifier.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
         node.operand.typeOrThrow.isDartCoreNull) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.NULL_CHECK_ALWAYS_FAILS, node);
+      _errorReporter.atNode(
+        node,
+        WarningCode.NULL_CHECK_ALWAYS_FAILS,
+      );
     }
     super.visitPostfixExpression(node);
   }
@@ -783,11 +791,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var rightType = rightNode.type as TypeImpl;
 
     void report() {
-      _errorReporter.reportErrorForNode(
+      _errorReporter.atNode(
+        node,
         node.notOperator == null
             ? WarningCode.UNNECESSARY_TYPE_CHECK_TRUE
             : WarningCode.UNNECESSARY_TYPE_CHECK_FALSE,
-        node,
       );
     }
 
@@ -812,11 +820,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (leftNode is NullLiteral) {
         report();
       } else {
-        _errorReporter.reportErrorForNode(
+        _errorReporter.atNode(
+          node,
           node.notOperator == null
               ? WarningCode.TYPE_CHECK_IS_NULL
               : WarningCode.TYPE_CHECK_IS_NOT_NULL,
-          node,
         );
       }
       return true;
@@ -853,10 +861,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
       // named elements, so we can safely assume `entry.value.name` is
       // non-`null`.
-      _errorReporter.reportErrorForNode(
-        WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+      _errorReporter.atNode(
         entry.key,
-        [entry.value.name!],
+        WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+        arguments: [entry.value.name!],
       );
     }
   }
@@ -891,8 +899,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (grandParent is MethodInvocation) {
         if (toIntMethodName == grandParent.methodName.name &&
             grandParent.argumentList.arguments.isEmpty) {
-          _errorReporter.reportErrorForNode(
-              HintCode.DIVISION_OPTIMIZATION, grandParent);
+          _errorReporter.atNode(
+            grandParent,
+            HintCode.DIVISION_OPTIMIZATION,
+          );
           return true;
         }
       }
@@ -920,7 +930,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var errorCode = node.isSet
               ? WarningCode.EQUAL_ELEMENTS_IN_SET
               : WarningCode.EQUAL_KEYS_IN_MAP;
-          _errorReporter.reportErrorForNode(errorCode, expression);
+          _errorReporter.atNode(
+            expression,
+            errorCode,
+          );
         }
       }
     }
@@ -996,28 +1009,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForImportOfLegacyLibraryIntoNullSafe(ImportDirective node) {
-    if (!_isNonNullableByDefault) {
-      return;
-    }
-
-    var importElement = node.element;
-    if (importElement == null) {
-      return;
-    }
-
-    var importedLibrary = importElement.importedLibrary;
-    if (importedLibrary == null || importedLibrary.isNonNullableByDefault) {
-      return;
-    }
-
-    _errorReporter.reportErrorForNode(
-      HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE,
-      node.uri,
-      [importedLibrary.source.uri],
-    );
-  }
-
   /// Check that the namespace exported by [node] does not include any elements
   /// annotated with `@internal`.
   void _checkForInternalExport(ExportDirective node) {
@@ -1026,19 +1017,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var libraryElement = node.element?.exportedLibrary;
     if (libraryElement == null) return;
     if (libraryElement.hasInternal) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
-          node,
-          [libraryElement.displayName]);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
+        arguments: [libraryElement.displayName],
+      );
     }
     var exportNamespace =
         NamespaceBuilder().createExportNamespaceForDirective(node.element!);
     exportNamespace.definedNames.forEach((String name, Element element) {
       if (element.hasInternal) {
-        _errorReporter.reportErrorForNode(
-            WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
-            node,
-            [element.displayName]);
+        _errorReporter.atNode(
+          node,
+          WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
+          arguments: [element.displayName],
+        );
       } else if (element is FunctionElement) {
         var signatureTypes = [
           ...element.parameters.map((p) => p.type),
@@ -1048,10 +1041,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         for (var type in signatureTypes) {
           var aliasElement = type?.alias?.element;
           if (aliasElement != null && aliasElement.hasInternal) {
-            _errorReporter.reportErrorForNode(
-                WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
-                node,
-                [aliasElement.name, element.displayName]);
+            _errorReporter.atNode(
+              node,
+              WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
+              arguments: [aliasElement.name, element.displayName],
+            );
           }
         }
       }
@@ -1078,14 +1072,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               element.superclassConstraints.contains(supertype)) {
             // This is a special violation of the sealed class contract,
             // requiring specific messaging.
-            _errorReporter.reportErrorForNode(WarningCode.MIXIN_ON_SEALED_CLASS,
-                node, [superclass.name.toString()]);
+            _errorReporter.atNode(
+              node,
+              WarningCode.MIXIN_ON_SEALED_CLASS,
+              arguments: [superclass.name.toString()],
+            );
           } else {
             // This is a regular violation of the sealed class contract.
-            _errorReporter.reportErrorForNode(
-                WarningCode.SUBTYPE_OF_SEALED_CLASS,
-                node,
-                [superclass.name.toString()]);
+            _errorReporter.atNode(
+              node,
+              WarningCode.SUBTYPE_OF_SEALED_CLASS,
+              arguments: [superclass.name.toString()],
+            );
           }
         }
       }
@@ -1182,7 +1180,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var warning = node.keyword?.keyword == Keyword.NEW
           ? WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
           : WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
-      _errorReporter.reportErrorForNode(warning, node, [fullConstructorName]);
+      _errorReporter.atNode(
+        node,
+        warning,
+        arguments: [fullConstructorName],
+      );
     }
   }
 
@@ -1205,8 +1207,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var loadLibraryElement = importNamespace.getPrefixed(
         prefix.name, FunctionElement.LOAD_LIBRARY_NAME);
     if (loadLibraryElement != null) {
-      _errorReporter.reportErrorForNode(
-          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, node);
+      _errorReporter.atNode(
+        node,
+        HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
+      );
       return true;
     }
     return false;
@@ -1263,9 +1267,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_typeSystem.isPotentiallyNullable(type.typeOrThrow)) {
-      _errorReporter.reportErrorForNode(
-        WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
+      _errorReporter.atNode(
         type,
+        WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
       );
     }
   }
@@ -1286,10 +1290,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
         // named elements, so we can safely assume `entry.value.name` is
         // non-`null`.
-        _errorReporter.reportErrorForNode(
-          WarningCode.RETURN_OF_DO_NOT_STORE,
+        _errorReporter.atNode(
           entry.key,
-          [entry.value.name!, parent.declaredElement!.displayName],
+          WarningCode.RETURN_OF_DO_NOT_STORE,
+          arguments: [entry.value.name!, parent.declaredElement!.displayName],
         );
       }
     }
@@ -1377,8 +1381,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (isReturnVoid) {
         var expression = body.expression;
         if (expression is SetOrMapLiteralImpl && expression.isSet) {
-          _errorReporter.reportErrorForNode(
-              WarningCode.UNNECESSARY_SET_LITERAL, expression);
+          _errorReporter.atNode(
+            expression,
+            WarningCode.UNNECESSARY_SET_LITERAL,
+          );
         }
       }
     }
@@ -1393,22 +1399,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         .where((p) => p.isNamed)
         .where((p) => p.declaredElement!.defaultValueCode != null);
     for (final param in nonNamedParamsWithRequired.where((p) => p.isOptional)) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
-          param,
-          [_formalParameterNameOrEmpty(param)]);
+      _errorReporter.atNode(
+        param,
+        WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
+        arguments: [_formalParameterNameOrEmpty(param)],
+      );
     }
     for (final param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM,
-          param,
-          [_formalParameterNameOrEmpty(param)]);
+      _errorReporter.atNode(
+        param,
+        WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM,
+        arguments: [_formalParameterNameOrEmpty(param)],
+      );
     }
     for (final param in namedParamsWithRequiredAndDefault) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_REQUIRED_NAMED_PARAM,
-          param,
-          [_formalParameterNameOrEmpty(param)]);
+      _errorReporter.atNode(
+        param,
+        WarningCode.INVALID_REQUIRED_NAMED_PARAM,
+        arguments: [_formalParameterNameOrEmpty(param)],
+      );
     }
   }
 
@@ -1446,10 +1455,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
       if (parameter.type == null && isParameterReferenced(parameter)) {
         ParameterElement element = parameter.declaredElement!;
-        _errorReporter.reportErrorForNode(
-          WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
+        _errorReporter.atNode(
           parameter,
-          [element.displayName],
+          WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
+          arguments: [element.displayName],
         );
       }
     }
@@ -1489,10 +1498,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           arguments: [displayName],
         );
       case _:
-        _errorReporter.reportErrorForNode(
-          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+        _errorReporter.atNode(
           reportNode,
-          [displayName],
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          arguments: [displayName],
         );
     }
   }
@@ -1715,10 +1724,11 @@ class _InvalidAccessVerifier {
       // `stringValue` is if its string contains an interpolation, in which case
       // the element would never have resolved in the first place.  So we can
       // safely assume `node.uri.stringValue` is non-`null`.
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
-          node,
-          [node.uri.stringValue!]);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+        arguments: [node.uri.stringValue!],
+      );
     }
   }
 
@@ -1775,8 +1785,11 @@ class _InvalidAccessVerifier {
     var element = node.staticElement;
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element!.library)) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [element.name]);
+      _errorReporter.atNode(
+        node,
+        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+        arguments: [element.name],
+      );
     }
   }
 

@@ -59,10 +59,10 @@ class LiteralElementVerifier {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
-      errorReporter.reportErrorForNode(
-        errorCode,
+      errorReporter.atNode(
         errorNode,
-        [type, elementType],
+        errorCode,
+        arguments: [type, elementType],
       );
     }
   }
@@ -78,8 +78,10 @@ class LiteralElementVerifier {
         }
         _checkAssignableToElementType(element.typeOrThrow, element);
       } else {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXPRESSION_IN_MAP, element);
+        errorReporter.atNode(
+          element,
+          CompileTimeErrorCode.EXPRESSION_IN_MAP,
+        );
       }
     } else if (element is ForElement) {
       _verifyElement(element.body);
@@ -90,8 +92,10 @@ class LiteralElementVerifier {
       if (forMap) {
         _verifyMapLiteralEntry(element);
       } else {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP, element);
+        errorReporter.atNode(
+          element,
+          CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
+        );
       }
     } else if (element is SpreadElement) {
       var isNullAware = element.isNullAware;
@@ -122,20 +126,20 @@ class LiteralElementVerifier {
     var keyType = entry.key.typeOrThrow;
     if (!typeSystem.isAssignableTo(keyType, mapKeyType,
         strictCasts: _strictCasts)) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+      errorReporter.atNode(
         entry.key,
-        [keyType, mapKeyType],
+        CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+        arguments: [keyType, mapKeyType],
       );
     }
 
     var valueType = entry.value.typeOrThrow;
     if (!typeSystem.isAssignableTo(valueType, mapValueType,
         strictCasts: _strictCasts)) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+      errorReporter.atNode(
         entry.value,
-        [valueType, mapValueType],
+        CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+        arguments: [valueType, mapValueType],
       );
     }
   }
@@ -146,9 +150,9 @@ class LiteralElementVerifier {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
-        return errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
+        errorReporter.atNode(
           expression,
+          CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
         );
       }
       return;
@@ -162,9 +166,9 @@ class LiteralElementVerifier {
         if (isNullAware) {
           return;
         }
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+        errorReporter.atNode(
           expression,
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
         );
         return;
       }
@@ -173,9 +177,9 @@ class LiteralElementVerifier {
         if (isNullAware) {
           return;
         }
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+        errorReporter.atNode(
           expression,
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
         );
         return;
       }
@@ -186,9 +190,9 @@ class LiteralElementVerifier {
     );
 
     if (iterableType == null) {
-      return errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
+      return errorReporter.atNode(
         expression,
+        CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
       );
     }
 
@@ -204,10 +208,10 @@ class LiteralElementVerifier {
       var implicitCallMethod = _errorVerifier.getImplicitCallMethod(
           iterableElementType, elementType, expression);
       if (implicitCallMethod == null) {
-        errorReporter.reportErrorForNode(
-          errorCode,
+        errorReporter.atNode(
           expression,
-          [iterableElementType, elementType],
+          errorCode,
+          arguments: [iterableElementType, elementType],
         );
       } else {
         var tearoffType = implicitCallMethod.type;
@@ -229,10 +233,10 @@ class LiteralElementVerifier {
 
         if (!typeSystem.isAssignableTo(tearoffType, elementType,
             strictCasts: _strictCasts)) {
-          errorReporter.reportErrorForNode(
-            errorCode,
+          errorReporter.atNode(
             expression,
-            [iterableElementType, elementType],
+            errorCode,
+            arguments: [iterableElementType, elementType],
           );
         }
       }
@@ -245,9 +249,9 @@ class LiteralElementVerifier {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
-        return errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_MAP_SPREAD,
+        errorReporter.atNode(
           expression,
+          CompileTimeErrorCode.NOT_MAP_SPREAD,
         );
       }
       return;
@@ -261,9 +265,9 @@ class LiteralElementVerifier {
         if (isNullAware) {
           return;
         }
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+        errorReporter.atNode(
           expression,
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
         );
         return;
       }
@@ -272,9 +276,9 @@ class LiteralElementVerifier {
         if (isNullAware) {
           return;
         }
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+        errorReporter.atNode(
           expression,
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
         );
         return;
       }
@@ -285,9 +289,9 @@ class LiteralElementVerifier {
     );
 
     if (mapType == null) {
-      return errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NOT_MAP_SPREAD,
+      return errorReporter.atNode(
         expression,
+        CompileTimeErrorCode.NOT_MAP_SPREAD,
       );
     }
 
@@ -295,10 +299,10 @@ class LiteralElementVerifier {
     var mapKeyType = this.mapKeyType;
     if (!typeSystem.isAssignableTo(keyType, mapKeyType!,
         strictCasts: _strictCasts)) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+      errorReporter.atNode(
         expression,
-        [keyType, mapKeyType],
+        CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+        arguments: [keyType, mapKeyType],
       );
     }
 
@@ -306,10 +310,10 @@ class LiteralElementVerifier {
     var mapValueType = this.mapValueType;
     if (!typeSystem.isAssignableTo(valueType, mapValueType!,
         strictCasts: _strictCasts)) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+      errorReporter.atNode(
         expression,
-        [valueType, mapValueType],
+        CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+        arguments: [valueType, mapValueType],
       );
     }
   }

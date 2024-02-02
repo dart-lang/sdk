@@ -155,42 +155,6 @@ void f<T extends num>(T Function(T) a) {
 ''');
   }
 
-  test_interfaceType_star_toNone() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.7
-int a = 0;
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart';
-
-void f() {
-  var b = a as int;
-  b;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
-  test_interfaceType_star_toQuestion() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.7
-int a = 0;
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart';
-
-void f() {
-  var b = a as int?;
-  b;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
   test_type_dynamic() async {
     await assertNoErrorsInCode(r'''
 void f() {

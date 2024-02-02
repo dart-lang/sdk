@@ -1544,17 +1544,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of a symbol defined in a legacy library
-  static const CompileTimeErrorCode EXPORT_LEGACY_SYMBOL = CompileTimeErrorCode(
-    'EXPORT_LEGACY_SYMBOL',
-    "The symbol '{0}' is defined in a legacy library, and can't be re-exported "
-        "from a library with null safety enabled.",
-    correctionMessage:
-        "Try removing the export or migrating the legacy library.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
   ///  0: the URI pointing to a non-library declaration
   static const CompileTimeErrorCode EXPORT_OF_NON_LIBRARY =
       CompileTimeErrorCode(

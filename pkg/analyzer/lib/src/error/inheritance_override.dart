@@ -437,15 +437,19 @@ class _ClassVerifier {
           classElement is MixinElement) {
         return false;
       }
-      reporter.reportErrorForNode(
-        CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
+      reporter.atNode(
         namedType,
+        CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
       );
       return true;
     }
 
     if (typeProvider.isNonSubtypableClass(typeElement)) {
-      reporter.reportErrorForNode(errorCode, namedType, [type]);
+      reporter.atNode(
+        namedType,
+        errorCode,
+        arguments: [type],
+      );
       return true;
     }
 
@@ -679,9 +683,9 @@ class _ClassVerifier {
       return false;
     }
 
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE,
+    reporter.atNode(
       namedType,
+      CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE,
     );
     return true;
   }
@@ -718,12 +722,12 @@ class _ClassVerifier {
     bool checkMemberNameCombo(
         ClassMember member, String memberName, String displayName) {
       if (memberName == name) {
-        reporter.reportErrorForNode(
+        reporter.atNode(
+          member,
           classElement is EnumElement
               ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
               : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-          member,
-          [displayName, classElement.name],
+          arguments: [displayName, classElement.name],
         );
         return true;
       } else {

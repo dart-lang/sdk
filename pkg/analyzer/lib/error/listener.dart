@@ -159,12 +159,17 @@ class ErrorReporter {
       reportErrorForOffset(
           code, offset, constructor.name!.end - offset, arguments);
     } else {
-      reportErrorForNode(code, constructor.returnType, arguments);
+      atNode(
+        constructor.returnType,
+        code,
+        arguments: arguments,
+      );
     }
   }
 
   /// Report an error with the given [errorCode] and [arguments].
   /// The [node] is used to compute the location of the error.
+  @Deprecated('Use atNode() instead')
   void reportErrorForNode(
     ErrorCode errorCode,
     AstNode node, [
@@ -172,8 +177,13 @@ class ErrorReporter {
     List<DiagnosticMessage>? messages,
     Object? data,
   ]) {
-    reportErrorForOffset(
-        errorCode, node.offset, node.length, arguments, messages, data);
+    atNode(
+      node,
+      errorCode,
+      arguments: arguments,
+      messages: messages,
+      data: data,
+    );
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The location
@@ -230,7 +240,7 @@ class ErrorReporter {
   /// used in order to clarify the message.
   ///
   /// If there are not two or more types in the argument list, the method
-  /// [reportErrorForNode] should be used instead.
+  /// [atNode] should be used instead.
   @Deprecated('Use reportErrorForNode(), it will convert types as well')
   void reportTypeErrorForNode(
       ErrorCode errorCode, AstNode node, List<Object> arguments) {

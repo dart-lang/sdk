@@ -94,11 +94,11 @@ mixin ErrorDetectionHelpers {
         var field = expectedStaticType.positionalFields.first;
         if (typeSystem.isAssignableTo(field.type, actualStaticType,
             strictCasts: strictCasts)) {
-          errorReporter.reportErrorForNode(
+          errorReporter.atNode(
+            expression,
             CompileTimeErrorCode
                 .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-            expression,
-            [],
+            arguments: [],
           );
           return;
         }
@@ -133,19 +133,25 @@ mixin ErrorDetectionHelpers {
             }
           }
         }
-        errorReporter.reportErrorForNode(
-          errorCode,
+        errorReporter.atNode(
           getErrorNode(expression),
-          [actualStaticType, expectedStaticType, additionalInfo.join(' ')],
-          computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
+          errorCode,
+          arguments: [
+            actualStaticType,
+            expectedStaticType,
+            additionalInfo.join(' ')
+          ],
+          messages:
+              computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
         );
         return;
       }
-      errorReporter.reportErrorForNode(
-        errorCode,
+      errorReporter.atNode(
         getErrorNode(expression),
-        [actualStaticType, expectedStaticType],
-        computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
+        errorCode,
+        arguments: [actualStaticType, expectedStaticType],
+        messages:
+            computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
       );
     }
   }
@@ -179,17 +185,19 @@ mixin ErrorDetectionHelpers {
     if (isConstConstructor) {
       // TODO(paulberry): this error should be based on the actual type of the
       // constant, not the static type.  See dartbug.com/21119.
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-          expression,
-          [staticType, fieldType],
-          messages);
+      errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+        arguments: [staticType, fieldType],
+        messages: messages,
+      );
     } else {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
-          expression,
-          [staticType, fieldType],
-          messages);
+      errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+        arguments: [staticType, fieldType],
+        messages: messages,
+      );
     }
 
     // TODO(brianwilkerson): Define a hint corresponding to these errors and
@@ -228,11 +236,17 @@ mixin ErrorDetectionHelpers {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, methodName, []);
+      errorReporter.atNode(
+        methodName,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        arguments: [],
+      );
     } else {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, expression, []);
+      errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        arguments: [],
+      );
     }
 
     return true;

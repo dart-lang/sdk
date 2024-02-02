@@ -335,9 +335,9 @@ class BinaryExpressionResolver {
     leftType = _typeSystem.resolveToBound(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.reportErrorForNode(
-        WarningCode.RECEIVER_OF_TYPE_NEVER,
+      _resolver.errorReporter.atNode(
         leftOperand,
+        WarningCode.RECEIVER_OF_TYPE_NEVER,
       );
       return;
     }

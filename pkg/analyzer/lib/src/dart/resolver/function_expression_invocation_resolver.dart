@@ -64,8 +64,10 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.RECEIVER_OF_TYPE_NEVER, function);
+      _errorReporter.atNode(
+        function,
+        WarningCode.RECEIVER_OF_TYPE_NEVER,
+      );
       _unresolved(node, NeverTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
       return;
@@ -82,9 +84,9 @@ class FunctionExpressionInvocationResolver {
 
     if (callElement == null) {
       if (result.needsGetterError) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+        _errorReporter.atNode(
           function,
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
         );
       }
       final type = result.isGetterInvalid
@@ -95,9 +97,9 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (callElement.kind != ElementKind.METHOD) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+      _errorReporter.atNode(
         function,
+        CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
       );
       _unresolved(node, InvalidTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
@@ -123,11 +125,17 @@ class FunctionExpressionInvocationResolver {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, methodName, []);
+      _errorReporter.atNode(
+        methodName,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        arguments: [],
+      );
     } else {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, expression, []);
+      _errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        arguments: [],
+      );
     }
 
     return true;
@@ -159,19 +167,19 @@ class FunctionExpressionInvocationResolver {
     node.staticElement = callElement;
 
     if (callElement == null) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
+      _errorReporter.atNode(
         function,
-        [function.name.lexeme],
+        CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
+        arguments: [function.name.lexeme],
       );
       return _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
     }
 
     if (callElement.isStatic) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+      _errorReporter.atNode(
         node.argumentList,
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
       );
     }
 

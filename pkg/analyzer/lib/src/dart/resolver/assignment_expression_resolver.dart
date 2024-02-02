@@ -144,20 +144,21 @@ class AssignmentExpressionResolver {
       var field = writeType.positionalFields.first;
       if (_typeSystem.isAssignableTo(field.type, rightType,
           strictCasts: strictCasts)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+        _errorReporter.atNode(
           right,
-          [],
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          arguments: [],
         );
         return;
       }
     }
 
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    _errorReporter.atNode(
       right,
-      [rightType, writeType],
-      _resolver.computeWhyNotPromotedMessages(right, whyNotPromoted?.call()),
+      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      arguments: [rightType, writeType],
+      messages: _resolver.computeWhyNotPromotedMessages(
+          right, whyNotPromoted?.call()),
     );
   }
 
@@ -174,11 +175,17 @@ class AssignmentExpressionResolver {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, methodName, []);
+      _errorReporter.atNode(
+        methodName,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        arguments: [],
+      );
     } else {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, expression, []);
+      _errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        arguments: [],
+      );
     }
 
     return true;
@@ -346,17 +353,17 @@ class AssignmentExpressionShared {
         if (element.isFinal) {
           if (element.isLate) {
             if (isForEachIdentifier || assigned) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+              _errorReporter.atNode(
                 left,
+                CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
               );
             }
           } else {
             if (isForEachIdentifier || !unassigned) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+              _errorReporter.atNode(
                 left,
-                [element.name],
+                CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+                arguments: [element.name],
               );
             }
           }

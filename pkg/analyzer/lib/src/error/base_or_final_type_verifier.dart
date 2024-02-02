@@ -206,11 +206,11 @@ class BaseOrFinalTypeVerifier {
           final errorCode = baseOrFinalSuperElement is MixinElement
               ? CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
               : CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
-          _errorReporter.reportErrorForNode(
-            errorCode,
+          _errorReporter.atNode(
             implementsNamedType,
-            [baseOrFinalSuperElement.displayName],
-            contextMessage,
+            errorCode,
+            arguments: [baseOrFinalSuperElement.displayName],
+            messages: contextMessage,
           );
           return true;
         }

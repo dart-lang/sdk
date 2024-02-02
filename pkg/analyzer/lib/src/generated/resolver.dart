@@ -487,16 +487,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             variablePattern.fieldNameWithImplicitName = fieldName;
             nameToken = variablePattern.name;
           } else {
-            errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME,
+            errorReporter.atNode(
               field,
+              CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME,
             );
           }
         }
       } else if (mustBeNamed) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN,
+        errorReporter.atNode(
           field,
+          CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN,
         );
       }
       return shared.RecordPatternField(
@@ -636,10 +636,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           errorNode = pattern.type;
         }
         errorNode ??= pattern;
-        errorReporter.reportErrorForNode(
-          WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
+        errorReporter.atNode(
           errorNode,
-          [matchedType, requiredType],
+          WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
+          arguments: [matchedType, requiredType],
         );
       }
     }
@@ -664,10 +664,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (element.isLate) {
         if (unassigned) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
+          errorReporter.atNode(
             node,
-            [node.name],
+            CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
+            arguments: [node.name],
           );
         }
         return;
@@ -675,20 +675,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (!assigned) {
         if (element.isFinal) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL,
+          errorReporter.atNode(
             node,
-            [node.name],
+            CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL,
+            arguments: [node.name],
           );
           return;
         }
 
         if (typeSystem.isPotentiallyNonNullable(element.type)) {
-          errorReporter.reportErrorForNode(
+          errorReporter.atNode(
+            node,
             CompileTimeErrorCode
                 .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-            node,
-            [node.name],
+            arguments: [node.name],
           );
           return;
         }
@@ -891,26 +891,26 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var reference in variable.references) {
         if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseAbsent) {
-          errorReporter.reportErrorForNode(
+          errorReporter.atNode(
+            reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
-            reference,
-            [variable.name],
+            arguments: [variable.name],
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseHasLabel) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          errorReporter.atNode(
             reference,
-            [variable.name],
+            CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+            arguments: [variable.name],
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.differentFinalityOrType) {
-          errorReporter.reportErrorForNode(
+          errorReporter.atNode(
+            reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
-            reference,
-            [variable.name],
+            arguments: [variable.name],
           );
         }
       }
@@ -1463,10 +1463,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
 
       if (hasRead && result.readElementRequested == null) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        errorReporter.atNode(
           node,
-          [node.name],
+          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+          arguments: [node.name],
         );
       }
 
@@ -1494,10 +1494,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           valueType: typeArgumentsList.arguments[1].typeOrThrow,
         );
       } else {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS,
+        errorReporter.atNode(
           typeArgumentsList,
-          [length],
+          CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS,
+          arguments: [length],
         );
       }
     }
@@ -1829,10 +1829,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           typeSystem.isNullable(element.type) &&
           typeSystem.isNonNullable(staticType) &&
           flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
-        errorReporter.reportErrorForNode(
-          WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
+        errorReporter.atNode(
           simpleIdentifier,
-          [simpleIdentifier.name],
+          WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
+          arguments: [simpleIdentifier.name],
         );
       }
     }
@@ -2293,10 +2293,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         if (constructorName.type.element is EnumElementImpl) {
           var nameNode = node.arguments?.constructorSelector?.name;
           if (nameNode != null) {
-            errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED,
+            errorReporter.atNode(
               nameNode,
-              [nameNode.name],
+              CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED,
+              arguments: [nameNode.name],
             );
           } else {
             errorReporter.atToken(
@@ -3891,16 +3891,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         String name = nameNode.name;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
-          errorReporter?.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, nameNode, [name]);
+          errorReporter?.atNode(
+            nameNode,
+            CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER,
+            arguments: [name],
+          );
         } else {
           resolvedParameters[i] = element;
           nameNode.staticElement = element;
         }
         usedNames ??= <String>{};
         if (!usedNames.add(name)) {
-          errorReporter?.reportErrorForNode(
-              CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, [name]);
+          errorReporter?.atNode(
+            nameNode,
+            CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
+            arguments: [name],
+          );
         }
       }
     }
@@ -3930,8 +3936,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
       if (firstUnresolvedArgument != null) {
-        errorReporter?.reportErrorForNode(errorCode, firstUnresolvedArgument,
-            [unnamedParameterCount, positionalArgumentCount]);
+        errorReporter?.atNode(
+          firstUnresolvedArgument,
+          errorCode,
+          arguments: [unnamedParameterCount, positionalArgumentCount],
+        );
       }
     }
     return resolvedParameters;
@@ -4820,9 +4829,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (node.inSetterContext()) {
         if (element is PatternVariableElementImpl &&
             element.isVisitingWhenClause) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+          errorReporter.atNode(
             node,
+            CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
           );
         }
         _localVariableInfo.potentiallyMutatedInScope.add(element);
@@ -4963,16 +4972,22 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, [labelNode.name]);
+        errorReporter.atNode(
+          labelNode,
+          CompileTimeErrorCode.LABEL_UNDEFINED,
+          arguments: [labelNode.name],
+        );
         return null;
       }
       var definingScope = labelScope.lookup(labelNode.name);
       if (definingScope == null) {
         // No definition of the given label name could be found in any
         // enclosing scope.
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, [labelNode.name]);
+        errorReporter.atNode(
+          labelNode,
+          CompileTimeErrorCode.LABEL_UNDEFINED,
+          arguments: [labelNode.name],
+        );
         return null;
       }
       // The target has been found.
@@ -4981,10 +4996,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           definingScope.element.thisOrAncestorOfType();
       if (_enclosingClosure != null &&
           !identical(labelContainer, _enclosingClosure)) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
-            labelNode,
-            [labelNode.name]);
+        errorReporter.atNode(
+          labelNode,
+          CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
+          arguments: [labelNode.name],
+        );
       }
       var node = definingScope.node;
       if (isContinue &&
@@ -4992,8 +5008,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           node is! ForStatement &&
           node is! SwitchMember &&
           node is! WhileStatement) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONTINUE_LABEL_INVALID, parentNode);
+        errorReporter.atNode(
+          parentNode,
+          CompileTimeErrorCode.CONTINUE_LABEL_INVALID,
+        );
       }
       return node;
     }
