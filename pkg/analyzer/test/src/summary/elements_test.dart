@@ -39120,38 +39120,6 @@ library
 ''');
   }
 
-  test_mixin_inference_nullSafety2() async {
-    addSource('$testPackageLibPath/a.dart', r'''
-class A<T> {}
-
-mixin B<T> on A<T> {}
-mixin C<T> on A<T> {}
-''');
-    var library = await buildLibrary(r'''
-// @dart=2.8
-import 'a.dart';
-
-class D extends A<int> with B<int>, C {}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    classes
-      class D @37
-        supertype: A<int*>*
-        mixins
-          B<int*>*
-          C<int*>*
-        constructors
-          synthetic @-1
-            superConstructor: ConstructorMember
-              base: package:test/a.dart::@class::A::@constructor::new
-              substitution: {T: int*}
-''');
-  }
-
   test_mixin_inference_twoMixins() async {
     // Both `M1` and `M2` have their type arguments inferred.
     var library = await buildLibrary(r'''

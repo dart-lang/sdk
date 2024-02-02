@@ -18,7 +18,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
@@ -219,7 +218,6 @@ class GenericInferrer {
           var parameterBound =
               Substitution.fromPairs(_typeFormals, inferredTypes)
                   .substituteType(parameterBoundRaw);
-          parameterBound = _toLegacyElementIfOptOut(parameterBound);
           var extendsConstraint = _TypeConstraint.fromExtends(
             parameter,
             parameterBoundRaw,
@@ -337,7 +335,6 @@ class GenericInferrer {
       if (rawBound == null) {
         continue;
       }
-      rawBound = _typeSystem.toLegacyTypeIfOptOut(rawBound);
 
       var substitution = Substitution.fromPairs(_typeFormals, typeArguments);
       var bound = substitution.substituteType(rawBound);
@@ -402,8 +399,6 @@ class GenericInferrer {
       // will fail.
       upper = _typeSystem.greatestLowerBound(upper, constraint.upperBound);
       lower = _typeSystem.leastUpperBound(lower, constraint.lowerBound);
-      upper = _toLegacyElementIfOptOut(upper);
-      lower = _toLegacyElementIfOptOut(lower);
     }
 
     // Prefer the known bound, if any.
@@ -647,13 +642,6 @@ class GenericInferrer {
         return;
       }
     }
-  }
-
-  /// If in a legacy library, return the legacy version of the [type].
-  /// Otherwise, return the original type.
-  DartType _toLegacyElementIfOptOut(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   /// Tries to make [i1] a subtype of [i2] and accumulate constraints as needed.

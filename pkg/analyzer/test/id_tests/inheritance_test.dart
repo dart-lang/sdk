@@ -28,6 +28,7 @@ main(List<String> args) async {
         runTestFor(const _InheritanceDataComputer(), [analyzerDefaultConfig]),
     skipList: [
       // Legacy, not supported by the analyzer anymore.
+      'from_opt_in',
       'from_opt_out',
       'in_out_in',
       'infer_from_opt_in',

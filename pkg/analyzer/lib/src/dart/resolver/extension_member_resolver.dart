@@ -253,7 +253,6 @@ class ExtensionMemberResolver {
         var parameterBound = parameter.bound;
         if (parameterBound != null) {
           parameterBound = substitution.substituteType(parameterBound);
-          parameterBound = _typeSystem.toLegacyTypeIfOptOut(parameterBound);
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _errorReporter.atNode(
               typeArgumentList.arguments[i],

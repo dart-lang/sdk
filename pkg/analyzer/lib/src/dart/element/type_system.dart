@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/greatest_lower_bound.dart';
 import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/dart/element/normalize.dart';
-import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/replace_top_bottom_visitor.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/runtime_type_equality.dart';
@@ -721,11 +720,10 @@ class TypeSystemImpl implements TypeSystem {
   }) {
     final typeParameters = element.typeParameters;
     final typeArguments = _defaultTypeArguments(typeParameters);
-    final type = element.instantiate(
+    return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
-    return toLegacyTypeIfOptOut(type) as InterfaceType;
   }
 
   /// Given a [DartType] [type], if [type] is an uninstantiated
@@ -790,11 +788,10 @@ class TypeSystemImpl implements TypeSystem {
   }) {
     final typeParameters = element.typeParameters;
     final typeArguments = _defaultTypeArguments(typeParameters);
-    final type = element.instantiate(
+    return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
-    return toLegacyTypeIfOptOut(type);
   }
 
   /// Given uninstantiated [typeFormals], instantiate them to their bounds.
@@ -1611,13 +1608,6 @@ class TypeSystemImpl implements TypeSystem {
     for (int i = 0; i < srcTypes.length; i++) {
       var srcType = substitution.substituteType(srcTypes[i]);
       var destType = destTypes[i];
-      if (isNonNullableByDefault) {
-        // TODO(scheglov): waiting for the spec
-        // https://github.com/dart-lang/sdk/issues/42605
-      } else {
-        srcType = toLegacyTypeIfOptOut(srcType);
-        destType = toLegacyTypeIfOptOut(destType);
-      }
       if (srcType != destType) {
         // Failed to find an appropriate substitution
         return null;
@@ -1899,13 +1889,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return inferrer;
-  }
-
-  /// If a legacy library, return the legacy version of the [type].
-  /// Otherwise, return the original type.
-  DartType toLegacyTypeIfOptOut(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   /// Merges two types into a single type.

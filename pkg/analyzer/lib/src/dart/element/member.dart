@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -249,7 +248,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     var result = declaration.returnType;
     result = augmentationSubstitution.substituteType(result);
     result = _substitution.substituteType(result);
-    result = _toLegacyType(result);
     return result;
   }
 
@@ -258,7 +256,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     if (_type != null) return _type!;
 
     _type = _substitution.substituteType(declaration.type) as FunctionType;
-    _type = _toLegacyType(_type!) as FunctionType;
     return _type!;
   }
 
@@ -803,16 +800,6 @@ abstract class Member implements Element {
   void visitChildren(ElementVisitor visitor) {
     for (Element child in children) {
       child.accept(visitor);
-    }
-  }
-
-  /// If this member is a legacy view, erase nullability from the [type].
-  /// Otherwise, return the type unchanged.
-  DartType _toLegacyType(DartType type) {
-    if (isLegacy) {
-      return NullabilityEliminator.perform(_typeProvider!, type);
-    } else {
-      return type;
     }
   }
 
@@ -1429,7 +1416,6 @@ abstract class VariableMember extends Member implements VariableElement {
     var result = declaration.type;
     result = augmentationSubstitution.substituteType(result);
     result = _substitution.substituteType(result);
-    result = _toLegacyType(result);
     return _type = result;
   }
 

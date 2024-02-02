@@ -313,8 +313,6 @@ class StaticTypeAnalyzer {
       {required DartType? contextType}) {
     DartType staticType = _typeSystem.leastUpperBound(staticType1, staticType2);
 
-    staticType = _resolver.toLegacyTypeIfOptOut(staticType);
-
     _inferenceHelper.recordStaticType(node, staticType,
         contextType: contextType);
   }
