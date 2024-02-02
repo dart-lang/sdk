@@ -87,42 +87,62 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   const ReportAtTypeAnnotation(this.pathList);
 
   @override
-  buildDeclarationsForClass(declaration, builder) {
-    _report(declaration, builder);
+  buildDeclarationsForClass(declaration, builder) async {
+    await _report(declaration, builder);
   }
 
   @override
-  buildDeclarationsForField(declaration, builder) {
-    _report(declaration, builder);
+  buildDeclarationsForField(declaration, builder) async {
+    await _report(declaration, builder);
   }
 
   @override
-  buildDeclarationsForFunction(declaration, builder) {
-    _report(declaration, builder);
+  buildDeclarationsForFunction(declaration, builder) async {
+    await _report(declaration, builder);
   }
 
   @override
-  buildDeclarationsForMethod(declaration, builder) {
-    _report(declaration, builder);
+  buildDeclarationsForMethod(declaration, builder) async {
+    await _report(declaration, builder);
   }
 
   @override
-  buildDeclarationsForVariable(declaration, builder) {
-    _report(declaration, builder);
+  buildDeclarationsForVariable(declaration, builder) async {
+    await _report(declaration, builder);
   }
 
-  TypeAnnotation _getTarget(Declaration declaration) {
-    var current = _nextTarget(declaration, pathList.first);
+  Future<TypeAnnotation> _getTarget(
+    Declaration declaration,
+    DeclarationBuilder builder,
+  ) async {
+    var current = await _nextTarget(builder, declaration, pathList.first);
     for (var step in pathList.skip(1)) {
-      current = _nextTarget(current, step);
+      current = await _nextTarget(builder, current, step);
     }
     return current;
   }
 
-  TypeAnnotation _nextTarget(Object current, String step) {
+  Future<TypeAnnotation> _nextTarget(
+    DeclarationBuilder builder,
+    Object current,
+    String step,
+  ) async {
     if (current is ClassDeclaration) {
       if (step == 'superclass') {
         return current.superclass!;
+      }
+    }
+
+    if (current is MemberDeclaration) {
+      if (_verbSuffix(step, 'field') case var fieldName?) {
+        var definingType = await builder.typeDeclarationOf(
+          current.definingType,
+        );
+        var fields = await builder.fieldsOf(definingType);
+        var field = fields.singleWhere((field) {
+          return field.identifier.name == fieldName;
+        });
+        return field.type;
       }
     }
 
@@ -159,12 +179,16 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     throw UnimplementedError('[current: $current][step: $step]');
   }
 
-  void _report(Declaration declaration, DeclarationBuilder builder) {
+  Future<void> _report(
+    Declaration declaration,
+    DeclarationBuilder builder,
+  ) async {
+    var target = await _getTarget(declaration, builder);
     builder.report(
       Diagnostic(
         DiagnosticMessage(
           'Reported message',
-          target: _getTarget(declaration).asDiagnosticTarget,
+          target: target.asDiagnosticTarget,
         ),
         Severity.warning,
       ),
@@ -172,10 +196,17 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 
   static int? _verbIndex(String step, String verb) {
+    var indexStr = _verbSuffix(step, verb);
+    if (indexStr != null) {
+      return int.parse(indexStr);
+    }
+    return null;
+  }
+
+  static String? _verbSuffix(String step, String verb) {
     var prefix = '$verb ';
     if (step.startsWith(prefix)) {
-      var indexStr = step.substring(prefix.length);
-      return int.parse(indexStr);
+      return step.substring(prefix.length);
     }
     return null;
   }

@@ -12,6 +12,7 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/analysis/unit_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -74,6 +75,9 @@ class LibraryAnalyzer {
 
   final Map<FileState, LineInfo> _fileToLineInfo = {};
 
+  // TODO(scheglov): use this map instead of separate maps below.
+  final Map<FileState, UnitAnalysis> _libraryUnits2 = {};
+
   final Map<FileState, CompilationUnitImpl> _libraryUnits = {};
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
@@ -93,7 +97,7 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
-      units: _libraryUnits,
+      units: _libraryUnits2,
     );
   }
 
@@ -730,10 +734,17 @@ class LibraryAnalyzer {
   }) {
     final containerFile = containerKind.file;
     final containerUnit = _parse(containerFile);
-    containerUnit.declaredElement = containerElement.definingCompilationUnit;
+    var containerUnitElement = containerElement.definingCompilationUnit;
+    containerUnit.declaredElement = containerUnitElement;
     _libraryUnits[containerFile] = containerUnit;
 
     final containerErrorReporter = _getErrorReporter(containerFile);
+    _libraryUnits2[containerFile] = UnitAnalysis(
+      file: containerFile,
+      unit: containerUnit,
+      element: containerUnitElement,
+      errorReporter: containerErrorReporter,
+    );
 
     var augmentationImportIndex = 0;
     var libraryExportIndex = 0;
