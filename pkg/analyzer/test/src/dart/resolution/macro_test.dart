@@ -663,6 +663,38 @@ augment class A {
 ''');
   }
 
+  test_diagnostic_report_atTypeAnnotation_record_namedField() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'variableType',
+    'namedField 1',
+  ])
+  final (bool, {int a, String b})? foo = null;
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 133, 6),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_record_positionalField() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'variableType',
+    'positionalField 1',
+  ])
+  final (int, String)? foo = null;
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 129, 6),
+    ]);
+  }
+
   test_diagnostic_report_contextMessages_superClassMethods() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

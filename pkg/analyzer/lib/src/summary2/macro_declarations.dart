@@ -1809,13 +1809,13 @@ class DeclarationBuilderFromNode {
       positionalFields: node.positionalFields.indexed.map((pair) {
         return buildField(
           pair.$2,
-          RecordPositionalFieldTypeLocation(pair.$1),
+          RecordPositionalFieldTypeLocation(location, pair.$1),
         );
       }).toList(),
       namedFields: node.namedFields?.fields.indexed.map((pair) {
             return buildField(
               pair.$2,
-              RecordNamedFieldTypeLocation(pair.$1),
+              RecordNamedFieldTypeLocation(location, pair.$1),
             );
           }).toList() ??
           [],

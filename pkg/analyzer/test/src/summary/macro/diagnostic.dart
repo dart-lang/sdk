@@ -170,6 +170,15 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
       }
     }
 
+    if (current is RecordTypeAnnotation) {
+      if (_verbIndex(step, 'namedField') case var index?) {
+        return current.namedFields.elementAt(index).type;
+      }
+      if (_verbIndex(step, 'positionalField') case var index?) {
+        return current.positionalFields.elementAt(index).type;
+      }
+    }
+
     if (current is VariableDeclaration) {
       if (step == 'variableType') {
         return current.type;

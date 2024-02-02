@@ -6090,6 +6090,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             default:
               throw UnimplementedError('${node.runtimeType}');
           }
+        case RecordNamedFieldTypeLocation():
+          var nodeLocation = locationEntity(location.parent);
+          if (nodeLocation == null) {
+            return null;
+          }
+          var node = nodeLocation.entity;
+          switch (node) {
+            case RecordTypeAnnotation():
+              var field = node.namedFields?.fields[location.index].type;
+              if (field == null) {
+                return null;
+              }
+              return nodeLocation.next(field);
+            default:
+              throw UnimplementedError('${node.runtimeType}');
+          }
+        case RecordPositionalFieldTypeLocation():
+          var nodeLocation = locationEntity(location.parent);
+          if (nodeLocation == null) {
+            return null;
+          }
+          var node = nodeLocation.entity;
+          switch (node) {
+            case RecordTypeAnnotation():
+              var field = node.positionalFields[location.index];
+              return nodeLocation.next(field);
+            default:
+              throw UnimplementedError('${node.runtimeType}');
+          }
         case ReturnTypeLocation():
           var nodeLocation = locationEntity(location.parent);
           if (nodeLocation == null) {

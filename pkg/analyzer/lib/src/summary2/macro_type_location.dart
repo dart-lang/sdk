@@ -56,15 +56,17 @@ final class OnClauseTypeLocation extends TypeAnnotationLocation {
 }
 
 final class RecordNamedFieldTypeLocation extends TypeAnnotationLocation {
+  final TypeAnnotationLocation parent;
   final int index;
 
-  RecordNamedFieldTypeLocation(this.index);
+  RecordNamedFieldTypeLocation(this.parent, this.index);
 }
 
 final class RecordPositionalFieldTypeLocation extends TypeAnnotationLocation {
+  final TypeAnnotationLocation parent;
   final int index;
 
-  RecordPositionalFieldTypeLocation(this.index);
+  RecordPositionalFieldTypeLocation(this.parent, this.index);
 }
 
 final class ReturnTypeLocation extends TypeAnnotationLocation {
