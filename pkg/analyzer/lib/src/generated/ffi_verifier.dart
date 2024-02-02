@@ -272,7 +272,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             _errorReporter.atNode(
               name,
               FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET,
-              arguments: [],
             );
           }
 
@@ -418,7 +417,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.atNode(
           name,
           FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS,
-          arguments: [],
         );
         break;
       }

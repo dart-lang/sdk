@@ -26,7 +26,6 @@ class ConstructorReferenceResolver {
       _resolver.errorReporter.atNode(
         node,
         WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
-        arguments: [],
       );
     }
     node.constructorName.accept(_resolver);
@@ -38,7 +37,6 @@ class ConstructorReferenceResolver {
           node,
           CompileTimeErrorCode
               .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
-          arguments: [],
         );
       }
     }

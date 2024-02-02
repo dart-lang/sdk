@@ -6414,7 +6414,6 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
       _errorReporter.atNode(
         node,
         CompileTimeErrorCode.NOT_INSTANTIATED_BOUND,
-        arguments: [],
       );
     }
   }

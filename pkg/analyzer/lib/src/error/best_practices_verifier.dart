@@ -269,7 +269,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.atToken(
         newKeyword,
         WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE,
-        arguments: [],
       );
     }
     super.visitCommentReference(node);

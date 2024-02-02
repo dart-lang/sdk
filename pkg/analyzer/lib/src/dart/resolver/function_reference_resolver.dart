@@ -105,7 +105,6 @@ class FunctionReferenceResolver {
       _errorReporter.atNode(
         function,
         CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
-        arguments: [],
       );
       node.staticType = InvalidTypeImpl.instance;
       return true;
@@ -275,7 +274,6 @@ class FunctionReferenceResolver {
         _errorReporter.atNode(
           node.function,
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
-          arguments: [],
         );
         node.staticType = InvalidTypeImpl.instance;
       } else if (rawType is DynamicType) {
@@ -341,7 +339,6 @@ class FunctionReferenceResolver {
       _errorReporter.atNode(
         node.function,
         CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
-        arguments: [],
       );
     }
     _resolve(node: node, rawType: rawType);
@@ -495,7 +492,6 @@ class FunctionReferenceResolver {
       _errorReporter.atNode(
         function.identifier,
         CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
-        arguments: [],
       );
     }
     function.accept(_resolver);
@@ -537,7 +533,6 @@ class FunctionReferenceResolver {
         _errorReporter.atNode(
           node,
           CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
-          arguments: [],
         );
         node.staticType = InvalidTypeImpl.instance;
         return;
@@ -565,7 +560,6 @@ class FunctionReferenceResolver {
         _errorReporter.atNode(
           function.propertyName,
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
-          arguments: [],
         );
       }
 

@@ -128,13 +128,11 @@ class FunctionExpressionInvocationResolver {
       _errorReporter.atNode(
         methodName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        arguments: [],
       );
     } else {
       _errorReporter.atNode(
         expression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        arguments: [],
       );
     }
 

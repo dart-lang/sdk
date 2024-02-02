@@ -7,8 +7,6 @@
 // The PointerPointer and PointerStruct extension are written by hand since
 // those are not repetitive.
 
-// ignore_for_file: unused_local_variable
-
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -31,22 +29,46 @@ const configuration = [
   Config("Bool", "bool", kDoNotEmit, 1, since: Version(2, 15)),
 ];
 
-const arrayVersion = Version(2, 13);
+/// A container to generate the extension for.
+class Container {
+  final String name;
+
+  /// Since annotation for the extension.
+  final Version? since;
+
+  const Container(this.name, this.since);
+
+  static const pointer = Container(
+    'Pointer',
+    null,
+  );
+  static const array = Container(
+    'Array',
+    Version(2, 13),
+  );
+
+  static const values = [
+    pointer,
+    array,
+  ];
+}
 
 //
 // Generator.
 //
 
-main(List<String> arguments) {
-  final args = argParser().parse(arguments);
-  Uri path = Uri.parse(args['path']);
-
-  update(Uri.file('sdk/lib/ffi/ffi.dart'), generatePublicExtension);
-  update(Uri.file('sdk/lib/_internal/vm/lib/ffi_patch.dart'),
-      generatePatchExtension);
+void main(List<String> arguments) {
+  update(
+    Uri.file('sdk/lib/ffi/ffi.dart'),
+    generatePublicExtension,
+  );
+  update(
+    Uri.file('sdk/lib/_internal/vm/lib/ffi_patch.dart'),
+    generatePatchExtension,
+  );
 }
 
-void update(Uri fileName, Function(StringBuffer, Config, String) generator) {
+void update(Uri fileName, Function(StringBuffer, Config, Container) generator) {
   final file = File.fromUri(fileName);
   if (!file.existsSync()) {
     print('$fileName does not exist, run from the root of the SDK.');
@@ -70,8 +92,11 @@ void update(Uri fileName, Function(StringBuffer, Config, String) generator) {
   final buffer = StringBuffer();
   buffer.write(split1[0]);
   buffer.write(header);
-  configuration.forEach((Config c) => generator(buffer, c, "Pointer"));
-  configuration.forEach((Config c) => generator(buffer, c, "Array"));
+  for (final container in Container.values) {
+    for (final config in configuration) {
+      generator(buffer, config, container);
+    }
+  }
   buffer.write(footer);
   buffer.write(split2[1]);
 
@@ -99,7 +124,10 @@ void generateHeader(StringBuffer buffer) {
 }
 
 void generatePublicExtension(
-    StringBuffer buffer, Config config, String container) {
+  StringBuffer buffer,
+  Config config,
+  Container container,
+) {
   final nativeType = config.nativeType;
   final dartType = config.dartType;
   final typedListType = config.typedListType;
@@ -166,9 +194,6 @@ void generatePublicExtension(
     truncate = floatTruncate;
   }
 
-  final sizeTimes =
-      elementSize != 1 ? '${bracketOr(sizeOf(elementSize))} * ' : '';
-
   final alignmentDefault = """
   ///
   /// The [address] must be ${sizeOf(elementSize)}-byte aligned.
@@ -207,10 +232,11 @@ $alignment  external $typedListType asTypedList(
     @Since('3.1') Pointer<Void>? token,
   });
 """;
-
-  if (container == "Pointer") {
-    final since = config.since?.sinceAnnotation ?? '';
-    buffer.write("""
+  final since =
+      Version.latest(config.since, container.since)?.sinceAnnotation ?? '';
+  switch (container) {
+    case Container.pointer:
+      buffer.write("""
 /// Extension on [Pointer] specialized for the type argument [$nativeType].
 $since extension ${nativeType}Pointer on Pointer<$nativeType> {
   /// The $property at [address].
@@ -258,10 +284,8 @@ $asTypedList
 }
 
 """);
-  } else {
-    final since =
-        Version.latest(config.since, arrayVersion)?.sinceAnnotation ?? '';
-    buffer.write("""
+    case Container.array:
+      buffer.write("""
 /// Bounds checking indexing methods on [Array]s of [$nativeType].
 $since extension ${nativeType}Array on Array<$nativeType> {
   external $dartType operator [](int index);
@@ -274,7 +298,10 @@ $since extension ${nativeType}Array on Array<$nativeType> {
 }
 
 void generatePatchExtension(
-    StringBuffer buffer, Config config, String container) {
+  StringBuffer buffer,
+  Config config,
+  Container container,
+) {
   final nativeType = config.nativeType;
   final dartType = config.dartType;
   final typedListType = config.typedListType;
@@ -305,8 +332,9 @@ void generatePatchExtension(
   }
 """;
 
-  if (container == "Pointer") {
-    buffer.write("""
+  switch (container) {
+    case Container.pointer:
+      buffer.write("""
 @patch
 extension ${nativeType}Pointer on Pointer<$nativeType> {
   @patch
@@ -329,8 +357,8 @@ $asTypedList
 }
 
 """);
-  } else {
-    buffer.write("""
+    case Container.array:
+      buffer.write("""
 @patch
 extension ${nativeType}Array on Array<$nativeType> {
   @patch
