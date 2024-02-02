@@ -81,8 +81,8 @@ analyzer:
   }
 
   Future<void> test_ignoredInAnalysisOptions_inChildContext() async {
-    newPackageConfigJsonFile(testPackageRootPath, '');
-    newPackageConfigJsonFile('$testPackageRootPath/child', '');
+    writeTestPackageConfig();
+    writePackageConfig(convertPath('$testPackageRootPath/child'));
     var sampleFile = newFile(
       '$testPackageRootPath/child/samples/sample.dart',
       '',
@@ -99,8 +99,8 @@ analyzer:
   }
 
   Future<void> test_ignoredInAnalysisOptions_inRootContext() async {
-    newPackageConfigJsonFile(testPackageRootPath, '');
-    newPackageConfigJsonFile('$testPackageRootPath/child', '');
+    writeTestPackageConfig();
+    writePackageConfig(convertPath('$testPackageRootPath/child'));
     var sampleFile = newFile(
       '$testPackageRootPath/child/samples/sample.dart',
       '',

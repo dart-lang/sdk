@@ -425,7 +425,7 @@ foo(int m) {
   }
 
   Future<void> test_macro_macroGeneratedFileToUserFile() async {
-    writePackageConfig(projectFolderPath, temporaryMacroSupport: true);
+    writeTestPackageConfig(macro: true);
 
     setLocationLinkSupport(); // To verify the full set of ranges.
     setDartTextDocumentContentProviderSupport();
@@ -475,7 +475,7 @@ class A {
   }
 
   Future<void> test_macro_userFileToMacroGeneratedFile() async {
-    writePackageConfig(projectFolderPath, temporaryMacroSupport: true);
+    writeTestPackageConfig(macro: true);
 
     // TODO(dantup): Consider making LocationLink the default for tests (with
     //  some specific tests for Location) because  it's what VS Code uses and

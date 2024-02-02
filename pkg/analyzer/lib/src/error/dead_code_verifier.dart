@@ -178,7 +178,10 @@ class NullSafetyDeadCodeVerifier {
       }
 
       if (node is SwitchMember && node == firstDeadNode) {
-        _errorReporter.reportErrorForToken(WarningCode.DEAD_CODE, node.keyword);
+        _errorReporter.atToken(
+          node.keyword,
+          WarningCode.DEAD_CODE,
+        );
         _firstDeadNode = null;
         return;
       }

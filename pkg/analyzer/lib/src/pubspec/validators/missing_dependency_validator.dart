@@ -40,7 +40,7 @@ class MissingDependencyValidator {
 
   MissingDependencyValidator(this.contents, this.source, this.provider)
       : recorder = RecordingErrorListener() {
-    reporter = ErrorReporter(recorder, source, isNonNullableByDefault: false);
+    reporter = ErrorReporter(recorder, source);
   }
 
   /// Given the set of dependencies and dev dependencies used in the sources,

@@ -16,6 +16,9 @@ final class StructInlineArray extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::StructInlineArray
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::StructInlineArray
+    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
+    ;
   @#C9
   get a0() → ffi::Array<ffi::Uint8>
     return new ffi::Array::_<ffi::Uint8>( block {

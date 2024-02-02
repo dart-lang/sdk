@@ -35,9 +35,9 @@ class DocCommentVerifier {
   void docImport(DocImport docImport) {
     var deferredKeyword = docImport.import.deferredKeyword;
     if (deferredKeyword != null) {
-      _errorReporter.reportErrorForToken(
-        WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
+      _errorReporter.atToken(
         deferredKeyword,
+        WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
       );
     }
     var configurations = docImport.import.configurations;

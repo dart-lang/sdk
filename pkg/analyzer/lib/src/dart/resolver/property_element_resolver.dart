@@ -600,9 +600,9 @@ class PropertyElementResolver with ScopeHelpers {
   }) {
     if (target.parent is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+      errorReporter.atToken(
         target.name,
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
       );
     }
 

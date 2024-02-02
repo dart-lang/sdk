@@ -121,14 +121,14 @@ class SharedTypeAnalyzerErrors
     required DartType matchedType,
   }) {
     if (pattern is NullAssertPattern) {
-      _errorReporter.reportErrorForToken(
-        StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
+      _errorReporter.atToken(
         pattern.operator,
+        StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
       );
     } else if (pattern is NullCheckPattern) {
-      _errorReporter.reportErrorForToken(
-        StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
+      _errorReporter.atToken(
         pattern.operator,
+        StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
       );
     } else {
       throw UnimplementedError('(${pattern.runtimeType}) $pattern');
@@ -141,9 +141,9 @@ class SharedTypeAnalyzerErrors
     required DartType matchedType,
     required DartType requiredType,
   }) {
-    _errorReporter.reportErrorForToken(
-      WarningCode.UNNECESSARY_CAST_PATTERN,
+    _errorReporter.atToken(
       pattern.asToken,
+      WarningCode.UNNECESSARY_CAST_PATTERN,
     );
   }
 
@@ -209,10 +209,10 @@ class SharedTypeAnalyzerErrors
     required covariant RelationalPatternImpl pattern,
     required DartType returnType,
   }) {
-    _errorReporter.reportErrorForToken(
+    _errorReporter.atToken(
+      pattern.operator,
       CompileTimeErrorCode
           .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
-      pattern.operator,
     );
   }
 
@@ -230,9 +230,10 @@ class SharedTypeAnalyzerErrors
   @override
   void switchCaseCompletesNormally(
       {required covariant SwitchStatement node, required int caseIndex}) {
-    _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
-        node.members[caseIndex].keyword);
+    _errorReporter.atToken(
+      node.members[caseIndex].keyword,
+      CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
+    );
   }
 
   @override

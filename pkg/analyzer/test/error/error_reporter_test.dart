@@ -24,22 +24,14 @@ class ErrorReporterTest extends PubPackageResolutionTest {
 
   test_creation() async {
     var source = TestSource();
-    var reporter = ErrorReporter(
-      listener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, source);
     expect(reporter, isNotNull);
   }
 
   test_reportErrorForElement_named() async {
     await resolveTestCode('class A {}');
     var element = findElement.class_('A');
-    var reporter = ErrorReporter(
-      listener,
-      element.source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, element.source);
     reporter.reportErrorForElement(
       CompileTimeErrorCode.CAST_TO_NON_TYPE,
       element,
@@ -57,11 +49,7 @@ import 'dart:math';
 ''');
     var element = findElement.import('dart:math');
 
-    var reporter = ErrorReporter(
-      listener,
-      element.source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, element.source);
     reporter.reportErrorForElement(
       CompileTimeErrorCode.CAST_TO_NON_TYPE,
       element,
@@ -95,11 +83,7 @@ main() {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var reporter = ErrorReporter(
-      listener,
-      firstType.element.source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, firstType.element.source);
 
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
@@ -134,11 +118,7 @@ main() {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var reporter = ErrorReporter(
-      listener,
-      firstType.element.source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, firstType.element.source);
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
@@ -167,11 +147,7 @@ main() {
     var fb = findNode.topLevelVariableDeclaration('fb');
 
     var source = result.unit.declaredElement!.source;
-    var reporter = ErrorReporter(
-      listener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, source);
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
@@ -202,11 +178,7 @@ main() {
     var bb = findNode.topLevelVariableDeclaration('bb');
 
     var source = result.unit.declaredElement!.source;
-    var reporter = ErrorReporter(
-      listener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, source);
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
@@ -220,11 +192,7 @@ main() {
 
   test_reportErrorForSpan() async {
     var source = TestSource();
-    var reporter = ErrorReporter(
-      listener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, source);
 
     var text = '''
 foo: bar

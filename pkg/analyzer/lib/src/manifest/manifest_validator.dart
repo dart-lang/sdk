@@ -410,11 +410,7 @@ class ManifestValidator {
     if (!checkManifest) return [];
 
     RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(
-      recorder,
-      source,
-      isNonNullableByDefault: false,
-    );
+    ErrorReporter reporter = ErrorReporter(recorder, source);
 
     var xmlParser = ManifestParser(content, source.uri);
 

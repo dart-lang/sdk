@@ -46,9 +46,6 @@ class ErrorReporter {
   /// The error listener to which errors will be reported.
   final AnalysisErrorListener _errorListener;
 
-  /// Is `true` if the library being analyzed is non-nullable by default.
-  final bool isNonNullableByDefault;
-
   /// The source to be used when reporting errors.
   final Source _source;
 
@@ -60,10 +57,81 @@ class ErrorReporter {
   /// Initialize a newly created error reporter that will report errors to the
   /// given [_errorListener]. Errors will be reported against the
   /// [_defaultSource] unless another source is provided later.
-  ErrorReporter(this._errorListener, this._source,
-      {required this.isNonNullableByDefault});
+  ErrorReporter(
+    this._errorListener,
+    this._source, {
+    @Deprecated('Will be removed') bool isNonNullableByDefault = true,
+  });
 
   Source get source => _source;
+
+  /// Report an error with the given [errorCode] and [arguments].
+  /// The [node] is used to compute the location of the error.
+  void atNode(
+    AstNode node,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  }) {
+    atOffset(
+      errorCode: errorCode,
+      offset: node.offset,
+      length: node.length,
+      arguments: arguments,
+      messages: messages,
+      data: data,
+    );
+  }
+
+  /// Report an error with the given [errorCode] and [arguments]. The location
+  /// of the error is specified by the given [offset] and [length].
+  void atOffset({
+    required int offset,
+    required int length,
+    required ErrorCode errorCode,
+    List<Object>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  }) {
+    if (lockLevel != 0) {
+      return;
+    }
+
+    _convertElements(arguments);
+    messages ??= [];
+    messages.addAll(_convertTypeNames(arguments));
+    _errorListener.onError(
+      AnalysisError.tmp(
+        source: _source,
+        offset: offset,
+        length: length,
+        errorCode: errorCode,
+        arguments: arguments ?? const [],
+        contextMessages: messages,
+        data: data,
+      ),
+    );
+  }
+
+  /// Report an error with the given [errorCode] and [arguments]. The [token] is
+  /// used to compute the location of the error.
+  void atToken(
+    Token token,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  }) {
+    atOffset(
+      errorCode: errorCode,
+      offset: token.offset,
+      length: token.length,
+      arguments: arguments,
+      messages: messages,
+      data: data,
+    );
+  }
 
   /// Report the given [error].
   void reportError(AnalysisError error) {
@@ -118,23 +186,13 @@ class ErrorReporter {
     List<DiagnosticMessage>? messages,
     Object? data,
   ]) {
-    if (lockLevel != 0) {
-      return;
-    }
-
-    _convertElements(arguments);
-    messages ??= [];
-    messages.addAll(_convertTypeNames(arguments));
-    _errorListener.onError(
-      AnalysisError.tmp(
-        source: _source,
-        offset: offset,
-        length: length,
-        errorCode: errorCode,
-        arguments: arguments ?? const [],
-        contextMessages: messages,
-        data: data,
-      ),
+    atOffset(
+      offset: offset,
+      length: length,
+      errorCode: errorCode,
+      arguments: arguments,
+      messages: messages,
+      data: data,
     );
   }
 
@@ -147,6 +205,7 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments]. The [token] is
   /// used to compute the location of the error.
+  @Deprecated('Use atToken() instead')
   void reportErrorForToken(
     ErrorCode errorCode,
     Token token, [
@@ -154,8 +213,13 @@ class ErrorReporter {
     List<DiagnosticMessage>? messages,
     Object? data,
   ]) {
-    reportErrorForOffset(
-        errorCode, token.offset, token.length, arguments, messages, data);
+    atToken(
+      token,
+      errorCode,
+      arguments: arguments,
+      messages: messages,
+      data: data,
+    );
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The [node] is
@@ -183,7 +247,7 @@ class ErrorReporter {
       var argument = arguments[i];
       if (argument is Element) {
         arguments[i] = argument.getDisplayString(
-          withNullability: isNonNullableByDefault,
+          withNullability: true,
         );
       } else if (!(argument is String ||
           argument is DartType ||
@@ -211,7 +275,7 @@ class ErrorReporter {
       var argument = arguments[i];
       if (argument is DartType) {
         String displayName = argument.getDisplayString(
-          withNullability: isNonNullableByDefault,
+          withNullability: true,
         );
         List<_TypeToConvert> types =
             typeGroups.putIfAbsent(displayName, () => <_TypeToConvert>[]);

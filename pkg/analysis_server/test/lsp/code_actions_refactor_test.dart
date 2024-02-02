@@ -830,8 +830,7 @@ const NewWidget({
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       flutter: true,
     );
 

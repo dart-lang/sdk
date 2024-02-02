@@ -93,8 +93,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     if (checkTripleShift) {
       TokenType operatorType = node.operator.type;
       if (operatorType == TokenType.GT_GT_GT) {
-        _errorReporter.reportErrorForToken(
-            WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.operator);
+        _errorReporter.atToken(
+          node.operator,
+          WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR,
+        );
       }
     }
     super.visitBinaryExpression(node);
@@ -126,8 +128,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
-      _errorReporter.reportErrorForToken(
-          WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
+      _errorReporter.atToken(
+        node.name,
+        WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR,
+      );
     }
     super.visitMethodDeclaration(node);
   }

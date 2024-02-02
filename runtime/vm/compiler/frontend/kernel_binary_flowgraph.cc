@@ -1648,8 +1648,10 @@ Fragment StreamingFlowGraphBuilder::AllocateContext(
   return flow_graph_builder_->AllocateContext(context_slots);
 }
 
-Fragment StreamingFlowGraphBuilder::LoadNativeField(const Slot& field) {
-  return flow_graph_builder_->LoadNativeField(field);
+Fragment StreamingFlowGraphBuilder::LoadNativeField(
+    const Slot& field,
+    InnerPointerAccess loads_inner_pointer) {
+  return flow_graph_builder_->LoadNativeField(field, loads_inner_pointer);
 }
 
 Fragment StreamingFlowGraphBuilder::StoreLocal(TokenPosition position,
@@ -6241,8 +6243,9 @@ Fragment StreamingFlowGraphBuilder::BuildFfiCall() {
   Fragment code;
   // Push the target function pointer passed as Pointer object.
   code += BuildExpression();
-  // This can only be Pointer, so it is always safe to LoadUntagged.
-  code += B->LoadUntagged(compiler::target::PointerBase::data_offset());
+  // This can only be Pointer, so the data field points to unmanaged memory.
+  code += LoadNativeField(Slot::PointerBase_data(),
+                          InnerPointerAccess::kCannotBeInnerPointer);
   code += B->ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
 
   // Skip (empty) named arguments list.

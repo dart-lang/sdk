@@ -545,6 +545,97 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterKeyword_assert_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {assert^}
+''');
+    assertResponse(r'''
+replacement
+  left: 6
+suggestions
+  assert
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_do_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {do^}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  do
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_for_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {for^}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  for
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_if_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {if^}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  if
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_switch_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {switch^}
+''');
+    assertResponse(r'''
+replacement
+  left: 6
+suggestions
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_try_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {try^}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  try
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_while_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {while^}
+''');
+    assertResponse(r'''
+replacement
+  left: 5
+suggestions
+  while
+    kind: keyword
+''');
+  }
+
   Future<void>
       test_afterLeftBrace_beforeIdentifier_withAsyncStar_partial() async {
     await computeSuggestions('''

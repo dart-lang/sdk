@@ -282,7 +282,6 @@ mixin OptionsRuleValidatorTestMixin {
     ErrorReporter reporter = ErrorReporter(
       listener,
       StringSource(content, 'analysis_options.yaml'),
-      isNonNullableByDefault: false,
     );
     var validator = LinterRuleOptionsValidator(
         provider: () => rules, sdkVersionConstraint: sdk);

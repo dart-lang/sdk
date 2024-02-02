@@ -135,6 +135,15 @@ class Tag {
   static const int VoidType = 13;
 }
 
+enum TypeAnnotationLocationKind {
+  element,
+  extendsClause,
+  formalParameter,
+  listIndex,
+  returnType,
+  variableType,
+}
+
 enum TypeParameterVarianceTag {
   legacy,
   unrelated,

@@ -1453,18 +1453,20 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
 
       ASSERT_EQUAL(function.NumParameters(), 2);
-      LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
+      // Argument can be a TypedData for loads on struct fields.
+      LocalVariable* arg_typed_data_base =
+          parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
 
       body += LoadLocal(arg_offset);
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       LocalVariable* arg_offset_not_null = MakeTemporary();
 
-      body += LoadLocal(arg_pointer);
+      body += LoadLocal(arg_typed_data_base);
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til LoadIndexed.
       body += LoadNativeField(Slot::PointerBase_data(),
-                              InnerPointerAccess::kCannotBeInnerPointer);
+                              InnerPointerAccess::kMayBeInnerPointer);
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadIndexed(typed_data_cid, /*index_scale=*/1,
@@ -1520,7 +1522,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
 
-      LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
+      // Argument can be a TypedData for stores on struct fields.
+      LocalVariable* arg_typed_data_base =
+          parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
       LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
 
@@ -1532,11 +1536,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       LocalVariable* arg_value_not_null = MakeTemporary();
 
-      body += LoadLocal(arg_pointer);  // Pointer.
+      body += LoadLocal(arg_typed_data_base);  // Pointer.
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til StoreIndexed.
       body += LoadNativeField(Slot::PointerBase_data(),
-                              InnerPointerAccess::kCannotBeInnerPointer);
+                              InnerPointerAccess::kMayBeInnerPointer);
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadLocal(arg_value_not_null);

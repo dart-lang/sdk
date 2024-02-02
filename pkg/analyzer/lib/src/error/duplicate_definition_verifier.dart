@@ -111,17 +111,17 @@ class DuplicateDefinitionVerifier {
     }
 
     if (enumName == 'values') {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
+      _errorReporter.atToken(
         node.name,
+        CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
       );
     }
 
     for (var constant in node.constants) {
       if (constant.name.lexeme == enumName) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
+        _errorReporter.atToken(
           constant.name,
+          CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
         );
       }
     }
@@ -224,10 +224,10 @@ class DuplicateDefinitionVerifier {
             var name = identifier.lexeme;
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
-              _errorReporter.reportErrorForToken(
-                CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+              _errorReporter.atToken(
                 identifier,
-                [name],
+                CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+                arguments: [name],
               );
             }
           }
@@ -238,10 +238,10 @@ class DuplicateDefinitionVerifier {
           var name = identifier.lexeme;
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {
-            _errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+            _errorReporter.atToken(
               identifier,
-              [name],
+              CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+              arguments: [name],
             );
           }
         }
@@ -468,10 +468,11 @@ class DuplicateDefinitionVerifier {
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
               String className = declarationElement.displayName;
-              _errorReporter.reportErrorForToken(
-                  CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-                  identifier,
-                  [className, name, className]);
+              _errorReporter.atToken(
+                identifier,
+                CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+                arguments: [className, name, className],
+              );
             }
           }
         }
@@ -482,10 +483,11 @@ class DuplicateDefinitionVerifier {
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {
             String className = declarationElement.name;
-            _errorReporter.reportErrorForToken(
-                CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-                identifier,
-                [className, name, className]);
+            _errorReporter.atToken(
+              identifier,
+              CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+              arguments: [className, name, className],
+            );
           }
         }
       }
@@ -599,18 +601,18 @@ class DuplicateDefinitionVerifier {
 
   void _checkValuesDeclarationInEnum(Token name) {
     if (name.lexeme == 'values') {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM,
+      _errorReporter.atToken(
         name,
+        CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM,
       );
     }
   }
 
   void _checkValuesDeclarationInEnum2(Token name) {
     if (name.lexeme == 'values') {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM,
+      _errorReporter.atToken(
         name,
+        CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM,
       );
     }
   }

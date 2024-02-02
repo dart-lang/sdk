@@ -421,9 +421,9 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (node.isCascaded) {
       // Report this error and recover by treating it like a non-cascade.
-      _resolver.errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+      _resolver.errorReporter.atToken(
         override.name,
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
       );
     }
 

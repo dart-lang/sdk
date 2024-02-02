@@ -254,11 +254,11 @@ class _Constructor {
           fields[fieldElement] = _InitState.initInFieldFormal;
         } else if (state == _InitState.initInDeclaration) {
           if (fieldElement.isFinal || fieldElement.isConst) {
-            errorReporter.reportErrorForToken(
+            errorReporter.atToken(
+              parameter.name,
               CompileTimeErrorCode
                   .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-              parameter.name,
-              [fieldElement.displayName],
+              arguments: [fieldElement.displayName],
             );
           }
         } else if (state == _InitState.initInFieldFormal) {

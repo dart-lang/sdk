@@ -181,9 +181,13 @@ class UnlinkedLibraryAugmentationDirective {
 }
 
 class UnlinkedLibraryDirective {
+  /// `@docImport` directives in a library doc comment.
+  final List<UnlinkedLibraryImportDirective> docImports;
+
   final String? name;
 
   UnlinkedLibraryDirective({
+    required this.docImports,
     required this.name,
   });
 
@@ -191,11 +195,17 @@ class UnlinkedLibraryDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedLibraryDirective(
+      docImports: reader.readTypedList(
+        () => UnlinkedLibraryImportDirective.read(reader),
+      ),
       name: reader.readOptionalStringUtf8(),
     );
   }
 
   void write(BufferedSink sink) {
+    sink.writeList<UnlinkedLibraryImportDirective>(docImports, (docImport) {
+      docImport.write(sink);
+    });
     sink.writeOptionalStringUtf8(name);
   }
 }

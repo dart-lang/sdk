@@ -1996,11 +1996,10 @@ class SetSubscriptionsTest extends PubPackageAnalysisServerTest {
 library lib_a;
 class A {}
 ''');
-    newPackageConfigJsonFile(
-      '/project',
-      (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
-          .toContent(toUriStr: toUriStr),
+    writePackageConfig(
+      convertPath('/project'),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('''
@@ -2049,11 +2048,10 @@ void f() {
 library lib_a;
 class A {}
 ''');
-    newPackageConfigJsonFile(
-      '/project',
-      (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
-          .toContent(toUriStr: toUriStr),
+    writePackageConfig(
+      convertPath('/project'),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('// no "pkgA" reference');

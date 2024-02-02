@@ -458,8 +458,9 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         sourceUrl: sourceUri, resourceProvider: resourceProvider);
     var listener = RecordingErrorListener();
     var reporter = ErrorReporter(
-        listener, resourceProvider.getFile(path).createSource(sourceUri),
-        isNonNullableByDefault: false);
+      listener,
+      resourceProvider.getFile(path).createSource(sourceUri),
+    );
     for (var entry in pubspecRules.entries) {
       entry.key.reporter = reporter;
       pubspecAst.accept(entry.value);

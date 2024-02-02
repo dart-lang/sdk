@@ -43,11 +43,7 @@ List<AnalysisError> validatePubspec({
   AnalysisOptions? analysisOptions,
 }) {
   final recorder = RecordingErrorListener();
-  ErrorReporter reporter = ErrorReporter(
-    recorder,
-    source,
-    isNonNullableByDefault: false,
-  );
+  ErrorReporter reporter = ErrorReporter(recorder, source);
   final ctx = PubspecValidationContext._(
     contents: contents,
     source: source,

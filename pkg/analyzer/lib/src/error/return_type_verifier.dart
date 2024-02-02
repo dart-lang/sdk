@@ -421,9 +421,9 @@ class ReturnTypeVerifier {
       }
     }
 
-    _errorReporter.reportErrorForToken(
-      CompileTimeErrorCode.RETURN_WITHOUT_VALUE,
+    _errorReporter.atToken(
       statement.returnKeyword,
+      CompileTimeErrorCode.RETURN_WITHOUT_VALUE,
     );
   }
 

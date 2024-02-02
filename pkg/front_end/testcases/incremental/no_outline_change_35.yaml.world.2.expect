@@ -8,6 +8,9 @@ library from "org-dartlang-test:///lib.dart" as lib {
     constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase) → lib::Coordinate
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
       ;
+    constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → lib::Coordinate
+      : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
+      ;
     @#C8
     get x() → dart.core::double
       return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C10.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});

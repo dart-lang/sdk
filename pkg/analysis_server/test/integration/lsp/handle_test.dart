@@ -10,55 +10,28 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../lsp/request_helpers_mixin.dart';
 import '../../tool/lsp_spec/matchers.dart';
 import '../../utils/test_code_extensions.dart';
 import '../support/integration_tests.dart';
+import 'abstract_lsp_over_legacy.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LspOverLegacyTest);
+    defineReflectiveTests(LspOverLegacyRequestTest);
   });
 }
 
-/// Integration tests for using LSP over the Legacy protocol.
+/// Integration tests for sending LSP requests over the Legacy protocol.
 ///
 /// These tests are slow (each test spawns an out-of-process server) so these
 /// tests are intended only to ensure the basic functionality is available and
-/// not to test all handlers/functionality already are covered by LSP tests.
+/// not to test all handlers/functionality already covered by LSP tests.
 ///
 /// Additional tests (to verify each expected LSP handler is available over
 /// Legacy) are in `test/lsp_over_legacy/` and tests for all handler
 /// functionality are in `test/lsp`.
 @reflectiveTest
-class LspOverLegacyTest extends AbstractAnalysisServerIntegrationTest
-    with LspRequestHelpersMixin, LspEditHelpersMixin {
-  late final testFile = sourcePath('lib/test.dart');
-
-  Uri get testFileUri => Uri.file(testFile);
-
-  @override
-  Future<T> expectSuccessfulResponseTo<T, R>(
-    RequestMessage message,
-    T Function(R) fromJson,
-  ) async {
-    final legacyResult = await sendLspHandle(message.toJson());
-    final lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
-
-    // Unwrap the LSP response.
-    final lspResponse = ResponseMessage.fromJson(lspResponseJson);
-    final error = lspResponse.error;
-    if (error != null) {
-      throw error;
-    } else if (T == Null) {
-      return lspResponse.result == null
-          ? null as T
-          : throw 'Expected Null response but got ${lspResponse.result}';
-    } else {
-      return fromJson(lspResponse.result as R);
-    }
-  }
-
+class LspOverLegacyRequestTest extends AbstractLspOverLegacyTest {
   Future<void> test_error_invalidLspRequest() async {
     await standardAnalysisSetup();
     await analysisFinished;
@@ -112,7 +85,7 @@ class [!A^aa!] {}
     final result = await getHover(testFileUri, code.position.position);
 
     expect(result!.range, code.range.range);
-    _expectMarkdown(
+    expectMarkdown(
       result.contents,
       '''
 ```dart
@@ -172,18 +145,5 @@ This is my class.''';
         }
       }
     });
-  }
-
-  void _expectMarkdown(
-    Either2<MarkupContent, String> contents,
-    String expected,
-  ) {
-    final markup = contents.map(
-      (t1) => t1,
-      (t2) => throw 'Hover contents were String, not MarkupContent',
-    );
-
-    expect(markup.kind, MarkupKind.Markdown);
-    expect(markup.value.trimRight(), expected.trimRight());
   }
 }

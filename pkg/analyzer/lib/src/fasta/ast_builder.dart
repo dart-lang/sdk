@@ -1658,9 +1658,9 @@ class AstBuilder extends StackListener {
       // Check for extension type name conflict.
       var representationName = representation.fieldName;
       if (representationName.lexeme == builder.name.lexeme) {
-        errorReporter.errorReporter?.reportErrorForToken(
-          ParserErrorCode.MEMBER_WITH_CLASS_NAME,
+        errorReporter.errorReporter?.atToken(
           representationName,
+          ParserErrorCode.MEMBER_WITH_CLASS_NAME,
         );
       }
       declarations.add(
@@ -2821,9 +2821,9 @@ class AstBuilder extends StackListener {
         case final formalParameterType?:
           fieldType = formalParameterType;
         case null:
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
+          errorReporter.errorReporter?.atToken(
             leftParenthesis.next!,
+            ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
           );
           final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
             leftParenthesis,
@@ -2837,9 +2837,9 @@ class AstBuilder extends StackListener {
       }
       if (firstFormalParameter.keyword case final keyword?) {
         if (keyword.keyword != Keyword.CONST) {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
+          errorReporter.errorReporter?.atToken(
             keyword,
+            ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
           );
         }
       }
@@ -2848,21 +2848,21 @@ class AstBuilder extends StackListener {
       final maybeComma = firstFormalParameter.endToken.next;
       if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
         if (formalParameterList.parameters.length == 1) {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA,
+          errorReporter.errorReporter?.atToken(
             maybeComma,
+            ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA,
           );
         } else {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
+          errorReporter.errorReporter?.atToken(
             maybeComma,
+            ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
           );
         }
       }
     } else {
-      errorReporter.errorReporter?.reportErrorForToken(
-        ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
+      errorReporter.errorReporter?.atToken(
         leftParenthesis.next!,
+        ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
       );
       fieldMetadata = [];
       final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
@@ -5673,9 +5673,9 @@ class AstBuilder extends StackListener {
       for (final formalParameter in parameters.parameters) {
         final notDefault = formalParameter.notDefault;
         if (notDefault is FieldFormalParameterImpl) {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
+          errorReporter.errorReporter?.atToken(
             notDefault.thisKeyword,
+            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
           );
         }
       }

@@ -74,6 +74,7 @@ class LibraryAnalyzer {
 
   final Map<FileState, LineInfo> _fileToLineInfo = {};
 
+  final Map<FileState, CompilationUnitImpl> _libraryUnits = {};
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
@@ -92,6 +93,7 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
+      units: _libraryUnits,
     );
   }
 
@@ -101,12 +103,12 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   List<UnitAnalysisResult> analyze() {
-    var units = _parseAndResolve();
-    _computeDiagnostics(units);
+    _parseAndResolve();
+    _computeDiagnostics();
 
     // Return full results.
     var results = <UnitAnalysisResult>[];
-    units.forEach((file, unit) {
+    _libraryUnits.forEach((file, unit) {
       var errors = _getErrorListener(file).errors;
       errors = _filterIgnoredErrors(file, errors);
       results.add(UnitAnalysisResult(file, unit, errors));
@@ -186,8 +188,8 @@ class LibraryAnalyzer {
         }
       }
 
-      var units = _parseAndResolve();
-      var unit = units[file]!;
+      _parseAndResolve();
+      var unit = _libraryUnits[file]!;
       return AnalysisForCompletionResult(
         parsedUnit: unit,
         resolvedNodes: [unit],
@@ -268,10 +270,10 @@ class LibraryAnalyzer {
     );
   }
 
-  /// Compute diagnostics in [units], including errors and warnings,
+  /// Compute diagnostics in [_libraryUnits], including errors and warnings,
   /// lints, and a few other cases.
-  void _computeDiagnostics(Map<FileState, CompilationUnitImpl> units) {
-    units.forEach((file, unit) {
+  void _computeDiagnostics() {
+    _libraryUnits.forEach((file, unit) {
       _computeVerifyErrors(file, unit);
     });
 
@@ -280,7 +282,7 @@ class LibraryAnalyzer {
     if (_analysisOptions.warning) {
       var usedImportedElements = <UsedImportedElements>[];
       var usedLocalElements = <UsedLocalElements>[];
-      for (var unit in units.values) {
+      for (var unit in _libraryUnits.values) {
         {
           var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
           unit.accept(visitor);
@@ -293,7 +295,7 @@ class LibraryAnalyzer {
         }
       }
       var usedElements = UsedLocalElements.merge(usedLocalElements);
-      units.forEach((file, unit) {
+      _libraryUnits.forEach((file, unit) {
         _computeWarnings(
           file,
           unit,
@@ -306,7 +308,7 @@ class LibraryAnalyzer {
     if (_analysisOptions.lint) {
       final allUnits = _library.files
           .map((file) {
-            final unit = units[file];
+            final unit = _libraryUnits[file];
             if (unit != null) {
               return LinterContextUnit2(file, unit);
             } else {
@@ -321,7 +323,7 @@ class LibraryAnalyzer {
       }
     }
 
-    _checkForInconsistentLanguageVersionOverride(units);
+    _checkForInconsistentLanguageVersionOverride(_libraryUnits);
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
@@ -557,7 +559,6 @@ class LibraryAnalyzer {
       return ErrorReporter(
         listener,
         file.source,
-        isNonNullableByDefault: _libraryElement.isNonNullableByDefault,
       );
     });
   }
@@ -576,21 +577,66 @@ class LibraryAnalyzer {
   }
 
   /// Parse and resolve all files in [_library].
-  Map<FileState, CompilationUnitImpl> _parseAndResolve() {
-    final units = <FileState, CompilationUnitImpl>{};
+  void _parseAndResolve() {
     _resolveDirectives(
       containerKind: _library,
       containerElement: _libraryElement,
-      units: units,
     );
 
-    units.forEach((file, unit) {
+    _libraryUnits.forEach((file, unit) {
       _resolveFile(file, unit);
     });
 
-    _computeConstants(units.values);
+    _computeConstants(_libraryUnits.values);
+  }
 
-    return units;
+  /// Reports URI-related import directive errors to the [errorReporter].
+  void _reportImportDirectiveErrors({
+    required ImportDirectiveImpl directive,
+    required LibraryImportState state,
+    required ErrorReporter errorReporter,
+  }) {
+    if (state is LibraryImportWithUri) {
+      final selectedUriStr = state.selectedUri.relativeUriStr;
+      if (selectedUriStr.startsWith('dart-ext:')) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
+          directive.uri,
+        );
+      } else if (state.importedSource == null) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+          directive.uri,
+          [selectedUriStr],
+        );
+      } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
+        final errorCode = isGeneratedSource(state.importedSource)
+            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        errorReporter.reportErrorForNode(
+          errorCode,
+          directive.uri,
+          [selectedUriStr],
+        );
+      } else if (state.importedLibrarySource == null) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+          directive.uri,
+          [selectedUriStr],
+        );
+      }
+    } else if (state is LibraryImportWithUriStr) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_URI,
+        directive.uri,
+        [state.selectedUri.relativeUriStr],
+      );
+    } else {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        directive.uri,
+      );
+    }
   }
 
   void _resolveAugmentationImportDirective({
@@ -599,7 +645,6 @@ class LibraryAnalyzer {
     required AugmentationImportState state,
     required ErrorReporter errorReporter,
     required Set<AugmentationFileKind> seenAugmentations,
-    required Map<FileState, CompilationUnitImpl> units,
   }) {
     directive?.element = element;
 
@@ -655,7 +700,7 @@ class LibraryAnalyzer {
 
     final augmentationFile = importedAugmentationKind.file;
     final augmentationUnit = _parse(augmentationFile);
-    units[augmentationFile] = augmentationUnit;
+    _libraryUnits[augmentationFile] = augmentationUnit;
 
     final importedAugmentation = element.importedAugmentation!;
     augmentationUnit.declaredElement =
@@ -670,7 +715,6 @@ class LibraryAnalyzer {
     _resolveDirectives(
       containerKind: importedAugmentationKind,
       containerElement: importedAugmentation,
-      units: units,
     );
   }
 
@@ -679,12 +723,11 @@ class LibraryAnalyzer {
   void _resolveDirectives({
     required LibraryOrAugmentationFileKind containerKind,
     required LibraryOrAugmentationElementImpl containerElement,
-    required Map<FileState, CompilationUnitImpl> units,
   }) {
     final containerFile = containerKind.file;
     final containerUnit = _parse(containerFile);
     containerUnit.declaredElement = containerElement.definingCompilationUnit;
-    units[containerFile] = containerUnit;
+    _libraryUnits[containerFile] = containerUnit;
 
     final containerErrorReporter = _getErrorReporter(containerFile);
 
@@ -705,7 +748,6 @@ class LibraryAnalyzer {
           state: containerKind.augmentationImports[index],
           errorReporter: containerErrorReporter,
           seenAugmentations: seenAugmentations,
-          units: units,
         );
       } else if (directive is ExportDirectiveImpl) {
         final index = libraryExportIndex++;
@@ -743,7 +785,6 @@ class LibraryAnalyzer {
             partElement: containerElement.parts[index],
             errorReporter: containerErrorReporter,
             libraryNameNode: libraryNameNode,
-            units: units,
             seenPartSources: seenPartSources,
           );
         }
@@ -762,7 +803,21 @@ class LibraryAnalyzer {
           state: macroImport,
           errorReporter: containerErrorReporter,
           seenAugmentations: seenAugmentations,
-          units: units,
+        );
+      }
+    }
+
+    final docImports = containerUnit.directives
+        .whereType<LibraryDirective>()
+        .firstOrNull
+        ?.documentationComment
+        ?.docImports;
+    if (docImports != null) {
+      for (var i = 0; i < docImports.length; i++) {
+        _resolveLibraryDocImportDirective(
+          directive: docImports[i].import as ImportDirectiveImpl,
+          state: containerKind.libraryDocImports[i],
+          errorReporter: containerErrorReporter,
         );
       }
     }
@@ -859,6 +914,24 @@ class LibraryAnalyzer {
     );
   }
 
+  /// Resolves the `@docImport` directive URI and reports any import errors of
+  /// the [directive] to the [errorReporter].
+  void _resolveLibraryDocImportDirective({
+    required ImportDirectiveImpl directive,
+    required LibraryImportState state,
+    required ErrorReporter errorReporter,
+  }) {
+    _resolveNamespaceDirective(
+      configurationNodes: directive.configurations,
+      configurationUris: state.uris.configurations,
+    );
+    _reportImportDirectiveErrors(
+      directive: directive,
+      state: state,
+      errorReporter: errorReporter,
+    );
+  }
+
   void _resolveLibraryExportDirective({
     required ExportDirectiveImpl directive,
     required LibraryExportElement element,
@@ -925,47 +998,11 @@ class LibraryAnalyzer {
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
     );
-    if (state is LibraryImportWithUri) {
-      final selectedUriStr = state.selectedUri.relativeUriStr;
-      if (selectedUriStr.startsWith('dart-ext:')) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
-          directive.uri,
-        );
-      } else if (state.importedSource == null) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-          directive.uri,
-          [selectedUriStr],
-        );
-      } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
-        final errorCode = isGeneratedSource(state.importedSource)
-            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-        errorReporter.reportErrorForNode(
-          errorCode,
-          directive.uri,
-          [selectedUriStr],
-        );
-      } else if (state.importedLibrarySource == null) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-          directive.uri,
-          [selectedUriStr],
-        );
-      }
-    } else if (state is LibraryImportWithUriStr) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_URI,
-        directive.uri,
-        [state.selectedUri.relativeUriStr],
-      );
-    } else {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-        directive.uri,
-      );
-    }
+    _reportImportDirectiveErrors(
+      directive: directive,
+      state: state,
+      errorReporter: errorReporter,
+    );
   }
 
   void _resolveNamespaceDirective({
@@ -984,7 +1021,6 @@ class LibraryAnalyzer {
     required PartElement partElement,
     required ErrorReporter errorReporter,
     required LibraryIdentifier? libraryNameNode,
-    required Map<FileState, CompilationUnitImpl> units,
     required Set<Source> seenPartSources,
   }) {
     StringLiteral partUri = directive.uri;
@@ -1065,7 +1101,7 @@ class LibraryAnalyzer {
     }
 
     final partUnit = _parse(includedFile);
-    units[includedFile] = partUnit;
+    _libraryUnits[includedFile] = partUnit;
 
     final partElementUri = partElement.uri;
     if (partElementUri is DirectiveUriWithUnitImpl) {

@@ -116,10 +116,10 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
+      errorReporter.atToken(
         prefixToken,
-        [prefixName],
+        CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
+        arguments: [prefixName],
       );
       node.type = InvalidTypeImpl.instance;
     } else {

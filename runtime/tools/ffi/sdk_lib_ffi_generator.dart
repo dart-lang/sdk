@@ -237,6 +237,7 @@ $platform$truncate$alignment  external void operator []=(int index, $dartType va
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<$nativeType> operator +(int offset) => Pointer.fromAddress(address + sizeOf<$nativeType>() * offset);
 
   /// A pointer to the [offset]th [$nativeType] before this one.
@@ -250,6 +251,7 @@ $platform$truncate$alignment  external void operator []=(int index, $dartType va
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<$nativeType> operator -(int offset) => Pointer.fromAddress(address - sizeOf<$nativeType>() * offset);
 
 $asTypedList
@@ -308,15 +310,19 @@ void generatePatchExtension(
 @patch
 extension ${nativeType}Pointer on Pointer<$nativeType> {
   @patch
+  @pragma("vm:prefer-inline")
   $dartType get value => _load$nativeType(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value($dartType value) => _store$nativeType(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   $dartType operator [](int index) => _load$nativeType(this, ${sizeTimes}index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, $dartType value) => _store$nativeType(this, ${sizeTimes}index, value);
 
 $asTypedList

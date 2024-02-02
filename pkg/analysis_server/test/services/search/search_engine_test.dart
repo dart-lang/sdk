@@ -605,10 +605,7 @@ class B extends A {}
   String _configureForPackage_aaa() {
     var aaaRootPath = '$workspaceRootPath/aaa';
 
-    writePackageConfig(
-      '$aaaRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
-    );
+    writePackageConfig(aaaRootPath, config: PackageConfigFileBuilder());
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()

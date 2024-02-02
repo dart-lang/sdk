@@ -392,11 +392,7 @@ class FastaParserTestCase
     _fastaTokens = result.tokens;
 
     // Run parser
-    ErrorReporter errorReporter = ErrorReporter(
-      listener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    ErrorReporter errorReporter = ErrorReporter(listener, source);
     AstBuilder astBuilder = AstBuilder(errorReporter, source.uri, true,
         featureSet!, LineInfo.fromContent(content));
     fasta.Parser parser = fasta.Parser(astBuilder,

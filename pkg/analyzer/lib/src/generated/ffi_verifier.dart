@@ -96,8 +96,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           inCompound = true;
           compound = node;
           if (node.declaredElement!.isEmptyStruct) {
-            _errorReporter.reportErrorForToken(
-                FfiCode.EMPTY_STRUCT, node.name, [node.name.lexeme, className]);
+            _errorReporter.atToken(
+              node.name,
+              FfiCode.EMPTY_STRUCT,
+              arguments: [node.name.lexeme, className],
+            );
           }
           if (className == _structClassName) {
             _validatePackedAnnotation(node.metadata);
@@ -144,8 +147,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (inCompound) {
       if (node.declaredElement!.typeParameters.isNotEmpty) {
-        _errorReporter.reportErrorForToken(
-            FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.lexeme]);
+        _errorReporter.atToken(
+          node.name,
+          FfiCode.GENERIC_STRUCT_SUBCLASS,
+          arguments: [node.name.lexeme],
+        );
       }
       final implementsClause = node.implementsClause;
       if (implementsClause != null) {
@@ -155,10 +161,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final finalizableElement = ffiLibrary.getClass(_finalizableClassName)!;
         final finalizableType = finalizableElement.thisType;
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
-          _errorReporter.reportErrorForToken(
-              FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
-              node.name,
-              [node.name.lexeme]);
+          _errorReporter.atToken(
+            node.name,
+            FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
+            arguments: [node.name.lexeme],
+          );
         }
       }
     }
@@ -219,7 +226,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (element is MethodElement) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeStructArrayExtension) {
+          enclosingElement.isNativeStructArrayExtension ||
+          enclosingElement.isNativeUnionPointerExtension ||
+          enclosingElement.isNativeUnionArrayExtension) {
         if (element.name == '[]') {
           _validateRefIndexed(node);
         }
@@ -232,10 +241,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var constructor = node.constructorName.staticElement;
     var class_ = constructor?.enclosingElement;
     if (class_.isStructSubclass || class_.isUnionSubclass) {
-      _errorReporter.reportErrorForNode(
-        FfiCode.CREATION_OF_STRUCT_OR_UNION,
-        node.constructorName,
-      );
+      if (!constructor!.isFactory) {
+        _errorReporter.reportErrorForNode(
+          FfiCode.CREATION_OF_STRUCT_OR_UNION,
+          node.constructorName,
+        );
+      }
     } else if (class_.isNativeCallable) {
       _validateNativeCallable(node);
     }
@@ -289,6 +300,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         } else if (element.name == 'elementAt') {
           _validateElementAt(node);
         }
+      } else if (enclosingElement.isStruct || enclosingElement.isUnion) {
+        if (element.name == 'create') {
+          _validateCreate(node, enclosingElement.name!);
+        }
       } else if (enclosingElement.isNative) {
         if (element.name == 'addressOf') {
           _validateNativeAddressOf(node);
@@ -320,7 +335,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var element = node.staticElement;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension) {
+      if (enclosingElement.isNativeStructPointerExtension ||
+          enclosingElement.isNativeUnionPointerExtension) {
         if (element.name == 'ref') {
           _validateRefPrefixedIdentifier(node);
         }
@@ -334,7 +350,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var element = node.propertyName.staticElement;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension) {
+      if (enclosingElement.isNativeStructPointerExtension ||
+          enclosingElement.isNativeUnionPointerExtension) {
         if (element.name == 'ref') {
           _validateRefPropertyAccess(node);
         }
@@ -847,8 +864,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         node.members.length != 1 ||
         node.members.single is! ConstructorDeclaration ||
         (node.members.single as ConstructorDeclaration).constKeyword == null) {
-      _errorReporter.reportErrorForToken(
-          FfiCode.ABI_SPECIFIC_INTEGER_INVALID, node.name);
+      _errorReporter.atToken(
+        node.name,
+        FfiCode.ABI_SPECIFIC_INTEGER_INVALID,
+      );
     }
   }
 
@@ -860,8 +879,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         .toList();
 
     if (ffiPackedAnnotations.isEmpty) {
-      _errorReporter.reportErrorForToken(
-          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, errorToken);
+      _errorReporter.atToken(
+        errorToken,
+        FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING,
+      );
       return;
     }
 
@@ -1148,6 +1169,22 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _validateCreate(MethodInvocation node, String errorClass) {
+    final typeArgumentTypes = node.typeArgumentTypes;
+    if (typeArgumentTypes == null || typeArgumentTypes.length != 1) {
+      return;
+    }
+    final DartType dartType = typeArgumentTypes[0];
+    if (!_isValidFfiNativeType(dartType)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+        FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
+        errorNode,
+        ['$errorClass.create'],
+      );
+    }
+  }
+
   void _validateElementAt(MethodInvocation node) {
     var targetType = node.realTarget?.staticType;
     if (targetType is InterfaceType && targetType.isPointer) {
@@ -1190,17 +1227,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (typeSystem.isNonNullableByDefault) {
       if (node.externalKeyword == null) {
-        _errorReporter.reportErrorForToken(
-          FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
+        _errorReporter.atToken(
           fields.variables[0].name,
+          FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
         );
       }
     }
 
     var fieldType = fields.type;
     if (fieldType == null) {
-      _errorReporter.reportErrorForToken(
-          FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name);
+      _errorReporter.atToken(
+        fields.variables[0].name,
+        FfiCode.MISSING_FIELD_TYPE_IN_STRUCT,
+      );
     } else {
       DartType declaredType = fieldType.typeOrThrow;
       if (declaredType.nullabilitySuffix == NullabilitySuffix.question) {
@@ -1853,6 +1892,20 @@ extension on Element? {
     final element = this;
     return element is ExtensionElement &&
         element.name == 'StructPointer' &&
+        element.isFfiExtension;
+  }
+
+  bool get isNativeUnionArrayExtension {
+    final element = this;
+    return element is ExtensionElement &&
+        element.name == 'UnionArray' &&
+        element.isFfiExtension;
+  }
+
+  bool get isNativeUnionPointerExtension {
+    final element = this;
+    return element is ExtensionElement &&
+        element.name == 'UnionPointer' &&
         element.isFfiExtension;
   }
 

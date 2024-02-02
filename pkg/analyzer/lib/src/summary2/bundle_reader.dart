@@ -30,6 +30,7 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -471,6 +472,7 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
@@ -2367,6 +2369,38 @@ class ResolutionReader {
 
   MacroDiagnosticMessage _readMacroDiagnosticMessage() {
     final message = _reader.readStringUtf8();
+
+    TypeAnnotationLocation readTypeAnnotationLocation() {
+      var tag = readByte();
+      var kind = TypeAnnotationLocationKind.values[tag];
+      switch (kind) {
+        case TypeAnnotationLocationKind.element:
+          var element = readElement()!;
+          return ElementTypeLocation(element);
+        case TypeAnnotationLocationKind.extendsClause:
+          var parent = readTypeAnnotationLocation();
+          return ExtendsClauseTypeLocation(parent);
+        case TypeAnnotationLocationKind.formalParameter:
+          return FormalParameterTypeLocation(
+            readTypeAnnotationLocation(),
+            readUInt30(),
+          );
+        case TypeAnnotationLocationKind.listIndex:
+          return ListIndexTypeLocation(
+            readTypeAnnotationLocation(),
+            readUInt30(),
+          );
+        case TypeAnnotationLocationKind.returnType:
+          var parent = readTypeAnnotationLocation();
+          return ReturnTypeLocation(parent);
+        case TypeAnnotationLocationKind.variableType:
+          var parent = readTypeAnnotationLocation();
+          return VariableTypeLocation(parent);
+        default:
+          throw UnimplementedError('kind: $kind');
+      }
+    }
+
     MacroDiagnosticTarget target;
     switch (readByte()) {
       case 0x00:
@@ -2378,6 +2412,9 @@ class ResolutionReader {
         target = ElementMacroDiagnosticTarget(
           element: element as ElementImpl,
         );
+      case 0x02:
+        var location = readTypeAnnotationLocation();
+        target = TypeAnnotationMacroDiagnosticTarget(location: location);
       case final int tag:
         throw UnimplementedError('tag: $tag');
     }
@@ -2513,6 +2550,7 @@ class TopLevelVariableElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
     if (element is ConstTopLevelVariableElementImpl) {
       var initializer = reader._readOptionalExpression();

@@ -190,9 +190,9 @@ class _ClassVerifier {
         classElement is ClassElement &&
         !classElement.isAbstract &&
         implementsDartCoreEnum) {
-      reporter.reportErrorForToken(
-        CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
+      reporter.atToken(
         classNameToken,
+        CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
       );
       return true;
     }
@@ -589,10 +589,10 @@ class _ClassVerifier {
           classElement is EnumElementImpl ||
           classElement is MixinElementImpl) {
         if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
-          reporter.reportErrorForToken(
-            CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          reporter.atToken(
             name,
-            [name.lexeme],
+            CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+            arguments: [name.lexeme],
           );
         }
       }
@@ -618,10 +618,10 @@ class _ClassVerifier {
         if (member != null) {
           var enclosingClass = member.enclosingElement as InterfaceElement;
           if (enclosingClass is! ClassElement || filter(enclosingClass)) {
-            reporter.reportErrorForToken(
-              CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+            reporter.atToken(
               classNameToken,
-              [memberName, enclosingClass.name],
+              CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+              arguments: [memberName, enclosingClass.name],
             );
           }
         }
@@ -635,9 +635,9 @@ class _ClassVerifier {
 
   void _checkIllegalEnumValuesDeclaration(Token name) {
     if (implementsDartCoreEnum && name.lexeme == 'values') {
-      reporter.reportErrorForToken(
-        CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION,
+      reporter.atToken(
         name,
+        CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION,
       );
     }
   }
@@ -654,10 +654,10 @@ class _ClassVerifier {
       );
       var inherited = getter ?? setter;
       if (inherited != null) {
-        reporter.reportErrorForToken(
-          CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
+        reporter.atToken(
           classNameToken,
-          [inherited.enclosingElement.name!],
+          CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
+          arguments: [inherited.enclosingElement.name!],
         );
       }
     }
@@ -760,10 +760,10 @@ class _ClassVerifier {
       // elements so it is safe to assume that
       // `conflict.getter.enclosingElement3.name` and
       // `conflict.method.enclosingElement3.name` are both non-`null`.
-      reporter.reportErrorForToken(
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+      reporter.atToken(
         token,
-        [
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+        arguments: [
           name.name,
           conflict.getter.enclosingElement.name!,
           conflict.method.enclosingElement.name!
@@ -778,10 +778,10 @@ class _ClassVerifier {
         return '$className.${name.name} ($typeStr)';
       }).join(', ');
 
-      reporter.reportErrorForToken(
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+      reporter.atToken(
         token,
-        [name.name, candidatesStr],
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        arguments: [name.name, candidatesStr],
       );
     } else {
       throw StateError('${conflict.runtimeType}');
@@ -816,35 +816,40 @@ class _ClassVerifier {
     descriptions.sort();
 
     if (descriptions.length == 1) {
-      reporter.reportErrorForToken(
-        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+      reporter.atToken(
         classNameToken,
-        [descriptions[0]],
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+        arguments: [descriptions[0]],
       );
     } else if (descriptions.length == 2) {
-      reporter.reportErrorForToken(
-        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+      reporter.atToken(
         classNameToken,
-        [descriptions[0], descriptions[1]],
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+        arguments: [descriptions[0], descriptions[1]],
       );
     } else if (descriptions.length == 3) {
-      reporter.reportErrorForToken(
-        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
+      reporter.atToken(
         classNameToken,
-        [descriptions[0], descriptions[1], descriptions[2]],
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
+        arguments: [descriptions[0], descriptions[1], descriptions[2]],
       );
     } else if (descriptions.length == 4) {
-      reporter.reportErrorForToken(
-        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
+      reporter.atToken(
         classNameToken,
-        [descriptions[0], descriptions[1], descriptions[2], descriptions[3]],
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
+        arguments: [
+          descriptions[0],
+          descriptions[1],
+          descriptions[2],
+          descriptions[3]
+        ],
       );
     } else {
-      reporter.reportErrorForToken(
+      reporter.atToken(
+        classNameToken,
         CompileTimeErrorCode
             .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
-        classNameToken,
-        [
+        arguments: [
           descriptions[0],
           descriptions[1],
           descriptions[2],
@@ -861,10 +866,10 @@ class _ClassVerifier {
       var inferenceError = element.typeInferenceError;
       if (inferenceError?.kind ==
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
-        reporter.reportErrorForToken(
-          CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
+        reporter.atToken(
           node.name,
-          [
+          CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
+          arguments: [
             classElement.name,
             inferenceError!.arguments[0],
           ],
@@ -945,22 +950,22 @@ class _ClassVerifier {
         .toList();
 
     if (namesForError.length == 1) {
-      reporter.reportErrorForToken(
-        WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE,
+      reporter.atToken(
         classNameToken,
-        namesForError,
+        WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE,
+        arguments: namesForError,
       );
     } else if (namesForError.length == 2) {
-      reporter.reportErrorForToken(
-        WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
+      reporter.atToken(
         classNameToken,
-        namesForError,
+        WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
+        arguments: namesForError,
       );
     } else {
-      reporter.reportErrorForToken(
-        WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
+      reporter.atToken(
         classNameToken,
-        [
+        WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
+        arguments: [
           namesForError[0],
           namesForError[1],
           (namesForError.length - 2).toString(),

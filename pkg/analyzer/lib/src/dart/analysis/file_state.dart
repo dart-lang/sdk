@@ -869,6 +869,7 @@ class FileState {
     UnlinkedPartOfNameDirective? partOfNameDirective;
     UnlinkedPartOfUriDirective? partOfUriDirective;
     var augmentations = <UnlinkedAugmentationImportDirective>[];
+    var docImports = <UnlinkedLibraryImportDirective>[];
     var exports = <UnlinkedLibraryExportDirective>[];
     var imports = <UnlinkedLibraryImportDirective>[];
     var parts = <UnlinkedPartDirective>[];
@@ -904,8 +905,17 @@ class FileState {
             length: uri.length,
           ),
         );
+        // TODO(srawlins): Add doc imports.
       } else if (directive is LibraryDirective) {
+        var libraryDocComment = directive.documentationComment;
+        if (libraryDocComment != null) {
+          for (var docImport in libraryDocComment.docImports) {
+            var builder = _serializeImport(docImport.import);
+            docImports.add(builder);
+          }
+        }
         libraryDirective = UnlinkedLibraryDirective(
+          docImports: docImports.toFixedList(),
           name: directive.name2?.name,
         );
       } else if (directive is PartDirective) {
@@ -2073,6 +2083,7 @@ final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
 
 abstract class LibraryOrAugmentationFileKind extends FileKind {
   List<AugmentationImportState>? _augmentationImports;
+  List<LibraryImportState>? _libraryDocImports;
   List<LibraryExportState>? _libraryExports;
   List<LibraryImportState>? _libraryImports;
 
@@ -2108,6 +2119,18 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           );
       }
     }).toFixedList();
+  }
+
+  /// The import states of each `@docImport` on the library directive.
+  List<LibraryImportState> get libraryDocImports {
+    var existingDocImports = _libraryDocImports;
+    if (existingDocImports != null) return existingDocImports;
+
+    var docImports = file.unlinked2.libraryDirective?.docImports
+        .map(_createLibraryImportState)
+        .toFixedList();
+    if (docImports == null) return _libraryDocImports = [];
+    return _libraryDocImports = docImports;
   }
 
   List<LibraryExportState> get libraryExports {
@@ -2153,43 +2176,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
 
   List<LibraryImportState> get libraryImports {
     return _libraryImports ??=
-        file.unlinked2.imports.map<LibraryImportState>((unlinked) {
-      final uris = file._buildNamespaceDirectiveUris(unlinked);
-      final selectedUri = uris.selected;
-      switch (selectedUri) {
-        case DirectiveUriWithFile():
-          return LibraryImportWithFile(
-            container: this,
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-        case DirectiveUriWithInSummarySource():
-          return LibraryImportWithInSummarySource(
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-        case DirectiveUriWithUri():
-          return LibraryImportWithUri(
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-        case DirectiveUriWithString():
-          return LibraryImportWithUriStr(
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-        case DirectiveUriWithoutString():
-          return LibraryImportState(
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-      }
-    }).toFixedList();
+        file.unlinked2.imports.map(_createLibraryImportState).toFixedList();
   }
 
   /// Collect files that are transitively referenced by this library.
@@ -2233,6 +2220,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
   @override
   void dispose() {
     _augmentationImports?.disposeAll();
+    _libraryDocImports?.disposeAll();
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
     super.dispose();
@@ -2261,6 +2249,46 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
 
   /// Invalidates the containing [LibraryFileKind] cycle.
   void invalidateLibraryCycle() {}
+
+  /// Creates a [LibraryImportState] with the given unlinked [directive].
+  LibraryImportState _createLibraryImportState(
+      UnlinkedLibraryImportDirective directive) {
+    final uris = file._buildNamespaceDirectiveUris(directive);
+    final selectedUri = uris.selected;
+    switch (selectedUri) {
+      case DirectiveUriWithFile():
+        return LibraryImportWithFile(
+          container: this,
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      case DirectiveUriWithInSummarySource():
+        return LibraryImportWithInSummarySource(
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      case DirectiveUriWithUri():
+        return LibraryImportWithUri(
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      case DirectiveUriWithString():
+        return LibraryImportWithUriStr(
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      case DirectiveUriWithoutString():
+        return LibraryImportState(
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+    }
+  }
 }
 
 class NamespaceDirectiveUris {

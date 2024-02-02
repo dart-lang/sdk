@@ -19,19 +19,33 @@ import '../util/id_testing_helper.dart';
 main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
-  return runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const _InheritanceDataComputer(), [analyzerDefaultConfig]),
-      skipMap: {
-        analyzerMarker: [
-          // These are CFE-centric tests for an opt-in/opt-out sdk.
-          'object_opt_in',
-          'object_opt_out',
-        ]
-      });
+  return runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest:
+        runTestFor(const _InheritanceDataComputer(), [analyzerDefaultConfig]),
+    skipList: [
+      // Legacy, not supported by the analyzer anymore.
+      'from_opt_out',
+      'in_out_in',
+      'infer_from_opt_in',
+      'infer_opt_out_from_mixed',
+      'infer_parameter_opt_out.dart',
+      'issue40414',
+      'member_from_opt_in',
+      'members_from_opt_in',
+      'top_merge_opt_out.dart',
+    ],
+    skipMap: {
+      analyzerMarker: [
+        // These are CFE-centric tests for an opt-in/opt-out sdk.
+        'object_opt_in',
+        'object_opt_out',
+      ]
+    },
+  );
 }
 
 String supertypeToString(InterfaceType type) {

@@ -29,6 +29,9 @@ library from "org-dartlang-test:///structs.dart" as str {
     constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase) → str::A
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
       ;
+    constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → str::A
+      : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
+      ;
     get yy() → str::Y
       return new str::Y::#fromTypedDataBase( block {
         synthesized dart.core::Object #typedDataBase = this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object};
@@ -46,6 +49,9 @@ library from "org-dartlang-test:///structs.dart" as str {
       ;
     constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase) → str::Y
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
+      ;
+    constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → str::Y
+      : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
       ;
     external get zz() → invalid-type;
     external set zz(synthesized invalid-type #externalFieldValue) → void;

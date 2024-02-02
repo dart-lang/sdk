@@ -388,6 +388,226 @@ class A {
     ]);
   }
 
+  test_diagnostic_report_atTypeAnnotation_class_extends() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'superclass',
+])
+class A extends Object {}
+''', [
+      error(WarningCode.MACRO_WARNING, 88, 6),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_field_type() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'variableType',
+  ])
+  int foo = 0;
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 92, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_function_formalParameter_named() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'namedFormalParameterType 0',
+])
+void foo(int a, {String? b, bool? c}) {}
+''', [
+      error(WarningCode.MACRO_WARNING, 105, 7),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_function_formalParameter_positional() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'positionalFormalParameterType 1',
+])
+void foo(int a, String b) {}
+''', [
+      error(WarningCode.MACRO_WARNING, 109, 6),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_function_returnType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+int foo() => 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 72, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_functionType_returnType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+  'returnType',
+])
+int Function() foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 88, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_functionType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+void Function() foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 72, 15),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_fieldType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'variableType',
+  ])
+  final foo = 0;
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 98, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_formalParameterType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'positionalFormalParameterType 0',
+])
+void foo(a) {}
+''', [
+      error(WarningCode.MACRO_WARNING, 102, 1),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_functionReturnType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 72, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_methodReturnType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'returnType',
+  ])
+  foo() => throw 0;
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 90, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_omittedType_topLevelVariableType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'variableType',
+])
+final foo = 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 80, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_kind_recordType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+(int, String) foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 72, 13),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_method_formalParameter_positional() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'positionalFormalParameterType 1',
+  ])
+  void foo(int a, String b) {}
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 127, 6),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_method_returnType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'returnType',
+  ])
+  int foo() => 0;
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 90, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_namedTypeArgument() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+  'namedTypeArgument 1',
+])
+Map<int, String> foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 106, 6),
+    ]);
+  }
+
   test_diagnostic_report_contextMessages_superClassMethods() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/error/error.dart';
@@ -4478,15 +4477,10 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var unit = this.result.unit;
     var source = unit.declaredElement!.source;
     var errorListener = GatheringErrorListener();
-    var errorReporter = ErrorReporter(
-      errorListener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    var errorReporter = ErrorReporter(errorListener, source);
     var constantVisitor = ConstantVisitor(
       ConstantEvaluationEngine(
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
-        isNonNullableByDefault: unit.featureSet.isEnabled(Feature.non_nullable),
         configuration: ConstantEvaluationConfiguration(),
       ),
       this.result.libraryElement as LibraryElementImpl,

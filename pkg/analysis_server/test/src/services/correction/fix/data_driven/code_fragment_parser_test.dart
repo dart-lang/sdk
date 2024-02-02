@@ -64,7 +64,6 @@ abstract class AbstractCodeFragmentParserTest {
     var errorReporter = ErrorReporter(
       listener,
       MockSource(),
-      isNonNullableByDefault: false,
     );
     var map = <String, ValueGenerator>{};
     if (variables != null) {

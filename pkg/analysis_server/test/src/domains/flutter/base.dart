@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../analysis_server_base.dart';
-import '../../utilities/mock_packages.dart';
 
 @reflectiveTest
 class FlutterBase extends PubPackageAnalysisServerTest {
@@ -43,15 +41,9 @@ class FlutterBase extends PubPackageAnalysisServerTest {
 
     newPubspecYamlFile(testPackageRootPath, '');
 
-    var metaLib = MockPackages.instance.addMeta(resourceProvider);
-    var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
-    newPackageConfigJsonFile(
-      '/home/test',
-      (PackageConfigFileBuilder()
-            ..add(name: 'test', rootPath: testPackageRootPath)
-            ..add(name: 'meta', rootPath: metaLib.parent.path)
-            ..add(name: 'flutter', rootPath: flutterLib.parent.path))
-          .toContent(toUriStr: toUriStr),
+    writeTestPackageConfig(
+      meta: true,
+      flutter: true,
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);

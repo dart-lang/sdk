@@ -15,7 +15,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
-import '../src/utilities/mock_packages.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -25,7 +24,6 @@ void main() {
 
 @reflectiveTest
 class NotificationErrorsTest extends PubPackageAnalysisServerTest {
-  late Folder pedanticFolder;
   Map<File, List<AnalysisError>?> filesErrors = {};
 
   @override
@@ -45,7 +43,6 @@ class NotificationErrorsTest extends PubPackageAnalysisServerTest {
   void setUp() {
     registerLintRules();
     super.setUp();
-    pedanticFolder = MockPackages.instance.addPedantic(resourceProvider);
   }
 
   Future<void> test_analysisOptionsFile() async {
@@ -87,12 +84,7 @@ include: package:pedantic/analysis_options.yaml
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
 
     // Write a package file that allows resolving the include.
-    newPackageConfigJsonFile(
-      testPackageRootPath,
-      (PackageConfigFileBuilder()
-            ..add(name: 'pedantic', rootPath: pedanticFolder.parent.path))
-          .toContent(toUriStr: toUriStr),
-    );
+    writeTestPackageConfig(pedantic: true);
 
     // Ensure the errors disappear.
     await waitForTasksFinished();

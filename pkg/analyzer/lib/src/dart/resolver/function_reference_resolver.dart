@@ -366,9 +366,9 @@ class FunctionReferenceResolver {
     }
 
     if (function.isCascaded) {
-      _resolver.errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+      _resolver.errorReporter.atToken(
         override.name,
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
       );
       // Continue to resolve type.
     }

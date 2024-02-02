@@ -213,27 +213,6 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     expect(inferredType.promotedBound, isNull);
   }
 
-  void test_fromLegacy_nonNullableBound() {
-    typeSystem = analysisContext.typeSystemLegacy;
-
-    // void Function<T extends Object>(T)
-    var T = typeParameter('T', bound: objectNone);
-    var rawType = functionTypeNone(
-      typeFormals: [T],
-      parameters: [
-        requiredParameter(
-          type: typeParameterTypeNone(T),
-        ),
-      ],
-      returnType: voidNone,
-    );
-
-    _assertTypes(
-      _inferCall(rawType, [dynamicType]),
-      [dynamicType],
-    );
-  }
-
   void test_genericCastFunction() {
     // <TFrom, TTo>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');
@@ -643,7 +622,6 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var reporter = ErrorReporter(
       listener,
       NonExistingSource('/test.dart', toUri('/test.dart')),
-      isNonNullableByDefault: false,
     );
 
     var inferrer = typeSystem.setupGenericTypeInference(

@@ -351,11 +351,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       FeatureSet featureSet,
       this.analysisOptions,
       this.flowAnalysis)
-      : errorReporter = ErrorReporter(
-          errorListener,
-          source,
-          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
-        ),
+      : errorReporter = ErrorReporter(errorListener, source),
         _featureSet = featureSet,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata),
@@ -597,16 +593,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           arguments: [returnType],
         );
       } else if (errorNode is BlockFunctionBody) {
-        errorReporter.reportErrorForToken(
-          errorCode,
+        errorReporter.atToken(
           errorNode.block.leftBracket,
-          [returnType],
+          errorCode,
+          arguments: [returnType],
         );
       } else if (errorNode is Token) {
-        errorReporter.reportErrorForToken(
-          errorCode,
+        errorReporter.atToken(
           errorNode,
-          [returnType],
+          errorCode,
+          arguments: [returnType],
         );
       }
     }
@@ -1376,17 +1372,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       final flow = this.flow;
       if (element.isLate) {
         if (flow.isAssigned(element)) {
-          errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+          errorReporter.atToken(
             node.name,
+            CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
           );
         }
       } else {
         if (!flow.isUnassigned(element)) {
-          errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+          errorReporter.atToken(
             node.name,
-            [node.name.lexeme],
+            CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+            arguments: [node.name.lexeme],
           );
         }
       }
@@ -1543,10 +1539,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.UNDEFINED_GETTER,
+      errorReporter.atToken(
         nameToken,
-        [nameToken.lexeme, receiverType],
+        CompileTimeErrorCode.UNDEFINED_GETTER,
+        arguments: [nameToken.lexeme, receiverType],
       );
     }
 
@@ -1597,10 +1593,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.UNDEFINED_OPERATOR,
+      errorReporter.atToken(
         node.operator,
-        [methodName, matchedType],
+        CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        arguments: [methodName, matchedType],
       );
     }
 
@@ -2303,9 +2299,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               [nameNode.name],
             );
           } else {
-            errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED,
+            errorReporter.atToken(
               node.name,
+              CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED,
             );
           }
         }
@@ -3610,10 +3606,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           return;
         }
 
-        errorReporter.reportErrorForToken(
-          WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
+        errorReporter.atToken(
           errorNode.block.leftBracket,
-          [returnTypeBase],
+          WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
+          arguments: [returnTypeBase],
         );
       }
     }
@@ -3635,8 +3631,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
       var argumentsText = error.arguments.join(', ');
-      errorReporter.reportErrorForToken(CompileTimeErrorCode.TOP_LEVEL_CYCLE,
-          node.name, [node.name.lexeme, argumentsText]);
+      errorReporter.atToken(
+        node.name,
+        CompileTimeErrorCode.TOP_LEVEL_CYCLE,
+        arguments: [node.name.lexeme, argumentsText],
+      );
     }
   }
 
@@ -4026,7 +4025,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           : CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR;
       arguments.add(name);
     }
-    errorReporter.reportErrorForToken(errorCode, token, arguments);
+    errorReporter.atToken(
+      token,
+      errorCode,
+      arguments: arguments,
+    );
   }
 }
 
@@ -4085,11 +4088,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ScopeResolverVisitor(this.definingLibrary, this.source, this.typeProvider,
       AnalysisErrorListener errorListener,
       {Scope? nameScope})
-      : errorReporter = ErrorReporter(
-          errorListener,
-          source,
-          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
-        ),
+      : errorReporter = ErrorReporter(errorListener, source),
         nameScope = nameScope ?? LibraryOrAugmentationScope(definingLibrary);
 
   /// Return the implicit label scope in which the current node is being

@@ -516,6 +516,12 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         valueHelp: 'page count',
         hide: !verbose,
       )
+      ..addMultiOption(
+        'extra-compiler-option',
+        abbr: 'E',
+        help: 'An extra option to pass to the dart2wasm compiler.',
+        hide: !verbose,
+      )
       ..addOption(
         'optimization-level',
         abbr: 'O',
@@ -590,6 +596,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final sdkPath = path.absolute(sdk.sdkPath);
     final packages = args[packagesOption.flag];
     final defines = args[defineOption.flag] as List<String>;
+    final extraCompilerOptions = args['extra-compiler-option'] as List<String>;
 
     int? maxPages;
     if (args['shared-memory'] != null) {
@@ -632,6 +639,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       // Then we pass flags that were opted into explicitly.
       if (args['name-section']) '--name-section',
       if (args['minify']) '--minify',
+      ...extraCompilerOptions,
 
       path.absolute(sourcePath),
       outputFile,

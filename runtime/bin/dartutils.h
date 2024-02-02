@@ -248,6 +248,7 @@ class DartUtils {
     kAotELFMagicNumber,
     kAotMachO32MagicNumber,
     kAotMachO64MagicNumber,
+    kAotMachO64Arm64MagicNumber,
     kAotCoffARM32MagicNumber,
     kAotCoffARM64MagicNumber,
     kAotCoffRISCV32MagicNumber,

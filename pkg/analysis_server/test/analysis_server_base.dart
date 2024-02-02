@@ -13,10 +13,10 @@ import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
@@ -24,6 +24,7 @@ import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'mocks.dart';
+import 'src/utilities/mock_packages.dart';
 import 'support/configuration_files.dart';
 import 'test_macros.dart';
 
@@ -206,7 +207,10 @@ class ContextResolutionTest with ResourceProviderMixin {
 }
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest
-    with ConfigurationFilesMixin, TestMacros {
+    with
+        MockPackagesMixin<MemoryResourceProvider>,
+        ConfigurationFilesMixin,
+        TestMacros {
   // If experiments are needed,
   // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
@@ -216,7 +220,8 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
       ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
-  String get packagesRootPath => '/packages';
+  @override
+  String get packagesRootPath => resourceProvider.convertPath('/packages');
 
   File get testFile => getFile(testFilePath);
 
@@ -233,6 +238,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   Folder get testPackageRoot => getFolder(testPackageRootPath);
 
+  @override
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get testPackageTestPath => '$testPackageRootPath/test';
@@ -258,8 +264,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   /// include imports, the imports for macros will be added automatically.
   void addMacros(List<String> macros) {
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder(),
-      temporaryMacroSupport: true,
+      macro: true,
     );
     newFile(
         '$testPackageLibPath/macros.dart',
@@ -320,23 +325,6 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
       config.toContent(),
-    );
-  }
-
-  void writeTestPackageConfig({
-    PackageConfigFileBuilder? config,
-    String? languageVersion,
-    bool flutter = false,
-    bool meta = false,
-    bool temporaryMacroSupport = false,
-  }) {
-    writePackageConfig(
-      testPackageRoot.path,
-      config: config,
-      languageVersion: languageVersion,
-      flutter: flutter,
-      meta: meta,
-      temporaryMacroSupport: temporaryMacroSupport,
     );
   }
 

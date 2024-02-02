@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
@@ -27,11 +29,24 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   /// The last ID that was used for a legacy request.
   late String lastSentLegacyRequestId;
 
+  /// A controller for [notificationsFromServer].
+  final StreamController<NotificationMessage> _notificationsFromServer =
+      StreamController<NotificationMessage>.broadcast();
+
+  /// A stream of [NotificationMessage]s from the server.
+  @override
+  Stream<NotificationMessage> get notificationsFromServer =>
+      _notificationsFromServer.stream;
+
   @override
   path.Context get pathContext => resourceProvider.pathContext;
 
   @override
   String get projectFolderPath => convertPath(testPackageRootPath);
+
+  /// The URI for the macro-generated content for [testFileUri].
+  Uri get testFileMacroUri =>
+      toUri(convertPath(testFilePath)).replace(scheme: macroClientUriScheme);
 
   Uri get testFileUri => toUri(convertPath(testFilePath));
 
@@ -107,6 +122,22 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         .getRequestData(method)
         .responseTimes
         .valueCount;
+  }
+
+  @override
+  void processNotification(Notification notification) {
+    super.processNotification(notification);
+    if (notification.event == LSP_NOTIFICATION_NOTIFICATION) {
+      var params = LspNotificationParams.fromNotification(notification);
+      // Round-trip response via JSON because this doesn't happen automatically
+      // when we're bypassing the streams (running in-process) and we want to
+      // validate everything.
+      final lspNotificationJson = jsonDecode(jsonEncode(params.lspNotification))
+          as Map<String, Object?>;
+      var lspNotificationMessage =
+          NotificationMessage.fromJson(lspNotificationJson);
+      _notificationsFromServer.add(lspNotificationMessage);
+    }
   }
 
   @override
