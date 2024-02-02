@@ -796,31 +796,34 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         expressionType, callName, fileOffset,
         isSetter: false);
 
-    // Replace expression with:
-    // `let t = expression in t == null ? null : t.call`
-    VariableDeclaration t =
-        new VariableDeclaration.forValue(expression, type: expressionType)
-          ..fileOffset = fileOffset;
-
-    // TODO(johnniwinther): Avoid null-check for non-nullable expressions.
-    Expression nullCheck =
-        new EqualsNull(new VariableGet(t)..fileOffset = fileOffset)
-          ..fileOffset = fileOffset;
-
-    DartType tearoffType = target.getGetterType(this);
     Expression tearOff;
+    DartType tearoffType = target.getGetterType(this);
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
-        tearOff = new InstanceTearOff(
-            InstanceAccessKind.Instance, new VariableGet(t), callName,
-            interfaceTarget: target.member as Procedure,
-            resultType: tearoffType)
+        // TODO(johnniwinther): Avoid null-check for non-nullable expressions.
+
+        // Replace expression with:
+        // `let t = expression in t == null ? null : t.call`
+        VariableDeclaration t =
+            new VariableDeclaration.forValue(expression, type: expressionType)
+              ..fileOffset = fileOffset;
+        tearOff = new Let(
+            t,
+            new ConditionalExpression(
+                new EqualsNull(new VariableGet(t)..fileOffset = fileOffset)
+                  ..fileOffset = fileOffset,
+                new NullLiteral()..fileOffset = fileOffset,
+                new InstanceTearOff(
+                    InstanceAccessKind.Instance, new VariableGet(t), callName,
+                    interfaceTarget: target.member as Procedure,
+                    resultType: tearoffType)
+                  ..fileOffset = fileOffset,
+                tearoffType))
           ..fileOffset = fileOffset;
       case ObjectAccessTargetKind.extensionTypeMember:
         tearOff = new StaticInvocation(
             target.tearoffTarget as Procedure,
-            new Arguments([new VariableGet(t)],
-                types: target.receiverTypeArguments)
+            new Arguments([expression], types: target.receiverTypeArguments)
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset;
       case ObjectAccessTargetKind.extensionTypeRepresentation:
@@ -845,10 +848,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         throw new UnsupportedError("Unexpected call tear-off $target.");
     }
 
-    ConditionalExpression conditional = new ConditionalExpression(nullCheck,
-        new NullLiteral()..fileOffset = fileOffset, tearOff, tearoffType);
-    return new TypedTearoff(
-        tearoffType, new Let(t, conditional)..fileOffset = fileOffset);
+    return new TypedTearoff(tearoffType, tearOff);
   }
 
   /// Computes the assignability kind of [expressionType] to [contextType].
