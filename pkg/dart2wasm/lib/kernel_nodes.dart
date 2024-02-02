@@ -50,6 +50,8 @@ mixin KernelNodes {
       index.getClass("dart:core", "_GrowableList");
   late final Class immutableListClass =
       index.getClass("dart:core", "_ImmutableList");
+  late final Class wasmStringBaseClass =
+      index.getClass("dart:_internal", "WasmStringBase");
   late final Class stringBaseClass =
       index.getClass("dart:_string", "StringBase");
   late final Class oneByteStringClass =

@@ -404,24 +404,35 @@ class Intrinsifier {
   /// Generate inline code for a [StaticGet] if the member is an inlined
   /// intrinsic.
   w.ValueType? generateStaticGetterIntrinsic(StaticGet node) {
-    Member target = node.target;
+    final Member target = node.target;
+    final Class? cls = target.enclosingClass;
 
     // ClassID getters
-    String? libAndClassName = translator.getPragma(target, "wasm:class-id");
-    if (libAndClassName != null) {
-      List<String> libAndClassNameParts = libAndClassName.split("#");
-      final String lib = libAndClassNameParts[0];
-      final String className = libAndClassNameParts[1];
-      Class cls = translator.libraries
-          .firstWhere((l) => l.name == lib && l.importUri.scheme == 'dart',
-              orElse: () => throw 'Library $lib not found (${target.location})')
-          .classes
-          .firstWhere((c) => c.name == className,
-              orElse: () => throw 'Class $className not found in library $lib '
-                  '(${target.location})');
-      int classId = translator.classInfo[cls]!.classId;
-      b.i64_const(classId);
-      return w.NumType.i64;
+    if (cls?.name == 'ClassID') {
+      final libAndClassName = translator.getPragma(target, "wasm:class-id");
+      if (libAndClassName != null) {
+        List<String> libAndClassNameParts = libAndClassName.split("#");
+        final String lib = libAndClassNameParts[0];
+        final String className = libAndClassNameParts[1];
+        Class cls = translator.libraries
+            .firstWhere((l) => l.name == lib && l.importUri.scheme == 'dart',
+                orElse: () =>
+                    throw 'Library $lib not found (${target.location})')
+            .classes
+            .firstWhere((c) => c.name == className,
+                orElse: () =>
+                    throw 'Class $className not found in library $lib '
+                        '(${target.location})');
+        int classId = translator.classInfo[cls]!.classId;
+        b.i64_const(classId);
+        return w.NumType.i64;
+      }
+
+      if (target.name.text == 'firstNonMasqueradedInterfaceClassCid') {
+        b.i64_const(
+            translator.classIdNumbering.firstNonMasqueradedInterfaceClassCid);
+        return w.NumType.i64;
+      }
     }
 
     // nullptr
@@ -439,35 +450,6 @@ class Intrinsifier {
         // without hardcoding this case?
         b.i32_const(0);
         return w.NumType.i32;
-      }
-      if (node.target.enclosingLibrary == translator.coreTypes.coreLibrary) {
-        switch (node.target.name.text) {
-          case "_typeCategoryAbstractClass":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryAbstractClass);
-            return w.NumType.i32;
-          case "_typeCategoryObject":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryObject);
-            return w.NumType.i32;
-          case "_typeCategoryFunction":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryFunction);
-            return w.NumType.i32;
-          case "_typeCategoryRecord":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryRecord);
-            return w.NumType.i32;
-          case "_typeCategoryNotMasqueraded":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryNotMasqueraded);
-            return w.NumType.i32;
-
-          case "_typeCategoryTable":
-            translator.types.typeCategoryTable;
-            b.global_get(translator.types.typeCategoryTable);
-            return translator.types.typeCategoryTable.type.type;
-        }
       }
     }
 
@@ -659,16 +641,38 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSubstitutions(b);
         case "_getTypeNames":
           return translator.types.makeTypeNames(b);
-        case "_isRecordInstance":
-          Expression o = node.arguments.positional.single;
-          b.global_get(translator.types.typeCategoryTable);
-          codeGen.wrap(o, translator.topInfo.nonNullableType);
-          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-          b.array_get_u(
-              (translator.types.typeCategoryTable.type.type as w.RefType)
-                  .heapType as w.ArrayType);
-          b.i32_const(translator.types.typeCategoryRecord);
-          b.i32_eq();
+        case "_isObjectClassId":
+          final classId = node.arguments.positional.single;
+
+          final objectClassId = translator
+              .classIdNumbering.classIds[translator.coreTypes.objectClass]!;
+
+          codeGen.wrap(classId, w.NumType.i64);
+          b.i32_wrap_i64();
+          b.emitClassIdRangeCheck(
+              codeGen, [Range(objectClassId, objectClassId)]);
+          return w.NumType.i32;
+        case "_isClosureClassId":
+          final classId = node.arguments.positional.single;
+
+          final ranges = translator.classIdNumbering
+              .getConcreteClassIdRanges(translator.coreTypes.functionClass);
+          assert(ranges.length <= 1);
+
+          codeGen.wrap(classId, w.NumType.i64);
+          b.i32_wrap_i64();
+          b.emitClassIdRangeCheck(codeGen, ranges);
+          return w.NumType.i32;
+        case "_isRecordClassId":
+          final classId = node.arguments.positional.single;
+
+          final ranges = translator.classIdNumbering
+              .getConcreteClassIdRanges(translator.coreTypes.recordClass);
+          assert(ranges.length <= 1);
+
+          codeGen.wrap(classId, w.NumType.i64);
+          b.i32_wrap_i64();
+          b.emitClassIdRangeCheck(codeGen, ranges);
           return w.NumType.i32;
       }
     }

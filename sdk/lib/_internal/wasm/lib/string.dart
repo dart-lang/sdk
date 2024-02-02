@@ -10,7 +10,8 @@ import "dart:_internal"
         ClassID,
         EfficientLengthIterable,
         makeListFixedLength,
-        unsafeCast;
+        unsafeCast,
+        WasmStringBase;
 
 import 'dart:_js_helper' show JS;
 import 'dart:_js_types' show JSStringImpl;
@@ -70,7 +71,7 @@ String _toLowerCase(String string) => JS<String>(
  * [StringBase] contains common methods used by concrete String
  * implementations, e.g., OneByteString.
  */
-abstract final class StringBase implements String {
+abstract final class StringBase extends WasmStringBase {
   bool _isWhitespace(int codeUnit);
 
   // Constants used by replaceAll encoding of string slices between matches.

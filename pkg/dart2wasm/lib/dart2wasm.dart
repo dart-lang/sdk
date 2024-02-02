@@ -36,9 +36,10 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printKernel),
   Flag("print-wasm", (o, value) => o.translatorOptions.printWasm = value,
       defaultsTo: _d.translatorOptions.printWasm),
-  Flag("js-compatibility",
-      (o, value) => o.translatorOptions.jsCompatibility = value,
-      defaultsTo: _d.translatorOptions.jsCompatibility),
+  Flag("js-compatibility", (o, value) {
+    o.translatorOptions.jsCompatibility = value;
+    o.environment['dart.wasm.js_compatibility'] = 'true';
+  }, defaultsTo: _d.translatorOptions.jsCompatibility),
   Flag(
       "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
       defaultsTo: _d.translatorOptions.enableAsserts),
@@ -73,7 +74,7 @@ final List<Option> options = [
   IntMultiOption(
       "watch", (o, values) => o.translatorOptions.watchPoints = values),
   StringMultiOption(
-      "define", (o, values) => o.environment = processEnvironment(values),
+      "define", (o, values) => o.environment.addAll(processEnvironment(values)),
       abbr: "D"),
   StringMultiOption(
       "enable-experiment",
