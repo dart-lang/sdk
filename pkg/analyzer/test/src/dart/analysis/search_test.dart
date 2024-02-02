@@ -1445,35 +1445,6 @@ self::@function::bar
 ''');
   }
 
-  test_searchReferences_ImportElement_noPrefix_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class N1 {}
-void N2() {}
-int get N3 => 0;
-set N4(int _) {}
-''');
-
-    await resolveTestCode('''
-// @dart = 2.7
-import 'a.dart';
-
-main() {
-  N1;
-  N2();
-  N3;
-  N4 = 0;
-}
-''');
-    final element = findElement.import('package:test/a.dart');
-    await assertElementReferencesText(element, r'''
-self::@function::main
-  44 5:3 || REFERENCE
-  50 6:3 || REFERENCE
-  58 7:3 || REFERENCE
-  64 8:3 || REFERENCE
-''');
-  }
-
   test_searchReferences_ImportElement_withPrefix() async {
     await resolveTestCode('''
 import 'dart:math' as math show max, pi, Random hide min;
@@ -1519,35 +1490,6 @@ self::@function::main
   62 4:3 |p.| REFERENCE
 ''');
     }
-  }
-
-  test_searchReferences_ImportElement_withPrefix_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class N1 {}
-void N2() {}
-int get N3 => 0;
-set N4(int _) {}
-''');
-
-    await resolveTestCode('''
-// @dart = 2.7
-import 'a.dart' as a;
-
-main() {
-  a.N1;
-  a.N2();
-  a.N3;
-  a.N4 = 0;
-}
-''');
-    final element = findElement.import('package:test/a.dart');
-    await assertElementReferencesText(element, r'''
-self::@function::main
-  49 5:3 |a.| REFERENCE
-  57 6:3 |a.| REFERENCE
-  67 7:3 |a.| REFERENCE
-  75 8:3 |a.| REFERENCE
-''');
   }
 
   test_searchReferences_LabelElement() async {

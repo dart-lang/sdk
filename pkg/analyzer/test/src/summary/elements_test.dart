@@ -9638,43 +9638,6 @@ library
 ''');
   }
 
-  test_class_field_type_inferred_nonNullify() async {
-    addSource('$testPackageLibPath/a.dart', '''
-// @dart = 2.7
-var a = 0;
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-class C {
-  var b = a;
-}
-''');
-
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    classes
-      class C @23
-        fields
-          b @33
-            type: int
-            shouldUseTypeForInitializerInference: false
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get b @-1
-            returnType: int
-          synthetic set b= @-1
-            parameters
-              requiredPositional _b @-1
-                type: int
-            returnType: void
-''');
-  }
-
   test_class_field_typed() async {
     var library = await buildLibrary('class C { int x = 0; }');
     checkElementText(library, r'''
@@ -39676,54 +39639,6 @@ library
 ''');
   }
 
-  test_mixin_inference_nullSafety_mixed_inOrder() async {
-    addSource('$testPackageLibPath/a.dart', r'''
-class A<T> {}
-mixin M<U> on A<U> {}
-''');
-    var library = await buildLibrary(r'''
-// @dart = 2.8
-import 'a.dart';
-class B extends A<int> with M {}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    classes
-      class B @38
-        supertype: A<int*>*
-        mixins
-          M<int*>*
-        constructors
-          synthetic @-1
-            superConstructor: ConstructorMember
-              base: package:test/a.dart::@class::A::@constructor::new
-              substitution: {T: int*}
-''');
-  }
-
-  @SkippedTest(reason: 'Out-of-order inference is not specified yet')
-  test_mixin_inference_nullSafety_mixed_outOfOrder() async {
-    addSource('$testPackageLibPath/a.dart', r'''
-// @dart = 2.8
-class A<T> {}
-mixin M<U> on A<U> {}
-''');
-    var library = await buildLibrary(r'''
-import 'a.dart';
-
-class B extends A<int> with M {}
-''');
-    checkElementText(library, r'''
-import 'a.dart';
-class B extends A<int> with M<int> {
-  synthetic B();
-}
-''');
-  }
-
   test_mixin_inference_twoMixins() async {
     // Both `M1` and `M2` have their type arguments inferred.
     var library = await buildLibrary(r'''
@@ -48622,37 +48537,6 @@ library
         parameters
           requiredPositional _a @-1
             type: dynamic
-        returnType: void
-''');
-  }
-
-  test_variable_type_inferred_nonNullify() async {
-    addSource('$testPackageLibPath/a.dart', '''
-// @dart = 2.7
-var a = 0;
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-var b = a;
-''');
-
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    topLevelVariables
-      static b @21
-        type: int
-        shouldUseTypeForInitializerInference: false
-    accessors
-      synthetic static get b @-1
-        returnType: int
-      synthetic static set b= @-1
-        parameters
-          requiredPositional _b @-1
-            type: int
         returnType: void
 ''');
   }
