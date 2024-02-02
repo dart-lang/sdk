@@ -79,6 +79,7 @@ class VmTarget extends Target {
         'dart:developer',
         'dart:ffi',
         'dart:_internal',
+        'dart:_macros',
         'dart:isolate',
         'dart:math',
 
@@ -96,7 +97,9 @@ class VmTarget extends Target {
       ];
 
   @override
-  List<String> get extraRequiredLibrariesPlatform => const <String>[];
+  List<String> get extraRequiredLibrariesPlatform => const <String>[
+        'dart:_macros',
+      ];
 
   void _patchVmConstants(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
