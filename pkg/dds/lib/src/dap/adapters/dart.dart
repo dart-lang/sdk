@@ -1269,8 +1269,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   Future<bool> libraryIsDebuggable(ThreadInfo thread, Uri uri) async {
     if (isSdkLibrary(uri)) {
       return isolateManager.debugSdkLibraries;
-    } else if (await isExternalPackageLibrary(thread, uri)) {
-      return isolateManager.debugExternalPackageLibraries;
+    } else if (!isolateManager.debugExternalPackageLibraries &&
+        await isExternalPackageLibrary(thread, uri)) {
+      return false;
     } else {
       return true;
     }
