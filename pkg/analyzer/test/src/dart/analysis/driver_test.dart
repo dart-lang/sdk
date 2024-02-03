@@ -20,7 +20,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/element_printer.dart';
 import '../../../util/tree_string_sink.dart';
-import '../../summary/macros_environment.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 import '../resolution/resolution.dart';
@@ -244,7 +243,7 @@ void f() {
   }
 
   test_addFile_library_producesMacroGenerated() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -892,7 +891,7 @@ var B = 1.2;
   }
 
   test_changeFile_library_producesMacroGenerated() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -1644,7 +1643,7 @@ part of 'a.dart';
   }
 
   test_getErrors_macroGenerated() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -1738,7 +1737,7 @@ class D {
   }
 
   test_getFilesDefiningClassMemberName_macroGenerated() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -1903,7 +1902,7 @@ int c = 0;
   }
 
   test_getFilesReferencingName_macroGenerated() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -2106,7 +2105,7 @@ void f() {
   }
 
   test_getIndex_macroGenerated() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -2526,7 +2525,7 @@ class A {}
   }
 
   test_getResolvedLibrary_withMacroGenerated() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -2734,7 +2733,7 @@ part of 'b.dart';
   }
 
   test_getResolvedLibraryByUri_withMacroGenerated() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -3127,7 +3126,7 @@ part of 'a.dart';
   }
 
   test_getResolvedUnit_macroGenerated_hasLibrary() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -3176,7 +3175,7 @@ class B {}
   }
 
   test_getResolvedUnit_macroGenerated_noLibrary() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -3625,7 +3624,7 @@ import 'package:test/b.dart';
   }
 
   test_getUnitElement_macroGenerated() async {
-    if (!_configureWithCommonMacros()) {
+    if (!configureWithCommonMacros()) {
       return;
     }
 
@@ -5725,25 +5724,6 @@ class A2 {}
 [status] working
 [status] idle
 ''');
-  }
-
-  bool _configureWithCommonMacros() {
-    try {
-      writeTestPackageConfig(
-        PackageConfigFileBuilder(),
-        macrosEnvironment: MacrosEnvironment.instance,
-      );
-
-      newFile(
-        '$testPackageLibPath/append.dart',
-        getMacroCode('append.dart'),
-      );
-
-      return true;
-    } catch (_) {
-      markTestSkipped('Cannot initialize macro environment.');
-      return false;
-    }
   }
 }
 

@@ -83,9 +83,7 @@ class CorrectOverrideHelper {
       if (parameter.isCovariant) {
         newParameters ??= parameters.toList(growable: false);
         newParameters[i] = parameter.copyWith(
-          type: _typeSystem.isNonNullableByDefault
-              ? _typeSystem.objectQuestion
-              : _typeSystem.objectStar,
+          type: _typeSystem.objectQuestion,
         );
       }
     }

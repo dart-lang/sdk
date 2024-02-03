@@ -20,11 +20,8 @@ class AnalysisContextImpl implements AnalysisContext {
   @override
   final SourceFactory sourceFactory;
 
-  TypeProviderImpl? _typeProviderLegacy;
-  TypeProviderImpl? _typeProviderNonNullableByDefault;
-
-  TypeSystemImpl? _typeSystemLegacy;
-  TypeSystemImpl? _typeSystemNonNullableByDefault;
+  TypeProviderImpl? _typeProvider;
+  TypeSystemImpl? _typeSystem;
 
   AnalysisContextImpl({
     required AnalysisOptionsMap analysisOptionsMap,
@@ -44,31 +41,20 @@ class AnalysisContextImpl implements AnalysisContext {
   }
 
   bool get hasTypeProvider {
-    return _typeProviderNonNullableByDefault != null;
+    return _typeProvider != null;
   }
 
-  TypeProviderImpl get typeProviderLegacy {
-    return _typeProviderLegacy!;
+  TypeProviderImpl get typeProvider {
+    return _typeProvider!;
   }
 
-  TypeProviderImpl get typeProviderNonNullableByDefault {
-    return _typeProviderNonNullableByDefault!;
-  }
-
-  TypeSystemImpl get typeSystemLegacy {
-    return _typeSystemLegacy!;
-  }
-
-  TypeSystemImpl get typeSystemNonNullableByDefault {
-    return _typeSystemNonNullableByDefault!;
+  TypeSystemImpl get typeSystem {
+    return _typeSystem!;
   }
 
   void clearTypeProvider() {
-    _typeProviderLegacy = null;
-    _typeProviderNonNullableByDefault = null;
-
-    _typeSystemLegacy = null;
-    _typeSystemNonNullableByDefault = null;
+    _typeProvider = null;
+    _typeSystem = null;
   }
 
   @override
@@ -76,25 +62,16 @@ class AnalysisContextImpl implements AnalysisContext {
       _analysisOptionsMap.getOptions(file);
 
   void setTypeProviders({
-    required TypeProviderImpl legacy,
-    required TypeProviderImpl nonNullableByDefault,
+    required TypeProviderImpl typeProvider,
   }) {
-    if (_typeProviderLegacy != null ||
-        _typeProviderNonNullableByDefault != null) {
-      throw StateError('TypeProvider(s) can be set only once.');
+    if (_typeProvider != null) {
+      throw StateError('TypeProvider can be set only once.');
     }
 
-    _typeSystemLegacy = TypeSystemImpl(
-      isNonNullableByDefault: false,
-      typeProvider: legacy,
-    );
+    _typeProvider = typeProvider;
 
-    _typeSystemNonNullableByDefault = TypeSystemImpl(
-      isNonNullableByDefault: true,
-      typeProvider: nonNullableByDefault,
+    _typeSystem = TypeSystemImpl(
+      typeProvider: typeProvider,
     );
-
-    _typeProviderLegacy = legacy;
-    _typeProviderNonNullableByDefault = nonNullableByDefault;
   }
 }

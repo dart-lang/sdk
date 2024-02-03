@@ -118,8 +118,6 @@ class GenericInferrer {
     }
   }
 
-  bool get isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
-
   TypeProviderImpl get typeProvider => _typeSystem.typeProvider;
 
   /// Performs upwards inference, producing a final set of inferred types that
@@ -140,7 +138,6 @@ class GenericInferrer {
       parameterType,
       parameterName,
       genericClass: genericClass,
-      isNonNullableByDefault: isNonNullableByDefault,
     );
     _tryMatchSubtypeOf(argumentType, parameterType, origin, covariant: false);
   }
@@ -167,11 +164,7 @@ class GenericInferrer {
   /// [contextType].
   void constrainGenericFunctionInContext(
       FunctionType fnType, DartType contextType) {
-    var origin = _TypeConstraintFromFunctionContext(
-      fnType,
-      contextType,
-      isNonNullableByDefault: isNonNullableByDefault,
-    );
+    var origin = _TypeConstraintFromFunctionContext(fnType, contextType);
 
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
@@ -187,11 +180,7 @@ class GenericInferrer {
   /// Apply a return type constraint, which asserts that the [declaredType]
   /// is a subtype of the [contextType].
   void constrainReturnType(DartType declaredType, DartType contextType) {
-    var origin = _TypeConstraintFromReturnType(
-      declaredType,
-      contextType,
-      isNonNullableByDefault: isNonNullableByDefault,
-    );
+    var origin = _TypeConstraintFromReturnType(declaredType, contextType);
     _tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
   }
 
@@ -222,7 +211,6 @@ class GenericInferrer {
             parameter,
             parameterBoundRaw,
             parameterBound,
-            isNonNullableByDefault: isNonNullableByDefault,
           );
           constraints.add(extendsConstraint);
           success = extendsConstraint.isSatisfiedBy(_typeSystem, inferred);
@@ -450,11 +438,11 @@ class GenericInferrer {
       var bound = typeParam.bound;
       if (bound != null) {
         extendsClause = _TypeConstraint.fromExtends(
-            typeParam,
-            bound,
-            Substitution.fromPairs(_typeFormals, inferredTypes)
-                .substituteType(bound),
-            isNonNullableByDefault: isNonNullableByDefault);
+          typeParam,
+          bound,
+          Substitution.fromPairs(_typeFormals, inferredTypes)
+              .substituteType(bound),
+        );
       }
 
       var constraints = _constraints[typeParam]!;
@@ -481,13 +469,13 @@ class GenericInferrer {
   }
 
   String _elementStr(Element element) {
-    return element.getDisplayString(withNullability: isNonNullableByDefault);
+    return element.getDisplayString(withNullability: true);
   }
 
   String _formatError(TypeParameterElement typeParam, DartType inferred,
       Iterable<_TypeConstraint> constraints) {
     var inferredStr = inferred.getDisplayString(
-      withNullability: isNonNullableByDefault,
+      withNullability: true,
     );
     var intro = "Tried to infer '$inferredStr' for '${typeParam.name}'"
         " which doesn't work:";
@@ -553,10 +541,8 @@ class GenericInferrer {
   }
 
   void _nonNullifyTypes(List<DartType> types) {
-    if (_typeSystem.isNonNullableByDefault) {
-      for (var i = 0; i < types.length; i++) {
-        types[i] = _typeSystem.nonNullifyLegacy(types[i]);
-      }
+    for (var i = 0; i < types.length; i++) {
+      types[i] = _typeSystem.nonNullifyLegacy(types[i]);
     }
     for (var i = 0; i < types.length; i++) {
       types[i] = _typeSystem.demoteType(types[i]);
@@ -632,8 +618,7 @@ class GenericInferrer {
     } else if (errorNode is Expression) {
       var type = errorNode.staticType;
       if (type != null) {
-        var typeDisplayString = type.getDisplayString(
-            withNullability: _typeSystem.isNonNullableByDefault);
+        var typeDisplayString = _typeStr(type);
         errorReporter.atNode(
           errorNode,
           WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
@@ -675,7 +660,7 @@ class GenericInferrer {
   }
 
   String _typeStr(DartType type) {
-    return type.getDisplayString(withNullability: isNonNullableByDefault);
+    return type.getDisplayString(withNullability: true);
   }
 
   static String _formatConstraints(Iterable<_TypeConstraint> constraints) {
@@ -717,14 +702,12 @@ class _TypeConstraint extends _TypeRange {
   _TypeConstraint(this.origin, this.typeParameter, {super.upper, super.lower});
 
   _TypeConstraint.fromExtends(
-      TypeParameterElement element, DartType boundType, DartType extendsType,
-      {required bool isNonNullableByDefault})
+      TypeParameterElement element, DartType boundType, DartType extendsType)
       : this(
             _TypeConstraintFromExtendsClause(
               element,
               boundType,
               extendsType,
-              isNonNullableByDefault: isNonNullableByDefault,
             ),
             element,
             upper: extendsType);
@@ -748,7 +731,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
 
   _TypeConstraintFromArgument(
       this.argumentType, this.parameterType, this.parameterName,
-      {this.genericClass, required super.isNonNullableByDefault});
+      {this.genericClass});
 
   @override
   List<String> formatError() {
@@ -793,8 +776,7 @@ class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
   final DartType extendsType;
 
   _TypeConstraintFromExtendsClause(
-      this.typeParam, this.boundType, this.extendsType,
-      {required super.isNonNullableByDefault});
+      this.typeParam, this.boundType, this.extendsType);
 
   @override
   List<String> formatError() {
@@ -811,8 +793,7 @@ class _TypeConstraintFromFunctionContext extends _TypeConstraintOrigin {
   final DartType contextType;
   final DartType functionType;
 
-  _TypeConstraintFromFunctionContext(this.functionType, this.contextType,
-      {required super.isNonNullableByDefault});
+  _TypeConstraintFromFunctionContext(this.functionType, this.contextType);
 
   @override
   List<String> formatError() {
@@ -828,8 +809,7 @@ class _TypeConstraintFromReturnType extends _TypeConstraintOrigin {
   final DartType contextType;
   final DartType declaredType;
 
-  _TypeConstraintFromReturnType(this.declaredType, this.contextType,
-      {required super.isNonNullableByDefault});
+  _TypeConstraintFromReturnType(this.declaredType, this.contextType);
 
   @override
   List<String> formatError() {
@@ -845,14 +825,10 @@ class _TypeConstraintFromReturnType extends _TypeConstraintOrigin {
 /// readable error message during type inference as well as determining whether
 /// the constraint was used to fix the type parameter or not.
 abstract class _TypeConstraintOrigin {
-  final bool isNonNullableByDefault;
-
-  _TypeConstraintOrigin({required this.isNonNullableByDefault});
-
   List<String> formatError();
 
   String _typeStr(DartType type) {
-    return type.getDisplayString(withNullability: isNonNullableByDefault);
+    return type.getDisplayString(withNullability: true);
   }
 }
 

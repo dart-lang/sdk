@@ -814,7 +814,7 @@ Another approach is to add explicit type tests and fallback code:
 
 ```dart
 String f(String x) => x;
-String g(num y) => f(y is String ? y : '');
+String g(Object y) => f(y is String ? y : '');
 ```
 
 If you believe that the runtime type of the argument will always be the
@@ -8807,7 +8807,7 @@ initializing `x`, but `x` isn't a field in the class:
 
 ```dart
 class C {
-  int y;
+  int? y;
 
   C() : [!x = 0!];
 }
@@ -8820,7 +8820,7 @@ name of the field:
 
 ```dart
 class C {
-  int y;
+  int? y;
 
   C() : y = 0;
 }
@@ -8830,8 +8830,8 @@ If the field must be declared, then add a declaration:
 
 ```dart
 class C {
-  int x;
-  int y;
+  int? x;
+  int? y;
 
   C() : x = 0;
 }
@@ -8912,7 +8912,7 @@ defined:
 
 ```dart
 class C {
-  int y;
+  int? y;
 
   C([!this.x!]);
 }
@@ -8925,7 +8925,7 @@ field:
 
 ```dart
 class C {
-  int y;
+  int? y;
 
   C(this.y);
 }
@@ -8936,8 +8936,8 @@ field:
 
 ```dart
 class C {
-  int x;
-  int y;
+  int? x;
+  int? y;
 
   C(this.x);
 }
@@ -8958,7 +8958,7 @@ If the parameter isn't needed, then remove it:
 
 ```dart
 class C {
-  int y;
+  int? y;
 
   C();
 }
@@ -23396,7 +23396,7 @@ The following code produces this diagnostic because the value of `x` is an
 `int`, which can't be assigned to `y` because an `int` isn't a `String`:
 
 ```dart
-const Object x = 0;
+const dynamic x = 0;
 const String y = [!x!];
 ```
 
@@ -23406,7 +23406,7 @@ If the declaration of the constant is correct, then change the value being
 assigned to be of the correct type:
 
 ```dart
-const Object x = 0;
+const dynamic x = 0;
 const String y = '$x';
 ```
 
@@ -23414,7 +23414,7 @@ If the assigned value is correct, then change the declaration to have the
 correct type:
 
 ```dart
-const Object x = 0;
+const int x = 0;
 const int y = x;
 ```
 

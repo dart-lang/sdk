@@ -213,23 +213,15 @@ class TypedLiteralResolver {
         return _typeProvider.dynamicType;
       }
 
-      if (_typeSystem.isNonNullableByDefault) {
-        if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+      if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+        return NeverTypeImpl.instance;
+      }
+
+      if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
+        if (element.isNullAware) {
           return NeverTypeImpl.instance;
         }
-        if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
-          if (element.isNullAware) {
-            return NeverTypeImpl.instance;
-          }
-          return _typeProvider.dynamicType;
-        }
-      } else {
-        if (expressionType.isDartCoreNull) {
-          if (element.isNullAware) {
-            return expressionType;
-          }
-          return _typeProvider.dynamicType;
-        }
+        return _typeProvider.dynamicType;
       }
 
       // TODO(brianwilkerson): Report this as an error.
@@ -402,29 +394,20 @@ class TypedLiteralResolver {
         );
       }
 
-      if (_typeSystem.isNonNullableByDefault) {
-        if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+      if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+        return _InferredCollectionElementTypeInformation(
+          elementType: NeverTypeImpl.instance,
+          keyType: NeverTypeImpl.instance,
+          valueType: NeverTypeImpl.instance,
+        );
+      }
+
+      if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
+        if (element.isNullAware) {
           return _InferredCollectionElementTypeInformation(
             elementType: NeverTypeImpl.instance,
             keyType: NeverTypeImpl.instance,
             valueType: NeverTypeImpl.instance,
-          );
-        }
-        if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
-          if (element.isNullAware) {
-            return _InferredCollectionElementTypeInformation(
-              elementType: NeverTypeImpl.instance,
-              keyType: NeverTypeImpl.instance,
-              valueType: NeverTypeImpl.instance,
-            );
-          }
-        }
-      } else {
-        if (expressionType.isDartCoreNull && element.isNullAware) {
-          return _InferredCollectionElementTypeInformation(
-            elementType: expressionType,
-            keyType: expressionType,
-            valueType: expressionType,
           );
         }
       }

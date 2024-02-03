@@ -1286,13 +1286,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     VariableDeclarationList fields = node.fields;
     NodeList<Annotation> annotations = node.metadata;
 
-    if (typeSystem.isNonNullableByDefault) {
-      if (node.externalKeyword == null) {
-        _errorReporter.atToken(
-          fields.variables[0].name,
-          FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
-        );
-      }
+    if (node.externalKeyword == null) {
+      _errorReporter.atToken(
+        fields.variables[0].name,
+        FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
+      );
     }
 
     var fieldType = fields.type;

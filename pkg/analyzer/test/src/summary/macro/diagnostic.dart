@@ -162,6 +162,12 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
       if (step == 'returnType') {
         return current.returnType;
       }
+      if (_verbIndex(step, 'namedFormalParameterType') case var index?) {
+        return current.namedParameters.elementAt(index).type;
+      }
+      if (_verbIndex(step, 'positionalFormalParameterType') case var index?) {
+        return current.positionalParameters.elementAt(index).type;
+      }
     }
 
     if (current is NamedTypeAnnotation) {

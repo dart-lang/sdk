@@ -663,7 +663,6 @@ CompileTimeErrorCode:
       assigned to a `String`:
 
       ```dart
-      %language=2.9
       String f(String x) => x;
       String g(num y) => f([!y!]);
       ```
@@ -674,7 +673,6 @@ CompileTimeErrorCode:
       example above you might be able to change the type of the parameter `y`:
 
       ```dart
-      %language=2.9
       String f(String x) => x;
       String g(String y) => f(y);
       ```
@@ -684,7 +682,6 @@ CompileTimeErrorCode:
       types to the required type:
 
       ```dart
-      %language=2.9
       String f(String x) => x;
       String g(num y) => f(y.toString());
       ```
@@ -692,9 +689,8 @@ CompileTimeErrorCode:
       Another approach is to add explicit type tests and fallback code:
 
       ```dart
-      %language=2.9
       String f(String x) => x;
-      String g(num y) => f(y is String ? y : '');
+      String g(Object y) => f(y is String ? y : '');
       ```
 
       If you believe that the runtime type of the argument will always be the
@@ -7540,9 +7536,8 @@ CompileTimeErrorCode:
       initializing `x`, but `x` isn't a field in the class:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C() : [!x = 0!];
       }
@@ -7554,9 +7549,8 @@ CompileTimeErrorCode:
       name of the field:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C() : y = 0;
       }
@@ -7565,10 +7559,9 @@ CompileTimeErrorCode:
       If the field must be declared, then add a declaration:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
-        int y;
+        int? x;
+        int? y;
 
         C() : x = 0;
       }
@@ -7655,9 +7648,8 @@ CompileTimeErrorCode:
       defined:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C([!this.x!]);
       }
@@ -7669,9 +7661,8 @@ CompileTimeErrorCode:
       field:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C(this.y);
       }
@@ -7681,10 +7672,9 @@ CompileTimeErrorCode:
       field:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
-        int y;
+        int? x;
+        int? y;
 
         C(this.x);
       }
@@ -7694,7 +7684,6 @@ CompileTimeErrorCode:
       it to a normal parameter and use it:
 
       ```dart
-      %language=2.9
       class C {
         int y;
 
@@ -7705,9 +7694,8 @@ CompileTimeErrorCode:
       If the parameter isn't needed, then remove it:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C();
       }
@@ -12035,7 +12023,6 @@ CompileTimeErrorCode:
       a type:
 
       ```dart
-      %language=2.9
       void f() {
         try {
           // ...
@@ -12050,7 +12037,6 @@ CompileTimeErrorCode:
       Change the name to the type of object that should be caught:
 
       ```dart
-      %language=2.9
       void f() {
         try {
           // ...
@@ -17936,8 +17922,7 @@ CompileTimeErrorCode:
       `int`, which can't be assigned to `y` because an `int` isn't a `String`:
 
       ```dart
-      %language=2.9
-      const Object x = 0;
+      const dynamic x = 0;
       const String y = [!x!];
       ```
 
@@ -17947,8 +17932,7 @@ CompileTimeErrorCode:
       assigned to be of the correct type:
 
       ```dart
-      %language=2.9
-      const Object x = 0;
+      const dynamic x = 0;
       const String y = '$x';
       ```
 
@@ -17956,8 +17940,7 @@ CompileTimeErrorCode:
       correct type:
 
       ```dart
-      %language=2.9
-      const Object x = 0;
+      const int x = 0;
       const int y = x;
       ```
   WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:

@@ -1238,6 +1238,25 @@ self::@function::main
 ''');
   }
 
+  test_searchReferences_ExtensionTypeElement() async {
+    await resolveTestCode('''
+extension type E(int it) {
+  static void bar() {}
+}
+
+void f(E e) {
+  E.bar();
+}
+''');
+    final element = findElement.extensionType('E');
+    await assertElementReferencesText(element, r'''
+self::@function::f::@parameter::e
+  60 5:8 |E| REFERENCE
+self::@function::f
+  69 6:3 |E| REFERENCE
+''');
+  }
+
   test_searchReferences_FieldElement_class() async {
     await resolveTestCode('''
 class A {
@@ -1689,6 +1708,31 @@ self::@function::main
 ''');
   }
 
+  test_searchReferences_macroGenerated_references() async {
+    if (!configureWithCommonMacros()) {
+      return;
+    }
+
+    await resolveTestCode('''
+import 'append.dart';
+
+class A {}
+
+@DeclareInLibrary('void f() { A; }')
+class B {
+  void foo() { A; }
+}
+''');
+
+    final element = findElement.class_('A');
+    await assertElementReferencesText(element, r'''
+self::@class::B::@method::foo
+  97 7:16 |A| REFERENCE
+self::@augmentation::package:test/test.macro.dart::@function::f
+  41 3:12 |A| REFERENCE
+''');
+  }
+
   test_searchReferences_MethodElement_class() async {
     await resolveTestCode('''
 class A {
@@ -1843,6 +1887,29 @@ self::@extension::0::@method::bar
   71 6:10 |foo| INVOCATION qualified
   82 7:5 |foo| REFERENCE
   96 8:10 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_MethodElement_extensionType() async {
+    await resolveTestCode('''
+extension type E(int it) {
+  void foo() {}
+
+  void bar() {
+    foo();
+  }
+}
+
+void f(E e) {
+  e.foo();
+}
+''');
+    final element = findElement.method('foo');
+    await assertElementReferencesText(element, r'''
+self::@extensionType::E::@method::bar
+  63 5:5 |foo| INVOCATION
+self::@function::f
+  95 10:5 |foo| INVOCATION qualified
 ''');
   }
 
@@ -2889,6 +2956,46 @@ class A {}
 
     expect(b.id, endsWith('b.dart;B'));
     expect(c.id, endsWith('c.dart;C'));
+  }
+
+  test_subtypes_class_macroGenerated() async {
+    if (!configureWithCommonMacros()) {
+      return;
+    }
+
+    await resolveTestCode('''
+import 'append.dart';
+
+class A {}
+
+@DeclareInLibrary("""
+class C extends A {
+  void methodC() {}
+}
+""")
+class B extends A {
+  void methodB() {}
+}
+''');
+    var A = findElement.class_('A');
+
+    // Search by 'type'.
+    var subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: A,
+    );
+    expect(subtypes, hasLength(2));
+
+    var B = subtypes.singleWhere((r) => r.name == 'B');
+    var C = subtypes.singleWhere((r) => r.name == 'C');
+
+    expect(B.libraryUri, testUriStr);
+    expect(B.id, '$testUriStr;$testUriStr;B');
+    expect(B.members, ['methodB']);
+
+    expect(C.libraryUri, testUriStr);
+    expect(C.id, 'package:test/test.dart;package:test/test.macro.dart;C');
+    expect(C.members, ['methodC']);
   }
 
   test_subtypes_enum() async {

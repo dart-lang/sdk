@@ -455,6 +455,48 @@ int foo() => 0;
     ]);
   }
 
+  test_diagnostic_report_atTypeAnnotation_functionType_formalParameter_named() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+  'namedFormalParameterType 1',
+])
+int Function(bool a, {int b, String c}) foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 133, 6),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_functionType_formalParameter_positional() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+  'positionalFormalParameterType 1',
+])
+int Function(int a, String b) foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 129, 6),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_functionType_formalParameter_positional2() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'returnType',
+  'positionalFormalParameterType 1',
+])
+int Function(int, String) foo() => throw 0;
+''', [
+      error(WarningCode.MACRO_WARNING, 127, 6),
+    ]);
+  }
+
   test_diagnostic_report_atTypeAnnotation_functionType_returnType() async {
     await assertErrorsInCode('''
 import 'diagnostic.dart';

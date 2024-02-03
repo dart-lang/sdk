@@ -36,7 +36,7 @@ class PostfixExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
+  bool get _isNonNullableByDefault => true;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 

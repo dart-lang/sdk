@@ -176,7 +176,7 @@ class _ClassVerifier {
     this.withClause,
   }) : libraryUri = library.source.uri;
 
-  bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
+  bool get _isNonNullableByDefault => true;
 
   /// Verify inheritance overrides, and return `true` if an error was
   /// reported which should prevent follow on diagnostics from being reported.

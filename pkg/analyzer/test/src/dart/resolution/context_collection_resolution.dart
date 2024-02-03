@@ -386,6 +386,25 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     return bundleFile;
   }
 
+  bool configureWithCommonMacros() {
+    try {
+      writeTestPackageConfig(
+        PackageConfigFileBuilder(),
+        macrosEnvironment: MacrosEnvironment.instance,
+      );
+
+      newFile(
+        '$testPackageLibPath/append.dart',
+        getMacroCode('append.dart'),
+      );
+
+      return true;
+    } catch (_) {
+      markTestSkipped('Cannot initialize macro environment.');
+      return false;
+    }
+  }
+
   @override
   void setUp() {
     super.setUp();

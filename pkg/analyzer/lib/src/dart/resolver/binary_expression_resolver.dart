@@ -35,7 +35,7 @@ class BinaryExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
+  bool get _isNonNullableByDefault => true;
 
   TypeProvider get _typeProvider => _resolver.typeProvider;
 

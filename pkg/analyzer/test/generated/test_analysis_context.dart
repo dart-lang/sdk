@@ -29,11 +29,9 @@ class TestAnalysisContext implements AnalysisContext {
     _typeProvider = TypeProviderImpl(
       coreLibrary: sdkElements.coreLibrary,
       asyncLibrary: sdkElements.asyncLibrary,
-      isNonNullableByDefault: true,
     );
 
     _typeSystem = TypeSystemImpl(
-      isNonNullableByDefault: true,
       typeProvider: _typeProvider,
     );
 

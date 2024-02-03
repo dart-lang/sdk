@@ -110,7 +110,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     required path.Context pathContext,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
-        _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
+        _isNonNullableByDefault = true,
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
@@ -1216,11 +1216,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForNullableEqualsParameterType(MethodDeclaration node) {
-    if (!_typeSystem.isNonNullableByDefault) {
-      // Cannot specify non-nullable types before null safety.
-      return;
-    }
-
     if (node.name.type != TokenType.EQ_EQ) {
       return;
     }
@@ -1260,14 +1255,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var type = node.exceptionType;
-    if (type == null) {
+    var typeNode = node.exceptionType;
+    if (typeNode == null) {
       return;
     }
 
-    if (_typeSystem.isPotentiallyNullable(type.typeOrThrow)) {
+    var typeObj = typeNode.typeOrThrow;
+    if (typeObj is InvalidType) {
+      return;
+    }
+
+    if (_typeSystem.isPotentiallyNullable(typeObj)) {
       _errorReporter.atNode(
-        type,
+        typeNode,
         WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
       );
     }

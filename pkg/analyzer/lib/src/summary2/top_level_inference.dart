@@ -283,13 +283,6 @@ class _PropertyInducingElementTypeInference
     }
 
     var typeSystem = _unitElement.library.typeSystem;
-    if (typeSystem.isNonNullableByDefault) {
-      return typeSystem.nonNullifyLegacy(type);
-    } else {
-      if (type.isBottom) {
-        return DynamicTypeImpl.instance;
-      }
-      return type;
-    }
+    return typeSystem.nonNullifyLegacy(type);
   }
 }

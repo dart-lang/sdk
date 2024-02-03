@@ -113,11 +113,7 @@ class NamedTypeBuilder extends TypeBuilder {
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (element is NeverElementImpl) {
-      if (typeSystem.isNonNullableByDefault) {
-        _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
-      } else {
-        _type = typeSystem.typeProvider.nullType;
-      }
+      _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (element is TypeParameterElement) {
       _type = TypeParameterTypeImpl(
         element: element,
@@ -288,10 +284,8 @@ class NamedTypeBuilder extends TypeBuilder {
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
     if (hasQuestion) {
       return NullabilitySuffix.question;
-    } else if (typeSystem.isNonNullableByDefault) {
-      return NullabilitySuffix.none;
     } else {
-      return NullabilitySuffix.star;
+      return NullabilitySuffix.none;
     }
   }
 
