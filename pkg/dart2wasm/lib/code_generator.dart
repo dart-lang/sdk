@@ -3803,3 +3803,46 @@ enum _VirtualCallKind {
 
   bool get isSetter => this == _VirtualCallKind.Set;
 }
+
+extension MacroAssembler on w.InstructionsBuilder {
+  // Expects there to be a i32 on the stack, will consume it and leave
+  // true/false on the stack.
+  void emitClassIdRangeCheck(CodeGenerator codeGen, List<Range> ranges) {
+    if (ranges.isEmpty) {
+      drop();
+      i32_const(0);
+    } else if (ranges.length == 1) {
+      final range = ranges[0];
+
+      i32_const(range.start);
+      if (range.length == 1) {
+        i32_eq();
+      } else {
+        i32_sub();
+        i32_const(range.length);
+        i32_lt_u();
+      }
+    } else {
+      w.Local idLocal = codeGen.addLocal(w.NumType.i32);
+      local_set(idLocal);
+      w.Label done = block(const [], const [w.NumType.i32]);
+      i32_const(1);
+
+      for (Range range in ranges) {
+        local_get(idLocal);
+        i32_const(range.start);
+        if (range.length == 1) {
+          i32_eq();
+        } else {
+          i32_sub();
+          i32_const(range.length);
+          i32_lt_u();
+        }
+        br_if(done);
+      }
+      drop();
+      i32_const(0);
+      end(); // done
+    }
+  }
+}

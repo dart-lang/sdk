@@ -32,7 +32,6 @@ import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
-import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/since_sdk_version.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -4512,10 +4511,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return Member.legacy(element) as T;
   }
 
+  @Deprecated('Only non-nullable by default mode is supported')
   @override
   DartType toLegacyTypeIfOptOut(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
+    return type;
   }
 
   List<LibraryAugmentationElementImpl> _computeAugmentations() {

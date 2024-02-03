@@ -4427,6 +4427,104 @@ library
 ''');
   }
 
+  test_macroDiagnostics_report_atTypeAnnotation_record_namedField() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'variableType',
+    'namedField 1',
+  ])
+  final (bool, {int a, String b})? foo = null;
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        fields
+          final foo @145
+            type: (bool, {int a, String b})?
+            shouldUseTypeForInitializerInference: true
+            macroDiagnostics
+              MacroDiagnostic
+                message: MacroDiagnosticMessage
+                  message: Reported message
+                  target: TypeAnnotationMacroDiagnosticTarget
+                    ElementTypeLocation
+                      element: self::@class::A::@field::foo
+                    VariableTypeLocation
+                    RecordNamedFieldTypeLocation
+                      index: 1
+                severity: warning
+        accessors
+          synthetic get foo @-1
+            returnType: (bool, {int a, String b})?
+''');
+  }
+
+  test_macroDiagnostics_report_atTypeAnnotation_record_positionalField() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTypeAnnotation([
+    'variableType',
+    'positionalField 1',
+  ])
+  final (int, String)? foo = null;
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        fields
+          final foo @138
+            type: (int, String)?
+            shouldUseTypeForInitializerInference: true
+            macroDiagnostics
+              MacroDiagnostic
+                message: MacroDiagnosticMessage
+                  message: Reported message
+                  target: TypeAnnotationMacroDiagnosticTarget
+                    ElementTypeLocation
+                      element: self::@class::A::@field::foo
+                    VariableTypeLocation
+                    RecordPositionalFieldTypeLocation
+                      index: 1
+                severity: warning
+        accessors
+          synthetic get foo @-1
+            returnType: (int, String)?
+''');
+  }
+
   test_macroDiagnostics_report_contextMessages() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',

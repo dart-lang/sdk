@@ -76,7 +76,6 @@ class TypeArgumentsVerifier {
         continue;
       }
 
-      bound = _libraryElement.toLegacyTypeIfOptOut(bound);
       bound = substitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
@@ -310,7 +309,6 @@ class TypeArgumentsVerifier {
         continue;
       }
 
-      bound = _libraryElement.toLegacyTypeIfOptOut(bound);
       bound = substitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
@@ -412,7 +410,6 @@ class TypeArgumentsVerifier {
         continue;
       }
 
-      bound = _libraryElement.toLegacyTypeIfOptOut(bound);
       bound = invertedSubstitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {

@@ -65,10 +65,7 @@ class ErrorCodeDocumentationBlock extends ErrorCodeDocumentationPart {
       this.uri});
 
   @override
-  String formatForDocumentation() => fileType == 'dart' || fileType == 'yaml'
-      ? ['{% prettify $fileType tag=pre+code %}', text, '{% endprettify %}']
-          .join('\n')
-      : ['```$fileType', text, '```'].join('\n');
+  String formatForDocumentation() => ['```$fileType', text, '```'].join('\n');
 }
 
 /// A portion of an error code's documentation.  This could be free form

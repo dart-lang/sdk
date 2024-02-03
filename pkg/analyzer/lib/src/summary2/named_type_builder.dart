@@ -99,23 +99,19 @@ class NamedTypeBuilder extends TypeBuilder {
     if (element is InterfaceElement) {
       var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
-      var type = element.instantiate(
+      _type = element.instantiate(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = typeSystem.toLegacyTypeIfOptOut(type) as InterfaceType;
-      _type = type;
     } else if (element is TypeAliasElementImpl) {
       var aliasedType = _getAliasedType(element);
       var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
       element.aliasedType = aliasedType;
-      var type = element.instantiate(
+      _type = element.instantiate(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = typeSystem.toLegacyTypeIfOptOut(type);
-      _type = type;
     } else if (element is NeverElementImpl) {
       if (typeSystem.isNonNullableByDefault) {
         _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);

@@ -36,7 +36,6 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show Member;
-import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -1756,13 +1755,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (_isNonNullableByDefault) return element;
     if (element == null) return element;
     return Member.legacy(element) as T;
-  }
-
-  /// If in a legacy library, return the legacy version of the [type].
-  /// Otherwise, return the original type.
-  DartType toLegacyTypeIfOptOut(DartType type) {
-    if (_isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   @override

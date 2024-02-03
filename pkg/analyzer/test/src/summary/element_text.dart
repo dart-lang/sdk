@@ -763,6 +763,18 @@ class _ElementWriter {
           _sink.withIndent(() {
             _sink.writelnWithIndent('index: ${location.index}');
           });
+        case RecordNamedFieldTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('RecordNamedFieldTypeLocation');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('index: ${location.index}');
+          });
+        case RecordPositionalFieldTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('RecordPositionalFieldTypeLocation');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('index: ${location.index}');
+          });
         case ReturnTypeLocation():
           writeTypeAnnotationLocation(location.parent);
           _sink.writelnWithIndent('ReturnTypeLocation');

@@ -998,6 +998,14 @@ class ResolutionSink extends _SummaryDataWriter {
           writeByte(TypeAnnotationLocationKind.listIndex.index);
           writeTypeAnnotationLocation(location.parent);
           writeUInt30(location.index);
+        case RecordNamedFieldTypeLocation():
+          writeByte(TypeAnnotationLocationKind.recordNamedField.index);
+          writeTypeAnnotationLocation(location.parent);
+          writeUInt30(location.index);
+        case RecordPositionalFieldTypeLocation():
+          writeByte(TypeAnnotationLocationKind.recordPositionalField.index);
+          writeTypeAnnotationLocation(location.parent);
+          writeUInt30(location.index);
         case ReturnTypeLocation():
           writeByte(TypeAnnotationLocationKind.returnType.index);
           writeTypeAnnotationLocation(location.parent);

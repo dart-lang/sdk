@@ -36,6 +36,12 @@ class Lists {
   }
 }
 
+// Base class for any wasm-backed typed data implementation class.
+abstract class WasmTypedDataBase {}
+
+// Base class for any wasm-backed string implementation class.
+abstract class WasmStringBase implements String {}
+
 // This function can be used to skip implicit or explicit checked down casts in
 // the parts of the core library implementation where we know by construction
 // the type of a value.

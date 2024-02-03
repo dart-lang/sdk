@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' show max;
-import 'dart:typed_data' show Uint8List;
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/code_generator.dart';
@@ -100,9 +99,6 @@ class Types {
   /// Index value for function type parameter types, indexing into the type
   /// parameter index range of their corresponding function type.
   Map<StructuralParameter, int> functionTypeParameterIndex = Map.identity();
-
-  /// An `i8` array of type category values, indexed by class ID.
-  late final w.Global typeCategoryTable = _buildTypeCategoryTable();
 
   Types(this.translator);
 
@@ -286,77 +282,6 @@ class Types {
           .instantiateConstant(null, b, arrayOfStrings, typeNamesType);
     }
     return typeNamesType;
-  }
-
-  // None of these integers belong to masqueraded types like Uint8List.
-  late final int typeCategoryAbstractClass;
-  late final int typeCategoryObject;
-  late final int typeCategoryFunction;
-  late final int typeCategoryRecord;
-  late final int typeCategoryNotMasqueraded;
-
-  /// Build a global array of byte values used to categorize runtime types.
-  w.Global _buildTypeCategoryTable() {
-    // Find 5 class ids whose classes are not masqueraded.
-    final typeCategories = <int>[];
-    for (int i = 0; i < translator.classes.length; i++) {
-      final info = translator.classes[i];
-      if (!translator.classInfoCollector.masqueradeValues.contains(info.cls)) {
-        typeCategories.add(i);
-        if (typeCategories.length == 5) break;
-      }
-    }
-    assert(typeCategories.length == 5 && typeCategories.last <= 255);
-    typeCategoryAbstractClass = typeCategories[0];
-    typeCategoryObject = typeCategories[1];
-    typeCategoryFunction = typeCategories[2];
-    typeCategoryRecord = typeCategories[3];
-    typeCategoryNotMasqueraded = typeCategories[4];
-
-    Set<Class> recordClasses = Set.from(translator.recordClasses.values);
-    Uint8List table = Uint8List(translator.classes.length);
-    for (int i = 0; i < translator.classes.length; i++) {
-      ClassInfo info = translator.classes[i];
-      ClassInfo? masquerade = info.masquerade;
-      Class? cls = info.cls;
-      int category;
-      if (cls == null || cls.isAbstract) {
-        category = typeCategoryAbstractClass;
-      } else if (cls == coreTypes.objectClass) {
-        category = typeCategoryObject;
-      } else if (cls == translator.closureClass) {
-        category = typeCategoryFunction;
-      } else if (recordClasses.contains(cls)) {
-        category = typeCategoryRecord;
-      } else if (masquerade == null || masquerade.classId == i) {
-        category = typeCategoryNotMasqueraded;
-      } else {
-        // Masqueraded class
-        assert(cls.enclosingLibrary.importUri.scheme == "dart");
-        assert(!typeCategories.contains(masquerade.classId));
-        assert(masquerade.classId <= 255);
-        category = masquerade.classId;
-      }
-      table[i] = category;
-    }
-
-    final segment = translator.m.dataSegments.define(table);
-    w.ArrayType arrayType = translator.arrayTypeForDartType(
-        InterfaceType(translator.wasmI8Class, Nullability.nonNullable));
-    final global = translator.m.globals
-        .define(w.GlobalType(w.RefType.def(arrayType, nullable: false)));
-    // Initialize the global to a dummy array, since `array.new_data` is not
-    // a constant instruction and thus can't be used in the initializer.
-    global.initializer.array_new_fixed(arrayType, 0);
-    global.initializer.end();
-    // Create the actual table in the init function.
-    final b = translator.initFunction.body;
-    b.i32_const(0);
-    b.i32_const(table.length);
-    b.array_new_data(arrayType, segment);
-    b.global_set(global);
-
-    return global;
   }
 
   bool _isTypeConstant(DartType type) {
@@ -727,44 +652,8 @@ class Types {
     } else {
       final ranges =
           translator.classIdNumbering.getConcreteClassIdRanges(interfaceClass);
-      if (ranges.isEmpty) {
-        b.drop();
-        b.i32_const(0);
-      } else if (ranges.length == 1) {
-        final range = ranges[0];
-
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.i32_const(range.start);
-        if (range.length == 1) {
-          b.i32_eq();
-        } else {
-          b.i32_sub();
-          b.i32_const(range.length);
-          b.i32_lt_u();
-        }
-      } else {
-        w.Local idLocal = codeGen.addLocal(w.NumType.i32);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.local_set(idLocal);
-        w.Label done = b.block(const [], const [w.NumType.i32]);
-        b.i32_const(1);
-
-        for (Range range in ranges) {
-          b.local_get(idLocal);
-          b.i32_const(range.start);
-          if (range.length == 1) {
-            b.i32_eq();
-          } else {
-            b.i32_sub();
-            b.i32_const(range.length);
-            b.i32_lt_u();
-          }
-          b.br_if(done);
-        }
-        b.drop();
-        b.i32_const(0);
-        b.end(); // done
-      }
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      b.emitClassIdRangeCheck(codeGen, ranges);
     }
 
     if (isPotentiallyNullable) {

@@ -224,7 +224,6 @@ class NamedTypeResolver with ScopeHelpers {
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
-        type = typeSystem.toLegacyTypeIfOptOut(type);
         return _verifyTypeAliasForContext(node, element, type);
       } else if (_isInstanceCreation(node)) {
         _ErrorHelper(errorReporter).reportNewWithNonType(node);

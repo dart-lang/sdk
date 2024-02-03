@@ -2390,6 +2390,16 @@ class ResolutionReader {
             readTypeAnnotationLocation(),
             readUInt30(),
           );
+        case TypeAnnotationLocationKind.recordNamedField:
+          return RecordNamedFieldTypeLocation(
+            readTypeAnnotationLocation(),
+            readUInt30(),
+          );
+        case TypeAnnotationLocationKind.recordPositionalField:
+          return RecordPositionalFieldTypeLocation(
+            readTypeAnnotationLocation(),
+            readUInt30(),
+          );
         case TypeAnnotationLocationKind.returnType:
           var parent = readTypeAnnotationLocation();
           return ReturnTypeLocation(parent);

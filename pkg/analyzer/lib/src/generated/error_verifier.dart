@@ -19,6 +19,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/unit_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -6048,66 +6049,131 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     MacroTargetElement element,
     List<Annotation> metadata,
   ) {
-    /// Usually returns [AstNode], sometimes [Token] if the type is omitted.
-    SyntacticEntity? locationEntity(TypeAnnotationLocation location) {
+    _MacroSyntacticTypeAnnotationLocation? locationEntity(
+      TypeAnnotationLocation location,
+    ) {
       switch (location) {
         case ElementTypeLocation():
           var element = location.element;
           return libraryVerificationContext.declarationByElement(element);
         case FormalParameterTypeLocation():
-          var node = locationEntity(location.parent);
+          var nodeLocation = locationEntity(location.parent);
+          if (nodeLocation == null) {
+            return null;
+          }
+          var node = nodeLocation.entity;
           switch (node) {
             case FunctionDeclaration():
               var parameterList = node.functionExpression.parameters;
-              return parameterList!.parameters[location.index];
+              var next = parameterList!.parameters[location.index];
+              return nodeLocation.next(next);
             case MethodDeclaration():
               var parameterList = node.parameters;
-              return parameterList!.parameters[location.index];
+              var next = parameterList!.parameters[location.index];
+              return nodeLocation.next(next);
             default:
               throw UnimplementedError('${node.runtimeType}');
           }
         case ListIndexTypeLocation():
-          var node = locationEntity(location.parent);
+          var nodeLocation = locationEntity(location.parent);
+          if (nodeLocation == null) {
+            return null;
+          }
+          var node = nodeLocation.entity;
           switch (node) {
             case NamedType():
-              return node.typeArguments?.arguments[location.index];
+              var argument = node.typeArguments?.arguments[location.index];
+              if (argument == null) {
+                return null;
+              }
+              return nodeLocation.next(argument);
+            default:
+              throw UnimplementedError('${node.runtimeType}');
+          }
+        case RecordNamedFieldTypeLocation():
+          var nodeLocation = locationEntity(location.parent);
+          if (nodeLocation == null) {
+            return null;
+          }
+          var node = nodeLocation.entity;
+          switch (node) {
+            case RecordTypeAnnotation():
+              var field = node.namedFields?.fields[location.index].type;
+              if (field == null) {
+                return null;
+              }
+              return nodeLocation.next(field);
+            default:
+              throw UnimplementedError('${node.runtimeType}');
+          }
+        case RecordPositionalFieldTypeLocation():
+          var nodeLocation = locationEntity(location.parent);
+          if (nodeLocation == null) {
+            return null;
+          }
+          var node = nodeLocation.entity;
+          switch (node) {
+            case RecordTypeAnnotation():
+              var field = node.positionalFields[location.index];
+              return nodeLocation.next(field);
             default:
               throw UnimplementedError('${node.runtimeType}');
           }
         case ReturnTypeLocation():
-          var node = locationEntity(location.parent);
+          var nodeLocation = locationEntity(location.parent);
+          if (nodeLocation == null) {
+            return null;
+          }
+          var node = nodeLocation.entity;
           switch (node) {
             case FunctionDeclaration():
-              return node.returnType ?? node.name;
+              var next = node.returnType ?? node.name;
+              return nodeLocation.next(next);
             case GenericFunctionType():
-              return node.returnType ?? node;
+              var next = node.returnType ?? node;
+              return nodeLocation.next(next);
             case MethodDeclaration():
-              return node.returnType ?? node.name;
+              var next = node.returnType ?? node.name;
+              return nodeLocation.next(next);
             default:
               throw UnimplementedError('${node.runtimeType}');
           }
         case VariableTypeLocation():
-          var node = locationEntity(location.parent);
+          var nodeLocation = locationEntity(location.parent);
+          if (nodeLocation == null) {
+            return null;
+          }
+          var node = nodeLocation.entity;
           if (node is DefaultFormalParameter) {
             node = node.parameter;
           }
           var parent = node.ifTypeOrNull<AstNode>()?.parent;
           switch (node) {
             case SimpleFormalParameter():
-              return node.type ?? node.name;
+              var next = node.type ?? node.name;
+              if (next == null) {
+                return null;
+              }
+              return nodeLocation.next(next);
             case VariableDeclaration():
               if (parent is VariableDeclarationList) {
-                return parent.type ?? node.name;
+                var next = parent.type ?? node.name;
+                return nodeLocation.next(next);
               }
           }
           throw UnimplementedError(
             '${node.runtimeType} ${parent.runtimeType}',
           );
         case ExtendsClauseTypeLocation():
-          var node = locationEntity(location.parent);
+          var nodeLocation = locationEntity(location.parent);
+          if (nodeLocation == null) {
+            return null;
+          }
+          var node = nodeLocation.entity;
           switch (node) {
             case ClassDeclaration():
-              return node.extendsClause!.superclass;
+              var next = node.extendsClause!.superclass;
+              return nodeLocation.next(next);
             default:
               throw UnimplementedError('${node.runtimeType}');
           }
@@ -6202,24 +6268,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 diagnostic.contextMessages.map(convertMessage).toList(),
               );
             case TypeAnnotationMacroDiagnosticTarget():
-              var errorEntity = locationEntity(target.location);
-              switch (errorEntity) {
-                case AstNode():
-                  errorReporter.atNode(
-                    errorEntity,
-                    errorCode,
-                    arguments: [diagnostic.message.message],
-                    messages:
-                        diagnostic.contextMessages.map(convertMessage).toList(),
-                  );
-                case Token():
-                  errorReporter.atToken(
-                    errorEntity,
-                    errorCode,
-                    arguments: [diagnostic.message.message],
-                    messages:
-                        diagnostic.contextMessages.map(convertMessage).toList(),
-                  );
+              var nodeLocation = locationEntity(target.location);
+              var unitAnalysis = nodeLocation?.unitAnalysis;
+              var errorEntity = nodeLocation?.entity;
+              if (unitAnalysis != null && errorEntity is AstNode) {
+                unitAnalysis.errorReporter.atNode(
+                  errorEntity,
+                  errorCode,
+                  arguments: [diagnostic.message.message],
+                  messages:
+                      diagnostic.contextMessages.map(convertMessage).toList(),
+                );
+              } else if (unitAnalysis != null && errorEntity is Token) {
+                unitAnalysis.errorReporter.atToken(
+                  errorEntity,
+                  errorCode,
+                  arguments: [diagnostic.message.message],
+                  messages:
+                      diagnostic.contextMessages.map(convertMessage).toList(),
+                );
               }
           }
       }
@@ -6367,29 +6434,58 @@ class HiddenElements {
 class LibraryVerificationContext {
   final duplicationDefinitionContext = DuplicationDefinitionContext();
   final ConstructorFieldsVerifier constructorFieldsVerifier;
-  final Map<FileState, CompilationUnitImpl> units;
+  final Map<FileState, UnitAnalysis> units;
 
   LibraryVerificationContext({
     required this.constructorFieldsVerifier,
     required this.units,
   });
 
-  AstNode? declarationByElement(Element element) {
-    var uri = element.library?.source.uri;
-    if (uri == null) {
+  _MacroSyntacticTypeAnnotationLocation? declarationByElement(Element element) {
+    var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
+    if (unitElement == null) {
       return null;
     }
 
-    var unit = units.entries.firstWhereOrNull((entry) {
+    var uri = unitElement.source.uri;
+    var unitAnalysis = units.entries.firstWhereOrNull((entry) {
       return entry.key.uri == uri;
     })?.value;
-    if (unit == null) {
+    if (unitAnalysis == null) {
       return null;
     }
 
     var locator = DeclarationByElementLocator(element);
-    unit.accept(locator);
-    return locator.result;
+    unitAnalysis.unit.accept(locator);
+
+    var node = locator.result;
+    if (node == null) {
+      return null;
+    }
+
+    return _MacroSyntacticTypeAnnotationLocation(
+      unitAnalysis: unitAnalysis,
+      entity: node,
+    );
+  }
+}
+
+class _MacroSyntacticTypeAnnotationLocation {
+  final UnitAnalysis unitAnalysis;
+
+  /// Usually a [AstNode], sometimes [Token] if the type is omitted.
+  final SyntacticEntity entity;
+
+  _MacroSyntacticTypeAnnotationLocation({
+    required this.unitAnalysis,
+    required this.entity,
+  });
+
+  _MacroSyntacticTypeAnnotationLocation next(SyntacticEntity entity) {
+    return _MacroSyntacticTypeAnnotationLocation(
+      unitAnalysis: unitAnalysis,
+      entity: entity,
+    );
   }
 }
 

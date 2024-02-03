@@ -140,6 +140,8 @@ enum TypeAnnotationLocationKind {
   extendsClause,
   formalParameter,
   listIndex,
+  recordNamedField,
+  recordPositionalField,
   returnType,
   variableType,
 }

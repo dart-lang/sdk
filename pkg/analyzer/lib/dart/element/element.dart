@@ -1879,6 +1879,7 @@ abstract class LibraryElement
 
   /// If a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
+  @Deprecated('Only non-nullable by default mode is supported')
   DartType toLegacyTypeIfOptOut(DartType type);
 }
 

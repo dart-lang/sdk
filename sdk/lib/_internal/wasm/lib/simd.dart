@@ -10,8 +10,9 @@ import 'dart:_internal'
 import 'dart:collection' show ListMixin;
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:_internal' show WasmTypedDataBase;
 
-final class NaiveInt32x4List
+final class NaiveInt32x4List extends WasmTypedDataBase
     with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
     implements Int32x4List {
   final Int32List _storage;
@@ -116,7 +117,7 @@ final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List
   ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
 }
 
-final class NaiveFloat32x4List
+final class NaiveFloat32x4List extends WasmTypedDataBase
     with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
     implements Float32x4List {
   final Float32List _storage;
@@ -222,7 +223,7 @@ final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List
   ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
 }
 
-final class NaiveFloat64x2List
+final class NaiveFloat64x2List extends WasmTypedDataBase
     with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
     implements Float64x2List {
   final Float64List _storage;
@@ -322,7 +323,7 @@ final class NaiveUnmodifiableFloat64x2List extends NaiveFloat64x2List
   ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
 }
 
-final class NaiveFloat32x4 implements Float32x4 {
+final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
   final double x;
   final double y;
   final double z;
@@ -614,7 +615,7 @@ final class NaiveFloat32x4 implements Float32x4 {
   }
 }
 
-final class NaiveFloat64x2 implements Float64x2 {
+final class NaiveFloat64x2 extends WasmTypedDataBase implements Float64x2 {
   final double x;
   final double y;
 
@@ -688,7 +689,7 @@ final class NaiveFloat64x2 implements Float64x2 {
   Float64x2 sqrt() => NaiveFloat64x2._doubles(math.sqrt(x), math.sqrt(y));
 }
 
-final class NaiveInt32x4 implements Int32x4 {
+final class NaiveInt32x4 extends WasmTypedDataBase implements Int32x4 {
   final int x;
   final int y;
   final int z;

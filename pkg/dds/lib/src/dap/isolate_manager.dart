@@ -938,12 +938,14 @@ class IsolateManager {
 
     // Pre-resolve all URIs in batch so the call below does not trigger
     // many requests to the server.
-    final allUris = libraries
-        .map((library) => library.uri)
-        .nonNulls
-        .map(Uri.parse)
-        .toList();
-    await thread.resolveUrisToPackageLibPathsBatch(allUris);
+    if (!debugExternalPackageLibraries) {
+      final allUris = libraries
+          .map((library) => library.uri)
+          .nonNulls
+          .map(Uri.parse)
+          .toList();
+      await thread.resolveUrisToPackageLibPathsBatch(allUris);
+    }
 
     await Future.wait(libraries.map((library) async {
       final libraryUri = library.uri;

@@ -22,6 +22,7 @@ import 'dart:_internal'
         SubListIterable,
         TakeWhileIterable,
         unsafeCast,
+        WasmTypedDataBase,
         WhereIterable,
         WhereTypeIterable;
 import 'dart:_simd';
@@ -101,7 +102,7 @@ final class _TypedListIterator<E> implements Iterator<E> {
 /// and [_setUint8Unchecked] methods. Implementations should implement these
 /// methods and override get/set methods for elements matching the buffer
 /// element type to provide fast access.
-abstract class ByteDataBase implements ByteData {
+abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
   final int offsetInBytes;
   final int lengthInBytes;
 
@@ -964,7 +965,7 @@ class _UnmodifiableF64ByteData extends _F64ByteData
 /// Base class for [ByteBuffer] implementations. Returns slow lists in all
 /// methods. Implementations should override relevant methods to return fast
 /// lists when possible and implement [asByteData].
-abstract class ByteBufferBase extends ByteBuffer {
+abstract class ByteBufferBase extends WasmTypedDataBase implements ByteBuffer {
   final int lengthInBytes;
   final bool _mutable;
 
@@ -1332,7 +1333,8 @@ class _F64ByteBuffer extends ByteBufferBase {
   }
 }
 
-class UnmodifiableByteBuffer implements UnmodifiableByteBufferView {
+class UnmodifiableByteBuffer extends WasmTypedDataBase
+    implements UnmodifiableByteBufferView {
   final ByteBufferBase _buffer;
 
   UnmodifiableByteBuffer(ByteBufferBase buffer) : _buffer = buffer._immutable();
@@ -2242,7 +2244,7 @@ mixin _UnmodifiableDoubleListMixin {
 // Fast lists
 //
 
-abstract class _WasmI8ArrayBase {
+abstract class _WasmI8ArrayBase extends WasmTypedDataBase {
   final WasmArray<WasmI8> _data;
   final int _offsetInElements;
   final int length;
@@ -2260,7 +2262,7 @@ abstract class _WasmI8ArrayBase {
   ByteBuffer get buffer => _I8ByteBuffer(_data);
 }
 
-abstract class _WasmI16ArrayBase {
+abstract class _WasmI16ArrayBase extends WasmTypedDataBase {
   final WasmArray<WasmI16> _data;
   final int _offsetInElements;
   final int length;
@@ -2278,7 +2280,7 @@ abstract class _WasmI16ArrayBase {
   ByteBuffer get buffer => _I16ByteBuffer(_data);
 }
 
-abstract class _WasmI32ArrayBase {
+abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
   final WasmArray<WasmI32> _data;
   final int _offsetInElements;
   final int length;
@@ -2296,7 +2298,7 @@ abstract class _WasmI32ArrayBase {
   ByteBuffer get buffer => _I32ByteBuffer(_data);
 }
 
-abstract class _WasmI64ArrayBase {
+abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
   final WasmArray<WasmI64> _data;
   final int _offsetInElements;
   final int length;
@@ -2314,7 +2316,7 @@ abstract class _WasmI64ArrayBase {
   ByteBuffer get buffer => _I64ByteBuffer(_data);
 }
 
-abstract class _WasmF32ArrayBase {
+abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
   final WasmArray<WasmF32> _data;
   final int _offsetInElements;
   final int length;
@@ -2332,7 +2334,7 @@ abstract class _WasmF32ArrayBase {
   ByteBuffer get buffer => _F32ByteBuffer(_data);
 }
 
-abstract class _WasmF64ArrayBase {
+abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
   final WasmArray<WasmF64> _data;
   final int _offsetInElements;
   final int length;
@@ -2931,7 +2933,7 @@ class UnmodifiableF64List extends F64List
 // Slow lists
 //
 
-class _SlowListBase {
+class _SlowListBase extends WasmTypedDataBase {
   final ByteBuffer buffer;
   final int offsetInBytes;
   final int length;

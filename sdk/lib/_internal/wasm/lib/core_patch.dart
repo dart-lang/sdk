@@ -21,7 +21,9 @@ import "dart:_internal"
         makeFixedListUnmodifiable,
         makeListFixedLength,
         patch,
-        unsafeCast;
+        unsafeCast,
+        WasmStringBase,
+        WasmTypedDataBase;
 
 import "dart:_internal" as _internal show Symbol;
 
@@ -45,7 +47,7 @@ import 'dart:convert' show Encoding, utf8;
 
 import 'dart:math' show Random;
 
-import "dart:typed_data" show Uint8List, Uint16List;
+import "dart:typed_data";
 
 import 'dart:_object_helper';
 import 'dart:_string_helper';

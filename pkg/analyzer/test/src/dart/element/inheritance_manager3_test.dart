@@ -406,7 +406,6 @@ A.foo: void Function()
 
   test_getInheritedMap_topMerge_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.6
 class A {
   void foo({int a}) {}
 }
@@ -425,7 +424,6 @@ class C implements A, B {
 ''');
 
     _assertInheritedMap('C', r'''
-A.foo: void Function({int a})
 ''');
   }
 
@@ -1057,31 +1055,6 @@ class B extends A {
       className: 'B',
       name: 'foo',
       expected: 'A.foo: int Function(int, int?)',
-    );
-    _assertGetMember(
-      className: 'B',
-      name: 'bar',
-      expected: 'B.bar: int? Function(int)',
-    );
-  }
-
-  test_getMember_optIn_inheritsOptOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.6
-class A {
-  int foo(int a, int b) => 0;
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-class B extends A {
-  int? bar(int a) => 0;
-}
-''');
-    _assertGetMember(
-      className: 'B',
-      name: 'foo',
-      expected: 'A.foo: int* Function(int*, int*)*',
     );
     _assertGetMember(
       className: 'B',

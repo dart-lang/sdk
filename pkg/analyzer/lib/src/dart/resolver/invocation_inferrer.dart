@@ -163,7 +163,6 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
             var typeParameter = typeParameters[i];
             var bound = typeParameter.bound;
             if (bound != null) {
-              bound = resolver.definingLibrary.toLegacyTypeIfOptOut(bound);
               bound = substitution.substituteType(bound);
               var typeArgument = typeArgumentTypes[i];
               if (!resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
