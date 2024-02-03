@@ -1238,6 +1238,25 @@ self::@function::main
 ''');
   }
 
+  test_searchReferences_ExtensionTypeElement() async {
+    await resolveTestCode('''
+extension type E(int it) {
+  static void bar() {}
+}
+
+void f(E e) {
+  E.bar();
+}
+''');
+    final element = findElement.extensionType('E');
+    await assertElementReferencesText(element, r'''
+self::@function::f::@parameter::e
+  60 5:8 |E| REFERENCE
+self::@function::f
+  69 6:3 |E| REFERENCE
+''');
+  }
+
   test_searchReferences_FieldElement_class() async {
     await resolveTestCode('''
 class A {
@@ -1868,6 +1887,29 @@ self::@extension::0::@method::bar
   71 6:10 |foo| INVOCATION qualified
   82 7:5 |foo| REFERENCE
   96 8:10 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_MethodElement_extensionType() async {
+    await resolveTestCode('''
+extension type E(int it) {
+  void foo() {}
+
+  void bar() {
+    foo();
+  }
+}
+
+void f(E e) {
+  e.foo();
+}
+''');
+    final element = findElement.method('foo');
+    await assertElementReferencesText(element, r'''
+self::@extensionType::E::@method::bar
+  63 5:5 |foo| INVOCATION
+self::@function::f
+  95 10:5 |foo| INVOCATION qualified
 ''');
   }
 
