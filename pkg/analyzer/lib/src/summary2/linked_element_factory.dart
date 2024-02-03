@@ -176,15 +176,9 @@ class LinkedElementFactory {
     }
 
     analysisContext.setTypeProviders(
-      legacy: TypeProviderImpl(
+      typeProvider: TypeProviderImpl(
         coreLibrary: dartCore,
         asyncLibrary: dartAsync,
-        isNonNullableByDefault: false,
-      ),
-      nonNullableByDefault: TypeProviderImpl(
-        coreLibrary: dartCore,
-        asyncLibrary: dartAsync,
-        isNonNullableByDefault: true,
       ),
     );
 
@@ -313,13 +307,8 @@ class LinkedElementFactory {
       return;
     }
 
-    var isNonNullable = libraryElement.isNonNullableByDefault;
-    libraryElement.typeProvider = isNonNullable
-        ? analysisContext.typeProviderNonNullableByDefault
-        : analysisContext.typeProviderLegacy;
-    libraryElement.typeSystem = isNonNullable
-        ? analysisContext.typeSystemNonNullableByDefault
-        : analysisContext.typeSystemLegacy;
+    libraryElement.typeProvider = analysisContext.typeProvider;
+    libraryElement.typeSystem = analysisContext.typeSystem;
     libraryElement.hasTypeProviderSystemSet = true;
 
     libraryElement.createLoadLibraryFunction();

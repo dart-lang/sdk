@@ -1260,14 +1260,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var type = node.exceptionType;
-    if (type == null) {
+    var typeNode = node.exceptionType;
+    if (typeNode == null) {
       return;
     }
 
-    if (_typeSystem.isPotentiallyNullable(type.typeOrThrow)) {
+    var typeObj = typeNode.typeOrThrow;
+    if (typeObj is InvalidType) {
+      return;
+    }
+
+    if (_typeSystem.isPotentiallyNullable(typeObj)) {
       _errorReporter.atNode(
-        type,
+        typeNode,
         WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
       );
     }

@@ -410,7 +410,7 @@ class PostfixCompletionProcessor {
       _findOuterExpression(node, typeProvider.iterableDynamicType);
 
   Expression? findObjectExpression() =>
-      _findOuterExpression(node, typeProvider.objectType);
+      _findOuterExpression(node, typeProvider.objectQuestionType);
 
   Statement? findStatement() {
     var astNode = node;

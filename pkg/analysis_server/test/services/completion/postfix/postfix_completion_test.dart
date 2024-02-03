@@ -481,9 +481,6 @@ f() {
 
 @reflectiveTest
 class _NotNullTest extends PostfixCompletionTest {
-  @override
-  String get testPackageLanguageVersion => '2.9';
-
   Future<void> test_nn() async {
     await _prepareCompletion('.nn', '''
 f() {
