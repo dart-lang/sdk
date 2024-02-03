@@ -110,7 +110,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     required path.Context pathContext,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
-        _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
+        _isNonNullableByDefault = true,
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
@@ -1216,11 +1216,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForNullableEqualsParameterType(MethodDeclaration node) {
-    if (!_typeSystem.isNonNullableByDefault) {
-      // Cannot specify non-nullable types before null safety.
-      return;
-    }
-
     if (node.name.type != TokenType.EQ_EQ) {
       return;
     }

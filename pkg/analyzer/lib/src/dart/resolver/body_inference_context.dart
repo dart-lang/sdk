@@ -126,14 +126,12 @@ class BodyInferenceContext {
 
     // If `R` is `void`, or the function literal is marked `async` and `R` is
     // `FutureOr<void>`, let `S` be `void`.
-    if (_typeSystem.isNonNullableByDefault) {
-      if (R is VoidType ||
-          isAsynchronous &&
-              R is InterfaceType &&
-              R.isDartAsyncFutureOr &&
-              R.typeArguments[0] is VoidType) {
-        return VoidTypeImpl.instance;
-      }
+    if (R is VoidType ||
+        isAsynchronous &&
+            R is InterfaceType &&
+            R.isDartAsyncFutureOr &&
+            R.typeArguments[0] is VoidType) {
+      return VoidTypeImpl.instance;
     }
 
     // Otherwise, if `T <: R` then let `S` be `T`.

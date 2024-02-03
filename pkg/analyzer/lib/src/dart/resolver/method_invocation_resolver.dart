@@ -165,7 +165,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    if (node.isNullAware && _typeSystem.isNonNullableByDefault) {
+    if (node.isNullAware) {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 

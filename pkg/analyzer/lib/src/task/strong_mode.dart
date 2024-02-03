@@ -34,7 +34,7 @@ class InstanceMemberInferrer {
   /// compilation [unit].
   void inferCompilationUnit(CompilationUnitElementImpl unit) {
     typeSystem = unit.library.typeSystem;
-    isNonNullableByDefault = typeSystem.isNonNullableByDefault;
+    isNonNullableByDefault = true;
     _inferClasses(unit.classes);
     _inferClasses(unit.enums);
     _inferExtensionTypes(unit.extensionTypes);
@@ -446,7 +446,7 @@ class InstanceMemberInferrer {
             conflictExplanation = conflict.candidates.map((candidate) {
               var className = candidate.enclosingElement.name;
               var typeStr = candidate.type.getDisplayString(
-                withNullability: typeSystem.isNonNullableByDefault,
+                withNullability: true,
               );
               return '$className.${name.name} ($typeStr)';
             }).join(', ');

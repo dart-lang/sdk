@@ -868,8 +868,6 @@ class LeastUpperBoundHelper {
     if (bound != null) {
       return bound;
     }
-    return _typeSystem.isNonNullableByDefault
-        ? _typeSystem.objectQuestion
-        : _typeSystem.objectStar;
+    return _typeSystem.objectQuestion;
   }
 }

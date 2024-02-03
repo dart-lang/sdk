@@ -132,8 +132,7 @@ class _Constructor {
 
       if (field.isFinal) {
         notInitFinalFields.add(field);
-      } else if (typeSystem.isNonNullableByDefault &&
-          typeSystem.isPotentiallyNonNullable(field.type)) {
+      } else if (typeSystem.isPotentiallyNonNullable(field.type)) {
         notInitNonNullableFields.add(field);
       }
     });

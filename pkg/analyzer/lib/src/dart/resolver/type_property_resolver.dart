@@ -42,7 +42,7 @@ class TypePropertyResolver {
 
   TypePropertyResolver(this._resolver)
       : _definingLibrary = _resolver.definingLibrary,
-        _isNonNullableByDefault = _resolver.typeSystem.isNonNullableByDefault,
+        _isNonNullableByDefault = true,
         _typeSystem = _resolver.typeSystem,
         _typeProvider = _resolver.typeProvider,
         _extensionResolver = _resolver.extensionResolver;
@@ -304,7 +304,7 @@ class TypePropertyResolver {
     bool ifLegacy = false,
     bool ifNullSafe = false,
   }) {
-    if (_typeSystem.isNonNullableByDefault ? ifNullSafe : ifLegacy) {
+    if (_isNonNullableByDefault ? ifNullSafe : ifLegacy) {
       return _typeSystem.resolveToBound(type);
     } else {
       return type;

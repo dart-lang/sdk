@@ -158,31 +158,19 @@ class LiteralElementVerifier {
       return;
     }
 
-    if (typeSystem.isNonNullableByDefault) {
-      if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+    if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+      return;
+    }
+
+    if (typeSystem.isSubtypeOf(expressionType, typeSystem.nullNone)) {
+      if (isNullAware) {
         return;
       }
-      if (typeSystem.isSubtypeOf(expressionType, typeSystem.nullNone)) {
-        if (isNullAware) {
-          return;
-        }
-        errorReporter.atNode(
-          expression,
-          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
-        );
-        return;
-      }
-    } else {
-      if (expressionType.isDartCoreNull) {
-        if (isNullAware) {
-          return;
-        }
-        errorReporter.atNode(
-          expression,
-          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
-        );
-        return;
-      }
+      errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+      );
+      return;
     }
 
     var iterableType = expressionType.asInstanceOf(
@@ -257,31 +245,19 @@ class LiteralElementVerifier {
       return;
     }
 
-    if (typeSystem.isNonNullableByDefault) {
-      if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+    if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+      return;
+    }
+
+    if (typeSystem.isSubtypeOf(expressionType, typeSystem.nullNone)) {
+      if (isNullAware) {
         return;
       }
-      if (typeSystem.isSubtypeOf(expressionType, typeSystem.nullNone)) {
-        if (isNullAware) {
-          return;
-        }
-        errorReporter.atNode(
-          expression,
-          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
-        );
-        return;
-      }
-    } else {
-      if (expressionType.isDartCoreNull) {
-        if (isNullAware) {
-          return;
-        }
-        errorReporter.atNode(
-          expression,
-          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
-        );
-        return;
-      }
+      errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+      );
+      return;
     }
 
     var mapType = expressionType.asInstanceOf(

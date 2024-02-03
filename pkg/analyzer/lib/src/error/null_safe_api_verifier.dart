@@ -25,8 +25,6 @@ class NullSafeApiVerifier {
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
   void instanceCreation(InstanceCreationExpression expression) {
-    if (!_typeSystem.isNonNullableByDefault) return;
-
     final constructor = expression.constructorName.staticElement;
     if (constructor == null) return;
 
@@ -42,8 +40,6 @@ class NullSafeApiVerifier {
   /// Reports an error if `Completer<T>.complete` is invoked with a non-nullable
   /// `T` and an argument that is effectively `null`.
   void methodInvocation(MethodInvocation node) {
-    if (!_typeSystem.isNonNullableByDefault) return;
-
     final targetType = node.realTarget?.staticType;
     if (targetType is! InterfaceType) return;
 

@@ -71,7 +71,6 @@ class AnalysisContextImpl implements AnalysisContext {
     _typeProvider = typeProvider;
 
     _typeSystem = TypeSystemImpl(
-      isNonNullableByDefault: true,
       typeProvider: typeProvider,
     );
   }

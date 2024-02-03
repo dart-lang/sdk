@@ -53,14 +53,6 @@ class TypeConstraintGatherer {
 
   bool get isConstraintSetEmpty => _constraints.isEmpty;
 
-  DartType get _defaultTypeParameterBound {
-    if (_typeSystem.isNonNullableByDefault) {
-      return _typeSystem.objectQuestion;
-    } else {
-      return DynamicTypeImpl.instance;
-    }
-  }
-
   /// Returns the set of type constraints that was gathered.
   Map<TypeParameterElement, TypeConstraint> computeConstraints() {
     var result = <TypeParameterElement, TypeConstraint>{};
@@ -392,8 +384,8 @@ class TypeConstraintGatherer {
     // If `B1i` is a subtype match for `B0i` with constraint set `Ci1`.
     // And `Ci2` is `Ci0 + Ci1`.
     for (var i = 0; i < P_typeFormals.length; i++) {
-      var B0 = P_typeFormals[i].bound ?? _defaultTypeParameterBound;
-      var B1 = Q_typeFormals[i].bound ?? _defaultTypeParameterBound;
+      var B0 = P_typeFormals[i].bound ?? _typeSystem.objectQuestion;
+      var B1 = Q_typeFormals[i].bound ?? _typeSystem.objectQuestion;
       if (!trySubtypeMatch(B0, B1, leftSchema)) {
         _constraints.length = rewind;
         return false;

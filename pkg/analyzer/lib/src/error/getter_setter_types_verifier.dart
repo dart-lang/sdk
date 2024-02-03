@@ -32,7 +32,7 @@ class GetterSetterTypesVerifier {
         : CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES;
   }
 
-  bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
+  bool get _isNonNullableByDefault => true;
 
   void checkExtension(ExtensionElement element) {
     for (var getter in element.accessors) {

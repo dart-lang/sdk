@@ -32,10 +32,6 @@ class NullableDereferenceVerifier {
 
   bool expression(ErrorCode errorCode, Expression expression,
       {DartType? type}) {
-    if (!_typeSystem.isNonNullableByDefault) {
-      return false;
-    }
-
     type ??= expression.typeOrThrow;
     return _check(errorCode, expression, type);
   }

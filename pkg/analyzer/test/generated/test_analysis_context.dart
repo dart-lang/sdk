@@ -32,7 +32,6 @@ class TestAnalysisContext implements AnalysisContext {
     );
 
     _typeSystem = TypeSystemImpl(
-      isNonNullableByDefault: true,
       typeProvider: _typeProvider,
     );
 
