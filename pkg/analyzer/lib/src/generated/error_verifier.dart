@@ -6067,6 +6067,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               var parameterList = node.functionExpression.parameters;
               var next = parameterList!.parameters[location.index];
               return nodeLocation.next(next);
+            case GenericFunctionType():
+              var parameterList = node.parameters;
+              var parameter = parameterList.parameters[location.index];
+              parameter = parameter.notDefault;
+              return nodeLocation.next(parameter.typeOrSelf);
             case MethodDeclaration():
               var parameterList = node.parameters;
               var next = parameterList!.parameters[location.index];
