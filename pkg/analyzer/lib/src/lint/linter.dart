@@ -742,7 +742,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
         node,
         errorCode ?? lintCode,
         arguments: arguments,
-        messages: contextMessages,
+        contextMessages: contextMessages,
       );
     }
   }
@@ -765,7 +765,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
         token,
         errorCode ?? lintCode,
         arguments: arguments,
-        messages: contextMessages,
+        contextMessages: contextMessages,
       );
     }
   }

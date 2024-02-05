@@ -156,7 +156,7 @@ class AssignmentExpressionResolver {
       right,
       CompileTimeErrorCode.INVALID_ASSIGNMENT,
       arguments: [rightType, writeType],
-      messages: _resolver.computeWhyNotPromotedMessages(
+      contextMessages: _resolver.computeWhyNotPromotedMessages(
           right, whyNotPromoted?.call()),
     );
   }

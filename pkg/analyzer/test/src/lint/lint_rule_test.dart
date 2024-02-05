@@ -80,7 +80,7 @@ class CollectingReporter extends ErrorReporter {
     AstNode node,
     ErrorCode errorCode, {
     List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     code = errorCode;
@@ -91,7 +91,7 @@ class CollectingReporter extends ErrorReporter {
     Token token,
     ErrorCode errorCode, {
     List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     code = errorCode;

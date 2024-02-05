@@ -140,7 +140,7 @@ mixin ErrorDetectionHelpers {
             expectedStaticType,
             additionalInfo.join(' ')
           ],
-          messages:
+          contextMessages:
               computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
         );
         return;
@@ -149,7 +149,7 @@ mixin ErrorDetectionHelpers {
         getErrorNode(expression),
         errorCode,
         arguments: [actualStaticType, expectedStaticType],
-        messages:
+        contextMessages:
             computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
       );
     }
@@ -188,14 +188,14 @@ mixin ErrorDetectionHelpers {
         expression,
         CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
         arguments: [staticType, fieldType],
-        messages: messages,
+        contextMessages: messages,
       );
     } else {
       errorReporter.atNode(
         expression,
         CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
         arguments: [staticType, fieldType],
-        messages: messages,
+        contextMessages: messages,
       );
     }
 
