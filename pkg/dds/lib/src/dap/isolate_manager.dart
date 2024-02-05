@@ -1229,7 +1229,7 @@ class ThreadInfo with FileUtils {
     final futures = uris.map((uri) async {
       return uri.isScheme('file')
           ? uri.toFilePath()
-          : await _resolvedPaths[uri.toString()]!;
+          : await _resolvedPaths[uri.toString()];
     });
     return Future.wait(futures);
   }
