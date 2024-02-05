@@ -77,7 +77,7 @@ abstract base class Union extends _Compound {
   /// bytes for the [sizeOf] of the created union, is allocated on the Dart
   /// heap, and used as memory to store the union fields.
   ///
-  /// If [offset] is provded, the indexing into [typedData] is offset by
+  /// If [offset] is provided, the indexing into [typedData] is offset by
   /// [offset] times [TypedData.elementSizeInBytes].
   ///
   /// Example:
@@ -110,7 +110,7 @@ abstract base class Union extends _Compound {
   /// ```
   ///
   /// To create a union object from a [Pointer], use [UnionPointer.ref].
-  @Since('3.3')
+  @Since('3.4')
   external static T create<T extends Union>([TypedData typedData, int offset]);
 
   /// Creates a view on a [TypedData] or [Pointer].

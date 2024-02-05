@@ -112,7 +112,7 @@ abstract base class Struct extends _Compound {
   /// bytes for the [sizeOf] of the created struct, is allocated on the Dart
   /// heap, and used as memory to store the struct fields.
   ///
-  /// If [offset] is provded, the indexing into [typedData] is offset by
+  /// If [offset] is provided, the indexing into [typedData] is offset by
   /// [offset] times [TypedData.elementSizeInBytes].
   ///
   /// Example:
@@ -141,7 +141,7 @@ abstract base class Struct extends _Compound {
   /// ```
   ///
   /// To create a struct object from a [Pointer], use [StructPointer.ref].
-  @Since('3.3')
+  @Since('3.4')
   external static T create<T extends Struct>([TypedData typedData, int offset]);
 
   /// Creates a view on a [TypedData] or [Pointer].
