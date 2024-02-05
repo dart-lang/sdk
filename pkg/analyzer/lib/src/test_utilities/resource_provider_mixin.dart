@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:path/path.dart' as path;
+import 'package:path/path.dart';
 
 /// A mixin for test classes that adds a memory-backed [ResourceProvider] and
 /// utility methods for manipulating the file system.
@@ -26,7 +27,7 @@ mixin ResourceProviderMixin {
 
   path.Context get pathContext => resourceProvider.pathContext;
 
-  String convertPath(String path) => resourceProvider.convertPath(path);
+  String convertPath(String filePath) => resourceProvider.convertPath(filePath);
 
   void deleteAnalysisOptionsYamlFile(String directoryPath) {
     var path = join(directoryPath, file_paths.analysisOptionsYaml);
@@ -35,7 +36,7 @@ mixin ResourceProviderMixin {
 
   void deleteFile(String path) {
     String convertedPath = convertPath(path);
-    resourceProvider.deleteFile(convertedPath);
+    resourceProvider.getFile(convertedPath).delete();
   }
 
   void deleteFile2(File file) {
@@ -44,7 +45,7 @@ mixin ResourceProviderMixin {
 
   void deleteFolder(String path) {
     String convertedPath = convertPath(path);
-    resourceProvider.deleteFolder(convertedPath);
+    resourceProvider.getFolder(convertedPath).delete();
   }
 
   void deletePackageConfigJsonFile(String directoryPath) {
@@ -83,7 +84,7 @@ mixin ResourceProviderMixin {
 
   void modifyFile(String path, String content) {
     String convertedPath = convertPath(path);
-    resourceProvider.modifyFile(convertedPath, content);
+    resourceProvider.getFile(convertedPath).writeAsStringSync(content);
   }
 
   void modifyFile2(File file, String content) {
@@ -112,18 +113,18 @@ mixin ResourceProviderMixin {
 
   File newFile(String path, String content) {
     String convertedPath = convertPath(path);
-    return resourceProvider.newFile(convertedPath, content);
+    return resourceProvider.getFile(convertedPath)..writeAsStringSync(content);
   }
 
   @Deprecated('Use newFile() instead')
   File newFile2(String path, String content) {
     String convertedPath = convertPath(path);
-    return resourceProvider.newFile(convertedPath, content);
+    return resourceProvider.getFile(content)..writeAsStringSync(convertedPath);
   }
 
   Folder newFolder(String path) {
     String convertedPath = convertPath(path);
-    return resourceProvider.newFolder(convertedPath);
+    return resourceProvider.getFolder(convertedPath)..create();
   }
 
   File newPackageConfigJsonFile(String directoryPath, String content) {
@@ -147,5 +148,20 @@ mixin ResourceProviderMixin {
 
   String toUriStr(String path) {
     return toUri(path).toString();
+  }
+}
+
+extension ResourceProviderExtensions on ResourceProvider {
+  /// Convert the given posix [path] to conform to this provider's path context.
+  ///
+  /// This is a utility method for testing.
+  String convertPath(String filePath) {
+    if (pathContext.style == windows.style) {
+      if (filePath.startsWith(posix.separator)) {
+        filePath = r'C:' + filePath;
+      }
+      filePath = filePath.replaceAll(posix.separator, windows.separator);
+    }
+    return filePath;
   }
 }
