@@ -140,7 +140,7 @@ class BodyInferenceContext {
     }
 
     // Otherwise, let `S` be `R`.
-    return _typeSystem.nonNullifyLegacy(R);
+    return R;
   }
 
   DartType _computeActualReturnedType({

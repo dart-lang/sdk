@@ -282,7 +282,6 @@ class _PropertyInducingElementTypeInference
       return DynamicTypeImpl.instance;
     }
 
-    var typeSystem = _unitElement.library.typeSystem;
-    return typeSystem.nonNullifyLegacy(type);
+    return type;
   }
 }

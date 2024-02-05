@@ -96,7 +96,6 @@ class FunctionExpressionResolver {
         if (_typeSystem.isSubtypeOf(inferredType, _typeSystem.nullNone)) {
           inferredType = _typeSystem.objectQuestion;
         }
-        inferredType = _typeSystem.nonNullifyLegacy(inferredType);
         if (inferredType is! DynamicType) {
           p.type = inferredType;
         }

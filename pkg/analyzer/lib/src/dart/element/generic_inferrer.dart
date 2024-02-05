@@ -305,7 +305,7 @@ class GenericInferrer {
       );
     }
 
-    _nonNullifyTypes(result);
+    _demoteTypes(result);
     return result;
   }
 
@@ -468,6 +468,12 @@ class GenericInferrer {
     return inferredTypes;
   }
 
+  void _demoteTypes(List<DartType> types) {
+    for (var i = 0; i < types.length; i++) {
+      types[i] = _typeSystem.demoteType(types[i]);
+    }
+  }
+
   String _elementStr(Element element) {
     return element.getDisplayString(withNullability: true);
   }
@@ -538,15 +544,6 @@ class GenericInferrer {
           isContravariant: isContravariant);
     }
     return t;
-  }
-
-  void _nonNullifyTypes(List<DartType> types) {
-    for (var i = 0; i < types.length; i++) {
-      types[i] = _typeSystem.nonNullifyLegacy(types[i]);
-    }
-    for (var i = 0; i < types.length; i++) {
-      types[i] = _typeSystem.demoteType(types[i]);
-    }
   }
 
   /// Reports an inference failure on [errorNode] according to its type.
