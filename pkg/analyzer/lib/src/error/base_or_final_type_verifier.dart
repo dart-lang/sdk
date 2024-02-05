@@ -185,7 +185,7 @@ class BaseOrFinalTypeVerifier {
       // The context message links to the explicitly declared 'base' or 'final'
       // super element and is only added onto the error if 'base' or 'final' is
       // an induced modifier of the direct super element.
-      final contextMessage = <DiagnosticMessage>[
+      final contextMessages = <DiagnosticMessage>[
         DiagnosticMessageImpl(
           filePath: baseOrFinalSuperElement.source.fullName,
           length: baseOrFinalSuperElement.nameLength,
@@ -210,7 +210,7 @@ class BaseOrFinalTypeVerifier {
             implementsNamedType,
             errorCode,
             arguments: [baseOrFinalSuperElement.displayName],
-            messages: contextMessage,
+            contextMessages: contextMessages,
           );
           return true;
         }
@@ -245,7 +245,7 @@ class BaseOrFinalTypeVerifier {
               errorCode,
               element,
               [element.displayName, baseOrFinalSuperElement.displayName],
-              superElement.isSealed ? contextMessage : null);
+              superElement.isSealed ? contextMessages : null);
           return true;
         } else if (baseOrFinalSuperElement.isBase) {
           final errorCode = element is MixinElement
@@ -256,7 +256,7 @@ class BaseOrFinalTypeVerifier {
               errorCode,
               element,
               [element.displayName, baseOrFinalSuperElement.displayName],
-              superElement.isSealed ? contextMessage : null);
+              superElement.isSealed ? contextMessages : null);
           return true;
         }
       }

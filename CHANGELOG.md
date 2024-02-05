@@ -23,6 +23,11 @@
 
 ### Libraries
 
+#### `dart:ffi`
+
+- Added `Struct.create` and `Union.create` to create struct and union views
+  of the sequence of bytes stored in a subtype of `TypedData`.
+
 #### `dart:js_interop`
 
 - On dart2wasm, `JSBoxedDartObject` now is an actual JS object that wraps the
@@ -97,6 +102,11 @@
 - In addition to functions, `@Native` can now be used on fields.
 - Allow taking the address of native functions and fields via
   `Native.addressOf`.
+- The `elementAt` pointer arithmetic extension methods on
+  core `Pointer` types are now deprecated.
+  Migrate to the new `-` and `+` operators instead.
+- The experimental and deprecated `@FfiNative` annotation has been removed.
+  Usages should be updated to use the `@Native` annotation.
 
 #### `dart:js_interop`
 
@@ -379,6 +389,8 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 - **Breaking change** [#53311][]: `NativeCallable.nativeFunction` now throws an
   error if is called after the `NativeCallable` has already been `close`d. Calls
   to `close` after the first are now ignored.
+
+[#53311]: https://github.com/dart-lang/sdk/issues/53311
 
 #### `dart:io`
 
@@ -1122,6 +1134,11 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 [`Metric`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metric-class.html
 [`Counter`]: https://api.dart.dev/stable/2.18.2/dart-developer/Counter-class.html
 [`Gauge`]: https://api.dart.dev/stable/2.18.2/dart-developer/Gauge-class.html
+
+#### `dart:ffi`
+
+- The experimental `@FfiNative` annotation is now deprecated.
+  Usages should be replaced with the new `@Native` annotation.
 
 #### `dart:html`
 

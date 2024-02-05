@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 class ClassDeclarationImpl extends macro.ClassDeclarationImpl
@@ -1026,19 +1027,13 @@ class DeclarationBuilderFromNode {
 
     final interfaceNodes = <ast.NamedType>[];
     final mixinNodes = <ast.NamedType>[];
-    for (var current = node;;) {
+    for (var current in node.withAugmentations(declarationBuilder)) {
       if (current.implementsClause case final clause?) {
         interfaceNodes.addAll(clause.interfaces);
       }
       if (current.withClause case final clause?) {
         mixinNodes.addAll(clause.mixinTypes);
       }
-      final nextElement = current.declaredElement?.augmentation;
-      final nextNode = declarationBuilder.nodeOfElement(nextElement);
-      if (nextNode is! ast.ClassDeclarationImpl) {
-        break;
-      }
-      current = nextNode;
     }
 
     var classTypeLocation = ElementTypeLocation(element);
@@ -1081,17 +1076,11 @@ class DeclarationBuilderFromNode {
 
     final interfaceNodes = <ast.NamedType>[];
     final mixinNodes = <ast.NamedType>[];
-    for (var current = node;;) {
+    for (var current in node.withAugmentations(declarationBuilder)) {
       if (current.implementsClause case final clause?) {
         interfaceNodes.addAll(clause.interfaces);
       }
       mixinNodes.addAll(current.withClause.mixinTypes);
-      final nextElement = current.declaredElement?.augmentation;
-      final nextNode = declarationBuilder.nodeOfElement(nextElement);
-      if (nextNode is! ast.ClassTypeAliasImpl) {
-        break;
-      }
-      current = nextNode;
     }
 
     var classTypeLocation = ElementTypeLocation(element);
@@ -1189,22 +1178,15 @@ class DeclarationBuilderFromNode {
   ) {
     final element = node.declaredElement!;
 
-    // TODO(scheglov): this is duplicate
     final interfaceNodes = <ast.NamedType>[];
     final mixinNodes = <ast.NamedType>[];
-    for (var current = node;;) {
+    for (var current in node.withAugmentations(declarationBuilder)) {
       if (current.implementsClause case final clause?) {
         interfaceNodes.addAll(clause.interfaces);
       }
       if (current.withClause case final clause?) {
         mixinNodes.addAll(clause.mixinTypes);
       }
-      final nextElement = current.declaredElement?.augmentation;
-      final nextNode = declarationBuilder.nodeOfElement(nextElement);
-      if (nextNode is! ast.EnumDeclarationImpl) {
-        break;
-      }
-      current = nextNode;
     }
 
     var enumTypeLocation = ElementTypeLocation(element);
@@ -1332,22 +1314,15 @@ class DeclarationBuilderFromNode {
   ) {
     final element = node.declaredElement!;
 
-    // TODO(scheglov): this is duplicate (partial)
     final onNodes = <ast.NamedType>[];
     final interfaceNodes = <ast.NamedType>[];
-    for (var current = node;;) {
+    for (var current in node.withAugmentations(declarationBuilder)) {
       if (current.onClause case final clause?) {
         onNodes.addAll(clause.superclassConstraints);
       }
       if (current.implementsClause case final clause?) {
         interfaceNodes.addAll(clause.interfaces);
       }
-      final nextElement = current.declaredElement?.augmentation;
-      final nextNode = declarationBuilder.nodeOfElement(nextElement);
-      if (nextNode is! ast.MixinDeclarationImpl) {
-        break;
-      }
-      current = nextNode;
     }
 
     var mixinTypeLocation = ElementTypeLocation(element);
@@ -2246,5 +2221,23 @@ extension on Element {
   InstanceElement get enclosingInstanceElement {
     final enclosing = enclosingElement as InstanceElement;
     return enclosing.augmented!.declaration;
+  }
+}
+
+extension<T extends ast.DeclarationImpl> on T {
+  List<T> withAugmentations(DeclarationBuilder builder) {
+    var result = <T>[];
+    for (var current = this;;) {
+      result.add(current);
+      var nextElement = current.declaredElement
+          .ifTypeOrNull<AugmentableElement>()
+          ?.augmentation;
+      var nextNode = builder.nodeOfElement(nextElement);
+      if (nextNode is! T) {
+        break;
+      }
+      current = nextNode;
+    }
+    return result;
   }
 }

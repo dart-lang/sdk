@@ -83,6 +83,10 @@ class PublicMemberApiDocs extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    var package = context.package;
+    if (package != null && !package.canHavePublicApi) {
+      return;
+    }
     if (!isInLibDir(context.currentUnit.unit, context.package)) {
       return;
     }

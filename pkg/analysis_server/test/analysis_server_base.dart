@@ -285,6 +285,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   @override
   void createDefaultFiles() {
     writeTestPackageConfig();
+    writeTestPackagePubspecYamlFile('name: test');
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(

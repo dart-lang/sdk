@@ -4,6 +4,16 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/*macro*/ class MacroWithArguments implements ClassDeclarationsMacro {
+  final Object? a1;
+  final Object? a2;
+
+  const MacroWithArguments(this.a1, this.a2);
+
+  @override
+  buildDeclarationsForClass(declaration, builder) {}
+}
+
 /*macro*/ class ReportAtFirstMethod implements ClassDeclarationsMacro {
   const ReportAtFirstMethod();
 

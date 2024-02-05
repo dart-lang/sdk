@@ -59,6 +59,10 @@ abstract class Workspace {
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a Workspace.
 abstract class WorkspacePackage {
+  /// Return `true` if this package can have public apis, that is, the package
+  /// has marker files like pubspec.yaml or BUILD.
+  bool get canHavePublicApi => true;
+
   /// Return the experiments enabled for all files in the package.
   ///
   /// Return `null` if this package does not have enabled experiments.

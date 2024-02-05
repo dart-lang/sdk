@@ -71,7 +71,7 @@ class ErrorReporter {
     AstNode node,
     ErrorCode errorCode, {
     List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
@@ -79,7 +79,7 @@ class ErrorReporter {
       offset: node.offset,
       length: node.length,
       arguments: arguments,
-      messages: messages,
+      contextMessages: contextMessages,
       data: data,
     );
   }
@@ -91,7 +91,7 @@ class ErrorReporter {
     required int length,
     required ErrorCode errorCode,
     List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     if (lockLevel != 0) {
@@ -99,8 +99,8 @@ class ErrorReporter {
     }
 
     _convertElements(arguments);
-    messages ??= [];
-    messages.addAll(_convertTypeNames(arguments));
+    contextMessages ??= [];
+    contextMessages.addAll(_convertTypeNames(arguments));
     _errorListener.onError(
       AnalysisError.tmp(
         source: _source,
@@ -108,7 +108,7 @@ class ErrorReporter {
         length: length,
         errorCode: errorCode,
         arguments: arguments ?? const [],
-        contextMessages: messages,
+        contextMessages: contextMessages,
         data: data,
       ),
     );
@@ -120,7 +120,7 @@ class ErrorReporter {
     Token token,
     ErrorCode errorCode, {
     List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
@@ -128,7 +128,7 @@ class ErrorReporter {
       offset: token.offset,
       length: token.length,
       arguments: arguments,
-      messages: messages,
+      contextMessages: contextMessages,
       data: data,
     );
   }
@@ -174,14 +174,14 @@ class ErrorReporter {
     ErrorCode errorCode,
     AstNode node, [
     List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
   ]) {
     atNode(
       node,
       errorCode,
       arguments: arguments,
-      messages: messages,
+      contextMessages: contextMessages,
       data: data,
     );
   }
@@ -193,7 +193,7 @@ class ErrorReporter {
     int offset,
     int length, [
     List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
   ]) {
     atOffset(
@@ -201,7 +201,7 @@ class ErrorReporter {
       length: length,
       errorCode: errorCode,
       arguments: arguments,
-      messages: messages,
+      contextMessages: contextMessages,
       data: data,
     );
   }
@@ -220,14 +220,14 @@ class ErrorReporter {
     ErrorCode errorCode,
     Token token, [
     List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
   ]) {
     atToken(
       token,
       errorCode,
       arguments: arguments,
-      messages: messages,
+      contextMessages: contextMessages,
       data: data,
     );
   }

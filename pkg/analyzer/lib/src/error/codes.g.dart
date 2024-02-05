@@ -3037,6 +3037,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the message
+  static const CompileTimeErrorCode MACRO_APPLICATION_ARGUMENT_ERROR =
+      CompileTimeErrorCode(
+    'MACRO_APPLICATION_ARGUMENT_ERROR',
+    "{0}",
+  );
+
+  ///  Parameters:
   ///  0: the name of the introspected declaration
   static const CompileTimeErrorCode
       MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE = CompileTimeErrorCode(

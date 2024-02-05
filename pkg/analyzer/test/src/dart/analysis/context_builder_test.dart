@@ -20,7 +20,6 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
-import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -144,6 +143,24 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     expect(context.sdkRoot, sdkRoot);
   }
 
+  void test_sourceFactory_basicWorkspace() {
+    var projectPath = convertPath('/home/my');
+    newFile('/home/my/pubspec.yaml', '');
+
+    // no package uri resolution information
+    var analysisContext = _createSingleAnalysisContext(projectPath);
+    expect(analysisContext.contextRoot.workspace, isA<BasicWorkspace>());
+
+    expect(
+      analysisContext.uriResolvers,
+      unorderedEquals([
+        isA<DartUriResolver>(),
+        isA<PackageMapUriResolver>(),
+        isA<ResourceUriResolver>(),
+      ]),
+    );
+  }
+
   void test_sourceFactory_blazeWorkspace() {
     var projectPath = convertPath('/workspace/my/module');
     newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
@@ -159,23 +176,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
         isA<DartUriResolver>(),
         isA<BlazePackageUriResolver>(),
         isA<BlazeFileUriResolver>(),
-      ]),
-    );
-  }
-
-  void test_sourceFactory_pubWorkspace() {
-    var projectPath = convertPath('/home/my');
-    newFile('/home/my/pubspec.yaml', '');
-
-    var analysisContext = _createSingleAnalysisContext(projectPath);
-    expect(analysisContext.contextRoot.workspace, isA<PubWorkspace>());
-
-    expect(
-      analysisContext.uriResolvers,
-      unorderedEquals([
-        isA<DartUriResolver>(),
-        isA<PackageMapUriResolver>(),
-        isA<ResourceUriResolver>(),
       ]),
     );
   }

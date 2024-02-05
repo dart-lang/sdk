@@ -271,31 +271,23 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
   test_basicWorkspace() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
     newFile('$testPackageRootPath/lib/a.dart', '');
 
     _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
+  /home
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
-        uri: package:test/a.dart
         workspacePackage_0_0
 workspaces
   workspace_0: BasicWorkspace
-    root: /home/test
+    root: /home
     workspacePackage_0_0
 ''');
   }
 
-  test_pubWorkspace_multipleAnalysisOptions() async {
+  test_packageConfigWorkspace_multipleAnalysisOptions() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
     final testPackageLibPath = '$testPackageRootPath/lib';
@@ -334,15 +326,15 @@ analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
   analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
 ''');
   }
 
-  test_pubWorkspace_multipleAnalysisOptions_overridingOptions() async {
+  test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
     final testPackageLibPath = '$testPackageRootPath/lib';
@@ -385,15 +377,15 @@ contexts
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
 ''');
   }
 
-  test_pubWorkspace_multipleAnalysisOptions_overridingOptions_outsideWorspaceRoot() async {
+  test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions_outsideWorspaceRoot() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
     final testPackageLibPath = '$testPackageRootPath/lib';
@@ -438,15 +430,15 @@ contexts
 analysisOptions
   analysisOptions_0: /outside/analysis_options.yaml
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
 ''');
   }
 
-  test_pubWorkspace_multiplePackageConfigs() async {
+  test_packageConfigWorkspace_multiplePackageConfigs() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
     final testPackageLibPath = '$testPackageRootPath/lib';
@@ -489,20 +481,20 @@ contexts
         uri: package:nested/b.dart
         workspacePackage_1_0
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
-  workspace_1: PubWorkspace
+  workspace_1: PackageConfigWorkspace
     root: /home/test/nested
     pubPackages
-      workspacePackage_1_0: PubWorkspacePackage
+      workspacePackage_1_0: PubPackage
         root: /home/test/nested
 ''');
   }
 
-  test_pubWorkspace_sdkVersionConstraint() async {
+  test_packageConfigWorkspace_sdkVersionConstraint() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
 
@@ -528,16 +520,16 @@ contexts
         uri: package:test/a.dart
         workspacePackage_0_0
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
         sdkVersionConstraint: ^3.0.0
 ''');
   }
 
-  test_pubWorkspace_singleAnalysisOptions() async {
+  test_packageConfigWorkspace_singleAnalysisOptions() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
     final testPackageLibPath = '$testPackageRootPath/lib';
@@ -568,15 +560,15 @@ contexts
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
 ''');
   }
 
-  test_pubWorkspace_singleAnalysisOptions_multipleContexts() async {
+  test_packageConfigWorkspace_singleAnalysisOptions_multipleContexts() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
     final testPackageLibPath = '$testPackageRootPath/lib';
@@ -625,15 +617,15 @@ contexts
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
-  workspace_1: PubWorkspace
+  workspace_1: PackageConfigWorkspace
     root: /home/test/nested
     pubPackages
-      workspacePackage_1_0: PubWorkspacePackage
+      workspacePackage_1_0: PubPackage
         root: /home/test/nested
 ''');
   }
@@ -694,7 +686,7 @@ class AnalysisContextCollectionTest_SingleOptionsPerContext
   bool get enableSingleOptionContexts => true;
 
   @override
-  test_pubWorkspace_multipleAnalysisOptions() async {
+  test_packageConfigWorkspace_multipleAnalysisOptions() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
     final testPackageLibPath = '$testPackageRootPath/lib';
@@ -737,21 +729,21 @@ analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
   analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
-  workspace_1: PubWorkspace
+  workspace_1: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_1_0: PubWorkspacePackage
+      workspacePackage_1_0: PubPackage
         root: /home/test
 ''');
   }
 
   @override
-  test_pubWorkspace_multipleAnalysisOptions_overridingOptions() async {
+  test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
     final testPackageLibPath = '$testPackageRootPath/lib';
@@ -794,16 +786,16 @@ contexts
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
 ''');
   }
 
   @override
-  test_pubWorkspace_singleAnalysisOptions_multipleContexts() async {
+  test_packageConfigWorkspace_singleAnalysisOptions_multipleContexts() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
     final testPackageLibPath = '$testPackageRootPath/lib';
@@ -854,15 +846,15 @@ analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
   analysisOptions_1: /home/test/analysis_options.yaml
 workspaces
-  workspace_0: PubWorkspace
+  workspace_0: PackageConfigWorkspace
     root: /home/test
     pubPackages
-      workspacePackage_0_0: PubWorkspacePackage
+      workspacePackage_0_0: PubPackage
         root: /home/test
-  workspace_1: PubWorkspace
+  workspace_1: PackageConfigWorkspace
     root: /home/test/nested
     pubPackages
-      workspacePackage_1_0: PubWorkspacePackage
+      workspacePackage_1_0: PubPackage
         root: /home/test/nested
 ''');
   }
@@ -979,7 +971,11 @@ class _AnalysisContextCollectionPrinter {
     sink.writelnWithIndent(file.posixPath);
     sink.withIndent(() {
       final fileState = fsState.getFileForPath(file.path);
-      sink.writelnWithIndent('uri: ${fileState.uri}');
+      var uri = fileState.uri;
+      // If file uri, don't print it out, causes test failure on Windows.
+      if (uri.scheme != 'file') {
+        sink.writelnWithIndent('uri: $uri');
+      }
 
       final analysisOptions = fileState.analysisOptions;
       if (analysisOptions.file != null) {
@@ -1013,14 +1009,14 @@ class _AnalysisContextCollectionPrinter {
             _idOfWorkspacePackage(workspace.theOnlyPackage),
           );
         });
-      case PubWorkspace():
-        sink.writelnWithIndent('$id: PubWorkspace');
+      case PackageConfigWorkspace():
+        sink.writelnWithIndent('$id: PackageConfigWorkspace');
         sink.withIndent(() {
           final root = resourceProvider.getFolder(workspace.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
           sink.writeElements(
             'pubPackages',
-            workspace.pubPackages.toList(),
+            workspace.allPackages.toList(),
             _writeWorkspacePackage,
           );
         });
@@ -1039,8 +1035,8 @@ class _AnalysisContextCollectionPrinter {
           final root = resourceProvider.getFolder(package.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
         });
-      case PubWorkspacePackage():
-        sink.writelnWithIndent('$id: PubWorkspacePackage');
+      case PubPackage():
+        sink.writelnWithIndent('$id: PubPackage');
         sink.withIndent(() {
           final root = resourceProvider.getFolder(package.root);
           sink.writelnWithIndent('root: ${root.posixPath}');

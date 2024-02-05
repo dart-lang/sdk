@@ -3132,7 +3132,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.name,
         CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
         arguments: [node.name.lexeme, memberName],
-        messages: contextMessages,
+        contextMessages: contextMessages,
       );
     }
 
@@ -6217,8 +6217,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (final diagnostic in element.macroDiagnostics) {
       switch (diagnostic) {
         case ArgumentMacroDiagnostic():
-          // TODO(scheglov): implement
-          throw UnimplementedError();
+          var annotation = metadata[diagnostic.annotationIndex];
+          var arguments = annotation.arguments!.arguments;
+          errorReporter.atNode(
+            arguments[diagnostic.argumentIndex],
+            CompileTimeErrorCode.MACRO_APPLICATION_ARGUMENT_ERROR,
+            arguments: [diagnostic.message],
+          );
         case DeclarationsIntrospectionCycleDiagnostic():
           var messages = diagnostic.components.map<DiagnosticMessage>(
             (component) {
@@ -6244,7 +6249,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             ),
             CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
             arguments: [diagnostic.introspectedElement.name!],
-            messages: messages,
+            contextMessages: messages,
           );
         case ExceptionMacroDiagnostic():
           // TODO(scheglov): implement
@@ -6262,7 +6267,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 metadata[target.annotationIndex],
                 errorCode,
                 arguments: [diagnostic.message.message],
-                messages:
+                contextMessages:
                     diagnostic.contextMessages.map(convertMessage).toList(),
               );
             case ElementMacroDiagnosticTarget():
@@ -6281,7 +6286,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                   errorEntity,
                   errorCode,
                   arguments: [diagnostic.message.message],
-                  messages:
+                  contextMessages:
                       diagnostic.contextMessages.map(convertMessage).toList(),
                 );
               } else if (unitAnalysis != null && errorEntity is Token) {
@@ -6289,7 +6294,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                   errorEntity,
                   errorCode,
                   arguments: [diagnostic.message.message],
-                  messages:
+                  contextMessages:
                       diagnostic.contextMessages.map(convertMessage).toList(),
                 );
               }

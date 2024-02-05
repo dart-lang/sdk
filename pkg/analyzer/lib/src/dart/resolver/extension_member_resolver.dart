@@ -234,7 +234,7 @@ class ExtensionMemberResolver {
         receiverExpression,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         arguments: [receiverType, extendedType],
-        messages: _resolver.computeWhyNotPromotedMessages(
+        contextMessages: _resolver.computeWhyNotPromotedMessages(
             receiverExpression, whyNotPromoted?.call()),
       );
     }

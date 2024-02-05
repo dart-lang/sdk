@@ -378,7 +378,7 @@ class TypeArgumentsVerifier {
             issue.parameter.name,
             issue.parameterBound
           ],
-          messages: buildContextMessages(),
+          contextMessages: buildContextMessages(),
         );
       }
       return;
@@ -417,7 +417,7 @@ class TypeArgumentsVerifier {
           _typeArgumentErrorNode(namedType, i),
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           arguments: [typeArgument, typeParameter.name, bound],
-          messages: buildContextMessages(
+          contextMessages: buildContextMessages(
             invertedTypeArguments: invertedTypeArguments,
           ),
         );

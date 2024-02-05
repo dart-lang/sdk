@@ -597,6 +597,8 @@ class ProtocolConverter {
     final uriIsDart = uri?.isScheme('dart') ?? false;
     final uriIsPackage = uri?.isScheme('package') ?? false;
     final sourcePath = uri != null ? await thread.resolveUriToPath(uri) : null;
+    // TODO(dantup): This exists check will not work for macro-generated
+    //  content.
     var canShowSource = sourcePath != null && File(sourcePath).existsSync();
 
     // If we don't have a local source file but the source is a "dart:" uri we
@@ -604,6 +606,10 @@ class ProtocolConverter {
     int? sourceReference;
     if (!canShowSource &&
         uri != null &&
+        // TODO(dantup): Review whether we need this condition. It was copied
+        //  from the original debugger impl. It's not clear it's required and
+        //  may need updating if new schemes are added that should be
+        //  downloaded from the VM.
         (uri.isScheme('dart') || uri.isScheme('org-dartlang-app')) &&
         scriptRef != null) {
       // Try to download it (to avoid showing "source not available" errors if

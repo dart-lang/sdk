@@ -1349,11 +1349,22 @@ class DefaultSuperFormalParameterElementImpl
 
   DartObject? get _superConstructorParameterDefaultValue {
     var superDefault = superConstructorParameter?.computeConstantValue();
-    var superDefaultType = superDefault?.type;
-    var libraryElement = library;
-    if (superDefaultType != null &&
-        libraryElement != null &&
-        libraryElement.typeSystem.isSubtypeOf(superDefaultType, type)) {
+    if (superDefault == null) {
+      return null;
+    }
+
+    var superDefaultType = superDefault.type;
+    if (superDefaultType == null) {
+      return null;
+    }
+
+    var typeSystem = library?.typeSystem;
+    if (typeSystem == null) {
+      return null;
+    }
+
+    var requiredType = type.extensionTypeErasure;
+    if (typeSystem.isSubtypeOf(superDefaultType, requiredType)) {
       return superDefault;
     }
 

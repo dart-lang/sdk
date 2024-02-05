@@ -49,14 +49,14 @@ class NullableDereferenceVerifier {
         errorEntity,
         errorCode,
         arguments: arguments,
-        messages: messages,
+        contextMessages: messages,
       );
     } else if (errorEntity is Token) {
       _errorReporter.atToken(
         errorEntity,
         errorCode,
         arguments: arguments,
-        messages: messages,
+        contextMessages: messages,
       );
     } else {
       throw StateError('Syntactic entity must be AstNode or Token to report.');
