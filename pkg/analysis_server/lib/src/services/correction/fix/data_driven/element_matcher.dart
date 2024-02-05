@@ -6,7 +6,12 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ExtensionElement, InterfaceElement, PrefixElement;
+    show
+        CompilationUnitElement,
+        ExtensionElement,
+        InterfaceElement,
+        PrefixElement,
+        PropertyAccessorElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 
@@ -528,6 +533,18 @@ class _MatcherBuilder {
       if (node.staticType is InvalidType) {
         _addMatcher(components: [node.name], kinds: [], node: node);
       } else {
+        var staticElement = node.staticElement;
+        // Add enclosing element to the matcher for non top level property
+        // accessors when possible.
+        if (staticElement is PropertyAccessorElement) {
+          var enclosingElement = staticElement.enclosingElement;
+          if (enclosingElement is! CompilationUnitElement) {
+            _addMatcher(
+                components: [node.name, enclosingElement.displayName],
+                kinds: []);
+            return;
+          }
+        }
         _addMatcher(components: [node.name], kinds: []);
       }
     }

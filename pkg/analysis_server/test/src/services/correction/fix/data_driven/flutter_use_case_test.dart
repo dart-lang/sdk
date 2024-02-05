@@ -1875,7 +1875,6 @@ void f(TextTheme theme) {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/Dart-Code/Dart-Code/issues/4857')
   Future<void> test_material_TextTheme_title_renamed() async {
     setPackageContent('''
 class Text() {
