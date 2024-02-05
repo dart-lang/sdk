@@ -23,6 +23,19 @@ enum ImportElementPrefixKind {
   isNull,
 }
 
+enum MacroDiagnosticKind {
+  argument,
+  introspectionCycle,
+  exception,
+  macro,
+}
+
+enum MacroDiagnosticTargetKind {
+  application,
+  element,
+  type,
+}
+
 class Tag {
   static const int Nothing = 0;
   static const int Something = 1;

@@ -2018,6 +2018,11 @@ class ResolutionReader {
     return _reader.readTypedListCast<T>(readElement);
   }
 
+  T readEnum<T extends Enum>(List<T> values) {
+    var index = readByte();
+    return values[index];
+  }
+
   List<AnalyzerMacroDiagnostic> readMacroDiagnostics() {
     return readTypedList(_readMacroDiagnostic);
   }
@@ -2331,14 +2336,15 @@ class ResolutionReader {
   }
 
   AnalyzerMacroDiagnostic _readMacroDiagnostic() {
-    switch (readByte()) {
-      case 0x00:
+    var kind = readEnum(MacroDiagnosticKind.values);
+    switch (kind) {
+      case MacroDiagnosticKind.argument:
         return ArgumentMacroDiagnostic(
           annotationIndex: readUInt30(),
           argumentIndex: readUInt30(),
           message: _reader.readStringUtf8(),
         );
-      case 0x01:
+      case MacroDiagnosticKind.introspectionCycle:
         return DeclarationsIntrospectionCycleDiagnostic(
           annotationIndex: readUInt30(),
           introspectedElement: readElement() as ElementImpl,
@@ -2350,20 +2356,18 @@ class ResolutionReader {
             );
           }),
         );
-      case 0x02:
+      case MacroDiagnosticKind.exception:
         return ExceptionMacroDiagnostic(
           annotationIndex: readUInt30(),
           message: _reader.readStringUtf8(),
           stackTrace: _reader.readStringUtf8(),
         );
-      case 0x03:
+      case MacroDiagnosticKind.macro:
         return MacroDiagnostic(
-          severity: macro.Severity.values[readByte()],
+          severity: readEnum(macro.Severity.values),
           message: _readMacroDiagnosticMessage(),
           contextMessages: readTypedList(_readMacroDiagnosticMessage),
         );
-      case final int tag:
-        throw UnimplementedError('tag: $tag');
     }
   }
 
@@ -2371,8 +2375,7 @@ class ResolutionReader {
     final message = _reader.readStringUtf8();
 
     TypeAnnotationLocation readTypeAnnotationLocation() {
-      var tag = readByte();
-      var kind = TypeAnnotationLocationKind.values[tag];
+      var kind = readEnum(TypeAnnotationLocationKind.values);
       switch (kind) {
         case TypeAnnotationLocationKind.element:
           var element = readElement()!;
@@ -2412,21 +2415,20 @@ class ResolutionReader {
     }
 
     MacroDiagnosticTarget target;
-    switch (readByte()) {
-      case 0x00:
+    var targetKind = readEnum(MacroDiagnosticTargetKind.values);
+    switch (targetKind) {
+      case MacroDiagnosticTargetKind.application:
         target = ApplicationMacroDiagnosticTarget(
           annotationIndex: readUInt30(),
         );
-      case 0x01:
+      case MacroDiagnosticTargetKind.element:
         final element = readElement();
         target = ElementMacroDiagnosticTarget(
           element: element as ElementImpl,
         );
-      case 0x02:
+      case MacroDiagnosticTargetKind.type:
         var location = readTypeAnnotationLocation();
         target = TypeAnnotationMacroDiagnosticTarget(location: location);
-      case final int tag:
-        throw UnimplementedError('tag: $tag');
     }
 
     return MacroDiagnosticMessage(

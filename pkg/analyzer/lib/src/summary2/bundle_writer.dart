@@ -770,6 +770,10 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
+  void writeEnum(Enum e) {
+    writeByte(e.index);
+  }
+
   void writeMacroDiagnostics(List<AnalyzerMacroDiagnostic> elements) {
     writeList(elements, _writeMacroDiagnostic);
   }
@@ -950,12 +954,12 @@ class ResolutionSink extends _SummaryDataWriter {
   void _writeMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {
     switch (diagnostic) {
       case ArgumentMacroDiagnostic():
-        writeByte(0x00);
+        writeEnum(MacroDiagnosticKind.argument);
         writeUInt30(diagnostic.annotationIndex);
         writeUInt30(diagnostic.argumentIndex);
         writeStringUtf8(diagnostic.message);
       case DeclarationsIntrospectionCycleDiagnostic():
-        writeByte(0x01);
+        writeEnum(MacroDiagnosticKind.introspectionCycle);
         writeUInt30(diagnostic.annotationIndex);
         writeElement(diagnostic.introspectedElement);
         writeList(diagnostic.components, (component) {
@@ -964,13 +968,13 @@ class ResolutionSink extends _SummaryDataWriter {
           writeElement(component.introspectedElement);
         });
       case ExceptionMacroDiagnostic():
-        writeByte(0x02);
+        writeEnum(MacroDiagnosticKind.exception);
         writeUInt30(diagnostic.annotationIndex);
         writeStringUtf8(diagnostic.message);
         writeStringUtf8(diagnostic.stackTrace);
       case MacroDiagnostic():
-        writeByte(0x03);
-        writeByte(diagnostic.severity.index);
+        writeEnum(MacroDiagnosticKind.macro);
+        writeEnum(diagnostic.severity);
         _writeMacroDiagnosticMessage(diagnostic.message);
         writeList(
           diagnostic.contextMessages,
@@ -985,32 +989,32 @@ class ResolutionSink extends _SummaryDataWriter {
     void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
       switch (location) {
         case ElementTypeLocation():
-          writeByte(TypeAnnotationLocationKind.element.index);
+          writeEnum(TypeAnnotationLocationKind.element);
           writeElement(location.element);
         case ExtendsClauseTypeLocation():
-          writeByte(TypeAnnotationLocationKind.extendsClause.index);
+          writeEnum(TypeAnnotationLocationKind.extendsClause);
           writeTypeAnnotationLocation(location.parent);
         case FormalParameterTypeLocation():
-          writeByte(TypeAnnotationLocationKind.formalParameter.index);
+          writeEnum(TypeAnnotationLocationKind.formalParameter);
           writeTypeAnnotationLocation(location.parent);
           writeUInt30(location.index);
         case ListIndexTypeLocation():
-          writeByte(TypeAnnotationLocationKind.listIndex.index);
+          writeEnum(TypeAnnotationLocationKind.listIndex);
           writeTypeAnnotationLocation(location.parent);
           writeUInt30(location.index);
         case RecordNamedFieldTypeLocation():
-          writeByte(TypeAnnotationLocationKind.recordNamedField.index);
+          writeEnum(TypeAnnotationLocationKind.recordNamedField);
           writeTypeAnnotationLocation(location.parent);
           writeUInt30(location.index);
         case RecordPositionalFieldTypeLocation():
-          writeByte(TypeAnnotationLocationKind.recordPositionalField.index);
+          writeEnum(TypeAnnotationLocationKind.recordPositionalField);
           writeTypeAnnotationLocation(location.parent);
           writeUInt30(location.index);
         case ReturnTypeLocation():
-          writeByte(TypeAnnotationLocationKind.returnType.index);
+          writeEnum(TypeAnnotationLocationKind.returnType);
           writeTypeAnnotationLocation(location.parent);
         case VariableTypeLocation():
-          writeByte(TypeAnnotationLocationKind.variableType.index);
+          writeEnum(TypeAnnotationLocationKind.variableType);
           writeTypeAnnotationLocation(location.parent);
         default:
           // TODO(scheglov): Handle this case.
@@ -1021,13 +1025,13 @@ class ResolutionSink extends _SummaryDataWriter {
     final target = object.target;
     switch (target) {
       case ApplicationMacroDiagnosticTarget():
-        writeByte(0x00);
+        writeEnum(MacroDiagnosticTargetKind.application);
         writeUInt30(target.annotationIndex);
       case ElementMacroDiagnosticTarget():
-        writeByte(0x01);
+        writeEnum(MacroDiagnosticTargetKind.element);
         writeElement(target.element);
       case TypeAnnotationMacroDiagnosticTarget():
-        writeByte(0x02);
+        writeEnum(MacroDiagnosticTargetKind.type);
         writeTypeAnnotationLocation(target.location);
     }
   }
