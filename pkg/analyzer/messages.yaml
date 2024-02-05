@@ -9532,6 +9532,11 @@ CompileTimeErrorCode:
       ```dart
       List<num> x = [1, 2.5, 3];
       ```
+  MACRO_APPLICATION_ARGUMENT_ERROR:
+    problemMessage: "{0}"
+    comment: |-
+      Parameters:
+      0: the message
   MACRO_ERROR:
     problemMessage: "{0}"
     comment: |-

@@ -6217,8 +6217,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (final diagnostic in element.macroDiagnostics) {
       switch (diagnostic) {
         case ArgumentMacroDiagnostic():
-          // TODO(scheglov): implement
-          throw UnimplementedError();
+          var annotation = metadata[diagnostic.annotationIndex];
+          var arguments = annotation.arguments!.arguments;
+          errorReporter.atNode(
+            arguments[diagnostic.argumentIndex],
+            CompileTimeErrorCode.MACRO_APPLICATION_ARGUMENT_ERROR,
+            arguments: [diagnostic.message],
+          );
         case DeclarationsIntrospectionCycleDiagnostic():
           var messages = diagnostic.components.map<DiagnosticMessage>(
             (component) {

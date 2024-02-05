@@ -291,6 +291,17 @@ class A {
     ]);
   }
 
+  test_diagnostic_report_argumentError_instanceCreation() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@MacroWithArguments(0, const Object())
+class A {}
+''', [
+      error(CompileTimeErrorCode.MACRO_APPLICATION_ARGUMENT_ERROR, 50, 14),
+    ]);
+  }
+
   test_diagnostic_report_atDeclaration_class_error() async {
     await assertErrorsInCode('''
 import 'diagnostic.dart';
