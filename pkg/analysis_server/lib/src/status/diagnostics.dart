@@ -734,7 +734,11 @@ class ContextsPage extends DiagnosticPageWithNav {
         writeOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)));
 
     h3('Analysis options');
-    ul(driver.analysisOptionsMap.entries, (OptionsMapEntry entry) {
+
+    // Display analysis options entries inside this context root.
+    var optionsInContextRoot = driver.analysisOptionsMap.entries.where(
+        (OptionsMapEntry entry) => contextPath!.startsWith(entry.folder.path));
+    ul(optionsInContextRoot, (OptionsMapEntry entry) {
       var folder = entry.folder;
       buf.write(escape(folder.path));
       var optionsPath = path.join(folder.path, 'analysis_options.yaml');
