@@ -472,6 +472,11 @@ class Library extends NamedNode
   Iterable<Member> get members =>
       <Iterable<Member>>[fields, procedures].expand((x) => x);
 
+  void forEachMember(void action(Member element)) {
+    fields.forEach(action);
+    procedures.forEach(action);
+  }
+
   @override
   void addAnnotation(Expression node) {
     node.parent = this;
@@ -1416,6 +1421,12 @@ class Class extends NamedNode implements TypeDeclaration {
         constructors,
         procedures,
       ].expand((x) => x);
+
+  void forEachMember(void action(Member element)) {
+    fields.forEach(action);
+    constructors.forEach(action);
+    procedures.forEach(action);
+  }
 
   /// The immediately extended, mixed-in, and implemented types.
   ///
