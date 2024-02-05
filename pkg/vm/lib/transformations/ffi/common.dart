@@ -137,6 +137,14 @@ const List<NativeType> unalignedLoadsStores = [
   NativeType.kDouble,
 ];
 
+enum FfiTypeCheckDirection {
+  // Passing a value from native code to Dart code.
+  nativeToDart,
+
+  // Passing a value from Dart code to native code.
+  dartToNative,
+}
+
 /// [FfiTransformer] contains logic which is shared between
 /// _FfiUseSiteTransformer and _FfiDefinitionTransformer.
 class FfiTransformer extends Transformer {
@@ -1396,7 +1404,8 @@ class FfiTransformer extends Transformer {
     }
   }
 
-  void ensureNativeTypeToDartType(
+  DartType ensureNativeTypeMatch(
+    FfiTypeCheckDirection direction,
     DartType nativeType,
     DartType dartType,
     TreeNode reportErrorOn, {
@@ -1411,23 +1420,31 @@ class FfiTransformer extends Transformer {
       allowInlineArray: allowArray,
       allowVoid: allowVoid,
     )!;
-    if (dartType == correspondingDartType) return;
-    if (env.isSubtypeOf(correspondingDartType, dartType,
-        SubtypeCheckMode.ignoringNullabilities)) {
-      // If subtype, manually check the return type is not void.
-      if (correspondingDartType is FunctionType) {
-        if (dartType is FunctionType) {
-          if ((dartType.returnType is VoidType) ==
-              (correspondingDartType.returnType is VoidType)) {
-            return;
+    if (dartType == correspondingDartType) return correspondingDartType;
+    switch (direction) {
+      case FfiTypeCheckDirection.nativeToDart:
+        if (env.isSubtypeOf(correspondingDartType, dartType,
+            SubtypeCheckMode.ignoringNullabilities)) {
+          // If subtype, manually check the return type is not void.
+          if (correspondingDartType is FunctionType) {
+            if (dartType is FunctionType) {
+              if ((dartType.returnType is VoidType) ==
+                  (correspondingDartType.returnType is VoidType)) {
+                return correspondingDartType;
+              }
+              // One of the return types is void, the other isn't, report error.
+            } else {
+              // One is a function type, the other isn't, report error.
+            }
+          } else {
+            return correspondingDartType;
           }
-          // One of the return types is void, the other isn't, report error.
-        } else {
-          // One is a function type, the other isn't, report error.
         }
-      } else {
-        return;
-      }
+      case FfiTypeCheckDirection.dartToNative:
+        if (env.isSubtypeOf(dartType, correspondingDartType,
+            SubtypeCheckMode.ignoringNullabilities)) {
+          return correspondingDartType;
+        }
     }
     diagnosticReporter.report(
         templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,

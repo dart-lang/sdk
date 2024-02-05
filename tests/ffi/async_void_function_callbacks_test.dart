@@ -189,11 +189,10 @@ testNativeCallableKeepAliveGetter() {
 Future<void> testNativeCallableClosure() async {
   final lib = NativeLibrary();
   int c = 70000;
-  void foo(int a, int b) {
-    simpleFunctionResult.complete(a + b + c);
-  }
 
-  final callback = NativeCallable<CallbackNativeType>.listener(foo);
+  final callback = NativeCallable<CallbackNativeType>.listener((int a, int b) {
+    simpleFunctionResult.complete(a + b + c);
+  });
 
   simpleFunctionResult = Completer<int>();
   lib.callFunctionOnSameThread(1000, callback.nativeFunction);

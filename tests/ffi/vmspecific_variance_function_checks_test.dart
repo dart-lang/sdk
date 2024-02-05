@@ -14,6 +14,7 @@ import 'dylib_utils.dart';
 
 typedef Int64PointerParamOpDart = void Function(Pointer<Int64>);
 typedef Int64PointerParamOp = Void Function(Pointer<Int64>);
+typedef NaTyPointerParamOp = Void Function(Pointer<NativeType>);
 typedef Int64PointerReturnOp = Pointer<Int64> Function();
 typedef NaTyPointerReturnOp = Pointer<NativeType> Function();
 
@@ -48,20 +49,19 @@ final f3 = p3 //# 10:  compile-time error
 // Test check on callbacks from native to Dart (fromFunction).
 // ===========================================================
 
-void naTyPointerParamOp(Pointer<NativeType> p) {
-  final Pointer<Int8> asInt8 = p.cast();
-  asInt8.value = 42;
+void int64PointerParamOp(Pointer<Int64> p) {
+  p.value = 42;
 }
 
-Pointer<Int64> int64PointerReturnOp() {
+Pointer<NativeType> naTyPointerReturnOp() {
   return Pointer.fromAddress(0x13370000);
 }
 
 final implicitDowncast1 = //# 3:  compile-time error
-    Pointer.fromFunction<Int64PointerParamOp>(//# 3:  continued
+    Pointer.fromFunction<NaTyPointerParamOp>(//# 3:  continued
         naTyPointerParamOp); //# 3:  continued
 final implicitDowncast2 = //# 4:  compile-time error
-    Pointer.fromFunction<NaTyPointerReturnOp>(//# 4:  continued
-        int64PointerReturnOp); //# 4:  continued
+    Pointer.fromFunction<Int64PointerReturnOp>(//# 4:  continued
+        naTyPointerReturnOp); //# 4:  continued
 
 void main() {}

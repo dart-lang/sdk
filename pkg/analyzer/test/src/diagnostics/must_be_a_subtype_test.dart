@@ -63,6 +63,17 @@ void g() {
 ''');
   }
 
+  test_fromFunction_valid_voidReturnPermissive() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+typedef T = Void Function(Int8);
+int f(int i) => i * 2;
+void g() {
+  Pointer.fromFunction<T>(f);
+}
+''');
+  }
+
   test_lookupFunction_F() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
