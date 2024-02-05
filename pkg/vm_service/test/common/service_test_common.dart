@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:typed_data';
 
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -241,6 +241,19 @@ IsolateTest stoppedAtLine(int line) {
           ' $f [${script.getLineNumberFromTokenPos(f.location!.tokenPos!)}]\n',
         );
       }
+      if (stack.asyncCausalFrames != null) {
+        final asyncFrames = stack.asyncCausalFrames!;
+        sb.write('\nFull async stack trace:\n');
+        for (Frame f in asyncFrames) {
+          sb.write(' $f');
+          if (f.location != null) {
+            sb.write(
+              ' [${script.getLineNumberFromTokenPos(f.location!.tokenPos!)}]',
+            );
+          }
+          sb.writeln();
+        }
+      }
       throw sb.toString();
     } else {
       print('Program is stopped at line: $line');
@@ -378,7 +391,7 @@ Future<String> _locationToString(
   final location = frame.location!;
   final Script script =
       await service.getObject(isolateRef.id!, location.script!.id!) as Script;
-  final scriptName = basename(script.uri!);
+  final scriptName = p.basename(script.uri!);
   final tokenPos = location.tokenPos!;
   final line = script.getLineNumberFromTokenPos(tokenPos);
   final column = script.getColumnNumberFromTokenPos(tokenPos);
@@ -709,4 +722,30 @@ IsolateTest stoppedInFunction(String functionName) {
       print('Program is stopped in function: $functionName');
     }
   };
+}
+
+Future<void> expectFrame(
+  VmService service,
+  IsolateRef isolate,
+  Frame frame, {
+  String kind = 'Regular',
+  String? functionName,
+  int? line,
+}) async {
+  expect(frame.kind, equals(kind));
+  if (functionName != null) {
+    expect(frame.function?.name, equals(functionName));
+  }
+  if (line != null) {
+    expect(frame.location, isNotNull);
+
+    final script = await service.getObject(
+      isolate.id!,
+      frame.location!.script!.id!,
+    ) as Script;
+    expect(
+      script.getLineNumberFromTokenPos(frame.location!.tokenPos!),
+      equals(line),
+    );
+  }
 }

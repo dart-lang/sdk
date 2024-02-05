@@ -68,8 +68,12 @@ class AsyncAwareStackUnwinder : public ValueObject {
         async_lib_(Library::Handle(zone_, Library::AsyncLibrary())),
         null_closure_(Closure::Handle(zone_)) {}
 
-  bool Unwind(intptr_t skip_frames,
+  void Unwind(intptr_t skip_frames,
               std::function<void(const StackTraceUtils::Frame&)> handle_frame);
+
+  bool encountered_async_catch_error() const {
+    return encountered_async_catch_error_;
+  }
 
  private:
   bool HandleSynchronousFrame();
@@ -168,7 +172,6 @@ class AsyncAwareStackUnwinder : public ValueObject {
   struct AwaiterFrame {
     Closure& closure;
     Object& next;
-    bool has_catch_error;
   };
 
   Zone* zone_;
@@ -176,6 +179,8 @@ class AsyncAwareStackUnwinder : public ValueObject {
 
   StackFrame* sync_frame_;
   AwaiterFrame awaiter_frame_;
+
+  bool encountered_async_catch_error_ = false;
 
   Closure& closure_;
   Code& code_;
@@ -198,7 +203,7 @@ class AsyncAwareStackUnwinder : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(AsyncAwareStackUnwinder);
 };
 
-bool AsyncAwareStackUnwinder::Unwind(
+void AsyncAwareStackUnwinder::Unwind(
     intptr_t skip_frames,
     std::function<void(const StackTraceUtils::Frame&)> handle_frame) {
   // First skip the given number of synchronous frames.
@@ -215,10 +220,14 @@ bool AsyncAwareStackUnwinder::Unwind(
     if (!was_handled) {
       code_ = sync_frame_->LookupDartCode();
       const uword pc_offset = sync_frame_->pc() - code_.PayloadStart();
-      handle_frame({sync_frame_, code_, pc_offset, null_closure_, false});
+      handle_frame({sync_frame_, code_, pc_offset, null_closure_});
     }
     sync_frame_ = sync_frames_.NextFrame();
   }
+
+  const StackTraceUtils::Frame gap_frame = {nullptr,
+                                            StubCode::AsynchronousGapMarker(),
+                                            /*pc_offset=*/0, null_closure_};
 
   // Traverse awaiter frames.
   bool any_async = false;
@@ -229,6 +238,7 @@ bool AsyncAwareStackUnwinder::Unwind(
     }
 
     any_async = true;
+    uword pc_offset;
     if (awaiter_frame_.next.IsSuspendState()) {
       const uword pc = SuspendState::Cast(awaiter_frame_.next).pc();
       if (pc == 0) {
@@ -237,23 +247,25 @@ bool AsyncAwareStackUnwinder::Unwind(
       }
 
       code_ = SuspendState::Cast(awaiter_frame_.next).GetCodeObject();
-      const uword pc_offset = pc - code_.PayloadStart();
-      handle_frame({nullptr, code_, pc_offset, awaiter_frame_.closure,
-                    awaiter_frame_.has_catch_error});
+      pc_offset = pc - code_.PayloadStart();
     } else {
       // This is an asynchronous continuation represented by a closure which
       // will handle successful completion. This function is not yet executing
       // so we have to use artificial marker offset (1).
       code_ = function_.EnsureHasCode();
       RELEASE_ASSERT(!code_.IsNull());
-      const uword pc_offset =
+      pc_offset =
           (function_.entry_point() + StackTraceUtils::kFutureListenerPcOffset) -
           code_.PayloadStart();
-      handle_frame({nullptr, code_, pc_offset, awaiter_frame_.closure,
-                    awaiter_frame_.has_catch_error});
     }
+
+    handle_frame(gap_frame);
+    handle_frame({nullptr, code_, pc_offset, awaiter_frame_.closure});
   }
-  return any_async;
+
+  if (any_async) {
+    handle_frame(gap_frame);
+  }
 }
 
 ObjectPtr AsyncAwareStackUnwinder::GetReceiver() const {
@@ -314,7 +326,6 @@ void AsyncAwareStackUnwinder::InitializeAwaiterFrameFromSuspendState() {
 }
 
 void AsyncAwareStackUnwinder::UnwindToAwaiter() {
-  awaiter_frame_.has_catch_error = false;
   do {
     UnwindAwaiterFrame();
   } while (awaiter_frame_.closure.IsNull() && !awaiter_frame_.next.IsNull());
@@ -399,7 +410,7 @@ void AsyncAwareStackUnwinder::InitializeAwaiterFrameFromFutureListener(
       Closure::RawCast(Get_FutureListener_callback(listener));
 
   // If the Future has catchError callback attached through either
-  // `Future.onError` or `Future.then(..., onError: ...)` then we should
+  // `Future.catchError` or `Future.then(..., onError: ...)` then we should
   // treat this listener as a catch all exception handler. However we should
   // ignore the case when these callbacks are simply forwarding errors into a
   // suspended async function, because it will be represented by its own async
@@ -407,7 +418,7 @@ void AsyncAwareStackUnwinder::InitializeAwaiterFrameFromFutureListener(
   if ((state &
        (k_FutureListener_stateCatchError | k_FutureListener_maskAwait)) ==
       k_FutureListener_stateCatchError) {
-    awaiter_frame_.has_catch_error = true;
+    encountered_async_catch_error_ = true;
   }
 }
 
@@ -494,28 +505,12 @@ bool StackTraceUtils::IsNeededForAsyncAwareUnwinding(const Function& function) {
 void StackTraceUtils::CollectFrames(
     Thread* thread,
     int skip_frames,
-    const std::function<void(const StackTraceUtils::Frame&)>& handle_frame) {
-  const Closure& null_closure = Closure::Handle(thread->zone());
-
-  const Frame gap_frame = {nullptr, StubCode::AsynchronousGapMarker(),
-                           /*pc_offset=*/0, null_closure, false};
-
-  const Frame gap_frame_with_catch = {nullptr,
-                                      StubCode::AsynchronousGapMarker(),
-                                      /*pc_offset=*/0, null_closure, true};
-
+    const std::function<void(const StackTraceUtils::Frame&)>& handle_frame,
+    bool* has_async_catch_error /* = null */) {
   AsyncAwareStackUnwinder it(thread);
-  const bool any_async = it.Unwind(skip_frames, [&](const Frame& frame) {
-    if (frame.frame == nullptr) {
-      handle_frame(frame.has_async_catch_error ? gap_frame_with_catch
-                                               : gap_frame);
-    }
-
-    handle_frame(frame);
-  });
-
-  if (any_async) {
-    handle_frame(gap_frame);
+  it.Unwind(skip_frames, handle_frame);
+  if (has_async_catch_error != nullptr) {
+    *has_async_catch_error = it.encountered_async_catch_error();
   }
 }
 

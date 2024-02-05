@@ -656,7 +656,7 @@ intptr_t ActivationFrame::ContextLevel() {
 
 bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   if (kind_ == kAsyncSuspensionMarker) {
-    return has_catch_error();
+    return false;
   }
   intptr_t try_index = TryIndex();
   const auto& handlers = ExceptionHandlers::Handle(code().exception_handlers());
@@ -1288,7 +1288,7 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
   }
 }
 
-void DebuggerStackTrace::AddAsyncSuspension(bool has_catch_error) {
+void DebuggerStackTrace::AddAsyncSuspension() {
   // We might start asynchronous unwinding in one of the internal
   // dart:async functions which would make synchronous part of the
   // stack empty. This would not happen normally but might happen
@@ -1296,9 +1296,6 @@ void DebuggerStackTrace::AddAsyncSuspension(bool has_catch_error) {
   if (trace_.is_empty() ||
       trace_.Last()->kind() != ActivationFrame::kAsyncSuspensionMarker) {
     trace_.Add(new ActivationFrame(ActivationFrame::kAsyncSuspensionMarker));
-  }
-  if (has_catch_error) {
-    trace_.Last()->set_has_catch_error(true);
   }
 }
 
@@ -1737,15 +1734,17 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
   auto stack_trace = new DebuggerStackTrace(kDefaultStackAllocation);
 
   bool has_async = false;
+  bool has_async_catch_error = false;
   StackTraceUtils::CollectFrames(
-      thread, /*skip_frames=*/0, [&](const StackTraceUtils::Frame& frame) {
+      thread, /*skip_frames=*/0,
+      [&](const StackTraceUtils::Frame& frame) {
         if (frame.frame != nullptr) {  // Synchronous portion of the stack.
           stack_trace->AppendCodeFrames(frame.frame, frame.code);
         } else {
           has_async = true;
 
           if (frame.code.ptr() == StubCode::AsynchronousGapMarker().ptr()) {
-            stack_trace->AddAsyncSuspension(frame.has_async_catch_error);
+            stack_trace->AddAsyncSuspension();
             return;
           }
 
@@ -1759,12 +1758,15 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
           stack_trace->AddAsyncAwaiterFrame(absolute_pc, frame.code,
                                             frame.closure);
         }
-      });
+      },
+      &has_async_catch_error);
 
   // If the entire stack is sync, return no (async) trace.
   if (!has_async) {
     return nullptr;
   }
+
+  stack_trace->set_has_async_catch_error(has_async_catch_error);
 
   return stack_trace;
 }
@@ -1882,7 +1884,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
     // uninstantiated types, i.e. types containing type parameters.
     // Thus, we may report an exception as unhandled when in fact
     // it will be caught once we unwind the stack.
-    return true;
+    return !stack_trace->has_async_catch_error();
   }
 
   auto& handler_function = Function::Handle(handler_frame->function().ptr());

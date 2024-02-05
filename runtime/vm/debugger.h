@@ -385,9 +385,6 @@ class ActivationFrame : public ZoneAllocated {
 
   bool HandlesException(const Instance& exc_obj);
 
-  bool has_catch_error() const { return has_catch_error_; }
-  void set_has_catch_error(bool value) { has_catch_error_ = value; }
-
  private:
   void PrintToJSONObjectRegular(JSONObject* jsobj);
   void PrintToJSONObjectAsyncAwaiter(JSONObject* jsobj);
@@ -454,8 +451,6 @@ class ActivationFrame : public ZoneAllocated {
   ZoneGrowableArray<intptr_t> desc_indices_;
   PcDescriptors& pc_desc_ = PcDescriptors::ZoneHandle();
 
-  bool has_catch_error_ = false;
-
   friend class Debugger;
   friend class DebuggerStackTrace;
   DISALLOW_COPY_AND_ASSIGN(ActivationFrame);
@@ -481,9 +476,14 @@ class DebuggerStackTrace : public ZoneAllocated {
   // to query local variables in the returned stack.
   static DebuggerStackTrace* From(const class StackTrace& ex_trace);
 
+  bool has_async_catch_error() const { return has_async_catch_error_; }
+  void set_has_async_catch_error(bool has_async_catch_error) {
+    has_async_catch_error_ = has_async_catch_error;
+  }
+
  private:
   void AddActivation(ActivationFrame* frame);
-  void AddAsyncSuspension(bool has_catch_error);
+  void AddAsyncSuspension();
   void AddAsyncAwaiterFrame(uword pc, const Code& code, const Closure& closure);
 
   void AppendCodeFrames(StackFrame* frame, const Code& code);
@@ -493,6 +493,7 @@ class DebuggerStackTrace : public ZoneAllocated {
   Code& inlined_code_ = Code::Handle();
   Array& deopt_frame_ = Array::Handle();
   ZoneGrowableArray<ActivationFrame*> trace_;
+  bool has_async_catch_error_ = false;
 
   friend class Debugger;
 
