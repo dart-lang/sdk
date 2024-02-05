@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../summary/macros_environment.dart';
@@ -802,6 +803,54 @@ class A {
         message('/home/test/lib/test.dart', 117, 3)
       ]),
     ]);
+  }
+
+  test_diagnostic_report_internalException_declarationsPhase() async {
+    LibraryMacroApplier.testThrowExceptionDeclarations = true;
+    try {
+      await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@NothingMacro()
+class A {}
+''', [
+        error(CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION, 27, 15),
+      ]);
+    } finally {
+      LibraryMacroApplier.testThrowExceptionDeclarations = false;
+    }
+  }
+
+  test_diagnostic_report_internalException_definitionsPhase() async {
+    LibraryMacroApplier.testThrowExceptionDefinitions = true;
+    try {
+      await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@NothingMacro()
+class A {}
+''', [
+        error(CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION, 27, 15),
+      ]);
+    } finally {
+      LibraryMacroApplier.testThrowExceptionDefinitions = false;
+    }
+  }
+
+  test_diagnostic_report_internalException_typesPhase() async {
+    LibraryMacroApplier.testThrowExceptionTypes = true;
+    try {
+      await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@NothingMacro()
+class A {}
+''', [
+        error(CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION, 27, 15),
+      ]);
+    } finally {
+      LibraryMacroApplier.testThrowExceptionTypes = false;
+    }
   }
 
   test_diagnostic_throwsException() async {

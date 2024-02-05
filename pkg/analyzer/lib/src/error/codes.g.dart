@@ -3052,6 +3052,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "{0}",
   );
 
+  ///  Parameters:
+  ///  0: the message
+  ///  1: the stack trace
+  static const CompileTimeErrorCode MACRO_INTERNAL_EXCEPTION =
+      CompileTimeErrorCode(
+    'MACRO_INTERNAL_EXCEPTION',
+    "{0} {1}",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode MAIN_FIRST_POSITIONAL_PARAMETER_TYPE =
       CompileTimeErrorCode(

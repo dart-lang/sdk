@@ -9532,6 +9532,12 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the message
+  MACRO_INTERNAL_EXCEPTION:
+    problemMessage: "{0} {1}"
+    comment: |-
+      Parameters:
+      0: the message
+      1: the stack trace
   MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
     problemMessage: "The declaration '{0}' can't be introspected because there is a cycle of macro applications."
     correctionMessage: Try removing one or more macro applications to break the cycle.

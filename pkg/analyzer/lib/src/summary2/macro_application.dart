@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 /// The full list of [macro.ArgumentKind]s for this dart type, with type
 /// arguments for [InterfaceType]s, if [includeTop] is `true` also including
@@ -58,6 +59,15 @@ List<macro.ArgumentKind> _argumentKindsOfType(
 }
 
 class LibraryMacroApplier {
+  @visibleForTesting
+  static bool testThrowExceptionTypes = false;
+
+  @visibleForTesting
+  static bool testThrowExceptionDeclarations = false;
+
+  @visibleForTesting
+  static bool testThrowExceptionDefinitions = false;
+
   final LinkedElementFactory elementFactory;
   final MultiMacroExecutor macroExecutor;
   final bool Function(Uri) isLibraryBeingLinked;
@@ -319,6 +329,10 @@ class LibraryMacroApplier {
         if (result.isNotEmpty) {
           results.add(result);
         }
+
+        if (testThrowExceptionDeclarations) {
+          throw 'Intentional exception';
+        }
       },
       targetElement: application.target.element,
       annotationIndex: application.annotationIndex,
@@ -357,6 +371,10 @@ class LibraryMacroApplier {
         if (result.isNotEmpty) {
           results.add(result);
         }
+
+        if (testThrowExceptionDefinitions) {
+          throw 'Intentional exception';
+        }
       },
       targetElement: application.target.element,
       annotationIndex: application.annotationIndex,
@@ -386,6 +404,10 @@ class LibraryMacroApplier {
         _addDiagnostics(application, result);
         if (result.isNotEmpty) {
           results.add(result);
+        }
+
+        if (testThrowExceptionTypes) {
+          throw 'Intentional exception';
         }
       },
       targetElement: application.target.element,

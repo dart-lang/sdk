@@ -6142,8 +6142,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             contextMessages: messages,
           );
         case ExceptionMacroDiagnostic():
-          // TODO(scheglov): implement
-          throw UnimplementedError();
+          errorReporter.atNode(
+            metadata[diagnostic.annotationIndex],
+            CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION,
+            arguments: [
+              diagnostic.message,
+              diagnostic.stackTrace,
+            ],
+          );
         case MacroDiagnostic():
           final errorCode = switch (diagnostic.severity) {
             macro.Severity.info => HintCode.MACRO_INFO,
