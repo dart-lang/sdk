@@ -106,6 +106,7 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Reported when the macro uses `Builder.report()` with `Severity.info`.
   ///  Parameters:
   ///  0: the message
   static const HintCode MACRO_INFO = HintCode(
