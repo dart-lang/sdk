@@ -98,19 +98,6 @@ class TopMergeHelper {
       return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(Never*, Null) = Null
-    // NNBD_TOP_MERGE(Null, Never*) = Null
-    if (identical(T, NeverTypeImpl.instanceLegacy) &&
-        S_nullability == NullabilitySuffix.none &&
-        S.isDartCoreNull) {
-      return S;
-    }
-    if (T_nullability == NullabilitySuffix.none &&
-        T.isDartCoreNull &&
-        identical(S, NeverTypeImpl.instanceLegacy)) {
-      return T;
-    }
-
     // Merge nullabilities.
     var T_isNone = T_nullability == NullabilitySuffix.none;
     var S_isNone = S_nullability == NullabilitySuffix.none;

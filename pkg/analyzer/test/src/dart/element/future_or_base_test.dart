@@ -34,7 +34,6 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
 
     check(neverNone, 'Never');
     check(neverQuestion, 'Never?');
-    check(neverStar, 'Never*');
 
     check(objectNone, 'Object');
     check(objectQuestion, 'Object?');

@@ -5616,7 +5616,8 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
       case NullabilitySuffix.question:
         return NeverTypeImpl.instanceNullable;
       case NullabilitySuffix.star:
-        return NeverTypeImpl.instanceLegacy;
+        // TODO(scheglov): remove together with `star`
+        return NeverTypeImpl.instanceNullable;
       case NullabilitySuffix.none:
         return NeverTypeImpl.instance;
     }

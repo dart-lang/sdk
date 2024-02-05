@@ -238,12 +238,6 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(neverNone, neverNone, neverNone);
   }
 
-  test_null() {
-    // NNBD_TOP_MERGE(Never*, Null) = Null
-    // NNBD_TOP_MERGE(Null, Never*) = Null
-    _check(neverStar, nullNone, nullNone);
-  }
-
   test_nullability() {
     // NNBD_TOP_MERGE(T?, S?) = NNBD_TOP_MERGE(T, S)?
     _check(intQuestion, intQuestion, intQuestion);

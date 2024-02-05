@@ -36,7 +36,6 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
     check(neverNone, 'Never');
     check(neverQuestion, 'Never?');
-    check(neverStar, 'Never*');
 
     check(objectNone, 'Object');
     check(objectQuestion, 'Object?');
@@ -58,7 +57,6 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
     check(neverNone, 'Never');
     check(neverQuestion, 'Never?');
-    check(neverStar, 'Never*');
 
     check(objectNone, 'Object');
     check(objectQuestion, 'Object?');
