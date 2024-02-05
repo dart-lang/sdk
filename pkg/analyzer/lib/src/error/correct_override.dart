@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -18,7 +17,6 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 class CorrectOverrideHelper {
-  final LibraryElementImpl _library;
   final TypeSystemImpl _typeSystem;
 
   final ExecutableElement _thisMember;
@@ -27,10 +25,9 @@ class CorrectOverrideHelper {
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
   CorrectOverrideHelper({
-    required LibraryElementImpl library,
+    required TypeSystemImpl typeSystem,
     required ExecutableElement thisMember,
-  })  : _library = library,
-        _typeSystem = library.typeSystem,
+  })  : _typeSystem = typeSystem,
         _thisMember = thisMember {
     _computeThisTypeForSubtype();
   }
@@ -39,8 +36,6 @@ class CorrectOverrideHelper {
   bool isCorrectOverrideOf({
     required ExecutableElement superMember,
   }) {
-    superMember = _library.toLegacyElementIfOptOut(superMember);
-
     var superType = superMember.type;
     return _typeSystem.isSubtypeOf(_thisTypeForSubtype!, superType);
   }

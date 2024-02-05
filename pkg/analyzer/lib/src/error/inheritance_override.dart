@@ -319,9 +319,8 @@ class _ClassVerifier {
         //  diagnostic should be reported on the name of the mixin defining the
         //  method. In other cases, it should be reported on the name of the
         //  overriding method. The classNameNode is always wrong.
-        concreteElement = library.toLegacyElementIfOptOut(concreteElement);
         CorrectOverrideHelper(
-          library: library,
+          typeSystem: typeSystem,
           thisMember: concreteElement,
         ).verify(
           superMember: interfaceElement,
@@ -355,7 +354,7 @@ class _ClassVerifier {
 
     var name = Name(libraryUri, member.name);
     var correctOverrideHelper = CorrectOverrideHelper(
-      library: library,
+      typeSystem: typeSystem,
       thisMember: member,
     );
 

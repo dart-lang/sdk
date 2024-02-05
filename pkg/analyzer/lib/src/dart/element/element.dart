@@ -4516,10 +4516,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     );
   }
 
+  @Deprecated('Only non-nullable by default mode is supported')
   @override
   T toLegacyElementIfOptOut<T extends Element>(T element) {
-    if (isNonNullableByDefault) return element;
-    return Member.legacy(element) as T;
+    return element;
   }
 
   @Deprecated('Only non-nullable by default mode is supported')

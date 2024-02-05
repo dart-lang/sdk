@@ -4057,7 +4057,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (mixinMember != null) {
         var isCorrect = CorrectOverrideHelper(
-          library: _currentLibrary,
+          typeSystem: typeSystem,
           thisMember: superMember,
         ).isCorrectOverrideOf(
           superMember: mixinMember,
@@ -4239,9 +4239,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     final superElement = superType.element;
     // try to find default generative super constructor
     var superUnnamedConstructor = superElement.unnamedConstructor;
-    superUnnamedConstructor = superUnnamedConstructor != null
-        ? _currentLibrary.toLegacyElementIfOptOut(superUnnamedConstructor)
-        : superUnnamedConstructor;
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         errorReporter.reportErrorForElement(
@@ -5073,9 +5070,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var superUnnamedConstructor = superElement.unnamedConstructor;
-    superUnnamedConstructor = superUnnamedConstructor != null
-        ? _currentLibrary.toLegacyElementIfOptOut(superUnnamedConstructor)
-        : superUnnamedConstructor;
     if (superUnnamedConstructor == null) {
       errorReporter.atNode(
         constructor.returnType,

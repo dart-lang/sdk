@@ -1875,6 +1875,7 @@ abstract class LibraryElement
   /// If a legacy library, returns the legacy view on the [element].
   ///
   /// Otherwise, return the original element.
+  @Deprecated('Only non-nullable by default mode is supported')
   T toLegacyElementIfOptOut<T extends Element>(T element);
 
   /// If a legacy library, return the legacy version of the [type].
