@@ -36,8 +36,6 @@ class PostfixExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  bool get _isNonNullableByDefault => true;
-
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(PostfixExpressionImpl node, {required DartType? contextType}) {
@@ -209,7 +207,7 @@ class PostfixExpressionResolver {
       return;
     }
 
-    if (contextType != null && _isNonNullableByDefault) {
+    if (contextType != null) {
       contextType = _typeSystem.makeNullable(contextType);
     }
 

@@ -35,7 +35,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart' show Member;
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -370,8 +369,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorReporter: errorReporter,
       nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
-    _typedLiteralResolver = TypedLiteralResolver(
-        this, _featureSet, typeSystem, typeProvider, analysisOptions);
+    _typedLiteralResolver =
+        TypedLiteralResolver(this, typeSystem, typeProvider, analysisOptions);
     extensionResolver = ExtensionMemberResolver(this);
     typePropertyResolver = TypePropertyResolver(this);
     inferenceHelper = InvocationInferenceHelper(
@@ -415,8 +414,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     elementResolver = ElementResolver(this);
     inferenceContext = InferenceContext._(this);
     typeAnalyzer = StaticTypeAnalyzer(this);
-    _functionReferenceResolver =
-        FunctionReferenceResolver(this, _isNonNullableByDefault);
+    _functionReferenceResolver = FunctionReferenceResolver(this);
   }
 
   /// Return the element representing the function containing the current node,
@@ -440,12 +438,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return flowAnalysis.localVariableTypeProvider;
   }
 
-  NullabilitySuffix get noneOrStarSuffix {
-    return _isNonNullableByDefault
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-  }
-
   @override
   shared.TypeAnalyzerOperations<PromotableElement, DartType, DartType>
       get operations => flowAnalysis.typeOperations;
@@ -466,10 +458,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   DartType? get thisType {
     return _thisType;
   }
-
-  /// Return `true` if NNBD is enabled for this compilation unit.
-  bool get _isNonNullableByDefault =>
-      _featureSet.isEnabled(Feature.non_nullable);
 
   List<SharedPatternField> buildSharedPatternFields(
     List<PatternFieldImpl> fields, {
@@ -524,9 +512,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required FunctionBody body,
     required SyntacticEntity errorNode,
   }) {
-    if (!_isNonNullableByDefault) {
-      return;
-    }
     if (!flowAnalysis.flow!.isReachable) {
       return;
     }
@@ -1240,8 +1225,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// shorting, make the type of the [node] nullable.
   void nullShortingTermination(ExpressionImpl node,
       {bool discardType = false}) {
-    if (!_isNonNullableByDefault) return;
-
     if (identical(_unfinishedNullShorts.last, node)) {
       do {
         _unfinishedNullShorts.removeLast();
@@ -1752,9 +1735,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// If in a legacy library, return the legacy view on the [element].
   /// Otherwise, return the original element.
   T toLegacyElement<T extends Element?>(T element) {
-    if (_isNonNullableByDefault) return element;
-    if (element == null) return element;
-    return Member.legacy(element) as T;
+    return element;
   }
 
   @override
@@ -3314,7 +3295,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitSpreadElement(SpreadElement node,
       {CollectionLiteralContext? context}) {
     var iterableType = context?.iterableType;
-    if (iterableType != null && _isNonNullableByDefault && node.isNullAware) {
+    if (iterableType != null && node.isNullAware) {
       iterableType = typeSystem.makeNullable(iterableType);
     }
     checkUnreachableNode(node);
@@ -3741,9 +3722,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       {required DartType? contextType}) {
     var function = node.function;
 
-    if (function is PropertyAccess &&
-        function.isNullAware &&
-        _isNonNullableByDefault) {
+    if (function is PropertyAccess && function.isNullAware) {
       var target = function.target;
       if (target is SimpleIdentifier &&
           target.staticElement is InterfaceElement) {

@@ -13,63 +13,9 @@ import '../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertElementNullableTest);
     defineReflectiveTests(ConvertElementTest);
     defineReflectiveTests(ElementKindTest);
   });
-}
-
-@reflectiveTest
-class ConvertElementNullableTest extends AbstractSingleUnitTest {
-  @override
-  String get testPackageLanguageVersion => '2.9';
-
-  Future<void> test_CONSTRUCTOR_required_parameters_1() async {
-    writeTestPackageConfig(meta: true);
-    await resolveTestCode('''
-import 'package:meta/meta.dart';
-class A {
-  const A.myConstructor(int a, {int b, @required int c});
-}''');
-
-    var engineElement = findElement.constructor('myConstructor');
-    // create notification Element
-    var element = convertElement(engineElement, withNullability: false);
-    expect(element.parameters, '(int a, {@required int c, int b})');
-  }
-
-  /// Verify parameter re-ordering for required params
-  Future<void> test_CONSTRUCTOR_required_parameters_2() async {
-    writeTestPackageConfig(meta: true);
-    await resolveTestCode('''
-import 'package:meta/meta.dart';
-class A {
-  const A.myConstructor(int a, {int b, @required int d, @required int c});
-}''');
-
-    var engineElement = findElement.constructor('myConstructor');
-    // create notification Element
-    var element = convertElement(engineElement, withNullability: false);
-    expect(element.parameters,
-        '(int a, {@required int d, @required int c, int b})');
-  }
-
-  /// Verify parameter re-ordering for required params
-  Future<void> test_CONSTRUCTOR_required_parameters_3() async {
-    writeTestPackageConfig(meta: true);
-    verifyNoTestUnitErrors = false;
-    await resolveTestCode('''
-import 'package:meta/meta.dart';
-class A {
-  const A.myConstructor(int a, {int b, @required int d, @required int c, int a});
-}''');
-
-    var engineElement = findElement.constructor('myConstructor');
-    // create notification Element
-    var element = convertElement(engineElement, withNullability: false);
-    expect(element.parameters,
-        '(int a, {@required int d, @required int c, int b, int a})');
-  }
 }
 
 @reflectiveTest

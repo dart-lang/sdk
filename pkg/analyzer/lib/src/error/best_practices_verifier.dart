@@ -86,9 +86,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The [LinterContext] used for possible const calculations.
   final LinterContext _linterContext;
 
-  /// Is `true` if the library being analyzed is non-nullable by default.
-  final bool _isNonNullableByDefault;
-
   /// True if inference failures should be reported, otherwise false.
   final bool _strictInference;
 
@@ -110,7 +107,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     required path.Context pathContext,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
-        _isNonNullableByDefault = true,
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
@@ -158,8 +154,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       );
     }
     var type = node.type.type;
-    if (_isNonNullableByDefault &&
-        type != null &&
+    if (type != null &&
         _typeSystem.isNonNullable(type) &&
         node.expression.typeOrThrow.isDartCoreNull) {
       _errorReporter.atNode(
@@ -829,17 +824,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return true;
     }
 
-    if (_isNonNullableByDefault) {
-      if (_typeSystem.isSubtypeOf(leftType, rightType)) {
-        report();
-        return true;
-      }
-    } else {
-      // In legacy all types are subtypes of `Object`.
-      if (rightType.isDartCoreObject) {
-        report();
-        return true;
-      }
+    if (_typeSystem.isSubtypeOf(leftType, rightType)) {
+      report();
+      return true;
     }
 
     return false;
@@ -1119,8 +1106,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForInvariantNullComparison(BinaryExpression node) {
-    if (!_isNonNullableByDefault) return;
-
     void reportStartEnd(
       ErrorCode errorCode,
       SyntacticEntity startEntity,
@@ -1251,10 +1236,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForNullableTypeInCatchClause(CatchClause node) {
-    if (!_isNonNullableByDefault) {
-      return;
-    }
-
     var typeNode = node.exceptionType;
     if (typeNode == null) {
       return;

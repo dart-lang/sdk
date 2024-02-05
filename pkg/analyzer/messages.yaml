@@ -1506,6 +1506,7 @@ CompileTimeErrorCode:
       Parameters:
       0: the built-in identifier that is being used
   CASE_BLOCK_NOT_TERMINATED:
+    removedIn: "3.0"
     problemMessage: "The last statement of the 'case' should be 'break', 'continue', 'rethrow', 'return', or 'throw'."
     correctionMessage: Try adding one of the required statements.
     hasPublishedDocs: true
@@ -3938,13 +3939,12 @@ CompileTimeErrorCode:
       with the name `a`:
 
       ```dart
-      %language=2.9
       void f(C c) {
         c.m(a: 0, [!a!]: 1);
       }
 
       class C {
-        void m({int a, int b}) {}
+        void m({int? a, int? b}) {}
       }
       ```
 
@@ -3953,26 +3953,24 @@ CompileTimeErrorCode:
       If one of the arguments should have a different name, then change the name:
 
       ```dart
-      %language=2.9
       void f(C c) {
         c.m(a: 0, b: 1);
       }
 
       class C {
-        void m({int a, int b}) {}
+        void m({int? a, int? b}) {}
       }
       ```
 
       If one of the arguments is wrong, then remove it:
 
       ```dart
-      %language=2.9
       void f(C c) {
         c.m(a: 1);
       }
 
       class C {
-        void m({int a, int b}) {}
+        void m({int? a, int? b}) {}
       }
       ```
   DUPLICATE_PART:
@@ -5811,8 +5809,7 @@ CompileTimeErrorCode:
       third argument:
 
       ```dart
-      %language=2.9
-      void f(int a, int b, {int c}) {}
+      void f(int a, int b, {int? c}) {}
       void g() {
         f(1, 2, [!3!]);
       }
@@ -5824,8 +5821,7 @@ CompileTimeErrorCode:
       the names before the arguments:
 
       ```dart
-      %language=2.9
-      void f(int a, int b, {int c}) {}
+      void f(int a, int b, {int? c}) {}
       void g() {
         f(1, 2, c: 3);
       }
@@ -5835,8 +5831,7 @@ CompileTimeErrorCode:
       parameters:
 
       ```dart
-      %language=2.9
-      void f(int a, int b, {int c}) {}
+      void f(int a, int b, {int? c}) {}
       void g() {
         f(1, 2);
       }
@@ -7344,13 +7339,12 @@ CompileTimeErrorCode:
       the signature of `m` that's inherited from `B`:
 
       ```dart
-      %language=2.9
       class A {
-        void m({int a}) {}
+        void m({int? a}) {}
       }
 
       class B {
-        void m({int b}) {}
+        void m({int? b}) {}
       }
 
       class [!C!] extends A implements B {
@@ -7363,17 +7357,16 @@ CompileTimeErrorCode:
       signatures:
 
       ```dart
-      %language=2.9
       class A {
-        void m({int a}) {}
+        void m({int? a}) {}
       }
 
       class B {
-        void m({int b}) {}
+        void m({int? b}) {}
       }
 
       class C extends A implements B {
-        void m({int a, int b}) {}
+        void m({int? a, int? b}) {}
       }
       ```
   INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
@@ -7813,9 +7806,8 @@ CompileTimeErrorCode:
       is being referenced in a static method:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
+        int x = 0;
 
         static int m() {
           return [!x!];
@@ -7829,9 +7821,8 @@ CompileTimeErrorCode:
       so remove the keyword:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
+        int x = 0;
 
         int m() {
           return x;
@@ -7843,9 +7834,8 @@ CompileTimeErrorCode:
       that an instance of the class can be passed in:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
+        int x = 0;
 
         static int m(C c) {
           return c.x;
@@ -11241,7 +11231,6 @@ CompileTimeErrorCode:
       The following code produces this diagnostic:
 
       ```dart
-      %language=2.9
       var defaultValue = 3;
 
       void f([int value = [!defaultValue!]]) {}
@@ -11252,7 +11241,6 @@ CompileTimeErrorCode:
       If the default value can be converted to be a constant, then convert it:
 
       ```dart
-      %language=2.9
       const defaultValue = 3;
 
       void f([int value = defaultValue]) {}
@@ -11262,10 +11250,9 @@ CompileTimeErrorCode:
       value inside the function:
 
       ```dart
-      %language=2.9
       var defaultValue = 3;
 
-      void f([int value]) {
+      void f([int? value]) {
         value ??= defaultValue;
       }
       ```
@@ -15176,11 +15163,10 @@ CompileTimeErrorCode:
       field:
 
       ```dart
-      %language=2.9
       class C {
-        static int a;
+        static int a = 0;
 
-        int b;
+        int b = 0;
       }
 
       int f() => C.[!b!];
@@ -15192,11 +15178,10 @@ CompileTimeErrorCode:
       to an existing static field:
 
       ```dart
-      %language=2.9
       class C {
-        static int a;
+        static int a = 0;
 
-        int b;
+        int b = 0;
       }
 
       int f() => C.a;
@@ -15206,11 +15191,10 @@ CompileTimeErrorCode:
       class to access the field:
 
       ```dart
-      %language=2.9
       class C {
-        static int a;
+        static int a = 0;
 
-        int b;
+        int b = 0;
       }
 
       int f(C c) => c.b;
@@ -17350,9 +17334,8 @@ CompileTimeErrorCode:
       named parameter named `a`:
 
       ```dart
-      %language=2.9
       class C {
-        m({int b}) {}
+        m({int? b}) {}
       }
 
       void f(C c) {
@@ -17366,9 +17349,8 @@ CompileTimeErrorCode:
       The example above can be fixed by changing `a` to `b`:
 
       ```dart
-      %language=2.9
       class C {
-        m({int b}) {}
+        m({int? b}) {}
       }
 
       void f(C c) {
@@ -17380,13 +17362,12 @@ CompileTimeErrorCode:
       receiver to the subclass:
 
       ```dart
-      %language=2.9
       class C {
-        m({int b}) {}
+        m({int? b}) {}
       }
 
       class D extends C {
-        m({int a, int b}) {}
+        m({int? a, int? b}) {}
       }
 
       void f(C c) {
@@ -17397,9 +17378,8 @@ CompileTimeErrorCode:
       If the parameter should be added to the function, then add it:
 
       ```dart
-      %language=2.9
       class C {
-        m({int a, int b}) {}
+        m({int? a, int? b}) {}
       }
 
       void f(C c) {
@@ -18032,7 +18012,6 @@ CompileTimeErrorCode:
       two required parameters:
 
       ```dart
-      %language=2.9
       class C {
         set [!s!](int x, int y) {}
       }
@@ -18042,9 +18021,8 @@ CompileTimeErrorCode:
       one optional parameter:
 
       ```dart
-      %language=2.9
       class C {
-        set [!s!]([int x]) {}
+        set [!s!]([int? x]) {}
       }
       ```
 
@@ -18054,7 +18032,6 @@ CompileTimeErrorCode:
       parameter:
 
       ```dart
-      %language=2.9
       class C {
         set s(int x) {}
       }
@@ -20866,9 +20843,8 @@ HintCode:
       invocation of `_m`, the following code produces this diagnostic:
 
       ```dart
-      %language=2.9
       class C {
-        void _m(int x, [int [!y!]]) {}
+        void _m(int x, [int? [!y!]]) {}
 
         void n() => _m(0);
       }
@@ -24612,10 +24588,9 @@ WarningCode:
       is required:
 
       ```dart
-      %language=2.9
       import 'package:meta/meta.dart';
 
-      void f({@required int x}) {}
+      void f({@required int? x}) {}
 
       void g() {
         [!f!]();
@@ -24627,10 +24602,9 @@ WarningCode:
       Provide the required value:
 
       ```dart
-      %language=2.9
       import 'package:meta/meta.dart';
 
-      void f({@required int x}) {}
+      void f({@required int? x}) {}
 
       void g() {
         f(x: 2);

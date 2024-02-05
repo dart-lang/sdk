@@ -176,8 +176,6 @@ class _ClassVerifier {
     this.withClause,
   }) : libraryUri = library.source.uri;
 
-  bool get _isNonNullableByDefault => true;
-
   /// Verify inheritance overrides, and return `true` if an error was
   /// reported which should prevent follow on diagnostics from being reported.
   bool verify() {
@@ -272,7 +270,6 @@ class _ClassVerifier {
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: reporter,
-      strictCasts: strictCasts,
     ).checkInterface(classElement, interface);
 
     if (classElement is ClassElement && !classElement.isAbstract ||
@@ -777,7 +774,7 @@ class _ClassVerifier {
       var candidatesStr = conflict.candidates.map((candidate) {
         var className = candidate.enclosingElement.name;
         var typeStr = candidate.type.getDisplayString(
-          withNullability: _isNonNullableByDefault,
+          withNullability: true,
         );
         return '$className.${name.name} ($typeStr)';
       }).join(', ');

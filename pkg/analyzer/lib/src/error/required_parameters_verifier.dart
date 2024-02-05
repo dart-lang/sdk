@@ -15,10 +15,8 @@ import 'package:collection/collection.dart';
 /// Checks for missing arguments for required named parameters.
 class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   final ErrorReporter _errorReporter;
-  final bool _strictCasts;
 
-  RequiredParametersVerifier(this._errorReporter, {required bool strictCasts})
-      : _strictCasts = strictCasts;
+  RequiredParametersVerifier(this._errorReporter);
 
   @override
   void visitAnnotation(Annotation node) {
@@ -139,7 +137,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
           String parameterName = parameter.name;
           if (!_containsNamedExpression(
               enclosingConstructor, arguments, parameterName)) {
-            var reason = annotation.getReason(strictCasts: _strictCasts);
+            var reason = annotation.getReason(strictCasts: true);
             if (reason != null) {
               _errorReporter.reportErrorForOffset(
                 WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,

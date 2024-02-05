@@ -36,8 +36,6 @@ class AssignmentExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  bool get _isNonNullableByDefault => true;
-
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
@@ -300,9 +298,7 @@ class AssignmentExpressionResolver {
       var leftType = node.readType!;
 
       // The LHS value will be used only if it is non-null.
-      if (_isNonNullableByDefault) {
-        leftType = _typeSystem.promoteToNonNull(leftType);
-      }
+      leftType = _typeSystem.promoteToNonNull(leftType);
 
       nodeType = _typeSystem.leastUpperBound(leftType, assignedType);
     } else {

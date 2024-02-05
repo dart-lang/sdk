@@ -70,7 +70,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   LibraryElementImpl _libraryElement;
   final TypeProvider _typeProvider;
   final CompilationUnitElementImpl _unitElement;
-  final bool _isNonNullableByDefault;
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
   final NamedTypeResolver _namedTypeResolver;
@@ -109,7 +108,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   factory ResolutionVisitor({
     required CompilationUnitElementImpl unitElement,
     required AnalysisErrorListener errorListener,
-    required FeatureSet featureSet,
     required Scope nameScope,
     required bool strictInference,
     required bool strictCasts,
@@ -118,7 +116,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var libraryElement = unitElement.library;
     var typeProvider = libraryElement.typeProvider;
     var unitSource = unitElement.source;
-    var isNonNullableByDefault = featureSet.isEnabled(Feature.non_nullable);
     var errorReporter = ErrorReporter(errorListener, unitSource);
 
     final typeSystemOperations = TypeSystemOperations(
@@ -128,7 +125,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
-      isNonNullableByDefault,
       errorReporter,
       strictInference: strictInference,
       strictCasts: strictCasts,
@@ -144,7 +140,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       libraryElement,
       typeProvider,
       unitElement,
-      isNonNullableByDefault,
       errorReporter,
       AstRewriter(errorReporter, typeProvider),
       namedTypeResolver,
@@ -160,7 +155,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._libraryElement,
     this._typeProvider,
     this._unitElement,
-    this._isNonNullableByDefault,
     this._errorReporter,
     this._astRewriter,
     this._namedTypeResolver,
@@ -252,9 +246,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = true;
         if (exceptionTypeNode == null) {
           element.hasImplicitType = true;
-          var type =
-              _isNonNullableByDefault ? _typeProvider.objectType : _dynamicType;
-          element.type = type;
+          element.type = _typeProvider.objectType;
         } else {
           element.type = exceptionTypeNode.typeOrThrow;
         }
@@ -1579,14 +1571,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   NullabilitySuffix _getNullability(bool hasQuestion) {
-    if (_isNonNullableByDefault) {
-      if (hasQuestion) {
-        return NullabilitySuffix.question;
-      } else {
-        return NullabilitySuffix.none;
-      }
+    if (hasQuestion) {
+      return NullabilitySuffix.question;
+    } else {
+      return NullabilitySuffix.none;
     }
-    return NullabilitySuffix.star;
   }
 
   void _resolveGuardedPattern(

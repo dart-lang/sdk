@@ -28,7 +28,6 @@ class NamedTypeResolver with ScopeHelpers {
   final LibraryElementImpl _libraryElement;
   final TypeSystemImpl typeSystem;
   final TypeSystemOperations typeSystemOperations;
-  final bool isNonNullableByDefault;
   final bool strictCasts;
   final bool strictInference;
 
@@ -62,8 +61,7 @@ class NamedTypeResolver with ScopeHelpers {
   /// If [resolve] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  NamedTypeResolver(
-      this._libraryElement, this.isNonNullableByDefault, this.errorReporter,
+  NamedTypeResolver(this._libraryElement, this.errorReporter,
       {required this.strictInference,
       required this.strictCasts,
       required this.typeSystemOperations})
@@ -71,12 +69,6 @@ class NamedTypeResolver with ScopeHelpers {
 
   bool get _genericMetadataIsEnabled =>
       enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
-
-  NullabilitySuffix get _noneOrStarSuffix {
-    return isNonNullableByDefault
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-  }
 
   /// Resolve the given [NamedType] - set its element and static type. Only the
   /// given [node] is resolved, all its children must be already resolved.
@@ -161,14 +153,11 @@ class NamedTypeResolver with ScopeHelpers {
   }
 
   NullabilitySuffix _getNullability(NamedType node) {
-    if (isNonNullableByDefault) {
-      if (node.question != null) {
-        return NullabilitySuffix.question;
-      } else {
-        return NullabilitySuffix.none;
-      }
+    if (node.question != null) {
+      return NullabilitySuffix.question;
+    } else {
+      return NullabilitySuffix.none;
     }
-    return NullabilitySuffix.star;
   }
 
   /// We are resolving the [NamedType] in a redirecting constructor of the
@@ -193,7 +182,7 @@ class NamedTypeResolver with ScopeHelpers {
         var typeArguments = inferrer.chooseFinalTypes();
         return element.instantiate(
           typeArguments: typeArguments,
-          nullabilitySuffix: _noneOrStarSuffix,
+          nullabilitySuffix: NullabilitySuffix.none,
         );
       }
     }
@@ -286,11 +275,7 @@ class NamedTypeResolver with ScopeHelpers {
   }
 
   DartType _instantiateElementNever(NullabilitySuffix nullability) {
-    if (isNonNullableByDefault) {
-      return NeverTypeImpl.instance.withNullability(nullability);
-    } else {
-      return typeSystem.typeProvider.nullType;
-    }
+    return NeverTypeImpl.instance.withNullability(nullability);
   }
 
   Element? _lookupGetter(Scope scope, Token nameToken) {

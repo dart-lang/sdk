@@ -382,16 +382,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
   );
 
-  ///  No parameters.
-  static const CompileTimeErrorCode CASE_BLOCK_NOT_TERMINATED =
-      CompileTimeErrorCode(
-    'CASE_BLOCK_NOT_TERMINATED',
-    "The last statement of the 'case' should be 'break', 'continue', "
-        "'rethrow', 'return', or 'throw'.",
-    correctionMessage: "Try adding one of the required statements.",
-    hasPublishedDocs: true,
-  );
-
   ///  Parameters:
   ///  0: the this of the switch case expression
   static const CompileTimeErrorCode CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS =

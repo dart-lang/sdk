@@ -4767,7 +4767,7 @@ void f(C c) {
 }
 
 class C {
-  void m({int a, int b}) {}
+  void m({int? a, int? b}) {}
 }
 ```
 
@@ -4781,7 +4781,7 @@ void f(C c) {
 }
 
 class C {
-  void m({int a, int b}) {}
+  void m({int? a, int? b}) {}
 }
 ```
 
@@ -4793,7 +4793,7 @@ void f(C c) {
 }
 
 class C {
-  void m({int a, int b}) {}
+  void m({int? a, int? b}) {}
 }
 ```
 
@@ -6922,7 +6922,7 @@ positional parameters but has a named parameter that could be used for the
 third argument:
 
 ```dart
-void f(int a, int b, {int c}) {}
+void f(int a, int b, {int? c}) {}
 void g() {
   f(1, 2, [!3!]);
 }
@@ -6934,7 +6934,7 @@ If some of the arguments should be values for named parameters, then add
 the names before the arguments:
 
 ```dart
-void f(int a, int b, {int c}) {}
+void f(int a, int b, {int? c}) {}
 void g() {
   f(1, 2, c: 3);
 }
@@ -6944,7 +6944,7 @@ Otherwise, remove the arguments that don't correspond to positional
 parameters:
 
 ```dart
-void f(int a, int b, {int c}) {}
+void f(int a, int b, {int? c}) {}
 void g() {
   f(1, 2);
 }
@@ -8640,11 +8640,11 @@ the signature of `m` that's inherited from `B`:
 
 ```dart
 class A {
-  void m({int a}) {}
+  void m({int? a}) {}
 }
 
 class B {
-  void m({int b}) {}
+  void m({int? b}) {}
 }
 
 class [!C!] extends A implements B {
@@ -8658,15 +8658,15 @@ signatures:
 
 ```dart
 class A {
-  void m({int a}) {}
+  void m({int? a}) {}
 }
 
 class B {
-  void m({int b}) {}
+  void m({int? b}) {}
 }
 
 class C extends A implements B {
-  void m({int a, int b}) {}
+  void m({int? a, int? b}) {}
 }
 ```
 
@@ -9061,7 +9061,7 @@ is being referenced in a static method:
 
 ```dart
 class C {
-  int x;
+  int x = 0;
 
   static int m() {
     return [!x!];
@@ -9076,7 +9076,7 @@ so remove the keyword:
 
 ```dart
 class C {
-  int x;
+  int x = 0;
 
   int m() {
     return x;
@@ -9089,7 +9089,7 @@ that an instance of the class can be passed in:
 
 ```dart
 class C {
-  int x;
+  int x = 0;
 
   static int m(C c) {
     return c.x;
@@ -12872,7 +12872,7 @@ is required:
 ```dart
 import 'package:meta/meta.dart';
 
-void f({@required int x}) {}
+void f({@required int? x}) {}
 
 void g() {
   [!f!]();
@@ -12886,7 +12886,7 @@ Provide the required value:
 ```dart
 import 'package:meta/meta.dart';
 
-void f({@required int x}) {}
+void f({@required int? x}) {}
 
 void g() {
   f(x: 2);
@@ -14584,7 +14584,7 @@ value inside the function:
 ```dart
 var defaultValue = 3;
 
-void f([int value]) {
+void f([int? value]) {
   value ??= defaultValue;
 }
 ```
@@ -19549,9 +19549,9 @@ field:
 
 ```dart
 class C {
-  static int a;
+  static int a = 0;
 
-  int b;
+  int b = 0;
 }
 
 int f() => C.[!b!];
@@ -19564,9 +19564,9 @@ to an existing static field:
 
 ```dart
 class C {
-  static int a;
+  static int a = 0;
 
-  int b;
+  int b = 0;
 }
 
 int f() => C.a;
@@ -19577,9 +19577,9 @@ class to access the field:
 
 ```dart
 class C {
-  static int a;
+  static int a = 0;
 
-  int b;
+  int b = 0;
 }
 
 int f(C c) => c.b;
@@ -21820,7 +21820,7 @@ named parameter named `a`:
 
 ```dart
 class C {
-  m({int b}) {}
+  m({int? b}) {}
 }
 
 void f(C c) {
@@ -21835,7 +21835,7 @@ The example above can be fixed by changing `a` to `b`:
 
 ```dart
 class C {
-  m({int b}) {}
+  m({int? b}) {}
 }
 
 void f(C c) {
@@ -21848,11 +21848,11 @@ receiver to the subclass:
 
 ```dart
 class C {
-  m({int b}) {}
+  m({int? b}) {}
 }
 
 class D extends C {
-  m({int a, int b}) {}
+  m({int? a, int? b}) {}
 }
 
 void f(C c) {
@@ -21864,7 +21864,7 @@ If the parameter should be added to the function, then add it:
 
 ```dart
 class C {
-  m({int a, int b}) {}
+  m({int? a, int? b}) {}
 }
 
 void f(C c) {
@@ -22908,7 +22908,7 @@ invocation of `_m`, the following code produces this diagnostic:
 
 ```dart
 class C {
-  void _m(int x, [int [!y!]]) {}
+  void _m(int x, [int? [!y!]]) {}
 
   void n() => _m(0);
 }
@@ -23475,7 +23475,7 @@ one optional parameter:
 
 ```dart
 class C {
-  set [!s!]([int x]) {}
+  set [!s!]([int? x]) {}
 }
 ```
 

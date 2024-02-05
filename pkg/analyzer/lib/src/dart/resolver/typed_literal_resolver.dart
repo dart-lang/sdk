@@ -50,36 +50,29 @@ class TypedLiteralResolver {
   final ErrorReporter _errorReporter;
 
   final bool _strictInference;
-  final bool _isNonNullableByDefault;
 
   factory TypedLiteralResolver(
-      ResolverVisitor resolver,
-      FeatureSet featureSet,
-      TypeSystemImpl typeSystem,
-      TypeProviderImpl typeProvider,
-      AnalysisOptionsImpl analysisOptions) {
+    ResolverVisitor resolver,
+    TypeSystemImpl typeSystem,
+    TypeProviderImpl typeProvider,
+    AnalysisOptionsImpl analysisOptions,
+  ) {
     return TypedLiteralResolver._(
-        resolver,
-        typeSystem,
-        typeProvider,
-        resolver.errorReporter,
-        analysisOptions.strictInference,
-        featureSet.isEnabled(Feature.non_nullable));
+      resolver,
+      typeSystem,
+      typeProvider,
+      resolver.errorReporter,
+      analysisOptions.strictInference,
+    );
   }
 
   TypedLiteralResolver._(this._resolver, this._typeSystem, this._typeProvider,
-      this._errorReporter, this._strictInference, this._isNonNullableByDefault);
+      this._errorReporter, this._strictInference);
 
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
-
-  NullabilitySuffix get _noneOrStarSuffix {
-    return _isNonNullableByDefault
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-  }
 
   void resolveListLiteral(ListLiteralImpl node,
       {required DartType contextType}) {
@@ -99,7 +92,8 @@ class TypedLiteralResolver {
       if (contextType is! UnknownInferredType) {
         var typeArguments = inferrer.choosePreliminaryTypes();
         listType = _typeProvider.listElement.instantiate(
-            typeArguments: typeArguments, nullabilitySuffix: _noneOrStarSuffix);
+            typeArguments: typeArguments,
+            nullabilitySuffix: NullabilitySuffix.none);
       }
     }
     CollectionLiteralContext? context;
@@ -134,7 +128,7 @@ class TypedLiteralResolver {
           var typeArguments = inferrer.choosePreliminaryTypes();
           literalType = _typeProvider.setElement.instantiate(
               typeArguments: typeArguments,
-              nullabilitySuffix: _noneOrStarSuffix);
+              nullabilitySuffix: NullabilitySuffix.none);
         }
       }
     } else if (literalResolution.kind == _LiteralResolutionKind.map) {
@@ -148,7 +142,7 @@ class TypedLiteralResolver {
           var typeArguments = inferrer.choosePreliminaryTypes();
           literalType = _typeProvider.mapElement.instantiate(
               typeArguments: typeArguments,
-              nullabilitySuffix: _noneOrStarSuffix);
+              nullabilitySuffix: NullabilitySuffix.none);
         }
       }
     } else {
@@ -447,7 +441,7 @@ class TypedLiteralResolver {
     var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
 
     // Also use upwards information to infer the type.
@@ -475,7 +469,7 @@ class TypedLiteralResolver {
     var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -608,7 +602,7 @@ class TypedLiteralResolver {
       }
       node.staticType = _typeProvider.listElement.instantiate(
         typeArguments: fixedTypeList(elementType),
-        nullabilitySuffix: _noneOrStarSuffix,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
       return;
     }
@@ -644,7 +638,7 @@ class TypedLiteralResolver {
         var elementType = typeArguments[0].typeOrThrow;
         node.staticType = _typeProvider.setElement.instantiate(
           typeArguments: fixedTypeList(elementType),
-          nullabilitySuffix: _noneOrStarSuffix,
+          nullabilitySuffix: NullabilitySuffix.none,
         );
         return;
       } else if (typeArguments.length == 2) {
@@ -653,7 +647,7 @@ class TypedLiteralResolver {
         var valueType = typeArguments[1].typeOrThrow;
         node.staticType = _typeProvider.mapElement.instantiate(
           typeArguments: fixedTypeList(keyType, valueType),
-          nullabilitySuffix: _noneOrStarSuffix,
+          nullabilitySuffix: NullabilitySuffix.none,
         );
         return;
       }
@@ -701,10 +695,10 @@ class TypedLiteralResolver {
     var element = _typeProvider.mapElement;
     var typeParameters = element.typeParameters;
     var genericKeyType = typeParameters[0].instantiate(
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
     var genericValueType = typeParameters[1].instantiate(
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
 
     var parameters = <ParameterElement>[];
@@ -729,7 +723,7 @@ class TypedLiteralResolver {
     var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -743,7 +737,7 @@ class TypedLiteralResolver {
     var element = _typeProvider.setElement;
     var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
 
     var parameters = <ParameterElement>[];
@@ -762,7 +756,8 @@ class TypedLiteralResolver {
         parameters: parameters, argumentTypes: argumentTypes);
     var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
-        typeArguments: typeArguments, nullabilitySuffix: _noneOrStarSuffix);
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.none);
   }
 }
 
