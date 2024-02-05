@@ -21,7 +21,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 class TypePropertyResolver {
   final ResolverVisitor _resolver;
   final LibraryElement _definingLibrary;
-  final bool _isNonNullableByDefault;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final ExtensionMemberResolver _extensionResolver;
@@ -42,7 +41,6 @@ class TypePropertyResolver {
 
   TypePropertyResolver(this._resolver)
       : _definingLibrary = _resolver.definingLibrary,
-        _isNonNullableByDefault = true,
         _typeSystem = _resolver.typeSystem,
         _typeProvider = _resolver.typeProvider,
         _extensionResolver = _resolver.extensionResolver;
@@ -72,8 +70,6 @@ class TypePropertyResolver {
     _nameErrorEntity = nameErrorEntity;
     _resetResult();
 
-    receiverType = _resolveTypeParameter(receiverType, ifLegacy: true);
-
     if (name == 'new') {
       _needsGetterError = true;
       _needsSetterError = true;
@@ -91,8 +87,7 @@ class TypePropertyResolver {
       return _toResult();
     }
 
-    if (_isNonNullableByDefault &&
-        _typeSystem.isPotentiallyNullable(receiverType) &&
+    if (_typeSystem.isPotentiallyNullable(receiverType) &&
         !receiverType.isExtensionType) {
       _lookupInterfaceType(_typeProvider.objectType);
       if (_hasGetterOrSetter) {
@@ -166,15 +161,14 @@ class TypePropertyResolver {
       _reportedSetterError = true;
 
       // Recovery, get some resolution.
-      receiverType = _resolveTypeParameter(receiverType, ifNullSafe: true);
+      receiverType = _typeSystem.resolveToBound(receiverType);
       if (receiverType is InterfaceType) {
         _lookupInterfaceType(receiverType);
       }
 
       return _toResult();
     } else {
-      var receiverTypeResolved =
-          _resolveTypeParameter(receiverType, ifNullSafe: true);
+      var receiverTypeResolved = _typeSystem.resolveToBound(receiverType);
 
       if (receiverTypeResolved is InterfaceType) {
         _lookupInterfaceType(receiverTypeResolved);
@@ -289,26 +283,6 @@ class TypePropertyResolver {
     _reportedSetterError = false;
     _setterRequested = null;
     _setterRecovery = null;
-  }
-
-  /// If the given [type] is a type parameter, replace it with its bound.
-  /// Otherwise, return the original type.
-  ///
-  /// See https://github.com/dart-lang/language/issues/1182
-  /// There was a bug in the analyzer (and CFE) - we were always resolving
-  /// types to bounds before searching for a property.  But  extensions should
-  /// be applied to original types.  Fixing this would be a breaking change,
-  /// so we fix it together with null safety.
-  DartType _resolveTypeParameter(
-    DartType type, {
-    bool ifLegacy = false,
-    bool ifNullSafe = false,
-  }) {
-    if (_isNonNullableByDefault ? ifNullSafe : ifLegacy) {
-      return _typeSystem.resolveToBound(type);
-    } else {
-      return type;
-    }
   }
 
   ResolutionResult _toResult() {
