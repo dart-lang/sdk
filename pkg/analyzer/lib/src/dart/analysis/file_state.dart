@@ -2083,9 +2083,9 @@ final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
 
 abstract class LibraryOrAugmentationFileKind extends FileKind {
   List<AugmentationImportState>? _augmentationImports;
-  List<LibraryImportState>? _libraryDocImports;
   List<LibraryExportState>? _libraryExports;
   List<LibraryImportState>? _libraryImports;
+  List<LibraryImportState>? _docImports;
 
   LibraryOrAugmentationFileKind({
     required super.file,
@@ -2122,15 +2122,15 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
   }
 
   /// The import states of each `@docImport` on the library directive.
-  List<LibraryImportState> get libraryDocImports {
-    var existingDocImports = _libraryDocImports;
-    if (existingDocImports != null) return existingDocImports;
+  List<LibraryImportState> get docImports {
+    if (_docImports case var existing?) {
+      return existing;
+    }
 
     var docImports = file.unlinked2.libraryDirective?.docImports
-        .map(_createLibraryImportState)
+        .map(_buildLibraryImportState)
         .toFixedList();
-    if (docImports == null) return _libraryDocImports = [];
-    return _libraryDocImports = docImports;
+    return _docImports = docImports ?? [];
   }
 
   List<LibraryExportState> get libraryExports {
@@ -2176,7 +2176,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
 
   List<LibraryImportState> get libraryImports {
     return _libraryImports ??=
-        file.unlinked2.imports.map(_createLibraryImportState).toFixedList();
+        file.unlinked2.imports.map(_buildLibraryImportState).toFixedList();
   }
 
   /// Collect files that are transitively referenced by this library.
@@ -2220,9 +2220,9 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
   @override
   void dispose() {
     _augmentationImports?.disposeAll();
-    _libraryDocImports?.disposeAll();
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
+    _docImports?.disposeAll();
     super.dispose();
   }
 
@@ -2251,7 +2251,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
   void invalidateLibraryCycle() {}
 
   /// Creates a [LibraryImportState] with the given unlinked [directive].
-  LibraryImportState _createLibraryImportState(
+  LibraryImportState _buildLibraryImportState(
       UnlinkedLibraryImportDirective directive) {
     final uris = file._buildNamespaceDirectiveUris(directive);
     final selectedUri = uris.selected;

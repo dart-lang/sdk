@@ -809,7 +809,7 @@ class LibraryAnalyzer {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
           directive: docImports[i].import as ImportDirectiveImpl,
-          state: containerKind.libraryDocImports[i],
+          state: containerKind.docImports[i],
           errorReporter: containerErrorReporter,
         );
       }
