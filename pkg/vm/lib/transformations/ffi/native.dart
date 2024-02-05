@@ -25,7 +25,8 @@ import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
-import 'common.dart' show FfiStaticTypeError, FfiTransformer, NativeType;
+import 'common.dart'
+    show FfiStaticTypeError, FfiTransformer, NativeType, FfiTypeCheckDirection;
 import 'native_type_cfe.dart';
 
 /// Transform @Native annotated functions into FFI native function pointer
@@ -765,7 +766,8 @@ class FfiNativeTransformer extends FfiTransformer {
       allowHandle: true,
       allowInlineArray: true,
     );
-    ensureNativeTypeToDartType(ffiType, dartType, node,
+    ensureNativeTypeMatch(
+        FfiTypeCheckDirection.nativeToDart, ffiType, dartType, node,
         allowHandle: true, allowArray: true);
 
     // Array types must have an @Array annotation denoting its size.
@@ -955,7 +957,8 @@ class FfiNativeTransformer extends FfiTransformer {
 
     try {
       ensureNativeTypeValid(nativeType, node);
-      ensureNativeTypeToDartType(
+      ensureNativeTypeMatch(
+        FfiTypeCheckDirection.nativeToDart,
         nativeType,
         wrappedDartFunctionType,
         node,

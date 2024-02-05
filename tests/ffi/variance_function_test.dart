@@ -198,9 +198,9 @@ void callbackParamImplicitDowncast1() {
 }
 
 void callbackParamSubtype1() {
-  final callback = ffiTestFunctions.lookupFunction<CallbackNaTyPointerParamOp,
-      CallbackNaTyPointerParamOpDart>(callbackParamOpName);
-  final fp = Pointer.fromFunction<NaTyPointerParamOp>(int64PointerParamOp);
+  final callback = ffiTestFunctions.lookupFunction<CallbackInt64PointerParamOp,
+      CallbackInt64PointerParamOpDart>(callbackParamOpName);
+  final fp = Pointer.fromFunction<Int64PointerParamOp>(naTyPointerParamOp);
   callback(fp);
 }
 

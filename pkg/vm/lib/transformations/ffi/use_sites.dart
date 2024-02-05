@@ -32,7 +32,8 @@ import 'package:kernel/type_environment.dart';
 import 'definitions.dart' as definitions;
 import 'native_type_cfe.dart';
 import 'native.dart' as native;
-import 'common.dart' show FfiStaticTypeError, FfiTransformer, NativeType;
+import 'common.dart'
+    show FfiStaticTypeError, FfiTransformer, NativeType, FfiTypeCheckDirection;
 import 'finalizable.dart';
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
@@ -402,7 +403,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         _ensureIsLeafIsConst(node);
         final isLeaf = getIsLeafBoolean(node) ?? false;
         ensureNativeTypeValid(nativeType, node);
-        ensureNativeTypeToDartType(
+        ensureNativeTypeMatch(
+          FfiTypeCheckDirection.nativeToDart,
           nativeType,
           dartType,
           node,
@@ -423,7 +425,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final isLeaf = getIsLeafBoolean(node) ?? false;
 
         ensureNativeTypeValid(nativeType, node);
-        ensureNativeTypeToDartType(
+        ensureNativeTypeMatch(
+          FfiTypeCheckDirection.nativeToDart,
           nativeType,
           dartType,
           node,
@@ -457,15 +460,18 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final DartType dartType = func.getStaticType(staticTypeContext!);
 
         ensureNativeTypeValid(nativeType, node);
-        ensureNativeTypeToDartType(nativeType, dartType, node);
+        final ffiFuncType = ensureNativeTypeMatch(
+                FfiTypeCheckDirection.dartToNative, nativeType, dartType, node)
+            as FunctionType;
 
         final funcType = dartType as FunctionType;
 
         // Check return type.
-        if (funcType.returnType != VoidType()) {
+        if (ffiFuncType.returnType != VoidType()) {
           diagnosticReporter.report(
               templateFfiNativeCallableListenerReturnVoid.withArguments(
-                  funcType.returnType, currentLibrary.isNonNullableByDefault),
+                  ffiFuncType.returnType,
+                  currentLibrary.isNonNullableByDefault),
               func.fileOffset,
               1,
               func.location?.file);
@@ -839,11 +845,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     ensureNativeTypeValid(nativeType, node);
-    ensureNativeTypeToDartType(
+    final ffiFuncType = ensureNativeTypeMatch(
+      FfiTypeCheckDirection.dartToNative,
       nativeType,
       dartType,
       node,
-    );
+    ) as FunctionType;
 
     final funcType = dartType as FunctionType;
 
@@ -875,7 +882,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       if (hasExceptionalReturn) {
         diagnosticReporter.report(
             templateFfiExpectedNoExceptionalReturn.withArguments(
-                funcType.returnType, currentLibrary.isNonNullableByDefault),
+                ffiFuncType.returnType, currentLibrary.isNonNullableByDefault),
             node.fileOffset,
             1,
             node.location?.file);
@@ -886,7 +893,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       if (!hasExceptionalReturn) {
         diagnosticReporter.report(
             templateFfiExpectedExceptionalReturn.withArguments(
-                funcType.returnType, currentLibrary.isNonNullableByDefault),
+                ffiFuncType.returnType, currentLibrary.isNonNullableByDefault),
             node.fileOffset,
             1,
             node.location?.file);
@@ -1307,8 +1314,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     ensureNativeTypeValid(nativeType, node,
         allowCompounds: true, allowInlineArray: true);
-    ensureNativeTypeToDartType(
-        nativeType, arg.getStaticType(staticTypeContext!), node,
+    ensureNativeTypeMatch(FfiTypeCheckDirection.nativeToDart, nativeType,
+        arg.getStaticType(staticTypeContext!), node,
         allowArray: true);
 
     return StaticInvocation(
