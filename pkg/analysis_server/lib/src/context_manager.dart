@@ -373,9 +373,8 @@ class ContextManagerImpl implements ContextManager {
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var content = file.readAsStringSync();
       var lineInfo = LineInfo.fromContent(content);
-      var sdkVersionConstraint = (package is PubWorkspacePackage)
-          ? package.sdkVersionConstraint
-          : null;
+      var sdkVersionConstraint =
+          (package is PubPackage) ? package.sdkVersionConstraint : null;
       var errors = analyzeAnalysisOptions(
         file.createSource(),
         content,
