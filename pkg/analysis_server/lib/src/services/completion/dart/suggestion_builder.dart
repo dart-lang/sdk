@@ -242,9 +242,6 @@ class SuggestionBuilder {
     return _cachedContainingMemberName;
   }
 
-  bool get _isNonNullableByDefault =>
-      request.libraryElement.isNonNullableByDefault;
-
   /// Return `true` if the context requires a constant expression.
   bool get _preferConstants =>
       request.inConstantContext || request.opType.mustBeConst;
@@ -812,8 +809,7 @@ class SuggestionBuilder {
       required bool appendComma,
       int? replacementLength}) {
     var name = parameter.name;
-    var type = parameter.type
-        .getDisplayString(withNullability: _isNonNullableByDefault);
+    var type = parameter.type.getDisplayString(withNullability: true);
 
     var completion = name;
     if (appendColon) {
@@ -873,8 +869,7 @@ class SuggestionBuilder {
         elementLocation: parameter.location);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
-      suggestion.element =
-          convertElement(parameter, withNullability: _isNonNullableByDefault);
+      suggestion.element = convertElement(parameter, withNullability: true);
     }
 
     _addSuggestion(suggestion);
@@ -890,7 +885,7 @@ class SuggestionBuilder {
       int? replacementLength}) {
     final name = field.name;
     final type = field.type.getDisplayString(
-      withNullability: _isNonNullableByDefault,
+      withNullability: true,
     );
 
     var completion = name;
@@ -978,8 +973,8 @@ class SuggestionBuilder {
         displayText: displayText,
         elementLocation: element.location,
         requiredImports: overrideImports.toList());
-    suggestion.element = protocol.convertElement(element,
-        withNullability: _isNonNullableByDefault);
+    suggestion.element =
+        protocol.convertElement(element, withNullability: true);
     _addSuggestion(
       suggestion,
       textToMatchOverride: _textToMatchOverride(element),
@@ -1045,7 +1040,7 @@ class SuggestionBuilder {
     );
 
     final returnType = field.type.getDisplayString(
-      withNullability: _isNonNullableByDefault,
+      withNullability: true,
     );
 
     _addSuggestion(
@@ -1464,7 +1459,7 @@ class SuggestionBuilder {
 
     var suggestedElement = protocol.convertElement(
       element,
-      withNullability: _isNonNullableByDefault,
+      withNullability: true,
     );
 
     var enclosingElement = element.enclosingElement;
@@ -1476,7 +1471,7 @@ class SuggestionBuilder {
 
     var returnType = getReturnTypeString(
       element,
-      withNullability: _isNonNullableByDefault,
+      withNullability: true,
     );
 
     List<String>? parameterNames;
@@ -1490,7 +1485,7 @@ class SuggestionBuilder {
       }).toList();
       parameterTypes = element.parameters.map((ParameterElement parameter) {
         return parameter.type.getDisplayString(
-          withNullability: _isNonNullableByDefault,
+          withNullability: true,
         );
       }).toList();
 

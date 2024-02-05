@@ -24,9 +24,6 @@ class TypeHierarchyComputer {
   TypeHierarchyComputer(this._searchEngine, final Element pivotElement)
       : helper = TypeHierarchyComputerHelper.fromElement(pivotElement);
 
-  bool get _isNonNullableByDefault =>
-      helper.pivotLibrary.isNonNullableByDefault;
-
   /// Returns the computed type hierarchy, maybe `null`.
   Future<List<TypeHierarchyItem>?> compute() async {
     var pivotClass = helper.pivotClass;
@@ -69,10 +66,9 @@ class TypeHierarchyComputer {
       var subMemberElement = helper.findMemberElement(subElement);
       var subMemberElementDeclared = subMemberElement?.nonSynthetic;
       subItem = TypeHierarchyItem(
-          convertElement(subElement, withNullability: _isNonNullableByDefault),
+          convertElement(subElement, withNullability: true),
           memberElement: subMemberElementDeclared != null
-              ? convertElement(subMemberElementDeclared,
-                  withNullability: _isNonNullableByDefault)
+              ? convertElement(subMemberElementDeclared, withNullability: true)
               : null,
           superclass: itemId);
       var subItemId = _items.length;
@@ -107,20 +103,17 @@ class TypeHierarchyComputer {
       String? displayName;
       if (typeArguments != null && typeArguments.isNotEmpty) {
         var typeArgumentsStr = typeArguments
-            .map((type) =>
-                type.getDisplayString(withNullability: _isNonNullableByDefault))
+            .map((type) => type.getDisplayString(withNullability: true))
             .join(', ');
         displayName = '${classElement.displayName}<$typeArgumentsStr>';
       }
       var memberElement = helper.findMemberElement(classElement);
       var memberElementDeclared = memberElement?.nonSynthetic;
       item = TypeHierarchyItem(
-          convertElement(classElement,
-              withNullability: _isNonNullableByDefault),
+          convertElement(classElement, withNullability: true),
           displayName: displayName,
           memberElement: memberElementDeclared != null
-              ? convertElement(memberElementDeclared,
-                  withNullability: _isNonNullableByDefault)
+              ? convertElement(memberElementDeclared, withNullability: true)
               : null);
       _elementItemMap[classElement] = item;
       itemId = _items.length;
