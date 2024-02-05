@@ -4,6 +4,7 @@
 
 import "dart:_internal" show patch;
 import "dart:_string";
+import "dart:_js_types" show JSStringImpl;
 
 @patch
 class String {
@@ -49,4 +50,18 @@ class String {
   @patch
   external const factory String.fromEnvironment(String name,
       {String defaultValue = ""});
+}
+
+extension _StringExt on String {
+  int firstNonWhitespace() {
+    final value = this;
+    if (value is StringBase) return value.firstNonWhitespace();
+    return (value as JSStringImpl).firstNonWhitespace();
+  }
+
+  int lastNonWhitespace() {
+    final value = this;
+    if (value is StringBase) return value.lastNonWhitespace();
+    return (value as JSStringImpl).lastNonWhitespace();
+  }
 }
