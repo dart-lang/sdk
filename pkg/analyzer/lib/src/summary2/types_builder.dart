@@ -430,8 +430,6 @@ class TypesBuilder {
       }
     }
 
-    final typeProvider = element.library.typeProvider;
-
     if (element is InterfaceElementImpl &&
         augmented is AugmentedInterfaceElementImpl &&
         declaration is InterfaceElementImpl) {
@@ -454,7 +452,6 @@ class TypesBuilder {
             return element;
           }
           return ConstructorMember(
-            typeProvider: typeProvider,
             declaration: element,
             augmentationSubstitution: toDeclaration,
             substitution: Substitution.empty,
@@ -475,8 +472,7 @@ class TypesBuilder {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return FieldMember(
-            typeProvider, element, toDeclaration, Substitution.empty);
+        return FieldMember(element, toDeclaration, Substitution.empty);
       }),
     ];
 
@@ -487,7 +483,7 @@ class TypesBuilder {
           return element;
         }
         return PropertyAccessorMember(
-            typeProvider, element, toDeclaration, Substitution.empty);
+            element, toDeclaration, Substitution.empty);
       }),
     ];
 
@@ -497,8 +493,7 @@ class TypesBuilder {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return MethodMember(
-            typeProvider, element, toDeclaration, Substitution.empty);
+        return MethodMember(element, toDeclaration, Substitution.empty);
       }),
     ];
   }
