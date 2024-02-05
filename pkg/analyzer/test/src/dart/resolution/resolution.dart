@@ -148,7 +148,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertElement2(
     Object? nodeOrElement, {
     required Element declaration,
-    bool isLegacy = false,
     Map<String, String> substitution = const {},
   }) {
     Element? element;
@@ -162,12 +161,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actualDeclaration, same(declaration));
 
     if (element is Member) {
-      expect(element.isLegacy, isLegacy);
       assertSubstitution(element.substitution, substitution);
-    } else {
-      if (isLegacy || substitution.isNotEmpty) {
-        fail('Expected to be a Member: (${element.runtimeType}) $element');
-      }
+    } else if (substitution.isNotEmpty) {
+      fail('Expected to be a Member: (${element.runtimeType}) $element');
     }
   }
 
@@ -582,10 +578,6 @@ class _ElementMatcher extends Matcher {
       }
 
       if (element is Member) {
-        if (element.isLegacy != false) {
-          return false;
-        }
-
         test.assertSubstitution(element.substitution, const {});
         return true;
       } else {

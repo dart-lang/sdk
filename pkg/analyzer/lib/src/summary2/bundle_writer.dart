@@ -743,27 +743,15 @@ class ResolutionSink extends _SummaryDataWriter {
   void writeElement(Element? element) {
     if (element is Member) {
       var declaration = element.declaration;
-      var isLegacy = element.isLegacy;
 
       var typeArguments = _enclosingClassTypeArguments(
         declaration,
         element.substitution.map,
       );
 
-      if (isLegacy) {
-        if (typeArguments.isEmpty) {
-          writeByte(Tag.MemberLegacyWithoutTypeArguments);
-          _writeElement(declaration);
-        } else {
-          writeByte(Tag.MemberLegacyWithTypeArguments);
-          _writeElement(declaration);
-          _writeTypeList(typeArguments);
-        }
-      } else {
-        writeByte(Tag.MemberWithTypeArguments);
-        _writeElement(declaration);
-        _writeTypeList(typeArguments);
-      }
+      writeByte(Tag.MemberWithTypeArguments);
+      _writeElement(declaration);
+      _writeTypeList(typeArguments);
     } else {
       writeByte(Tag.RawElement);
       _writeElement(element);

@@ -124,8 +124,6 @@ class Tag {
   static const int VariableDeclarationList = 43;
 
   static const int RawElement = 0;
-  static const int MemberLegacyWithoutTypeArguments = 1;
-  static const int MemberLegacyWithTypeArguments = 2;
   static const int MemberWithTypeArguments = 3;
   static const int ImportPrefixElement = 4;
 

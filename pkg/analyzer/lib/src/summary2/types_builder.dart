@@ -458,7 +458,6 @@ class TypesBuilder {
             declaration: element,
             augmentationSubstitution: toDeclaration,
             substitution: Substitution.empty,
-            isLegacy: false,
           );
         }),
       ];
@@ -477,7 +476,7 @@ class TypesBuilder {
           return element;
         }
         return FieldMember(
-            typeProvider, element, toDeclaration, Substitution.empty, false);
+            typeProvider, element, toDeclaration, Substitution.empty);
       }),
     ];
 
@@ -488,7 +487,7 @@ class TypesBuilder {
           return element;
         }
         return PropertyAccessorMember(
-            typeProvider, element, toDeclaration, Substitution.empty, false);
+            typeProvider, element, toDeclaration, Substitution.empty);
       }),
     ];
 
@@ -499,7 +498,7 @@ class TypesBuilder {
           return element;
         }
         return MethodMember(
-            typeProvider, element, toDeclaration, Substitution.empty, false);
+            typeProvider, element, toDeclaration, Substitution.empty);
       }),
     ];
   }

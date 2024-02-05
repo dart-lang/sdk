@@ -1963,8 +1963,7 @@ class ResolutionReader {
       return element;
     }
 
-    if (memberFlags == Tag.MemberLegacyWithTypeArguments ||
-        memberFlags == Tag.MemberWithTypeArguments) {
+    if (memberFlags == Tag.MemberWithTypeArguments) {
       var enclosing = element.enclosingElement as InstanceElement;
 
       var declaration = enclosing.augmented!.declaration;
@@ -2000,11 +1999,6 @@ class ResolutionReader {
             FieldMember.fromAugmentation(element, augmentationSubstitution);
         element = FieldMember.from2(element, substitution);
       }
-    }
-
-    if (memberFlags == Tag.MemberLegacyWithoutTypeArguments ||
-        memberFlags == Tag.MemberLegacyWithTypeArguments) {
-      return Member.legacy(element);
     }
 
     if (memberFlags == Tag.MemberWithTypeArguments) {

@@ -2880,11 +2880,6 @@ class _InstanceCreationEvaluator {
         return null;
       }
 
-      var constructor = _constructor;
-      if (constructor is ConstructorMember && constructor.isLegacy) {
-        superConstructor =
-            Member.legacy(superConstructor) as ConstructorElement;
-      }
       if (superConstructor.isConst) {
         var evaluationResult = _evaluationEngine.evaluateConstructorCall(
           _library,
