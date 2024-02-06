@@ -176,7 +176,7 @@ static extension-type-member method E1|constructor#<X extends core::Object? = dy
   lowered final self::E1<self::E1|constructor#::X%> /* = self::E1|constructor#::X% */ #this = it;
   return #this;
 }
-static extension-type-member method E1|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::X% it) → self::E1<self::E1|constructor#_#new#tearOff::X%>% /* = self::E1|constructor#_#new#tearOff::X% */
+static extension-type-member method E1|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::X% it) → self::E1<self::E1|constructor#_#new#tearOff::X%> /* = self::E1|constructor#_#new#tearOff::X% */
   return self::E1|constructor#<self::E1|constructor#_#new#tearOff::X%>(it);
 static method foo1<X extends invalid-type = self::E1<dynamic> /* = dynamic */>() → dynamic {}
 static method bar1() → dynamic {
@@ -188,7 +188,7 @@ static extension-type-member method ET1|constructor#<X extends invalid-type = se
   lowered final self::ET1<self::ET1|constructor#::X%> /* = core::Object? */ #this = it;
   return #this;
 }
-static extension-type-member method ET1|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic> /* = dynamic */>(core::Object? it) → self::ET1<self::ET1|constructor#_#new#tearOff::X%>% /* = core::Object? */
+static extension-type-member method ET1|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic> /* = dynamic */>(core::Object? it) → self::ET1<self::ET1|constructor#_#new#tearOff::X%> /* = core::Object? */
   return self::ET1|constructor#<self::ET1|constructor#_#new#tearOff::X%>(it);
 static method foo2<X extends invalid-type = self::E1<dynamic> /* = dynamic */, Y extends self::foo2::X% = dynamic>() → dynamic {}
 static method bar2() → dynamic {
@@ -200,7 +200,7 @@ static extension-type-member method ET2|constructor#<X extends invalid-type = se
   lowered final self::ET2<self::ET2|constructor#::X%, self::ET2|constructor#::Y%> /* = core::Object? */ #this = it;
   return #this;
 }
-static extension-type-member method ET2|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic> /* = dynamic */, Y extends self::ET2|constructor#_#new#tearOff::X% = dynamic>(core::Object? it) → self::ET2<self::ET2|constructor#_#new#tearOff::X%, self::ET2|constructor#_#new#tearOff::Y%>% /* = core::Object? */
+static extension-type-member method ET2|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic> /* = dynamic */, Y extends self::ET2|constructor#_#new#tearOff::X% = dynamic>(core::Object? it) → self::ET2<self::ET2|constructor#_#new#tearOff::X%, self::ET2|constructor#_#new#tearOff::Y%> /* = core::Object? */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::X%, self::ET2|constructor#_#new#tearOff::Y%>(it);
 static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F1#fromEnvironment#tearOff<unrelated X extends invalid-type = self::E1<dynamic> /* = dynamic */>(core::String name, {core::int defaultValue = #C1}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);

@@ -11851,8 +11851,8 @@ class TypedefType extends DartType {
   DartType get unaliasOnce {
     DartType result =
         Substitution.fromTypedefType(this).substituteType(typedefNode.type!);
-    return result.withDeclaredNullability(
-        combineNullabilitiesForSubstitution(result.nullability, nullability));
+    return result.withDeclaredNullability(combineNullabilitiesForSubstitution(
+        result.declaredNullability, nullability));
   }
 
   @override

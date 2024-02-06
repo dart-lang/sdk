@@ -55,7 +55,7 @@ static extension-type-member method E4|constructor#_#new#tearOff(core::Object it
   return self::E4|constructor#(it);
 static extension-type-member method E5|constructor#<X extends core::Object? = dynamic>(self::E5|constructor#::X% it) → self::E5<self::E5|constructor#::X%> /* = self::E5|constructor#::X% */
   ;
-static extension-type-member method E5|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E5|constructor#_#new#tearOff::X% it) → self::E5<self::E5|constructor#_#new#tearOff::X%>% /* = self::E5|constructor#_#new#tearOff::X% */
+static extension-type-member method E5|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E5|constructor#_#new#tearOff::X% it) → self::E5<self::E5|constructor#_#new#tearOff::X%> /* = self::E5|constructor#_#new#tearOff::X% */
   return self::E5|constructor#<self::E5|constructor#_#new#tearOff::X%>(it);
 static extension-type-member method E6|constructor#<X extends core::Object>(self::E6|constructor#::X it) → self::E6<self::E6|constructor#::X> /* = self::E6|constructor#::X */
   ;

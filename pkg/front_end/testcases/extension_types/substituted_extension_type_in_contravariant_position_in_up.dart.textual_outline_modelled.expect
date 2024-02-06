@@ -1,0 +1,5 @@
+extension type E<X>(X it) {}
+
+test(Function(F<int>) f1, Function(int) f2) => [f1, f2];
+
+typedef F<Y> = E<Y>;

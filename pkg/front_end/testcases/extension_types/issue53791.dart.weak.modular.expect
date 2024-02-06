@@ -52,7 +52,7 @@ extension type E3(self::A it) implements self::A, self::A, self::A, self::A {
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
-extension type E4(self::E /* = core::Object? */ it) implements self::E /* = core::Object? */, self::E% /* = core::Object? */, self::E /* = core::Object? */, self::E% /* = core::Object? */ {
+extension type E4(self::E /* = core::Object? */ it) implements self::E /* = core::Object? */, self::E /* = core::Object? */, self::E /* = core::Object? */, self::E /* = core::Object? */ {
   abstract extension-type-member representation-field get it() → self::E /* = core::Object? */;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;

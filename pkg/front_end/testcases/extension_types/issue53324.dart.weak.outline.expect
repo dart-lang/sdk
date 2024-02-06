@@ -84,11 +84,11 @@ static extension-type-member method ET1|get#method(lowered final self::ET1 /* = 
   return (core::int i) → void => self::ET1|method(#this, i);
 static extension-type-member method ET2|constructor#<T extends core::num>(self::ET2|constructor#::T id) → self::ET2<self::ET2|constructor#::T> /* = self::ET2|constructor#::T */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::num>(self::ET2|constructor#_#new#tearOff::T id) → self::ET2<self::ET2|constructor#_#new#tearOff::T>% /* = self::ET2|constructor#_#new#tearOff::T */
+static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::num>(self::ET2|constructor#_#new#tearOff::T id) → self::ET2<self::ET2|constructor#_#new#tearOff::T> /* = self::ET2|constructor#_#new#tearOff::T */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T>(id);
 static extension-type-member method ET2|setter<T extends core::num>(lowered final self::ET2<self::ET2|setter::T> /* = self::ET2|setter::T */ #this, covariant-by-declaration core::int x) → void
   ;
-static extension-type-member method ET2|get#setter<T extends core::num>(lowered final self::ET2<self::ET2|get#setter::T>% /* = self::ET2|get#setter::T */ #this) → (core::int) → void
+static extension-type-member method ET2|get#setter<T extends core::num>(lowered final self::ET2<self::ET2|get#setter::T> /* = self::ET2|get#setter::T */ #this) → (core::int) → void
   return (core::int x) → void => self::ET2|setter<self::ET2|get#setter::T>(#this, x);
 static extension-type-member method ET3|constructor#(core::num id) → self::ET3 /* = core::num */
   ;

@@ -373,7 +373,7 @@ static extension-type-member method G|constructor#<T extends core::Object? = dyn
   lowered final self::G<self::G|constructor#::T%> /* = self::G|constructor#::T% */ #this = o;
   return #this;
 }
-static extension-type-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%>% /* = self::G|constructor#_#new#tearOff::T% */
+static extension-type-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%> /* = self::G|constructor#_#new#tearOff::T% */
   return self::G|constructor#<self::G|constructor#_#new#tearOff::T%>(o);
 static extension-type-member method G2|constructor#<T extends core::Object>(self::G2|constructor#::T o) → self::G2<self::G2|constructor#::T> /* = self::G2|constructor#::T */ {
   lowered final self::G2<self::G2|constructor#::T> /* = self::G2|constructor#::T */ #this = o;
