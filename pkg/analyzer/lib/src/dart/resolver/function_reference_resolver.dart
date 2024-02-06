@@ -347,7 +347,7 @@ class FunctionReferenceResolver {
     var propertyName = function.propertyName;
     var result =
         _extensionResolver.getOverrideMember(override, propertyName.name);
-    var member = _resolver.toLegacyElement(result.getter);
+    var member = result.getter;
 
     if (member == null) {
       node.staticType = InvalidTypeImpl.instance;
@@ -439,7 +439,6 @@ class FunctionReferenceResolver {
         node.staticType = InvalidTypeImpl.instance;
         return;
       } else {
-        functionElement = _resolver.toLegacyElement(functionElement);
         _resolveReceiverPrefix(node, prefixElement, function, functionElement);
         return;
       }

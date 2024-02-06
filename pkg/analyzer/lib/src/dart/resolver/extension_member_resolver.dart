@@ -159,9 +159,6 @@ class ExtensionMemberResolver {
     var setterMember =
         setter != null ? ExecutableMember.from2(setter, substitution) : null;
 
-    getterMember = _resolver.toLegacyElement(getterMember);
-    setterMember = _resolver.toLegacyElement(setterMember);
-
     return ResolutionResult(getter: getterMember, setter: setterMember);
   }
 

@@ -69,7 +69,6 @@ class AnnotationResolver {
     ExecutableElement? getter;
     if (getterName != null) {
       getter = classElement.getGetter(getterName.name);
-      getter = _resolver.toLegacyElement(getter);
       // Recovery, try to find a constructor.
       getter ??= classElement.getNamedConstructor(getterName.name);
     } else {
@@ -102,7 +101,6 @@ class AnnotationResolver {
     InterfaceType Function(List<DartType> typeArguments) instantiateElement,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
-    constructorElement = _resolver.toLegacyElement(constructorElement);
     constructorName?.staticElement = constructorElement;
     node.element = constructorElement;
 
@@ -147,7 +145,6 @@ class AnnotationResolver {
     ExecutableElement? getter;
     if (getterName != null) {
       getter = extensionElement.getGetter(getterName.name);
-      getter = _resolver.toLegacyElement(getter);
     }
 
     getterName?.staticElement = getter;
@@ -187,7 +184,6 @@ class AnnotationResolver {
     PropertyAccessorElement element,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
-    element = _resolver.toLegacyElement(element);
     name.staticElement = element;
     node.element = element;
 
@@ -381,7 +377,6 @@ class AnnotationResolver {
       var classElement = aliasedType.element;
       if (getterName != null) {
         getter = classElement.getGetter(getterName.name);
-        getter = _resolver.toLegacyElement(getter);
       }
     }
 
