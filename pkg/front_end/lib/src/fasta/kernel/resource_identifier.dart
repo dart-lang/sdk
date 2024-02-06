@@ -16,17 +16,21 @@ import '../messages.dart'
         messageResourceIdentifiersMultiple;
 import 'constant_evaluator.dart' show ErrorReporter;
 
-/// Get all annotations for the given [node] of the form
-/// `@ResourceIdentifier(...)`
+/// Get all of the `@ResourceIdentifier` annotations from `package:meta`
+/// that are attached to the specified [node].
 Iterable<InstanceConstant> findResourceAnnotations(Annotatable node) =>
     node.annotations
         .whereType<ConstantExpression>()
         .map((expression) => expression.constant)
         .whereType<InstanceConstant>()
-        .where((instance) => isResourceIdentifier(instance.classNode));
+        .where((instance) => isResourceIdentifier(instance.classNode))
+        .toList(growable: false);
+
+final Uri _metaLibraryUri = new Uri(scheme: 'package', path: 'meta/meta.dart');
 
 bool isResourceIdentifier(Class classNode) =>
-    classNode.name == 'ResourceIdentifier';
+    classNode.name == 'ResourceIdentifier' &&
+    classNode.enclosingLibrary.importUri == _metaLibraryUri;
 
 /// Report if the resource annotations is placed on anything but a static
 /// method.
