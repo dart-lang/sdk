@@ -1464,14 +1464,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required MapPatternImpl node,
     required SharedMatchContext context,
   }) {
-    shared.MapPatternTypeArguments<DartType>? typeArguments;
+    ({DartType keyType, DartType valueType})? typeArguments;
     var typeArgumentsList = node.typeArguments;
     if (typeArgumentsList != null) {
       typeArgumentsList.accept(this);
       // Check that we have exactly two type arguments.
       var length = typeArgumentsList.arguments.length;
       if (length == 2) {
-        typeArguments = shared.MapPatternTypeArguments(
+        typeArguments = (
           keyType: typeArgumentsList.arguments[0].typeOrThrow,
           valueType: typeArgumentsList.arguments[1].typeOrThrow,
         );

@@ -4,27 +4,9 @@
 
 import '../flow_analysis/flow_analysis_operations.dart';
 
-/// Type arguments for a map pattern, which exist or not exist only together.
-class MapPatternTypeArguments<Type extends Object> {
-  final Type keyType;
-  final Type valueType;
-
-  MapPatternTypeArguments({
-    required this.keyType,
-    required this.valueType,
-  });
-}
-
-class NamedType<Type extends Object> {
-  final String name;
-  final Type type;
-
-  NamedType(this.name, this.type);
-}
-
 class RecordType<Type extends Object> {
   final List<Type> positional;
-  final List<NamedType<Type>> named;
+  final List<({String name, Type type})> named;
 
   RecordType({
     required this.positional,
@@ -133,7 +115,7 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
 
   /// If [type] is a subtype of the type `Map<K, V>?` for some `K` and `V`,
   /// returns these `K` and `V`.  Otherwise returns `null`.
-  MapPatternTypeArguments<Type>? matchMapType(Type type);
+  ({Type keyType, Type valueType})? matchMapType(Type type);
 
   /// If [type] is a subtype of the type `Stream<T>?` for some `T`, returns
   /// the type `T`.  Otherwise returns `null`.
@@ -146,12 +128,12 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
 
   /// Builds the client specific record type.
   Type recordType(
-      {required List<Type> positional, required List<NamedType<Type>> named});
+      {required List<Type> positional, required List<(String, Type)> named});
 
   /// Builds the client specific record type schema.
   TypeSchema recordTypeSchema(
       {required List<TypeSchema> positional,
-      required List<NamedType<TypeSchema>> named});
+      required List<(String, TypeSchema)> named});
 
   /// Returns the type schema `Stream`, with type argument [elementTypeSchema].
   TypeSchema streamTypeSchema(TypeSchema elementTypeSchema);

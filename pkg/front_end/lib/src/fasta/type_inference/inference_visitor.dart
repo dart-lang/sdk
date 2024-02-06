@@ -11,8 +11,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide NamedType, RecordType;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/stack_checker.dart';
@@ -9506,8 +9504,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (node is MapPattern) {
       return analyzeMapPatternSchema(
           typeArguments: node.keyType != null && node.valueType != null
-              ? new MapPatternTypeArguments<DartType>(
-                  keyType: node.keyType!, valueType: node.valueType!)
+              ? (keyType: node.keyType!, valueType: node.valueType!)
               : null,
           elements: node.entries);
     } else if (node is NamedPattern) {
@@ -10677,12 +10674,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType matchedValueType =
         node.matchedValueType = flow.getMatchedValueType();
 
-    MapPatternTypeArguments<DartType>? typeArguments =
+    ({DartType keyType, DartType valueType})? typeArguments =
         node.keyType == null && node.valueType == null
             ? null
-            : new MapPatternTypeArguments<DartType>(
+            : (
                 keyType: node.keyType ?? const DynamicType(),
-                valueType: node.valueType ?? const DynamicType());
+                valueType: node.valueType ?? const DynamicType()
+              );
     MapPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeMapPattern(context, node,
             typeArguments: typeArguments, elements: node.entries);

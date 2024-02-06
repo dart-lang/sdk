@@ -416,9 +416,8 @@ class TypeSystemOperations
     if (type is RecordType) {
       return shared.RecordType(
         positional: type.positionalFields.map((e) => e.type).toList(),
-        named: type.namedFields
-            .map((e) => shared.NamedType(e.name, e.type))
-            .toList(),
+        named:
+            type.namedFields.map((e) => (name: e.name, type: e.type)).toList(),
       );
     }
     return null;
@@ -576,11 +575,11 @@ class TypeSystemOperations
   }
 
   @override
-  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+  ({DartType keyType, DartType valueType})? matchMapType(DartType type) {
     var mapElement = typeSystem.typeProvider.mapElement;
     var mapType = type.asInstanceOf(mapElement);
     if (mapType != null) {
-      return MapPatternTypeArguments<DartType>(
+      return (
         keyType: mapType.typeArguments[0],
         valueType: mapType.typeArguments[1],
       );
@@ -608,16 +607,14 @@ class TypeSystemOperations
   @override
   DartType recordType(
       {required List<DartType> positional,
-      required List<shared.NamedType<DartType>> named}) {
+      required List<(String, DartType)> named}) {
     return RecordTypeImpl(
       positionalFields: positional.map((type) {
         return RecordTypePositionalFieldImpl(type: type);
       }).toList(),
       namedFields: named.map((namedType) {
-        return RecordTypeNamedFieldImpl(
-          name: namedType.name,
-          type: namedType.type,
-        );
+        var (name, type) = namedType;
+        return RecordTypeNamedFieldImpl(name: name, type: type);
       }).toList(),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -626,7 +623,7 @@ class TypeSystemOperations
   @override
   DartType recordTypeSchema(
           {required List<DartType> positional,
-          required List<shared.NamedType<DartType>> named}) =>
+          required List<(String, DartType)> named}) =>
       recordType(positional: positional, named: named);
 
   @override
