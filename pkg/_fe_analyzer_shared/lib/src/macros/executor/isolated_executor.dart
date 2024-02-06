@@ -50,7 +50,8 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
     ReceivePort receivePort = new ReceivePort();
     Isolate isolate = await Isolate.spawnUri(
         uriToSpawn, arguments, receivePort.sendPort,
-        packageConfig: packageConfig);
+        packageConfig: packageConfig,
+        debugName: 'macro-executor ($uriToSpawn)');
     Completer<SendPort> sendPortCompleter = new Completer();
     StreamController<Object> messageStreamController =
         new StreamController(sync: true);
