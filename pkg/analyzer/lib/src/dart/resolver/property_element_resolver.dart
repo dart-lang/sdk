@@ -279,7 +279,7 @@ class PropertyElementResolver with ScopeHelpers {
       writeElementRequested = _resolver.toLegacyElement(writeLookup?.requested);
       writeElementRecovery = _resolver.toLegacyElement(writeLookup?.recovery);
 
-      AssignmentVerifier(_resolver.definingLibrary, errorReporter).verify(
+      AssignmentVerifier(errorReporter).verify(
         node: node,
         requested: writeElementRequested,
         recovery: writeElementRecovery,
@@ -509,7 +509,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite) {
       _checkForStaticMember(target, propertyName, result.setter);
       if (result.needsSetterError) {
-        AssignmentVerifier(_definingLibrary, errorReporter).verify(
+        AssignmentVerifier(errorReporter).verify(
           node: propertyName,
           requested: null,
           recovery: result.getter,
@@ -721,7 +721,7 @@ class PropertyElementResolver with ScopeHelpers {
       } else {
         // Recovery, try to use getter.
         writeElementRecovery = augmented.getGetter(propertyName.name);
-        AssignmentVerifier(_definingLibrary, errorReporter).verify(
+        AssignmentVerifier(errorReporter).verify(
           node: propertyName,
           requested: null,
           recovery: writeElementRecovery,

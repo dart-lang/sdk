@@ -14,6 +14,20 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   buildDeclarationsForClass(declaration, builder) {}
 }
 
+/*macro*/ class NothingMacro
+    implements ClassTypesMacro, ClassDeclarationsMacro, ClassDefinitionMacro {
+  const NothingMacro();
+
+  @override
+  buildDeclarationsForClass(clazz, builder) {}
+
+  @override
+  buildDefinitionForClass(clazz, builder) {}
+
+  @override
+  buildTypesForClass(clazz, builder) {}
+}
+
 /*macro*/ class ReportAtFirstMethod implements ClassDeclarationsMacro {
   const ReportAtFirstMethod();
 

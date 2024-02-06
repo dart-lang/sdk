@@ -3704,10 +3704,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForMainFunction1(Token nameToken, Element declaredElement) {
-    if (!_currentLibrary.isNonNullableByDefault) {
-      return;
-    }
-
     // We should only check exported declarations, i.e. top-level.
     if (declaredElement.enclosingElement is! CompilationUnitElement) {
       return;
@@ -3726,10 +3722,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForMainFunction2(FunctionDeclaration functionDeclaration) {
-    if (!_currentLibrary.isNonNullableByDefault) {
-      return;
-    }
-
     if (functionDeclaration.name.lexeme != 'main') {
       return;
     }
@@ -3984,9 +3976,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     InterfaceType mixinType = mixinName.type as InterfaceType;
     for (var constraint in mixinType.superclassConstraints) {
       var superType = _enclosingClass!.supertype as InterfaceTypeImpl;
-      if (_currentLibrary.isNonNullableByDefault) {
-        superType = superType.withNullability(NullabilitySuffix.none);
-      }
+      superType = superType.withNullability(NullabilitySuffix.none);
 
       bool isSatisfied = typeSystem.isSubtypeOf(superType, constraint);
       if (!isSatisfied) {
@@ -6142,8 +6132,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             contextMessages: messages,
           );
         case ExceptionMacroDiagnostic():
-          // TODO(scheglov): implement
-          throw UnimplementedError();
+          errorReporter.atNode(
+            metadata[diagnostic.annotationIndex],
+            CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION,
+            arguments: [
+              diagnostic.message,
+              diagnostic.stackTrace,
+            ],
+          );
         case MacroDiagnostic():
           final errorCode = switch (diagnostic.severity) {
             macro.Severity.info => HintCode.MACRO_INFO,

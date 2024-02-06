@@ -1144,7 +1144,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       typeFormals: typeParameters,
       parameters: parameters,
       returnType: returnType,
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -2385,12 +2385,6 @@ abstract class ElementImpl implements Element {
     return enclosingElement?.source;
   }
 
-  NullabilitySuffix get _noneOrStarSuffix {
-    return library!.isNonNullableByDefault == true
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-  }
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -2853,7 +2847,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
       typeFormals: typeParameters,
       parameters: parameters,
       returnType: returnType,
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -3276,7 +3270,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix:
-          isNullable ? NullabilitySuffix.question : _noneOrStarSuffix,
+          isNullable ? NullabilitySuffix.question : NullabilitySuffix.none,
     );
   }
 
@@ -3571,14 +3565,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       List<DartType> typeArguments;
       if (typeParameters.isNotEmpty) {
         typeArguments = typeParameters.map<DartType>((t) {
-          return t.instantiate(nullabilitySuffix: _noneOrStarSuffix);
+          return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
         }).toFixedList();
       } else {
         typeArguments = const <DartType>[];
       }
       return _thisType = instantiate(
         typeArguments: typeArguments,
-        nullabilitySuffix: _noneOrStarSuffix,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
     }
     return _thisType!;
@@ -3993,6 +3987,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   FeatureSet get featureSet => augmentationTarget.featureSet;
 
+  @Deprecated('Only non-nullable by default mode is supported')
   @override
   bool get isNonNullableByDefault => augmentationTarget.isNonNullableByDefault;
 
@@ -4245,6 +4240,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return DartUriResolver.isDartUri(uri);
   }
 
+  @Deprecated('Only non-nullable by default mode is supported')
   @override
   bool get isNonNullableByDefault {
     return featureSet.isEnabled(Feature.non_nullable);
@@ -6262,7 +6258,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
       typeFormals: const <TypeParameterElement>[],
       parameters: const <ParameterElement>[],
       returnType: returnType,
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -6320,7 +6316,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
       typeFormals: const <TypeParameterElement>[],
       parameters: parameters,
       returnType: returnType,
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -6708,14 +6704,16 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     final List<DartType> typeArguments;
     if (typeParameters.isNotEmpty) {
       typeArguments = typeParameters.map<DartType>((t) {
-        return t.instantiate(nullabilitySuffix: _noneOrStarSuffix);
+        return t.instantiate(
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
       }).toList();
     } else {
       typeArguments = const <DartType>[];
     }
     return instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 

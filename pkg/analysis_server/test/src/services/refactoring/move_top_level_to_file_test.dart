@@ -1122,6 +1122,34 @@ class B {}
     );
   }
 
+  Future<void> test_multiple_withUnnamedExtension() async {
+    var originalSource = '''
+class A {}
+
+[!class ClassToMove1 {}
+extension on Int {}
+class ClassToMove2 {}!]
+
+class B {}
+''';
+
+    var expected = '''
+>>>>>>>>>> lib/class_to_move1.dart created
+class ClassToMove1 {}
+extension on Int {}
+class ClassToMove2 {}
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+''';
+    await _multipleDeclarations(
+      originalSource: originalSource,
+      expected: expected,
+      count: 3,
+    );
+  }
+
   Future<void> test_none_comment() async {
     addTestSource('''
 // Comm^ent

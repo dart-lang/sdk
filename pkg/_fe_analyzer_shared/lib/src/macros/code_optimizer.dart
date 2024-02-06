@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 
@@ -9,12 +10,17 @@ abstract class CodeOptimizer {
   /// Returns names exported from the library [uriStr].
   Set<String> getImportedNames(String uriStr);
 
-  List<Edit> optimize(String code) {
+  List<Edit> optimize(
+    String code, {
+    bool throwIfHasErrors = false,
+  }) {
     List<Edit> edits = [];
 
     ScannerResult result = scanString(
       code,
       configuration: new ScannerConfiguration(
+        enableExtensionMethods: true,
+        enableNonNullable: true,
         forAugmentationLibrary: true,
       ),
       includeComments: true,
@@ -23,15 +29,30 @@ abstract class CodeOptimizer {
       },
     );
 
-    _MyListener listener = new _MyListener(
+    if (result.hasErrors) {
+      if (throwIfHasErrors) {
+        throw new StateError('Has scan errors');
+      }
+      return [];
+    }
+
+    _Listener listener = new _Listener(
       getImportedNames: getImportedNames,
     );
 
-    Parser fastaParser = new Parser(
+    Parser parser = new Parser(
       listener,
       allowPatterns: true,
     );
-    fastaParser.parseUnit(result.tokens);
+    parser.parseUnit(result.tokens);
+    listener.verifyEmptyStack();
+
+    if (listener.hasErrors) {
+      if (throwIfHasErrors) {
+        throw new StateError('Has parse errors');
+      }
+      return [];
+    }
 
     void walkScopes(_Scope scope) {
       for (_PrefixedName prefixedName in scope.prefixedNames) {
@@ -81,6 +102,10 @@ class Edit {
     }
     return value;
   }
+}
+
+class _ExtensionNoName {
+  const _ExtensionNoName();
 }
 
 class _Identifier {
@@ -142,17 +167,72 @@ class _InterpolationString {
   }
 }
 
-class _MyListener extends Listener {
+class _LibraryScope extends _NestedScope {
+  final Set<String> globalNames = {};
+
+  _LibraryScope({
+    required super.parent,
+  });
+
+  @override
+  _NameStatus resolve(String name) {
+    if (globalNames.contains(name)) {
+      return const _NameStatusShadowed();
+    }
+
+    return super.resolve(name);
+  }
+}
+
+class _Listener extends Listener {
   Set<String> Function(String uriStr) getImportedNames;
 
+  bool hasErrors = false;
+
   _ImportScope importScope = new _ImportScope();
-  late _Scope scope = new _NestedScope(parent: importScope);
+  late _LibraryScope libraryScope = new _LibraryScope(parent: importScope);
+  late _NestedScope scope = libraryScope;
 
   final List<Object?> stack = [];
 
-  _MyListener({
+  _Listener({
     required this.getImportedNames,
   });
+
+  @override
+  void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
+    _scopeEnter();
+  }
+
+  @override
+  void beginEnum(Token enumKeyword) {
+    _scopeEnter();
+  }
+
+  @override
+  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
+    if (name != null) {
+      stack.add(
+        new _Identifier(name),
+      );
+    } else {
+      stack.add(
+        const _ExtensionNoName(),
+      );
+    }
+  }
+
+  @override
+  void beginExtensionDeclarationPrelude(Token extensionKeyword) {
+    _scopeEnter();
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    stack.add(
+      new _Identifier(name),
+    );
+  }
 
   @override
   void beginLiteralString(Token token) {
@@ -164,14 +244,109 @@ class _MyListener extends Listener {
   }
 
   @override
+  void beginMethod(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+  ) {
+    _scopeEnter();
+  }
+
+  @override
+  void beginTypedef(Token token) {
+    _scopeEnter();
+  }
+
+  @override
   void endArguments(int count, Token beginToken, Token endToken) {
     _popList(count);
   }
 
   @override
+  void endClassConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    pop(); // name
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
-    _Identifier name = pop() as _Identifier;
-    _ensureNestedScope().names.add(name.token.lexeme);
+    _popNameGlobal();
+    _scopeExit();
+  }
+
+  @override
+  void endClassMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    _popNameGlobal();
+    _scopeExit();
+  }
+
+  @override
+  void endEnum(
+    Token beginToken,
+    Token enumKeyword,
+    Token leftBrace,
+    int memberCount,
+    Token endToken,
+  ) {
+    _popNameGlobal();
+    _scopeExit();
+  }
+
+  @override
+  void endExtensionDeclaration(
+    Token beginToken,
+    Token extensionKeyword,
+    Token onKeyword,
+    Token endToken,
+  ) {
+    _popNameGlobal();
+    _scopeExit();
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+    Token beginToken,
+    Token extensionKeyword,
+    Token typeKeyword,
+    Token endToken,
+  ) {
+    _popNameGlobal();
+    _scopeExit();
+  }
+
+  @override
+  void endFieldInitializer(Token assignment, Token token) {
+    _popNameGlobal();
+  }
+
+  @override
+  void endFormalParameter(
+    Token? thisKeyword,
+    Token? superKeyword,
+    Token? periodAfterThisOrSuper,
+    Token nameToken,
+    Token? initializerStart,
+    Token? initializerEnd,
+    FormalParameterKind kind,
+    MemberKind memberKind,
+  ) {
+    _popNameLocal();
   }
 
   @override
@@ -209,6 +384,34 @@ class _MyListener extends Listener {
   }
 
   @override
+  void endMixinDeclaration(Token beginToken, Token endToken) {
+    _popNameGlobal();
+    _scopeExit();
+  }
+
+  @override
+  void endTopLevelMethod(Token beginToken, Token? getOrSet, Token endToken) {
+    _popNameGlobal();
+  }
+
+  @override
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+    _popNameGlobal();
+    _scopeExit();
+  }
+
+  @override
+  void endTypeVariable(
+      Token token, int index, Token? extendsOrSuper, Token? variance) {
+    _popNameLocal();
+  }
+
+  @override
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    _popList(elementsCount);
+  }
+
+  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     push(
       new _Identifier(token),
@@ -231,6 +434,11 @@ class _MyListener extends Listener {
   }
 
   @override
+  void handleNoFieldInitializer(Token token) {
+    _popNameGlobal();
+  }
+
+  @override
   void handleQualified(Token period) {
     _Identifier name = pop() as _Identifier;
     _Identifier prefix = pop() as _Identifier;
@@ -240,6 +448,15 @@ class _MyListener extends Listener {
         name: name,
       ),
     );
+  }
+
+  @override
+  void handleRecoverableError(
+    Message message,
+    Token startToken,
+    Token endToken,
+  ) {
+    hasErrors = true;
   }
 
   @override
@@ -267,11 +484,10 @@ class _MyListener extends Listener {
     stack.add(value);
   }
 
-  _NestedScope _ensureNestedScope() {
-    if (scope case _NestedScope existing) {
-      return existing;
+  void verifyEmptyStack() {
+    if (stack.isNotEmpty) {
+      throw new StateError('Expected empty stack:\n${stack.join('\n')}');
     }
-    return scope = new _NestedScope(parent: scope);
   }
 
   List<Object?> _popList(int count) {
@@ -281,6 +497,35 @@ class _MyListener extends Listener {
       result.add(element);
     }
     return result.reversed.toList();
+  }
+
+  /// Pop [_Identifier], add the name to [libraryScope].
+  void _popNameGlobal() {
+    Object? name = pop();
+    switch (name) {
+      case _ExtensionNoName():
+        break; // ignore
+      case _Identifier():
+        libraryScope.globalNames.add(name.token.lexeme);
+      default:
+        throw new StateError('${name.runtimeType}');
+    }
+  }
+
+  /// Pop [_Identifier], add the name to [scope].
+  void _popNameLocal() {
+    _Identifier name = pop() as _Identifier;
+    scope.names.add(name.token.lexeme);
+  }
+
+  /// Enter the nested scope.
+  void _scopeEnter() {
+    scope = scope.nested();
+  }
+
+  /// Exit the nested scope.
+  void _scopeExit() {
+    scope = scope.parent as _NestedScope;
   }
 }
 
@@ -315,6 +560,12 @@ class _NestedScope extends _Scope {
     required this.parent,
   }) {
     parent.children.add(this);
+  }
+
+  _NestedScope nested() {
+    return new _NestedScope(
+      parent: this,
+    );
   }
 
   @override

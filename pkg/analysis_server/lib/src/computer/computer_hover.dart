@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -110,7 +109,7 @@ class DartUnitHoverComputer {
   /// whether they are const).
   String? _elementDisplayString(AstNode node, Element? element) {
     var displayString = element?.getDisplayString(
-      withNullability: _unit.isNonNullableByDefault,
+      withNullability: true,
       multiline: true,
     );
 
@@ -253,8 +252,7 @@ class DartUnitHoverComputer {
     } else if (node is DartPattern) {
       staticType = node.matchedValueType;
     }
-    return staticType?.getDisplayString(
-        withNullability: _unit.isNonNullableByDefault);
+    return staticType?.getDisplayString(withNullability: true);
   }
 
   static Documentation? computeDocumentation(

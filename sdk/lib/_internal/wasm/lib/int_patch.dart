@@ -4,6 +4,7 @@
 
 import "dart:_internal" show has63BitSmis, patch, unsafeCast;
 import "dart:_string" show StringBase;
+import "dart:_js_types" show JSStringImpl;
 
 import "dart:typed_data" show Int64List;
 
@@ -51,11 +52,11 @@ class int {
       throw RangeError("Radix $radix not in range 2..36");
     }
     // Split here so improve odds of parse being inlined and the checks omitted.
-    return _parse(unsafeCast<StringBase>(source), radix, onError) as int;
+    return _parse(source, radix, onError) as int;
   }
 
   static int? _parse(
-      StringBase source, int? radix, int? Function(String)? onError) {
+      String source, int? radix, int? Function(String)? onError) {
     int end = source.lastNonWhitespace() + 1;
     if (end == 0) {
       return _handleFormatError(onError, source, source.length, radix, null);
@@ -94,7 +95,6 @@ class int {
 
   @patch
   static int? tryParse(String source, {int? radix}) {
-    if (source == null) throw ArgumentError("The source must not be null");
     if (source.isEmpty) return null;
     if (radix == null || radix == 10) {
       // Try parsing immediately, without trimming whitespace.
@@ -103,7 +103,7 @@ class int {
     } else if (radix < 2 || radix > 36) {
       throw RangeError("Radix $radix not in range 2..36");
     }
-    return _parse(unsafeCast<StringBase>(source), radix, _kNull);
+    return _parse(source, radix, _kNull);
   }
 
   static Null _kNull(_) => null;

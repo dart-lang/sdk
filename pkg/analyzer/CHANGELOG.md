@@ -1,6 +1,7 @@
 ## 6.5.0-dev
 * Deprecated `LibraryElement.toLegacyTypeIfOptOut`.
 * Deprecated `LibraryElement.toLegacyElementIfOptOut`.
+* Deprecated `LibraryElement.isNonNullableByDefault`.
 
 ## 6.4.1
 * Patch for crash in ffi_verifier.

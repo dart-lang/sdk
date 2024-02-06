@@ -19,9 +19,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter to be used to report errors.
   final ErrorReporter _errorReporter;
 
-  /// The element representing the library containing the unit to be verified.
-  final LibraryElement _containingLibrary;
-
   /// The version constraint for the SDK.
   final VersionConstraint _versionConstraint;
 
@@ -31,8 +28,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
-  SdkConstraintVerifier(
-      this._errorReporter, this._containingLibrary, this._versionConstraint);
+  SdkConstraintVerifier(this._errorReporter, this._versionConstraint);
 
   /// Return a range covering every version up to, but not including, 2.14.0.
   VersionRange get before_2_14_0 =>
@@ -57,10 +53,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// Return a range covering every version up to, but not including, 2.6.0.
   VersionRange get before_2_6_0 =>
       VersionRange(max: Version.parse('2.6.0'), includeMax: false);
-
-  /// Return `true` if references to the non-nullable features need to be
-  /// checked.
-  bool get checkNnbd => !_containingLibrary.isNonNullableByDefault;
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.

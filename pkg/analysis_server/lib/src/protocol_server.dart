@@ -278,9 +278,8 @@ List<Element> _computePath(engine.Element element) {
     element = element.enclosingElement.definingCompilationUnit;
   }
 
-  var withNullability = element.library?.isNonNullableByDefault ?? false;
   for (var e in element.withAncestors) {
-    path.add(convertElement(e, withNullability: withNullability));
+    path.add(convertElement(e, withNullability: true));
   }
   return path;
 }

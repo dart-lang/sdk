@@ -3026,6 +3026,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Reported when there is an issue converting a macro application argument
+  ///  into a value. So, we cannot instantiate the macro, and run it.
   ///  Parameters:
   ///  0: the message
   static const CompileTimeErrorCode MACRO_APPLICATION_ARGUMENT_ERROR =
@@ -3045,11 +3047,23 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try removing one or more macro applications to break the cycle.",
   );
 
+  ///  Reported when the macro uses `Builder.report()` with `Severity.error`.
   ///  Parameters:
   ///  0: the message
   static const CompileTimeErrorCode MACRO_ERROR = CompileTimeErrorCode(
     'MACRO_ERROR',
     "{0}",
+  );
+
+  ///  Reported when there is an exception inside the analyzer when running
+  ///  macros. Should not happen, but just in case.
+  ///  Parameters:
+  ///  0: the message
+  ///  1: the stack trace
+  static const CompileTimeErrorCode MACRO_INTERNAL_EXCEPTION =
+      CompileTimeErrorCode(
+    'MACRO_INTERNAL_EXCEPTION',
+    "{0} {1}",
   );
 
   ///  No parameters.
@@ -6778,6 +6792,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Reported when the macro uses `Builder.report()` with `Severity.warning`.
   ///  Parameters:
   ///  0: the message
   static const WarningCode MACRO_WARNING = WarningCode(

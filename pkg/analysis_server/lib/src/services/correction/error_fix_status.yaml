@@ -1036,6 +1036,8 @@ CompileTimeErrorCode.MACRO_APPLICATION_ARGUMENT_ERROR:
   status: noFix
 CompileTimeErrorCode.MACRO_ERROR:
   status: noFix
+CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION:
+  status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
   notes: |-

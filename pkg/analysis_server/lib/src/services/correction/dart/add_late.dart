@@ -19,9 +19,6 @@ class AddLate extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement.isNonNullableByDefault) {
-      return;
-    }
     final node = this.node;
     if (node is VariableDeclaration) {
       var variableList = node.parent;

@@ -32,7 +32,7 @@ void f() {}
   test_hasOverride_less() async {
     await assertErrorsInCode(r'''
 // @dart = 2.9
-int a = null;
+int a = 0;
 ''', [
       error(CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE, 0, 14),
     ]);

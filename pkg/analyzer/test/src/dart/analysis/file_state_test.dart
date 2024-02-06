@@ -1825,6 +1825,39 @@ elementFactory
     }
   }
 
+  test_newFile_library_docImports() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+library;
+''');
+
+    fileStateFor(a);
+
+    // Note, no dependencies on `dart:async` or `dart:math`.
+    // They don't affect the element model.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_1 dart:core synthetic
+        docImports
+          library_3 dart:async
+          library_5 dart:math
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
   test_newFile_library_exports_augmentation() async {
     newFile('$testPackageLibPath/b.dart', r'''
 library augment 'a.dart';

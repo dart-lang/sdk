@@ -67,21 +67,6 @@ class BoolExpressionVerifier {
           arguments: arguments,
         );
       }
-    } else if (!_resolver.definingLibrary.isNonNullableByDefault) {
-      if (expression is InstanceCreationExpression) {
-        // In pre-null safety code, an implicit cast from a supertype is allowed
-        // unless the expression is an explicit instance creation expression,
-        // with the idea that the cast would likely fail at runtime.
-        var constructor = expression.constructorName.staticElement;
-        if (constructor == null || !constructor.isFactory) {
-          _errorReporter.atNode(
-            expression,
-            errorCode,
-            arguments: arguments,
-          );
-          return;
-        }
-      }
     }
   }
 

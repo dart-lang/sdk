@@ -354,7 +354,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata),
         options = TypeAnalyzerOptions(
-            nullSafetyEnabled: definingLibrary.isNonNullableByDefault,
+            nullSafetyEnabled: true,
             patternsEnabled:
                 definingLibrary.featureSet.isEnabled(Feature.patterns)) {
     nullableDereferenceVerifier = NullableDereferenceVerifier(

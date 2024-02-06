@@ -465,17 +465,10 @@ class PostfixCompletionProcessor {
         return 'Exception';
       }
 
-      // Only print nullability for non-legacy types in non-legacy libraries.
-      var showNullability = type.nullabilitySuffix != NullabilitySuffix.star &&
-          (astNode.root as CompilationUnit)
-              .declaredElement!
-              .library
-              .isNonNullableByDefault;
-
       // Can't catch nullable types, strip `?`s now that we've checked for `*`s.
       return type
           .withNullability(NullabilitySuffix.none)
-          .getDisplayString(withNullability: showNullability);
+          .getDisplayString(withNullability: true);
     }
     return 'Exception';
   }

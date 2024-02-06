@@ -3271,7 +3271,7 @@ The following code produces this diagnostic because the value of `list1` is
 `null`, which is neither a list nor a set:
 
 ```dart
-const List<int> list1 = null;
+const dynamic list1 = 42;
 const List<int> list2 = [...[!list1!]];
 ```
 
@@ -3281,7 +3281,7 @@ Change the expression to something that evaluates to either a constant list
 or a constant set:
 
 ```dart
-const List<int> list1 = [];
+const dynamic list1 = [42];
 const List<int> list2 = [...list1];
 ```
 
@@ -3300,7 +3300,7 @@ The following code produces this diagnostic because the value of `map1` is
 `null`, which isn't a map:
 
 ```dart
-const Map<String, int> map1 = null;
+const dynamic map1 = 42;
 const Map<String, int> map2 = {...[!map1!]};
 ```
 
@@ -3309,7 +3309,7 @@ const Map<String, int> map2 = {...[!map1!]};
 Change the expression to something that evaluates to a constant map:
 
 ```dart
-const Map<String, int> map1 = {};
+const dynamic map1 = {'answer': 42};
 const Map<String, int> map2 = {...map1};
 ```
 

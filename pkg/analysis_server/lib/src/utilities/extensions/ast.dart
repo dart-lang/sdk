@@ -185,12 +185,6 @@ extension CompilationUnitExtension on CompilationUnit {
     }
     return header;
   }
-
-  /// Return `true` if library being analyzed is non-nullable by default.
-  ///
-  /// Will return `false` if the AST structure has not been resolved.
-  bool get isNonNullableByDefault =>
-      declaredElement?.library.isNonNullableByDefault ?? false;
 }
 
 extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
