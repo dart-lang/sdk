@@ -605,7 +605,14 @@ class LibraryMacroApplier {
       return true;
     }
 
-    for (final diagnostic in result.diagnostics) {
+    for (final diagnostic in [
+      ...result.diagnostics,
+      // TODO(scheglov): refactor to handle exceptions that are preserved
+      // through serialization directly instead of by parsing messages.
+      if (result.exception != null)
+        macro.Diagnostic(macro.DiagnosticMessage(result.exception.toString()),
+            macro.Severity.error),
+    ]) {
       if (addAsDeclarationsPhaseIntrospectionCycle(diagnostic)) {
         continue;
       }

@@ -8,11 +8,15 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
 
 import '../api.dart';
 import '../executor.dart';
+import 'exception_impls.dart';
 import 'response_impls.dart';
 
 abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
   /// All the collected diagnostics for this builder.
   final List<Diagnostic> _diagnostics = [];
+
+  /// If execution was stopped by an exception, the exception.
+  MacroExceptionImpl? _exception;
 
   /// All the enum values to be added, indexed by the identifier for the
   /// augmented enum declaration.
@@ -42,6 +46,7 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
   /// created by this builder.
   MacroExecutionResult get result => new MacroExecutionResultImpl(
         diagnostics: _diagnostics,
+        exception: _exception,
         enumValueAugmentations: _enumValueAugmentations,
         interfaceAugmentations: _interfaceAugmentations,
         libraryAugmentations: _libraryAugmentations,
@@ -64,6 +69,11 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
 
   @override
   void report(Diagnostic diagnostic) => _diagnostics.add(diagnostic);
+
+  void failWithException(MacroExceptionImpl exception) {
+    if (_exception != null) throw new StateError('Already set exception');
+    _exception = exception;
+  }
 
   @override
   Future<Identifier> resolveIdentifier(Uri library, String identifier) =>

@@ -158,6 +158,9 @@ abstract class MacroExecutionResult implements Serializable {
   /// All [Diagnostic]s reported as a result of executing a macro.
   List<Diagnostic> get diagnostics;
 
+  /// If execution was stopped by an exception, the exception.
+  MacroException? get exception;
+
   /// Any augmentations to enum values that should be applied to an enum as a
   /// result of executing a macro, indexed by the identifier of the enum.
   Map<Identifier, Iterable<DeclarationCode>> get enumValueAugmentations;

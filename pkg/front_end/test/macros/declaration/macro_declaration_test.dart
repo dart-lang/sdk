@@ -356,6 +356,9 @@ class _MacroExecutionResult implements MacroExecutionResult {
   List<Diagnostic> diagnostics = [];
 
   @override
+  MacroException? exception;
+
+  @override
   Map<Identifier, Iterable<DeclarationCode>> enumValueAugmentations = const {};
 
   @override
