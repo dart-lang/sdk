@@ -114,7 +114,7 @@ final class MacroImplementationExceptionImpl extends MacroExceptionImpl
 /// The order the macros should run in is not defined, so allowing
 /// introspection in this case would make the macro output non-deterministic.
 /// Instead, all the introspection calls in the cycle fail with this exception.
-final class MacroIntrospectionCycleExceptionImpl extends MacroExceptionImpl
+base class MacroIntrospectionCycleExceptionImpl extends MacroExceptionImpl
     implements MacroIntrospectionCycleException {
   MacroIntrospectionCycleExceptionImpl(String message,
       {super.id, super.stackTrace})
