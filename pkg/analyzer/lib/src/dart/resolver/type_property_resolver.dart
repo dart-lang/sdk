@@ -286,12 +286,6 @@ class TypePropertyResolver {
   }
 
   ResolutionResult _toResult() {
-    _getterRequested = _resolver.toLegacyElement(_getterRequested);
-    _getterRecovery = _resolver.toLegacyElement(_getterRecovery);
-
-    _setterRequested = _resolver.toLegacyElement(_setterRequested);
-    _setterRecovery = _resolver.toLegacyElement(_setterRecovery);
-
     var getter = _getterRequested ?? _getterRecovery;
     var setter = _setterRequested ?? _setterRecovery;
 

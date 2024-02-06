@@ -256,7 +256,7 @@ class PropertyElementResolver with ScopeHelpers {
         );
       }
 
-      readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
+      readElementRequested = readLookup?.requested;
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
@@ -276,8 +276,8 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite) {
       var writeLookup = LexicalLookup.resolveSetter(scopeLookupResult) ??
           _resolver.thisLookupSetter(node);
-      writeElementRequested = _resolver.toLegacyElement(writeLookup?.requested);
-      writeElementRecovery = _resolver.toLegacyElement(writeLookup?.recovery);
+      writeElementRequested = writeLookup?.requested;
+      writeElementRecovery = writeLookup?.recovery;
 
       AssignmentVerifier(errorReporter).verify(
         node: node,
@@ -554,7 +554,6 @@ class PropertyElementResolver with ScopeHelpers {
           arguments: [memberName, extension.name!],
         );
       } else {
-        readElement = _resolver.toLegacyElement(readElement);
         getType = readElement.returnType;
         if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
           readElementRecovery = readElement;
@@ -575,7 +574,6 @@ class PropertyElementResolver with ScopeHelpers {
           arguments: [memberName, extension.name!],
         );
       } else {
-        writeElement = _resolver.toLegacyElement(writeElement);
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
           writeElementRecovery = writeElement;
           writeElement = null;
@@ -683,7 +681,6 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       if (readElement != null) {
-        readElement = _resolver.toLegacyElement(readElement);
         getType = readElement.returnType;
         if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
           readElementRecovery = readElement;
@@ -706,7 +703,6 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite) {
       writeElement = augmented.getSetter(propertyName.name);
       if (writeElement != null) {
-        writeElement = _resolver.toLegacyElement(writeElement);
         if (!_isAccessible(writeElement)) {
           errorReporter.atNode(
             propertyName,
@@ -754,8 +750,8 @@ class PropertyElementResolver with ScopeHelpers {
       hasWrite: hasWrite,
     );
 
-    var readElement = _resolver.toLegacyElement(lookupResult.getter);
-    var writeElement = _resolver.toLegacyElement(lookupResult.setter);
+    var readElement = lookupResult.getter;
+    var writeElement = lookupResult.setter;
     DartType? getType;
     if (hasRead && readElement is PropertyAccessorElement) {
       getType = readElement.returnType;
@@ -807,7 +803,6 @@ class PropertyElementResolver with ScopeHelpers {
             .getMember2(targetType.element, name, forSuper: true);
 
         if (readElement != null) {
-          readElement = _resolver.toLegacyElement(readElement);
           _checkForStaticMember(target, propertyName, readElement);
         } else {
           // We were not able to find the concrete dispatch target.
@@ -849,7 +844,6 @@ class PropertyElementResolver with ScopeHelpers {
         );
 
         if (writeElement != null) {
-          writeElement = _resolver.toLegacyElement(writeElement);
           _checkForStaticMember(target, propertyName, writeElement);
         } else {
           // We were not able to find the concrete dispatch target.

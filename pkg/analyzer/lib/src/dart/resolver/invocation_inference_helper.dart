@@ -115,7 +115,6 @@ class InvocationInferenceHelper {
     if (rawElement == null) {
       return null;
     }
-    rawElement = _resolver.toLegacyElement(rawElement);
     return ConstructorElementToInfer(typeParameters, rawElement);
   }
 

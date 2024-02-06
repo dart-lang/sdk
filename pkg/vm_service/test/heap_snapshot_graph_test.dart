@@ -36,7 +36,54 @@ void script() {
 
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
+    // HeapSnapshotGraph serializes.
+
+    final graph = await HeapSnapshotGraph.getSnapshot(service, isolate);
+
+    final chunks = graph.toChunks();
+    final graphCopy = HeapSnapshotGraph.fromChunks(chunks);
+
+    expect(graphCopy.name, graph.name);
+    expect(graphCopy.flags.bitLength, graph.flags.bitLength);
+    expect(graphCopy.objects.length, graph.objects.length);
+    expect(graphCopy.classes.length, graph.classes.length);
+    expect(
+      graphCopy.externalProperties.length,
+      graph.externalProperties.length,
+    );
+    expect(graphCopy.externalSize, graph.externalSize);
+    expect(graphCopy.shallowSize, graph.shallowSize);
+    expect(graphCopy.capacity, graph.capacity);
+    expect(graphCopy.referenceCount, graph.referenceCount);
+
+    final anObject = graph.objects[5];
+    final anObjectCopy = graphCopy.objects[5];
+    expect(anObjectCopy.classId, anObject.classId);
+    expect(anObjectCopy.shallowSize, anObject.shallowSize);
+    expect(anObjectCopy.data, anObject.data);
+    expect(anObjectCopy.identityHashCode, anObject.identityHashCode);
+    expect(anObjectCopy.references.length, anObject.references.length);
+    expect(anObjectCopy.referrers.length, anObject.referrers.length);
+    expect(anObjectCopy.klass.libraryName, anObject.klass.libraryName);
+  },
+  (VmService service, IsolateRef isolate) async {
+    // Referrers are calculated by default.
     final snapshotGraph = await HeapSnapshotGraph.getSnapshot(service, isolate);
+    expect(snapshotGraph.objects[10].referrers, isNotNull);
+  },
+  (VmService service, IsolateRef isolate) async {
+    // Referrers are not calculated if opted out.
+    final snapshotGraph = await HeapSnapshotGraph.getSnapshot(
+      service,
+      isolate,
+      calculateReferrers: false,
+    );
+    final object = snapshotGraph.objects[10];
+    expect(() => object.referrers, throwsStateError);
+  },
+  (VmService service, IsolateRef isolate) async {
+    final snapshotGraph = await HeapSnapshotGraph.getSnapshot(service, isolate);
+
     expect(snapshotGraph.name, 'main');
     expect(snapshotGraph.flags, isNotNull);
     expect(snapshotGraph.objects, isNotNull);

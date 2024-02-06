@@ -1732,12 +1732,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return ThisLookup.lookupSetter(this, node);
   }
 
-  /// If in a legacy library, return the legacy view on the [element].
-  /// Otherwise, return the original element.
-  T toLegacyElement<T extends Element?>(T element) {
-    return element;
-  }
-
   @override
   DartType variableTypeFromInitializerType(DartType type) {
     if (type.isDartCoreNull) {

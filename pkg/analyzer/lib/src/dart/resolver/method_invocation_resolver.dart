@@ -361,7 +361,6 @@ class MethodInvocationResolver with ScopeHelpers {
       {required DartType? contextType}) {
     var getter = extension.getGetter(name);
     if (getter != null) {
-      getter = _resolver.toLegacyElement(getter);
       nameNode.staticElement = getter;
       _reportStaticAccessToInstanceMember(getter, nameNode);
       _rewriteAsFunctionExpressionInvocation(node, getter.returnType,
@@ -371,7 +370,6 @@ class MethodInvocationResolver with ScopeHelpers {
 
     var method = extension.getMethod(name);
     if (method != null) {
-      method = _resolver.toLegacyElement(method);
       nameNode.staticElement = method;
       _reportStaticAccessToInstanceMember(method, nameNode);
       _setResolution(node, method.type, whyNotPromotedList,
@@ -398,7 +396,7 @@ class MethodInvocationResolver with ScopeHelpers {
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
     var result = _extensionResolver.getOverrideMember(override, name);
-    var member = _resolver.toLegacyElement(result.getter);
+    var member = result.getter;
 
     if (member == null) {
       _setInvalidTypeResolution(node,
@@ -454,7 +452,6 @@ class MethodInvocationResolver with ScopeHelpers {
           arguments.length == target.parameters.length &&
               !arguments.any((e) => e is NamedExpression);
       if (hasMatchingObjectMethod) {
-        target = _resolver.toLegacyElement(target);
         nameNode.staticElement = target;
         rawType = target.type;
         node.staticType = target.returnType;
@@ -491,7 +488,6 @@ class MethodInvocationResolver with ScopeHelpers {
       var objectElement = _resolver.typeProvider.objectElement;
       var objectMember = objectElement.getMethod(methodName.name);
       if (objectMember != null) {
-        objectMember = _resolver.toLegacyElement(objectMember);
         methodName.staticElement = objectMember;
         _setResolution(
           node,
@@ -546,7 +542,6 @@ class MethodInvocationResolver with ScopeHelpers {
 
     var element = scopeLookupResult.getter;
     if (element != null) {
-      element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
       if (element is MultiplyDefinedElement) {
         MultiplyDefinedElement multiply = element;
@@ -615,7 +610,6 @@ class MethodInvocationResolver with ScopeHelpers {
           imports[0].prefix is DeferredImportElementPrefix) {
         var importedLibrary = imports[0].importedLibrary;
         var element = importedLibrary?.loadLibraryFunction;
-        element = _resolver.toLegacyElement(element);
         if (element is ExecutableElement) {
           nameNode.staticElement = element;
           return _setResolution(
@@ -632,7 +626,6 @@ class MethodInvocationResolver with ScopeHelpers {
     );
 
     var element = scopeLookupResult.getter;
-    element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
 
     if (element is MultiplyDefinedElement) {
@@ -685,7 +678,6 @@ class MethodInvocationResolver with ScopeHelpers {
       _currentName!,
       forSuper: true,
     );
-    target = _resolver.toLegacyElement(target);
 
     // If there is that concrete dispatch target, then we are done.
     if (target != null) {
@@ -828,7 +820,6 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     var element = _resolveElement(receiver, nameNode);
-    element = _resolver.toLegacyElement(element) as ExecutableElement?;
     if (element != null) {
       if (element is ExecutableElement) {
         nameNode.staticElement = element;

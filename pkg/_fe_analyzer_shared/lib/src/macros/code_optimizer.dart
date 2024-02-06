@@ -12,17 +12,15 @@ abstract class CodeOptimizer {
 
   List<Edit> optimize(
     String code, {
+    required Set<String> libraryDeclarationNames,
+    required ScannerConfiguration scannerConfiguration,
     bool throwIfHasErrors = false,
   }) {
     List<Edit> edits = [];
 
     ScannerResult result = scanString(
       code,
-      configuration: new ScannerConfiguration(
-        enableExtensionMethods: true,
-        enableNonNullable: true,
-        forAugmentationLibrary: true,
-      ),
+      configuration: scannerConfiguration,
       includeComments: true,
       languageVersionChanged: (scanner, languageVersion) {
         throw new UnimplementedError();
@@ -39,6 +37,7 @@ abstract class CodeOptimizer {
     _Listener listener = new _Listener(
       getImportedNames: getImportedNames,
     );
+    listener.libraryScope.globalNames.addAll(libraryDeclarationNames);
 
     Parser parser = new Parser(
       listener,
@@ -56,18 +55,29 @@ abstract class CodeOptimizer {
 
     void walkScopes(_Scope scope) {
       for (_PrefixedName prefixedName in scope.prefixedNames) {
+        String prefix = prefixedName.prefix.token.lexeme;
         String name = prefixedName.name.token.lexeme;
         _NameStatus resolution = scope.resolve(name);
         if (resolution is _NameStatusImported) {
           if (resolution.imports.length == 1) {
             int prefixOffset = prefixedName.prefix.token.offset;
             edits.add(
-              new Edit(
+              new RemoveImportPrefixReferenceEdit(
                 offset: prefixOffset,
                 length: prefixedName.name.token.offset - prefixOffset,
-                replacement: '',
               ),
             );
+            resolution.imports.single.namesWithoutPrefix.add(name);
+          } else {
+            for (_Import import in resolution.imports) {
+              import.namesWithPrefix.add(name);
+            }
+          }
+        } else {
+          for (_Import import in listener.importScope.imports) {
+            if (import.prefix == prefix) {
+              import.namesWithPrefix.add(name);
+            }
           }
         }
       }
@@ -78,12 +88,64 @@ abstract class CodeOptimizer {
 
     walkScopes(listener.importScope);
 
-    edits.sort((a, b) => b.offset - a.offset);
+    Token? firstDeclarationToken = listener.libraryScope.firstDeclarationToken;
+    if (firstDeclarationToken == null) {
+      return [];
+    }
+
+    List<_Import> imports = listener.importScope.imports;
+    for (int i = 0; i < imports.length; i++) {
+      _Import import = imports[i];
+
+      // This should not happen in production.
+      // We use such "unused" import for tests.
+      if (import.namesWithoutPrefix.isEmpty) {
+        continue;
+      }
+
+      if (import.namesWithPrefix.isEmpty) {
+        // If no names require the prefix, remove it from the directive.
+        Token? toToken = i < imports.length - 1
+            ? imports[i + 1].importKeyword
+            : firstDeclarationToken;
+        if (import.uriStr == 'dart:core') {
+          int fromOffset = import.importKeyword.offset;
+          edits.add(
+            new RemoveDartCoreImportEdit(
+              offset: fromOffset,
+              length: toToken.offset - fromOffset,
+            ),
+          );
+        } else {
+          int fromOffset = import.uriToken.end;
+          edits.add(
+            new RemoveImportPrefixDeclarationEdit(
+              offset: import.uriToken.end,
+              length: import.semicolon.offset - fromOffset,
+            ),
+          );
+        }
+      } else if (import.namesWithoutPrefix.isNotEmpty) {
+        // If some names require the prefix, and some not, add a new import
+        // without a prefix, but hide those which require prefix.
+        List<String> namesToHide = import.namesWithPrefix.toList();
+        namesToHide.sort();
+        edits.add(
+          new ImportWithoutPrefixEdit(
+            offset: import.semicolon.end,
+            uriStr: import.uriStr,
+            namesToHide: namesToHide,
+          ),
+        );
+      }
+    }
+
+    edits.sort((a, b) => a.offset - b.offset);
     return edits;
   }
 }
 
-class Edit {
+sealed class Edit {
   final int offset;
   final int length;
   final String replacement;
@@ -104,6 +166,48 @@ class Edit {
   }
 }
 
+final class ImportWithoutPrefixEdit extends Edit {
+  final String uriStr;
+  final List<String> namesToHide;
+
+  ImportWithoutPrefixEdit({
+    required super.offset,
+    required this.uriStr,
+    required this.namesToHide,
+  }) : super(
+          length: 0,
+          replacement: '\nimport \'$uriStr\' hide ${namesToHide.join(', ')};',
+        );
+}
+
+final class RemoveDartCoreImportEdit extends RemoveEdit {
+  RemoveDartCoreImportEdit({
+    required super.offset,
+    required super.length,
+  });
+}
+
+sealed class RemoveEdit extends Edit {
+  RemoveEdit({
+    required super.offset,
+    required super.length,
+  }) : super(replacement: '');
+}
+
+final class RemoveImportPrefixDeclarationEdit extends RemoveEdit {
+  RemoveImportPrefixDeclarationEdit({
+    required super.offset,
+    required super.length,
+  });
+}
+
+final class RemoveImportPrefixReferenceEdit extends RemoveEdit {
+  RemoveImportPrefixReferenceEdit({
+    required super.offset,
+    required super.length,
+  });
+}
+
 class _ExtensionNoName {
   const _ExtensionNoName();
 }
@@ -120,14 +224,26 @@ class _Identifier {
 }
 
 class _Import {
+  final Token importKeyword;
+  final Token uriToken;
   final String uriStr;
   final String prefix;
   final Set<String> names;
+  final Token semicolon;
+
+  /// Names that are used with [prefix], but can be used without it.
+  final Set<String> namesWithoutPrefix = {};
+
+  /// Names that are used with [prefix], and the prefix cannot be removed.
+  final Set<String> namesWithPrefix = {};
 
   _Import({
+    required this.importKeyword,
+    required this.uriToken,
     required this.uriStr,
     required this.prefix,
     required this.names,
+    required this.semicolon,
   });
 }
 
@@ -170,6 +286,8 @@ class _InterpolationString {
 class _LibraryScope extends _NestedScope {
   final Set<String> globalNames = {};
 
+  Token? firstDeclarationToken;
+
   _LibraryScope({
     required super.parent,
   });
@@ -201,6 +319,8 @@ class _Listener extends Listener {
 
   @override
   void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
+    // TODO(scheglov): Not quite, ignores metadata and comments.
+    libraryScope.firstDeclarationToken ??= token;
     _scopeEnter();
   }
 
@@ -354,7 +474,8 @@ class _Listener extends Listener {
     _ImportPrefix prefix = pop() as _ImportPrefix;
     _StringLiteral uri = pop() as _StringLiteral;
 
-    String uriStr = uri.token.lexeme;
+    Token uriToken = uri.token;
+    String uriStr = uriToken.lexeme;
     if (uriStr.startsWith('\'') && uriStr.endsWith('\'')) {
       uriStr = uriStr.substring(1, uriStr.length - 1);
     } else {
@@ -363,8 +484,11 @@ class _Listener extends Listener {
 
     importScope.imports.add(
       new _Import(
+        importKeyword: importKeyword,
+        uriToken: uriToken,
         uriStr: uriStr,
         prefix: prefix.name.token.lexeme,
+        semicolon: semicolon!,
         names: getImportedNames(uriStr),
       ),
     );

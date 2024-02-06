@@ -156,10 +156,8 @@ class ElementResolver {
       var name = node.name;
       if (name == null) {
         constructor = type.lookUpConstructor(null, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
       } else {
         constructor = type.lookUpConstructor(name.name, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
         name.staticElement = constructor;
       }
       node.staticElement = constructor;
@@ -355,7 +353,6 @@ class ElementResolver {
     var name = node.constructorName;
     var superName = name?.name;
     var element = superType.lookUpConstructor(superName, _definingLibrary);
-    element = _resolver.toLegacyElement(element);
     if (element == null || !element.isAccessibleIn(_definingLibrary)) {
       if (name != null) {
         _errorReporter.atNode(

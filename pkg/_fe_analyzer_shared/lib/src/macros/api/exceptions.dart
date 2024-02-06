@@ -4,6 +4,14 @@
 
 part of '../api.dart';
 
+/// Exception for use in macro implementations.
+///
+/// Throw to stop the current macro execution and report a [Diagnostic].
+class DiagnosticException implements Exception {
+  final Diagnostic diagnostic;
+  DiagnosticException(this.diagnostic);
+}
+
 /// Base class for exceptions thrown by the host implementation during macro
 /// execution.
 ///
