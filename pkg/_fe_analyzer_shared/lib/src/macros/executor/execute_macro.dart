@@ -59,8 +59,10 @@ Future<MacroExecutionResult> executeTypesMacro(
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    // Preserve `MacroException`s thrown by SDK tools.
-    if (e is MacroExceptionImpl) {
+    if (e is DiagnosticException) {
+      builder.report(e.diagnostic);
+    } else if (e is MacroExceptionImpl) {
+      // Preserve `MacroException`s thrown by SDK tools.
       builder.failWithException(e);
     } else {
       // Convert exceptions thrown by macro implementations into diagnostics.
@@ -137,8 +139,10 @@ Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    // Preserve `MacroException`s thrown by SDK tools.
-    if (e is MacroExceptionImpl) {
+    if (e is DiagnosticException) {
+      builder.report(e.diagnostic);
+    } else if (e is MacroExceptionImpl) {
+      // Preserve `MacroException`s thrown by SDK tools.
       builder.failWithException(e);
     } else {
       // Convert exceptions thrown by macro implementations into diagnostics.
@@ -212,8 +216,10 @@ Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    // Preserve `MacroException`s thrown by SDK tools.
-    if (e is MacroExceptionImpl) {
+    if (e is DiagnosticException) {
+      builder.report(e.diagnostic);
+    } else if (e is MacroExceptionImpl) {
+      // Preserve `MacroException`s thrown by SDK tools.
       builder.failWithException(e);
     } else {
       // Convert exceptions thrown by macro implementations into diagnostics.
