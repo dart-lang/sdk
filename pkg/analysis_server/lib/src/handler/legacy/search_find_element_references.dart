@@ -40,7 +40,7 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
     var result = protocol.SearchFindElementReferencesResult();
     if (element != null) {
       result.id = searchId;
-      result.element = protocol.convertElement(element, withNullability: true);
+      result.element = protocol.convertElement(element);
     }
     sendResult(result);
     // search elements

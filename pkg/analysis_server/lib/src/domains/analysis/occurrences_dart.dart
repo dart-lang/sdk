@@ -15,8 +15,7 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   unit.accept(visitor);
   visitor.elementsOffsets.forEach((engineElement, offsets) {
     var length = engineElement.nameLength;
-    var serverElement =
-        protocol.convertElement(engineElement, withNullability: true);
+    var serverElement = protocol.convertElement(engineElement);
     var occurrences = protocol.Occurrences(serverElement, offsets, length);
     collector.addOccurrences(occurrences);
   });
