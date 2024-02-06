@@ -149,6 +149,15 @@ abstract class Folder implements Resource {
   ResourceWatcher watch();
 }
 
+/// The abstract class [Link] is an abstraction for a file system link.
+abstract class Link {
+  /// Return `true` if this link exists.
+  bool get exists;
+
+  /// If this link does not already exist, create it.
+  void create(String target);
+}
+
 /// Exception thrown when a file operation fails because a file or directory
 /// does not exist.
 class PathNotFoundException extends FileSystemException {
@@ -234,6 +243,13 @@ abstract class ResourceProvider {
   ///
   /// A folder may or may not exist at this location.
   Folder getFolder(String path);
+
+  /// Return a [Link] that corresponds to the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// A link may or may not exist at this location.
+  Link getLink(String path);
 
   /// Return the [Resource] that corresponds to the given [path].
   ///

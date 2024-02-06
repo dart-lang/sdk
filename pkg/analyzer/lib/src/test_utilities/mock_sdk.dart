@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:meta/meta.dart';
@@ -1467,7 +1466,7 @@ final List<MockSdkLibrary> _LIBRARIES = [
 /// It has enough libraries to run analyzer and analysis server tests,
 /// but some libraries, classes, and methods are missing.
 void createMockSdk({
-  required MemoryResourceProvider resourceProvider,
+  required ResourceProvider resourceProvider,
   required Folder root,
   @internal List<MockSdkLibrary> additionalLibraries = const [],
 }) {

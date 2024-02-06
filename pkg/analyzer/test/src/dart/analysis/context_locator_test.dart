@@ -92,7 +92,7 @@ analyzer:
     Folder rootFolder = newFolder('/home/test');
     newFile('/home/test/lib/a.dart', '');
     newFile('/home/b.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/home/test/lib/c.dart'),
       convertPath('/home/b.dart'),
     );
@@ -116,7 +116,7 @@ analyzer:
   void test_locateRoots_link_file_toSiblingInRoot() {
     Folder rootFolder = newFolder('/test');
     newFile('/test/lib/a.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/test/lib/b.dart'),
       convertPath('/test/lib/a.dart'),
     );
@@ -141,7 +141,7 @@ analyzer:
     var rootFolder = newFolder('/test');
     newFile('/test/lib/a.dart', '');
     newFolder('/test/lib/foo');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/test/lib/foo'),
       convertPath('/test/lib/bar'),
     );
@@ -170,7 +170,7 @@ analyzer:
   void test_locateRoots_link_folder_toParentInRoot() {
     Folder rootFolder = newFolder('/test');
     newFile('/test/lib/a.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/test/lib/foo'),
       convertPath('/test/lib'),
     );
@@ -198,7 +198,7 @@ analyzer:
     newFile('/home/test/lib/a.dart', '');
     newFile('/home/b.dart', '');
     newFile('/home/other/c.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/home/test/lib/foo'),
       convertPath('/home'),
     );
@@ -226,7 +226,7 @@ analyzer:
     Folder rootFolder = newFolder('/test');
     newFile('/test/lib/a.dart', '');
     newFile('/test/lib/foo/b.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/test/lib/bar'),
       convertPath('/test/lib/foo'),
     );

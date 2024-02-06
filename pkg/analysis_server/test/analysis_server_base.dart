@@ -13,7 +13,6 @@ import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -84,7 +83,7 @@ class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
   }
 }
 
-class ContextResolutionTest with ResourceProviderMixin {
+abstract class ContextResolutionTest with ResourceProviderMixin {
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
   late final LegacyAnalysisServer server;
@@ -207,10 +206,7 @@ class ContextResolutionTest with ResourceProviderMixin {
 }
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest
-    with
-        MockPackagesMixin<MemoryResourceProvider>,
-        ConfigurationFilesMixin,
-        TestMacros {
+    with MockPackagesMixin, ConfigurationFilesMixin, TestMacros {
   // If experiments are needed,
   // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.

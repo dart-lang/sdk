@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 
@@ -13,8 +14,7 @@ import '../src/utilities/mock_packages.dart';
 
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
 /// files along with mock packages to a [ResourceProvider].
-mixin ConfigurationFilesMixin<T extends ResourceProvider>
-    on MockPackagesMixin<T> {
+mixin ConfigurationFilesMixin on MockPackagesMixin {
   String get latestLanguageVersion =>
       '${ExperimentStatus.currentVersion.major}.'
       '${ExperimentStatus.currentVersion.minor}';
@@ -23,6 +23,8 @@ mixin ConfigurationFilesMixin<T extends ResourceProvider>
 
   /// The path to the test package being used for testing.
   String get testPackageRootPath;
+
+  String convertPath(String fileName) => resourceProvider.convertPath(fileName);
 
   String toUriStr(String filePath) =>
       pathContext.toUri(convertPath(filePath)).toString();
