@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart' hide Watcher;
@@ -43,7 +44,7 @@ class MemoryResourceProvider implements ResourceProvider {
     this.delayWatcherInitialization,
   }) : _pathContext = context ??= pathos.style == pathos.Style.windows
             // On Windows, ensure that the current drive matches
-            // the drive inserted by MemoryResourceProvider.convertPath
+            // the drive inserted by ResourceProvider.convertPath
             // so that packages are mapped to the correct drive
             ? pathos.Context(current: 'C:\\')
             : pathos.context;
@@ -55,15 +56,8 @@ class MemoryResourceProvider implements ResourceProvider {
   ///
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
-  String convertPath(String path) {
-    if (pathContext.style == pathos.windows.style) {
-      if (path.startsWith(pathos.posix.separator)) {
-        path = r'C:' + path;
-      }
-      path = path.replaceAll(pathos.posix.separator, pathos.windows.separator);
-    }
-    return path;
-  }
+  String convertPath(String filePath) =>
+      ResourceProviderExtensions(this).convertPath(filePath);
 
   /// Delete the file with the given path.
   void deleteFile(String path) {
@@ -144,11 +138,8 @@ class MemoryResourceProvider implements ResourceProvider {
       throw FileSystemException(path, 'Not a file.');
     }
 
-    _pathToData[path] = _FileData(
-      bytes: const Utf8Encoder().convert(content),
-      timeStamp: nextStamp++,
-    );
-    _notifyWatchers(path, ChangeType.MODIFY);
+    var bytes = const Utf8Encoder().convert(content);
+    _setFileContent(path, bytes);
   }
 
   File newFile(String path, String content) {
@@ -160,17 +151,7 @@ class MemoryResourceProvider implements ResourceProvider {
     _ensureAbsoluteAndNormalized(path);
     bytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
 
-    var parentPath = pathContext.dirname(path);
-    var parentData = _newFolder(parentPath);
-    _addToParentFolderData(parentData, path);
-
-    _pathToData[path] = _FileData(
-      bytes: bytes,
-      timeStamp: nextStamp++,
-    );
-    _notifyWatchers(path, ChangeType.ADD);
-
-    return _MemoryFile(this, path);
+    return _setFileContent(path, bytes);
   }
 
   Folder newFolder(String path) {
@@ -303,16 +284,19 @@ class MemoryResourceProvider implements ResourceProvider {
     return result;
   }
 
-  void _setFileContent(String path, Uint8List bytes) {
+  File _setFileContent(String path, Uint8List bytes) {
     var parentPath = pathContext.dirname(path);
     var parentData = _newFolder(parentPath);
     _addToParentFolderData(parentData, path);
 
+    var exists = _pathToData.containsKey(path);
     _pathToData[path] = _FileData(
       bytes: bytes,
       timeStamp: nextStamp++,
     );
-    _notifyWatchers(path, ChangeType.MODIFY);
+    _notifyWatchers(path, exists ? ChangeType.MODIFY : ChangeType.ADD);
+
+    return _MemoryFile(this, path);
   }
 }
 

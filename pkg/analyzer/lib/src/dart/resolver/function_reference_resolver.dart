@@ -26,19 +26,14 @@ class FunctionReferenceResolver {
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
-  final bool _isNonNullableByDefault;
-
   /// The type representing the type 'type'.
   final InterfaceType _typeType;
 
-  FunctionReferenceResolver(this._resolver, this._isNonNullableByDefault)
+  FunctionReferenceResolver(this._resolver)
       : _extensionResolver = _resolver.extensionResolver,
         _typeType = _resolver.typeProvider.typeType;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
-
-  NullabilitySuffix get _nullabilitySuffix =>
-      _isNonNullableByDefault ? NullabilitySuffix.none : NullabilitySuffix.star;
 
   void resolve(FunctionReferenceImpl node) {
     var function = node.function;
@@ -322,7 +317,7 @@ class FunctionReferenceResolver {
     );
     var type = element.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: _nullabilitySuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
     _resolveTypeLiteral(node: node, instantiatedType: type, name: name);
   }
@@ -814,7 +809,7 @@ class FunctionReferenceResolver {
     );
     var type = element.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: _nullabilitySuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
     _resolveTypeLiteral(node: node, instantiatedType: type, name: typeAlias);
   }

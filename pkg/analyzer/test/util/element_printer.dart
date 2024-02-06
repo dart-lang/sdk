@@ -250,10 +250,6 @@ class ElementPrinter {
     _sink.withIndent(() {
       writeNamedElement('base', element.declaration);
 
-      if (element.isLegacy) {
-        _sink.writelnWithIndent('isLegacy: true');
-      }
-
       void writeSubstitution(String name, MapSubstitution substitution) {
         var map = substitution.map;
         if (map.isNotEmpty) {

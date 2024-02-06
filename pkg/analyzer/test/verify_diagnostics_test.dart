@@ -103,6 +103,9 @@ class DocumentationValidator {
     // Missing support for YAML files.
     'LintCode.secure_pubspec_urls',
 
+    // Has `language=2.9`
+    'ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
+
     //
     // The following can't currently be verified because the examples aren't
     // Dart code.

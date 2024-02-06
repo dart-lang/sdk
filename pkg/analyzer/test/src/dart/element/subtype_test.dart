@@ -5481,26 +5481,6 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
 @reflectiveTest
 class SubtypingCompoundTest extends _SubtypingTestBase {
-  test_bottom_isBottom() {
-    var equivalents = <DartType>[neverStar];
-
-    var supertypes = <DartType>[
-      dynamicType,
-      objectStar,
-      intStar,
-      doubleStar,
-      numStar,
-      stringStar,
-      functionStar,
-    ];
-
-    _checkGroups(
-      neverStar,
-      equivalents: equivalents,
-      supertypes: supertypes,
-    );
-  }
-
   test_double() {
     var equivalents = <DartType>[doubleStar];
     var supertypes = <DartType>[numStar];
@@ -5546,7 +5526,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
       numStar,
       stringStar,
       functionStar,
-      neverStar,
     ];
 
     _checkGroups(
@@ -5650,7 +5629,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
       nullStar,
       neverNone,
       neverQuestion,
-      neverStar,
     ];
 
     var supertypes = <DartType>[
@@ -5687,7 +5665,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
       nullStar,
       nullQuestion,
       neverNone,
-      neverStar,
       neverQuestion,
     ];
 
@@ -5792,29 +5769,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
       equivalents: equivalents,
       supertypes: supertypes,
       unrelated: unrelated,
-      subtypes: subtypes,
-    );
-  }
-
-  test_void_isTop() {
-    var equivalents = <DartType>[
-      dynamicType,
-      objectStar,
-      voidNone,
-    ];
-
-    var subtypes = <DartType>[
-      intStar,
-      doubleStar,
-      numStar,
-      stringStar,
-      functionStar,
-      neverStar,
-    ];
-
-    _checkGroups(
-      voidNone,
-      equivalents: equivalents,
       subtypes: subtypes,
     );
   }

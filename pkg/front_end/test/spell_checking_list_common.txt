@@ -985,6 +985,7 @@ edges
 edit
 edition
 editor
+edits
 effect
 effective
 effectively
@@ -2124,6 +2125,7 @@ optimistically
 optimization
 optimize
 optimized
+optimizer
 option
 optional
 optionally

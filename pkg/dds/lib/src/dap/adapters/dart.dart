@@ -169,7 +169,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
 
   /// Whether SDK libraries should be marked as debuggable.
   ///
-  /// Treated as `false` if null, which means "step in" will not step into SDK
+  /// Treated as `true` if null. If `false`, "step in" will not step into SDK
   /// libraries.
   final bool? debugSdkLibraries;
 
@@ -180,7 +180,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
 
   /// Whether external package libraries should be marked as debuggable.
   ///
-  /// Treated as `false` if null, which means "step in" will not step into
+  /// Treated as `true` if null. If `false`, "step in" will not step into
   /// libraries in packages that are not either the local package or a path
   /// dependency. This allows users to debug "just their code" and treat Pub
   /// packages as block boxes.

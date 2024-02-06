@@ -25,11 +25,20 @@ class Feature {
   /// Full strong checking of NNBD features.
   static const nnbdStrong = Feature._("nnbd-strong");
 
-  static const all = [nnbdLegacy, nnbd, nnbdWeak, nnbdStrong];
+  /// [Type.toString] is expected to show the original type name and original
+  /// names in function type named parameters.
+  static const readableTypeStrings = Feature._("readable-type-strings");
 
-  /// All modes that should be tested on a platform that doesn't support legacy
-  /// code.
-  static const noLegacy = [nnbd, nnbdStrong];
+  static const all = [
+    nnbdLegacy,
+    nnbd,
+    nnbdWeak,
+    nnbdStrong,
+    readableTypeStrings,
+  ];
+
+  /// All modes that should be tested on a platform that support legacy code.
+  static const legacy = [nnbdLegacy, nnbdWeak];
 
   final String name;
 

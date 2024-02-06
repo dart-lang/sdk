@@ -260,8 +260,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   })  : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
-        _requiredParametersVerifier = RequiredParametersVerifier(errorReporter,
-            strictCasts: options.strictCasts),
+        _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
           _inheritanceManager,
           _currentLibrary,
@@ -317,9 +316,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         superClass.name == 'Union';
   }
 
-  bool get _isNonNullableByDefault =>
-      _featureSet?.isEnabled(Feature.non_nullable) ?? false;
-
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
       SyntacticEntity errorEntity,
@@ -369,10 +365,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
       );
     }
-    if (_isNonNullableByDefault) {
-      checkForUseOfVoidResult(node.expression);
-    }
-
+    checkForUseOfVoidResult(node.expression);
     _checkForAwaitInLateLocalVariableInitializer(node);
     _checkForAwaitOfExtensionTypeNotFuture(node);
     super.visitAwaitExpression(node);
@@ -498,7 +491,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
-        strictCasts: strictCasts,
       ).checkStaticAccessors(declarationElement.accessors);
 
       super.visitClassDeclaration(node);
@@ -552,7 +544,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
-      strictCasts: strictCasts,
     ).checkStaticAccessors(element.accessors);
 
     super.visitCompilationUnit(node);
@@ -662,7 +653,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
-        strictCasts: strictCasts,
       ).checkStaticAccessors(element.accessors);
 
       super.visitEnumDeclaration(node);
@@ -704,7 +694,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
-      strictCasts: strictCasts,
     ).checkExtension(element);
 
     final name = node.name;
@@ -759,7 +748,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
-        strictCasts: strictCasts,
       ).checkExtensionType(element, interface);
 
       super.visitExtensionTypeDeclaration(node);
@@ -1401,7 +1389,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitSwitchStatement(SwitchStatement node) {
     checkForUseOfVoidResult(node.expression);
-    _checkForCaseBlocksNotTerminated(node);
     _checkForMissingEnumConstantInSwitch(node);
     super.visitSwitchStatement(node);
   }
@@ -1799,16 +1786,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           expression,
           CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
         );
-      } else if (element.isFinal) {
-        if (_isNonNullableByDefault) {
-          // Handled during resolution, with flow analysis.
-        } else {
-          errorReporter.atNode(
-            expression,
-            CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
-            arguments: [element.name],
-          );
-        }
       }
     } else if (element is PropertyAccessorElement && element.isGetter) {
       var variable = element.variable;
@@ -1979,67 +1956,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         errorCode,
         arguments: [token.lexeme],
       );
-    }
-  }
-
-  /// Verify that the given [switchCase] is terminated with 'break', 'continue',
-  /// 'return' or 'throw'.
-  ///
-  /// see [CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED].
-  void _checkForCaseBlockNotTerminated(SwitchCase switchCase) {
-    NodeList<Statement> statements = switchCase.statements;
-    if (statements.isEmpty) {
-      // fall-through without statements at all
-      var parent = switchCase.parent;
-      if (parent is SwitchStatement) {
-        NodeList<SwitchMember> members = parent.members;
-        int index = members.indexOf(switchCase);
-        if (index != -1 && index < members.length - 1) {
-          return;
-        }
-      }
-      // no other switch member after this one
-    } else {
-      Statement statement = statements.last;
-      if (statement is Block && statement.statements.isNotEmpty) {
-        Block block = statement;
-        statement = block.statements.last;
-      }
-      // terminated with statement
-      if (statement is BreakStatement ||
-          statement is ContinueStatement ||
-          statement is ReturnStatement) {
-        return;
-      }
-      // terminated with 'throw' expression
-      if (statement is ExpressionStatement) {
-        Expression expression = statement.expression;
-        if (expression is ThrowExpression || expression is RethrowExpression) {
-          return;
-        }
-      }
-    }
-
-    errorReporter.atToken(
-      switchCase.keyword,
-      CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED,
-    );
-  }
-
-  /// Verify that the switch cases in the given switch [statement] are
-  /// terminated with 'break', 'continue', 'rethrow', 'return' or 'throw'.
-  ///
-  /// See [CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED].
-  void _checkForCaseBlocksNotTerminated(SwitchStatement statement) {
-    if (_isNonNullableByDefault) return;
-
-    NodeList<SwitchMember> members = statement.members;
-    int lastMember = members.length - 1;
-    for (int i = 0; i < lastMember; i++) {
-      SwitchMember member = members[i];
-      if (member is SwitchCase) {
-        _checkForCaseBlockNotTerminated(member);
-      }
     }
   }
 
@@ -2716,8 +2632,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
-    if (!_isNonNullableByDefault) return;
-
     if (typeSystem.isStrictlyNonNullable(lhsType)) {
       errorReporter.atNode(
         rhs,
@@ -2804,10 +2718,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // TODO(scheglov): use NullableDereferenceVerifier
-    if (_isNonNullableByDefault) {
-      if (typeSystem.isNullable(iterableType)) {
-        return false;
-      }
+    if (typeSystem.isNullable(iterableType)) {
+      return false;
     }
 
     // The type of the loop variable.
@@ -3244,9 +3156,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Handled during resolution, with flow analysis.
-    if (_isNonNullableByDefault &&
-        list.isFinal &&
-        list.parent is VariableDeclarationStatement) {
+    if (list.isFinal && list.parent is VariableDeclarationStatement) {
       return;
     }
 
@@ -3271,7 +3181,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           } else if (variableElement is TopLevelVariableElement &&
               variableElement.isExternal) {
             // External top level variables can't be initialized, so no error.
-          } else if (!_isNonNullableByDefault || !variable.isLate) {
+          } else if (!variable.isLate) {
             errorReporter.atToken(
               variable.name,
               CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
@@ -4147,7 +4057,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (mixinMember != null) {
         var isCorrect = CorrectOverrideHelper(
-          library: _currentLibrary,
+          typeSystem: typeSystem,
           thisMember: superMember,
         ).isCorrectOverrideOf(
           superMember: mixinMember,
@@ -4329,9 +4239,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     final superElement = superType.element;
     // try to find default generative super constructor
     var superUnnamedConstructor = superElement.unnamedConstructor;
-    superUnnamedConstructor = superUnnamedConstructor != null
-        ? _currentLibrary.toLegacyElementIfOptOut(superUnnamedConstructor)
-        : superUnnamedConstructor;
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         errorReporter.reportErrorForElement(
@@ -4517,8 +4424,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForNotInitializedNonNullableInstanceFields(
     FieldDeclaration fieldDeclaration,
   ) {
-    if (!_isNonNullableByDefault) return;
-
     if (fieldDeclaration.isStatic) return;
     var fields = fieldDeclaration.fields;
 
@@ -4555,10 +4460,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     VariableDeclarationList node,
     bool topLevel,
   ) {
-    if (!_isNonNullableByDefault) {
-      return;
-    }
-
     // Checked separately.
     if (node.isConst || (topLevel && node.isFinal)) {
       return;
@@ -5020,8 +4921,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForThrowOfInvalidType(ThrowExpression node) {
-    if (!_isNonNullableByDefault) return;
-
     var expression = node.expression;
     var type = node.expression.typeOrThrow;
 
@@ -5171,9 +5070,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var superUnnamedConstructor = superElement.unnamedConstructor;
-    superUnnamedConstructor = superUnnamedConstructor != null
-        ? _currentLibrary.toLegacyElementIfOptOut(superUnnamedConstructor)
-        : superUnnamedConstructor;
     if (superUnnamedConstructor == null) {
       errorReporter.atNode(
         constructor.returnType,
@@ -5238,10 +5134,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForUnnecessaryNullAware(Expression target, Token operator) {
-    if (!_isNonNullableByDefault) {
-      return;
-    }
-
     if (target is SuperExpression) {
       return;
     }
@@ -5809,8 +5701,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
-    if (!_isNonNullableByDefault) return;
-
     var defaultValuesAreExpected = () {
       var parent = node.parent;
       if (parent is ConstructorDeclaration) {

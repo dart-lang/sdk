@@ -331,11 +331,6 @@ class TypesBuilder {
     }
   }
 
-  bool _isNonNullableByDefault(AstNode node) {
-    var unit = node.thisOrAncestorOfType<CompilationUnit>();
-    return unit!.featureSet.isEnabled(Feature.non_nullable);
-  }
-
   void _mixinDeclaration(MixinDeclaration node) {
     var element = node.declaredElement as MixinElementImpl;
 
@@ -364,14 +359,10 @@ class TypesBuilder {
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
-    if (_isNonNullableByDefault(node)) {
-      if (hasQuestion) {
-        return NullabilitySuffix.question;
-      } else {
-        return NullabilitySuffix.none;
-      }
+    if (hasQuestion) {
+      return NullabilitySuffix.question;
     } else {
-      return NullabilitySuffix.star;
+      return NullabilitySuffix.none;
     }
   }
 
@@ -467,7 +458,6 @@ class TypesBuilder {
             declaration: element,
             augmentationSubstitution: toDeclaration,
             substitution: Substitution.empty,
-            isLegacy: false,
           );
         }),
       ];
@@ -486,7 +476,7 @@ class TypesBuilder {
           return element;
         }
         return FieldMember(
-            typeProvider, element, toDeclaration, Substitution.empty, false);
+            typeProvider, element, toDeclaration, Substitution.empty);
       }),
     ];
 
@@ -497,7 +487,7 @@ class TypesBuilder {
           return element;
         }
         return PropertyAccessorMember(
-            typeProvider, element, toDeclaration, Substitution.empty, false);
+            typeProvider, element, toDeclaration, Substitution.empty);
       }),
     ];
 
@@ -508,7 +498,7 @@ class TypesBuilder {
           return element;
         }
         return MethodMember(
-            typeProvider, element, toDeclaration, Substitution.empty, false);
+            typeProvider, element, toDeclaration, Substitution.empty);
       }),
     ];
   }

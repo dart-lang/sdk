@@ -530,20 +530,6 @@ class MethodInvocationResolver with ScopeHelpers {
       node.staticType = NeverTypeImpl.instance;
       return;
     }
-
-    if (receiverType == NeverTypeImpl.instanceLegacy) {
-      MethodInvocationInferrer(
-              resolver: _resolver,
-              node: node,
-              argumentList: node.argumentList,
-              contextType: contextType,
-              whyNotPromotedList: whyNotPromotedList)
-          .resolveInvocation(rawType: null);
-      node.methodName.staticType = _dynamicType;
-      node.staticInvokeType = _dynamicType;
-      node.staticType = _dynamicType;
-      return;
-    }
   }
 
   void _resolveReceiverNull(

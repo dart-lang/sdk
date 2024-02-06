@@ -88,8 +88,6 @@ mixin ElementsTypesMixin {
 
   NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;
 
-  NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
-
   InterfaceTypeImpl get nullNone {
     var element = typeProvider.nullType.element;
     return interfaceTypeNone(element) as InterfaceTypeImpl;

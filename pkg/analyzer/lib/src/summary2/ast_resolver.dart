@@ -28,7 +28,6 @@ class AstResolver {
   final ExecutableElement? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
     unitElement: _unitElement,
-    featureSet: _featureSet,
     nameScope: _nameScope,
     errorListener: _errorListener,
     strictInference: analysisOptions.strictInference,

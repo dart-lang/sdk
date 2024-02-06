@@ -143,7 +143,6 @@ class LibraryAnalyzer {
         ResolutionVisitor(
           unitElement: unitElement,
           errorListener: errorListener,
-          featureSet: _libraryElement.featureSet,
           nameScope: _libraryElement.scope,
           strictInference: _analysisOptions.strictInference,
           strictCasts: _analysisOptions.strictCasts,
@@ -827,7 +826,6 @@ class LibraryAnalyzer {
       ResolutionVisitor(
         unitElement: unitElement,
         errorListener: errorListener,
-        featureSet: unit.featureSet,
         nameScope: unitElement.enclosingElement.scope,
         strictInference: _analysisOptions.strictInference,
         strictCasts: _analysisOptions.strictCasts,

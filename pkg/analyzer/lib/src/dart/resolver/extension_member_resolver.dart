@@ -34,9 +34,6 @@ class ExtensionMemberResolver {
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
-  bool get _isNonNullableByDefault =>
-      _resolver.definingLibrary.featureSet.isEnabled(Feature.non_nullable);
-
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
@@ -121,7 +118,7 @@ class ExtensionMemberResolver {
                 return "extension '$name'";
               }
               var type = e.extension.extendedType
-                  .getDisplayString(withNullability: _isNonNullableByDefault);
+                  .getDisplayString(withNullability: true);
               return "unnamed extension on '$type'";
             }).commaSeparatedWithAnd,
           ],

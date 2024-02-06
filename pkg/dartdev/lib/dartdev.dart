@@ -41,19 +41,7 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   int? exitCode = 1;
   try {
     VmInteropHandler.initialize(port);
-    if (args.contains('run')) {
-      // These flags have a format that can't be handled by package:args, so while
-      // they are valid flags we'll assume the VM has verified them by this point.
-      args = args
-          .where(
-            (element) => !(element.contains('--observe') ||
-                element.contains('--enable-vm-service') ||
-                element.contains('--devtools')),
-          )
-          .toList();
-    }
-
-    // Finally, call the runner to execute the command; see DartdevRunner.
+    // Call the runner to execute the command; see DartdevRunner.
     final runner = DartdevRunner(args, vmArgs: io.Platform.executableArguments);
     exitCode = await runner.run(args);
   } on UsageException catch (e) {

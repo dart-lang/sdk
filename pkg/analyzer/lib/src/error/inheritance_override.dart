@@ -176,8 +176,6 @@ class _ClassVerifier {
     this.withClause,
   }) : libraryUri = library.source.uri;
 
-  bool get _isNonNullableByDefault => true;
-
   /// Verify inheritance overrides, and return `true` if an error was
   /// reported which should prevent follow on diagnostics from being reported.
   bool verify() {
@@ -272,7 +270,6 @@ class _ClassVerifier {
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: reporter,
-      strictCasts: strictCasts,
     ).checkInterface(classElement, interface);
 
     if (classElement is ClassElement && !classElement.isAbstract ||
@@ -322,9 +319,8 @@ class _ClassVerifier {
         //  diagnostic should be reported on the name of the mixin defining the
         //  method. In other cases, it should be reported on the name of the
         //  overriding method. The classNameNode is always wrong.
-        concreteElement = library.toLegacyElementIfOptOut(concreteElement);
         CorrectOverrideHelper(
-          library: library,
+          typeSystem: typeSystem,
           thisMember: concreteElement,
         ).verify(
           superMember: interfaceElement,
@@ -358,7 +354,7 @@ class _ClassVerifier {
 
     var name = Name(libraryUri, member.name);
     var correctOverrideHelper = CorrectOverrideHelper(
-      library: library,
+      typeSystem: typeSystem,
       thisMember: member,
     );
 
@@ -777,7 +773,7 @@ class _ClassVerifier {
       var candidatesStr = conflict.candidates.map((candidate) {
         var className = candidate.enclosingElement.name;
         var typeStr = candidate.type.getDisplayString(
-          withNullability: _isNonNullableByDefault,
+          withNullability: true,
         );
         return '$className.${name.name} ($typeStr)';
       }).join(', ');

@@ -108,7 +108,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     // BOTTOM(Never) is true
     isBottom(neverNone);
     isNotBottom(neverQuestion);
-    isBottom(neverStar);
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
     T = typeParameter('T', bound: objectQuestion);
@@ -164,7 +163,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     // MOREBOTTOM(Never, T) = true
     isMoreBottom(neverNone, neverNone);
     isMoreBottom(neverNone, neverQuestion);
-    isMoreBottom(neverNone, neverStar);
 
     isMoreBottom(neverNone, nullNone);
     isMoreBottom(neverNone, nullQuestion);
@@ -172,7 +170,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     // MOREBOTTOM(T, Never) = false
     isNotMoreBottom(neverQuestion, neverNone);
-    isNotMoreBottom(neverStar, neverNone);
 
     isNotMoreBottom(nullNone, neverNone);
     isNotMoreBottom(nullQuestion, neverNone);
@@ -180,7 +177,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     // MOREBOTTOM(Null, T) = true
     isMoreBottom(nullNone, neverQuestion);
-    isMoreBottom(nullNone, neverStar);
 
     isMoreBottom(nullNone, nullNone);
     isMoreBottom(nullNone, nullQuestion);
@@ -188,7 +184,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     // MOREBOTTOM(T, Null) = false
     isNotMoreBottom(neverQuestion, nullNone);
-    isNotMoreBottom(neverStar, nullNone);
 
     isNotMoreBottom(nullQuestion, nullNone);
     isNotMoreBottom(nullStar, nullNone);
@@ -198,16 +193,10 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     isNotMoreBottom(nullQuestion, neverQuestion);
 
     // MOREBOTTOM(T, S?) = true
-    isMoreBottom(neverStar, nullQuestion);
     isMoreBottom(nullStar, neverQuestion);
 
     // MOREBOTTOM(T?, S) = false
     isNotMoreBottom(neverQuestion, nullStar);
-    isNotMoreBottom(nullQuestion, neverStar);
-
-    // MOREBOTTOM(T*, S*) = MOREBOTTOM(T, S)
-    isMoreBottom(neverStar, nullStar);
-    isNotMoreBottom(nullStar, neverStar);
 
     // MOREBOTTOM(T, S*) = true
     isMoreBottom(
@@ -412,7 +401,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     // NULL(T*) is true iff NULL(T) or BOTTOM(T)
     isNull(nullStar);
-    isNull(neverStar);
     isNull(
       typeParameterTypeStar(
         typeParameter('T', bound: neverNone),
@@ -526,7 +514,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isNotTop(neverNone);
     isNotTop(neverQuestion);
-    isNotTop(neverStar);
   }
 
   /// [TypeSystemImpl.isMoreBottom] can be used only for `BOTTOM` or `NULL`
@@ -1378,9 +1365,6 @@ class LowerBoundTest extends _BoundsTestBase {
 
     check(numQuestion, intStar, intStar);
     check(intQuestion, numStar, intStar);
-
-    check(doubleQuestion, intStar, neverStar);
-    check(intQuestion, doubleStar, neverStar);
   }
 
   test_star_star() {
@@ -1395,7 +1379,6 @@ class LowerBoundTest extends _BoundsTestBase {
     }
 
     check(intStar, numStar, intStar);
-    check(intStar, doubleStar, neverStar);
   }
 
   test_top_any() {

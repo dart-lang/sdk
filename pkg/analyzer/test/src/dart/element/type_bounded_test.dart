@@ -81,7 +81,6 @@ class DynamicBoundedTest extends AbstractTypeSystemTest {
   test_never() {
     _assertNotDynamicBounded(neverNone);
     _assertNotDynamicBounded(neverQuestion);
-    _assertNotDynamicBounded(neverStar);
   }
 
   test_void() {
@@ -224,7 +223,6 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
   test_never() {
     _assertNotFunctionBounded(neverNone);
     _assertNotFunctionBounded(neverQuestion);
-    _assertNotFunctionBounded(neverStar);
   }
 
   test_void() {
@@ -273,7 +271,6 @@ class InvalidBoundedTest extends AbstractTypeSystemTest {
   test_never() {
     _assertNotInvalidBounded(neverNone);
     _assertNotInvalidBounded(neverQuestion);
-    _assertNotInvalidBounded(neverStar);
   }
 
   test_typeParameter_hasBound_invalid() {

@@ -991,24 +991,8 @@ class InvalidTypeImpl extends TypeImpl implements InvalidType {
 /// The type `Never` represents the uninhabited bottom type.
 class NeverTypeImpl extends TypeImpl implements NeverType {
   /// The unique instance of this class, nullable.
-  ///
-  /// This behaves equivalently to the `Null` type, but we distinguish it for
-  /// two reasons: (1) there are circumstances where we need access to this
-  /// type, but we don't have access to the type provider, so using `Never?` is
-  /// a convenient solution.  (2) we may decide that the distinction is
-  /// convenient in diagnostic messages (this is TBD).
   static final NeverTypeImpl instanceNullable =
       NeverTypeImpl._(NullabilitySuffix.question);
-
-  /// The unique instance of this class, starred.
-  ///
-  /// This behaves like a version of the Null* type that could be conceivably
-  /// migrated to be of type Never. Therefore, it's the bottom of all legacy
-  /// types, and also assignable to the true bottom. Note that Never? and Never*
-  /// are not the same type, as Never* is a subtype of Never, while Never? is
-  /// not.
-  static final NeverTypeImpl instanceLegacy =
-      NeverTypeImpl._(NullabilitySuffix.star);
 
   /// The unique instance of this class, non-nullable.
   static final NeverTypeImpl instance = NeverTypeImpl._(NullabilitySuffix.none);
@@ -1069,7 +1053,8 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
       case NullabilitySuffix.question:
         return instanceNullable;
       case NullabilitySuffix.star:
-        return instanceLegacy;
+        // TODO(scheglov): remove together with `star`
+        return instanceNullable;
       case NullabilitySuffix.none:
         return instance;
     }

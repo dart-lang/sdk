@@ -4516,10 +4516,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     );
   }
 
+  @Deprecated('Only non-nullable by default mode is supported')
   @override
   T toLegacyElementIfOptOut<T extends Element>(T element) {
-    if (isNonNullableByDefault) return element;
-    return Member.legacy(element) as T;
+    return element;
   }
 
   @Deprecated('Only non-nullable by default mode is supported')
@@ -5616,7 +5616,8 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
       case NullabilitySuffix.question:
         return NeverTypeImpl.instanceNullable;
       case NullabilitySuffix.star:
-        return NeverTypeImpl.instanceLegacy;
+        // TODO(scheglov): remove together with `star`
+        return NeverTypeImpl.instanceNullable;
       case NullabilitySuffix.none:
         return NeverTypeImpl.instance;
     }

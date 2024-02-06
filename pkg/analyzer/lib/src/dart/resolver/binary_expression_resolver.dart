@@ -35,8 +35,6 @@ class BinaryExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  bool get _isNonNullableByDefault => true;
-
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
@@ -167,7 +165,7 @@ class BinaryExpressionResolver {
     var flow = _resolver.flowAnalysis.flow;
 
     var leftContextType = contextType;
-    if (leftContextType != null && _isNonNullableByDefault) {
+    if (leftContextType != null) {
       leftContextType = _typeSystem.makeNullable(leftContextType);
     }
 
@@ -189,14 +187,10 @@ class BinaryExpressionResolver {
     flow?.ifNullExpression_end();
 
     var rightType = right.typeOrThrow;
-    if (_isNonNullableByDefault) {
-      var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
-      _analyzeLeastUpperBoundTypes(node, promotedLeftType, rightType,
-          contextType: contextType);
-    } else {
-      _analyzeLeastUpperBoundTypes(node, leftType, rightType,
-          contextType: contextType);
-    }
+    var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
+    _analyzeLeastUpperBoundTypes(node, promotedLeftType, rightType,
+        contextType: contextType);
+
     _resolver.checkForArgumentTypeNotAssignableForArgument(right);
   }
 

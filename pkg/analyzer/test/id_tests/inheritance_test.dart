@@ -37,6 +37,7 @@ main(List<String> args) async {
       'issue40414',
       'member_from_opt_in',
       'members_from_opt_in',
+      'members_from_opt_out',
       'top_merge_opt_out.dart',
     ],
     skipMap: {

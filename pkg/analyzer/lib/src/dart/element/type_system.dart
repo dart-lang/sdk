@@ -315,10 +315,7 @@ class TypeSystemImpl implements TypeSystem {
   /// with their unpromoted equivalents, and, if non-nullable by default,
   /// replaces all legacy types with their non-nullable equivalents.
   DartType demoteType(DartType type) {
-    var visitor = const DemotionNonNullificationVisitor(
-      demoteTypeVariables: true,
-      nonNullifyTypes: true,
-    );
+    var visitor = const DemotionVisitor();
     return type.accept(visitor) ?? type;
   }
 
@@ -1526,15 +1523,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return inferredTypes;
-  }
-
-  /// Replace legacy types in [type] with non-nullable types.
-  DartType nonNullifyLegacy(DartType type) {
-    var visitor = const DemotionNonNullificationVisitor(
-      demoteTypeVariables: false,
-      nonNullifyTypes: true,
-    );
-    return type.accept(visitor) ?? type;
   }
 
   /// Compute the canonical representation of [T].

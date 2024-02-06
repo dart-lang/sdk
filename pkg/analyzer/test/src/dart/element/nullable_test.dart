@@ -125,7 +125,6 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
   test_never() {
     isNonNullable(neverNone);
     isNotNonNullable(neverQuestion);
-    isNonNullable(neverStar);
   }
 
   test_null() {
@@ -314,7 +313,6 @@ class IsNullableTest extends AbstractTypeSystemTest {
   test_never() {
     isNotNullable(neverNone);
     isNullable(neverQuestion);
-    isNotNullable(neverStar);
   }
 
   test_null() {
@@ -633,7 +631,6 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
   test_never() {
     isStrictlyNonNullable(neverNone);
     isNotStrictlyNonNullable(neverQuestion);
-    isNotStrictlyNonNullable(neverStar);
   }
 
   test_null() {

@@ -411,19 +411,29 @@ class TestConfiguration {
       _compilerConfiguration ??= CompilerConfiguration(this);
 
   /// The set of [Feature]s supported by this configuration.
-  late final Set<Feature> supportedFeatures = compiler == Compiler.dart2analyzer
-      // The analyzer should parse all tests that don't require legacy support.
-      ? {...Feature.noLegacy}
-      : {
-          // TODO(rnystrom): Define more features for things like "dart:io", separate
-          // int/double representation, etc.
-          if (NnbdMode.legacy == configuration.nnbdMode)
-            Feature.nnbdLegacy
-          else
-            Feature.nnbd,
-          if (NnbdMode.weak == configuration.nnbdMode) Feature.nnbdWeak,
-          if (NnbdMode.strong == configuration.nnbdMode) Feature.nnbdStrong,
-        };
+  Set<Feature> get supportedFeatures {
+    // The analyzer should parse all tests that don't require legacy support.
+    if (compiler == Compiler.dart2analyzer) {
+      return {...Feature.all.where((f) => !Feature.legacy.contains(f))};
+    }
+
+    return {
+      // The supported NNBD features depending on the `nnbdMode`.
+      if (NnbdMode.legacy == configuration.nnbdMode)
+        Feature.nnbdLegacy
+      else
+        Feature.nnbd,
+      if (NnbdMode.weak == configuration.nnbdMode) Feature.nnbdWeak,
+      if (NnbdMode.strong == configuration.nnbdMode) Feature.nnbdStrong,
+
+      // The configurations with the following builder tags and configurations
+      // with the `minified` flag set to `true` will obfuscate `Type.toString`
+      // strings.
+      if (!(const {"dart2js_production", "obfuscated"}).contains(builderTag) &&
+          !isMinified)
+        Feature.readableTypeStrings,
+    };
+  }
 
   /// Determines if this configuration has a compatible compiler and runtime
   /// and other valid fields.

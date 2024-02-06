@@ -20,7 +20,6 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   late final TypeParameterElement T;
   late final TypeParameterType T_none;
   late final TypeParameterType T_question;
-  late final TypeParameterType T_star;
 
   @override
   void setUp() {
@@ -29,7 +28,6 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     T = typeParameter('T');
     T_none = typeParameterTypeNone(T);
     T_question = typeParameterTypeQuestion(T);
-    T_star = typeParameterTypeStar(T);
   }
 
   test_contravariant() {
@@ -58,7 +56,6 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   test_covariant() {
     _check(T_none, greatest: 'Object?', least: 'Never');
     _check(T_question, greatest: 'Object?', least: 'Never?');
-    _check(T_star, greatest: 'Object?', least: 'Never*');
 
     _check(
       listNone(T_none),
@@ -106,7 +103,6 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
 
     _check1(neverNone, 'Never');
     _check1(neverQuestion, 'Never?');
-    _check1(neverStar, 'Never*');
 
     _check1(dynamicType, 'dynamic');
 
