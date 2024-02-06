@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/builder_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 
 /// Runs [macro] in the types phase and returns a  [MacroExecutionResult].
@@ -58,9 +59,15 @@ Future<MacroExecutionResult> executeTypesMacro(
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    builder.report(new Diagnostic(
-        new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
-        Severity.error));
+    // Preserve `MacroException`s thrown by SDK tools.
+    if (e is MacroExceptionImpl) {
+      builder.failWithException(e);
+    } else {
+      // Convert exceptions thrown by macro implementations into diagnostics.
+      builder.report(new Diagnostic(
+          new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
+          Severity.error));
+    }
   }
   return builder.result;
 }
@@ -130,9 +137,15 @@ Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    builder.report(new Diagnostic(
-        new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
-        Severity.error));
+    // Preserve `MacroException`s thrown by SDK tools.
+    if (e is MacroExceptionImpl) {
+      builder.failWithException(e);
+    } else {
+      // Convert exceptions thrown by macro implementations into diagnostics.
+      builder.report(new Diagnostic(
+          new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
+          Severity.error));
+    }
   }
   return builder.result;
 }
@@ -199,9 +212,15 @@ Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    builder.report(new Diagnostic(
-        new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
-        Severity.error));
+    // Preserve `MacroException`s thrown by SDK tools.
+    if (e is MacroExceptionImpl) {
+      builder.failWithException(e);
+    } else {
+      // Convert exceptions thrown by macro implementations into diagnostics.
+      builder.report(new Diagnostic(
+          new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
+          Severity.error));
+    }
   }
   return builder.result;
 }
