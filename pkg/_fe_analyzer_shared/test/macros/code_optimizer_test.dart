@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/macros/code_optimizer.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -226,6 +227,16 @@ typedef F<String> = void Function();
         });
 
         group('Shadowed | ', () {
+          test('By library declaration name', () {
+            assertEditsNoChanges(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+''', libraryDeclarationNames: {'String'});
+          });
+
           test('By local class, before', () {
             assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
@@ -461,6 +472,7 @@ const _dartImports = {
 
 void assertEdits({
   Map<String, Set<String>> importedNames = const {},
+  Set<String> libraryDeclarationNames = const {},
   required String code,
   required String expected,
   bool throwIfHasErrors = true,
@@ -474,6 +486,12 @@ void assertEdits({
 
   var edits = optimizer.optimize(
     code,
+    libraryDeclarationNames: libraryDeclarationNames,
+    scannerConfiguration: ScannerConfiguration(
+      enableExtensionMethods: true,
+      enableNonNullable: true,
+      forAugmentationLibrary: true,
+    ),
     throwIfHasErrors: throwIfHasErrors,
   );
 
@@ -501,11 +519,13 @@ void assertEdits({
 
 void assertEditsNoChanges({
   Map<String, Set<String>> importedNames = const {},
+  Set<String> libraryDeclarationNames = const {},
   required String code,
   bool throwIfHasErrors = true,
 }) {
   assertEdits(
     importedNames: importedNames,
+    libraryDeclarationNames: libraryDeclarationNames,
     code: code,
     throwIfHasErrors: throwIfHasErrors,
     expected: '${'-' * 16}\n$code',

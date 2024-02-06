@@ -12,17 +12,15 @@ abstract class CodeOptimizer {
 
   List<Edit> optimize(
     String code, {
+    required Set<String> libraryDeclarationNames,
+    required ScannerConfiguration scannerConfiguration,
     bool throwIfHasErrors = false,
   }) {
     List<Edit> edits = [];
 
     ScannerResult result = scanString(
       code,
-      configuration: new ScannerConfiguration(
-        enableExtensionMethods: true,
-        enableNonNullable: true,
-        forAugmentationLibrary: true,
-      ),
+      configuration: scannerConfiguration,
       includeComments: true,
       languageVersionChanged: (scanner, languageVersion) {
         throw new UnimplementedError();
@@ -39,6 +37,7 @@ abstract class CodeOptimizer {
     _Listener listener = new _Listener(
       getImportedNames: getImportedNames,
     );
+    listener.libraryScope.globalNames.addAll(libraryDeclarationNames);
 
     Parser parser = new Parser(
       listener,
