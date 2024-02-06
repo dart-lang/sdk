@@ -114,7 +114,7 @@ void Page::AllocateForwardingPage() {
   ASSERT((object_start() + sizeof(ForwardingPage)) < object_end());
   ASSERT(Utils::IsAligned(sizeof(ForwardingPage), kObjectAlignment));
   top_ -= sizeof(ForwardingPage);
-  forwarding_page_ = reinterpret_cast<ForwardingPage*>(top_);
+  forwarding_page_ = reinterpret_cast<ForwardingPage*>(top_.load());
 }
 
 struct Partition {

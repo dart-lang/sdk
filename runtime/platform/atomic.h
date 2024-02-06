@@ -153,20 +153,6 @@ static inline T LoadRelaxed(const T* ptr) {
       std::memory_order_relaxed);
 }
 
-template <typename T>
-static inline T LoadAcquire(const T* ptr) {
-  static_assert(sizeof(std::atomic<T>) == sizeof(T));
-  return reinterpret_cast<const std::atomic<T>*>(ptr)->load(
-      std::memory_order_acquire);
-}
-
-template <typename T>
-static inline void StoreRelease(T* ptr, T value) {
-  static_assert(sizeof(std::atomic<T>) == sizeof(T));
-  reinterpret_cast<std::atomic<T>*>(ptr)->store(value,
-                                                std::memory_order_release);
-}
-
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_ATOMIC_H_
