@@ -27,7 +27,7 @@ macro class JsonSerializable implements ClassDeclarationsMacro {
     var object = NamedTypeAnnotationCode(
         name: await builder.resolveIdentifier(_dartCore, 'Object'));
     var mapStringObject = NamedTypeAnnotationCode(
-      name: map, typeArguments: [string, object.asNullable]);
+        name: map, typeArguments: [string, object.asNullable]);
 
     // TODO: This only works because the macro file lives right next to the file
     // it is applied to.
@@ -63,32 +63,33 @@ macro class FromJson implements ConstructorDefinitionMacro {
   @override
   Future<void> buildDefinitionForConstructor(ConstructorDeclaration constructor,
       ConstructorDefinitionBuilder builder) async {
-    // TODO: Validate we are running on a valid fromJson constructor.
+    var fromJsonData = await _FromJsonData.build(builder);
+    await _checkValidFromJson(constructor, fromJsonData, builder);
 
-    // TODO: support extending other classes.
     var clazz = (await builder.typeDeclarationOf(constructor.definingType))
         as ClassDeclaration;
     var superclass = clazz.superclass;
     var superclassHasFromJson = false;
-    var fromJsonData = await _FromJsonData.build(builder);
     if (superclass != null &&
-        !await (await builder.resolve(
-                NamedTypeAnnotationCode(name: superclass.identifier)))
+        !await (await builder
+                .resolve(NamedTypeAnnotationCode(name: superclass.identifier)))
             .isExactly(fromJsonData.objectType)) {
-      var superclassDeclaration = await builder.typeDeclarationOf(superclass.identifier);
-      var superclassConstructors = await builder.constructorsOf(superclassDeclaration);
-      for (var constructor in superclassConstructors) {
-        if (constructor.identifier.name == 'fromJson') {
-          // TODO: Validate this is a valid fromJson constructor.
+      var superclassDeclaration =
+          await builder.typeDeclarationOf(superclass.identifier);
+      var superclassConstructors =
+          await builder.constructorsOf(superclassDeclaration);
+      for (var superConstructor in superclassConstructors) {
+        if (superConstructor.identifier.name == 'fromJson') {
+          await _checkValidFromJson(superConstructor, fromJsonData, builder);
           superclassHasFromJson = true;
           break;
         }
       }
       if (!superclassHasFromJson) {
         throw UnsupportedError(
-          'Serialization of classes that extend other classes is only '
-          'supported if those classes have a valid '
-          '`fromJson(Map<String, Object?> json)` constructor.');
+            'Serialization of classes that extend other classes is only '
+            'supported if those classes have a valid '
+            '`fromJson(Map<String, Object?> json)` constructor.');
       }
     }
 
@@ -100,13 +101,13 @@ macro class FromJson implements ConstructorDefinitionMacro {
           field.identifier,
           ' = ',
           await _convertTypeFromJson(
-            field.type,
-            RawCode.fromParts([
-              jsonParam,
-              '["${field.identifier.name}"]',
-            ]),
-            builder,
-            fromJsonData),
+              field.type,
+              RawCode.fromParts([
+                jsonParam,
+                '["${field.identifier.name}"]',
+              ]),
+              builder,
+              fromJsonData),
         ]),
       if (superclassHasFromJson)
         RawCode.fromParts([
@@ -117,54 +118,63 @@ macro class FromJson implements ConstructorDefinitionMacro {
     ]);
   }
 
-  Future<Code> _convertTypeFromJson(
-      TypeAnnotation type,
-      Code jsonReference,
-      DefinitionBuilder builder,
-      _FromJsonData fromJsonData) async {
+  Future<void> _checkValidFromJson(
+      ConstructorDeclaration constructor,
+      _FromJsonData fromJsonData,
+      DeclarationPhaseIntrospector introspector) async {
+    if (constructor.namedParameters.isNotEmpty ||
+        constructor.positionalParameters.length != 1 ||
+        !(await (await introspector
+                .resolve(constructor.positionalParameters.single.type.code))
+            .isExactly(fromJsonData.jsonMapType))) {
+      throw ArgumentError(
+          'Expected exactly one parameter, with the type Map<String, Object?>');
+    }
+  }
+
+  Future<Code> _convertTypeFromJson(TypeAnnotation type, Code jsonReference,
+      DefinitionBuilder builder, _FromJsonData fromJsonData) async {
     if (type is! NamedTypeAnnotation) {
       builder.report(Diagnostic(
-        DiagnosticMessage(
-          'Only named types are allowed on serializable classes',
-          target: type.asDiagnosticTarget),
-        Severity.error));
+          DiagnosticMessage(
+              'Only named types are allowed on serializable classes',
+              target: type.asDiagnosticTarget),
+          Severity.error));
       return RawCode.fromString(
-        '<Unable to deserialize type ${type.code.debugString}>');
+          '<Unable to deserialize type ${type.code.debugString}>');
     }
     var typeDecl = await builder.typeDeclarationOf(type.identifier);
     while (typeDecl is TypeAliasDeclaration) {
       var aliasedType = typeDecl.aliasedType;
       if (aliasedType is! NamedTypeAnnotation) {
         builder.report(Diagnostic(
-          DiagnosticMessage(
-            'Only named types are allowed on serializable classes, but the '
-            'type alias ${type.code} resolved to a ${aliasedType.code}.',
-            target: type.asDiagnosticTarget),
-          Severity.error));
+            DiagnosticMessage(
+                'Only named types are allowed on serializable classes, but the '
+                'type alias ${type.code} resolved to a ${aliasedType.code}.',
+                target: type.asDiagnosticTarget),
+            Severity.error));
         return RawCode.fromString(
-          '<Unable to deserialize type ${type.code.debugString}>');
+            '<Unable to deserialize type ${type.code.debugString}>');
       }
       typeDecl = await builder.typeDeclarationOf(aliasedType.identifier);
     }
     if (typeDecl is! ClassDeclaration) {
       builder.report(Diagnostic(
-        DiagnosticMessage(
-          'Only class types and certain built-in types are supported for '
-          'serializable classes',
-          target: type.asDiagnosticTarget),
-        Severity.error));
+          DiagnosticMessage(
+              'Only class types and certain built-in types are supported for '
+              'serializable classes',
+              target: type.asDiagnosticTarget),
+          Severity.error));
       return RawCode.fromString(
-        '<Unable to deserialize type ${type.code.debugString}>');
+          '<Unable to deserialize type ${type.code.debugString}>');
     }
 
     // The static type of the expected type, without any type arguments.
     var typeDeclType = await builder.resolve(
-        NamedTypeAnnotationCode(
-          name: typeDecl.identifier,
-          typeArguments: [
-            for (var typeParam in typeDecl.typeParameters)
-              typeParam.bound?.code ?? fromJsonData.objectCode.asNullable,
-          ]));
+        NamedTypeAnnotationCode(name: typeDecl.identifier, typeArguments: [
+      for (var typeParam in typeDecl.typeParameters)
+        typeParam.bound?.code ?? fromJsonData.objectCode.asNullable,
+    ]));
     if (await typeDeclType.isExactly(fromJsonData.listType)) {
       return RawCode.fromParts([
         '[ for (var item in ',
@@ -172,11 +182,8 @@ macro class FromJson implements ConstructorDefinitionMacro {
         ' as ',
         fromJsonData.jsonListCode,
         ') ',
-        await _convertTypeFromJson(
-          type.typeArguments.single,
-          RawCode.fromString('item'),
-          builder,
-          fromJsonData),
+        await _convertTypeFromJson(type.typeArguments.single,
+            RawCode.fromString('item'), builder, fromJsonData),
         ']',
       ]);
     } else if (await typeDeclType.isExactly(fromJsonData.setType)) {
@@ -186,11 +193,8 @@ macro class FromJson implements ConstructorDefinitionMacro {
         ' as ',
         fromJsonData.jsonListCode,
         ')',
-        await _convertTypeFromJson(
-          type.typeArguments.single,
-          RawCode.fromString('item'),
-          builder,
-          fromJsonData),
+        await _convertTypeFromJson(type.typeArguments.single,
+            RawCode.fromString('item'), builder, fromJsonData),
         '}',
       ]);
     } else if (await typeDeclType.isExactly(fromJsonData.mapType)) {
@@ -200,11 +204,8 @@ macro class FromJson implements ConstructorDefinitionMacro {
         ' as ',
         fromJsonData.jsonMapCode,
         '.entries) entry.key: ',
-        await _convertTypeFromJson(
-          type.typeArguments.single,
-          RawCode.fromString('entry.value'),
-          builder,
-          fromJsonData),
+        await _convertTypeFromJson(type.typeArguments.single,
+            RawCode.fromString('entry.value'), builder, fromJsonData),
         '}',
       ]);
     }
@@ -237,6 +238,7 @@ macro class FromJson implements ConstructorDefinitionMacro {
 final class _FromJsonData {
   final NamedTypeAnnotationCode jsonListCode;
   final NamedTypeAnnotationCode jsonMapCode;
+  final StaticType jsonMapType;
   final StaticType listType;
   final StaticType mapType;
   final NamedTypeAnnotationCode objectCode;
@@ -246,6 +248,7 @@ final class _FromJsonData {
   _FromJsonData({
     required this.jsonListCode,
     required this.jsonMapCode,
+    required this.jsonMapType,
     required this.listType,
     required this.mapType,
     required this.objectCode,
@@ -253,7 +256,8 @@ final class _FromJsonData {
     required this.setType,
   });
 
-  static Future<_FromJsonData> build(ConstructorDefinitionBuilder builder) async {
+  static Future<_FromJsonData> build(
+      ConstructorDefinitionBuilder builder) async {
     var [list, map, object, set, string] = await Future.wait([
       builder.resolveIdentifier(_dartCore, 'List'),
       builder.resolveIdentifier(_dartCore, 'Map'),
@@ -263,30 +267,29 @@ final class _FromJsonData {
     ]);
     var objectCode = NamedTypeAnnotationCode(name: object);
     var nullableObjectCode = objectCode.asNullable;
-    var jsonListCode = NamedTypeAnnotationCode(
-        name: list,
-        typeArguments: [
-          nullableObjectCode,
-        ]);
-    var jsonMapCode = NamedTypeAnnotationCode(
-        name: map,
-        typeArguments: [
-          NamedTypeAnnotationCode(name: string),
-          nullableObjectCode,
-        ]);
-    var [listType, mapType, objectType, setType] = await Future.wait([
+    var jsonListCode = NamedTypeAnnotationCode(name: list, typeArguments: [
+      nullableObjectCode,
+    ]);
+    var jsonMapCode = NamedTypeAnnotationCode(name: map, typeArguments: [
+      NamedTypeAnnotationCode(name: string),
+      nullableObjectCode,
+    ]);
+    var [jsonMapType, listType, mapType, objectType, setType] =
+        await Future.wait([
+      builder.resolve(jsonMapCode),
       builder.resolve(NamedTypeAnnotationCode(
-        name: list, typeArguments: [nullableObjectCode])),
+          name: list, typeArguments: [nullableObjectCode])),
       builder.resolve(NamedTypeAnnotationCode(
-        name: map, typeArguments: [nullableObjectCode, nullableObjectCode])),
+          name: map, typeArguments: [nullableObjectCode, nullableObjectCode])),
       builder.resolve(objectCode),
       builder.resolve(NamedTypeAnnotationCode(
-        name: set, typeArguments: [nullableObjectCode])),
+          name: set, typeArguments: [nullableObjectCode])),
     ]);
 
     return _FromJsonData(
       jsonListCode: jsonListCode,
       jsonMapCode: jsonMapCode,
+      jsonMapType: jsonMapType,
       listType: listType,
       mapType: mapType,
       objectCode: objectCode,
@@ -303,10 +306,9 @@ macro class ToJson implements MethodDefinitionMacro {
   @override
   Future<void> buildDefinitionForMethod(
       MethodDeclaration method, FunctionDefinitionBuilder builder) async {
-    // TODO: Validate we are running on a valid toJson method.
-
     // Gathers a bunch of type introspection data we will need later.
     var toJsonData = await _ToJsonData.build(builder);
+    await _checkValidToJson(method, toJsonData, builder);
 
     // TODO: support extending other classes.
     final clazz = (await builder.typeDeclarationOf(method.definingType))
@@ -314,23 +316,24 @@ macro class ToJson implements MethodDefinitionMacro {
     var superclass = clazz.superclass;
     var superclassHasToJson = false;
     if (superclass != null &&
-        !await (await builder.resolve(
-                NamedTypeAnnotationCode(name: superclass.identifier)))
+        !await (await builder
+                .resolve(NamedTypeAnnotationCode(name: superclass.identifier)))
             .isExactly(toJsonData.objectType)) {
-      var superclassDeclaration = await builder.typeDeclarationOf(superclass.identifier);
+      var superclassDeclaration =
+          await builder.typeDeclarationOf(superclass.identifier);
       var superclassMethods = await builder.methodsOf(superclassDeclaration);
-      for (var method in superclassMethods) {
-        if (method.identifier.name == 'toJson') {
-          // TODO: Validate this is a valid toJson method.
+      for (var superMethod in superclassMethods) {
+        if (superMethod.identifier.name == 'toJson') {
+          await _checkValidToJson(superMethod, toJsonData, builder);
           superclassHasToJson = true;
           break;
         }
       }
       if (!superclassHasToJson) {
         throw UnsupportedError(
-          'Serialization of classes that extend other classes is only '
-          'supported if those classes have a valid '
-          '`Map<String, Object?> toJson()` method.');
+            'Serialization of classes that extend other classes is only '
+            'supported if those classes have a valid '
+            '`Map<String, Object?> toJson()` method.');
       }
     }
 
@@ -345,62 +348,65 @@ macro class ToJson implements MethodDefinitionMacro {
           field.identifier.name,
           '\'',
           ': ',
-          await _convertTypeToJson(
-            field.type,
-            RawCode.fromParts([field.identifier]),
-            builder,
-            toJsonData),
+          await _convertTypeToJson(field.type,
+              RawCode.fromParts([field.identifier]), builder, toJsonData),
           ',',
         ]),
       '\n  };',
     ]));
   }
 
-  Future<Code> _convertTypeToJson(
-      TypeAnnotation type,
-      Code valueReference,
-      DefinitionBuilder builder,
-      _ToJsonData toJsonData) async {
+  Future<void> _checkValidToJson(MethodDeclaration method,
+      _ToJsonData toJsonData, DeclarationPhaseIntrospector introspector) async {
+    if (method.namedParameters.isNotEmpty ||
+        method.positionalParameters.isNotEmpty ||
+        !(await (await introspector.resolve(method.returnType.code))
+            .isExactly(toJsonData.jsonMapType))) {
+      throw ArgumentError(
+          'Expected no parameters, and a return type of Map<String, Object?>');
+    }
+  }
+
+  Future<Code> _convertTypeToJson(TypeAnnotation type, Code valueReference,
+      DefinitionBuilder builder, _ToJsonData toJsonData) async {
     if (type is! NamedTypeAnnotation) {
       builder.report(Diagnostic(
-        DiagnosticMessage(
-          'Only fields with named types are allowed on serializable classes',
-          target: type.asDiagnosticTarget),
-        Severity.error));
+          DiagnosticMessage(
+              'Only fields with named types are allowed on serializable classes',
+              target: type.asDiagnosticTarget),
+          Severity.error));
       return RawCode.fromString(
-        '<Unable to serialize type ${type.code.debugString}>');
+          '<Unable to serialize type ${type.code.debugString}>');
     }
     var typeDecl = await builder.typeDeclarationOf(type.identifier);
     while (typeDecl is TypeAliasDeclaration) {
       var aliasedType = typeDecl.aliasedType;
       if (aliasedType is! NamedTypeAnnotation) {
         builder.report(Diagnostic(
-          DiagnosticMessage(
-            'Only fields with named types are allowed on serializable classes',
-            target: type.asDiagnosticTarget),
-          Severity.error));
+            DiagnosticMessage(
+                'Only fields with named types are allowed on serializable classes',
+                target: type.asDiagnosticTarget),
+            Severity.error));
         return RawCode.fromString(
-          '<Unable to serialize type ${type.code.debugString}>');
+            '<Unable to serialize type ${type.code.debugString}>');
       }
       typeDecl = await builder.typeDeclarationOf(aliasedType.identifier);
     }
     if (typeDecl is! ClassDeclaration) {
       builder.report(Diagnostic(
-        DiagnosticMessage(
-          'Only classes are supported as field types for serializable classes',
-          target: type.asDiagnosticTarget),
-        Severity.error));
+          DiagnosticMessage(
+              'Only classes are supported as field types for serializable classes',
+              target: type.asDiagnosticTarget),
+          Severity.error));
       return RawCode.fromString(
-        '<Unable to serialize type ${type.code.debugString}>');
+          '<Unable to serialize type ${type.code.debugString}>');
     }
 
     var typeDeclType = await builder.resolve(
-        NamedTypeAnnotationCode(
-          name: typeDecl.identifier,
-          typeArguments: [
-            for (var typeParam in typeDecl.typeParameters)
-              typeParam.bound?.code ?? toJsonData.objectCode.asNullable,
-          ]));
+        NamedTypeAnnotationCode(name: typeDecl.identifier, typeArguments: [
+      for (var typeParam in typeDecl.typeParameters)
+        typeParam.bound?.code ?? toJsonData.objectCode.asNullable,
+    ]));
     // If it is a List/Set type, serialize it as a JSON list.
     if (await typeDeclType.isExactly(toJsonData.listType) ||
         await typeDeclType.isExactly(toJsonData.setType)) {
@@ -408,24 +414,18 @@ macro class ToJson implements MethodDefinitionMacro {
         '[ for (var item in ',
         valueReference,
         ') ',
-        await _convertTypeToJson(
-          type.typeArguments.single,
-          RawCode.fromString('item'),
-          builder,
-          toJsonData),
+        await _convertTypeToJson(type.typeArguments.single,
+            RawCode.fromString('item'), builder, toJsonData),
         ']',
       ]);
-    // If it is a Map type, serialize it as a JSON map.
+      // If it is a Map type, serialize it as a JSON map.
     } else if (await typeDeclType.isExactly(toJsonData.mapType)) {
       return RawCode.fromParts([
         '{ for (var entry in ',
         valueReference,
         '.entries) entry.key: ',
-        await _convertTypeToJson(
-          type.typeArguments.single,
-          RawCode.fromString('entry.value'),
-          builder,
-          toJsonData),
+        await _convertTypeToJson(type.typeArguments.single,
+            RawCode.fromString('entry.value'), builder, toJsonData),
         '}',
       ]);
     }
@@ -448,8 +448,8 @@ macro class ToJson implements MethodDefinitionMacro {
   }
 }
 
-
 final class _ToJsonData {
+  final StaticType jsonMapType;
   final StaticType listType;
   final StaticType mapType;
   final NamedTypeAnnotationCode objectCode;
@@ -457,6 +457,7 @@ final class _ToJsonData {
   final StaticType setType;
 
   _ToJsonData({
+    required this.jsonMapType,
     required this.listType,
     required this.mapType,
     required this.objectCode,
@@ -465,25 +466,32 @@ final class _ToJsonData {
   });
 
   static Future<_ToJsonData> build(FunctionDefinitionBuilder builder) async {
-    var [list, map, object, set] = await Future.wait([
+    var [list, map, object, set, string] = await Future.wait([
       builder.resolveIdentifier(_dartCore, 'List'),
       builder.resolveIdentifier(_dartCore, 'Map'),
       builder.resolveIdentifier(_dartCore, 'Object'),
       builder.resolveIdentifier(_dartCore, 'Set'),
+      builder.resolveIdentifier(_dartCore, 'String'),
     ]);
     var objectCode = NamedTypeAnnotationCode(name: object);
     var nullableObjectCode = objectCode.asNullable;
-    var [listType, mapType, objectType, setType] = await Future.wait([
+    var [jsonMapType, listType, mapType, objectType, setType] =
+        await Future.wait([
+      builder.resolve(NamedTypeAnnotationCode(name: map, typeArguments: [
+        NamedTypeAnnotationCode(name: string),
+        nullableObjectCode,
+      ])),
       builder.resolve(NamedTypeAnnotationCode(
-        name: list, typeArguments: [nullableObjectCode])),
+          name: list, typeArguments: [nullableObjectCode])),
       builder.resolve(NamedTypeAnnotationCode(
-        name: map, typeArguments: [nullableObjectCode, nullableObjectCode])),
+          name: map, typeArguments: [nullableObjectCode, nullableObjectCode])),
       builder.resolve(objectCode),
       builder.resolve(NamedTypeAnnotationCode(
-        name: set, typeArguments: [nullableObjectCode])),
+          name: set, typeArguments: [nullableObjectCode])),
     ]);
 
     return _ToJsonData(
+      jsonMapType: jsonMapType,
       listType: listType,
       mapType: mapType,
       objectCode: objectCode,
@@ -513,7 +521,7 @@ extension on Code {
 
   void _writeDebugString(StringBuffer buffer) {
     for (var part in parts) {
-      switch(part) {
+      switch (part) {
         case Code():
           part._writeDebugString(buffer);
         case Identifier():

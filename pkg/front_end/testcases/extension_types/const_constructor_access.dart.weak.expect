@@ -83,16 +83,16 @@ static field invalid-type explicitConstAliased1 = invalid-expression "pkg/front_
 Try using a constructor or factory that is 'const'.
 var explicitConstAliased1 = const Typedef1(0); /* Error */
                                   ^^^^^^^^";
-static const field self::ExtensionType1% /* = core::int */ newConstAliased1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field self::ExtensionType1 /* = core::int */ newConstAliased1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const newConstAliased1 = new Typedef1(0); /* Error */
                              ^";
 static const field self::ExtensionType2 /* = core::int */ implicitConst2 = #C1;
 static field self::ExtensionType2 /* = core::int */ explicitConst2 = #C1;
 static const field self::ExtensionType2 /* = core::int */ newConst2 = #C1;
-static const field self::ExtensionType2% /* = core::int */ implicitConstAliased2 = #C1;
-static field self::ExtensionType2% /* = core::int */ explicitConstAliased2 = #C1;
-static const field self::ExtensionType2% /* = core::int */ newConstAliased2 = #C1;
+static const field self::ExtensionType2 /* = core::int */ implicitConstAliased2 = #C1;
+static field self::ExtensionType2 /* = core::int */ explicitConstAliased2 = #C1;
+static const field self::ExtensionType2 /* = core::int */ newConstAliased2 = #C1;
 static extension-type-member method ExtensionType1|constructor#(core::int i) → self::ExtensionType1 /* = core::int */ {
   lowered final self::ExtensionType1 /* = core::int */ #this = i;
   return #this;

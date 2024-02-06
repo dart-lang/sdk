@@ -128,7 +128,7 @@ extension type E73(self::E<Never> /* = Never */ it) implements self::E71 /* = Ne
 }
 static extension-type-member method E|constructor#<X extends core::Object? = dynamic>(self::E|constructor#::X% it) → self::E<self::E|constructor#::X%> /* = self::E|constructor#::X% */
   ;
-static extension-type-member method E|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::X% it) → self::E<self::E|constructor#_#new#tearOff::X%>% /* = self::E|constructor#_#new#tearOff::X% */
+static extension-type-member method E|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::X% it) → self::E<self::E|constructor#_#new#tearOff::X%> /* = self::E|constructor#_#new#tearOff::X% */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::X%>(it);
 static extension-type-member method E1|constructor#(self::A<Never> it) → self::E1 /* = self::A<Never> */
   ;

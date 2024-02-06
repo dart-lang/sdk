@@ -1196,7 +1196,7 @@ abstract class _TypeSubstitutor extends _SubstitutorBase {
     List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new ExtensionType(
-        node.extensionTypeDeclaration, node.nullability, typeArguments);
+        node.extensionTypeDeclaration, node.declaredNullability, typeArguments);
   }
 
   @override
@@ -1455,8 +1455,8 @@ class FunctionTypeInstantiator implements DartTypeVisitor<DartType?> {
     if (typeArguments == null) {
       return null;
     } else {
-      return new ExtensionType(
-          node.extensionTypeDeclaration, node.nullability, typeArguments);
+      return new ExtensionType(node.extensionTypeDeclaration,
+          node.declaredNullability, typeArguments);
     }
   }
 
