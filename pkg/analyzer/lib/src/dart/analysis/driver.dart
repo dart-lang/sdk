@@ -236,9 +236,6 @@ class AnalysisDriver {
 
   final AnalysisDriverTestView? testView;
 
-  // TODO(pq): replace with an analysis options map.
-  late FeatureSetProvider featureSetProvider;
-
   late FileSystemState _fsState;
 
   /// The [FileTracker] used by this driver.
@@ -1551,7 +1548,7 @@ class AnalysisDriver {
   void _createFileTracker() {
     _fillSalt();
 
-    featureSetProvider = FeatureSetProvider.build(
+    var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: _resourceProvider,
       packages: _packages,
