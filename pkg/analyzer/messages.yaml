@@ -3079,8 +3079,7 @@ CompileTimeErrorCode:
       `null`, which is neither a list nor a set:
 
       ```dart
-      %language=2.9
-      const List<int> list1 = null;
+      const dynamic list1 = 42;
       const List<int> list2 = [...[!list1!]];
       ```
 
@@ -3090,8 +3089,7 @@ CompileTimeErrorCode:
       or a constant set:
 
       ```dart
-      %language=2.9
-      const List<int> list1 = [];
+      const dynamic list1 = [42];
       const List<int> list2 = [...list1];
       ```
   CONST_SPREAD_EXPECTED_MAP:
@@ -3110,8 +3108,7 @@ CompileTimeErrorCode:
       `null`, which isn't a map:
 
       ```dart
-      %language=2.9
-      const Map<String, int> map1 = null;
+      const dynamic map1 = 42;
       const Map<String, int> map2 = {...[!map1!]};
       ```
 
@@ -3120,8 +3117,7 @@ CompileTimeErrorCode:
       Change the expression to something that evaluates to a constant map:
 
       ```dart
-      %language=2.9
-      const Map<String, int> map1 = {};
+      const dynamic map1 = {'answer': 42};
       const Map<String, int> map2 = {...map1};
       ```
   CONST_TYPE_PARAMETER:

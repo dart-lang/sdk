@@ -102,8 +102,7 @@ extension E<T> on List<T> {
 ''');
 
     var node = findNode.methodInvocation('other.foo()');
-    if (result.libraryElement.isNonNullableByDefault) {
-      assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: other
@@ -122,27 +121,6 @@ MethodInvocation
   staticInvokeType: List<T> Function()
   staticType: List<T>
 ''');
-    } else {
-      assertResolvedNodeText(node, r'''
-MethodInvocation
-  target: SimpleIdentifier
-    token: other
-    staticElement: self::@extension::E::@method::bar::@parameter::other
-    staticType: List<T*>*
-  operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    staticElement: MethodMember
-      base: self::@extension::E::@method::foo
-      substitution: {T: T*}
-    staticType: List<T*>* Function()*
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  staticInvokeType: List<T*>* Function()*
-  staticType: List<T*>*
-''');
-    }
   }
 
   test_implicit_method_onTypeParameter() async {
@@ -278,8 +256,7 @@ void f<S extends num>(S x) {
 ''');
 
     var node = findNode.methodInvocation('test();');
-    if (result.libraryElement.isNonNullableByDefault) {
-      assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: x
@@ -298,27 +275,6 @@ MethodInvocation
   staticInvokeType: S Function(S) Function()
   staticType: S Function(S)
 ''');
-    } else {
-      assertResolvedNodeText(node, r'''
-MethodInvocation
-  target: SimpleIdentifier
-    token: x
-    staticElement: self::@function::f::@parameter::x
-    staticType: S*
-  operator: .
-  methodName: SimpleIdentifier
-    token: test
-    staticElement: MethodMember
-      base: self::@extension::Test::@method::test
-      substitution: {T: num*}
-    staticType: num* Function(num*)* Function()*
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  staticInvokeType: num* Function(num*)* Function()*
-  staticType: num* Function(num*)*
-''');
-    }
   }
 
   test_implicit_targetTypeParameter_hasBound_propertyAccess_getter() async {

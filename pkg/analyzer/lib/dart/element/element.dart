@@ -1967,6 +1967,7 @@ abstract class LibraryOrAugmentationElement implements Element {
   /// version override comment at the top of the file.
   FeatureSet get featureSet;
 
+  @Deprecated('Only non-nullable by default mode is supported')
   bool get isNonNullableByDefault;
 
   /// The language version for this library.

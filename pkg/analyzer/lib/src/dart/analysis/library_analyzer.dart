@@ -488,7 +488,6 @@ class LibraryAnalyzer {
     if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
         errorReporter,
-        _libraryElement,
         sdkVersionConstraint.withoutPreRelease,
       );
       unit.accept(verifier);

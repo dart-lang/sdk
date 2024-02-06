@@ -13,10 +13,9 @@ import 'package:analyzer/src/error/codes.dart';
 /// an [AssignmentExpression], or a [PrefixExpression] or [PostfixExpression]
 /// when the operator is an increment operator.
 class AssignmentVerifier {
-  final LibraryElement _definingLibrary;
   final ErrorReporter _errorReporter;
 
-  AssignmentVerifier(this._definingLibrary, this._errorReporter);
+  AssignmentVerifier(this._errorReporter);
 
   /// We resolved [node] and found that it references the [requested] element.
   /// Verify that this element is actually writable.
@@ -41,16 +40,6 @@ class AssignmentVerifier {
             node,
             CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
           );
-        } else if (requested.isFinal) {
-          if (_definingLibrary.isNonNullableByDefault) {
-            // Handled during resolution, with flow analysis.
-          } else {
-            _errorReporter.atNode(
-              node,
-              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
-              arguments: [requested.name],
-            );
-          }
         }
       }
       return;

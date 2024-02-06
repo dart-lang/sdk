@@ -67,10 +67,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  bool get isLegacyLibrary {
-    return !result.libraryElement.isNonNullableByDefault;
-  }
-
   bool get isNullSafetyEnabled => true;
 
   ClassElement get listElement => typeProvider.listElement;
@@ -505,16 +501,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Future<void> resolveTestFile() {
     return resolveFile2(testFile);
-  }
-
-  /// Choose the type display string, depending on whether the [result] is
-  /// non-nullable or legacy.
-  String typeStr(String nonNullable, String legacy) {
-    if (result.libraryElement.isNonNullableByDefault) {
-      return nonNullable;
-    } else {
-      return legacy;
-    }
   }
 
   /// Return a textual representation of the [type] that is appropriate for
