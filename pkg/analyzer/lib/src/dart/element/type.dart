@@ -1331,9 +1331,11 @@ abstract class TypeImpl implements DartType {
 
   @override
   String getDisplayString({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
   }) {
     var builder = ElementDisplayStringBuilder(
+      // ignore:deprecated_member_use_from_same_package
       withNullability: withNullability,
     );
     appendTo(builder);
@@ -1351,7 +1353,7 @@ abstract class TypeImpl implements DartType {
 
   @override
   String toString() {
-    return getDisplayString(withNullability: true);
+    return getDisplayString();
   }
 
   /// Return the same type, but with the given [nullabilitySuffix].

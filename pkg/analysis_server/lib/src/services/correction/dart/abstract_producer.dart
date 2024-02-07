@@ -588,8 +588,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   /// Return the text that should be displayed to users when referring to the
   /// given [type].
-  String displayStringForType(DartType type) =>
-      type.getDisplayString(withNullability: true);
+  String displayStringForType(DartType type) => type.getDisplayString();
 
   CodeStyleOptions getCodeStyleOptions(File file) =>
       sessionHelper.session.analysisContext

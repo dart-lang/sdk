@@ -181,7 +181,7 @@ String? _getParametersString(engine.Element element) {
     } else if (parameter.hasRequired) {
       sb.write('@required ');
     }
-    parameter.appendToWithoutDelimiters(sb, withNullability: true);
+    parameter.appendToWithoutDelimiters(sb);
   }
   sb.write(closeOptionalString);
   return '($sb)';

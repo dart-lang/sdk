@@ -809,7 +809,7 @@ class SuggestionBuilder {
       required bool appendComma,
       int? replacementLength}) {
     var name = parameter.name;
-    var type = parameter.type.getDisplayString(withNullability: true);
+    var type = parameter.type.getDisplayString();
 
     var completion = name;
     if (appendColon) {
@@ -883,9 +883,7 @@ class SuggestionBuilder {
       required bool appendComma,
       int? replacementLength}) {
     final name = field.name;
-    final type = field.type.getDisplayString(
-      withNullability: true,
-    );
+    final type = field.type.getDisplayString();
 
     var completion = name;
     if (appendColon) {
@@ -1037,9 +1035,7 @@ class SuggestionBuilder {
       contextType: contextType,
     );
 
-    final returnType = field.type.getDisplayString(
-      withNullability: true,
-    );
+    final returnType = field.type.getDisplayString();
 
     _addSuggestion(
       CompletionSuggestion(
@@ -1476,9 +1472,7 @@ class SuggestionBuilder {
         return parameter.name;
       }).toList();
       parameterTypes = element.parameters.map((ParameterElement parameter) {
-        return parameter.type.getDisplayString(
-          withNullability: true,
-        );
+        return parameter.type.getDisplayString();
       }).toList();
 
       var requiredParameters = element.parameters

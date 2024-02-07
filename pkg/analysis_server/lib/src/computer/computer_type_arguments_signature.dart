@@ -55,7 +55,7 @@ class DartTypeArgumentsSignatureComputer {
 
     _argumentList = argumentList;
 
-    final label = element.getDisplayString(withNullability: true);
+    final label = element.getDisplayString();
     final documentation = DartUnitHoverComputer.computePreferredDocumentation(
         _dartdocInfo, element, documentationPreference);
 
@@ -88,7 +88,7 @@ class DartTypeArgumentsSignatureComputer {
   ) {
     final parameters = typeParameters
         .map((param) => lsp.ParameterInformation(
-              label: param.getDisplayString(withNullability: true),
+              label: param.getDisplayString(),
             ))
         .toList();
 

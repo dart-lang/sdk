@@ -104,8 +104,7 @@ mixin StringTypes on AbstractTypeSystemTest {
   }
 
   String typeString(DartType type) {
-    return type.getDisplayString(withNullability: true) +
-        _typeParametersStr(type);
+    return type.getDisplayString() + _typeParametersStr(type);
   }
 
   void _defineFunctionTypes() {
@@ -610,7 +609,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
       var str = '';
 
-      var boundStr = bound.getDisplayString(withNullability: true);
+      var boundStr = bound.getDisplayString();
       str += '${type.element.name} extends $boundStr';
 
       typeParameters.add(str);

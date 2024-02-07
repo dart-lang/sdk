@@ -128,13 +128,13 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   }) {
     var greatestResult = typeSystem.greatestClosure(type, [T]);
     expect(
-      greatestResult.getDisplayString(withNullability: true),
+      greatestResult.getDisplayString(),
       greatest,
     );
 
     var leastResult = typeSystem.leastClosure(type, [T]);
     expect(
-      leastResult.getDisplayString(withNullability: true),
+      leastResult.getDisplayString(),
       least,
     );
   }

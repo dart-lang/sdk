@@ -79,8 +79,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
                 var normalParam = parameter.parameter;
                 if (normalParam is FieldFormalParameter) {
                   var start = normalParam.thisKeyword;
-                  var type = parameterElement.type
-                      .getDisplayString(withNullability: true);
+                  var type = parameterElement.type.getDisplayString();
                   builder.addSimpleReplacement(
                       range.startEnd(start, normalParam.period), '$type ');
 

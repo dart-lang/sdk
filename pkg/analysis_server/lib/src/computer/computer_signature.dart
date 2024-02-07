@@ -77,7 +77,7 @@ class DartUnitSignatureComputer {
                     ? ParameterKind.REQUIRED_NAMED
                     : ParameterKind.REQUIRED_POSITIONAL,
         param.displayName,
-        param.type.getDisplayString(withNullability: true),
+        param.type.getDisplayString(),
         defaultValue: param.defaultValueCode);
   }
 

@@ -101,9 +101,8 @@ class TypeHierarchyComputer {
     {
       String? displayName;
       if (typeArguments != null && typeArguments.isNotEmpty) {
-        var typeArgumentsStr = typeArguments
-            .map((type) => type.getDisplayString(withNullability: true))
-            .join(', ');
+        var typeArgumentsStr =
+            typeArguments.map((type) => type.getDisplayString()).join(', ');
         displayName = '${classElement.displayName}<$typeArgumentsStr>';
       }
       var memberElement = helper.findMemberElement(classElement);

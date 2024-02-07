@@ -48,6 +48,6 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
 
   @override
   String typeString(covariant TypeImpl type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 }

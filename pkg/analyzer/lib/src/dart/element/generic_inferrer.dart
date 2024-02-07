@@ -475,14 +475,12 @@ class GenericInferrer {
   }
 
   String _elementStr(Element element) {
-    return element.getDisplayString(withNullability: true);
+    return element.getDisplayString();
   }
 
   String _formatError(TypeParameterElement typeParam, DartType inferred,
       Iterable<_TypeConstraint> constraints) {
-    var inferredStr = inferred.getDisplayString(
-      withNullability: true,
-    );
+    var inferredStr = inferred.getDisplayString();
     var intro = "Tried to infer '$inferredStr' for '${typeParam.name}'"
         " which doesn't work:";
 
@@ -657,7 +655,7 @@ class GenericInferrer {
   }
 
   String _typeStr(DartType type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 
   static String _formatConstraints(Iterable<_TypeConstraint> constraints) {
@@ -825,7 +823,7 @@ abstract class _TypeConstraintOrigin {
   List<String> formatError();
 
   String _typeStr(DartType type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 }
 
@@ -881,9 +879,9 @@ class _TypeRange {
   /// For example, if [typeName] is 'T' and the range has bounds int and Object
   /// respectively, the returned string will be 'int <: T <: Object'.
   @visibleForTesting
-  String format(String typeName, {required bool withNullability}) {
+  String format(String typeName) {
     String typeStr(DartType type) {
-      return type.getDisplayString(withNullability: withNullability);
+      return type.getDisplayString();
     }
 
     var lowerString = identical(lowerBound, UnknownInferredType.instance)
@@ -896,5 +894,5 @@ class _TypeRange {
   }
 
   @override
-  String toString() => format('(type)', withNullability: true);
+  String toString() => format('(type)');
 }

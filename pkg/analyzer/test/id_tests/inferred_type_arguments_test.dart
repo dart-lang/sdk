@@ -85,7 +85,7 @@ class _InferredTypeArgumentsDataInterpreter
         if (i > 0) {
           sb.write(',');
         }
-        sb.write(actualData[i].getDisplayString(withNullability: true));
+        sb.write(actualData[i].getDisplayString());
       }
       sb.write('>');
     }

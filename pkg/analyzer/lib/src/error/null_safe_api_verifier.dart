@@ -72,7 +72,7 @@ class NullSafeApiVerifier {
       _errorReporter.atNode(
         argument ?? node,
         WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE,
-        arguments: [memberName, type.getDisplayString(withNullability: true)],
+        arguments: [memberName, type.getDisplayString()],
       );
     }
   }

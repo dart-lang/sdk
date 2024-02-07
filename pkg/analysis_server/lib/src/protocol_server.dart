@@ -49,7 +49,7 @@ void doSourceChange_addSourceEdit(
 String? getAliasedTypeString(engine.Element element) {
   if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
-    return aliasedType.getDisplayString(withNullability: true);
+    return aliasedType.getDisplayString();
   }
   return null;
 }
@@ -59,16 +59,16 @@ String? getReturnTypeString(engine.Element element) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType.getDisplayString(withNullability: true);
+      return element.returnType.getDisplayString();
     }
   } else if (element is engine.VariableElement) {
     var type = element.type;
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   } else if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       var returnType = aliasedType.returnType;
-      return returnType.getDisplayString(withNullability: true);
+      return returnType.getDisplayString();
     }
   }
   return null;

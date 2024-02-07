@@ -850,7 +850,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is InterfaceType && alreadyAdded.add(type)) {
       builder.addSuggestion(
         LinkedEditSuggestionKind.TYPE,
-        type.getDisplayString(withNullability: false),
+        type.getDisplayString(),
       );
       _addSuperTypeProposals(builder, type.superclass, alreadyAdded);
       for (var interfaceType in type.interfaces) {
@@ -2189,7 +2189,7 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
   }
 
   String _getTypeSuggestionText(InterfaceType type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 }
 

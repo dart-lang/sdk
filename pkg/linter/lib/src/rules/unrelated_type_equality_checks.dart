@@ -190,8 +190,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.operator,
         errorCode: UnrelatedTypeEqualityChecks.expressionCode,
         arguments: [
-          rightType.getDisplayString(withNullability: true),
-          leftType.getDisplayString(withNullability: true),
+          rightType.getDisplayString(),
+          leftType.getDisplayString(),
         ],
       );
     }
@@ -209,8 +209,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         node,
         errorCode: UnrelatedTypeEqualityChecks.patternCode,
         arguments: [
-          operandType.getDisplayString(withNullability: true),
-          valueType.getDisplayString(withNullability: true),
+          operandType.getDisplayString(),
+          valueType.getDisplayString(),
         ],
       );
     }

@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class RecordTypeTest extends AbstractTypeSystemTest {
   void check(DartType type, String expected) {
-    expect(type.getDisplayString(withNullability: true), expected);
+    expect(type.getDisplayString(), expected);
   }
 
   void test_empty() {

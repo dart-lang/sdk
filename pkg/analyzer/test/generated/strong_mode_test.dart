@@ -3007,7 +3007,7 @@ class B<T2, U2> {
 
     var constructorMember = redirected.staticElement!;
     expect(
-      constructorMember.getDisplayString(withNullability: false),
+      constructorMember.getDisplayString(),
       'A<T2, U2> A.named()',
     );
     expect(redirected.name!.staticElement, constructorMember);
@@ -3043,7 +3043,7 @@ class B<T2, U2> {
 
     expect(redirected.name, isNull);
     expect(
-      redirected.staticElement!.getDisplayString(withNullability: false),
+      redirected.staticElement!.getDisplayString(),
       'A<T2, U2> A()',
     );
   }

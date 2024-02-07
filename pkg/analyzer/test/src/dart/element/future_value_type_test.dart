@@ -117,7 +117,7 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
   void _check(DartType T, String expected) {
     var result = typeSystem.futureValueType(T);
     expect(
-      result.getDisplayString(withNullability: true),
+      result.getDisplayString(),
       expected,
     );
   }

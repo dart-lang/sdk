@@ -111,7 +111,6 @@ class DartUnitHoverComputer {
   /// whether they are const).
   String? _elementDisplayString(AstNode node, Element? element) {
     var displayString = element?.getDisplayString(
-      withNullability: true,
       multiline: true,
     );
 
@@ -254,7 +253,7 @@ class DartUnitHoverComputer {
     } else if (node is DartPattern) {
       staticType = node.matchedValueType;
     }
-    return staticType?.getDisplayString(withNullability: true);
+    return staticType?.getDisplayString();
   }
 
   /// Whether to use the non-synthetic element for hover information.

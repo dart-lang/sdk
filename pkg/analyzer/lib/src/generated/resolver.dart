@@ -709,9 +709,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             }
             var propertyType = whyNotPromotedVisitor.propertyType;
             if (propertyType != null) {
-              var propertyTypeStr = propertyType.getDisplayString(
-                withNullability: true,
-              );
+              var propertyTypeStr = propertyType.getDisplayString();
               args.add('type: $propertyTypeStr');
             }
             if (args.isNotEmpty) {
@@ -3944,8 +3942,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (name == null) {
         var staticElement = nameNode.staticElement;
         if (staticElement != null) {
-          name =
-              '${staticElement.returnType.getDisplayString(withNullability: true)}.new';
+          name = '${staticElement.returnType.getDisplayString()}.new';
         }
       }
     } else if (nameNode is SuperConstructorInvocation) {
@@ -3953,8 +3950,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (name == null) {
         var staticElement = nameNode.staticElement;
         if (staticElement != null) {
-          name =
-              '${staticElement.returnType.getDisplayString(withNullability: true)}.new';
+          name = '${staticElement.returnType.getDisplayString()}.new';
         }
       }
     } else if (nameNode is MethodInvocation) {
@@ -3968,11 +3964,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var parent = nameNode.parent;
       if (parent is EnumConstantDeclaration) {
         var declaredElement = parent.declaredElement!;
-        name = declaredElement.type.getDisplayString(withNullability: true);
+        name = declaredElement.type.getDisplayString();
       }
     } else if (nameNode is EnumConstantDeclaration) {
       var declaredElement = nameNode.declaredElement!;
-      name = declaredElement.type.getDisplayString(withNullability: true);
+      name = declaredElement.type.getDisplayString();
     } else if (nameNode is Annotation) {
       var nameNodeName = nameNode.name;
       name = nameNodeName is PrefixedIdentifier

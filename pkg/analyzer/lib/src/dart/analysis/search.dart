@@ -1121,7 +1121,7 @@ class _FindCompilationUnitDeclarations {
 
     String? parameters;
     if (element is ExecutableElement) {
-      var displayString = element.getDisplayString(withNullability: true);
+      var displayString = element.getDisplayString();
       var parameterIndex = displayString.indexOf('(');
       if (parameterIndex > 0) {
         parameters = displayString.substring(parameterIndex);

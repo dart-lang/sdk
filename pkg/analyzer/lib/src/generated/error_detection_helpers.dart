@@ -127,7 +127,7 @@ mixin ErrorDetectionHelpers {
               if (!namedFields.any((element) =>
                   element.name == field.name && field.type == element.type)) {
                 additionalInfo.add(
-                    'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString(withNullability: true)}`.');
+                    'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString()}`.');
               }
             }
           }

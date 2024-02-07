@@ -69,7 +69,7 @@ String supertypeToString(InterfaceType type) {
     var comma = '';
     for (var typeArgument in type.typeArguments) {
       sb.write(comma);
-      sb.write(typeArgument.getDisplayString(withNullability: true));
+      sb.write(typeArgument.getDisplayString());
       comma = ', ';
     }
     sb.write('>');
@@ -121,8 +121,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
 
       void registerMember(
           MemberId id, int offset, Object object, DartType type) {
-        registerValue(uri, offset, id,
-            type.getDisplayString(withNullability: true), object);
+        registerValue(uri, offset, id, type.getDisplayString(), object);
       }
 
       var interface = inheritance.getInterface(element);

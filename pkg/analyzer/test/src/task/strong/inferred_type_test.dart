@@ -4186,7 +4186,7 @@ var x = f().g;
 var v = print;
 ''');
     var v = _resultUnitElement.topLevelVariables[0];
-    _assertTypeStr(v.type, 'void Function(Object)');
+    _assertTypeStr(v.type, 'void Function(Object?)');
   }
 
   test_inferredType_invokeMethod() async {
@@ -5941,7 +5941,7 @@ main() {
   }
 
   void _assertTypeStr(DartType type, String expected) {
-    var typeStr = type.getDisplayString(withNullability: false);
+    var typeStr = type.getDisplayString();
     expect(typeStr, expected);
   }
 }

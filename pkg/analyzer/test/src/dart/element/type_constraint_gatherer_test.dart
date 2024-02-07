@@ -1340,8 +1340,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     var constraints = gatherer.computeConstraints();
     var constraintsStr = constraints.entries.map((e) {
-      var lowerStr = e.value.lower.getDisplayString(withNullability: true);
-      var upperStr = e.value.upper.getDisplayString(withNullability: true);
+      var lowerStr = e.value.lower.getDisplayString();
+      var upperStr = e.value.upper.getDisplayString();
       return '$lowerStr <: ${e.key.name} <: $upperStr';
     }).toList();
 

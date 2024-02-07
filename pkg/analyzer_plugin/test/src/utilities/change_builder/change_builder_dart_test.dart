@@ -2091,7 +2091,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     var classElement = await _getClassElement(path, name);
     return classElement.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 }

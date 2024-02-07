@@ -299,7 +299,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
 
     String typeParametersStr(List<TypeParameterElement> elements) {
       var elementsStr = elements.map((e) {
-        return e.getDisplayString(withNullability: false);
+        return e.getDisplayString();
       }).join(', ');
       return '[$elementsStr]';
     }

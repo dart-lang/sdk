@@ -2261,8 +2261,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             _enclosingClass!.kind.displayName,
             _enclosingClass!.name,
-            error.first.getDisplayString(withNullability: true),
-            error.second.getDisplayString(withNullability: true),
+            error.first.getDisplayString(),
+            error.second.getDisplayString(),
           ],
         );
       } else {

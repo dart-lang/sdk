@@ -130,8 +130,8 @@ class ConstantEvaluationEngine {
                     constantInitializer,
                     CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
                     arguments: [
-                      dartConstant.type.getDisplayString(withNullability: true),
-                      constant.type.getDisplayString(withNullability: true),
+                      dartConstant.type.getDisplayString(),
+                      constant.type.getDisplayString(),
                     ]);
                 return;
               }
@@ -1666,10 +1666,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     // No other property access is allowed except for `.length` of a `String`.
     return InvalidConstant.forEntity(
-        errorNode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, arguments: [
-      identifier.name,
-      targetType.getDisplayString(withNullability: true)
-    ]);
+        errorNode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+        arguments: [identifier.name, targetType.getDisplayString()]);
   }
 
   /// Returns a [Constant] based on the [element] provided.
@@ -2574,9 +2572,9 @@ class _InstanceCreationEvaluator {
           return InvalidConstant.forEntity(errorNode,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
               arguments: [
-                fieldValue.type.getDisplayString(withNullability: true),
+                fieldValue.type.getDisplayString(),
                 field.name,
-                fieldType.getDisplayString(withNullability: true),
+                fieldType.getDisplayString(),
               ],
               isRuntimeException: isRuntimeException);
         }
@@ -2671,10 +2669,9 @@ class _InstanceCreationEvaluator {
                         CompileTimeErrorCode
                             .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
                         arguments: [
-                          evaluationResult.type
-                              .getDisplayString(withNullability: true),
+                          evaluationResult.type.getDisplayString(),
                           fieldName,
-                          field.type.getDisplayString(withNullability: true),
+                          field.type.getDisplayString(),
                         ],
                         isRuntimeException: isRuntimeException),
                     evaluationIsComplete: true);
@@ -2822,8 +2819,8 @@ class _InstanceCreationEvaluator {
           return InvalidConstant.forEntity(errorTarget,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               arguments: [
-                argumentValue.type.getDisplayString(withNullability: true),
-                parameter.type.getDisplayString(withNullability: true),
+                argumentValue.type.getDisplayString(),
+                parameter.type.getDisplayString(),
               ],
               isRuntimeException: isEvaluationException);
         }
@@ -2840,9 +2837,8 @@ class _InstanceCreationEvaluator {
                 return InvalidConstant.forEntity(errorTarget,
                     CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
                     arguments: [
-                      argumentValue.type
-                          .getDisplayString(withNullability: true),
-                      fieldType.getDisplayString(withNullability: true),
+                      argumentValue.type.getDisplayString(),
+                      fieldType.getDisplayString(),
                     ]);
               }
             }

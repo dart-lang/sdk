@@ -175,9 +175,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertElementString(Element element, String expected) {
-    var str = element.getDisplayString(
-      withNullability: isNullSafetyEnabled,
-    );
+    var str = element.getDisplayString();
     expect(str, expected);
   }
 
@@ -505,8 +503,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Return a textual representation of the [type] that is appropriate for
   /// tests.
-  String typeString(DartType type) =>
-      type.getDisplayString(withNullability: isNullSafetyEnabled);
+  String typeString(DartType type) => type.getDisplayString();
 
   Matcher _elementMatcher(Object? elementOrMatcher) {
     if (elementOrMatcher is Element) {

@@ -110,6 +110,6 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
   }
 
   String _typeString(DartType type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 }

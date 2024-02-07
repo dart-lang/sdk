@@ -333,15 +333,15 @@ class TopMergeTest extends AbstractTypeSystemTest {
   void _check(DartType T, DartType S, DartType expected) {
     var result = typeSystem.topMerge(T, S);
     if (result != expected) {
-      var expectedStr = expected.getDisplayString(withNullability: true);
-      var resultStr = result.getDisplayString(withNullability: true);
+      var expectedStr = expected.getDisplayString();
+      var resultStr = result.getDisplayString();
       fail('Expected: $expectedStr, actual: $resultStr');
     }
 
     result = typeSystem.topMerge(S, T);
     if (result != expected) {
-      var expectedStr = expected.getDisplayString(withNullability: true);
-      var resultStr = result.getDisplayString(withNullability: true);
+      var expectedStr = expected.getDisplayString();
+      var resultStr = result.getDisplayString();
       fail('Expected: $expectedStr, actual: $resultStr');
     }
   }

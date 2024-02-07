@@ -77,9 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else {
         rule.reportLint(node,
             errorCode: AvoidCatchingErrors.subclassCode,
-            arguments: [
-              exceptionType!.getDisplayString(withNullability: false)
-            ]);
+            arguments: [exceptionType!.getDisplayString()]);
       }
     }
   }

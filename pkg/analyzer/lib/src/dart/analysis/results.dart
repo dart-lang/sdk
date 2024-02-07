@@ -285,7 +285,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
-        var elementStr = element.getDisplayString(withNullability: true);
+        var elementStr = element.getDisplayString();
         throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
             'not defined in this library.');
       },
@@ -408,7 +408,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
-        var elementStr = element.getDisplayString(withNullability: true);
+        var elementStr = element.getDisplayString();
         throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
             'not defined in this library.');
       },

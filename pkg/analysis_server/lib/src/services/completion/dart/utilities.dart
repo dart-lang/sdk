@@ -218,7 +218,7 @@ String getTypeString(DartType type) {
   if (type is DynamicType) {
     return '';
   } else {
-    return '${type.getDisplayString(withNullability: true)} ';
+    return '${type.getDisplayString()} ';
   }
 }
 
@@ -255,7 +255,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     }
     return DYNAMIC;
   }
-  return type.getDisplayString(withNullability: false);
+  return type.getDisplayString();
 }
 
 class CompletionDefaultArgumentList {
