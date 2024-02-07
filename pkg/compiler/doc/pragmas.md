@@ -224,7 +224,7 @@ variables, static variables, and top-level variables.
 
 ```dart
 @pragma('dart2js:load-priority:normal')
-@pragma('dart2js:load-priority:high)
+@pragma('dart2js:load-priority:high')
 ```
 
 By default, a call to `prefix.loadLibrary()` loads the library with 'normal'
