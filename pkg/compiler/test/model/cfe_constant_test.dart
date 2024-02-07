@@ -82,9 +82,7 @@ class ConstantDataExtractor extends IrDataExtractor<String> {
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.ConstantExpression) {
       return constantToText(
-          elementMap.types,
-          elementMap.getConstantValue(
-              elementMap.getStaticTypeContext(member), node)!);
+          elementMap.types, elementMap.getConstantValue(node)!);
     }
     return null;
   }

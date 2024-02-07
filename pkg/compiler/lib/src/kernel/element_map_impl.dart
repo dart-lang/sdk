@@ -803,12 +803,6 @@ class KernelToElementMap implements IrToElementMap {
   ir.ClassHierarchy get classHierarchy =>
       _classHierarchy ??= ir.ClassHierarchy(env.mainComponent, coreTypes);
 
-  ir.StaticTypeContext getStaticTypeContext(MemberEntity member) {
-    // TODO(johnniwinther): Cache the static type context.
-    return ir.StaticTypeContext(
-        getMemberNode(member as JMember), typeEnvironment);
-  }
-
   @override
   Name getName(ir.Name name, {bool setter = false}) {
     return Name(name.text, name.isPrivate ? name.library!.importUri : null,
@@ -1076,9 +1070,8 @@ class KernelToElementMap implements IrToElementMap {
     return null;
   }
 
-  /// Computes the [ConstantValue] for the constant [expression].
-  ConstantValue? getConstantValue(
-      ir.StaticTypeContext staticTypeContext, ir.Expression? node,
+  /// Computes the [ConstantValue] for the constant [node].
+  ConstantValue? getConstantValue(ir.Expression? node,
       {bool requireConstant = true,
       bool implicitNull = false,
       bool checkCasts = true}) {
@@ -1107,15 +1100,13 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// Converts [annotations] into a list of [ConstantValue]s.
-  List<ConstantValue> getMetadata(
-      ir.StaticTypeContext staticTypeContext, List<ir.Expression> annotations) {
+  List<ConstantValue> getMetadata(List<ir.Expression> annotations) {
     if (annotations.isEmpty) return const <ConstantValue>[];
     List<ConstantValue> metadata = <ConstantValue>[];
     annotations.forEach((ir.Expression node) {
       // We skip the implicit cast checks for metadata to avoid circular
       // dependencies in the js-interop class registration.
-      metadata
-          .add(getConstantValue(staticTypeContext, node, checkCasts: false)!);
+      metadata.add(getConstantValue(node, checkCasts: false)!);
     });
     return metadata;
   }

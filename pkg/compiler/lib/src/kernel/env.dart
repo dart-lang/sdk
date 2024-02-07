@@ -6,7 +6,6 @@ library dart2js.kernel.env;
 
 import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
@@ -165,10 +164,7 @@ class KLibraryData {
   KLibraryData(this.library);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
-    return _metadata ??= elementMap.getMetadata(
-        ir.StaticTypeContext.forAnnotations(
-            library, elementMap.typeEnvironment),
-        library.annotations);
+    return _metadata ??= elementMap.getMetadata(library.annotations);
   }
 
   Iterable<ImportEntity> getImports(KernelToElementMap elementMap) {
@@ -436,10 +432,7 @@ class KClassData {
   bool isCallTypeComputed = false;
 
   Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
-    return _metadata ??= elementMap.getMetadata(
-        ir.StaticTypeContext.forAnnotations(
-            node.enclosingLibrary, elementMap.typeEnvironment),
-        node.annotations);
+    return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
   List<Variance> getVariances() =>
@@ -460,9 +453,7 @@ abstract class KMemberData {
   KMemberData(this.node);
 
   Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
-    return _metadata ??= elementMap.getMetadata(
-        ir.StaticTypeContext(node, elementMap.typeEnvironment),
-        node.annotations);
+    return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
   InterfaceType? getMemberThisType(JsToElementMap elementMap) {
