@@ -371,7 +371,9 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   /// Consider finding a way to share this code!
   static int _compareUri(String a, String b) {
     if (!a.startsWith('package:') || !b.startsWith('package:')) {
-      return a.compareTo(b);
+      if (!a.startsWith('/') && !b.startsWith('/')) {
+        return a.compareTo(b);
+      }
     }
     var indexA = a.indexOf('/');
     var indexB = b.indexOf('/');
