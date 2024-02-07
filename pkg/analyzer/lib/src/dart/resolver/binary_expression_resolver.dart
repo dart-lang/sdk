@@ -80,19 +80,6 @@ class BinaryExpressionResolver {
     _resolveUnsupportedOperator(node, contextType: contextType);
   }
 
-  /// Set the static type of [node] to be the least upper bound of the static
-  /// types [staticType1] and [staticType2].
-  ///
-  // TODO(scheglov): this is duplicate
-  void _analyzeLeastUpperBoundTypes(
-      ExpressionImpl node, DartType staticType1, DartType staticType2,
-      {required DartType? contextType}) {
-    var staticType = _typeSystem.leastUpperBound(staticType1, staticType2);
-
-    _inferenceHelper.recordStaticType(node, staticType,
-        contextType: contextType);
-  }
-
   void _checkNonBoolOperand(Expression operand, String operator,
       {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
@@ -188,7 +175,9 @@ class BinaryExpressionResolver {
 
     var rightType = right.typeOrThrow;
     var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
-    _analyzeLeastUpperBoundTypes(node, promotedLeftType, rightType,
+    var staticType = _typeSystem.leastUpperBound(promotedLeftType, rightType);
+
+    _inferenceHelper.recordStaticType(node, staticType,
         contextType: contextType);
 
     _resolver.checkForArgumentTypeNotAssignableForArgument(right);
