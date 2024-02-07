@@ -93,12 +93,15 @@ class BuildCommand extends DartdevCommand {
           sourceUri.toFilePath().removeDotDart().makeFolder(),
     );
 
-    final format = args[formatOptionName] as String;
-    final outputExeUri = outputUri
-        .resolve('${sourceUri.pathSegments.last.split('.').first}.$format');
+    final format = Kind.values.byName(args[formatOptionName] as String);
+    final outputExeUri = outputUri.resolve(
+      format.appendFileExtension(
+        sourceUri.pathSegments.last.split('.').first,
+      ),
+    );
     String? targetOS = args['target-os'];
-    if (format != 'exe') {
-      assert(format == 'aot');
+    if (format != Kind.exe) {
+      assert(format == Kind.aot);
       // If we're generating an AOT snapshot and not an executable, then
       // targetOS is allowed to be null for a platform-independent snapshot
       // or a different platform than the host.
@@ -106,7 +109,7 @@ class BuildCommand extends DartdevCommand {
       targetOS = Platform.operatingSystem;
     } else if (targetOS != Platform.operatingSystem) {
       stderr.writeln(
-          "'dart build -f $format' does not support cross-OS compilation.");
+          "'dart build -f ${format.name}' does not support cross-OS compilation.");
       stderr.writeln('Host OS: ${Platform.operatingSystem}');
       stderr.writeln('Target OS: $targetOS');
       return 128;

@@ -52,6 +52,26 @@ bool checkFile(String sourcePath) {
   return true;
 }
 
+/// Checks to see if [destPath] is a file path that can be written to.
+bool checkFileWriteable(String destPath) {
+  final file = File(destPath);
+  final exists = file.existsSync();
+  try {
+    file.writeAsStringSync(
+      '',
+      mode: FileMode.append,
+      flush: true,
+    );
+    // Don't leave empty files around.
+    if (!exists) {
+      file.deleteSync();
+    }
+    return true;
+  } on FileSystemException {
+    return false;
+  }
+}
+
 class CompileJSCommand extends CompileSubcommandCommand {
   static const String cmdName = 'js';
 
@@ -113,22 +133,128 @@ class CompileJSCommand extends CompileSubcommandCommand {
   }
 }
 
-class CompileSnapshotCommand extends CompileSubcommandCommand {
-  static const String jitSnapshotCmdName = 'jit-snapshot';
-  static const String kernelCmdName = 'kernel';
+class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
+  static const commandName = 'kernel';
+  static const help = 'Compile Dart to a kernel snapshot.\n'
+      'To run the snapshot use: dart run <kernel file>';
 
-  final String commandName;
-  final String help;
-  final String fileExt;
-  final String formatName;
-
-  CompileSnapshotCommand({
-    required this.commandName,
-    required this.help,
-    required this.fileExt,
-    required this.formatName,
+  CompileKernelSnapshotCommand({
     bool verbose = false,
-  }) : super(commandName, 'Compile Dart $help', verbose) {
+  }) : super(commandName, help, verbose) {
+    argParser
+      ..addOption(
+        outputFileOption.flag,
+        help: outputFileOption.help,
+        abbr: outputFileOption.abbr,
+      )
+      ..addOption(
+        verbosityOption.flag,
+        help: verbosityOption.help,
+        abbr: verbosityOption.abbr,
+        defaultsTo: verbosityOption.defaultsTo,
+        allowed: verbosityOption.allowed,
+        allowedHelp: verbosityOption.allowedHelp,
+      )
+      ..addOption(
+        packagesOption.flag,
+        abbr: packagesOption.abbr,
+        valueHelp: packagesOption.valueHelp,
+        help: packagesOption.help,
+      )
+      ..addFlag(
+        'link-platform',
+        help: 'Includes the platform kernel in the resulting kernel file. '
+            "Required for use with 'dart compile exe' or 'dart compile aot-snapshot'.",
+        defaultsTo: true,
+      )
+      ..addFlag(
+        'embed-sources',
+        help: 'Embed source files in the generated kernel component.',
+        defaultsTo: true,
+      )
+      ..addMultiOption(
+        defineOption.flag,
+        help: defineOption.help,
+        abbr: defineOption.abbr,
+        valueHelp: defineOption.valueHelp,
+      )
+      ..addFlag(
+        soundNullSafetyOption.flag,
+        help: soundNullSafetyOption.help,
+        defaultsTo: soundNullSafetyOption.flagDefaultsTo,
+        hide: true,
+      )
+      ..addExperimentalFlags(verbose: verbose);
+  }
+
+  @override
+  FutureOr<int> run() async {
+    final args = argResults!;
+    if (args.rest.isEmpty) {
+      // This throws.
+      usageException('Missing Dart entry point.');
+    } else if (args.rest.length > 1) {
+      usageException('Unexpected arguments after Dart entry point.');
+    }
+
+    final String sourcePath = args.rest[0];
+    if (!checkFile(sourcePath)) {
+      return -1;
+    }
+
+    // Determine output file name.
+    String? outputFile = args[outputFileOption.flag];
+    if (outputFile == null) {
+      final inputWithoutDart = sourcePath.endsWith('.dart')
+          ? sourcePath.substring(0, sourcePath.length - 5)
+          : sourcePath;
+      outputFile = '$inputWithoutDart.dill';
+    }
+
+    log.stdout('Compiling $sourcePath to kernel file $outputFile.');
+
+    if (!checkFileWriteable(outputFile)) {
+      log.stderr('Unable to open file $outputFile for writing snapshot.');
+      return -1;
+    }
+
+    final bool soundNullSafety = args['sound-null-safety'];
+    if (!soundNullSafety && !shouldAllowNoSoundNullSafety()) {
+      return compileErrorExitCode;
+    }
+
+    try {
+      await generateKernel(
+        sourceFile: sourcePath,
+        outputFile: outputFile,
+        defines: args['define'],
+        packages: args['packages'],
+        enableExperiment: args.enabledExperiments.join(','),
+        linkPlatform: args['link-platform'],
+        embedSources: args['embed-sources'],
+        soundNullSafety: args['sound-null-safety'],
+        verbose: verbose,
+        verbosity: args['verbosity'],
+      );
+      return 0;
+    } catch (e, st) {
+      log.stderr(e.toString());
+      if (verbose) {
+        log.stderr(st.toString());
+      }
+      return compileErrorExitCode;
+    }
+  }
+}
+
+class CompileJitSnapshotCommand extends CompileSubcommandCommand {
+  static const help = 'Compile Dart to a JIT snapshot.\n'
+      'The executable will be run once to snapshot a warm JIT.\n'
+      'To run the snapshot use: dart run <JIT file>';
+
+  CompileJitSnapshotCommand({
+    bool verbose = false,
+  }) : super('jit-snapshot', help, verbose) {
     argParser
       ..addOption(
         outputFileOption.flag,
@@ -163,25 +289,17 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
   }
 
   @override
-  String get invocation {
-    String msg = '${super.invocation} <dart entry point>';
-    if (isJitSnapshot) {
-      msg += ' [<training arguments>]';
-    }
-    return msg;
-  }
+  String get invocation =>
+      '${super.invocation} <dart entry point> [<training arguments>]';
 
   @override
   ArgParser createArgParser() {
     return ArgParser(
-      // Don't parse the training arguments for JIT snapshots, but don't accept
-      // flags after the script name for kernel snapshots.
-      allowTrailingOptions: !isJitSnapshot,
+      // Don't parse the training arguments for JIT snapshots.
+      allowTrailingOptions: false,
       usageLineLength: dartdevUsageLineLength,
     );
   }
-
-  bool get isJitSnapshot => commandName == jitSnapshotCmdName;
 
   @override
   FutureOr<int> run() async {
@@ -189,8 +307,6 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     if (args.rest.isEmpty) {
       // This throws.
       usageException('Missing Dart entry point.');
-    } else if (!isJitSnapshot && args.rest.length > 1) {
-      usageException('Unexpected arguments after Dart entry point.');
     }
 
     final String sourcePath = args.rest[0];
@@ -204,7 +320,12 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
       final inputWithoutDart = sourcePath.endsWith('.dart')
           ? sourcePath.substring(0, sourcePath.length - 5)
           : sourcePath;
-      outputFile = '$inputWithoutDart.$fileExt';
+      outputFile = '$inputWithoutDart.jit';
+    }
+
+    if (!checkFileWriteable(outputFile)) {
+      log.stderr('Unable to open file $outputFile for writing snapshot.');
+      return -1;
     }
 
     final enabledExperiments = args.enabledExperiments;
@@ -212,7 +333,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
 
     // Build arguments.
     final buildArgs = <String>[];
-    buildArgs.add('--snapshot-kind=$formatName');
+    buildArgs.add('--snapshot-kind=app-jit');
     buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
 
     final bool soundNullSafety = args['sound-null-safety'];
@@ -247,7 +368,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
       buildArgs.addAll(args.rest.sublist(1));
     }
 
-    log.stdout('Compiling $sourcePath to $commandName file $outputFile.');
+    log.stdout('Compiling $sourcePath to jit-snapshot file $outputFile.');
     // TODO(bkonyi): perform compilation in same process.
     return await runProcess([sdk.dart, ...buildArgs]);
   }
@@ -258,7 +379,7 @@ class CompileNativeCommand extends CompileSubcommandCommand {
   static const String aotSnapshotCmdName = 'aot-snapshot';
 
   final String commandName;
-  final String format;
+  final Kind format;
   final String help;
   final bool nativeAssetsExperimentEnabled;
 
@@ -365,8 +486,8 @@ Remove debugging information from the output and save it separately to the speci
     }
 
     String? targetOS = args['target-os'];
-    if (format != 'exe') {
-      assert(format == 'aot');
+    if (format != Kind.exe) {
+      assert(format == Kind.aot);
       // If we're generating an AOT snapshot and not an executable, then
       // targetOS is allowed to be null for a platform-independent snapshot
       // or a different platform than the host.
@@ -739,7 +860,7 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''');
     //
     // See https://github.com/dart-lang/sdk/issues/51513 for context.
     if (name == CompileNativeCommand.aotSnapshotCmdName ||
-        name == CompileSnapshotCommand.kernelCmdName) {
+        name == CompileKernelSnapshotCommand.commandName) {
       log.stdout(
           'Warning: the flag --no-sound-null-safety is deprecated and pending removal.');
       return true;
@@ -757,27 +878,12 @@ class CompileCommand extends DartdevCommand {
     bool nativeAssetsExperimentEnabled = false,
   }) : super(cmdName, 'Compile Dart to various formats.', verbose) {
     addSubcommand(CompileJSCommand(verbose: verbose));
-    addSubcommand(CompileSnapshotCommand(
-      commandName: CompileSnapshotCommand.jitSnapshotCmdName,
-      help: 'to a JIT snapshot.\n'
-          'The executable will be run once to snapshot a warm JIT.\n'
-          'To run the snapshot use: dart run <JIT file>',
-      fileExt: 'jit',
-      formatName: 'app-jit',
-      verbose: verbose,
-    ));
-    addSubcommand(CompileSnapshotCommand(
-      commandName: CompileSnapshotCommand.kernelCmdName,
-      help: 'to a kernel snapshot.\n'
-          'To run the snapshot use: dart run <kernel file>',
-      fileExt: 'dill',
-      formatName: 'kernel',
-      verbose: verbose,
-    ));
+    addSubcommand(CompileJitSnapshotCommand(verbose: verbose));
+    addSubcommand(CompileKernelSnapshotCommand(verbose: verbose));
     addSubcommand(CompileNativeCommand(
       commandName: CompileNativeCommand.exeCmdName,
       help: 'to a self-contained executable.',
-      format: 'exe',
+      format: Kind.exe,
       verbose: verbose,
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
     ));
@@ -785,7 +891,7 @@ class CompileCommand extends DartdevCommand {
       commandName: CompileNativeCommand.aotSnapshotCmdName,
       help: 'to an AOT snapshot.\n'
           'To run the snapshot use: dartaotruntime <AOT snapshot file>',
-      format: 'aot',
+      format: Kind.aot,
       verbose: verbose,
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
     ));
