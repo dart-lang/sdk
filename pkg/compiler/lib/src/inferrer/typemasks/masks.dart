@@ -15,7 +15,6 @@ import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
-import '../../ir/static_type.dart';
 import '../../js_model/js_world.dart' show JClosedWorld;
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
@@ -261,17 +260,14 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype,
-      required bool nullable}) {
-    if ((classRelation == ClassRelation.subtype ||
-            classRelation == ClassRelation.thisExpression) &&
-        dartTypes.isTopType(type)) {
+      {required bool nullable}) {
+    if (dartTypes.isTopType(type)) {
       // A cone of a top type includes all values.
       return AbstractValueWithPrecision(dynamicType, true);
     }
 
     if (type is NullableType) {
-      return _createFromStaticType(type.baseType, classRelation, true);
+      return _createFromStaticType(type.baseType, true);
     }
 
     if (type is LegacyType) {
@@ -284,20 +280,20 @@ class CommonMasks with AbstractValueDomain {
       // Object* is a top type for both 'is' and 'as'. This is handled in the
       // 'cone of top type' case above.
 
-      return _createFromStaticType(baseType, classRelation, nullable);
+      return _createFromStaticType(baseType, nullable);
     }
 
     if (dartTypes.useLegacySubtyping) {
       // In legacy and weak mode, `String` is nullable depending on context.
-      return _createFromStaticType(type, classRelation, nullable);
+      return _createFromStaticType(type, nullable);
     } else {
       // In strong mode nullability comes from explicit NullableType.
-      return _createFromStaticType(type, classRelation, false);
+      return _createFromStaticType(type, false);
     }
   }
 
   AbstractValueWithPrecision _createFromStaticType(
-      DartType type, ClassRelation classRelation, bool nullable) {
+      DartType type, bool nullable) {
     AbstractValueWithPrecision finish(TypeMask value, bool isPrecise) {
       return AbstractValueWithPrecision(
           nullable ? value.nullable() : value, isPrecise);
@@ -308,7 +304,6 @@ class CommonMasks with AbstractValueDomain {
       TypeVariableType typeVariable = type;
       type = _closedWorld.elementEnvironment
           .getTypeVariableBound(typeVariable.element);
-      classRelation = ClassRelation.subtype;
       isPrecise = false;
       if (type is NullableType) {
         // <A extends B?, B extends num>  ...  null is A --> can be `true`.
@@ -318,9 +313,7 @@ class CommonMasks with AbstractValueDomain {
       }
     }
 
-    if ((classRelation == ClassRelation.thisExpression ||
-            classRelation == ClassRelation.subtype) &&
-        dartTypes.isTopType(type)) {
+    if (dartTypes.isTopType(type)) {
       // A cone of a top type includes all values. Since we already tested this
       // in [createFromStaticType], we get here only for type parameter bounds.
       return AbstractValueWithPrecision(dynamicType, isPrecise);
@@ -350,18 +343,6 @@ class CommonMasks with AbstractValueDomain {
           }
           isPrecise = false;
         }
-      }
-      switch (classRelation) {
-        case ClassRelation.exact:
-          return finish(TypeMask.nonNullExact(cls, _closedWorld), isPrecise);
-        case ClassRelation.thisExpression:
-          if (!_closedWorld.isUsedAsMixin(cls)) {
-            return finish(
-                TypeMask.nonNullSubclass(cls, _closedWorld), isPrecise);
-          }
-          break;
-        case ClassRelation.subtype:
-          break;
       }
       return finish(TypeMask.nonNullSubtype(cls, _closedWorld), isPrecise);
     }

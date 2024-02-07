@@ -749,6 +749,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
 class GenerativeConstructorTypeInformation extends MemberTypeInformation {
   @override
   final FunctionEntity _member;
+  AbstractValue? _baseType;
 
   GenerativeConstructorTypeInformation(
       AbstractValueDomain abstractValueDomain, this._member)
@@ -762,12 +763,14 @@ class GenerativeConstructorTypeInformation extends MemberTypeInformation {
   @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    return mask;
-  }
-
-  @override
-  bool hasStableType(InferrerEngine inferrer) {
-    return super.hasStableType(inferrer);
+    final cls = _member.enclosingClass!;
+    return _narrowType(
+      inferrer.abstractValueDomain,
+      mask,
+      _baseType ??= cls.isAbstract
+          ? inferrer.abstractValueDomain.createNonNullSubclass(cls)
+          : inferrer.abstractValueDomain.createNonNullExact(cls),
+    );
   }
 }
 

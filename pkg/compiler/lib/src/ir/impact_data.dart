@@ -22,7 +22,6 @@ import '../util/enumset.dart';
 import 'constants.dart';
 import 'impact.dart';
 import 'runtime_type_analysis.dart';
-import 'static_type.dart';
 import 'util.dart';
 
 /// Visitor that builds an [ImpactData] object for the world impact.
@@ -279,11 +278,12 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
       }
     }
     if (node.isAsync) {
-      registerAsyncForIn(iterableType, iteratorType,
-          computeClassRelationFromType(iteratorType));
+      registerAsyncForIn(
+        iterableType,
+        iteratorType,
+      );
     } else {
-      registerSyncForIn(iterableType, iteratorType,
-          computeClassRelationFromType(iteratorType));
+      registerSyncForIn(iterableType, iteratorType);
     }
     node.iterable.accept(this);
     node.variable.accept(this);
@@ -483,9 +483,8 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerDynamicInvocation(receiverType, relation, node.name,
-        positionArguments, namedArguments, typeArguments);
+    registerDynamicInvocation(receiverType, node.name, positionArguments,
+        namedArguments, typeArguments);
     if (Operator.fromText(node.name.text) == null &&
         receiverType is ir.DynamicType) {
       // We might implicitly call a getter that returns a function.
@@ -514,16 +513,15 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(receiverType);
     final interfaceTarget = node.interfaceTarget;
 
     if (interfaceTarget.kind == ir.ProcedureKind.Getter) {
-      registerInstanceInvocation(receiverType, relation, interfaceTarget,
+      registerInstanceInvocation(receiverType, interfaceTarget,
           positionArguments, namedArguments, typeArguments);
       registerFunctionInvocation(interfaceTarget.getterType, positionArguments,
           namedArguments, typeArguments);
     } else {
-      registerInstanceInvocation(receiverType, relation, interfaceTarget,
+      registerInstanceInvocation(receiverType, interfaceTarget,
           positionArguments, namedArguments, typeArguments);
     }
     node.arguments.accept(this);
@@ -543,8 +541,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitEqualsCall(ir.EqualsCall node) {
     final leftType = node.left.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(leftType);
-    registerInstanceInvocation(leftType, relation, node.interfaceTarget, 1,
+    registerInstanceInvocation(leftType, node.interfaceTarget, 1,
         const <String>[], const <ir.DartType>[]);
     node.left.accept(this);
     node.right.accept(this);
@@ -559,8 +556,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitDynamicGet(ir.DynamicGet node) {
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerDynamicGet(receiverType, relation, node.name);
+    registerDynamicGet(receiverType, node.name);
     if (node.name.text == Identifiers.runtimeType_) {
       // This handles `runtimeType` access on `Never`.
       handleRuntimeTypeGet(receiverType, node);
@@ -571,8 +567,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitInstanceGet(ir.InstanceGet node) {
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerInstanceGet(receiverType, relation, node.interfaceTarget);
+    registerInstanceGet(receiverType, node.interfaceTarget);
     if (node.name.text == Identifiers.runtimeType_) {
       // This handles `runtimeType` access on non-Never types, like in
       // `'foo'.runtimeType`.
@@ -584,8 +579,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitInstanceTearOff(ir.InstanceTearOff node) {
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerInstanceGet(receiverType, relation, node.interfaceTarget);
+    registerInstanceGet(receiverType, node.interfaceTarget);
     assert(node.name.text != Identifiers.runtimeType_,
         "Unexpected .runtimeType instance tear-off.");
     node.receiver.accept(this);
@@ -594,8 +588,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitFunctionTearOff(ir.FunctionTearOff node) {
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerDynamicGet(receiverType, relation, ir.Name.callName);
+    registerDynamicGet(receiverType, ir.Name.callName);
     node.receiver.accept(this);
   }
 
@@ -605,18 +598,17 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(receiverType);
     final interfaceTarget = node.interfaceTarget;
 
     if (interfaceTarget is ir.Field ||
         (interfaceTarget is ir.Procedure &&
             interfaceTarget.kind == ir.ProcedureKind.Getter)) {
-      registerInstanceInvocation(receiverType, relation, interfaceTarget,
+      registerInstanceInvocation(receiverType, interfaceTarget,
           positionArguments, namedArguments, typeArguments);
       registerFunctionInvocation(interfaceTarget.getterType, positionArguments,
           namedArguments, typeArguments);
     } else {
-      registerInstanceInvocation(receiverType, relation, interfaceTarget,
+      registerInstanceInvocation(receiverType, interfaceTarget,
           positionArguments, namedArguments, typeArguments);
     }
     node.receiver.accept(this);
@@ -626,8 +618,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitDynamicSet(ir.DynamicSet node) {
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerDynamicSet(receiverType, relation, node.name);
+    registerDynamicSet(receiverType, node.name);
     node.receiver.accept(this);
     node.value.accept(this);
   }
@@ -635,8 +626,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitInstanceSet(ir.InstanceSet node) {
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerInstanceSet(receiverType, relation, node.interfaceTarget);
+    registerInstanceSet(receiverType, node.interfaceTarget);
     node.receiver.accept(this);
     node.value.accept(this);
   }
@@ -770,31 +760,23 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerInstanceSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    (_data._instanceSets ??= [])
-        .add(_InstanceAccess(receiverType, relation, target));
+  void registerInstanceSet(ir.DartType receiverType, ir.Member target) {
+    (_data._instanceSets ??= []).add(_InstanceAccess(receiverType, target));
   }
 
   @override
-  void registerDynamicSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    (_data._dynamicSets ??= [])
-        .add(_DynamicAccess(receiverType, relation, name));
+  void registerDynamicSet(ir.DartType receiverType, ir.Name name) {
+    (_data._dynamicSets ??= []).add(_DynamicAccess(receiverType, name));
   }
 
   @override
-  void registerInstanceGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    (_data._instanceGets ??= [])
-        .add(_InstanceAccess(receiverType, relation, target));
+  void registerInstanceGet(ir.DartType receiverType, ir.Member target) {
+    (_data._instanceGets ??= []).add(_InstanceAccess(receiverType, target));
   }
 
   @override
-  void registerDynamicGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    (_data._dynamicGets ??= [])
-        .add(_DynamicAccess(receiverType, relation, name));
+  void registerDynamicGet(ir.DartType receiverType, ir.Name name) {
+    (_data._dynamicGets ??= []).add(_DynamicAccess(receiverType, name));
   }
 
   @override
@@ -810,14 +792,12 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void registerInstanceInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Member target,
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     (_data._instanceInvocations ??= []).add(_InstanceInvocation(
         receiverType,
-        relation,
         target,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
@@ -825,14 +805,12 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void registerDynamicInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Name name,
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     (_data._dynamicInvocations ??= []).add(_DynamicInvocation(
         receiverType,
-        relation,
         name,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
@@ -945,19 +923,15 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation) {
-    (_data._forInData ??= []).add(_ForInData(
-        iterableType, iteratorType, iteratorClassRelation,
-        isAsync: true));
+  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
+    (_data._forInData ??= [])
+        .add(_ForInData(iterableType, iteratorType, isAsync: true));
   }
 
   @override
-  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation) {
-    (_data._forInData ??= []).add(_ForInData(
-        iterableType, iteratorType, iteratorClassRelation,
-        isAsync: false));
+  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
+    (_data._forInData ??= [])
+        .add(_ForInData(iterableType, iteratorType, isAsync: false));
   }
 
   @override
@@ -1356,26 +1330,22 @@ class ImpactData {
     }
     if (_instanceSets != null) {
       for (_InstanceAccess data in _instanceSets!) {
-        registry.registerInstanceSet(
-            data.receiverType, data.classRelation, data.target);
+        registry.registerInstanceSet(data.receiverType, data.target);
       }
     }
     if (_dynamicSets != null) {
       for (_DynamicAccess data in _dynamicSets!) {
-        registry.registerDynamicSet(
-            data.receiverType, data.classRelation, data.name);
+        registry.registerDynamicSet(data.receiverType, data.name);
       }
     }
     if (_instanceGets != null) {
       for (_InstanceAccess data in _instanceGets!) {
-        registry.registerInstanceGet(
-            data.receiverType, data.classRelation, data.target);
+        registry.registerInstanceGet(data.receiverType, data.target);
       }
     }
     if (_dynamicGets != null) {
       for (_DynamicAccess data in _dynamicGets!) {
-        registry.registerDynamicGet(
-            data.receiverType, data.classRelation, data.name);
+        registry.registerDynamicGet(data.receiverType, data.name);
       }
     }
     if (_functionInvocations != null) {
@@ -1391,7 +1361,6 @@ class ImpactData {
       for (_InstanceInvocation data in _instanceInvocations!) {
         registry.registerInstanceInvocation(
             data.receiverType,
-            data.classRelation,
             data.target,
             data.callStructure.positionalArguments,
             data.callStructure.namedArguments,
@@ -1402,7 +1371,6 @@ class ImpactData {
       for (_DynamicInvocation data in _dynamicInvocations!) {
         registry.registerDynamicInvocation(
             data.receiverType,
-            data.classRelation,
             data.name,
             data.callStructure.positionalArguments,
             data.callStructure.namedArguments,
@@ -1620,11 +1588,9 @@ class ImpactData {
     if (_forInData != null) {
       for (_ForInData data in _forInData!) {
         if (data.isAsync) {
-          registry.registerAsyncForIn(
-              data.iterableType, data.iteratorType, data.iteratorClassRelation);
+          registry.registerAsyncForIn(data.iterableType, data.iteratorType);
         } else {
-          registry.registerSyncForIn(
-              data.iterableType, data.iteratorType, data.iteratorClassRelation);
+          registry.registerSyncForIn(data.iterableType, data.iteratorType);
         }
       }
     }
@@ -1749,24 +1715,21 @@ class _InstanceAccess {
   static const String tag = '_InstanceAccess';
 
   final ir.DartType receiverType;
-  final ClassRelation classRelation;
   final ir.Member target;
 
-  _InstanceAccess(this.receiverType, this.classRelation, this.target);
+  _InstanceAccess(this.receiverType, this.target);
 
   factory _InstanceAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
-    ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Member target = source.readMemberNode();
     source.end(tag);
-    return _InstanceAccess(receiverType, classRelation, target);
+    return _InstanceAccess(receiverType, target);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
-    sink.writeEnum(classRelation);
     sink.writeMemberNode(target);
     sink.end(tag);
   }
@@ -1776,24 +1739,21 @@ class _DynamicAccess {
   static const String tag = '_DynamicAccess';
 
   final ir.DartType receiverType;
-  final ClassRelation classRelation;
   final ir.Name name;
 
-  _DynamicAccess(this.receiverType, this.classRelation, this.name);
+  _DynamicAccess(this.receiverType, this.name);
 
   factory _DynamicAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
-    ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Name name = source.readName();
     source.end(tag);
-    return _DynamicAccess(receiverType, classRelation, name);
+    return _DynamicAccess(receiverType, name);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
-    sink.writeEnum(classRelation);
     sink.writeName(name);
     sink.end(tag);
   }
@@ -1827,28 +1787,23 @@ class _InstanceInvocation {
   static const String tag = '_InstanceInvocation';
 
   final ir.DartType receiverType;
-  final ClassRelation classRelation;
   final ir.Member target;
   final _CallStructure callStructure;
 
-  _InstanceInvocation(
-      this.receiverType, this.classRelation, this.target, this.callStructure);
+  _InstanceInvocation(this.receiverType, this.target, this.callStructure);
 
   factory _InstanceInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
-    ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Member target = source.readMemberNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return _InstanceInvocation(
-        receiverType, classRelation, target, callStructure);
+    return _InstanceInvocation(receiverType, target, callStructure);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
-    sink.writeEnum(classRelation);
     sink.writeMemberNode(target);
     callStructure.toDataSink(sink);
     sink.end(tag);
@@ -1859,27 +1814,23 @@ class _DynamicInvocation {
   static const String tag = '_DynamicInvocation';
 
   final ir.DartType receiverType;
-  final ClassRelation classRelation;
   final ir.Name name;
   final _CallStructure callStructure;
 
-  _DynamicInvocation(
-      this.receiverType, this.classRelation, this.name, this.callStructure);
+  _DynamicInvocation(this.receiverType, this.name, this.callStructure);
 
   factory _DynamicInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
-    ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Name name = source.readName();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return _DynamicInvocation(receiverType, classRelation, name, callStructure);
+    return _DynamicInvocation(receiverType, name, callStructure);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
-    sink.writeEnum(classRelation);
     sink.writeName(name);
     callStructure.toDataSink(sink);
     sink.end(tag);
@@ -2247,28 +2198,23 @@ class _ForInData {
 
   final ir.DartType iterableType;
   final ir.DartType iteratorType;
-  final ClassRelation iteratorClassRelation;
   final bool isAsync;
 
-  _ForInData(this.iterableType, this.iteratorType, this.iteratorClassRelation,
-      {required this.isAsync});
+  _ForInData(this.iterableType, this.iteratorType, {required this.isAsync});
 
   factory _ForInData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType iterableType = source.readDartTypeNode();
     ir.DartType iteratorType = source.readDartTypeNode();
-    ClassRelation iteratorClassRelation = source.readEnum(ClassRelation.values);
     bool isAsync = source.readBool();
     source.end(tag);
-    return _ForInData(iterableType, iteratorType, iteratorClassRelation,
-        isAsync: isAsync);
+    return _ForInData(iterableType, iteratorType, isAsync: isAsync);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(iteratorType);
     sink.writeDartTypeNode(iteratorType);
-    sink.writeEnum(iteratorClassRelation);
     sink.writeBool(isAsync);
     sink.end(tag);
   }

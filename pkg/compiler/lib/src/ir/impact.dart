@@ -9,7 +9,6 @@ import '../serialization/serialization.dart';
 import 'constants.dart';
 import 'impact_data.dart' show ImpactData;
 import 'runtime_type_analysis.dart';
-import 'static_type.dart';
 
 /// Interface for collecting world impact data.
 ///
@@ -75,11 +74,9 @@ abstract class ImpactRegistry {
 
   void registerThrow();
 
-  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation);
+  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType);
 
-  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation);
+  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType);
 
   void registerCatch();
 
@@ -133,7 +130,6 @@ abstract class ImpactRegistry {
 
   void registerDynamicInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Name name,
       int positionalArguments,
       List<String> namedArguments,
@@ -141,7 +137,6 @@ abstract class ImpactRegistry {
 
   void registerInstanceInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Member target,
       int positionalArguments,
       List<String> namedArguments,
@@ -153,17 +148,13 @@ abstract class ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments);
 
-  void registerDynamicGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name);
+  void registerDynamicGet(ir.DartType receiverType, ir.Name name);
 
-  void registerInstanceGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target);
+  void registerInstanceGet(ir.DartType receiverType, ir.Member target);
 
-  void registerDynamicSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name);
+  void registerDynamicSet(ir.DartType receiverType, ir.Name name);
 
-  void registerInstanceSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target);
+  void registerInstanceSet(ir.DartType receiverType, ir.Member target);
 
   void registerSuperInvocation(ir.Member? target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments);

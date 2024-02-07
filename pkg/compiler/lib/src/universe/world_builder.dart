@@ -8,7 +8,6 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../ir/static_type.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../world.dart' show World;
 import 'selector.dart' show Selector;
@@ -151,49 +150,45 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
   }
 }
 
+// TODO(natebiggs): Clean up this class.
 class StrongModeConstraint {
   final ClassEntity cls;
-  final ClassRelation relation;
 
   factory StrongModeConstraint(CommonElements commonElements,
-      NativeBasicData nativeBasicData, ClassEntity cls,
-      [ClassRelation relation = ClassRelation.subtype]) {
+      NativeBasicData nativeBasicData, ClassEntity cls) {
     if (nativeBasicData.isJsInteropClass(cls)) {
       // We can not tell js-interop classes apart, so we just assume the
       // receiver could be any js-interop class.
       cls = commonElements.jsLegacyJavaScriptObjectClass;
-      relation = ClassRelation.subtype;
     }
-    return StrongModeConstraint.internal(cls, relation);
+    return StrongModeConstraint.internal(cls);
   }
 
-  const StrongModeConstraint.internal(this.cls, this.relation);
+  const StrongModeConstraint.internal(this.cls);
 
   bool needsNoSuchMethodHandling(Selector selector, World world) => true;
 
   bool canHit(MemberEntity element, Name name, ResolutionWorldBuilder world) {
-    return world.isInheritedIn(element, cls, relation);
+    return world.isInheritedIn(element, cls);
   }
 
-  bool get isExact => relation == ClassRelation.exact;
+  bool get isExact => false;
 
-  bool get isThis => relation == ClassRelation.thisExpression;
+  bool get isThis => false;
 
   String get className => cls.name;
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is StrongModeConstraint &&
-        cls == other.cls &&
-        relation == other.relation;
+    return other is StrongModeConstraint && cls == other.cls;
   }
 
   @override
   int get hashCode => cls.hashCode * 13;
 
   @override
-  String toString() => 'StrongModeConstraint($cls,$relation)';
+  String toString() => 'StrongModeConstraint($cls)';
 }
 
 abstract class WorldBuilder {

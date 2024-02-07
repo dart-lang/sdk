@@ -9,7 +9,6 @@ import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
-import '../ir/static_type.dart';
 import '../serialization/serialization.dart';
 import '../universe/member_hierarchy.dart';
 import '../universe/record_shape.dart';
@@ -249,8 +248,7 @@ mixin AbstractValueDomain {
   /// interpreted as nullable. This is passed as `false` for is-tests and `true`
   /// for as-checks and other contexts (e.g. parameter checks).
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype,
-      required bool nullable});
+      {required bool nullable});
 
   /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);

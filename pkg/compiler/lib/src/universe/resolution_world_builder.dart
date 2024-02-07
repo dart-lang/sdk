@@ -8,7 +8,6 @@ import '../common/names.dart' show Identifiers, Names;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart'
@@ -946,31 +945,20 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// Here `A.m` is inherited into `A`, `B`, and `C`. Because `B` and
   /// `C` implement `I`, `isInheritedInSubtypeOf(A.m, I)` is true, but
   /// `isInheritedInSubtypeOf(A.m, J)` is false.
-  bool isInheritedIn(
-      MemberEntity member, ClassEntity type, ClassRelation relation) {
+  bool isInheritedIn(MemberEntity member, ClassEntity type) {
     // TODO(johnniwinther): Use the [member] itself to avoid enqueueing members
     // that are overridden.
-    return isInheritedInClass(member.enclosingClass!, type, relation);
+    return isInheritedInClass(member.enclosingClass!, type);
   }
 
-  bool isInheritedInClass(ClassEntity memberHoldingClass, ClassEntity type,
-      ClassRelation relation) {
-    switch (relation) {
-      case ClassRelation.exact:
-        return _classHierarchyBuilder.isInheritedInExactClass(
-            memberHoldingClass, type);
-      case ClassRelation.thisExpression:
-        return _classHierarchyBuilder.isInheritedInThisClass(
-            memberHoldingClass, type);
-      case ClassRelation.subtype:
-        if (memberHoldingClass == _commonElements.nullClass ||
-            memberHoldingClass == _commonElements.jsNullClass) {
-          // Members of `Null` and `JSNull` are always potential targets.
-          return true;
-        }
-        return _classHierarchyBuilder.isInheritedInSubtypeOf(
-            memberHoldingClass, type);
+  bool isInheritedInClass(ClassEntity memberHoldingClass, ClassEntity type) {
+    if (memberHoldingClass == _commonElements.nullClass ||
+        memberHoldingClass == _commonElements.jsNullClass) {
+      // Members of `Null` and `JSNull` are always potential targets.
+      return true;
     }
+    return _classHierarchyBuilder.isInheritedInSubtypeOf(
+        memberHoldingClass, type);
   }
 
   KClosedWorld closeWorld(DiagnosticReporter reporter) {

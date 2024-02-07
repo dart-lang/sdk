@@ -84,13 +84,7 @@ class DartTypeNodeWriter
   @override
   void visitInterfaceType(ir.InterfaceType node,
       List<ir.StructuralParameter> functionTypeVariables) {
-    if (node is ThisInterfaceType) {
-      _sink.writeEnum(DartTypeNodeKind.thisInterfaceType);
-    } else if (node is ExactInterfaceType) {
-      _sink.writeEnum(DartTypeNodeKind.exactInterfaceType);
-    } else {
-      _sink.writeEnum(DartTypeNodeKind.interfaceType);
-    }
+    _sink.writeEnum(DartTypeNodeKind.interfaceType);
     _sink.writeClassNode(node.classNode);
     _sink.writeEnum(node.nullability);
     visitTypes(node.typeArguments, functionTypeVariables);

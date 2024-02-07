@@ -6,7 +6,6 @@ import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
-import '../ir/static_type.dart';
 import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
 import '../universe/member_hierarchy.dart';
@@ -380,8 +379,7 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype,
-      required bool nullable}) {
+      {required bool nullable}) {
     return const AbstractValueWithPrecision(TrivialAbstractValue(), false);
   }
 
