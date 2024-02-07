@@ -267,7 +267,7 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
                                               " deregistered.\n",
                  isolate->name(), main_port);
   }
-
+  isolate->set_is_service_registered(false);
   return SendServiceControlMessage(thread, main_port,
                                    VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID,
                                    isolate->name());
