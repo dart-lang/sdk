@@ -483,6 +483,18 @@ class LibraryMacroApplier {
         return instance.shouldExecute(targetDeclarationKind, phase);
       }).toSet();
 
+      if (!instance.supportsDeclarationKind(targetDeclarationKind)) {
+        macroTarget.element.addMacroDiagnostic(
+          InvalidMacroTargetDiagnostic(
+            supportedKinds: macro.DeclarationKind.values
+                .where(instance.supportsDeclarationKind)
+                .map((e) => e.name)
+                .toList(),
+          ),
+        );
+        return;
+      }
+
       final application = _MacroApplication(
         target: macroTarget,
         annotationIndex: annotationIndex,

@@ -86,6 +86,14 @@ final class ExceptionMacroDiagnostic extends AnalyzerMacroDiagnostic {
   });
 }
 
+final class InvalidMacroTargetDiagnostic extends AnalyzerMacroDiagnostic {
+  final List<String> supportedKinds;
+
+  InvalidMacroTargetDiagnostic({
+    required this.supportedKinds,
+  });
+}
+
 /// Diagnostic from the macro framework.
 final class MacroDiagnostic extends AnalyzerMacroDiagnostic {
   final macro.Severity severity;

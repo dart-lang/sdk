@@ -960,6 +960,9 @@ class ResolutionSink extends _SummaryDataWriter {
         writeUInt30(diagnostic.annotationIndex);
         writeStringUtf8(diagnostic.message);
         writeStringUtf8(diagnostic.stackTrace);
+      case InvalidMacroTargetDiagnostic():
+        writeEnum(MacroDiagnosticKind.invalidTarget);
+        writeStringUtf8Iterable(diagnostic.supportedKinds);
       case MacroDiagnostic():
         writeEnum(MacroDiagnosticKind.macro);
         writeEnum(diagnostic.severity);

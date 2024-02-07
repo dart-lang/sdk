@@ -6191,6 +6191,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               // TODO(scheglov): Handle this case.
               throw UnimplementedError();
           }
+        case InvalidMacroTargetDiagnostic():
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError();
       }
     }
   }

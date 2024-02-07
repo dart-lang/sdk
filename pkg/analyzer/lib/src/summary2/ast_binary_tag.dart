@@ -25,8 +25,9 @@ enum ImportElementPrefixKind {
 
 enum MacroDiagnosticKind {
   argument,
-  introspectionCycle,
   exception,
+  introspectionCycle,
+  invalidTarget,
   macro,
 }
 

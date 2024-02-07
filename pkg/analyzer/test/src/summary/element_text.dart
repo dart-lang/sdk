@@ -901,6 +901,17 @@ class _ElementWriter {
                   'stackTrace:\n${diagnostic.stackTrace}',
                 );
               });
+            case InvalidMacroTargetDiagnostic():
+              _sink.writelnWithIndent('InvalidMacroTargetDiagnostic');
+              _sink.withIndent(() {
+                _sink.writeElements(
+                  'supportedKinds',
+                  diagnostic.supportedKinds,
+                  (kindName) {
+                    _sink.writelnWithIndent(kindName);
+                  },
+                );
+              });
             case MacroDiagnostic():
               _sink.writelnWithIndent('MacroDiagnostic');
               _sink.withIndent(() {
