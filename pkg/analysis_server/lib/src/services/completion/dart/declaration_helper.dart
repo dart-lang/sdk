@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A helper class that produces candidate suggestions for all of the
 /// declarations that are in scope at the completion location.
@@ -361,26 +362,32 @@ class DeclarationHelper {
     }
     switch (element) {
       case EnumElement():
+        var augmented = element.augmented;
         _addStaticMembers(
-            accessors: element.accessors,
+            accessors: [...element.accessors, ...?augmented?.accessors],
             constructors: const [],
             containingElement: element,
-            fields: element.fields,
-            methods: element.methods);
+            fields: [...element.fields, ...?augmented?.fields],
+            methods: [...element.methods, ...?augmented?.methods]);
       case ExtensionElement():
+        var augmented = element.augmented;
         _addStaticMembers(
-            accessors: element.accessors,
+            accessors: [...element.accessors, ...?augmented?.accessors],
             constructors: const [],
             containingElement: element,
-            fields: element.fields,
-            methods: element.methods);
+            fields: [...element.fields, ...?augmented?.fields],
+            methods: [...element.methods, ...?augmented?.methods]);
       case InterfaceElement():
+        var augmented = element.augmented;
         _addStaticMembers(
-            accessors: element.accessors,
-            constructors: element.constructors,
+            accessors: [...element.accessors, ...?augmented?.accessors],
+            constructors: [
+              ...element.constructors,
+              ...?augmented?.constructors
+            ],
             containingElement: element,
-            fields: element.fields,
-            methods: element.methods);
+            fields: [...element.fields, ...?augmented?.fields],
+            methods: [...element.methods, ...?augmented?.methods]);
     }
   }
 
@@ -795,6 +802,24 @@ class DeclarationHelper {
           }
       }
     }
+    // Add any immediate members from augmentations.
+    var augmentation = containingElement.augmentation;
+    while (augmentation is ClassElement) {
+      for (var accessor in augmentation.accessors) {
+        if (!accessor.isSynthetic) {
+          _suggestProperty(accessor, containingElement);
+        }
+      }
+      for (var field in augmentation.fields) {
+        if (!field.isSynthetic) {
+          _suggestField(field, containingElement);
+        }
+      }
+      for (var method in augmentation.methods) {
+        _suggestMethod(method, containingElement);
+      }
+      augmentation = augmentation.augmentation;
+    }
   }
 
   /// Adds suggestions for any members of the [parent].
@@ -988,9 +1013,11 @@ class DeclarationHelper {
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(element.constructors, importData,
-            allowNonFactory: !element.isAbstract);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+          _suggestConstructors(augmented.constructors, importData,
+              allowNonFactory: !element.isAbstract);
+        }
       }
     }
   }
@@ -1032,9 +1059,11 @@ class DeclarationHelper {
       var suggestion = EnumSuggestion(importData, element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(element.constructors, importData,
-            allowNonFactory: false);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+          _suggestConstructors(augmented.constructors, importData,
+              allowNonFactory: false);
+        }
       }
     }
   }
@@ -1049,7 +1078,9 @@ class DeclarationHelper {
       var suggestion = ExtensionSuggestion(importData, element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+        }
       }
     }
   }
@@ -1065,8 +1096,10 @@ class DeclarationHelper {
       var suggestion = ExtensionTypeSuggestion(importData, element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(element.constructors, importData);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+          _suggestConstructors(augmented.constructors, importData);
+        }
       }
     }
   }
@@ -1136,7 +1169,9 @@ class DeclarationHelper {
       var suggestion = MixinSuggestion(importData, element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+        }
       }
     }
   }
