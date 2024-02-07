@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../ir/impact_data.dart';
-import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../kernel/element_map.dart';
 import '../serialization/serialization.dart';
@@ -79,12 +78,9 @@ ModularMemberData computeModularMemberData(
     ir.Member node,
     ScopeModel scopeModel,
     EnumSet<PragmaAnnotation> annotations) {
-  var staticTypeCache = StaticTypeCacheImpl();
   var impactBuilderData = ImpactBuilder(
           elementMap,
-          ir.StaticTypeContext(node, elementMap.typeEnvironment,
-              cache: staticTypeCache),
-          staticTypeCache,
+          ir.StaticTypeContext(node, elementMap.typeEnvironment),
           elementMap.classHierarchy,
           scopeModel.variableScopeModel,
           useAsserts: elementMap.options.enableUserAssertions,

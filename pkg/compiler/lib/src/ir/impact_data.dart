@@ -39,16 +39,10 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   final inferEffectivelyFinalVariableTypes;
 
-  ImpactBuilder(
-      this._elementMap,
-      this.staticTypeContext,
-      StaticTypeCacheImpl staticTypeCache,
-      ir.ClassHierarchy classHierarchy,
-      this._variableScopeModel,
-      {this.useAsserts = false,
-      this.inferEffectivelyFinalVariableTypes = true})
-      : super(
-            staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
+  ImpactBuilder(this._elementMap, this.staticTypeContext,
+      ir.ClassHierarchy classHierarchy, this._variableScopeModel,
+      {this.useAsserts = false, this.inferEffectivelyFinalVariableTypes = true})
+      : super(staticTypeContext.typeEnvironment, classHierarchy);
 
   @override
   VariableScopeModel get variableScopeModel => _variableScopeModel!;

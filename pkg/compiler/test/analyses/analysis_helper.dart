@@ -89,7 +89,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       ir.Component component, ir.ClassHierarchy classHierarchy,
       {required ir.EvaluationMode evaluationMode})
       : super(ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
-            classHierarchy, StaticTypeCacheImpl());
+            classHierarchy);
 
   @override
   bool get useAsserts => false;
