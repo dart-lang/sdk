@@ -93,7 +93,7 @@ evolving capabilities of the compiler.
 ```
 
 ```dart
-@pragma('dart2js:prefer-inline) // Alias for the above annotation.
+@pragma('dart2js:prefer-inline') // Alias for the above annotation.
 ```
 
 This annotation may be placed on a function or method.
@@ -109,7 +109,7 @@ candidate.
 ```
 
 ```dart
-@pragma('dart2js:never-inline) // Alias for the above annotation.
+@pragma('dart2js:never-inline') // Alias for the above annotation.
 ```
 
 This annotation may be placed on a function or method to prevent the function
