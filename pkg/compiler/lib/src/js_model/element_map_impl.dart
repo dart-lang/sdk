@@ -26,8 +26,6 @@ import '../ir/closure.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
-import '../ir/static_type_base.dart';
-import '../ir/static_type_cache.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/annotations.dart';
@@ -1079,7 +1077,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
     MemberDefinition memberDefinition =
         members.getData(member as JMember).definition;
-    late StaticTypeCache cachedStaticTypes;
     late ir.StaticTypeContext staticTypeContext;
     switch (memberDefinition.kind) {
       case MemberKind.regular:
@@ -1087,7 +1084,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       case MemberKind.constructorBody:
         final node = memberDefinition.node as ir.Member;
         staticTypeContext = getStaticTypeContext(node);
-        cachedStaticTypes = members.getData(member).staticTypes;
         break;
       case MemberKind.closureCall:
         var node = memberDefinition.node as ir.TreeNode?;
@@ -1095,8 +1091,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           if (node is ir.Member) {
             ir.Member member = node;
             staticTypeContext = getStaticTypeContext(member);
-            cachedStaticTypes =
-                members.getData(getMember(member) as JMember).staticTypes;
             break;
           }
           node = node.parent;
@@ -1105,7 +1099,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       case MemberKind.closureField:
       case MemberKind.signature:
       case MemberKind.generatorBody:
-        cachedStaticTypes = const StaticTypeCache();
         var node = memberDefinition.node as ir.TreeNode?;
         while (node != null) {
           if (node is ir.Member) {
@@ -1128,8 +1121,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         // elements that have no Kernel Node context.
         return NoStaticTypeProvider();
     }
-    return CachedStaticType(staticTypeContext, cachedStaticTypes,
-        ThisInterfaceType.from(staticTypeContext.thisType));
+    return CachedStaticType(staticTypeContext);
   }
 
   @override
@@ -1537,11 +1529,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       JConstructorBody constructorBody) {
     members.register<JFunction, FunctionData>(
         constructorBody,
-        ConstructorBodyDataImpl(
-            data.node,
-            data.node.function!,
-            SpecialMemberDefinition(data.node, MemberKind.constructorBody),
-            data.staticTypes));
+        ConstructorBodyDataImpl(data.node, data.node.function!,
+            SpecialMemberDefinition(data.node, MemberKind.constructorBody)));
     final cls = constructor.enclosingClass;
     final classEnv = classes.getEnv(cls) as JClassEnvImpl;
     // TODO(johnniwinther): Avoid this by only including live members in the

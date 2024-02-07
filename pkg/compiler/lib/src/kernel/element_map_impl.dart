@@ -24,7 +24,6 @@ import '../ir/element_map.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
-import '../ir/static_type_cache.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
@@ -1408,7 +1407,6 @@ class KernelToElementMap implements IrToElementMap {
       typeMapsForTesting![member] = impactBuilderData.typeMapsForTesting!;
     }
     ImpactData impactData = impactBuilderData.impactData;
-    memberData.staticTypes = impactBuilderData.cachedStaticTypes;
     if (retainDataForTesting) {
       impactDataForTesting ??= {};
       impactDataForTesting![node] = impactData;
@@ -1429,10 +1427,6 @@ class KernelToElementMap implements IrToElementMap {
         rtiNeedBuilder,
         annotationsData);
     return converter.convert(impactData);
-  }
-
-  StaticTypeCache getCachedStaticTypes(JMember member) {
-    return members.getData(member).staticTypes!;
   }
 
   Map<ir.Expression, TypeMap>? getTypeMapsForTesting(JMember member) {

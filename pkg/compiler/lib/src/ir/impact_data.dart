@@ -71,8 +71,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       typeMapsForTesting = {};
     }
     node.accept(this);
-    return ImpactBuilderData(
-        node, impactData, typeMapsForTesting, getStaticTypeCache());
+    return ImpactBuilderData(node, impactData, typeMapsForTesting);
   }
 
   ImpactData get impactData => _data;

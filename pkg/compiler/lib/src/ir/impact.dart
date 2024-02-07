@@ -10,7 +10,6 @@ import 'constants.dart';
 import 'impact_data.dart' show ImpactData;
 import 'runtime_type_analysis.dart';
 import 'static_type.dart';
-import 'static_type_cache.dart';
 
 /// Interface for collecting world impact data.
 ///
@@ -196,25 +195,21 @@ class ImpactBuilderData {
   final ir.Member node;
   final ImpactData impactData;
   final Map<ir.Expression, TypeMap>? typeMapsForTesting;
-  final StaticTypeCache cachedStaticTypes;
 
-  ImpactBuilderData(this.node, this.impactData, this.typeMapsForTesting,
-      this.cachedStaticTypes);
+  ImpactBuilderData(this.node, this.impactData, this.typeMapsForTesting);
 
   factory ImpactBuilderData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     var node = source.readMemberNode();
     var data = ImpactData.fromDataSource(source);
-    var cache = StaticTypeCache.readFromDataSource(source, node);
     source.end(tag);
-    return ImpactBuilderData(node, data, const {}, cache);
+    return ImpactBuilderData(node, data, const {});
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(node);
     impactData.toDataSink(sink);
-    cachedStaticTypes.writeToDataSink(sink, node);
     sink.end(tag);
   }
 }

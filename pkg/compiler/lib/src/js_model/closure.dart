@@ -12,7 +12,6 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
-import '../ir/static_type_cache.dart';
 import '../js_backend/annotations.dart';
 import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
@@ -1203,12 +1202,6 @@ abstract class ClosureMemberData implements JMemberData {
   final InterfaceType? memberThisType;
 
   ClosureMemberData(this.definition, this.memberThisType);
-
-  @override
-  StaticTypeCache get staticTypes {
-    // The cached types are stored in the data for enclosing member.
-    throw UnsupportedError("ClosureMemberData.staticTypes");
-  }
 
   @override
   InterfaceType? getMemberThisType(covariant JsToElementMap elementMap) {

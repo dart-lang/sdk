@@ -14,7 +14,6 @@ import '../util/util.dart';
 import 'runtime_type_analysis.dart';
 import 'scope.dart';
 import 'static_type_base.dart';
-import 'static_type_cache.dart';
 
 /// Enum values for how the target of a static type should be interpreted.
 enum ClassRelation {
@@ -84,11 +83,6 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   StaticTypeVisitor(
       super.typeEnvironment, this.hierarchy, this._staticTypeCache);
-
-  StaticTypeCache getStaticTypeCache() {
-    return StaticTypeCache(_staticTypeCache._expressionTypes,
-        _staticTypeCache._forInIteratorTypes);
-  }
 
   /// If `true`, the effect of executing assert statements is taken into account
   /// when computing the static type.

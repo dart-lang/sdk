@@ -8,9 +8,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/cached_static_type.dart';
-import 'package:compiler/src/ir/static_type_base.dart';
-import 'package:compiler/src/ir/static_type_cache.dart';
-import 'package:compiler/src/js_model/elements.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -52,18 +49,9 @@ class StaticTypeDataComputer extends DataComputer<String> {
       {bool verbose = false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
-    StaticTypeCache staticTypeCache =
-        elementMap.getCachedStaticTypes(member as JMember);
     ir.Member node = elementMap.getMemberNode(member);
-    StaticTypeIrComputer(
-            compiler.reporter,
-            actualMap,
-            CachedStaticType(
-                getStaticTypeContext(elementMap, node),
-                staticTypeCache,
-                ThisInterfaceType.from(node.enclosingClass?.getThisType(
-                    _typeEnvironment!.coreTypes,
-                    node.enclosingLibrary.nonNullable))))
+    StaticTypeIrComputer(compiler.reporter, actualMap,
+            CachedStaticType(getStaticTypeContext(elementMap, node)))
         .run(node);
   }
 
@@ -85,25 +73,25 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableGet) {
-      return typeToText(node.accept(staticTypeCache));
+      return typeToText(staticTypeCache.getStaticType(node));
     } else if (node is ir.InstanceInvocation) {
-      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
+      return '[${typeToText(staticTypeCache.getStaticType(node.receiver))}]->'
+          '${typeToText(staticTypeCache.getStaticType(node))}';
     } else if (node is ir.InstanceGetterInvocation) {
-      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
+      return '[${typeToText(staticTypeCache.getStaticType(node.receiver))}]->'
+          '${typeToText(staticTypeCache.getStaticType(node))}';
     } else if (node is ir.DynamicInvocation) {
-      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
+      return '[${typeToText(staticTypeCache.getStaticType(node.receiver))}]->'
+          '${typeToText(staticTypeCache.getStaticType(node))}';
     } else if (node is ir.FunctionInvocation) {
-      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
+      return '[${typeToText(staticTypeCache.getStaticType(node.receiver))}]->'
+          '${typeToText(staticTypeCache.getStaticType(node))}';
     } else if (node is ir.LocalFunctionInvocation) {
       return '[${typeToText(node.variable.type)}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
+          '${typeToText(staticTypeCache.getStaticType(node))}';
     } else if (node is ir.EqualsCall) {
-      return '[${typeToText(node.left.accept(staticTypeCache))}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
+      return '[${typeToText(staticTypeCache.getStaticType(node.left))}]->'
+          '${typeToText(staticTypeCache.getStaticType(node))}';
     }
     return null;
   }

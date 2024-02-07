@@ -15,7 +15,6 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
-import '../ir/static_type_cache.dart';
 import '../ir/util.dart';
 import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
@@ -456,8 +455,6 @@ abstract class KMemberData {
 
   Iterable<ConstantValue>? _metadata;
 
-  StaticTypeCache? staticTypes;
-
   ClassTypeVariableAccess get classTypeVariableAccess;
 
   KMemberData(this.node);
@@ -546,13 +543,7 @@ class KFunctionData extends KMemberData {
 
   @override
   FunctionData convert() {
-    return FunctionDataImpl(
-        node,
-        functionNode,
-        RegularMemberDefinition(node),
-        // Abstract members without bodies will not have expressions so we use
-        // an empty cache.
-        staticTypes ?? const StaticTypeCache());
+    return FunctionDataImpl(node, functionNode, RegularMemberDefinition(node));
   }
 
   @override
@@ -575,7 +566,7 @@ class KConstructorData extends KFunctionData {
     } else {
       definition = RegularMemberDefinition(node);
     }
-    return JConstructorData(node, functionNode, definition, staticTypes!);
+    return JConstructorData(node, functionNode, definition);
   }
 
   @override
@@ -609,12 +600,7 @@ class KFieldData extends KMemberData {
 
   @override
   JFieldData convert() {
-    return JFieldDataImpl(
-        node,
-        RegularMemberDefinition(node),
-        // Late fields in abstract classes won't have initializers so we use an
-        // empty cache.
-        staticTypes ?? const StaticTypeCache());
+    return JFieldDataImpl(node, RegularMemberDefinition(node));
   }
 }
 
