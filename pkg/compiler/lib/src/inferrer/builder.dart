@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
     show StaticWeakReferences;
 
@@ -17,7 +18,6 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../ir/constants.dart';
-import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/field_analysis.dart';
 import '../js_model/element_map.dart';
@@ -120,8 +120,6 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   final Set<Local> _capturedVariables = Set<Local>();
   final Map<Local, FieldEntity> _capturedAndBoxed;
 
-  final StaticTypeProvider _staticTypeProvider;
-
   /// Whether we currently taken the boolean result of is-checks or null-checks
   /// into account in the local state.
   bool _accumulateIsChecks = false;
@@ -133,7 +131,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       this._analyzedMember,
       this._analyzedNode,
       this._localsMap,
-      this._staticTypeProvider,
+      this._staticTypeContext,
       this._memberHierarchyBuilder,
       [LocalState? previousState,
       Map<Local, FieldEntity>? capturedAndBoxed])
@@ -157,8 +155,12 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
 
   ClosureData get _closureDataLookup => _closedWorld.closureDataLookup;
 
+  // Null for members without an associated Kernel node. No static types should
+  // be queried for these members.
+  final ir.StaticTypeContext? _staticTypeContext;
+
   DartType _getStaticType(ir.Expression node) {
-    return _elementMap.getDartType(_staticTypeProvider.getStaticType(node));
+    return _elementMap.getDartType(node.getStaticType(_staticTypeContext!));
   }
 
   int _loopLevel = 0;
@@ -1972,7 +1974,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
         callMethod,
         functionNode,
         _localsMap,
-        _staticTypeProvider,
+        _staticTypeContext,
         _memberHierarchyBuilder,
         closureState,
         _capturedAndBoxed);

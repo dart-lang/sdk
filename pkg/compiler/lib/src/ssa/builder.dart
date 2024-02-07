@@ -8,6 +8,7 @@ import 'package:js_runtime/synced/embedded_names.dart';
 import 'package:js_shared/synced/embedded_names.dart'
     show JsBuiltin, JsGetName, TYPES;
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
@@ -26,7 +27,6 @@ import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../ir/static_type.dart';
-import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show FunctionInlineCache;
@@ -77,7 +77,7 @@ class StackFrame {
   final Map<ir.VariableDeclaration, HInstruction> letBindings;
   final KernelToTypeInferenceMap typeInferenceMap;
   final SourceInformationBuilder sourceInformationBuilder;
-  final StaticTypeProvider? staticTypeProvider;
+  final ir.StaticTypeContext? staticTypeContext;
 
   StackFrame(
       this.parent,
@@ -87,7 +87,7 @@ class StackFrame {
       this.letBindings,
       this.typeInferenceMap,
       this.sourceInformationBuilder,
-      this.staticTypeProvider);
+      this.staticTypeContext);
 }
 
 class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
@@ -379,7 +379,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   StaticType _getStaticType(ir.Expression node) {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
-    ir.DartType type = _currentFrame!.staticTypeProvider!.getStaticType(node);
+    ir.DartType type = node.getStaticType(_currentFrame!.staticTypeContext!);
     return StaticType(
         _elementMap.getDartType(type), computeClassRelationFromType(type));
   }
@@ -387,8 +387,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   StaticType _getStaticForInIteratorType(ir.ForInStatement node) {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
-    ir.DartType type =
-        _currentFrame!.staticTypeProvider!.getForInIteratorType(node);
+    ir.DartType type = node.getIteratorType(_currentFrame!.staticTypeContext!);
     return StaticType(
         _elementMap.getDartType(type), computeClassRelationFromType(type));
   }
@@ -405,6 +404,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (function != null) {
       asyncMarker = getAsyncMarker(function);
     }
+    final elementMap = closedWorld.elementMap;
+    final memberNode = elementMap.getMemberContextNode(member);
     _currentFrame = StackFrame(
         _currentFrame,
         member,
@@ -416,7 +417,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
             ? _currentFrame!.sourceInformationBuilder
                 .forContext(member, callSourceInformation)
             : _sourceInformationStrategy.createBuilderForContext(member),
-        _elementMap.getStaticTypeProvider(member));
+        memberNode != null
+            ? ir.StaticTypeContext(memberNode, elementMap.typeEnvironment,
+                cache: ir.StaticTypeCacheImpl())
+            : null);
   }
 
   void _leaveFrame() {

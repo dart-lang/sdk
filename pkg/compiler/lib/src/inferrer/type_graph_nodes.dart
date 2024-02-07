@@ -7,6 +7,7 @@ library compiler.src.inferrer.type_graph_nodes;
 import 'dart:collection' show IterableBase;
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
@@ -2319,20 +2320,25 @@ mixin TracedTypeInformation implements TypeInformation {
 class AwaitTypeInformation extends TypeInformation {
   final ir.AwaitExpression _node;
 
+  AbstractValue? _computedType;
+
   AwaitTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, this._node)
+      MemberTypeInformation context, this._node)
       : super(abstractValueDomain.uncomputedType, context);
 
-  @override
-  AbstractValue computeType(InferrerEngine inferrer) {
+  AbstractValue _computeType(InferrerEngine inferrer) {
     final elementMap = inferrer.closedWorld.elementMap;
-    final staticTypeProvider =
-        elementMap.getStaticTypeProvider(context!.member);
-    final staticType =
-        elementMap.getDartType(staticTypeProvider.getStaticType(_node));
+    final staticType = elementMap.getDartType(_node.getStaticType(
+        ir.StaticTypeContext(elementMap.getMemberContextNode(contextMember!)!,
+            elementMap.typeEnvironment)));
     return inferrer.abstractValueDomain
         .createFromStaticType(staticType, nullable: true)
         .abstractValue;
+  }
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) {
+    return _computedType ??= _computeType(inferrer);
   }
 
   String get debugName => '$_node';
