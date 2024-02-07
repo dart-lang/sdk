@@ -2786,7 +2786,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.name == 'Object') continue;
 
-      var typeStr = type.getDisplayString(withNullability: false);
+      var typeStr = type.getDisplayString();
       lines.add('${enclosingElement.name}.${element.name}: $typeStr');
     }
 

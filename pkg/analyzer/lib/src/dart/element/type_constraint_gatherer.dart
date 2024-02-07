@@ -28,8 +28,8 @@ class TypeConstraint {
 
   @override
   String toString() {
-    var lowerStr = lower.getDisplayString(withNullability: true);
-    var upperStr = upper.getDisplayString(withNullability: true);
+    var lowerStr = lower.getDisplayString();
+    var upperStr = upper.getDisplayString();
     return '$lowerStr <: ${parameter.name} <: $upperStr';
   }
 }

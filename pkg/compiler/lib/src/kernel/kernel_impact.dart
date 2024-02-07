@@ -15,7 +15,6 @@ import '../ir/constants.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../ir/static_type.dart';
 import '../ir/visitors.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/backend_impact.dart';
@@ -80,17 +79,12 @@ class KernelImpactConverter implements ImpactRegistry {
   String typeToString(DartType type) =>
       type.toStructuredText(dartTypes, _options);
 
-  Object? _computeReceiverConstraint(
-      ir.DartType receiverType, ClassRelation relation) {
+  Object? _computeReceiverConstraint(ir.DartType receiverType) {
     if (receiverType is ir.InterfaceType) {
-      return StrongModeConstraint(commonElements, _nativeBasicData,
-          elementMap.getClass(receiverType.classNode), relation);
+      return defaultReceiverClass(commonElements, _nativeBasicData,
+          elementMap.getClass(receiverType.classNode));
     } else if (receiverType is ir.NullType) {
-      return StrongModeConstraint(
-          commonElements,
-          _nativeBasicData,
-          elementMap.getClass(typeEnvironment.coreTypes.deprecatedNullClass),
-          relation);
+      return elementMap.getClass(typeEnvironment.coreTypes.deprecatedNullClass);
     }
     return null;
   }
@@ -567,7 +561,6 @@ class KernelImpactConverter implements ImpactRegistry {
   @override
   void registerDynamicInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Name name,
       int positionalArguments,
       List<String> namedArguments,
@@ -575,8 +568,8 @@ class KernelImpactConverter implements ImpactRegistry {
     Selector selector = elementMap.getInvocationSelector(
         name, positionalArguments, namedArguments, typeArguments.length);
     List<DartType>? dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(DynamicUse(selector,
-        _computeReceiverConstraint(receiverType, relation), dartTypeArguments));
+    impactBuilder.registerDynamicUse(DynamicUse(
+        selector, _computeReceiverConstraint(receiverType), dartTypeArguments));
   }
 
   @override
@@ -590,16 +583,13 @@ class KernelImpactConverter implements ImpactRegistry {
         namedArguments,
         typeArguments.length);
     List<DartType>? dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(DynamicUse(
-        callStructure.callSelector,
-        _computeReceiverConstraint(receiverType, ClassRelation.subtype),
-        dartTypeArguments));
+    impactBuilder.registerDynamicUse(DynamicUse(callStructure.callSelector,
+        _computeReceiverConstraint(receiverType), dartTypeArguments));
   }
 
   @override
   void registerInstanceInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Member target,
       int positionalArguments,
       List<String> namedArguments,
@@ -608,44 +598,36 @@ class KernelImpactConverter implements ImpactRegistry {
     impactBuilder.registerDynamicUse(DynamicUse(
         elementMap.getInvocationSelector(target.name, positionalArguments,
             namedArguments, typeArguments.length),
-        _computeReceiverConstraint(receiverType, relation),
+        _computeReceiverConstraint(receiverType),
         dartTypeArguments));
   }
 
   @override
-  void registerDynamicGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
+  void registerDynamicGet(ir.DartType receiverType, ir.Name name) {
     impactBuilder.registerDynamicUse(DynamicUse(
         Selector.getter(elementMap.getName(name)),
-        _computeReceiverConstraint(receiverType, relation),
-        const <DartType>[]));
+        _computeReceiverConstraint(receiverType), const <DartType>[]));
   }
 
   @override
-  void registerInstanceGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
+  void registerInstanceGet(ir.DartType receiverType, ir.Member target) {
     impactBuilder.registerDynamicUse(DynamicUse(
         Selector.getter(elementMap.getName(target.name)),
-        _computeReceiverConstraint(receiverType, relation),
-        const <DartType>[]));
+        _computeReceiverConstraint(receiverType), const <DartType>[]));
   }
 
   @override
-  void registerDynamicSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
+  void registerDynamicSet(ir.DartType receiverType, ir.Name name) {
     impactBuilder.registerDynamicUse(DynamicUse(
         Selector.setter(elementMap.getName(name)),
-        _computeReceiverConstraint(receiverType, relation),
-        const <DartType>[]));
+        _computeReceiverConstraint(receiverType), const <DartType>[]));
   }
 
   @override
-  void registerInstanceSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
+  void registerInstanceSet(ir.DartType receiverType, ir.Member target) {
     impactBuilder.registerDynamicUse(DynamicUse(
         Selector.setter(elementMap.getName(target.name)),
-        _computeReceiverConstraint(receiverType, relation),
-        const <DartType>[]));
+        _computeReceiverConstraint(receiverType), const <DartType>[]));
   }
 
   @override
@@ -741,10 +723,8 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation) {
-    Object? receiverConstraint =
-        _computeReceiverConstraint(iteratorType, iteratorClassRelation);
+  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
+    Object? receiverConstraint = _computeReceiverConstraint(iteratorType);
     registerBackendImpact(_impacts.syncForIn);
     impactBuilder.registerDynamicUse(
         DynamicUse(Selectors.iterator, receiverConstraint, const []));
@@ -755,10 +735,8 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation) {
-    Object? receiverConstraint =
-        _computeReceiverConstraint(iteratorType, iteratorClassRelation);
+  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
+    Object? receiverConstraint = _computeReceiverConstraint(iteratorType);
     registerBackendImpact(_impacts.asyncForIn);
     impactBuilder.registerDynamicUse(
         DynamicUse(Selectors.cancel, receiverConstraint, const []));

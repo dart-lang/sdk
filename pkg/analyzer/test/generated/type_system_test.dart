@@ -46,7 +46,7 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
     }
 
     void check(TypeParameterTypeImpl type, String expected) {
-      expect(type.getDisplayString(withNullability: true), expected);
+      expect(type.getDisplayString(), expected);
     }
 
     var T = typeParameter('T');

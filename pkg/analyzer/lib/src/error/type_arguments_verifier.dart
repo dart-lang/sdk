@@ -342,9 +342,7 @@ class TypeArgumentsVerifier {
       }
 
       String typeArgumentsToString(List<DartType> typeArguments) {
-        return typeArguments
-            .map((e) => e.getDisplayString(withNullability: true))
-            .join(', ');
+        return typeArguments.map((e) => e.getDisplayString()).join(', ');
       }
 
       if (namedType.typeArguments == null) {

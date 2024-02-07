@@ -21,7 +21,8 @@ class ElementDisplayStringBuilder {
   final bool _multiline;
 
   ElementDisplayStringBuilder({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
     bool multiline = false,
   })  : _withNullability = withNullability,
         _multiline = multiline;

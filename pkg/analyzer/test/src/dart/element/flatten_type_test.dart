@@ -135,7 +135,7 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
   void _check(DartType T, String expected) {
     final result = typeSystem.flatten(T);
     expect(
-      result.getDisplayString(withNullability: true),
+      result.getDisplayString(),
       expected,
     );
   }
@@ -254,7 +254,7 @@ class FutureTypeTest extends AbstractTypeSystemTest {
       expect(expected, isNull);
     } else {
       expect(
-        result.getDisplayString(withNullability: true),
+        result.getDisplayString(),
         expected,
       );
     }

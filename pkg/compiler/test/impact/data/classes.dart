@@ -337,7 +337,7 @@ testStaticGenericMethod() {
 }
 
 /*member: testInstanceGenericMethod:
- dynamic=[exact:GenericClass.genericMethod<bool>(1)],
+ dynamic=[GenericClass.genericMethod<bool>(1)],
  static=[
   GenericClass.generative(0),
   checkTypeBound(4)],

@@ -93,18 +93,10 @@ class LibraryMacroApplier {
   /// The applications that currently run the declarations phase.
   final List<_MacroApplication> _declarationsPhaseRunning = [];
 
-  /// The identifier of the next cycle error.
-  int _declarationsPhaseCycleIndex = 0;
-
-  /// Information about a found declarations phase introspection cycle.
-  /// We use it when receive diagnostics from the macro executor to report
-  /// a more specific diagnostic than the exception.
-  final Map<String, List<_MacroApplication>>
-      _declarationsPhaseCycleApplications = {};
-
   /// The map from a declaration that has declarations phase introspection
-  /// cycle, to the cycle identifier in [_declarationsPhaseCycleApplications].
-  final Map<MacroTargetElement, String> _elementToIntrospectionCycleId = {};
+  /// cycle, to the cycle exception.
+  final Map<MacroTargetElement, _MacroIntrospectionCycleException>
+      _elementToIntrospectionCycleException = {};
 
   late final macro.TypePhaseIntrospector _typesPhaseIntrospector =
       _TypePhaseIntrospector(elementFactory, declarationBuilder);
@@ -276,22 +268,23 @@ class LibraryMacroApplier {
     required ElementImpl? targetElement,
   }) async {
     if (targetElement != null) {
-      for (final running in _declarationsPhaseRunning.indexed) {
-        if (running.$2.target.element == targetElement) {
-          final id = 'DPI${_declarationsPhaseCycleIndex++}';
-          var applications =
-              _declarationsPhaseRunning.skip(running.$1).toList();
-          _declarationsPhaseCycleApplications[id] = applications;
+      for (var i = 0; i < _declarationsPhaseRunning.length; i++) {
+        var running = _declarationsPhaseRunning[i];
+        if (running.target.element == targetElement) {
+          var applications = _declarationsPhaseRunning.sublist(i);
+          var exception = _MacroIntrospectionCycleException(
+            'Declarations phase introspection cycle.',
+            applications: applications,
+          );
 
           // Mark all applications as having introspection cycle.
           // So, every introspection of these elements will throw.
           for (var application in applications) {
             var element = application.target.element;
-            _elementToIntrospectionCycleId[element] = id;
+            _elementToIntrospectionCycleException[element] = exception;
           }
 
-          throw macro.MacroIntrospectionCycleExceptionImpl(
-              '[$id] Declarations phase introspection cycle.');
+          throw exception;
         }
       }
     }
@@ -563,26 +556,28 @@ class LibraryMacroApplier {
       );
     }
 
-    bool addAsDeclarationsPhaseIntrospectionCycle(
-      macro.Diagnostic diagnostic,
-    ) {
-      final pattern = RegExp(r'\[(DPI\d+)\] ');
-      final match = pattern.firstMatch(diagnostic.message.message);
-      if (match == null) {
-        return false;
-      }
+    for (final diagnostic in result.diagnostics) {
+      application.target.element.addMacroDiagnostic(
+        MacroDiagnostic(
+          severity: diagnostic.severity,
+          message: convertMessage(diagnostic.message),
+          contextMessages:
+              diagnostic.contextMessages.map(convertMessage).toList(),
+        ),
+      );
+    }
 
-      final id = match.group(1);
-      final applications = _declarationsPhaseCycleApplications[id];
-      if (applications == null) {
-        return false;
+    void addIntrospectionCycle(macro.MacroException? exception) {
+      if (exception is! _MacroIntrospectionCycleException) {
+        return;
       }
 
       var introspectedElement = application.lastIntrospectedElement;
       if (introspectedElement == null) {
-        return false;
+        return;
       }
 
+      var applications = exception.applications;
       final components = applications.map((application) {
         return DeclarationsIntrospectionCycleComponent(
           element: application.target.element,
@@ -601,31 +596,9 @@ class LibraryMacroApplier {
           components: components,
         ),
       );
-
-      return true;
     }
 
-    for (final diagnostic in [
-      ...result.diagnostics,
-      // TODO(scheglov): refactor to handle exceptions that are preserved
-      // through serialization directly instead of by parsing messages.
-      if (result.exception != null)
-        macro.Diagnostic(macro.DiagnosticMessage(result.exception.toString()),
-            macro.Severity.error),
-    ]) {
-      if (addAsDeclarationsPhaseIntrospectionCycle(diagnostic)) {
-        continue;
-      }
-
-      application.target.element.addMacroDiagnostic(
-        MacroDiagnostic(
-          severity: diagnostic.severity,
-          message: convertMessage(diagnostic.message),
-          contextMessages:
-              diagnostic.contextMessages.map(convertMessage).toList(),
-        ),
-      );
-    }
+    addIntrospectionCycle(result.exception);
   }
 
   macro.MacroTarget _buildTarget(ast.AstNode node) {
@@ -1098,9 +1071,9 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
     // We might have detected a cycle for this target element.
     // Either just now, or before.
-    if (applier._elementToIntrospectionCycleId[element] case var id?) {
-      throw macro.MacroIntrospectionCycleExceptionImpl(
-          '[$id] Declarations phase introspection cycle.');
+    var exception = applier._elementToIntrospectionCycleException[element];
+    if (exception != null) {
+      throw exception;
     }
   }
 }
@@ -1163,6 +1136,16 @@ class _MacroApplication {
   void removeDeclarationsPhase() {
     phasesToExecute.remove(macro.Phase.declarations);
   }
+}
+
+final class _MacroIntrospectionCycleException
+    extends macro.MacroIntrospectionCycleExceptionImpl {
+  final List<_MacroApplication> applications;
+
+  _MacroIntrospectionCycleException(
+    super.message, {
+    required this.applications,
+  });
 }
 
 class _MacroTarget {

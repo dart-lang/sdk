@@ -946,7 +946,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   String toString() {
-    return "${type.getDisplayString(withNullability: false)} ($state)";
+    return "${type.getDisplayString()} ($state)";
   }
 
   @override
@@ -3130,7 +3130,7 @@ class TypeState extends InstanceState {
     if (_type == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return StringState(_type!.getDisplayString(withNullability: false));
+    return StringState(_type!.getDisplayString());
   }
 
   @override
@@ -3161,6 +3161,6 @@ class TypeState extends InstanceState {
 
   @override
   String toString() {
-    return _type?.getDisplayString(withNullability: true) ?? '-unknown-';
+    return _type?.getDisplayString() ?? '-unknown-';
   }
 }

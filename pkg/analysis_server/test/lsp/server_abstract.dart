@@ -14,7 +14,6 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -51,7 +50,7 @@ abstract class AbstractLspAnalysisServerTest
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
-        MockPackagesMixin<MemoryResourceProvider>,
+        MockPackagesMixin,
         ConfigurationFilesMixin {
   late MockLspServerChannel channel;
   late TestPluginManager pluginManager;

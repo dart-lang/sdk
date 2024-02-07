@@ -595,7 +595,24 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
     // Make a copy of the state's isolate flags and hand it to the callback.
     Dart_IsolateFlags api_flags = *(state_->isolate_flags());
-    api_flags.is_system_isolate = false;
+
+    // Inherit the system isolate property to work around issues with
+    // --pause-isolates-on-start and --pause-isolates-on-exit impacting macro
+    // generation isolates which are spawned by the kernel-service
+    // (see https://github.com/dart-lang/sdk/issues/54729 for details).
+    //
+    // This flag isn't inherited in the case that the main isolate is marked as
+    // a system isolate in the standalone VM using the
+    // --mark-main-isolate-as-system-isolate flag as it's currently used to
+    // hide test runner implementation details and spawns isolates that should
+    // be debuggable as non-system isolates.
+    //
+    // TODO(bkonyi): revisit this decision, see
+    // https://github.com/dart-lang/sdk/issues/54736 for the tracking issue.
+    const bool is_parent_main_isolate =
+        strcmp(parent_isolate_->name(), "main") == 0;
+    api_flags.is_system_isolate =
+        api_flags.is_system_isolate && !is_parent_main_isolate;
     Dart_Isolate isolate =
         (create_group_callback)(state_->script_url(), name, nullptr,
                                 state_->package_config(), &api_flags,

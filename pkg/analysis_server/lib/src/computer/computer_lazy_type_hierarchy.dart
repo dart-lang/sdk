@@ -263,7 +263,7 @@ class TypeHierarchyItem {
 
   /// Returns a name to display in the hierarchy for [type].
   static String _displayNameForType(InterfaceType type) {
-    return type.getDisplayString(withNullability: false);
+    return type.getDisplayString();
   }
 
   /// Returns the [SourceRange] of the name for [element].

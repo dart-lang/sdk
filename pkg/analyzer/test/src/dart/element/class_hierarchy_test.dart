@@ -111,6 +111,6 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
   String _interfaceString(InterfaceType interface) {
     return (interface as InterfaceTypeImpl)
         .withNullability(NullabilitySuffix.none)
-        .getDisplayString(withNullability: true);
+        .getDisplayString();
   }
 }

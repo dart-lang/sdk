@@ -202,7 +202,8 @@ vars = {
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
 
   # Pinned browser versions used by the testing infrastructure. These are not
-  # meant to be downloaded by users for local testing.
+  # meant to be downloaded by users for local testing. You can self-service
+  # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
   "chrome_tag": "119.0.6045.9", # Beta version with WasmGC final encodings.
   "download_firefox": False,

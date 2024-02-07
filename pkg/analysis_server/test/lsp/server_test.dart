@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -62,6 +63,12 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   List<String> get currentContextPaths => server.contextManager.analysisContexts
       .map((context) => context.contextRoot.root.path)
       .toList();
+
+  @override
+  MemoryResourceProvider get resourceProvider =>
+      // Some tests use `emitPathNotFoundExceptionsForPaths` from the memory
+      // provider.
+      super.resourceProvider as MemoryResourceProvider;
 
   /// Ensure an analysis root that doesn't exist does not cause an infinite
   /// rebuild loop.

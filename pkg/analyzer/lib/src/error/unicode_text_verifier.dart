@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// A verifier that checks for unsafe Unicode text.
-// TODO(pq): update w/ a Dart CVE link once published
+/// See: https://nvd.nist.gov/vuln/detail/CVE-2021-22567
 class UnicodeTextVerifier {
   final ErrorReporter errorReporter;
   UnicodeTextVerifier(this.errorReporter);

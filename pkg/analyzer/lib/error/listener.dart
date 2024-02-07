@@ -256,9 +256,7 @@ class ErrorReporter {
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
       if (argument is Element) {
-        arguments[i] = argument.getDisplayString(
-          withNullability: true,
-        );
+        arguments[i] = argument.getDisplayString();
       } else if (!(argument is String ||
           argument is DartType ||
           argument is int ||
@@ -284,9 +282,7 @@ class ErrorReporter {
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
       if (argument is DartType) {
-        String displayName = argument.getDisplayString(
-          withNullability: true,
-        );
+        String displayName = argument.getDisplayString();
         List<_TypeToConvert> types =
             typeGroups.putIfAbsent(displayName, () => <_TypeToConvert>[]);
         types.add(_TypeToConvert(i, argument, displayName));

@@ -23,8 +23,6 @@ import '../ir/annotations.dart';
 import '../ir/element_map.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
-import '../ir/static_type.dart';
-import '../ir/static_type_cache.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
@@ -108,7 +106,6 @@ class KernelToElementMap implements IrToElementMap {
 
   BehaviorBuilder? _nativeBehaviorBuilder;
 
-  Map<JMember, Map<ir.Expression, TypeMap>>? typeMapsForTesting;
   Map<ir.Member, ImpactData>? impactDataForTesting;
 
   KernelToElementMap(this.reporter, this.options) {
@@ -806,12 +803,6 @@ class KernelToElementMap implements IrToElementMap {
   ir.ClassHierarchy get classHierarchy =>
       _classHierarchy ??= ir.ClassHierarchy(env.mainComponent, coreTypes);
 
-  ir.StaticTypeContext getStaticTypeContext(MemberEntity member) {
-    // TODO(johnniwinther): Cache the static type context.
-    return ir.StaticTypeContext(
-        getMemberNode(member as JMember), typeEnvironment);
-  }
-
   @override
   Name getName(ir.Name name, {bool setter = false}) {
     return Name(name.text, name.isPrivate ? name.library!.importUri : null,
@@ -1079,9 +1070,8 @@ class KernelToElementMap implements IrToElementMap {
     return null;
   }
 
-  /// Computes the [ConstantValue] for the constant [expression].
-  ConstantValue? getConstantValue(
-      ir.StaticTypeContext staticTypeContext, ir.Expression? node,
+  /// Computes the [ConstantValue] for the constant [node].
+  ConstantValue? getConstantValue(ir.Expression? node,
       {bool requireConstant = true,
       bool implicitNull = false,
       bool checkCasts = true}) {
@@ -1110,15 +1100,13 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// Converts [annotations] into a list of [ConstantValue]s.
-  List<ConstantValue> getMetadata(
-      ir.StaticTypeContext staticTypeContext, List<ir.Expression> annotations) {
+  List<ConstantValue> getMetadata(List<ir.Expression> annotations) {
     if (annotations.isEmpty) return const <ConstantValue>[];
     List<ConstantValue> metadata = <ConstantValue>[];
     annotations.forEach((ir.Expression node) {
       // We skip the implicit cast checks for metadata to avoid circular
       // dependencies in the js-interop class registration.
-      metadata
-          .add(getConstantValue(staticTypeContext, node, checkCasts: false)!);
+      metadata.add(getConstantValue(node, checkCasts: false)!);
     });
     return metadata;
   }
@@ -1403,12 +1391,7 @@ class KernelToElementMap implements IrToElementMap {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
 
-    if (impactBuilderData.typeMapsForTesting != null) {
-      typeMapsForTesting ??= {};
-      typeMapsForTesting![member] = impactBuilderData.typeMapsForTesting!;
-    }
     ImpactData impactData = impactBuilderData.impactData;
-    memberData.staticTypes = impactBuilderData.cachedStaticTypes;
     if (retainDataForTesting) {
       impactDataForTesting ??= {};
       impactDataForTesting![node] = impactData;
@@ -1429,14 +1412,6 @@ class KernelToElementMap implements IrToElementMap {
         rtiNeedBuilder,
         annotationsData);
     return converter.convert(impactData);
-  }
-
-  StaticTypeCache getCachedStaticTypes(JMember member) {
-    return members.getData(member).staticTypes!;
-  }
-
-  Map<ir.Expression, TypeMap>? getTypeMapsForTesting(JMember member) {
-    return typeMapsForTesting![member];
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].

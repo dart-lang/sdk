@@ -1420,7 +1420,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     UpdateIsolateFlagsBit<HasAttemptedSteppingBit>(value);
   }
 
+  // Kills all non-system isolates.
   static void KillAllIsolates(LibMsgId msg_id);
+  // Kills all system isolates, excluding the kernel service and VM service.
+  static void KillAllSystemIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
   // Lookup an isolate by its main port. Returns nullptr if no matching isolate

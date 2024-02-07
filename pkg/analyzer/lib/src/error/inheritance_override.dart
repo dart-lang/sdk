@@ -772,9 +772,7 @@ class _ClassVerifier {
     } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates.map((candidate) {
         var className = candidate.enclosingElement.name;
-        var typeStr = candidate.type.getDisplayString(
-          withNullability: true,
-        );
+        var typeStr = candidate.type.getDisplayString();
         return '$className.${name.name} ($typeStr)';
       }).join(', ');
 

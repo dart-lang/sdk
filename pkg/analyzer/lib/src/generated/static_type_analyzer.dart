@@ -102,7 +102,10 @@ class StaticTypeAnalyzer {
   /// and the static type of <i>e<sub>3</sub></i>.</blockquote>
   void visitConditionalExpression(covariant ConditionalExpressionImpl node,
       {required DartType? contextType}) {
-    _analyzeLeastUpperBound(node, node.thenExpression, node.elseExpression,
+    DartType staticType = _typeSystem.leastUpperBound(
+        node.thenExpression.typeOrThrow, node.elseExpression.typeOrThrow);
+
+    _inferenceHelper.recordStaticType(node, staticType,
         contextType: contextType);
   }
 
@@ -291,29 +294,6 @@ class StaticTypeAnalyzer {
   void visitThrowExpression(covariant ThrowExpressionImpl node,
       {required DartType? contextType}) {
     _inferenceHelper.recordStaticType(node, _typeProvider.bottomType,
-        contextType: contextType);
-  }
-
-  /// Set the static type of [node] to be the least upper bound of the static
-  /// types of subexpressions [expr1] and [expr2].
-  void _analyzeLeastUpperBound(
-      ExpressionImpl node, Expression expr1, Expression expr2,
-      {required DartType? contextType}) {
-    var staticType1 = expr1.typeOrThrow;
-    var staticType2 = expr2.typeOrThrow;
-
-    _analyzeLeastUpperBoundTypes(node, staticType1, staticType2,
-        contextType: contextType);
-  }
-
-  /// Set the static type of [node] to be the least upper bound of the static
-  /// types [staticType1] and [staticType2].
-  void _analyzeLeastUpperBoundTypes(
-      ExpressionImpl node, DartType staticType1, DartType staticType2,
-      {required DartType? contextType}) {
-    DartType staticType = _typeSystem.leastUpperBound(staticType1, staticType2);
-
-    _inferenceHelper.recordStaticType(node, staticType,
         contextType: contextType);
   }
 

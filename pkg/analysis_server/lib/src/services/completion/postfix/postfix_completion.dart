@@ -466,9 +466,7 @@ class PostfixCompletionProcessor {
       }
 
       // Can't catch nullable types, strip `?`s now that we've checked for `*`s.
-      return type
-          .withNullability(NullabilitySuffix.none)
-          .getDisplayString(withNullability: true);
+      return type.withNullability(NullabilitySuffix.none).getDisplayString();
     }
     return 'Exception';
   }

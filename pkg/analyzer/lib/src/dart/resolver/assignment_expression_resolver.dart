@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -85,9 +84,7 @@ class AssignmentExpressionResolver {
     DartType? rhsContext;
     {
       var leftType = node.writeType;
-      if (writeElement is VariableElement &&
-          !_resolver.definingLibrary.featureSet
-              .isEnabled(Feature.inference_update_3)) {
+      if (writeElement is VariableElement) {
         leftType = _resolver.localVariableTypeProvider
             .getType(left as SimpleIdentifier, isRead: false);
       }

@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dart2native/dart2native.dart';
+import 'package:dart2native/dart2native.dart' hide platformDill, genSnapshot;
 import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
 
@@ -33,8 +33,8 @@ Future<void> main(List<String> args) async {
         .toList();
 
     {
-      final result = await generateAotKernel(checkedInDartVM, genKernelDart,
-          platformDill, sourcePath, dillPath, null, [],
+      final result = await generateAotKernel(
+          checkedInDartVM, genKernelDart, platformDill, sourcePath, dillPath,
           extraGenKernelOptions: extraGenKernelOptions);
       Expect.equals(result.stderr, '');
       Expect.equals(result.stdout, '');
@@ -43,7 +43,7 @@ Future<void> main(List<String> args) async {
 
     {
       final result =
-          await generateAotSnapshot(genSnapshot, dillPath, aotPath, null, []);
+          await generateAotSnapshotHelper(genSnapshot, dillPath, aotPath);
       Expect.equals(result.stderr, '');
       Expect.equals(result.stdout, '');
       Expect.equals(result.exitCode, 0);
@@ -87,4 +87,31 @@ Future<void> main(List<String> args) async {
       expectOutput('Hello, Appended AOT', runResult);
     }
   });
+}
+
+Future generateAotKernel(
+  String dart,
+  String genKernel,
+  String platformDill,
+  String sourceFile,
+  String kernelFile, {
+  List<String> extraGenKernelOptions = const [],
+}) async {
+  return Process.run(dart, [
+    genKernel,
+    '--platform',
+    platformDill,
+    '--aot',
+    '-Ddart.vm.product=true',
+    '-o',
+    kernelFile,
+    ...extraGenKernelOptions,
+    sourceFile
+  ]);
+}
+
+Future<ProcessResult> generateAotSnapshotHelper(
+    String genSnapshot, String kernelFile, String snapshotFile) {
+  return Process.run(genSnapshot,
+      ['--snapshot-kind=app-aot-elf', '--elf=$snapshotFile', kernelFile]);
 }

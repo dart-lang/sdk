@@ -5,13 +5,13 @@
 import 'lib_shared.dart';
 
 @pragma('dart2js:noInline')
-/*member: isA:member_unit=3{liba}*/
+/*member: isA:member_unit=1{liba}*/
 isA(foo) {
   return foo is A;
 }
 
 @pragma('dart2js:noInline')
-/*member: isD:member_unit=3{liba}*/
+/*member: isD:member_unit=1{liba}*/
 isD(foo) {
   return foo is D;
 }

@@ -5,7 +5,7 @@
 part of dart.io;
 
 // TODO(bkonyi): refactor into io_resource_info.dart
-const int _versionMajor = 3;
+const int _versionMajor = 4;
 const int _versionMinor = 0;
 
 const String _tcpSocket = 'tcp';

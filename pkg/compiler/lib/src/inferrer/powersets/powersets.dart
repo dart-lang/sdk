@@ -6,7 +6,6 @@ import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart' show DartType;
-import '../../ir/static_type.dart';
 import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/member_hierarchy.dart';
@@ -713,12 +712,11 @@ class PowersetDomain with AbstractValueDomain {
 
   @override
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype,
-      required bool nullable}) {
-    int powersetBits = _powersetBitsDomain.createFromStaticType(type,
-        classRelation: classRelation, nullable: nullable);
-    var unwrapped = _abstractValueDomain.createFromStaticType(type,
-        classRelation: classRelation, nullable: nullable);
+      {required bool nullable}) {
+    int powersetBits =
+        _powersetBitsDomain.createFromStaticType(type, nullable: nullable);
+    var unwrapped =
+        _abstractValueDomain.createFromStaticType(type, nullable: nullable);
     return AbstractValueWithPrecision(
         PowersetValue(unwrapped.abstractValue, powersetBits),
         unwrapped.isPrecise);

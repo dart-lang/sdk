@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
+    show StaticWeakReferences;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Operator;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
+import 'package:kernel/type_algebra.dart' as ir;
 
 import '../common.dart';
 import '../common/elements.dart';
-import '../common/names.dart' show Uris;
+import '../common/names.dart' show Identifiers, Uris;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../ir/scope.dart';
 import '../kernel/element_map.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
@@ -19,39 +22,19 @@ import '../util/enumset.dart';
 import 'constants.dart';
 import 'impact.dart';
 import 'runtime_type_analysis.dart';
-import 'static_type.dart';
 import 'util.dart';
 
 /// Visitor that builds an [ImpactData] object for the world impact.
-class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
+class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   final ImpactData _data = ImpactData();
   final KernelToElementMap _elementMap;
+  final ir.ClassHierarchy classHierarchy;
 
-  // Note: this may be null for builders associated with abstract methods.
-  final VariableScopeModel? _variableScopeModel;
-
-  @override
   final ir.StaticTypeContext staticTypeContext;
+  final ir.TypeEnvironment typeEnvironment;
 
-  @override
-  final bool useAsserts;
-
-  @override
-  final inferEffectivelyFinalVariableTypes;
-
-  ImpactBuilder(
-      this._elementMap,
-      this.staticTypeContext,
-      StaticTypeCacheImpl staticTypeCache,
-      ir.ClassHierarchy classHierarchy,
-      this._variableScopeModel,
-      {this.useAsserts = false,
-      this.inferEffectivelyFinalVariableTypes = true})
-      : super(
-            staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
-
-  @override
-  VariableScopeModel get variableScopeModel => _variableScopeModel!;
+  ImpactBuilder(this._elementMap, this.staticTypeContext, this.classHierarchy,
+      this.typeEnvironment);
 
   CommonElements get _commonElements => _elementMap.commonElements;
 
@@ -67,104 +50,115 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       arguments.named.map((n) => n.name).toList();
 
   ImpactBuilderData computeImpact(ir.Member node) {
-    if (retainDataForTesting) {
-      typeMapsForTesting = {};
-    }
     node.accept(this);
-    return ImpactBuilderData(
-        node, impactData, typeMapsForTesting, getStaticTypeCache());
+    return ImpactBuilderData(node, impactData);
   }
 
   ImpactData get impactData => _data;
 
   @override
-  void handleIntLiteral(ir.IntLiteral node) {
+  void visitBlock(ir.Block node) {
+    assert(_pendingRuntimeTypeUseData.isEmpty,
+        "Incomplete RuntimeTypeUseData: $_pendingRuntimeTypeUseData");
+    node.statements.forEach((e) => e.accept(this));
+    assert(_pendingRuntimeTypeUseData.isEmpty,
+        "Incomplete RuntimeTypeUseData: $_pendingRuntimeTypeUseData");
+  }
+
+  @override
+  void visitIntLiteral(ir.IntLiteral node) {
     registerIntLiteral();
   }
 
   @override
-  void handleDoubleLiteral(ir.DoubleLiteral node) {
+  void visitDoubleLiteral(ir.DoubleLiteral node) {
     registerDoubleLiteral();
   }
 
   @override
-  void handleBoolLiteral(ir.BoolLiteral node) {
+  void visitBoolLiteral(ir.BoolLiteral node) {
     registerBoolLiteral();
   }
 
   @override
-  void handleStringLiteral(ir.StringLiteral node) {
+  void visitStringLiteral(ir.StringLiteral node) {
     registerStringLiteral();
   }
 
   @override
-  void handleSymbolLiteral(ir.SymbolLiteral node) {
+  void visitSymbolLiteral(ir.SymbolLiteral node) {
     registerSymbolLiteral();
   }
 
   @override
-  void handleNullLiteral(ir.NullLiteral node) {
+  void visitNullLiteral(ir.NullLiteral node) {
     registerNullLiteral();
   }
 
   @override
-  void handleListLiteral(ir.ListLiteral node) {
+  void visitListLiteral(ir.ListLiteral node) {
     registerListLiteral(node.typeArgument,
         isConst: node.isConst, isEmpty: node.expressions.isEmpty);
+    node.expressions.forEach((e) => e.accept(this));
   }
 
   @override
-  void handleSetLiteral(ir.SetLiteral node) {
+  void visitSetLiteral(ir.SetLiteral node) {
     registerSetLiteral(node.typeArgument,
         isConst: node.isConst, isEmpty: node.expressions.isEmpty);
+    node.expressions.forEach((e) => e.accept(this));
   }
 
   @override
-  void handleMapLiteral(ir.MapLiteral node) {
+  void visitMapLiteral(ir.MapLiteral node) {
     registerMapLiteral(node.keyType, node.valueType,
         isConst: node.isConst, isEmpty: node.entries.isEmpty);
+    node.entries.forEach((e) => e.accept(this));
   }
 
   @override
-  void handleRecordLiteral(ir.RecordLiteral node) {
+  void visitRecordLiteral(ir.RecordLiteral node) {
     registerRecordLiteral(node.recordType, isConst: node.isConst);
+    node.positional.forEach((e) => e.accept(this));
+    node.named.forEach((e) => e.value.accept(this));
   }
 
   @override
-  void handleStaticGet(
-      ir.Expression node, ir.Member target, ir.DartType resultType) {
-    assert(!(target is ir.Procedure && target.kind == ir.ProcedureKind.Method),
-        "Static tear off registered as static get: $node");
-    registerStaticGet(target, getDeferredImport(node));
+  void visitStaticGet(ir.StaticGet node) {
+    final target = node.target;
+    if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
+      // TODO(johnniwinther): Remove this when dart2js uses the new method
+      // invocation encoding.
+      registerStaticTearOff(target, getDeferredImport(node));
+    } else {
+      registerStaticGet(node.target, getDeferredImport(node));
+    }
   }
 
   @override
-  void handleStaticTearOff(
-      ir.Expression node, ir.Procedure target, ir.DartType resultType) {
-    assert(target.kind == ir.ProcedureKind.Method,
-        "Static get registered as static tear off: $node");
-    registerStaticTearOff(target, getDeferredImport(node));
+  void visitStaticTearOff(ir.StaticTearOff node) {
+    registerStaticTearOff(node.target, getDeferredImport(node));
   }
 
   @override
-  void handleWeakStaticTearOff(ir.Expression node, ir.Procedure target) {
-    registerWeakStaticTearOff(target, getDeferredImport(node));
-  }
-
-  @override
-  void handleStaticSet(ir.StaticSet node, ir.DartType valueType) {
+  void visitStaticSet(ir.StaticSet node) {
     registerStaticSet(node.target, getDeferredImport(node));
+    node.value.accept(this);
   }
 
   @override
-  void handleAssertStatement(ir.AssertStatement node) {
+  void visitAssertStatement(ir.AssertStatement node) {
     registerAssert(withMessage: node.message != null);
+    node.condition.accept(this);
+    node.message?.accept(this);
   }
 
   @override
-  void handleInstantiation(ir.Instantiation node,
-      ir.FunctionType expressionType, ir.DartType resultType) {
-    registerGenericInstantiation(expressionType, node.typeArguments);
+  void visitInstantiation(ir.Instantiation node) {
+    registerGenericInstantiation(
+        node.expression.getStaticType(staticTypeContext) as ir.FunctionType,
+        node.typeArguments);
+    node.expression.accept(this);
   }
 
   void handleAsyncMarker(ir.FunctionNode function) {
@@ -187,69 +181,117 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void handleStringConcatenation(ir.StringConcatenation node) {
+  void visitStringConcatenation(ir.StringConcatenation node) {
     registerStringConcatenation();
+    node.expressions.forEach((e) => e.accept(this));
   }
 
   @override
-  void handleFunctionDeclaration(ir.FunctionDeclaration node) {
+  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
     registerLocalFunction(node);
-    handleAsyncMarker(node.function);
+    node.function.accept(this);
   }
 
   @override
-  void handleFunctionExpression(ir.FunctionExpression node) {
+  void visitFunctionExpression(ir.FunctionExpression node) {
     registerLocalFunction(node);
-    handleAsyncMarker(node.function);
+    node.function.accept(this);
   }
 
   @override
-  void handleVariableDeclaration(ir.VariableDeclaration node) {
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
     if (node.initializer == null) {
       registerLocalWithoutInitializer();
     }
+    // Don't visit the annotations as any impacts generated by that code are not
+    // real and should not be included in compiled code.
+    node.initializer?.accept(this);
   }
 
   @override
-  void handleIsExpression(ir.IsExpression node) {
+  void visitIsExpression(ir.IsExpression node) {
     registerIsCheck(node.type);
+    node.operand.accept(this);
   }
 
   @override
-  void handleAsExpression(ir.AsExpression node, ir.DartType operandType,
-      {bool? isCalculatedTypeSubtype}) {
-    if (isCalculatedTypeSubtype ??
-        typeEnvironment.isSubtypeOf(
-            operandType, node.type, ir.SubtypeCheckMode.withNullabilities)) {
-      // Skip unneeded casts.
-      return;
+  void visitAsExpression(ir.AsExpression node) {
+    final operandType = node.operand.getStaticType(staticTypeContext);
+    final isCalculatedTypeSubtype = typeEnvironment.isSubtypeOf(
+        operandType, node.type, ir.SubtypeCheckMode.withNullabilities);
+    if (!isCalculatedTypeSubtype) {
+      // Only register needed cast.
+      if (node.isTypeError) {
+        registerImplicitCast(node.type);
+      } else {
+        registerAsCast(node.type);
+      }
     }
-    if (node.isTypeError) {
-      registerImplicitCast(node.type);
-    } else {
-      registerAsCast(node.type);
-    }
+    node.operand.accept(this);
   }
 
   @override
-  void handleThrow(ir.Throw node) {
+  void visitThrow(ir.Throw node) {
     registerThrow();
+    node.expression.accept(this);
   }
 
-  @override
-  void handleForInStatement(ir.ForInStatement node, ir.DartType iterableType,
-      ir.DartType iteratorType) {
-    if (node.isAsync) {
-      registerAsyncForIn(iterableType, iteratorType,
-          computeClassRelationFromType(iteratorType));
-    } else {
-      registerSyncForIn(iterableType, iteratorType,
-          computeClassRelationFromType(iteratorType));
+  ir.InterfaceType? getInterfaceTypeOf(ir.DartType type) {
+    while (type is ir.TypeParameterType) {
+      type = type.parameter.bound;
     }
+    if (type is ir.InterfaceType) {
+      return type;
+    } else if (type is ir.NullType) {
+      return typeEnvironment.coreTypes.deprecatedNullType;
+    }
+    return null;
   }
 
   @override
-  void handleCatch(ir.Catch node) {
+  void visitForInStatement(ir.ForInStatement node) {
+    // TODO(fishythefish): Clean up this logic.
+    ir.DartType iterableType = node.iterable.getStaticType(staticTypeContext);
+    ir.DartType iteratorType = const ir.DynamicType();
+    ir.InterfaceType? iterableInterfaceType = getInterfaceTypeOf(iterableType);
+    if (iterableInterfaceType != null) {
+      if (node.isAsync) {
+        List<ir.DartType>? typeArguments =
+            typeEnvironment.getTypeArgumentsAsInstanceOf(
+                iterableInterfaceType, typeEnvironment.coreTypes.streamClass);
+        if (typeArguments != null) {
+          iteratorType = ir.InterfaceType(
+              typeEnvironment.coreTypes.streamIteratorClass,
+              ir.Nullability.nonNullable,
+              typeArguments);
+        }
+      } else {
+        ir.Member? member = classHierarchy.getInterfaceMember(
+            iterableInterfaceType.classNode, ir.Name(Identifiers.iterator));
+        if (member != null) {
+          iteratorType = ir.Substitution.fromTypeDeclarationType(
+                  typeEnvironment.getTypeAsInstanceOf(iterableInterfaceType,
+                      member.enclosingClass!, typeEnvironment.coreTypes,
+                      isNonNullableByDefault: true)!)
+              .substituteType(member.getterType);
+        }
+      }
+    }
+    if (node.isAsync) {
+      registerAsyncForIn(
+        iterableType,
+        iteratorType,
+      );
+    } else {
+      registerSyncForIn(iterableType, iteratorType);
+    }
+    node.iterable.accept(this);
+    node.variable.accept(this);
+    node.body.accept(this);
+  }
+
+  @override
+  void visitCatch(ir.Catch node) {
     registerCatch();
     if (node.stackTrace != null) {
       registerStackTrace();
@@ -257,57 +299,68 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     if (node.guard is! ir.DynamicType) {
       registerCatchType(node.guard);
     }
+    node.body.accept(this);
   }
 
   @override
-  void handleTypeLiteral(ir.TypeLiteral node) {
+  void visitTypeLiteral(ir.TypeLiteral node) {
     registerTypeLiteral(node.type, getDeferredImport(node));
   }
 
   @override
-  void handleFieldInitializer(ir.FieldInitializer node) {
+  void visitFieldInitializer(ir.FieldInitializer node) {
     registerFieldInitialization(node.field);
+    node.value.accept(this);
   }
 
   @override
-  void handleLoadLibrary(ir.LoadLibrary node) {
+  void visitLoadLibrary(ir.LoadLibrary node) {
     registerLoadLibrary();
   }
 
   @override
-  void handleRedirectingInitializer(
-      ir.RedirectingInitializer node, ArgumentTypes argumentTypes) {
+  void visitRedirectingInitializer(ir.RedirectingInitializer node) {
     registerRedirectingInitializer(
         node.target,
         node.arguments.positional.length,
         _getNamedArguments(node.arguments),
         node.arguments.types);
+    node.arguments.accept(this);
   }
 
   @override
-  void handleParameter(ir.VariableDeclaration parameter) {
-    registerParameterCheck(parameter.type);
-  }
-
-  @override
-  void handleSignature(ir.FunctionNode node) {
+  void visitFunctionNode(ir.FunctionNode node) {
+    handleAsyncMarker(node);
     for (ir.TypeParameter parameter in node.typeParameters) {
       registerParameterCheck(parameter.bound);
     }
+    for (ir.VariableDeclaration parameter in node.positionalParameters) {
+      registerParameterCheck(parameter.type);
+      parameter.initializer?.accept(this);
+    }
+    for (ir.VariableDeclaration parameter in node.namedParameters) {
+      registerParameterCheck(parameter.type);
+      parameter.initializer?.accept(this);
+    }
+    node.body?.accept(this);
   }
 
   @override
-  void handleConstructor(ir.Constructor node) {
+  void visitConstructor(ir.Constructor node) {
     if (node.isExternal) registerExternalConstructorNode(node);
+    // Don't visit the annotations as any impacts generated by that code are not
+    // real and should not be included in compiled code.
+    node.initializers.forEach((e) => e.accept(this));
+    node.function.accept(this);
   }
 
   @override
-  void handleField(ir.Field field) {
-    registerParameterCheck(field.type);
-    if (field.initializer != null) {
-      if (!field.isInstanceMember &&
-          !field.isConst &&
-          field.initializer is! ir.NullLiteral) {
+  void visitField(ir.Field node) {
+    registerParameterCheck(node.type);
+    if (node.initializer != null) {
+      if (!node.isInstanceMember &&
+          !node.isConst &&
+          node.initializer is! ir.NullLiteral) {
         registerLazyField();
       }
     } else {
@@ -315,13 +368,18 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     }
     // TODO(sigmund): only save relevant fields (e.g. those for jsinterop
     // or native types).
-    registerFieldNode(field);
+    registerFieldNode(node);
+    // Don't visit the annotations as any impacts generated by that code are not
+    // real and should not be included in compiled code.
+    node.initializer?.accept(this);
   }
 
   @override
-  void handleProcedure(ir.Procedure procedure) {
-    handleAsyncMarker(procedure.function);
-    if (procedure.isExternal) registerExternalProcedureNode(procedure);
+  void visitProcedure(ir.Procedure node) {
+    if (node.isExternal) registerExternalProcedureNode(node);
+    // Don't visit the annotations as any impacts generated by that code are not
+    // real and should not be included in compiled code.
+    node.function.accept(this);
   }
 
   void _handleConstConstructorInvocation(ir.ConstructorInvocation node) {
@@ -342,8 +400,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void handleConstructorInvocation(ir.ConstructorInvocation node,
-      ArgumentTypes argumentTypes, ir.DartType resultType) {
+  void visitConstructorInvocation(ir.ConstructorInvocation node) {
     registerNew(
         node.target,
         node.constructedType,
@@ -355,200 +412,287 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     if (node.isConst) {
       _handleConstConstructorInvocation(node);
     }
+    node.arguments.accept(this);
   }
 
   @override
-  void handleStaticInvocation(ir.StaticInvocation node,
-      ArgumentTypes argumentTypes, ir.DartType returnType) {
-    int positionArguments = node.arguments.positional.length;
-    List<String> namedArguments = _getNamedArguments(node.arguments);
-    List<ir.DartType> typeArguments = node.arguments.types;
-    if (node.target.kind == ir.ProcedureKind.Factory) {
-      // TODO(johnniwinther): We should not mark the type as instantiated but
-      // rather follow the type arguments directly.
-      //
-      // Consider this:
-      //
-      //    abstract class A<T> {
-      //      factory A.regular() => B<T>();
-      //      factory A.redirect() = B<T>;
-      //    }
-      //
-      //    class B<T> implements A<T> {}
-      //
-      //    main() {
-      //      print(new A<int>.regular() is B<int>);
-      //      print(new A<String>.redirect() is B<String>);
-      //    }
-      //
-      // To track that B is actually instantiated as B<int> and B<String> we
-      // need to follow the type arguments passed to A.regular and A.redirect
-      // to B. Currently, we only do this soundly if we register A<int> and
-      // A<String> as instantiated. We should instead register that A.T is
-      // instantiated as int and String.
-      registerNew(
-          node.target,
-          ir.InterfaceType(node.target.enclosingClass!,
-              node.target.enclosingLibrary.nonNullable, typeArguments),
-          positionArguments,
-          namedArguments,
-          node.arguments.types,
-          getDeferredImport(node),
-          isConst: node.isConst);
+  void visitStaticInvocation(ir.StaticInvocation node) {
+    if (ir.StaticWeakReferences.isWeakReference(node)) {
+      registerWeakStaticTearOff(
+          ir.StaticWeakReferences.getWeakReferenceTarget(node),
+          getDeferredImport(
+              ir.StaticWeakReferences.getWeakReferenceArgument(node)));
+      // We don't explicitly visit the argument for weak references.
     } else {
-      registerStaticInvocation(node.target, positionArguments, namedArguments,
-          typeArguments, getDeferredImport(node));
-    }
-    // TODO(sigmund): consider using `_elementMap.getForeignKind` here. We
-    // currently don't use it because when this step is run modularly we try
-    // to keep most operations at the kernel level, otherwise it may triggers
-    // additional unnecessary work.
-    final name = node.target.name.text;
-    if (node.target.enclosingClass == null &&
-        node.target.enclosingLibrary.importUri == Uris.dart__foreign_helper &&
-        getForeignKindFromName(name) != ForeignKind.NONE) {
-      registerForeignStaticInvocationNode(node);
+      int positionArguments = node.arguments.positional.length;
+      List<String> namedArguments = _getNamedArguments(node.arguments);
+      List<ir.DartType> typeArguments = node.arguments.types;
+      if (node.target.kind == ir.ProcedureKind.Factory) {
+        // TODO(johnniwinther): We should not mark the type as instantiated but
+        // rather follow the type arguments directly.
+        //
+        // Consider this:
+        //
+        //    abstract class A<T> {
+        //      factory A.regular() => B<T>();
+        //      factory A.redirect() = B<T>;
+        //    }
+        //
+        //    class B<T> implements A<T> {}
+        //
+        //    main() {
+        //      print(new A<int>.regular() is B<int>);
+        //      print(new A<String>.redirect() is B<String>);
+        //    }
+        //
+        // To track that B is actually instantiated as B<int> and B<String> we
+        // need to follow the type arguments passed to A.regular and A.redirect
+        // to B. Currently, we only do this soundly if we register A<int> and
+        // A<String> as instantiated. We should instead register that A.T is
+        // instantiated as int and String.
+        registerNew(
+            node.target,
+            ir.InterfaceType(node.target.enclosingClass!,
+                node.target.enclosingLibrary.nonNullable, typeArguments),
+            positionArguments,
+            namedArguments,
+            node.arguments.types,
+            getDeferredImport(node),
+            isConst: node.isConst);
+      } else {
+        registerStaticInvocation(node.target, positionArguments, namedArguments,
+            typeArguments, getDeferredImport(node));
+      }
+      // TODO(sigmund): consider using `_elementMap.getForeignKind` here. We
+      // currently don't use it because when this step is run modularly we try
+      // to keep most operations at the kernel level, otherwise it may triggers
+      // additional unnecessary work.
+      final name = node.target.name.text;
+      if (node.target.enclosingClass == null &&
+          node.target.enclosingLibrary.importUri == Uris.dart__foreign_helper &&
+          getForeignKindFromName(name) != ForeignKind.NONE) {
+        registerForeignStaticInvocationNode(node);
+      }
+      node.arguments.accept(this);
     }
   }
 
   @override
-  void handleDynamicInvocation(
-      ir.InvocationExpression node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {
+  void visitDynamicInvocation(ir.DynamicInvocation node) {
     int positionArguments = node.arguments.positional.length;
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerDynamicInvocation(receiverType, relation, node.name,
-        positionArguments, namedArguments, typeArguments);
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
+    registerDynamicInvocation(receiverType, node.name, positionArguments,
+        namedArguments, typeArguments);
+    if (Operator.fromText(node.name.text) == null &&
+        receiverType is ir.DynamicType) {
+      // We might implicitly call a getter that returns a function.
+      registerFunctionInvocation(const ir.DynamicType(), positionArguments,
+          namedArguments, typeArguments);
+    }
+    node.arguments.accept(this);
+    node.receiver.accept(this);
   }
 
   @override
-  void handleFunctionInvocation(
-      ir.InvocationExpression node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {
+  void visitFunctionInvocation(ir.FunctionInvocation node) {
     int positionArguments = node.arguments.positional.length;
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
     registerFunctionInvocation(
         receiverType, positionArguments, namedArguments, typeArguments);
+    node.arguments.accept(this);
+    node.receiver.accept(this);
   }
 
   @override
-  void handleInstanceInvocation(
-      ir.InvocationExpression node,
-      ir.DartType receiverType,
-      ir.Member interfaceTarget,
-      ArgumentTypes argumentTypes) {
+  void visitInstanceInvocation(ir.InstanceInvocation node) {
     int positionArguments = node.arguments.positional.length;
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
-    ClassRelation relation = computeClassRelationFromType(receiverType);
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
+    final interfaceTarget = node.interfaceTarget;
 
-    if (interfaceTarget is ir.Field ||
-        interfaceTarget is ir.Procedure &&
-            interfaceTarget.kind == ir.ProcedureKind.Getter) {
-      registerInstanceInvocation(receiverType, relation, interfaceTarget,
+    if (interfaceTarget.kind == ir.ProcedureKind.Getter) {
+      registerInstanceInvocation(receiverType, interfaceTarget,
           positionArguments, namedArguments, typeArguments);
       registerFunctionInvocation(interfaceTarget.getterType, positionArguments,
           namedArguments, typeArguments);
     } else {
-      registerInstanceInvocation(receiverType, relation, interfaceTarget,
+      registerInstanceInvocation(receiverType, interfaceTarget,
           positionArguments, namedArguments, typeArguments);
     }
+    node.arguments.accept(this);
+    node.receiver.accept(this);
   }
 
   @override
-  void handleLocalFunctionInvocation(
-      ir.InvocationExpression node,
-      ir.FunctionDeclaration function,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {
+  void visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
     int positionArguments = node.arguments.positional.length;
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
     registerLocalFunctionInvocation(
-        function, positionArguments, namedArguments, typeArguments);
+        node.localFunction, positionArguments, namedArguments, typeArguments);
+    node.arguments.accept(this);
   }
 
   @override
-  void handleEqualsCall(ir.Expression left, ir.DartType leftType,
-      ir.Expression right, ir.DartType rightType, ir.Member interfaceTarget) {
-    ClassRelation relation = computeClassRelationFromType(leftType);
-    registerInstanceInvocation(leftType, relation, interfaceTarget, 1,
+  void visitEqualsCall(ir.EqualsCall node) {
+    final leftType = node.left.getStaticType(staticTypeContext);
+    registerInstanceInvocation(leftType, node.interfaceTarget, 1,
         const <String>[], const <ir.DartType>[]);
+    node.left.accept(this);
+    node.right.accept(this);
   }
 
   @override
-  void handleEqualsNull(ir.EqualsNull node, ir.DartType expressionType) {
+  void visitEqualsNull(ir.EqualsNull node) {
     registerNullLiteral();
+    node.expression.accept(this);
   }
 
   @override
-  void handleDynamicGet(ir.Expression node, ir.DartType receiverType,
-      ir.Name name, ir.DartType resultType) {
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerDynamicGet(receiverType, relation, name);
+  void visitDynamicGet(ir.DynamicGet node) {
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
+    registerDynamicGet(receiverType, node.name);
+    if (node.name.text == Identifiers.runtimeType_) {
+      // This handles `runtimeType` access on `Never`.
+      handleRuntimeTypeGet(receiverType, node);
+    }
+    node.receiver.accept(this);
   }
 
   @override
-  void handleInstanceGet(ir.Expression node, ir.DartType receiverType,
-      ir.Member interfaceTarget, ir.DartType resultType) {
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerInstanceGet(receiverType, relation, interfaceTarget);
+  void visitInstanceGet(ir.InstanceGet node) {
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
+    registerInstanceGet(receiverType, node.interfaceTarget);
+    if (node.name.text == Identifiers.runtimeType_) {
+      // This handles `runtimeType` access on non-Never types, like in
+      // `'foo'.runtimeType`.
+      handleRuntimeTypeGet(receiverType, node);
+    }
+    node.receiver.accept(this);
   }
 
   @override
-  void handleDynamicSet(ir.Expression node, ir.DartType receiverType,
-      ir.Name name, ir.DartType valueType) {
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerDynamicSet(receiverType, relation, name);
+  void visitInstanceTearOff(ir.InstanceTearOff node) {
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
+    registerInstanceGet(receiverType, node.interfaceTarget);
+    assert(node.name.text != Identifiers.runtimeType_,
+        "Unexpected .runtimeType instance tear-off.");
+    node.receiver.accept(this);
   }
 
   @override
-  void handleInstanceSet(ir.Expression node, ir.DartType receiverType,
-      ir.Member interfaceTarget, ir.DartType valueType) {
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    registerInstanceSet(receiverType, relation, interfaceTarget);
+  void visitFunctionTearOff(ir.FunctionTearOff node) {
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
+    registerDynamicGet(receiverType, ir.Name.callName);
+    node.receiver.accept(this);
   }
 
   @override
-  void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
-      ArgumentTypes argumentTypes, ir.DartType returnType) {
+  void visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
+    int positionArguments = node.arguments.positional.length;
+    List<String> namedArguments = _getNamedArguments(node.arguments);
+    List<ir.DartType> typeArguments = node.arguments.types;
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
+    final interfaceTarget = node.interfaceTarget;
+
+    if (interfaceTarget is ir.Field ||
+        (interfaceTarget is ir.Procedure &&
+            interfaceTarget.kind == ir.ProcedureKind.Getter)) {
+      registerInstanceInvocation(receiverType, interfaceTarget,
+          positionArguments, namedArguments, typeArguments);
+      registerFunctionInvocation(interfaceTarget.getterType, positionArguments,
+          namedArguments, typeArguments);
+    } else {
+      registerInstanceInvocation(receiverType, interfaceTarget,
+          positionArguments, namedArguments, typeArguments);
+    }
+    node.receiver.accept(this);
+    node.arguments.accept(this);
+  }
+
+  @override
+  void visitDynamicSet(ir.DynamicSet node) {
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
+    registerDynamicSet(receiverType, node.name);
+    node.receiver.accept(this);
+    node.value.accept(this);
+  }
+
+  @override
+  void visitInstanceSet(ir.InstanceSet node) {
+    final receiverType = node.receiver.getStaticType(staticTypeContext);
+    registerInstanceSet(receiverType, node.interfaceTarget);
+    node.receiver.accept(this);
+    node.value.accept(this);
+  }
+
+  @override
+  void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     registerSuperInvocation(
         getEffectiveSuperTarget(node.interfaceTarget)!,
         node.arguments.positional.length,
         _getNamedArguments(node.arguments),
         node.arguments.types);
+    node.arguments.accept(this);
   }
 
   @override
-  void handleSuperPropertyGet(
-      ir.SuperPropertyGet node, ir.DartType resultType) {
+  void visitSuperPropertyGet(ir.SuperPropertyGet node) {
     registerSuperGet(getEffectiveSuperTarget(node.interfaceTarget)!);
   }
 
   @override
-  void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
+  void visitSuperPropertySet(ir.SuperPropertySet node) {
     registerSuperSet(getEffectiveSuperTarget(node.interfaceTarget)!);
+    node.value.accept(this);
   }
 
   @override
-  void handleSuperInitializer(
-      ir.SuperInitializer node, ArgumentTypes argumentTypes) {
+  void visitSuperInitializer(ir.SuperInitializer node) {
     registerSuperInitializer(
         node.parent as ir.Constructor,
         node.target,
         node.arguments.positional.length,
         _getNamedArguments(node.arguments),
         node.arguments.types);
+    node.arguments.accept(this);
   }
 
-  @override
+  // TODO(johnniwinther): Change the key to `InstanceGet` when the old method
+  //  invocation encoding is no longer used.
+  final Map<ir.Expression, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
+
+  void handleRuntimeTypeGet(ir.DartType receiverType, ir.Expression node) {
+    RuntimeTypeUseData data =
+        computeRuntimeTypeUse(_pendingRuntimeTypeUseData, node);
+    if (data.leftRuntimeTypeExpression == node) {
+      // [node] is the left (or single) occurrence of `.runtimeType` so we
+      // can set the static type of the receiver expression.
+      data.receiverType = receiverType;
+    } else {
+      // [node] is the right occurrence of `.runtimeType` so we
+      // can set the static type of the argument expression.
+      assert(data.rightRuntimeTypeExpression == node,
+          "Unexpected RuntimeTypeUseData for $node: $data");
+      data.argumentType = receiverType;
+    }
+    if (data.isComplete) {
+      /// We now have all need static types so we can remove the data from
+      /// the cache and handle the runtime type use.
+      _pendingRuntimeTypeUseData.remove(data.leftRuntimeTypeExpression);
+      if (data.rightRuntimeTypeExpression != null) {
+        _pendingRuntimeTypeUseData.remove(data.rightRuntimeTypeExpression);
+      }
+      handleRuntimeTypeUse(
+          node, data.kind, data.receiverType!, data.argumentType);
+    }
+  }
+
   void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType? argumentType) {
     if (_options.omitImplicitChecks) {
@@ -570,7 +714,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void handleConstantExpression(ir.ConstantExpression node) {
+  void visitConstantExpression(ir.ConstantExpression node) {
     assert(node.constant is! ir.UnevaluatedConstant);
     ir.LibraryDependency? import = getDeferredImport(node);
     ConstantImpactVisitor(this, import, node, staticTypeContext)
@@ -616,31 +760,23 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerInstanceSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    (_data._instanceSets ??= [])
-        .add(_InstanceAccess(receiverType, relation, target));
+  void registerInstanceSet(ir.DartType receiverType, ir.Member target) {
+    (_data._instanceSets ??= []).add(_InstanceAccess(receiverType, target));
   }
 
   @override
-  void registerDynamicSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    (_data._dynamicSets ??= [])
-        .add(_DynamicAccess(receiverType, relation, name));
+  void registerDynamicSet(ir.DartType receiverType, ir.Name name) {
+    (_data._dynamicSets ??= []).add(_DynamicAccess(receiverType, name));
   }
 
   @override
-  void registerInstanceGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    (_data._instanceGets ??= [])
-        .add(_InstanceAccess(receiverType, relation, target));
+  void registerInstanceGet(ir.DartType receiverType, ir.Member target) {
+    (_data._instanceGets ??= []).add(_InstanceAccess(receiverType, target));
   }
 
   @override
-  void registerDynamicGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    (_data._dynamicGets ??= [])
-        .add(_DynamicAccess(receiverType, relation, name));
+  void registerDynamicGet(ir.DartType receiverType, ir.Name name) {
+    (_data._dynamicGets ??= []).add(_DynamicAccess(receiverType, name));
   }
 
   @override
@@ -656,14 +792,12 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   void registerInstanceInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Member target,
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     (_data._instanceInvocations ??= []).add(_InstanceInvocation(
         receiverType,
-        relation,
         target,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
@@ -671,14 +805,12 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   void registerDynamicInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Name name,
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     (_data._dynamicInvocations ??= []).add(_DynamicInvocation(
         receiverType,
-        relation,
         name,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
@@ -791,19 +923,15 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation) {
-    (_data._forInData ??= []).add(_ForInData(
-        iterableType, iteratorType, iteratorClassRelation,
-        isAsync: true));
+  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
+    (_data._forInData ??= [])
+        .add(_ForInData(iterableType, iteratorType, isAsync: true));
   }
 
   @override
-  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation) {
-    (_data._forInData ??= []).add(_ForInData(
-        iterableType, iteratorType, iteratorClassRelation,
-        isAsync: false));
+  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
+    (_data._forInData ??= [])
+        .add(_ForInData(iterableType, iteratorType, isAsync: false));
   }
 
   @override
@@ -1202,26 +1330,22 @@ class ImpactData {
     }
     if (_instanceSets != null) {
       for (_InstanceAccess data in _instanceSets!) {
-        registry.registerInstanceSet(
-            data.receiverType, data.classRelation, data.target);
+        registry.registerInstanceSet(data.receiverType, data.target);
       }
     }
     if (_dynamicSets != null) {
       for (_DynamicAccess data in _dynamicSets!) {
-        registry.registerDynamicSet(
-            data.receiverType, data.classRelation, data.name);
+        registry.registerDynamicSet(data.receiverType, data.name);
       }
     }
     if (_instanceGets != null) {
       for (_InstanceAccess data in _instanceGets!) {
-        registry.registerInstanceGet(
-            data.receiverType, data.classRelation, data.target);
+        registry.registerInstanceGet(data.receiverType, data.target);
       }
     }
     if (_dynamicGets != null) {
       for (_DynamicAccess data in _dynamicGets!) {
-        registry.registerDynamicGet(
-            data.receiverType, data.classRelation, data.name);
+        registry.registerDynamicGet(data.receiverType, data.name);
       }
     }
     if (_functionInvocations != null) {
@@ -1237,7 +1361,6 @@ class ImpactData {
       for (_InstanceInvocation data in _instanceInvocations!) {
         registry.registerInstanceInvocation(
             data.receiverType,
-            data.classRelation,
             data.target,
             data.callStructure.positionalArguments,
             data.callStructure.namedArguments,
@@ -1248,7 +1371,6 @@ class ImpactData {
       for (_DynamicInvocation data in _dynamicInvocations!) {
         registry.registerDynamicInvocation(
             data.receiverType,
-            data.classRelation,
             data.name,
             data.callStructure.positionalArguments,
             data.callStructure.namedArguments,
@@ -1466,11 +1588,9 @@ class ImpactData {
     if (_forInData != null) {
       for (_ForInData data in _forInData!) {
         if (data.isAsync) {
-          registry.registerAsyncForIn(
-              data.iterableType, data.iteratorType, data.iteratorClassRelation);
+          registry.registerAsyncForIn(data.iterableType, data.iteratorType);
         } else {
-          registry.registerSyncForIn(
-              data.iterableType, data.iteratorType, data.iteratorClassRelation);
+          registry.registerSyncForIn(data.iterableType, data.iteratorType);
         }
       }
     }
@@ -1595,24 +1715,21 @@ class _InstanceAccess {
   static const String tag = '_InstanceAccess';
 
   final ir.DartType receiverType;
-  final ClassRelation classRelation;
   final ir.Member target;
 
-  _InstanceAccess(this.receiverType, this.classRelation, this.target);
+  _InstanceAccess(this.receiverType, this.target);
 
   factory _InstanceAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
-    ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Member target = source.readMemberNode();
     source.end(tag);
-    return _InstanceAccess(receiverType, classRelation, target);
+    return _InstanceAccess(receiverType, target);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
-    sink.writeEnum(classRelation);
     sink.writeMemberNode(target);
     sink.end(tag);
   }
@@ -1622,24 +1739,21 @@ class _DynamicAccess {
   static const String tag = '_DynamicAccess';
 
   final ir.DartType receiverType;
-  final ClassRelation classRelation;
   final ir.Name name;
 
-  _DynamicAccess(this.receiverType, this.classRelation, this.name);
+  _DynamicAccess(this.receiverType, this.name);
 
   factory _DynamicAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
-    ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Name name = source.readName();
     source.end(tag);
-    return _DynamicAccess(receiverType, classRelation, name);
+    return _DynamicAccess(receiverType, name);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
-    sink.writeEnum(classRelation);
     sink.writeName(name);
     sink.end(tag);
   }
@@ -1673,28 +1787,23 @@ class _InstanceInvocation {
   static const String tag = '_InstanceInvocation';
 
   final ir.DartType receiverType;
-  final ClassRelation classRelation;
   final ir.Member target;
   final _CallStructure callStructure;
 
-  _InstanceInvocation(
-      this.receiverType, this.classRelation, this.target, this.callStructure);
+  _InstanceInvocation(this.receiverType, this.target, this.callStructure);
 
   factory _InstanceInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
-    ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Member target = source.readMemberNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return _InstanceInvocation(
-        receiverType, classRelation, target, callStructure);
+    return _InstanceInvocation(receiverType, target, callStructure);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
-    sink.writeEnum(classRelation);
     sink.writeMemberNode(target);
     callStructure.toDataSink(sink);
     sink.end(tag);
@@ -1705,27 +1814,23 @@ class _DynamicInvocation {
   static const String tag = '_DynamicInvocation';
 
   final ir.DartType receiverType;
-  final ClassRelation classRelation;
   final ir.Name name;
   final _CallStructure callStructure;
 
-  _DynamicInvocation(
-      this.receiverType, this.classRelation, this.name, this.callStructure);
+  _DynamicInvocation(this.receiverType, this.name, this.callStructure);
 
   factory _DynamicInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
-    ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Name name = source.readName();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return _DynamicInvocation(receiverType, classRelation, name, callStructure);
+    return _DynamicInvocation(receiverType, name, callStructure);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
-    sink.writeEnum(classRelation);
     sink.writeName(name);
     callStructure.toDataSink(sink);
     sink.end(tag);
@@ -2093,28 +2198,23 @@ class _ForInData {
 
   final ir.DartType iterableType;
   final ir.DartType iteratorType;
-  final ClassRelation iteratorClassRelation;
   final bool isAsync;
 
-  _ForInData(this.iterableType, this.iteratorType, this.iteratorClassRelation,
-      {required this.isAsync});
+  _ForInData(this.iterableType, this.iteratorType, {required this.isAsync});
 
   factory _ForInData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType iterableType = source.readDartTypeNode();
     ir.DartType iteratorType = source.readDartTypeNode();
-    ClassRelation iteratorClassRelation = source.readEnum(ClassRelation.values);
     bool isAsync = source.readBool();
     source.end(tag);
-    return _ForInData(iterableType, iteratorType, iteratorClassRelation,
-        isAsync: isAsync);
+    return _ForInData(iterableType, iteratorType, isAsync: isAsync);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(iteratorType);
     sink.writeDartTypeNode(iteratorType);
-    sink.writeEnum(iteratorClassRelation);
     sink.writeBool(isAsync);
     sink.end(tag);
   }

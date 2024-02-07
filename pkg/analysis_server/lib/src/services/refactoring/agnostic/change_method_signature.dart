@@ -563,9 +563,7 @@ class _SelectionAnalyzer {
         return const UnexpectedSelectionState();
       }
 
-      final typeStr = parameterElement.type.getDisplayString(
-        withNullability: true,
-      );
+      final typeStr = parameterElement.type.getDisplayString();
 
       formalParameterStateList.add(
         FormalParameterState(

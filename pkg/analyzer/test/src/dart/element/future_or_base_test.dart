@@ -58,7 +58,7 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
   void _check(DartType T, String expected) {
     var result = typeSystem.futureOrBase(T);
     expect(
-      result.getDisplayString(withNullability: true),
+      result.getDisplayString(),
       expected,
     );
   }

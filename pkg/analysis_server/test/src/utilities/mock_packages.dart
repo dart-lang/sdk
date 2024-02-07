@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 
@@ -50,16 +50,16 @@ class BlazeMockPackages {
     _cacheFiles(_cachedFiles);
   }
 
-  void addFlutter(MemoryResourceProvider provider) {
+  void addFlutter(ResourceProvider provider) {
     _addFiles(provider, 'flutter');
   }
 
-  void addMeta(MemoryResourceProvider provider) {
+  void addMeta(ResourceProvider provider) {
     _addFiles(provider, 'meta');
   }
 
   /// Add files of the given [packageName] to the [provider].
-  Folder _addFiles(MemoryResourceProvider provider, String packageName) {
+  Folder _addFiles(ResourceProvider provider, String packageName) {
     var packagesPath = provider.convertPath('/workspace/third_party/dart');
 
     for (var entry in _cachedFiles.entries) {
@@ -68,7 +68,7 @@ class BlazeMockPackages {
       if (relativePathComponents[0] == packageName) {
         var relativePath = provider.pathContext.joinAll(relativePathComponents);
         var path = provider.pathContext.join(packagesPath, relativePath);
-        provider.newFile(path, entry.value);
+        provider.getFile(path).writeAsStringSync(entry.value);
       }
     }
 
@@ -78,7 +78,7 @@ class BlazeMockPackages {
 }
 
 /// Helper for copying files from "test/mock_packages" to memory file system.
-mixin MockPackagesMixin<T extends ResourceProvider> {
+mixin MockPackagesMixin {
   /// The mapping from relative Posix paths of files to the file contents.
   ///
   /// `null` until the cache is first populated.
@@ -89,7 +89,7 @@ mixin MockPackagesMixin<T extends ResourceProvider> {
 
   path.Context get pathContext => resourceProvider.pathContext;
 
-  T get resourceProvider;
+  ResourceProvider get resourceProvider;
 
   Folder addFlutter() {
     var packageFolder = _addFiles('flutter');
@@ -116,23 +116,6 @@ mixin MockPackagesMixin<T extends ResourceProvider> {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
-  /// Convert the given posix [path] to conform to this provider's path context.
-  ///
-  /// This is a utility method for testing; paths passed in to other methods in
-  /// this class are never converted automatically.
-  String convertPath(String inputPath) {
-    // TODO(dantup): Copied from MemoryResourceProvider so it can be used by
-    //  shared code that's also used in integration tests.
-    if (pathContext.style == path.windows.style) {
-      if (inputPath.startsWith(path.posix.separator)) {
-        inputPath = r'C:' + inputPath;
-      }
-      inputPath =
-          inputPath.replaceAll(path.posix.separator, path.windows.separator);
-    }
-    return inputPath;
-  }
-
   /// Add files of the given [packageName] to the [provider].
   Folder _addFiles(String packageName) {
     var cachedFiles = _cachedFiles;
@@ -147,13 +130,14 @@ mixin MockPackagesMixin<T extends ResourceProvider> {
       var relativePathComponents = relativePosixPath.split('/');
       if (relativePathComponents[0] == packageName) {
         var relativePath = pathContext.joinAll(relativePathComponents);
-        var path = convertPath('$packagesRootPath/$relativePath');
+        var path =
+            resourceProvider.convertPath('$packagesRootPath/$relativePath');
         resourceProvider.getFile(path).writeAsStringSync(entry.value);
       }
     }
 
-    var packagesFolder =
-        resourceProvider.getFolder(convertPath(packagesRootPath));
+    var packagesFolder = resourceProvider
+        .getFolder(resourceProvider.convertPath(packagesRootPath));
     return packagesFolder.getChildAssumingFolder(packageName);
   }
 }

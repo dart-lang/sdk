@@ -27,7 +27,7 @@ class ContextTypeTest extends FeatureComputerTest {
     if (expectedType == null) {
       expect(type, null);
     } else {
-      expect(type?.getDisplayString(withNullability: false), expectedType);
+      expect(type?.getDisplayString(), expectedType);
     }
   }
 

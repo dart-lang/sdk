@@ -59,6 +59,12 @@ class PhysicalResourceProvider implements ResourceProvider {
   }
 
   @override
+  Link getLink(String path) {
+    _ensureAbsoluteAndNormalized(path);
+    return _PhysicalLink(io.Link(path));
+  }
+
+  @override
   Resource getResource(String path) {
     _ensureAbsoluteAndNormalized(path);
     if (io.FileSystemEntity.isDirectorySync(path)) {
@@ -327,6 +333,27 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
       events.transform(_exceptionTransformer),
       () => watcher.ready,
     );
+  }
+}
+
+/// A `dart:io` based implementation of [Link].
+class _PhysicalLink implements Link {
+  final io.Link _link;
+
+  _PhysicalLink(this._link);
+
+  @override
+  bool get exists {
+    try {
+      return _link.existsSync();
+    } on FileSystemException {
+      return false;
+    }
+  }
+
+  @override
+  void create(String target) {
+    _link.createSync(target, recursive: true);
   }
 }
 

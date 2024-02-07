@@ -7,6 +7,7 @@ library compiler.src.inferrer.type_graph_nodes;
 import 'dart:collection' show IterableBase;
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
@@ -748,6 +749,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
 class GenerativeConstructorTypeInformation extends MemberTypeInformation {
   @override
   final FunctionEntity _member;
+  AbstractValue? _baseType;
 
   GenerativeConstructorTypeInformation(
       AbstractValueDomain abstractValueDomain, this._member)
@@ -761,12 +763,14 @@ class GenerativeConstructorTypeInformation extends MemberTypeInformation {
   @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    return mask;
-  }
-
-  @override
-  bool hasStableType(InferrerEngine inferrer) {
-    return super.hasStableType(inferrer);
+    final cls = _member.enclosingClass!;
+    return _narrowType(
+      inferrer.abstractValueDomain,
+      mask,
+      _baseType ??= cls.isAbstract
+          ? inferrer.abstractValueDomain.createNonNullSubclass(cls)
+          : inferrer.abstractValueDomain.createNonNullExact(cls),
+    );
   }
 }
 
@@ -1908,7 +1912,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
       String keyString = key.asString();
       typeInfoMap.putIfAbsent(keyString, () {
         newInfo = ValueInMapTypeInformation(
-            abstractValueDomain, context, null, nonNull);
+            abstractValueDomain, context, null, valueType.staticType, nonNull);
         return newInfo!;
       });
       typeInfoMap[keyString]!.addInput(value);
@@ -1930,7 +1934,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
       other.typeInfoMap.forEach((keyString, value) {
         typeInfoMap.putIfAbsent(keyString, () {
           final newInfo = ValueInMapTypeInformation(
-              abstractValueDomain, context, null, false);
+              abstractValueDomain, context, null, valueType.staticType, false);
           newInfos.add(newInfo);
           return newInfo;
         });
@@ -2046,12 +2050,20 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
 /// A [KeyInMapTypeInformation] holds the common type
 /// for the keys in a [MapTypeInformation]
 class KeyInMapTypeInformation extends InferredTypeInformation {
+  final AbstractValue staticType;
+
   KeyInMapTypeInformation(
-      super.abstractValueDomain, super.context, TypeInformation super.keyType);
+      super.abstractValueDomain, super.context, super.keyType, this.staticType);
 
   @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitKeyInMapTypeInformation(this);
+  }
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) {
+    return inferrer.abstractValueDomain
+        .intersection(super.computeType(inferrer), staticType);
   }
 
   @override
@@ -2065,9 +2077,10 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
   // Note that only values assigned to a specific key value in dictionary
   // mode can ever be marked as [nonNull].
   bool get nonNull => _flags.hasFlag(_Flag.valueInMapNonNull);
+  final AbstractValue staticType;
 
-  ValueInMapTypeInformation(
-      super.abstractValueDomain, super.context, super.valueType,
+  ValueInMapTypeInformation(super.abstractValueDomain, super.context,
+      super.valueType, this.staticType,
       [bool nonNull = false]) {
     _flags = _flags.updateFlag(_Flag.valueInMapNonNull, nonNull);
   }
@@ -2079,9 +2092,11 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
+    final valueType = inferrer.abstractValueDomain
+        .intersection(super.computeType(inferrer), staticType);
     return nonNull
-        ? super.computeType(inferrer)
-        : inferrer.abstractValueDomain.includeNull(super.computeType(inferrer));
+        ? valueType
+        : inferrer.abstractValueDomain.includeNull(valueType);
   }
 
   @override
@@ -2308,20 +2323,25 @@ mixin TracedTypeInformation implements TypeInformation {
 class AwaitTypeInformation extends TypeInformation {
   final ir.AwaitExpression _node;
 
+  AbstractValue? _computedType;
+
   AwaitTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, this._node)
+      MemberTypeInformation context, this._node)
       : super(abstractValueDomain.uncomputedType, context);
 
-  @override
-  AbstractValue computeType(InferrerEngine inferrer) {
+  AbstractValue _computeType(InferrerEngine inferrer) {
     final elementMap = inferrer.closedWorld.elementMap;
-    final staticTypeProvider =
-        elementMap.getStaticTypeProvider(context!.member);
-    final staticType =
-        elementMap.getDartType(staticTypeProvider.getStaticType(_node));
+    final staticType = elementMap.getDartType(_node.getStaticType(
+        ir.StaticTypeContext(elementMap.getMemberContextNode(contextMember!)!,
+            elementMap.typeEnvironment)));
     return inferrer.abstractValueDomain
         .createFromStaticType(staticType, nullable: true)
         .abstractValue;
+  }
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) {
+    return _computedType ??= _computeType(inferrer);
   }
 
   String get debugName => '$_node';

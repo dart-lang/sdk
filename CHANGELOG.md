@@ -39,6 +39,29 @@
 
 [#54138]: https://github.com/dart-lang/sdk/issues/54138
 
+#### `dart:typed_data`
+
+- **BREAKING CHANGE** [#53218][] [#53785][]: The unmodifiable view classes for
+  typed data are deprecated.
+
+  To create an unmodifiable view of a typed-data object, use the
+  `asUnmodifiableView()` methods added in Dart 3.3:
+
+  ```dart
+  Uint8List data = ...;
+  final readOnlyView = data.asUnmodifiableView();
+  // readOnlyView has type Uint8List, and throws if attempted modified.
+  ```
+
+  The reason for this change is to allow more flexibility in the implementation
+  of typed data, so the native and web platforms can use different strategies
+  to ensure that typed data has good performance.
+
+  The deprecated types will be removed in Dart 3.5.
+
+[#53218]: https://github.com/dart-lang/sdk/issues/53218
+[#53785]: https://github.com/dart-lang/sdk/issues/53785
+
 ## 3.3.0
 
 ### Language

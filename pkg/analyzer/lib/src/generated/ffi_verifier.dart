@@ -646,8 +646,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   bool _extendsNativeFieldWrapperClass1(InterfaceType? type) {
     while (type != null) {
-      if (type.getDisplayString(withNullability: false) ==
-          'NativeFieldWrapperClass1') {
+      if (type.getDisplayString() == 'NativeFieldWrapperClass1') {
         return true;
       }
       final element = type.element;
@@ -1349,10 +1348,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           _errorReporter.atNode(
             node,
             FfiCode.EMPTY_STRUCT,
-            arguments: [
-              clazz.name,
-              clazz.supertype!.getDisplayString(withNullability: false)
-            ],
+            arguments: [clazz.name, clazz.supertype!.getDisplayString()],
           );
         }
       } else {

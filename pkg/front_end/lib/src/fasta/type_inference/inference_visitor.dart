@@ -11,8 +11,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide NamedType, RecordType;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/stack_checker.dart';
@@ -1895,8 +1893,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitIfNullExpression(
       IfNullExpression node, DartType typeContext) {
-    // To infer `e0 ?? e1` in context K:
-    // - Infer e0 in context K to get T0
+    // To infer `e0 ?? e1` in context `K`:
+    // - Infer `e0` in context `K?` to get `T0`
     ExpressionInferenceResult lhsResult = inferExpression(
         node.left, computeNullable(typeContext),
         isVoidAllowed: false);
@@ -1908,8 +1906,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     flowAnalysis.ifNullExpression_rightBegin(node.left, lhsResult.inferredType);
 
-    // - Let J = T0 if K is `?` else K.
-    // - Infer e1 in context J to get T1
+    // - Let `J = T0` if `K` is `_`, otherwise `K`.
+    // - Infer `e1` in context `J` to get `T1`
     ExpressionInferenceResult rhsResult;
     if (typeContext is UnknownType) {
       rhsResult = inferExpression(node.right, lhsResult.inferredType,
@@ -1919,9 +1917,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     flowAnalysis.ifNullExpression_end();
 
-    // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
-    //   UP(t0, t1)
-    // - Then the inferred type is T.
+    // - Then the inferred type is UP(NonNull(T0), T1).
     DartType originalLhsType = lhsResult.inferredType;
     DartType nonNullableLhsType = originalLhsType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
@@ -8631,8 +8627,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     DartType? promotedType;
-    if (isNonNullableByDefault &&
-        !libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled) {
+    if (isNonNullableByDefault) {
       promotedType = flowAnalysis.promotedType(variable);
     }
     ExpressionInferenceResult rhsResult = inferExpression(
@@ -9506,8 +9501,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (node is MapPattern) {
       return analyzeMapPatternSchema(
           typeArguments: node.keyType != null && node.valueType != null
-              ? new MapPatternTypeArguments<DartType>(
-                  keyType: node.keyType!, valueType: node.valueType!)
+              ? (keyType: node.keyType!, valueType: node.valueType!)
               : null,
           elements: node.entries);
     } else if (node is NamedPattern) {
@@ -10677,12 +10671,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType matchedValueType =
         node.matchedValueType = flow.getMatchedValueType();
 
-    MapPatternTypeArguments<DartType>? typeArguments =
+    ({DartType keyType, DartType valueType})? typeArguments =
         node.keyType == null && node.valueType == null
             ? null
-            : new MapPatternTypeArguments<DartType>(
+            : (
                 keyType: node.keyType ?? const DynamicType(),
-                valueType: node.valueType ?? const DynamicType());
+                valueType: node.valueType ?? const DynamicType()
+              );
     MapPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeMapPattern(context, node,
             typeArguments: typeArguments, elements: node.entries);

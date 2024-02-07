@@ -809,7 +809,7 @@ class SuggestionBuilder {
       required bool appendComma,
       int? replacementLength}) {
     var name = parameter.name;
-    var type = parameter.type.getDisplayString(withNullability: true);
+    var type = parameter.type.getDisplayString();
 
     var completion = name;
     if (appendColon) {
@@ -828,9 +828,8 @@ class SuggestionBuilder {
                 request.resourceProvider.getFile(request.path));
         var codeStyleOptions = analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.
-        var defaultValue = getDefaultStringParameterValue(
-            parameter, codeStyleOptions,
-            withNullability: false);
+        var defaultValue =
+            getDefaultStringParameterValue(parameter, codeStyleOptions);
         // TODO(devoncarew): Should we remove the check here? We would then
         // suggest values for param types like closures.
         if (defaultValue != null && defaultValue.text == '[]') {
@@ -869,7 +868,7 @@ class SuggestionBuilder {
         elementLocation: parameter.location);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
-      suggestion.element = convertElement(parameter, withNullability: true);
+      suggestion.element = convertElement(parameter);
     }
 
     _addSuggestion(suggestion);
@@ -884,9 +883,7 @@ class SuggestionBuilder {
       required bool appendComma,
       int? replacementLength}) {
     final name = field.name;
-    final type = field.type.getDisplayString(
-      withNullability: true,
-    );
+    final type = field.type.getDisplayString();
 
     var completion = name;
     if (appendColon) {
@@ -973,8 +970,7 @@ class SuggestionBuilder {
         displayText: displayText,
         elementLocation: element.location,
         requiredImports: overrideImports.toList());
-    suggestion.element =
-        protocol.convertElement(element, withNullability: true);
+    suggestion.element = protocol.convertElement(element);
     _addSuggestion(
       suggestion,
       textToMatchOverride: _textToMatchOverride(element),
@@ -1039,9 +1035,7 @@ class SuggestionBuilder {
       contextType: contextType,
     );
 
-    final returnType = field.type.getDisplayString(
-      withNullability: true,
-    );
+    final returnType = field.type.getDisplayString();
 
     _addSuggestion(
       CompletionSuggestion(
@@ -1457,10 +1451,7 @@ class SuggestionBuilder {
   _ElementCompletionData _createElementCompletionData(Element element) {
     var documentation = _getDocumentation(element);
 
-    var suggestedElement = protocol.convertElement(
-      element,
-      withNullability: true,
-    );
+    var suggestedElement = protocol.convertElement(element);
 
     var enclosingElement = element.enclosingElement;
 
@@ -1469,10 +1460,7 @@ class SuggestionBuilder {
       declaringType = enclosingElement.displayName;
     }
 
-    var returnType = getReturnTypeString(
-      element,
-      withNullability: true,
-    );
+    var returnType = getReturnTypeString(element);
 
     List<String>? parameterNames;
     List<String>? parameterTypes;
@@ -1484,9 +1472,7 @@ class SuggestionBuilder {
         return parameter.name;
       }).toList();
       parameterTypes = element.parameters.map((ParameterElement parameter) {
-        return parameter.type.getDisplayString(
-          withNullability: true,
-        );
+        return parameter.type.getDisplayString();
       }).toList();
 
       var requiredParameters = element.parameters

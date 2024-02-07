@@ -218,7 +218,7 @@ class ElementPrinter {
   }
 
   String _typeStr(DartType type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 
   void _writeAugmentationImportElement(AugmentationImportElement element) {

@@ -5830,7 +5830,7 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   }
 
   static String _typeStr(DartType type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 }
 

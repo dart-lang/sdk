@@ -269,7 +269,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         type ??= variable.initializer?.staticType;
 
         if (type != null) {
-          types.add(type.getDisplayString(withNullability: true));
+          types.add(type.getDisplayString());
         }
       }
     }

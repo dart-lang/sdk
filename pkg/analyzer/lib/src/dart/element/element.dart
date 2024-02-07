@@ -2414,11 +2414,11 @@ abstract class ElementImpl implements Element {
 
   @override
   String getDisplayString({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
     bool multiline = false,
   }) {
     var builder = ElementDisplayStringBuilder(
-      withNullability: withNullability,
       multiline: multiline,
     );
     appendTo(builder);
@@ -2484,7 +2484,7 @@ abstract class ElementImpl implements Element {
 
   @override
   String toString() {
-    return getDisplayString(withNullability: true);
+    return getDisplayString();
   }
 
   /// Use the given [visitor] to visit all of the children of this element.
@@ -5514,13 +5514,12 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   String getDisplayString({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
     bool multiline = false,
   }) {
     var elementsStr = conflictingElements.map((e) {
-      return e.getDisplayString(
-        withNullability: withNullability,
-      );
+      return e.getDisplayString();
     }).join(', ');
     return '[$elementsStr]';
   }
@@ -5565,7 +5564,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
           needsSeparator = true;
         }
         buffer.write(
-          element.getDisplayString(withNullability: true),
+          element.getDisplayString(),
         );
       }
     }
@@ -5983,10 +5982,12 @@ mixin ParameterElementMixin implements ParameterElement {
   @override
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
-    bool withNullability = false,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
   }) {
     buffer.write(
       type.getDisplayString(
+        // ignore:deprecated_member_use_from_same_package
         withNullability: withNullability,
       ),
     );

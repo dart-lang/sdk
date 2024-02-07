@@ -84,8 +84,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     String? typeString;
     if (codeStyleOptions.specifyTypes) {
       typeString = singleExpression != null
-          ? singleExpression?.staticType
-              ?.getDisplayString(withNullability: true)
+          ? singleExpression?.staticType?.getDisplayString()
           : stringLiteralPart != null
               ? 'String'
               : null;

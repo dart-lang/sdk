@@ -152,6 +152,42 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dartDocPreference_unset() =>
       assertDocumentation(null, includesSummary: true, includesFull: true);
 
+  Future<void> test_enum_member() async {
+    final content = '''
+enum MyEnum { one }
+
+void f() {
+  MyEnum.[!o^ne!];
+}
+''';
+    final expected = '''
+```dart
+MyEnum one
+```
+Type: `MyEnum`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_enum_values() async {
+    final content = '''
+enum MyEnum { one }
+
+void f() {
+  MyEnum.[!va^lues!];
+}
+''';
+    final expected = '''
+```dart
+List<MyEnum> get values
+```
+Type: `List<MyEnum>`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_forLoop_declaredVariable() async {
     final content = '''
 void f() {

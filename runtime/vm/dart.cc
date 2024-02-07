@@ -676,6 +676,8 @@ char* Dart::Cleanup() {
     }
   }
 
+  Isolate::KillAllSystemIsolates(Isolate::kInternalKillMsg);
+
   // Shutdown the kernel isolate.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down kernel isolate\n",

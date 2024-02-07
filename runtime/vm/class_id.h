@@ -433,7 +433,7 @@ inline bool ShouldHaveImmutabilityBitSet(intptr_t index) {
          index == kFloat32x4Cid || index == kFloat64x2Cid ||
          index == kInt32x4Cid || index == kSendPortCid ||
          index == kCapabilityCid || index == kRegExpCid || index == kBoolCid ||
-         index == kNullCid;
+         index == kNullCid || index == kPointerCid;
 }
 
 inline bool IsFfiTypeClassId(intptr_t index) {

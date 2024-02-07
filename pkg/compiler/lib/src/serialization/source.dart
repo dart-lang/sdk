@@ -843,18 +843,6 @@ class DataSourceReader {
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
         return ir.InterfaceType(cls, nullability, typeArguments);
-      case DartTypeNodeKind.thisInterfaceType:
-        ir.Class cls = readClassNode();
-        ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments =
-            _readDartTypeNodes(functionTypeVariables);
-        return ThisInterfaceType(cls, nullability, typeArguments);
-      case DartTypeNodeKind.exactInterfaceType:
-        ir.Class cls = readClassNode();
-        ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments =
-            _readDartTypeNodes(functionTypeVariables);
-        return ExactInterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.recordType:
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> positional =

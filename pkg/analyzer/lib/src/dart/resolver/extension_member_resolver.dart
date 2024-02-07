@@ -117,8 +117,7 @@ class ExtensionMemberResolver {
               if (name != null) {
                 return "extension '$name'";
               }
-              var type = e.extension.extendedType
-                  .getDisplayString(withNullability: true);
+              var type = e.extension.extendedType.getDisplayString();
               return "unnamed extension on '$type'";
             }).commaSeparatedWithAnd,
           ],

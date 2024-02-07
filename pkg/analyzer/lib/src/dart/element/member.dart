@@ -704,11 +704,11 @@ abstract class Member implements Element {
 
   @override
   String getDisplayString({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
     bool multiline = false,
   }) {
     var builder = ElementDisplayStringBuilder(
-      withNullability: withNullability,
       multiline: multiline,
     );
     appendTo(builder);
@@ -736,7 +736,7 @@ abstract class Member implements Element {
 
   @override
   String toString() {
-    return getDisplayString(withNullability: false);
+    return getDisplayString();
   }
 
   /// Use the given [visitor] to visit all of the children of this element.

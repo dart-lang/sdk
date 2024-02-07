@@ -8,6 +8,7 @@ import 'package:js_runtime/synced/embedded_names.dart';
 import 'package:js_shared/synced/embedded_names.dart'
     show JsBuiltin, JsGetName, TYPES;
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
@@ -25,8 +26,6 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
-import '../ir/static_type.dart';
-import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show FunctionInlineCache;
@@ -77,7 +76,7 @@ class StackFrame {
   final Map<ir.VariableDeclaration, HInstruction> letBindings;
   final KernelToTypeInferenceMap typeInferenceMap;
   final SourceInformationBuilder sourceInformationBuilder;
-  final StaticTypeProvider? staticTypeProvider;
+  final ir.StaticTypeContext? staticTypeContext;
 
   StackFrame(
       this.parent,
@@ -87,7 +86,7 @@ class StackFrame {
       this.letBindings,
       this.typeInferenceMap,
       this.sourceInformationBuilder,
-      this.staticTypeProvider);
+      this.staticTypeContext);
 }
 
 class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
@@ -376,21 +375,18 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     open(newBlock);
   }
 
-  StaticType _getStaticType(ir.Expression node) {
+  DartType _getStaticType(ir.Expression node) {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
-    ir.DartType type = _currentFrame!.staticTypeProvider!.getStaticType(node);
-    return StaticType(
-        _elementMap.getDartType(type), computeClassRelationFromType(type));
+    ir.DartType type = node.getStaticType(_currentFrame!.staticTypeContext!);
+    return _elementMap.getDartType(type);
   }
 
-  StaticType _getStaticForInIteratorType(ir.ForInStatement node) {
+  DartType _getStaticForInIteratorType(ir.ForInStatement node) {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
-    ir.DartType type =
-        _currentFrame!.staticTypeProvider!.getForInIteratorType(node);
-    return StaticType(
-        _elementMap.getDartType(type), computeClassRelationFromType(type));
+    ir.DartType type = node.getIteratorType(_currentFrame!.staticTypeContext!);
+    return _elementMap.getDartType(type);
   }
 
   static MemberEntity _effectiveTargetElementFor(MemberEntity member) {
@@ -405,6 +401,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (function != null) {
       asyncMarker = getAsyncMarker(function);
     }
+    final elementMap = closedWorld.elementMap;
+    final memberNode = elementMap.getMemberContextNode(member);
     _currentFrame = StackFrame(
         _currentFrame,
         member,
@@ -416,7 +414,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
             ? _currentFrame!.sourceInformationBuilder
                 .forContext(member, callSourceInformation)
             : _sourceInformationStrategy.createBuilderForContext(member),
-        _elementMap.getStaticTypeProvider(member));
+        memberNode != null
+            ? ir.StaticTypeContext(memberNode, elementMap.typeEnvironment,
+                cache: ir.StaticTypeCacheImpl())
+            : null);
   }
 
   void _leaveFrame() {
@@ -2403,7 +2404,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     // The iterator is shared between initializer, condition and body.
     late final HInstruction iterator;
-    StaticType iteratorType = _getStaticForInIteratorType(node);
+    final iteratorType = _getStaticForInIteratorType(node);
 
     void buildInitializer() {
       final receiverType = _typeInferenceMap.typeOfIterator(node);
@@ -2477,9 +2478,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     final instanceType =
         localsHandler.substInContext(dartTypes.interfaceType(cls, [typeArg]))
             as InterfaceType;
-    // TODO(johnniwinther): This should be the exact type.
-    StaticType staticInstanceType =
-        StaticType(instanceType, ClassRelation.subtype);
     _addImplicitInstantiation(instanceType);
     final sourceInformation =
         _sourceInformationBuilder.buildForInIterator(node);
@@ -2501,7 +2499,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final receiverType = _typeInferenceMap.typeOfIteratorMoveNext(node);
       _pushDynamicInvocation(
           node,
-          staticInstanceType,
+          instanceType,
           receiverType,
           Selectors.moveNext,
           [streamIterator],
@@ -2516,7 +2514,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final receiverType = _typeInferenceMap.typeOfIteratorCurrent(node);
       _pushDynamicInvocation(
           node,
-          staticInstanceType,
+          instanceType,
           receiverType,
           Selectors.current,
           [streamIterator],
@@ -2546,7 +2544,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     void finalizerFunction() {
       _pushDynamicInvocation(
           node,
-          staticInstanceType,
+          instanceType,
           null,
           Selectors.cancel,
           [streamIterator],
@@ -2785,15 +2783,15 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     bool isNullRemovalPattern = false;
 
-    StaticType operandType = _getStaticType(operand);
+    final operandType = _getStaticType(operand);
     DartType type = _elementMap.getDartType(node.type);
     if (!options.experimentNullSafetyChecks && !node.isCovarianceCheck) {
-      if (_elementMap.types.isSubtype(operandType.type, type)) {
+      if (_elementMap.types.isSubtype(operandType, type)) {
         // Skip unneeded casts.
         return;
       }
       if (_elementMap.types
-          .isSubtype(operandType.type, _elementMap.types.nullableType(type))) {
+          .isSubtype(operandType, _elementMap.types.nullableType(type))) {
         isNullRemovalPattern = true;
       }
     }
@@ -3774,7 +3772,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (_recordData.representationForShape(shape) != null) {
       final recordType = _typeInferenceMap.receiverTypeOfGet(node) ??
           _abstractValueDomain
-              .createFromStaticType(_getStaticType(node).type, nullable: true)
+              .createFromStaticType(_getStaticType(node), nullable: true)
               .abstractValue;
       final fieldType = _abstractValueDomain.getGetterTypeInRecord(
           recordType, shape.getterNameOfIndex(indexInShape));
@@ -4584,11 +4582,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     Selector selector =
         Selector.callClosure(0, const <String>[], typeArguments.length);
-    StaticType receiverStaticType =
+    final receiverStaticType =
         _getStaticType(invocation.arguments.positional[1]);
     AbstractValue receiverType = _abstractValueDomain
-        .createFromStaticType(receiverStaticType.type,
-            classRelation: receiverStaticType.relation, nullable: true)
+        .createFromStaticType(receiverStaticType, nullable: true)
         .abstractValue;
     push(HInvokeClosure(selector, receiverType, inputs,
         _abstractValueDomain.dynamicType, typeArguments));
@@ -5314,7 +5311,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (options.nativeNullAssertions &&
         nodeIsInWebLibrary(invocation) &&
         closedWorld.dartTypes
-            .isNonNullableIfSound(_getStaticType(invocation).type)) {
+            .isNonNullableIfSound(_getStaticType(invocation))) {
       HInstruction code = pop();
       push(HNullCheck(
           code, _abstractValueDomain.excludeNull(code.instructionType),
@@ -5530,15 +5527,14 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
   void _pushDynamicInvocation(
       ir.Node node,
-      StaticType staticReceiverType,
+      DartType staticReceiverType,
       AbstractValue? receiverType,
       Selector selector,
       List<HInstruction> arguments,
       List<DartType> typeArguments,
       SourceInformation? sourceInformation) {
     AbstractValue typeBound = _abstractValueDomain
-        .createFromStaticType(staticReceiverType.type,
-            classRelation: staticReceiverType.relation, nullable: true)
+        .createFromStaticType(staticReceiverType, nullable: true)
         .abstractValue;
     receiverType = receiverType == null
         ? typeBound
@@ -5772,8 +5768,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     FunctionEntity target =
         _commonElements.getInstantiateFunction(typeArgumentCount);
 
-    StaticType expressionType = _getStaticType(node.expression);
-    final functionType = expressionType.type.withoutNullability as FunctionType;
+    final expressionType = _getStaticType(node.expression);
+    final functionType = expressionType.withoutNullability as FunctionType;
     bool typeArgumentsNeeded = _rtiNeed.methodNeedsTypeArguments(target);
 
     List<DartType> typeArguments = node.typeArguments
@@ -5863,8 +5859,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
     _pushDynamicInvocation(
         node,
-        StaticType(_elementMap.getDartType(node.variable.type),
-            computeClassRelationFromType(node.variable.type)),
+        _elementMap.getDartType(node.variable.type),
         _typeInferenceMap.receiverTypeOfInvocation(node, _abstractValueDomain),
         selector,
         [
@@ -7322,27 +7317,6 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
       switchIndex++;
     }
   }
-}
-
-class StaticType {
-  final DartType type;
-  final ClassRelation relation;
-
-  StaticType(this.type, this.relation);
-
-  @override
-  int get hashCode => type.hashCode * 13 + relation.hashCode * 19;
-
-  @override
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    return other is StaticType &&
-        type == other.type &&
-        relation == other.relation;
-  }
-
-  @override
-  String toString() => 'StaticType($type,$relation)';
 }
 
 class InlineData {

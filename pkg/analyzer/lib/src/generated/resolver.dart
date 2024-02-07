@@ -709,9 +709,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             }
             var propertyType = whyNotPromotedVisitor.propertyType;
             if (propertyType != null) {
-              var propertyTypeStr = propertyType.getDisplayString(
-                withNullability: true,
-              );
+              var propertyTypeStr = propertyType.getDisplayString();
               args.add('type: $propertyTypeStr');
             }
             if (args.isNotEmpty) {
@@ -1464,14 +1462,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required MapPatternImpl node,
     required SharedMatchContext context,
   }) {
-    shared.MapPatternTypeArguments<DartType>? typeArguments;
+    ({DartType keyType, DartType valueType})? typeArguments;
     var typeArgumentsList = node.typeArguments;
     if (typeArgumentsList != null) {
       typeArgumentsList.accept(this);
       // Check that we have exactly two type arguments.
       var length = typeArgumentsList.arguments.length;
       if (length == 2) {
-        typeArguments = shared.MapPatternTypeArguments(
+        typeArguments = (
           keyType: typeArgumentsList.arguments[0].typeOrThrow,
           valueType: typeArgumentsList.arguments[1].typeOrThrow,
         );
@@ -3944,8 +3942,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (name == null) {
         var staticElement = nameNode.staticElement;
         if (staticElement != null) {
-          name =
-              '${staticElement.returnType.getDisplayString(withNullability: true)}.new';
+          name = '${staticElement.returnType.getDisplayString()}.new';
         }
       }
     } else if (nameNode is SuperConstructorInvocation) {
@@ -3953,8 +3950,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (name == null) {
         var staticElement = nameNode.staticElement;
         if (staticElement != null) {
-          name =
-              '${staticElement.returnType.getDisplayString(withNullability: true)}.new';
+          name = '${staticElement.returnType.getDisplayString()}.new';
         }
       }
     } else if (nameNode is MethodInvocation) {
@@ -3968,11 +3964,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var parent = nameNode.parent;
       if (parent is EnumConstantDeclaration) {
         var declaredElement = parent.declaredElement!;
-        name = declaredElement.type.getDisplayString(withNullability: true);
+        name = declaredElement.type.getDisplayString();
       }
     } else if (nameNode is EnumConstantDeclaration) {
       var declaredElement = nameNode.declaredElement!;
-      name = declaredElement.type.getDisplayString(withNullability: true);
+      name = declaredElement.type.getDisplayString();
     } else if (nameNode is Annotation) {
       var nameNodeName = nameNode.name;
       name = nameNodeName is PrefixedIdentifier

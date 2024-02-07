@@ -745,7 +745,8 @@ abstract class Element implements AnalysisTarget {
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
   String getDisplayString({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
     bool multiline = false,
   });
 
@@ -2198,7 +2199,8 @@ abstract class ParameterElement
   /// to the given [buffer].
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
-    bool withNullability = false,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
   });
 }
 

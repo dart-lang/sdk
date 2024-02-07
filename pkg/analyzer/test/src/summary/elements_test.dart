@@ -47915,13 +47915,13 @@ library
   }
 
   void _assertTypeStr(DartType type, String expected) {
-    var typeStr = type.getDisplayString(withNullability: true);
+    var typeStr = type.getDisplayString();
     expect(typeStr, expected);
   }
 
   void _assertTypeStrings(List<DartType> types, List<String> expected) {
     var typeStringList = types.map((e) {
-      return e.getDisplayString(withNullability: true);
+      return e.getDisplayString();
     }).toList();
     expect(typeStringList, expected);
   }

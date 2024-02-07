@@ -946,7 +946,7 @@ class LowerBoundTest extends _BoundsTestBase {
           requiredParameter(type: T),
         ]),
       );
-      expect(result.getDisplayString(withNullability: true), str);
+      expect(result.getDisplayString(), str);
       return result;
     }
 

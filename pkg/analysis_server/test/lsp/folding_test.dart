@@ -142,6 +142,25 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     });
   }
 
+  Future<void> test_forLoop() async {
+    final content = '''
+void f() {
+  for (int i = 0; i < 1; i++) /*[0*/{
+    ;
+  }/*0]*/
+
+  for (int i = 0; i < 1; i++) {}
+
+  for (int i = 0; i < 1; i++);
+}
+    ''';
+
+    await computeRanges(content);
+    expectRangesContain({
+      0: noFoldingKind,
+    });
+  }
+
   Future<void> test_fromPlugins_dartFile() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.dart');
     final pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
@@ -194,6 +213,21 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     );
     expectRanges({
       0: noFoldingKind, // From plugin
+    });
+  }
+
+  Future<void> test_functionExpression() async {
+    final content = '''
+var x = () /*[0*/{
+  ;
+  ;
+  ;
+}/*0]*/;
+    ''';
+
+    await computeRanges(content);
+    expectRangesContain({
+      0: noFoldingKind,
     });
   }
 

@@ -62,8 +62,10 @@ class DartUnitHoverComputer {
       // element
       var element = ElementLocator.locate(node);
       if (element != null) {
-        // variable, if synthetic accessor
-        if (element is PropertyAccessorElement) {
+        // use the non-synthetic element to get things like dartdoc from the
+        // underlying field (and resolved type args), except for `enum.values`
+        // because that will resolve to the enum itself.
+        if (_useNonSyntheticElement(element)) {
           element = element.nonSynthetic;
         }
         // description
@@ -109,7 +111,6 @@ class DartUnitHoverComputer {
   /// whether they are const).
   String? _elementDisplayString(AstNode node, Element? element) {
     var displayString = element?.getDisplayString(
-      withNullability: true,
       multiline: true,
     );
 
@@ -252,7 +253,21 @@ class DartUnitHoverComputer {
     } else if (node is DartPattern) {
       staticType = node.matchedValueType;
     }
-    return staticType?.getDisplayString(withNullability: true);
+    return staticType?.getDisplayString();
+  }
+
+  /// Whether to use the non-synthetic element for hover information.
+  ///
+  /// Usually we want this because the non-synthetic element will include the
+  /// users DartDoc and show any type arguments as declared.
+  ///
+  /// For enum.values, nonSynthetic returns the enum itself which causes
+  /// incorrect types to be shown and so we stick with the synthetic getter.
+  bool _useNonSyntheticElement(Element element) {
+    return element is PropertyAccessorElement &&
+        !(element.enclosingElement is EnumElement &&
+            element.name == 'values' &&
+            element.isSynthetic);
   }
 
   static Documentation? computeDocumentation(

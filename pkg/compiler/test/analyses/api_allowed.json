@@ -15,6 +15,7 @@
     "Dynamic access of 'attributes'.": 1,
     "Dynamic invocation of '[]'.": 1,
     "Dynamic invocation of 'call'.": 2,
+    "Dynamic invocation of 'toList'.": 1,
     "Dynamic invocation of 'toLowerCase'.": 1
   }
 }

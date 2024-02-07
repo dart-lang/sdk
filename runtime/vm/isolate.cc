@@ -3571,11 +3571,14 @@ void Isolate::KillLocked(LibMsgId msg_id) {
 
 class IsolateKillerVisitor : public IsolateVisitor {
  public:
-  explicit IsolateKillerVisitor(Isolate::LibMsgId msg_id)
-      : target_(nullptr), msg_id_(msg_id) {}
+  IsolateKillerVisitor(Isolate::LibMsgId msg_id,
+                       bool kill_system_isolates = false)
+      : target_(nullptr),
+        msg_id_(msg_id),
+        kill_system_isolates_(kill_system_isolates) {}
 
   IsolateKillerVisitor(Isolate* isolate, Isolate::LibMsgId msg_id)
-      : target_(isolate), msg_id_(msg_id) {
+      : target_(isolate), msg_id_(msg_id), kill_system_isolates_(false) {
     ASSERT(isolate != Dart::vm_isolate());
   }
 
@@ -3593,6 +3596,11 @@ class IsolateKillerVisitor : public IsolateVisitor {
 
  private:
   bool ShouldKill(Isolate* isolate) {
+    if (kill_system_isolates_) {
+      ASSERT(target_ == nullptr);
+      // Don't kill the service isolate or vm isolate.
+      return IsSystemIsolate(isolate) && !Isolate::IsVMInternalIsolate(isolate);
+    }
     // If a target_ is specified, then only kill the target_.
     // Otherwise, don't kill the service isolate or vm isolate.
     return (((target_ != nullptr) && (isolate == target_)) ||
@@ -3601,10 +3609,16 @@ class IsolateKillerVisitor : public IsolateVisitor {
 
   Isolate* target_;
   Isolate::LibMsgId msg_id_;
+  bool kill_system_isolates_;
 };
 
 void Isolate::KillAllIsolates(LibMsgId msg_id) {
   IsolateKillerVisitor visitor(msg_id);
+  VisitIsolates(&visitor);
+}
+
+void Isolate::KillAllSystemIsolates(LibMsgId msg_id) {
+  IsolateKillerVisitor visitor(msg_id, /*kill_system_isolates=*/true);
   VisitIsolates(&visitor);
 }
 

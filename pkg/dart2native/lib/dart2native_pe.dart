@@ -323,6 +323,9 @@ class PortableExecutable {
 
 // Writes an "appended" dart runtime + script snapshot file in a format
 // compatible with Portable Executable files.
+//
+// WARNING: this method is used within google3, so don't try to refactor so
+// [dartaotruntimePath] is a constant inside this file.
 Future writeAppendedPortableExecutable(
     String dartaotruntimePath, String payloadPath, String outputPath) async {
   File originalExecutableFile = File(dartaotruntimePath);

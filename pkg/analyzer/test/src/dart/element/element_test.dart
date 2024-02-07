@@ -945,7 +945,7 @@ enum B {B1, B2, B3}
 @reflectiveTest
 class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void assertType(DartType type, String expected) {
-    var typeStr = type.getDisplayString(withNullability: false);
+    var typeStr = type.getDisplayString();
     expect(typeStr, expected);
   }
 
@@ -1085,9 +1085,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
   void test_allSupertypes() {
     void check(InterfaceType type, List<String> expected) {
       var actual = type.allSupertypes.map((e) {
-        return e.getDisplayString(
-          withNullability: true,
-        );
+        return e.getDisplayString();
       }).toList()
         ..sort();
       expect(actual, expected);
@@ -1900,7 +1898,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   ) {
     var result = (type as TypeImpl).asInstanceOf(element);
     expect(
-      result?.getDisplayString(withNullability: true),
+      result?.getDisplayString(),
       expected,
     );
   }

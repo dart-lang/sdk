@@ -85,7 +85,7 @@ typedef NotificationProcessor = void Function(
 
 /// Base class for analysis server integration tests.
 abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
-    with MockPackagesMixin<PhysicalResourceProvider>, ConfigurationFilesMixin {
+    with MockPackagesMixin, ConfigurationFilesMixin {
   /// Amount of time to give the server to respond to a shutdown request before
   /// forcibly terminating it.
   static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 60);

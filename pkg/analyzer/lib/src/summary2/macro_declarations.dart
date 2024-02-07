@@ -514,7 +514,7 @@ class DeclarationBuilder {
 }
 
 class DeclarationBuilderFromElement {
-  final DeclarationBuilder declarationBuilder;
+  final DeclarationBuilder builder;
 
   final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
@@ -550,7 +550,7 @@ class DeclarationBuilderFromElement {
   final Map<TopLevelVariableElement, VariableDeclarationImpl> _variableMap =
       Map.identity();
 
-  DeclarationBuilderFromElement(this.declarationBuilder);
+  DeclarationBuilderFromElement(this.builder);
 
   macro.ClassDeclarationImpl classElement(
     ClassElementImpl element,
@@ -625,7 +625,7 @@ class DeclarationBuilderFromElement {
       _ => element.name!,
     };
 
-    final map = declarationBuilder._identifierMap;
+    final map = builder._identifierMap;
     return map[element] ??= IdentifierImplFromElement(
       id: macro.RemoteInstance.uniqueId,
       name: name,
@@ -696,7 +696,7 @@ class DeclarationBuilderFromElement {
   }
 
   List<macro.MetadataAnnotationImpl> _buildMetadata(Element element) {
-    return declarationBuilder._buildMetadata(element);
+    return builder._buildMetadata(element);
   }
 
   ClassDeclarationImpl _classElement(
@@ -1012,13 +1012,13 @@ class DeclarationBuilderFromElement {
 }
 
 class DeclarationBuilderFromNode {
-  final DeclarationBuilder declarationBuilder;
+  final DeclarationBuilder builder;
 
   final Map<ast.NamedType, IdentifierImpl> _namedTypeMap = Map.identity();
 
   final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
-  DeclarationBuilderFromNode(this.declarationBuilder);
+  DeclarationBuilderFromNode(this.builder);
 
   ClassDeclarationImpl classDeclaration(
     ast.ClassDeclarationImpl node,
@@ -1027,7 +1027,7 @@ class DeclarationBuilderFromNode {
 
     final interfaceNodes = <ast.NamedType>[];
     final mixinNodes = <ast.NamedType>[];
-    for (var current in node.withAugmentations(declarationBuilder)) {
+    for (var current in node.withAugmentations(builder)) {
       if (current.implementsClause case final clause?) {
         interfaceNodes.addAll(clause.interfaces);
       }
@@ -1076,7 +1076,7 @@ class DeclarationBuilderFromNode {
 
     final interfaceNodes = <ast.NamedType>[];
     final mixinNodes = <ast.NamedType>[];
-    for (var current in node.withAugmentations(declarationBuilder)) {
+    for (var current in node.withAugmentations(builder)) {
       if (current.implementsClause case final clause?) {
         interfaceNodes.addAll(clause.interfaces);
       }
@@ -1180,7 +1180,7 @@ class DeclarationBuilderFromNode {
 
     final interfaceNodes = <ast.NamedType>[];
     final mixinNodes = <ast.NamedType>[];
-    for (var current in node.withAugmentations(declarationBuilder)) {
+    for (var current in node.withAugmentations(builder)) {
       if (current.implementsClause case final clause?) {
         interfaceNodes.addAll(clause.interfaces);
       }
@@ -1316,7 +1316,7 @@ class DeclarationBuilderFromNode {
 
     final onNodes = <ast.NamedType>[];
     final interfaceNodes = <ast.NamedType>[];
-    for (var current in node.withAugmentations(declarationBuilder)) {
+    for (var current in node.withAugmentations(builder)) {
       if (current.onClause case final clause?) {
         onNodes.addAll(clause.superclassConstraints);
       }
@@ -1447,11 +1447,11 @@ class DeclarationBuilderFromNode {
   }
 
   List<macro.MetadataAnnotationImpl> _buildMetadata(Element element) {
-    return declarationBuilder._buildMetadata(element);
+    return builder._buildMetadata(element);
   }
 
   macro.IdentifierImpl _declaredIdentifier(Token name, Element element) {
-    final map = declarationBuilder._identifierMap;
+    final map = builder._identifierMap;
     return map[element] ??= _DeclaredIdentifierImpl(
       id: macro.RemoteInstance.uniqueId,
       name: name.lexeme,
@@ -1460,7 +1460,7 @@ class DeclarationBuilderFromNode {
   }
 
   macro.IdentifierImpl _declaredIdentifier2(String name, Element element) {
-    final map = declarationBuilder._identifierMap;
+    final map = builder._identifierMap;
     return map[element] ??= _DeclaredIdentifierImpl(
       id: macro.RemoteInstance.uniqueId,
       name: name,

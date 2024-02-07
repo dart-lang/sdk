@@ -16,9 +16,15 @@ macro class JsonSerializable implements ClassDeclarationsMacro {
   Future<void> buildDeclarationsForClass(
       ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
     var constructors = await builder.constructorsOf(clazz);
-    if (constructors.any((c) => c.identifier.name == 'fromJson')) {
-      throw ArgumentError('There is already a `fromJson` constructor for '
-          '`${clazz.identifier.name}`, so one could not be added.');
+    var existing =
+        constructors.firstWhereOrNull((c) => c.identifier.name == 'fromJson');
+    if (existing != null) {
+      builder.report(Diagnostic(
+          DiagnosticMessage(
+              'Cannot generate a fromJson constructor due to this existing one.',
+              target: existing.asDiagnosticTarget),
+          Severity.error));
+      return;
     }
 
     var map = await builder.resolveIdentifier(_dartCore, 'Map');
@@ -64,7 +70,9 @@ macro class FromJson implements ConstructorDefinitionMacro {
   Future<void> buildDefinitionForConstructor(ConstructorDeclaration constructor,
       ConstructorDefinitionBuilder builder) async {
     var fromJsonData = await _FromJsonData.build(builder);
-    await _checkValidFromJson(constructor, fromJsonData, builder);
+    if (!(await _checkValidFromJson(constructor, fromJsonData, builder))) {
+      return;
+    }
 
     var clazz = (await builder.typeDeclarationOf(constructor.definingType))
         as ClassDeclaration;
@@ -80,16 +88,23 @@ macro class FromJson implements ConstructorDefinitionMacro {
           await builder.constructorsOf(superclassDeclaration);
       for (var superConstructor in superclassConstructors) {
         if (superConstructor.identifier.name == 'fromJson') {
-          await _checkValidFromJson(superConstructor, fromJsonData, builder);
+          if (!(await _checkValidFromJson(
+              superConstructor, fromJsonData, builder))) {
+            return;
+          }
           superclassHasFromJson = true;
           break;
         }
       }
       if (!superclassHasFromJson) {
-        throw UnsupportedError(
-            'Serialization of classes that extend other classes is only '
-            'supported if those classes have a valid '
-            '`fromJson(Map<String, Object?> json)` constructor.');
+        builder.report(Diagnostic(
+            DiagnosticMessage(
+                'Serialization of classes that extend other classes is only '
+                'supported if those classes have a valid '
+                '`fromJson(Map<String, Object?> json)` constructor.',
+                target: superclassDeclaration.asDiagnosticTarget),
+            Severity.error));
+        return;
       }
     }
 
@@ -118,18 +133,21 @@ macro class FromJson implements ConstructorDefinitionMacro {
     ]);
   }
 
-  Future<void> _checkValidFromJson(
-      ConstructorDeclaration constructor,
-      _FromJsonData fromJsonData,
-      DeclarationPhaseIntrospector introspector) async {
+  Future<bool> _checkValidFromJson(ConstructorDeclaration constructor,
+      _FromJsonData fromJsonData, DefinitionBuilder builder) async {
     if (constructor.namedParameters.isNotEmpty ||
         constructor.positionalParameters.length != 1 ||
-        !(await (await introspector
+        !(await (await builder
                 .resolve(constructor.positionalParameters.single.type.code))
             .isExactly(fromJsonData.jsonMapType))) {
-      throw ArgumentError(
-          'Expected exactly one parameter, with the type Map<String, Object?>');
+      builder.report(Diagnostic(
+          DiagnosticMessage(
+              'Expected exactly one parameter, with the type Map<String, Object?>',
+              target: constructor.asDiagnosticTarget),
+          Severity.error));
+      return false;
     }
+    return true;
   }
 
   Future<Code> _convertTypeFromJson(TypeAnnotation type, Code jsonReference,
@@ -308,7 +326,7 @@ macro class ToJson implements MethodDefinitionMacro {
       MethodDeclaration method, FunctionDefinitionBuilder builder) async {
     // Gathers a bunch of type introspection data we will need later.
     var toJsonData = await _ToJsonData.build(builder);
-    await _checkValidToJson(method, toJsonData, builder);
+    if (!(await _checkValidToJson(method, toJsonData, builder))) return;
 
     // TODO: support extending other classes.
     final clazz = (await builder.typeDeclarationOf(method.definingType))
@@ -324,16 +342,22 @@ macro class ToJson implements MethodDefinitionMacro {
       var superclassMethods = await builder.methodsOf(superclassDeclaration);
       for (var superMethod in superclassMethods) {
         if (superMethod.identifier.name == 'toJson') {
-          await _checkValidToJson(superMethod, toJsonData, builder);
+          if (!(await _checkValidToJson(superMethod, toJsonData, builder))) {
+            return;
+          }
           superclassHasToJson = true;
           break;
         }
       }
       if (!superclassHasToJson) {
-        throw UnsupportedError(
-            'Serialization of classes that extend other classes is only '
-            'supported if those classes have a valid '
-            '`Map<String, Object?> toJson()` method.');
+        builder.report(Diagnostic(
+            DiagnosticMessage(
+                'Serialization of classes that extend other classes is only '
+                'supported if those classes have a valid '
+                '`Map<String, Object?> toJson()` method.',
+                target: superclassDeclaration.asDiagnosticTarget),
+            Severity.error));
+        return;
       }
     }
 
@@ -356,15 +380,20 @@ macro class ToJson implements MethodDefinitionMacro {
     ]));
   }
 
-  Future<void> _checkValidToJson(MethodDeclaration method,
-      _ToJsonData toJsonData, DeclarationPhaseIntrospector introspector) async {
+  Future<bool> _checkValidToJson(MethodDeclaration method,
+      _ToJsonData toJsonData, DefinitionBuilder builder) async {
     if (method.namedParameters.isNotEmpty ||
         method.positionalParameters.isNotEmpty ||
-        !(await (await introspector.resolve(method.returnType.code))
+        !(await (await builder.resolve(method.returnType.code))
             .isExactly(toJsonData.jsonMapType))) {
-      throw ArgumentError(
-          'Expected no parameters, and a return type of Map<String, Object?>');
+      builder.report(Diagnostic(
+          DiagnosticMessage(
+              'Expected no parameters, and a return type of Map<String, Object?>',
+              target: method.asDiagnosticTarget),
+          Severity.error));
+      return false;
     }
+    return true;
   }
 
   Future<Code> _convertTypeToJson(TypeAnnotation type, Code valueReference,

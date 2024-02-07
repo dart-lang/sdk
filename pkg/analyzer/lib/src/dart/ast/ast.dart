@@ -6,8 +6,6 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -11936,10 +11934,10 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    shared.MapPatternTypeArguments<DartType>? typeArguments;
+    ({DartType keyType, DartType valueType})? typeArguments;
     final typeArgumentNodes = this.typeArguments?.arguments;
     if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
-      typeArguments = shared.MapPatternTypeArguments(
+      typeArguments = (
         keyType: typeArgumentNodes[0].typeOrThrow,
         valueType: typeArgumentNodes[1].typeOrThrow,
       );

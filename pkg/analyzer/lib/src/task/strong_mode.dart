@@ -441,9 +441,7 @@ class InstanceMemberInferrer {
           if (conflict is CandidatesConflict) {
             conflictExplanation = conflict.candidates.map((candidate) {
               var className = candidate.enclosingElement.name;
-              var typeStr = candidate.type.getDisplayString(
-                withNullability: true,
-              );
+              var typeStr = candidate.type.getDisplayString();
               return '$className.${name.name} ($typeStr)';
             }).join(', ');
           }

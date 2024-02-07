@@ -118,6 +118,12 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   @override
+  Link getLink(String path) {
+    _ensureAbsoluteAndNormalized(path);
+    return _MemoryLink(this, path);
+  }
+
+  @override
   Resource getResource(String path) {
     _ensureAbsoluteAndNormalized(path);
     var data = _pathToData[path];
@@ -546,6 +552,24 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Uri toUri() => provider.pathContext.toUri('$path/');
+}
+
+/// An in-memory implementation of [File].
+class _MemoryLink implements Link {
+  final MemoryResourceProvider provider;
+  final String path;
+
+  _MemoryLink(this.provider, this.path);
+
+  @override
+  bool get exists {
+    return provider._pathToLinkedPath.containsKey(path);
+  }
+
+  @override
+  void create(String target) {
+    provider.newLink(path, target);
+  }
 }
 
 /// An in-memory implementation of [Resource].

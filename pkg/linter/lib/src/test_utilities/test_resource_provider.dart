@@ -61,6 +61,12 @@ class TestResourceProvider extends file_system.ResourceProvider {
   }
 
   @override
+  file_system.Link getLink(String path) {
+    var link = memoryResourceProvider.getLink(path);
+    return link.exists ? link : physicalResourceProvider.getLink(path);
+  }
+
+  @override
   file_system.Resource getResource(String path) {
     var resource = memoryResourceProvider.getResource(path);
     return resource.exists

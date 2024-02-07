@@ -28,12 +28,13 @@ class ElementDisplayStringTest extends AbstractTypeSystemTest {
       ],
     );
 
-    final singleLine = methodA.getDisplayString(withNullability: true);
+    final singleLine = methodA.getDisplayString();
     expect(singleLine, '''
 String? longMethodName(String? aaa, [String? bbb = 'a', String? ccc])''');
 
-    final multiLine =
-        methodA.getDisplayString(withNullability: true, multiline: true);
+    final multiLine = methodA.getDisplayString(
+      multiline: true,
+    );
     expect(multiLine, '''
 String? longMethodName(
   String? aaa, [
@@ -64,12 +65,13 @@ String? longMethodName(
       ],
     );
 
-    final singleLine = methodA.getDisplayString(withNullability: true);
+    final singleLine = methodA.getDisplayString();
     expect(singleLine, '''
 String? longMethodName(String? aaa, [String? Function(String?, String?, String?) bbb, String? ccc])''');
 
-    final multiLine =
-        methodA.getDisplayString(withNullability: true, multiline: true);
+    final multiLine = methodA.getDisplayString(
+      multiline: true,
+    );
     expect(multiLine, '''
 String? longMethodName(
   String? aaa, [
@@ -84,7 +86,7 @@ String? longMethodName(
       ..isGetter = true
       ..returnType = stringNone;
 
-    expect(getterA.getDisplayString(withNullability: true), 'String get a');
+    expect(getterA.getDisplayString(), 'String get a');
   }
 
   void test_property_setter() {
@@ -97,7 +99,7 @@ String? longMethodName(
       ];
 
     expect(
-      setterA.getDisplayString(withNullability: true),
+      setterA.getDisplayString(),
       'set a(String value)',
     );
   }
@@ -112,11 +114,12 @@ String? longMethodName(
       ],
     );
 
-    final singleLine = methodA.getDisplayString(withNullability: true);
+    final singleLine = methodA.getDisplayString();
     expect(singleLine, 'String? m(String? a, [String? b])');
 
-    final multiLine =
-        methodA.getDisplayString(withNullability: true, multiline: true);
+    final multiLine = methodA.getDisplayString(
+      multiline: true,
+    );
     // The signature is short enough that it remains on one line even for
     // multiline: true.
     expect(multiLine, 'String? m(String? a, [String? b])');

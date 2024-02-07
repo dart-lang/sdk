@@ -226,7 +226,7 @@ class A {}
   }
 
   test_getLibrary_exportViaRecursiveLink() async {
-    resourceProvider.newLink(
+    newLink(
       convertPath('/home/test/lib/foo'),
       convertPath('/home/test/lib'),
     );
