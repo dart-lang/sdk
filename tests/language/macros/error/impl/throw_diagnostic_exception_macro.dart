@@ -8,14 +8,16 @@ macro class ThrowDiagnosticException implements ClassDeclarationsMacro {
   final String atTypeDeclaration;
   final String withMessage;
 
-  const ThrowDiagnosticException({
-    required this.atTypeDeclaration, required this.withMessage});
+  const ThrowDiagnosticException(
+      {required this.atTypeDeclaration, required this.withMessage});
 
   Future<void> buildDeclarationsForClass(
       ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
-    final identifier = await builder.resolveIdentifier(clazz.library.uri, atTypeDeclaration);
+    final identifier =
+        await builder.resolveIdentifier(clazz.library.uri, atTypeDeclaration);
     final declaration = await builder.typeDeclarationOf(identifier);
-    throw DiagnosticException(Diagnostic(DiagnosticMessage(
-      withMessage, target: declaration.asDiagnosticTarget), Severity.error));
+    throw DiagnosticException(Diagnostic(
+        DiagnosticMessage(withMessage, target: declaration.asDiagnosticTarget),
+        Severity.error));
   }
 }

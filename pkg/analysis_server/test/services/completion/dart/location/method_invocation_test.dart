@@ -36,11 +36,11 @@ suggestions
   }
 
   Future<void> test_macroGeneratedMethod() async {
-    addMacros([addMethodMacro()]);
+    addMacros([declareInTypeMacro()]);
     await computeSuggestions('''
 import 'macros.dart';
 
-@AddMethod()
+@DeclareInType('  void m0() {}')
 class C {}
 
 void f(C c) {

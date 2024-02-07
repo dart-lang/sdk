@@ -960,6 +960,9 @@ class ResolutionSink extends _SummaryDataWriter {
         writeUInt30(diagnostic.annotationIndex);
         writeStringUtf8(diagnostic.message);
         writeStringUtf8(diagnostic.stackTrace);
+      case InvalidMacroTargetDiagnostic():
+        writeEnum(MacroDiagnosticKind.invalidTarget);
+        writeStringUtf8Iterable(diagnostic.supportedKinds);
       case MacroDiagnostic():
         writeEnum(MacroDiagnosticKind.macro);
         writeEnum(diagnostic.severity);
@@ -1021,6 +1024,9 @@ class ResolutionSink extends _SummaryDataWriter {
       case TypeAnnotationMacroDiagnosticTarget():
         writeEnum(MacroDiagnosticTargetKind.type);
         writeTypeAnnotationLocation(target.location);
+      case ElementAnnotationMacroDiagnosticTarget():
+        // TODO(scheglov): Implement this
+        throw UnimplementedError('');
     }
   }
 

@@ -1302,6 +1302,244 @@ suggestions
 ''');
   }
 
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_macroGenerated_generatedClass() async {
+    addMacros([declareInLibraryMacro()]);
+    await computeSuggestions('''
+import 'macros.dart';
+
+@DeclareInLibrary('class C0 {}')
+class C {}
+
+void f() {
+  ^
+}
+''');
+    assertResponse(r'''
+suggestions
+  C0
+    kind: class
+  C0
+    kind: constructorInvocation
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_macroGenerated_sameClass() async {
+    addMacros([declareInTypeMacro()]);
+    await computeSuggestions('''
+import 'macros.dart';
+
+@DeclareInType('  void m0() {}')
+class C {
+  void m() {
+    ^
+  }
+}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  m0
+    kind: methodInvocation
+  null
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_macroGenerated_supperClass() async {
+    addMacros([declareInTypeMacro()]);
+    await computeSuggestions('''
+import 'macros.dart';
+
+@DeclareInType('  void m0() {}')
+class B {}
+
+class C extends B {
+  void m() {
+    ^
+  }
+}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  m0
+    kind: methodInvocation
+  null
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_macroGenerated_unrelatedClass() async {
+    addMacros([declareInTypeMacro()]);
+    await computeSuggestions('''
+import 'macros.dart';
+
+@DeclareInType('  C.c1();')
+class C0 {}
+
+void f() {
+  ^
+}
+''');
+    assertResponse(r'''
+suggestions
+  C0
+    kind: class
+  C0.c1
+    kind: constructorInvocation
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterLeftBrace_beforeRightBrace_withAsync() async {
     await computeSuggestions('''
 class A { foo() async {^}}

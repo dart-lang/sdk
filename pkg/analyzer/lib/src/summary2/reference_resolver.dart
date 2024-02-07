@@ -274,7 +274,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.parameters.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-    var builder = FunctionTypeBuilder.of(true, nodeImpl, nullabilitySuffix);
+    var builder = FunctionTypeBuilder.of(nodeImpl, nullabilitySuffix);
     nodeImpl.type = builder;
     nodesToBuildType.addTypeBuilder(builder);
 

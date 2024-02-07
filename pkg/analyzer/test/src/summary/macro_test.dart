@@ -3534,6 +3534,38 @@ library
 ''');
   }
 
+  test_macroDiagnostics_invalidTarget_wantsClassOrMixin_hasFunction() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@TargetClassOrMixinMacro()
+void f() {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    functions
+      f @59
+        returnType: void
+        macroDiagnostics
+          InvalidMacroTargetDiagnostic
+            supportedKinds
+              classType
+              mixinType
+''');
+  }
+
   test_macroDiagnostics_report_atDeclaration_class() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',

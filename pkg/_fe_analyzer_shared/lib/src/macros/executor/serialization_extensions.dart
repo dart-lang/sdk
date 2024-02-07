@@ -654,6 +654,9 @@ extension SerializeDiagnosticMessage on DiagnosticMessage {
         (target.declaration as DeclarationImpl).serialize(serializer);
       case TypeAnnotationDiagnosticTarget target:
         (target.typeAnnotation as TypeAnnotationImpl).serialize(serializer);
+      case MetadataAnnotationDiagnosticTarget target:
+        (target.metadataAnnotation as MetadataAnnotationImpl)
+            .serialize(serializer);
     }
   }
 }

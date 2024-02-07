@@ -2338,6 +2338,12 @@ class ResolutionReader {
           argumentIndex: readUInt30(),
           message: _reader.readStringUtf8(),
         );
+      case MacroDiagnosticKind.exception:
+        return ExceptionMacroDiagnostic(
+          annotationIndex: readUInt30(),
+          message: _reader.readStringUtf8(),
+          stackTrace: _reader.readStringUtf8(),
+        );
       case MacroDiagnosticKind.introspectionCycle:
         return DeclarationsIntrospectionCycleDiagnostic(
           annotationIndex: readUInt30(),
@@ -2350,11 +2356,9 @@ class ResolutionReader {
             );
           }),
         );
-      case MacroDiagnosticKind.exception:
-        return ExceptionMacroDiagnostic(
-          annotationIndex: readUInt30(),
-          message: _reader.readStringUtf8(),
-          stackTrace: _reader.readStringUtf8(),
+      case MacroDiagnosticKind.invalidTarget:
+        return InvalidMacroTargetDiagnostic(
+          supportedKinds: _reader.readStringUtf8List(),
         );
       case MacroDiagnosticKind.macro:
         return MacroDiagnostic(

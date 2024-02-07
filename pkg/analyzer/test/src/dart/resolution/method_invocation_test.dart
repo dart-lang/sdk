@@ -2549,10 +2549,7 @@ main() {
   null.foo();
 }
 ''', [
-      if (isNullSafetyEnabled)
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3)
-      else
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3),
     ]);
 
     var node = findNode.methodInvocation('foo();');
@@ -6134,9 +6131,8 @@ MethodInvocation
   }
 
   test_namedArgument() async {
-    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
-void foo({int$question a, bool$question b}) {}
+void foo({int? a, bool? b}) {}
 
 main() {
   foo(b: false, a: 0);
@@ -6607,9 +6603,8 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_parameter_call_nullAware() async {
-    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
-double Function(int)$question foo;
+double Function(int)? foo;
 
 main() {
   foo?.call(1);

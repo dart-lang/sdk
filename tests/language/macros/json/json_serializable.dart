@@ -35,10 +35,7 @@ macro class JsonSerializable implements ClassDeclarationsMacro {
     var mapStringObject = NamedTypeAnnotationCode(
         name: map, typeArguments: [string, object.asNullable]);
 
-    // TODO: This only works because the macro file lives right next to the file
-    // it is applied to.
-    var jsonSerializableUri =
-        clazz.library.uri.resolve('json_serializable.dart');
+    var jsonSerializableUri = clazz.jsonSerializableUri;
 
     builder.declareInType(DeclarationCode.fromParts([
       '  @',
@@ -119,7 +116,9 @@ macro class FromJson implements ConstructorDefinitionMacro {
               field.type,
               RawCode.fromParts([
                 jsonParam,
-                '["${field.identifier.name}"]',
+                '[',
+                await field._jsonKeyName(builder),
+                ']',
               ]),
               builder,
               fromJsonData),
@@ -253,6 +252,31 @@ macro class FromJson implements ConstructorDefinitionMacro {
   }
 }
 
+extension _ on FieldDeclaration {
+  // TODO: Support `IdentifierMetadataAnnotation`s once we can do constant eval.
+  Future<Code> _jsonKeyName(DefinitionBuilder builder) async {
+    ConstructorMetadataAnnotation? jsonKey;
+    for (var annotation in metadata) {
+      if (annotation is! ConstructorMetadataAnnotation) continue;
+      if (annotation.type.name != 'JsonKey') continue;
+      var declaration = await builder.typeDeclarationOf(annotation.type);
+      if (declaration.library.uri != jsonKeyUri) continue;
+
+      if (jsonKey != null) {
+        builder.report(Diagnostic(
+            DiagnosticMessage(
+                'Only one JsonKey annotation is allowed.',
+                target: annotation.asDiagnosticTarget),
+            Severity.error));
+      } else {
+        jsonKey = annotation;
+      }
+    }
+    return jsonKey?.namedArguments['name'] ??
+        RawCode.fromString('\'${identifier.name}\'');
+  }
+}
+
 final class _FromJsonData {
   final NamedTypeAnnotationCode jsonListCode;
   final NamedTypeAnnotationCode jsonMapCode;
@@ -368,9 +392,8 @@ macro class ToJson implements MethodDefinitionMacro {
       if (superclassHasToJson) '\n    ...super.toJson(),',
       for (var field in fields)
         RawCode.fromParts([
-          '\n    \'',
-          field.identifier.name,
-          '\'',
+          '\n    ',
+          await field._jsonKeyName(builder),
           ': ',
           await _convertTypeToJson(field.type,
               RawCode.fromParts([field.identifier]), builder, toJsonData),
@@ -560,4 +583,12 @@ extension on Code {
       }
     }
   }
+}
+
+// TODO: These only work because the macro file lives right next to the file
+// it is applied to, we need a better solution at some point.
+extension _RelativeUris on Declaration {
+  Uri get jsonKeyUri => library.uri.resolve('json_key.dart');
+
+  Uri get jsonSerializableUri => library.uri.resolve('json_serializable.dart');
 }

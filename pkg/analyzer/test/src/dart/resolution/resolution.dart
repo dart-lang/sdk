@@ -67,8 +67,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  bool get isNullSafetyEnabled => true;
-
   ClassElement get listElement => typeProvider.listElement;
 
   ClassElement get mapElement => typeProvider.mapElement;

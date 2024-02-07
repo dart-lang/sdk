@@ -1367,10 +1367,9 @@ test() {}
   }
 
   test_generic_staticParameterElement_annotation_implicitTypeArg() async {
-    var required = isNullSafetyEnabled ? 'required' : '';
     await assertNoErrorsInCode('''
 class C<T> {
-  const C.named({$required T arg});
+  const C.named({required T arg});
 }
 @C.named(arg: true)
 test() {}

@@ -348,6 +348,17 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 }
 
+/*macro*/ class TargetClassOrMixinMacro
+    implements ClassTypesMacro, MixinTypesMacro {
+  const TargetClassOrMixinMacro();
+
+  @override
+  buildTypesForClass(declaration, builder) {}
+
+  @override
+  buildTypesForMixin(declaration, builder) {}
+}
+
 /*macro*/ class ThrowExceptionDeclarationsPhase
     implements
         ClassDeclarationsMacro,

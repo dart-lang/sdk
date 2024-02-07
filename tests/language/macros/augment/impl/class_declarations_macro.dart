@@ -16,7 +16,8 @@ macro class ClassDeclarationsDeclareInType implements ClassDeclarationsMacro {
   }
 }
 
-macro class ClassDeclarationsDeclareInLibrary implements ClassDeclarationsMacro {
+macro class ClassDeclarationsDeclareInLibrary
+    implements ClassDeclarationsMacro {
   final String code;
 
   const ClassDeclarationsDeclareInLibrary(this.code);

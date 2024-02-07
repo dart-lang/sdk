@@ -830,6 +830,9 @@ class _ElementWriter {
           _sink.withIndent(() {
             writeTypeAnnotationLocation(target.location);
           });
+        case ElementAnnotationMacroDiagnosticTarget():
+          // TODO(scheglov): Implement this
+          throw UnimplementedError();
       }
     }
 
@@ -896,6 +899,17 @@ class _ElementWriter {
                 );
                 _sink.writelnWithIndent(
                   'stackTrace:\n${diagnostic.stackTrace}',
+                );
+              });
+            case InvalidMacroTargetDiagnostic():
+              _sink.writelnWithIndent('InvalidMacroTargetDiagnostic');
+              _sink.withIndent(() {
+                _sink.writeElements(
+                  'supportedKinds',
+                  diagnostic.supportedKinds,
+                  (kindName) {
+                    _sink.writelnWithIndent(kindName);
+                  },
                 );
               });
             case MacroDiagnostic():

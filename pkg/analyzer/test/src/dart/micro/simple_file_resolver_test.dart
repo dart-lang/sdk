@@ -1323,6 +1323,21 @@ void f(func o) {}
     expect(result, unorderedEquals(expected));
   }
 
+  test_formalParameter_promotion() async {
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  if (a != null) {
+    a.isEven;
+  }
+}
+''');
+
+    assertType(
+      findElement.parameter('a').type,
+      'int?',
+    );
+  }
+
   test_getErrors() async {
     addTestFile(r'''
 var a = b;
@@ -1838,21 +1853,6 @@ var b = a;
       var element = findNode.simple('a;').staticElement!;
       expect(element.nonSynthetic.nameOffset, 4);
     }
-  }
-
-  test_nullSafety_enabled() async {
-    await assertNoErrorsInCode(r'''
-void f(int? a) {
-  if (a != null) {
-    a.isEven;
-  }
-}
-''');
-
-    assertType(
-      findElement.parameter('a').type,
-      'int?',
-    );
   }
 
   test_part_notInLibrary_libraryDoesNotExist() async {

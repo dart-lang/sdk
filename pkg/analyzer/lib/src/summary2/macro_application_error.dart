@@ -56,6 +56,15 @@ final class DeclarationsIntrospectionCycleDiagnostic
   });
 }
 
+final class ElementAnnotationMacroDiagnosticTarget
+    extends MacroDiagnosticTarget {
+  final ElementAnnotationImpl annotation;
+
+  ElementAnnotationMacroDiagnosticTarget({
+    required this.annotation,
+  });
+}
+
 final class ElementMacroDiagnosticTarget extends MacroDiagnosticTarget {
   final ElementImpl element;
 
@@ -74,6 +83,14 @@ final class ExceptionMacroDiagnostic extends AnalyzerMacroDiagnostic {
     required this.annotationIndex,
     required this.message,
     required this.stackTrace,
+  });
+}
+
+final class InvalidMacroTargetDiagnostic extends AnalyzerMacroDiagnostic {
+  final List<String> supportedKinds;
+
+  InvalidMacroTargetDiagnostic({
+    required this.supportedKinds,
   });
 }
 

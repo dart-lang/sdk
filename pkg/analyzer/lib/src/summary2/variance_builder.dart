@@ -176,10 +176,7 @@ class VarianceBuilder {
           parameter.declaredElement!,
           returnType: node.returnType?.type,
           typeFormals: null,
-          parameters: FunctionTypeBuilder.getParameters(
-            false,
-            node.parameters,
-          ),
+          parameters: FunctionTypeBuilder.getParameters(node.parameters),
         );
         _setVariance(parameter, variance);
       }

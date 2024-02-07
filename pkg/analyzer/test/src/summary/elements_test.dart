@@ -12333,7 +12333,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_functionTypeAlias_contravariant_nullSafe() async {
+  test_class_typeParameters_defaultType_functionTypeAlias_contravariant() async {
     var library = await buildLibrary(r'''
 typedef F<X> = void Function(X);
 
@@ -12370,7 +12370,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_functionTypeAlias_covariant_nullSafe() async {
+  test_class_typeParameters_defaultType_functionTypeAlias_covariant() async {
     var library = await buildLibrary(r'''
 typedef F<X> = X Function();
 
@@ -12400,6 +12400,43 @@ library
             defaultType: dynamic
         aliasedType: X Function()
         aliasedElement: GenericFunctionTypeElement
+          returnType: X
+''');
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_invariant() async {
+    var library = await buildLibrary(r'''
+typedef F<X> = X Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @37
+        typeParameters
+          covariant X @39
+            bound: X Function(X)
+              alias: self::@typeAlias::F
+                typeArguments
+                  X
+            defaultType: dynamic Function(dynamic)
+              alias: self::@typeAlias::F
+                typeArguments
+                  dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      F @8
+        typeParameters
+          invariant X @10
+            defaultType: dynamic
+        aliasedType: X Function(X)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: X
           returnType: X
 ''');
   }
@@ -12441,44 +12478,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_functionTypeAlias_invariant_nullSafe() async {
-    var library = await buildLibrary(r'''
-typedef F<X> = X Function(X);
-
-class A<X extends F<X>> {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      notSimplyBounded class A @37
-        typeParameters
-          covariant X @39
-            bound: X Function(X)
-              alias: self::@typeAlias::F
-                typeArguments
-                  X
-            defaultType: dynamic Function(dynamic)
-              alias: self::@typeAlias::F
-                typeArguments
-                  dynamic
-        constructors
-          synthetic @-1
-    typeAliases
-      F @8
-        typeParameters
-          invariant X @10
-            defaultType: dynamic
-        aliasedType: X Function(X)
-        aliasedElement: GenericFunctionTypeElement
-          parameters
-            requiredPositional @-1
-              type: X
-          returnType: X
-''');
-  }
-
-  test_class_typeParameters_defaultType_genericFunctionType_both_nullSafe() async {
+  test_class_typeParameters_defaultType_genericFunctionType_both() async {
     var library = await buildLibrary(r'''
 class A<X extends X Function(X)> {}
 ''');
@@ -12496,7 +12496,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_genericFunctionType_contravariant_nullSafe() async {
+  test_class_typeParameters_defaultType_genericFunctionType_contravariant() async {
     var library = await buildLibrary(r'''
 class A<X extends void Function(X)> {}
 ''');
@@ -12514,7 +12514,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_genericFunctionType_covariant_legacy() async {
+  test_class_typeParameters_defaultType_genericFunctionType_covariant() async {
     var library = await buildLibrary(r'''
 class A<X extends X Function()> {}
 ''');
@@ -12532,7 +12532,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_genericFunctionType_covariant_nullSafe() async {
+  test_class_typeParameters_defaultType_genericFunctionType_covariant_legacy() async {
     var library = await buildLibrary(r'''
 class A<X extends X Function()> {}
 ''');
@@ -21570,7 +21570,7 @@ library
 ''');
   }
 
-  test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
+  test_const_topLevel_nullAware_propertyAccess() async {
     var library = await buildLibrary(r'''
 const String? a = '';
 
@@ -32093,7 +32093,7 @@ library
 ''');
   }
 
-  test_instanceInference_operator_equal_nullSafe_from_nullSafe() async {
+  test_instanceInference_operator_equal_from() async {
     addSource('$testPackageLibPath/nullSafe.dart', r'''
 class NullSafeDefault {
   bool operator==(other) => false;
@@ -38890,6 +38890,41 @@ library
 ''');
   }
 
+  test_mixin_inference() async {
+    var library = await buildLibrary(r'''
+class A<T> {}
+mixin M<U> on A<U> {}
+class B extends A<int> with M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @42
+        supertype: A<int>
+        mixins
+          M<int>
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::new
+              substitution: {T: int}
+    mixins
+      mixin M @20
+        typeParameters
+          covariant U @22
+            defaultType: dynamic
+        superclassConstraints
+          A<U>
+''');
+  }
+
   test_mixin_inference_classAlias_oneMixin() async {
     // In the code below, B's superclass constraints don't include A, because
     // superclass constraints are determined from the mixin's superclass, and
@@ -39082,41 +39117,6 @@ library
             defaultType: dynamic
         superclassConstraints
           A<List<T>>
-''');
-  }
-
-  test_mixin_inference_nullSafety() async {
-    var library = await buildLibrary(r'''
-class A<T> {}
-mixin M<U> on A<U> {}
-class B extends A<int> with M {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class A @6
-        typeParameters
-          covariant T @8
-            defaultType: dynamic
-        constructors
-          synthetic @-1
-      class B @42
-        supertype: A<int>
-        mixins
-          M<int>
-        constructors
-          synthetic @-1
-            superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::new
-              substitution: {T: int}
-    mixins
-      mixin M @20
-        typeParameters
-          covariant U @22
-            defaultType: dynamic
-        superclassConstraints
-          A<U>
 ''');
   }
 
