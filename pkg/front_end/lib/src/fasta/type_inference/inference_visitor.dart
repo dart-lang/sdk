@@ -1893,8 +1893,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitIfNullExpression(
       IfNullExpression node, DartType typeContext) {
-    // To infer `e0 ?? e1` in context K:
-    // - Infer e0 in context K to get T0
+    // To infer `e0 ?? e1` in context `K`:
+    // - Infer `e0` in context `K?` to get `T0`
     ExpressionInferenceResult lhsResult = inferExpression(
         node.left, computeNullable(typeContext),
         isVoidAllowed: false);
@@ -1906,8 +1906,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     flowAnalysis.ifNullExpression_rightBegin(node.left, lhsResult.inferredType);
 
-    // - Let J = T0 if K is `?` else K.
-    // - Infer e1 in context J to get T1
+    // - Let `J = T0` if `K` is `_`, otherwise `K`.
+    // - Infer `e1` in context `J` to get `T1`
     ExpressionInferenceResult rhsResult;
     if (typeContext is UnknownType) {
       rhsResult = inferExpression(node.right, lhsResult.inferredType,
@@ -1917,9 +1917,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     flowAnalysis.ifNullExpression_end();
 
-    // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
-    //   UP(t0, t1)
-    // - Then the inferred type is T.
+    // - Then the inferred type is UP(NonNull(T0), T1).
     DartType originalLhsType = lhsResult.inferredType;
     DartType nonNullableLhsType = originalLhsType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
