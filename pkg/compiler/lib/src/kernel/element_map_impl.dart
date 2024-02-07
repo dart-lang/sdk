@@ -23,7 +23,6 @@ import '../ir/annotations.dart';
 import '../ir/element_map.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
-import '../ir/static_type.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
@@ -107,7 +106,6 @@ class KernelToElementMap implements IrToElementMap {
 
   BehaviorBuilder? _nativeBehaviorBuilder;
 
-  Map<JMember, Map<ir.Expression, TypeMap>>? typeMapsForTesting;
   Map<ir.Member, ImpactData>? impactDataForTesting;
 
   KernelToElementMap(this.reporter, this.options) {
@@ -1402,10 +1400,6 @@ class KernelToElementMap implements IrToElementMap {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
 
-    if (impactBuilderData.typeMapsForTesting != null) {
-      typeMapsForTesting ??= {};
-      typeMapsForTesting![member] = impactBuilderData.typeMapsForTesting!;
-    }
     ImpactData impactData = impactBuilderData.impactData;
     if (retainDataForTesting) {
       impactDataForTesting ??= {};
@@ -1427,10 +1421,6 @@ class KernelToElementMap implements IrToElementMap {
         rtiNeedBuilder,
         annotationsData);
     return converter.convert(impactData);
-  }
-
-  Map<ir.Expression, TypeMap>? getTypeMapsForTesting(JMember member) {
-    return typeMapsForTesting![member];
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].

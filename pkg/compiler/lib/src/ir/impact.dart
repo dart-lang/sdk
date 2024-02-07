@@ -194,16 +194,15 @@ class ImpactBuilderData {
 
   final ir.Member node;
   final ImpactData impactData;
-  final Map<ir.Expression, TypeMap>? typeMapsForTesting;
 
-  ImpactBuilderData(this.node, this.impactData, this.typeMapsForTesting);
+  ImpactBuilderData(this.node, this.impactData);
 
   factory ImpactBuilderData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     var node = source.readMemberNode();
     var data = ImpactData.fromDataSource(source);
     source.end(tag);
-    return ImpactBuilderData(node, data, const {});
+    return ImpactBuilderData(node, data);
   }
 
   void toDataSink(DataSinkWriter sink) {

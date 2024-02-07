@@ -82,10 +82,7 @@ ModularMemberData computeModularMemberData(
           elementMap,
           ir.StaticTypeContext(node, elementMap.typeEnvironment),
           elementMap.classHierarchy,
-          scopeModel.variableScopeModel,
-          useAsserts: elementMap.options.enableUserAssertions,
-          inferEffectivelyFinalVariableTypes:
-              !annotations.contains(PragmaAnnotation.disableFinal))
+          elementMap.typeEnvironment)
       .computeImpact(node);
   return ModularMemberData(scopeModel, impactBuilderData);
 }
