@@ -26,7 +26,6 @@ import '../js_model/closure.dart' show JContextField;
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
-import 'world_builder.dart';
 
 enum DynamicUseKind {
   INVOKE,
@@ -93,14 +92,9 @@ class DynamicUse {
   String get shortText {
     StringBuffer sb = StringBuffer();
     if (receiverConstraint != null) {
-      var constraint = receiverConstraint;
-      if (constraint is StrongModeConstraint) {
-        if (constraint.isThis) {
-          sb.write('this:');
-        } else if (constraint.isExact) {
-          sb.write('exact:');
-        }
-        sb.write(constraint.className);
+      final constraint = receiverConstraint;
+      if (constraint is ClassEntity) {
+        sb.write(constraint.name);
       } else {
         sb.write(constraint);
       }

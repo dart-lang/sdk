@@ -81,11 +81,10 @@ class KernelImpactConverter implements ImpactRegistry {
 
   Object? _computeReceiverConstraint(ir.DartType receiverType) {
     if (receiverType is ir.InterfaceType) {
-      return StrongModeConstraint(commonElements, _nativeBasicData,
+      return defaultReceiverClass(commonElements, _nativeBasicData,
           elementMap.getClass(receiverType.classNode));
     } else if (receiverType is ir.NullType) {
-      return StrongModeConstraint(commonElements, _nativeBasicData,
-          elementMap.getClass(typeEnvironment.coreTypes.deprecatedNullClass));
+      return elementMap.getClass(typeEnvironment.coreTypes.deprecatedNullClass);
     }
     return null;
   }
