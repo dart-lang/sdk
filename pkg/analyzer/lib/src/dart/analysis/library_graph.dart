@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
@@ -37,7 +38,7 @@ class LibraryCycle {
   /// API signatures of the cycles that the [libraries] reference directly.
   /// So, indirectly it is based on API signatures of the transitive closure
   /// of all files that [libraries] reference.
-  String apiSignature;
+  final String apiSignature;
 
   /// The transitive implementation signature of this cycle.
   ///
@@ -53,7 +54,7 @@ class LibraryCycle {
   /// the libraries imported by the macro defining library. So, the resulting
   /// library (that imports a macro defining library) API signature must
   /// include [implSignature] of the macro defining library.
-  String implSignature;
+  final String implSignature;
 
   late final bool declaresMacroClass = () {
     for (final library in libraries) {
@@ -220,6 +221,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
       implSignature.addLanguageVersion(file.packageLanguageVersion);
       implSignature.addString(file.uriStr);
+      implSignature.addString(Platform.version);
 
       final libraryFiles = node.kind.files;
 
