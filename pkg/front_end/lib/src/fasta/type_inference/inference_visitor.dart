@@ -8629,8 +8629,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     DartType? promotedType;
-    if (isNonNullableByDefault &&
-        !libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled) {
+    if (isNonNullableByDefault) {
       promotedType = flowAnalysis.promotedType(variable);
     }
     ExpressionInferenceResult rhsResult = inferExpression(
