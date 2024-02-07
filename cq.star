@@ -64,6 +64,7 @@ basic_cq("dart-docker", [
         builder = "docker-try",
     ),
 ])
+basic_cq("deps")
 basic_cq("flute")
 basic_cq("homebrew-dart", [
     luci.cq_tryjob_verifier(
