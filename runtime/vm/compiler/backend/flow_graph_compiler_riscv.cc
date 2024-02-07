@@ -644,7 +644,7 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   if (!arguments_descriptor.IsNull()) {
     __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   }
-  const intptr_t offset = selector_offset - DispatchTable::kOriginElement;
+  const uintptr_t offset = selector_offset - DispatchTable::kOriginElement;
   // Would like cid_reg to be available on entry to the target function
   // for checking purposes.
   ASSERT(cid_reg != TMP);
