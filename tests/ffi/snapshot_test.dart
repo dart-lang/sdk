@@ -10,9 +10,14 @@ import 'dart:isolate';
 
 import 'package:expect/expect.dart';
 
+class Foo implements Finalizable {
+  final Pointer<Void> value;
+  Foo(this.value);
+}
+
 main(args) async {
   try {
-    await Isolate.spawn(print, Pointer<Void>.fromAddress(1));
+    await Isolate.spawn(print, Foo(Pointer<Void>.fromAddress(1)));
   } catch (e) {
     Expect.type<ArgumentError>(e);
     return;
