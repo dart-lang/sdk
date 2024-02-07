@@ -340,8 +340,15 @@ int? _getPathSegmentIndexIfSubEntry(Uri outer, Uri inner) {
   int end = outerPathSegments.length;
   if (outerPathSegments.last == "") end--;
   for (int i = 0; i < end; i++) {
-    if (outerPathSegments[i] != innerPathSegments[i]) {
-      return null;
+    if (Platform.isWindows) {
+      if (outerPathSegments[i].toLowerCase() !=
+          innerPathSegments[i].toLowerCase()) {
+        return null;
+      }
+    } else {
+      if (outerPathSegments[i] != innerPathSegments[i]) {
+        return null;
+      }
     }
   }
   return end;
