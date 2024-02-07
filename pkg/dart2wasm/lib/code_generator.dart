@@ -1031,12 +1031,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.type is VoidType) {
-      if (node.initializer != null) {
-        wrap(node.initializer!, voidMarker);
-      }
-      return;
-    }
     w.ValueType type = translateType(node.type);
     w.Local? local;
     Capture? capture = closures.captures[node];
@@ -2166,10 +2160,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitVariableGet(VariableGet node, w.ValueType expectedType) {
-    // Return `void` for a void [VariableGet].
-    if (node.variable.type is VoidType) {
-      return voidMarker;
-    }
     w.Local? local = locals[node.variable];
     Capture? capture = closures.captures[node.variable];
     if (capture != null) {
@@ -2192,10 +2182,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitVariableSet(VariableSet node, w.ValueType expectedType) {
-    // Return `void` for a void [VariableSet].
-    if (node.variable.type is VoidType) {
-      return wrap(node.value, voidMarker);
-    }
     w.Local? local = locals[node.variable];
     Capture? capture = closures.captures[node.variable];
     bool preserved = expectedType != voidMarker;
