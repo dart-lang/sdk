@@ -890,9 +890,8 @@ BinaryExpression
   }
 
   test_ifNull() async {
-    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
-f(int$question a, double b) {
+f(int? a, double b) {
   a ?? b;
 }
 ''');

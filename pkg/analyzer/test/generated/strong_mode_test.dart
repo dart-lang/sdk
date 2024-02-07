@@ -1279,12 +1279,7 @@ test() {
     await assertErrorsInCode(code, [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 5),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 68, 1),
-      error(
-          isNullSafetyEnabled
-              ? CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-              : CompileTimeErrorCode.INVALID_CAST_LITERAL,
-          71,
-          1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 71, 1),
     ]);
 
     final node = findNode.singleMethodInvocation;
