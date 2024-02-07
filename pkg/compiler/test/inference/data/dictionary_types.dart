@@ -178,7 +178,7 @@ test4() {
       2);
 }
 
-/*member: dict5:Map([null|exact=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/
+/*member: dict5:Map([null|exact=JsLinkedHashMap], key: [exact=JSString], value: [null|subclass=Object])*/
 dynamic dict5 = makeMap5([1, 2]);
 
 /*member: notInt5:[null|subclass=Object]*/
@@ -187,7 +187,7 @@ dynamic notInt5 = 0;
 /*member: alsoNotInt5:[null|subclass=Object]*/
 dynamic alsoNotInt5 = 0;
 
-/*member: makeMap5:Map([exact=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/
+/*member: makeMap5:Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|subclass=Object])*/
 makeMap5(
     /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 2)*/ values) {
   return {
@@ -203,14 +203,14 @@ makeMap5(
 /*member: test5:[null]*/
 test5() {
   dict5
-      /*update: Map([null|exact=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/
+      /*update: Map([null|exact=JsLinkedHashMap], key: [exact=JSString], value: [null|subclass=Object])*/
       ['goo'] = 42;
   var closure =
-      /*Map([null|exact=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/
+      /*Map([null|exact=JsLinkedHashMap], key: [exact=JSString], value: [null|subclass=Object])*/
       () => dict5;
   notInt5 = closure()['boo'];
   alsoNotInt5 = dict5
-      /*Map([null|exact=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/
+      /*Map([null|exact=JsLinkedHashMap], key: [exact=JSString], value: [null|subclass=Object])*/
       ['goo'];
   print("$notInt5 and $alsoNotInt5.");
 }

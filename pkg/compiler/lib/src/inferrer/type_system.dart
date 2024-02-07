@@ -469,7 +469,9 @@ class TypeSystem {
       ir.TreeNode node,
       MemberEntity element,
       List<TypeInformation> keyTypes,
-      List<TypeInformation> valueTypes) {
+      List<TypeInformation> valueTypes,
+      DartType keyStaticType,
+      DartType valueStaticType) {
     assert(strategy.checkMapNode(node));
     assert(keyTypes.length == valueTypes.length);
     bool isFixed = (type.type == _abstractValueDomain.constMapType);
@@ -503,9 +505,19 @@ class TypeSystem {
         type.type, node, element, keyTypeMask, valueTypeMask);
 
     final keyTypeInfo = KeyInMapTypeInformation(
-        _abstractValueDomain, currentMember, simplifiedKeyType);
+        _abstractValueDomain,
+        currentMember,
+        simplifiedKeyType,
+        _abstractValueDomain
+            .createFromStaticType(keyStaticType, nullable: false)
+            .abstractValue);
     final valueTypeInfo = ValueInMapTypeInformation(
-        _abstractValueDomain, currentMember, simplifiedValueType);
+        _abstractValueDomain,
+        currentMember,
+        simplifiedValueType,
+        _abstractValueDomain
+            .createFromStaticType(valueStaticType, nullable: false)
+            .abstractValue);
     allocatedTypes.add(keyTypeInfo);
     allocatedTypes.add(valueTypeInfo);
 

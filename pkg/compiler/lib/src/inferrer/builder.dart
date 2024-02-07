@@ -713,12 +713,16 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   TypeInformation visitMapLiteral(ir.MapLiteral node) {
     return createMapTypeInformation(
         node, node.entries.map((e) => Pair(visit(e.key)!, visit(e.value)!)),
-        isConst: node.isConst);
+        isConst: node.isConst,
+        keyStaticType: _elementMap.getDartType(node.keyType),
+        valueStaticType: _elementMap.getDartType(node.valueType));
   }
 
   TypeInformation createMapTypeInformation(ir.TreeNode node,
       Iterable<Pair<TypeInformation, TypeInformation>> entryTypes,
-      {required bool isConst}) {
+      {required bool isConst,
+      required DartType keyStaticType,
+      required DartType valueStaticType}) {
     return _inferrer.concreteTypes.putIfAbsent(node, () {
       List<TypeInformation> keyTypes = [];
       List<TypeInformation> valueTypes = [];
@@ -729,8 +733,8 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       }
 
       final type = isConst ? _types.constMapType : _types.mapType;
-      return _types.allocateMap(
-          type, node, _analyzedMember, keyTypes, valueTypes);
+      return _types.allocateMap(type, node, _analyzedMember, keyTypes,
+          valueTypes, keyStaticType, valueStaticType);
     });
   }
 
@@ -2334,7 +2338,9 @@ class TypeInformationConstantVisitor
         ConstantReference(expression, node),
         node.entries
             .map((e) => Pair(visitConstant(e.key), visitConstant(e.value))),
-        isConst: true);
+        isConst: true,
+        keyStaticType: builder._elementMap.getDartType(node.keyType),
+        valueStaticType: builder._elementMap.getDartType(node.valueType));
   }
 
   @override

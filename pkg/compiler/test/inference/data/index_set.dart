@@ -106,7 +106,7 @@ mapUpdateMissing() {
 mapUpdateMixedKeys() {
   dynamic map = {'': 2};
   return map
-      /*update: Map([exact=JsLinkedHashMap], key: Union([exact=JSString], [exact=JSUInt31]), value: [null|exact=JSUInt31])*/
+      /*update: Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSUInt31])*/
       [0] = 42;
 }
 
@@ -118,7 +118,7 @@ mapUpdateMixedKeys() {
 mapUpdateMixedValues() {
   dynamic map = {2: ''};
   return map
-      /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
+      /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSString])*/
       [2] = 42;
 }
 

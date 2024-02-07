@@ -1908,7 +1908,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
       String keyString = key.asString();
       typeInfoMap.putIfAbsent(keyString, () {
         newInfo = ValueInMapTypeInformation(
-            abstractValueDomain, context, null, nonNull);
+            abstractValueDomain, context, null, valueType.staticType, nonNull);
         return newInfo!;
       });
       typeInfoMap[keyString]!.addInput(value);
@@ -1930,7 +1930,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
       other.typeInfoMap.forEach((keyString, value) {
         typeInfoMap.putIfAbsent(keyString, () {
           final newInfo = ValueInMapTypeInformation(
-              abstractValueDomain, context, null, false);
+              abstractValueDomain, context, null, valueType.staticType, false);
           newInfos.add(newInfo);
           return newInfo;
         });
@@ -2046,12 +2046,20 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
 /// A [KeyInMapTypeInformation] holds the common type
 /// for the keys in a [MapTypeInformation]
 class KeyInMapTypeInformation extends InferredTypeInformation {
+  final AbstractValue staticType;
+
   KeyInMapTypeInformation(
-      super.abstractValueDomain, super.context, TypeInformation super.keyType);
+      super.abstractValueDomain, super.context, super.keyType, this.staticType);
 
   @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitKeyInMapTypeInformation(this);
+  }
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) {
+    return inferrer.abstractValueDomain
+        .intersection(super.computeType(inferrer), staticType);
   }
 
   @override
@@ -2065,9 +2073,10 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
   // Note that only values assigned to a specific key value in dictionary
   // mode can ever be marked as [nonNull].
   bool get nonNull => _flags.hasFlag(_Flag.valueInMapNonNull);
+  final AbstractValue staticType;
 
-  ValueInMapTypeInformation(
-      super.abstractValueDomain, super.context, super.valueType,
+  ValueInMapTypeInformation(super.abstractValueDomain, super.context,
+      super.valueType, this.staticType,
       [bool nonNull = false]) {
     _flags = _flags.updateFlag(_Flag.valueInMapNonNull, nonNull);
   }
@@ -2079,9 +2088,11 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
+    final valueType = inferrer.abstractValueDomain
+        .intersection(super.computeType(inferrer), staticType);
     return nonNull
-        ? super.computeType(inferrer)
-        : inferrer.abstractValueDomain.includeNull(super.computeType(inferrer));
+        ? valueType
+        : inferrer.abstractValueDomain.includeNull(valueType);
   }
 
   @override
