@@ -6,6 +6,7 @@
 
 import 'package:expect/expect.dart';
 
+import 'json_key.dart';
 import 'json_serializable.dart';
 
 void main() {
@@ -33,12 +34,12 @@ void main() {
   var rogerAccountJson = {
     ...rogerJson,
     'login': {
-      'username': 'roger1',
+      'account': 'roger1',
       'password': 'theGoat',
     },
   };
   (rogerAccountJson['friends'] as dynamic)[0]['login'] = {
-    'username': 'felixTheCat',
+    'account': 'felixTheCat',
     'password': '9Lives',
   };
   var rogerAccount = UserAccount.fromJson(rogerAccountJson);
@@ -63,6 +64,8 @@ class UserAccount extends User {
 
 @JsonSerializable()
 class Login {
+  @JsonKey(name: 'account')
   final String username;
+
   final String password;
 }

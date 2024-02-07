@@ -56,6 +56,15 @@ final class DeclarationsIntrospectionCycleDiagnostic
   });
 }
 
+final class ElementAnnotationMacroDiagnosticTarget
+    extends MacroDiagnosticTarget {
+  final ElementAnnotationImpl annotation;
+
+  ElementAnnotationMacroDiagnosticTarget({
+    required this.annotation,
+  });
+}
+
 final class ElementMacroDiagnosticTarget extends MacroDiagnosticTarget {
   final ElementImpl element;
 

@@ -6091,6 +6091,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         case TypeAnnotationMacroDiagnosticTarget():
           // TODO(scheglov): Handle this case.
           throw UnimplementedError();
+        case ElementAnnotationMacroDiagnosticTarget():
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError();
       }
     }
 
@@ -6184,6 +6187,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       diagnostic.contextMessages.map(convertMessage).toList(),
                 );
               }
+            case ElementAnnotationMacroDiagnosticTarget():
+              // TODO(scheglov): Handle this case.
+              throw UnimplementedError();
           }
       }
     }

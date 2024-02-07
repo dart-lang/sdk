@@ -830,6 +830,9 @@ class _ElementWriter {
           _sink.withIndent(() {
             writeTypeAnnotationLocation(target.location);
           });
+        case ElementAnnotationMacroDiagnosticTarget():
+          // TODO(scheglov): Implement this
+          throw UnimplementedError();
       }
     }
 
