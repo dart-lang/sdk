@@ -75,7 +75,7 @@ void f() {}
     ]);
   }
 
-  test_constructor_nullSafe_argumentGiven() async {
+  test_constructor_argumentGiven() async {
     await assertNoErrorsInCode(r'''
 class C {
   C({required int a}) {}
@@ -87,7 +87,7 @@ main() {
 ''');
   }
 
-  test_constructor_nullSafe_missingArgument() async {
+  test_constructor_missingArgument() async {
     await assertErrorsInCode(r'''
 class C {
   C({required int a}) {}
@@ -100,7 +100,7 @@ main() {
     ]);
   }
 
-  test_constructor_nullSafe_redirectingConstructorCall() async {
+  test_constructor_redirectingConstructorCall() async {
     await assertErrorsInCode(r'''
 class C {
   C({required int x});
@@ -111,7 +111,7 @@ class C {
     ]);
   }
 
-  test_constructor_nullSafe_superCall() async {
+  test_constructor_superCall() async {
     await assertErrorsInCode(r'''
 class C {
   C({required int a}) {}
