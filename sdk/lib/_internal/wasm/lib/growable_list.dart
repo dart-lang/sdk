@@ -97,7 +97,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
       data = WasmArray<Object?>(_nextCapacity(_capacity));
       if (index != 0) {
         // Copy elements before the insertion point.
-        data.copy(0, _data, 0, index - 1);
+        data.copy(0, _data, 0, index);
       }
     } else {
       data = _data;
