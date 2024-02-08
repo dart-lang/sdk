@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 import 'dart:collection';
 
 class MyList extends ListBase {
@@ -25,7 +26,7 @@ void testModifiableList(l1) {
   // Index must be integer and in range.
   Expect.throwsRangeError(() => l1.removeAt(-1), "negative");
   Expect.throwsRangeError(() => l1.removeAt(5), "too large");
-  if (!dart2jsProductionMode) {
+  if (v.checkedParameters) {
     Expect.throws(
         () => l1.removeAt(null),
         // With sound null safety a TypeError is thrown.

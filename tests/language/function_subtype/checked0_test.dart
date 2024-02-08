@@ -6,6 +6,7 @@
 // Check function subtyping of typedef vs. inlined function types.
 
 import 'package:expect/expect.dart';
+import "package:expect/variations.dart" as v;
 
 typedef int Foo<T>(T a, [String b]);
 typedef int Bar<T>(T a, [String b]);
@@ -30,7 +31,7 @@ class C<T> {
   void test(String nameOfT, bool expectedResult) {
     check(bool expectedResult, f()) {
       if (!expectedResult) {
-        if (!dart2jsProductionMode) Expect.throwsTypeError(f);
+        if (v.checkedParameters) Expect.throwsTypeError(f);
       } else {
         f();
       }
