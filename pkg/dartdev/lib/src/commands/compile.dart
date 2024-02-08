@@ -555,10 +555,12 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
   final List<String> optimizationLevel0Flags = _flagList('''
       --no-inlining
+      --no-minify
     '''); // end of optimizationLevel0Flags
 
   final List<String> optimizationLevel1Flags = _flagList('''
       --inlining
+      --no-minify
     '''); // end of optimizationLevel1Flags
 
   final List<String> optimizationLevel2Flags = _flagList('''
@@ -595,15 +597,16 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       )
       ..addFlag(
         'minify',
-        defaultsTo: false,
+        defaultsTo: null,
         negatable: true,
-        help: 'Generate minified output.',
+        help: 'Minify names that are needed at runtime (such as class names). '
+            'Affects e.g. `<obj>.runtimeType.toString()`).',
         hide: !verbose,
       )
       ..addFlag(
         'name-section',
-        defaultsTo: false,
-        negatable: false,
+        defaultsTo: true,
+        negatable: true,
         help: 'Include a name section with printable function names.',
         hide: !verbose,
       )
@@ -731,6 +734,36 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final optimizationLevel = int.parse(args['optimization-level']);
     final runWasmOpt = optimizationLevel >= 1;
 
+    void handleOverride(List<String> flags, String name, bool? value) {
+      // If no override provided, default to what -O implies.D
+      if (value == null) return;
+
+      if (value) {
+        // Explicitly opt into the flag, irrespective of -O settings.
+        flags.removeWhere((option) => option == '--no-$name');
+        if (!flags.contains('--$name')) {
+          flags.add('--$name');
+        }
+      } else {
+        // Explicit opt out of the flag, irrespective of -O settings.
+        flags.removeWhere((option) => option == '--$name');
+        if (!flags.contains('--no-$name')) {
+          flags.add('--no-$name');
+        }
+      }
+    }
+
+    final optimizationFlags = (switch (optimizationLevel) {
+      0 => optimizationLevel0Flags,
+      1 => optimizationLevel1Flags,
+      2 => optimizationLevel2Flags,
+      3 => optimizationLevel3Flags,
+      4 => optimizationLevel4Flags,
+      _ => throw 'unreachable',
+    })
+        .toList();
+    handleOverride(optimizationFlags, 'minify', args['minify']);
+
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
       sdk.dart2wasmSnapshot,
@@ -749,17 +782,9 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       ],
 
       // First we pass flags based on the optimization level.
-      ...switch (optimizationLevel) {
-        0 => optimizationLevel0Flags,
-        1 => optimizationLevel1Flags,
-        2 => optimizationLevel2Flags,
-        3 => optimizationLevel3Flags,
-        4 => optimizationLevel4Flags,
-        _ => throw 'unreachable',
-      },
-      // Then we pass flags that were opted into explicitly.
-      if (args['name-section']) '--name-section',
-      if (args['minify']) '--minify',
+      ...optimizationFlags,
+
+      // Then we pass any extra compiler flags through.
       ...extraCompilerOptions,
 
       path.absolute(sourcePath),

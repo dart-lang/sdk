@@ -33,7 +33,6 @@ class TranslatorOptions {
   bool importSharedMemory = false;
   bool inlining = true;
   bool jsCompatibility = false;
-  bool nameSection = true;
   bool omitImplicitTypeChecks = false;
   bool omitExplicitTypeChecks = false;
   bool polymorphicSpecialization = false;

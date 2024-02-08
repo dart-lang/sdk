@@ -580,8 +580,8 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var compilerArguments = [
-      ...arguments,
       ..._configuration.dart2wasmOptions,
+      ...arguments,
     ];
 
     var inputFile = arguments.last;
