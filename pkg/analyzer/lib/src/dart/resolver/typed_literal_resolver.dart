@@ -76,29 +76,26 @@ class TypedLiteralResolver {
 
   void resolveListLiteral(ListLiteralImpl node,
       {required DartType contextType}) {
-    InterfaceType? listType;
+    DartType? elementType;
     GenericInferrer? inferrer;
 
     var typeArguments = node.typeArguments?.arguments;
     if (typeArguments != null) {
       if (typeArguments.length == 1) {
-        DartType elementType = typeArguments[0].typeOrThrow;
-        if (elementType is! DynamicType) {
-          listType = _typeProvider.listType(elementType);
+        var type = typeArguments[0].typeOrThrow;
+        if (type is! DynamicType) {
+          elementType = type;
         }
       }
     } else {
       inferrer = _inferListTypeDownwards(node, contextType: contextType);
       if (contextType is! UnknownInferredType) {
         var typeArguments = inferrer.choosePreliminaryTypes();
-        listType = _typeProvider.listElement.instantiate(
-            typeArguments: typeArguments,
-            nullabilitySuffix: NullabilitySuffix.none);
+        elementType = typeArguments[0];
       }
     }
     CollectionLiteralContext? context;
-    if (listType != null) {
-      DartType elementType = listType.typeArguments[0];
+    if (elementType != null) {
       DartType iterableType = _typeProvider.iterableType(elementType);
       context = CollectionLiteralContext(
           elementType: elementType, iterableType: iterableType);
