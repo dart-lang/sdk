@@ -208,10 +208,10 @@ class ContextBuilderImpl implements ContextBuilder {
       var options = AnalysisOptionsImpl(file: file);
       var optionsYaml = provider.getOptionsFromFile(file);
       options.applyOptions(optionsYaml);
-      updateOptions(options);
       _optionsMap.add(entry.key, options);
     }
 
+    _optionsMap.forEachOptionsObject(updateOptions);
     return _optionsMap;
   }
 
