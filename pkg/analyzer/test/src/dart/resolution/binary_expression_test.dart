@@ -241,7 +241,7 @@ BinaryExpression
         NullLiteral
           literal: null
           parameter: ParameterMember
-            base: root::@parameter::t
+            base: self::@function::f::@parameter::t
             substitution: {T: int?}
           staticType: Null
       rightParenthesis: )

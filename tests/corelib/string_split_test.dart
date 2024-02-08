@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 
 main() {
   testSplitString();
@@ -26,9 +27,9 @@ testSplit(List<String> expect, String string, Pattern pattern) {
 
   // Check that store of the wrong type throws. Don't test on configurations
   // that don't perform type checks.
-  if (!dart2jsProductionMode) {
-    Expect.throwsTypeError(() => actual.add(42),
-      'List<String>.add should not accept an int');
+  if (v.checkedParameters) {
+    Expect.throwsTypeError(
+        () => actual.add(42), 'List<String>.add should not accept an int');
   }
 
   Expect.listEquals(expect, actual, '"$string".split($patternString)');

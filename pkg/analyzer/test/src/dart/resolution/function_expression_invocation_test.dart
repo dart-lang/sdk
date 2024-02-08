@@ -39,7 +39,7 @@ FunctionExpressionInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: root::@parameter::t
+          base: self::@class::A::@method::call::@parameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -82,7 +82,7 @@ FunctionExpressionInvocation
             staticType: int
         rightBracket: ]
         parameter: ParameterMember
-          base: root::@parameter::_
+          base: self::@class::A::@method::call::@parameter::_
           substitution: {T: int}
         staticType: List<int>
     rightParenthesis: )

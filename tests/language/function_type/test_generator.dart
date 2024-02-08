@@ -592,6 +592,7 @@ final String HEADER = """
 import 'dart:core';
 import 'dart:core' as core;
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart' as v;
 
 @pragma('dart2js:noInline')
 @pragma('dart2js:assumeDynamic')
@@ -693,7 +694,7 @@ final TYPEDEF_T_TESTS_TEMPLATE = """
     Expect.isFalse(#staticFunName is #typeName<bool>);
     Expect.isTrue(confuse(#staticFunName) is #typeName<int>);
     Expect.isFalse(confuse(#staticFunName) is #typeName<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
+    if (tIsBool && v.checkedImplicitDowncasts) {
       Expect.throws(() { #fieldName = (#staticFunName as dynamic); });
       Expect.throws(() { #fieldName = confuse(#staticFunName); });
       Expect.throws(() { #localName = (#staticFunName as dynamic); });

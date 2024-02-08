@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 
 class A {}
 
@@ -37,8 +38,8 @@ class C extends B<A> {
 }
 
 main() {
-  // Covariance checks are omitted in dart2js production mode.
-  if (dart2jsProductionMode) return;
+  // TODO(sigmund): replace with a Requirement comment when available.
+  if (!v.checkedParameters) return;
 
   // Dynamic method calls should always have their arguments type checked.
   dynamic d = new C();

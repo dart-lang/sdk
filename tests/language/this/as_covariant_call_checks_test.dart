@@ -5,6 +5,7 @@
 // VMOptions=--no-background-compilation --optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 
 class A<T> {
   late T field;
@@ -44,7 +45,8 @@ void loop(A<String> obj, bool violateType) {
 }
 
 void main() {
-  if (dart2jsProductionMode) return; // All checks omitted in this mode.
+  // TODO(sigmund): update to use a Requirements comment instead
+  if (!v.checkedParameters) return;
 
   A<num>().field = 10;
   final obj = A<String>();

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 
 makeFn() {
   return <T extends num>({T? a1, T? a2, T? a3, T? a4, T? a5}) {
@@ -29,7 +30,7 @@ main() {
   check('[null, 33, null, 11, 22, null]',
       Function.apply(new CCC().memberFn, [], {#a4: 11, #a5: 22, #a2: 33}));
 
-  if (!dart2jsProductionMode) {
+  if (v.checkedParameters) {
     Expect.throwsTypeError(
         () => Function.apply(new CCC().memberFn, [], {#a3: 'hi'}));
   }
@@ -40,14 +41,14 @@ main() {
   check('[null, 33, null, 11, 22]',
       Function.apply(makeFn(), [], {#a4: 11, #a5: 22, #a2: 33}));
 
-  if (!dart2jsProductionMode) {
+  if (v.checkedParameters) {
     Expect.throwsTypeError(() => Function.apply(makeFn(), [], {#a3: 'hi'}));
   }
 
   check('[null, 33, null, 11, 22, null]',
       Function.apply(staticFn, [], {#a4: 11, #a5: 22, #a2: 33}));
 
-  if (!dart2jsProductionMode) {
+  if (v.checkedParameters) {
     Expect.throwsTypeError(() => Function.apply(staticFn, [], {#a3: 'hi'}));
   }
 }

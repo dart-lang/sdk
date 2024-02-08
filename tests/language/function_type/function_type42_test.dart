@@ -14,6 +14,7 @@
 import 'dart:core';
 import 'dart:core' as core;
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart' as v;
 
 @pragma('dart2js:noInline')
 @pragma('dart2js:assumeDynamic')
@@ -271,7 +272,7 @@ class U42<T> {
     Expect.isFalse(f2 is F2<bool>);
     Expect.isTrue(confuse(f2) is F2<int>);
     Expect.isFalse(confuse(f2) is F2<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
+    if (tIsBool && v.checkedImplicitDowncasts) {
       Expect.throws(() {
         x2 = (f2 as dynamic);
       });
@@ -393,7 +394,7 @@ class U42<T> {
     Expect.isFalse(f6 is F6<bool>);
     Expect.isTrue(confuse(f6) is F6<int>);
     Expect.isFalse(confuse(f6) is F6<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
+    if (tIsBool && v.checkedImplicitDowncasts) {
       Expect.throws(() {
         x6 = (f6 as dynamic);
       });
@@ -596,7 +597,7 @@ class U42<T> {
     Expect.isFalse(f13 is F13<bool>);
     Expect.isTrue(confuse(f13) is F13<int>);
     Expect.isFalse(confuse(f13) is F13<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
+    if (tIsBool && v.checkedImplicitDowncasts) {
       Expect.throws(() {
         x13 = (f13 as dynamic);
       });
@@ -646,7 +647,7 @@ class U42<T> {
     Expect.isFalse(f14 is F14<bool>);
     Expect.isTrue(confuse(f14) is F14<int>);
     Expect.isFalse(confuse(f14) is F14<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
+    if (tIsBool && v.checkedImplicitDowncasts) {
       Expect.throws(() {
         x14 = (f14 as dynamic);
       });
@@ -696,7 +697,7 @@ class U42<T> {
     Expect.isFalse(f15 is F15<bool>);
     Expect.isTrue(confuse(f15) is F15<int>);
     Expect.isFalse(confuse(f15) is F15<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
+    if (tIsBool && v.checkedImplicitDowncasts) {
       Expect.throws(() {
         x15 = (f15 as dynamic);
       });
@@ -896,7 +897,7 @@ class U42<T> {
     Expect.isFalse(f22 is F22<bool>);
     Expect.isTrue(confuse(f22) is F22<int>);
     Expect.isFalse(confuse(f22) is F22<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
+    if (tIsBool && v.checkedImplicitDowncasts) {
       Expect.throws(() {
         x22 = (f22 as dynamic);
       });

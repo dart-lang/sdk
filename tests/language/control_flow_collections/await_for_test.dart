@@ -4,6 +4,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart' as v;
 
 import 'utils.dart';
 
@@ -281,9 +282,10 @@ Future<void> testKeyOrder() async {
 }
 
 Future<void> testRuntimeErrors() async {
-  // The checks for the TypeErrors tested in here are omitted in dart2js
-  // production mode.
-  if (dart2jsProductionMode) return;
+  // TODO(54798): split these and move them closer to each expectation.
+  if (!v.checkedParameters || !v.checkedImplicitDowncasts) {
+    return;
+  }
 
   // Cast variable.
   dynamic nonStream = 3;

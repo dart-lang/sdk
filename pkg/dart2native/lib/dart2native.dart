@@ -40,7 +40,7 @@ final productPlatformDill = path.join(
 // Maximum page size across all supported architectures (arm64 macOS has 16K
 // pages, some arm64 Linux distributions have 64K pages).
 const elfPageSize = 65536;
-const appjitMagicNumber = <int>[0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0];
+const appJitMagicNumber = <int>[0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0];
 const kernelMagicNumber = <int>[0x90, 0xab, 0xcd, 0xef];
 
 Future<bool> isKernelFile(String path) async {
@@ -79,9 +79,9 @@ Future<void> writeAppendedExecutable(
   }
 
   final dartaotruntimeFile = File(dartaotruntime);
-  final int dartaotruntimeLength = dartaotruntimeFile.lengthSync();
+  final dartaotruntimeLength = dartaotruntimeFile.lengthSync();
 
-  final padding = ((elfPageSize - dartaotruntimeLength) % elfPageSize);
+  final padding = (elfPageSize - dartaotruntimeLength) % elfPageSize;
   final padBytes = Uint8List(padding);
   final offset = dartaotruntimeLength + padding;
 
@@ -94,18 +94,18 @@ Future<void> writeAppendedExecutable(
   outputFile.add(padBytes);
   outputFile.add(File(payloadPath).readAsBytesSync());
   outputFile.add(offsetBytes.buffer.asUint8List());
-  outputFile.add(appjitMagicNumber);
+  outputFile.add(appJitMagicNumber);
   await outputFile.close();
 }
 
-Future markExecutable(String outputFile) {
+Future<ProcessResult> markExecutable(String outputFile) {
   return Process.run('chmod', ['+x', outputFile]);
 }
 
 /// Generates kernel by running the provided [genKernel] path.
 ///
 /// Also takes a path to the [resourcesFile] JSON file, where the method calls
-/// to static functions annotated with [Resource] will be collected.
+/// to static functions annotated with `@ResourceIdentifier` will be collected.
 Future<ProcessResult> generateKernelHelper({
   required String dartaotruntime,
   required String sourceFile,
@@ -133,7 +133,7 @@ Future<ProcessResult> generateKernelHelper({
     if (aot) '--aot',
     if (!embedSources) '--no-embed-sources',
     if (!linkPlatform) '--no-link-platform',
-    ...(defines.map((d) => '-D$d')),
+    ...defines.map((d) => '-D$d'),
     if (packages != null) '--packages=$packages',
     if (nativeAssets != null) '--native-assets=$nativeAssets',
     if (resourcesFile != null) '--resources-file=$resourcesFile',
