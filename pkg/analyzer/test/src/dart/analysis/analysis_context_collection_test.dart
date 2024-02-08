@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/context_root.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -284,6 +288,151 @@ workspaces
   workspace_0: BasicWorkspace
     root: /home
     workspacePackage_0_0
+''');
+  }
+
+  test_packageConfigWorkspace_enabledExperiment() async {
+    configuration.showEnabledFeatures = true;
+
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+
+    newFile('$testPackageLibPath/a.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, updateAnalysisOptions: (
+            {required AnalysisOptions analysisOptions,
+            required ContextRoot contextRoot,
+            required DartSdk sdk}) {
+      (analysisOptions as AnalysisOptionsImpl).contextFeatures =
+          FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: ['variance'],
+      );
+    }, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  features
+    class-modifiers
+    constant-update-2018
+    constructor-tearoffs
+    control-flow-collections
+    enhanced-enums
+    extension-methods
+    generic-metadata
+    inference-update-1
+    inference-update-2
+    inline-class
+    named-arguments-anywhere
+    non-nullable
+    nonfunction-type-aliases
+    patterns
+    records
+    sealed-class
+    set-literals
+    spread-collections
+    super-parameters
+    triple-shift
+    unnamed-libraries
+    variance
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  test_packageConfigWorkspace_enabledExperiment_noAnalysisOptionsFile() async {
+    configuration.withAnalysisOptionsWithoutFiles = true;
+    configuration.showEnabledFeatures = true;
+
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile('$testPackageLibPath/a.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, updateAnalysisOptions: (
+            {required AnalysisOptions analysisOptions,
+            required ContextRoot contextRoot,
+            required DartSdk sdk}) {
+      (analysisOptions as AnalysisOptionsImpl).contextFeatures =
+          FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: ['variance'],
+      );
+    }, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: <no file>
+  features
+    class-modifiers
+    constant-update-2018
+    constructor-tearoffs
+    control-flow-collections
+    enhanced-enums
+    extension-methods
+    generic-metadata
+    inference-update-1
+    inference-update-2
+    inline-class
+    named-arguments-anywhere
+    non-nullable
+    nonfunction-type-aliases
+    patterns
+    records
+    sealed-class
+    set-literals
+    spread-collections
+    super-parameters
+    triple-shift
+    unnamed-libraries
+    variance
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
 ''');
   }
 
@@ -649,6 +798,11 @@ workspaces
     String workspaceRootPath,
     String expected, {
     File? optionsFile,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required ContextRoot contextRoot,
+      required DartSdk sdk,
+    })? updateAnalysisOptions,
   }) {
     if (optionsFile != null) {
       expect(optionsFile.exists, isTrue);
@@ -660,6 +814,7 @@ workspaces
         getFolder(workspaceRootPath).path,
       ],
       optionsFile: optionsFile?.path,
+      updateAnalysisOptions2: updateAnalysisOptions,
     );
 
     _assertCollectionText(collection, expected);
@@ -952,18 +1107,34 @@ class _AnalysisContextCollectionPrinter {
   }
 
   void _writeAnalysisOptions() {
-    var withFile = _analysisOptions.keys
+    var filtered = _analysisOptions.keys
         .map((analysisOption) {
           var file = analysisOption.file;
-          return file != null ? (analysisOption, file) : null;
+          return configuration.withAnalysisOptionsWithoutFiles || file != null
+              ? (analysisOption, file)
+              : null;
         })
         .nonNulls
         .toList();
 
-    sink.writeElements('analysisOptions', withFile, (pair) {
+    sink.writeElements('analysisOptions', filtered, (pair) {
       var id = _idOfAnalysisOptions(pair.$1);
       var file = pair.$2;
-      _writeNamedFile(id, file);
+      if (file == null && configuration.withAnalysisOptionsWithoutFiles) {
+        sink.writelnWithIndent('$id: <no file>');
+      } else {
+        _writeNamedFile(id, file);
+      }
+      if (configuration.showEnabledFeatures) {
+        var options = pair.$1;
+        var contextFeatures = options.contextFeatures;
+        var enabledFeatures = ExperimentStatus.knownFeatures.values
+            .where((f) => contextFeatures.isEnabled(f))
+            .toList();
+        sink.writeElements('features', enabledFeatures, (feature) {
+          sink.writelnWithIndent(feature);
+        });
+      }
     });
   }
 
@@ -978,7 +1149,8 @@ class _AnalysisContextCollectionPrinter {
       }
 
       final analysisOptions = fileState.analysisOptions;
-      if (analysisOptions.file != null) {
+      if (configuration.withAnalysisOptionsWithoutFiles ||
+          analysisOptions.file != null) {
         final id = _idOfAnalysisOptions(analysisOptions);
         sink.writelnWithIndent(id);
       }
@@ -1053,5 +1225,7 @@ class _AnalysisContextCollectionPrinter {
 }
 
 class _AnalysisContextCollectionPrinterConfiguration {
+  bool showEnabledFeatures = false;
   bool withEmptyContextRoots = false;
+  bool withAnalysisOptionsWithoutFiles = false;
 }
