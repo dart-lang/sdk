@@ -147,8 +147,6 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType? _symbolType;
   InterfaceType? _typeType;
 
-  InterfaceType? _nullStar;
-
   /// Initialize a newly created type provider to provide the types defined in
   /// the given [coreLibrary] and [asyncLibrary].
   TypeProviderImpl({
@@ -323,13 +321,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get nullElement {
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
-  }
-
-  InterfaceType get nullStar {
-    return _nullStar ??= nullElement.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 
   @override

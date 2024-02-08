@@ -988,9 +988,9 @@ inline intx_t ImmLo(intx_t imm) {
          (XLEN - 12);
 }
 inline intx_t ImmHi(intx_t imm) {
-  return static_cast<intx_t>(static_cast<uintx_t>(imm) -
-                             static_cast<uintx_t>(ImmLo(imm)))
-             << (XLEN - 32) >>
+  return static_cast<intx_t>(
+             (static_cast<uintx_t>(imm) - static_cast<uintx_t>(ImmLo(imm)))
+             << (XLEN - 32)) >>
          (XLEN - 32);
 }
 

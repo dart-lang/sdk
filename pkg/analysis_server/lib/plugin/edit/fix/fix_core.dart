@@ -46,13 +46,3 @@ abstract class FixContext {
   /// The error to fix.
   AnalysisError get error;
 }
-
-/// An object used to produce fixes for a specific error. Fix contributors are
-/// long-lived objects and must not retain any state between invocations of
-/// [computeFixes].
-///
-/// Clients may implement this class when implementing plugins.
-abstract class FixContributor {
-  /// Return a list of fixes for the given [context].
-  Future<List<Fix>> computeFixes(covariant FixContext context);
-}

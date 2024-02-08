@@ -1197,10 +1197,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Don't allow other native subtypes if the Dart return type is void.
       return nativeReturnType == _PrimitiveDartType.void_;
     } else if (nativeReturnType == _PrimitiveDartType.handle) {
-      InterfaceType objectType = typeSystem.objectStar;
-      return direction == _FfiTypeCheckDirection.dartToNative
-          ? /* everything is subtype of objectStar */ true
-          : typeSystem.isSubtypeOf(objectType, dartType);
+      switch (direction) {
+        case _FfiTypeCheckDirection.dartToNative:
+          // Everything is a subtype of `Object?`.
+          return true;
+        case _FfiTypeCheckDirection.nativeToDart:
+          return typeSystem.isSubtypeOf(typeSystem.objectNone, dartType);
+      }
     } else if (dartType is InterfaceType && nativeType is InterfaceType) {
       if (nativeFieldWrappersAsPointer &&
           _extendsNativeFieldWrapperClass1(dartType)) {

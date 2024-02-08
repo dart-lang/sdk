@@ -80,9 +80,6 @@ class TypeSystemImpl implements TypeSystem {
   /// The cached instance of `Object?`.
   InterfaceTypeImpl? _objectQuestion;
 
-  /// The cached instance of `Object*`.
-  InterfaceTypeImpl? _objectStar;
-
   /// The cached instance of `Object!`.
   InterfaceTypeImpl? _objectNone;
 
@@ -114,10 +111,6 @@ class TypeSystemImpl implements TypeSystem {
   InterfaceTypeImpl get objectQuestion =>
       _objectQuestion ??= (typeProvider.objectType as InterfaceTypeImpl)
           .withNullability(NullabilitySuffix.question);
-
-  InterfaceTypeImpl get objectStar =>
-      _objectStar ??= (typeProvider.objectType as InterfaceTypeImpl)
-          .withNullability(NullabilitySuffix.star);
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
