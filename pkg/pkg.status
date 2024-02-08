@@ -331,7 +331,7 @@ crypto/test/sha256_test: Slow, Pass
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
 
-[ $compiler == dart2js && $host_checked ]
+[ $compiler == dart2js && $host_asserts ]
 js_ast/test/printer_callback_test: Slow, Pass
 js_ast/test/string_escape_test: Slow, Pass
 

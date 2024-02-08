@@ -65,7 +65,7 @@ abstract class CompilerConfiguration {
 
   bool get _isDebug => _configuration.mode.isDebug;
 
-  bool get _isHostChecked => _configuration.isHostChecked;
+  bool get _enableHostAsserts => _configuration.enableHostAsserts;
 
   bool get _useSdk => _configuration.useSdk;
 
@@ -391,12 +391,12 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
 
   @override
   String computeCompilerPath() {
-    if (_isHostChecked && _useSdk) {
+    if (_enableHostAsserts && _useSdk) {
       // When [_useSdk] is true, dart2js is compiled into a snapshot that was
-      // built without checked mode. The VM cannot make such snapshot run in
-      // checked mode later. These two flags could be used together if we also
-      // build an sdk with checked snapshots.
-      throw "--host-checked and --use-sdk cannot be used together";
+      // built without assertions enabled. The VM cannot make such snapshot run
+      // with assertions later. These two flags could be used together if we
+      // also build sdk snapshots with assertions enabled.
+      throw "--host-asserts and --use-sdk cannot be used together";
     }
 
     if (_useSdk) {
@@ -408,7 +408,7 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
       // mode or not.
       return '$dartSdk/bin/dart$executableExtension';
     } else {
-      var scriptName = _isHostChecked ? 'dart2js_developer' : 'dart2js';
+      var scriptName = _enableHostAsserts ? 'dart2js_developer' : 'dart2js';
       return 'sdk/bin/$scriptName$shellScriptExtension';
     }
   }
@@ -527,8 +527,8 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   @override
   String computeCompilerPath() {
     if (_useSdk) {
-      if (_isHostChecked) {
-        throw "--host-checked and --use-sdk cannot be used together";
+      if (_enableHostAsserts) {
+        throw "--host-asserts and --use-sdk cannot be used together";
       }
       return '${_configuration.buildDirectory}/dart-sdk/bin/dart';
     }
@@ -543,7 +543,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
         'compile',
         'wasm',
       ] else ...[
-        if (_isHostChecked) '--compiler-asserts',
+        if (_enableHostAsserts) '--compiler-asserts',
       ],
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
@@ -1296,8 +1296,8 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   @override
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
-    if (_isHostChecked) {
-      throw "--host-checked cannot be used for dartanalyzer";
+    if (_enableHostAsserts) {
+      throw "--host-asserts cannot be used for dartanalyzer";
     }
     if (_useSdk) {
       prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
