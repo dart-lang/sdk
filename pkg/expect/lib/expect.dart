@@ -7,9 +7,11 @@
 library expect;
 
 /// Whether the program is running without sound null safety.
+// TODO(54798): migrate uses to directly import variations.dart
 bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
 
 /// Whether the program is running with sound null safety.
+// TODO(54798): migrate uses to directly import variations.dart
 bool get hasSoundNullSafety => !hasUnsoundNullSafety;
 
 /// Whether the test was compiled by Dart2JS as production web code.
@@ -20,6 +22,7 @@ bool get hasSoundNullSafety => !hasUnsoundNullSafety;
 ///
 /// For example an invalid implicit down-cast like
 /// `dynamic d = 3; String s = d;` might not be caught in production code.
+// TODO(54798): migrate uses to directly import variations.dart
 final dart2jsProductionMode = const bool.fromEnvironment(
     'dart.tool.dart2js.types:trust',
     defaultValue: false);
@@ -35,6 +38,7 @@ final dart2jsProductionMode = const bool.fromEnvironment(
 /// implements `double` and is the same object as `1.0`. In native numbers,
 /// those values are two different objects, and integers do not implement
 /// `double`.
+// TODO(54798): migrate uses to directly import variations.dart
 final bool webNumbers = identical(1, 1.0);
 
 /// Expect is used for tests that do not want to make use of the
