@@ -1475,7 +1475,14 @@ abstract class InstanceElement
   @experimental
   InstanceElement? get augmentationTarget;
 
-  /// The result of applying augmentations.
+  /// The result of merging augmentations.
+  ///
+  /// Returns `null` if this element is an augmentation and there is no base
+  /// element from which a merge can be performed.
+  ///
+  /// If a non-null instance is returned it will include the members of
+  /// the base element and its augmentations as specified by the merge
+  /// operations.
   @experimental
   AugmentedInstanceElement? get augmented;
 
