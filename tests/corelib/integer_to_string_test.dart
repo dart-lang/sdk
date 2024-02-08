@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import 'package:expect/variations.dart' as v;
 
 main() {
   /// Test that converting [value] to a string gives [expect].
@@ -52,7 +53,7 @@ main() {
   test(0x1fffffffffffff, "9007199254740991");
   test(0x20000000000000, "9007199254740992");
   // Split literals into sum of two web numbers to avoid compilation errors.
-  if (webNumbers) {
+  if (v.jsNumbers) {
     // The String for large integral web numbers (doubles) could be any sequence
     // of digits that parse back to the same value. The algorithm chooses 'nice'
     // rounded numbers rather than the equivalent digits for some multiple of a
@@ -88,7 +89,7 @@ main() {
   // Numbers 99..99, 100...00, and 100..01 up to 18 digits.
   for (int i = 1; i < 19; i++) {
     // Works in dart2js up to 10^15.
-    if (webNumbers && i > 15) break;
+    if (v.jsNumbers && i > 15) break;
     test(number - 1, "9" * i);
     test(number, "1" + "0" * i);
     test(number + 1, "1" + "0" * (i - 1) + "1");
