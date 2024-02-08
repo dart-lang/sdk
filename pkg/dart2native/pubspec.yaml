@@ -17,4 +17,4 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  lints: any
+  dart_flutter_team_lints: any

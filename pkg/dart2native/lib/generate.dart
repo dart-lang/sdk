@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import 'dart2native.dart';
+import 'src/generate_utils.dart';
+
 export 'dart2native.dart' show genKernel, genSnapshot;
 
 final dartaotruntime = path.join(
@@ -74,8 +76,8 @@ Future<void> generateNative({
   String verbosity = 'all',
   List<String> extraOptions = const [],
 }) async {
-  final Directory tempDir = Directory.systemTemp.createTempSync();
-  final String kernelFile = path.join(tempDir.path, 'kernel.dill');
+  final tempDir = Directory.systemTemp.createTempSync();
+  final kernelFile = path.join(tempDir.path, 'kernel.dill');
 
   final sourcePath = _normalize(sourceFile)!;
   final sourceWithoutDartOrDill = sourcePath.replaceFirst(
@@ -92,7 +94,8 @@ Future<void> generateNative({
     if (targetOS == null) {
       throw ArgumentError('targetOS must be specified for executables.');
     } else if (targetOS != Platform.operatingSystem) {
-      throw StateError('Cross compilation not supported for executables.');
+      throw UnsupportedError(
+          'Cross compilation not supported for executables.');
     }
   }
 
@@ -125,19 +128,18 @@ Future<void> generateNative({
     );
     await _forwardOutput(kernelResult);
     if (kernelResult.exitCode != 0) {
-      throw 'Generating AOT kernel dill failed!';
+      throw StateError('Generating AOT kernel dill failed!');
     }
 
-    List<String> extraAotOptions = [
-      if (!soundNullSafety) "--no-sound-null-safety",
+    final extraAotOptions = <String>[
+      if (!soundNullSafety) '--no-sound-null-safety',
       ...extraOptions
     ];
     if (verbose) {
       print('Generating AOT snapshot. $genSnapshot $extraAotOptions');
     }
-    final String snapshotFile = (kind == Kind.aot
-        ? outputPath
-        : path.join(tempDir.path, 'snapshot.aot'));
+    final snapshotFile =
+        kind == Kind.aot ? outputPath : path.join(tempDir.path, 'snapshot.aot');
     final snapshotResult = await generateAotSnapshotHelper(
       kernelFile,
       snapshotFile,
@@ -149,7 +151,7 @@ Future<void> generateNative({
       await _forwardOutput(snapshotResult);
     }
     if (snapshotResult.exitCode != 0) {
-      throw 'Generating AOT snapshot failed!';
+      throw StateError('Generating AOT snapshot failed!');
     }
 
     if (kind == Kind.exe) {
@@ -179,7 +181,7 @@ Future<void> generateNative({
 ///
 /// [outputFile] is the location the generated output will be written. If null,
 /// the generated output will be written adjacent to [sourceFile] with the file
-/// extension matching the executable type specified by [kind].
+/// extension matching the executable type specified by its [Kind].
 ///
 /// [defines] is the list of Dart defines to be set in the compiled program.
 ///
@@ -212,8 +214,9 @@ Future<void> generateKernel({
   required String enableExperiment,
   bool linkPlatform = false,
   bool embedSources = true,
-  // TODO: do we want to allow for users to generate non-product mode kernel?
-  // What are the impliciations of using product mode kernel in a non-product runtime?
+  // TODO: Do we want to allow for users to generate non-product mode kernel?
+  //   What are the implications of using a product mode kernel
+  //   in a non-product runtime?
   bool product = true,
   bool soundNullSafety = true,
   bool verbose = false,
@@ -245,7 +248,7 @@ Future<void> generateKernel({
   );
   await _forwardOutput(kernelResult);
   if (kernelResult.exitCode != 0) {
-    throw 'Generating kernel failed!';
+    throw StateError('Generating kernel failed!');
   }
 }
 
@@ -254,21 +257,29 @@ String? _normalize(String? p) {
   return path.canonicalize(path.normalize(p));
 }
 
+/// Forward the output of [result] to stdout and stderr.
 Future<void> _forwardOutput(ProcessResult result) async {
-  if (result.stdout.isNotEmpty) {
-    final bool needsNewLine = !result.stdout.endsWith('\n');
+  if (result.stdout case final resultOutput
+      when processOutputIsNotEmpty(resultOutput)) {
+    final needsNewLine =
+        resultOutput is! String || !resultOutput.endsWith('\n');
     if (result.exitCode == 0) {
-      stdout.write(result.stdout);
+      stdout.write(resultOutput);
       if (needsNewLine) stdout.writeln();
       await stdout.flush();
     } else {
-      stderr.write(result.stdout);
+      stderr.write(resultOutput);
       if (needsNewLine) stderr.writeln();
     }
   }
-  if (result.stderr.isNotEmpty) {
-    stderr.write(result.stderr);
-    if (!result.stderr.endsWith('\n')) stderr.writeln();
+  if (result.stderr case final resultErrorOutput
+      when processOutputIsNotEmpty(resultErrorOutput)) {
+    final needsNewLine =
+        resultErrorOutput is! String || !resultErrorOutput.endsWith('\n');
+    stderr.write(resultErrorOutput);
+    if (needsNewLine) {
+      stderr.writeln();
+    }
     await stderr.flush();
   }
 }

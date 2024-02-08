@@ -8,12 +8,12 @@ import 'dart:typed_data';
 
 // Note that these values MUST match the arguments to -add_empty_section in
 // runtime/BUILD.gn.
-const String reservedSegmentName = "__CUSTOM";
-const String reservedSectionName = "__space_for_note";
+const String reservedSegmentName = '__CUSTOM';
+const String reservedSectionName = '__space_for_note';
 
 // Note that this value MUST match runtime/bin/snapshot_utils.cc, which looks
 // specifically for the snapshot in this note.
-const String snapshotNoteName = "__dart_app_snap";
+const String snapshotNoteName = '__dart_app_snap';
 
 /// The page size for aligning segments in MachO files. X64 MacOS uses 4k pages,
 /// and ARM64 MacOS uses 16k pages, so we use 16k here.
@@ -22,7 +22,7 @@ const int segmentAlignment = 1 << segmentAlignmentLog2;
 
 /// Pads the given size so that it is a multiple of the given alignment.
 int align(int size, int alignment) {
-  final int unpadded = size % alignment;
+  final unpadded = size % alignment;
   return size + (unpadded != 0 ? alignment - unpadded : 0);
 }
 
@@ -58,16 +58,11 @@ class MachOReader {
 
   /// Reads an unsigned integer of the given word size from the contained
   /// stream. Throws an [ArgumentError] for if [wordSize] is not 4 or 8.
-  int readUword(int wordSize) {
-    switch (wordSize) {
-      case 4:
-        return readUint32();
-      case 8:
-        return readUint64();
-      default:
-        throw ArgumentError('Unexpected word size: $wordSize', 'wordSize');
-    }
-  }
+  int readUword(int wordSize) => switch (wordSize) {
+        4 => readUint32(),
+        8 => readUint64(),
+        _ => throw ArgumentError('Unexpected word size: $wordSize', 'wordSize'),
+      };
 
   /// Reads a fixed length string from the contained stream. The string may be
   /// null terminated, in which case the returned string may contain less
@@ -104,11 +99,11 @@ class MachOWriter {
   /// a [FormatException] if the value is negative or does not fit in 16 bits.
   void writeUint16(int value) {
     if (value < 0) {
-      throw FormatException("Attempted to write a negative value $value");
+      throw FormatException('Attempted to write a negative value $value');
     }
     if ((value >> 16) != 0) {
       throw FormatException("Attempted to write an unsigned value that doesn't "
-          "fit in 16 bits: $value");
+          'fit in 16 bits: $value');
     }
     final buffer = ByteData(2)..setUint16(0, value, _endian);
     _stream.writeFromSync(Uint8List.sublistView(buffer));
@@ -118,11 +113,11 @@ class MachOWriter {
   /// a [FormatException] if the value is negative or does not fit in 32 bits.
   void writeUint32(int value) {
     if (value < 0) {
-      throw FormatException("Attempted to write a negative value $value");
+      throw FormatException('Attempted to write a negative value $value');
     }
     if ((value >> 32) != 0) {
       throw FormatException("Attempted to write an unsigned value that doesn't "
-          "fit in 32 bits: $value");
+          'fit in 32 bits: $value');
     }
     final buffer = ByteData(4)..setUint32(0, value, _endian);
     _stream.writeFromSync(Uint8List.sublistView(buffer));
@@ -139,7 +134,7 @@ class MachOWriter {
   void writeInt32(int value) {
     if (((value < 0 ? ~value : value) >> 31) != 0) {
       throw FormatException("Attempted to write a signed value that doesn't "
-          "fit in 32 bits: $value");
+          'fit in 32 bits: $value');
     }
     final buffer = ByteData(4)..setInt32(0, value, _endian);
     _stream.writeFromSync(Uint8List.sublistView(buffer));
@@ -147,16 +142,11 @@ class MachOWriter {
 
   /// Writes an unsigned integer with a given word size to the contained
   /// stream. Throws an [ArgumentError] for if [wordSize] is not 4 or 8.
-  void writeUword(int value, int wordSize) {
-    switch (wordSize) {
-      case 4:
-        return writeUint32(value);
-      case 8:
-        return writeUint64(value);
-      default:
-        throw ArgumentError('Unexpected word size: $wordSize', 'wordSize');
-    }
-  }
+  void writeUword(int value, int wordSize) => switch (wordSize) {
+        4 => writeUint32(value),
+        8 => writeUint64(value),
+        _ => throw ArgumentError('Unexpected word size: $wordSize', 'wordSize'),
+      };
 
   /// Writes the given string as an ASCII-encoded null terminated string
   /// with a given fixed length. Throws a format exception if the ASCII
@@ -164,7 +154,7 @@ class MachOWriter {
   /// If the ASCII character length of the string is the same as the given
   /// length, there will be no null terminator in the written data.
   void writeFixedLengthNullTerminatedString(String s, int length) {
-    final Uint8List buffer = Uint8List(length);
+    final buffer = Uint8List(length);
     final encoded = ascii.encode(s);
     if (encoded.length > length) {
       throw FormatException('Attempted to write a string longer than $length '
