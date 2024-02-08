@@ -43,7 +43,7 @@ VariableDeclaration
         SimpleIdentifier
           token: g
           parameter: ParameterMember
-            base: root::@parameter::a
+            base: self::@function::f::@parameter::a
             substitution: {T: String}
           staticElement: self::@function::g
           staticType: String Function()
@@ -72,7 +72,7 @@ VariableDeclaration
           declaredElement: @99
             type: InvalidType Function(Object?)
           parameter: ParameterMember
-            base: root::@parameter::b
+            base: self::@function::f::@parameter::b
             substitution: {T: String}
           staticType: InvalidType Function(Object?)
       rightParenthesis: )
@@ -108,7 +108,7 @@ VariableDeclaration
         SimpleIdentifier
           token: g
           parameter: ParameterMember
-            base: root::@parameter::a
+            base: self::@function::f::@parameter::a
             substitution: {T: String}
           staticElement: self::@function::g
           staticType: String Function()
@@ -137,7 +137,7 @@ VariableDeclaration
           declaredElement: @107
             type: int Function(String)
           parameter: ParameterMember
-            base: root::@parameter::b
+            base: self::@function::f::@parameter::b
             substitution: {T: String}
           staticType: int Function(String)
       rightParenthesis: )
