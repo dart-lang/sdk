@@ -41,7 +41,6 @@ final productPlatformDill = path.join(
 // pages, some arm64 Linux distributions have 64K pages).
 const elfPageSize = 65536;
 const appJitMagicNumber = <int>[0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0];
-const kernelMagicNumber = <int>[0x90, 0xab, 0xcd, 0xef];
 
 Future<bool> isKernelFile(String path) async {
   const kernelMagicNumber = Tag.ComponentFile;
