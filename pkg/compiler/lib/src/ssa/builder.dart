@@ -4610,8 +4610,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       _handleForeignJsEmbeddedGlobal(invocation, sourceInformation);
     } else if (name == 'JS_BUILTIN') {
       _handleForeignJsBuiltin(invocation, sourceInformation);
+    } else if (name == 'JS_TRUE') {
+      _handleForeignJsBool(true, invocation, sourceInformation);
     } else if (name == 'JS_FALSE') {
-      _handleForeignJsFalse(invocation, sourceInformation);
+      _handleForeignJsBool(false, invocation, sourceInformation);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(closedWorld)
         ..sourceInformation = sourceInformation);
@@ -5147,10 +5149,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     }
   }
 
-  void _handleForeignJsFalse(
-      ir.StaticInvocation invocation, SourceInformation? sourceInformation) {
+  void _handleForeignJsBool(bool value, ir.StaticInvocation invocation,
+      SourceInformation? sourceInformation) {
     _unexpectedForeignArguments(invocation, minPositional: 0, maxPositional: 0);
-    stack.add(graph.addConstantBool(false, closedWorld)
+    stack.add(graph.addConstantBool(value, closedWorld)
       ..sourceInformation = sourceInformation);
   }
 
