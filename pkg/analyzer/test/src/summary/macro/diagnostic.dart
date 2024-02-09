@@ -94,6 +94,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
           target: declaration.asDiagnosticTarget,
         ),
         _severity,
+        correctionMessage: 'Correction message',
       ),
     );
   }

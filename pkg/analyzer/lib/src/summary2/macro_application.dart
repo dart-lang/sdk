@@ -580,6 +580,7 @@ class LibraryMacroApplier {
           message: convertMessage(diagnostic.message),
           contextMessages:
               diagnostic.contextMessages.map(convertMessage).toList(),
+          correctionMessage: diagnostic.correctionMessage,
         ),
       );
     }

@@ -3597,6 +3597,7 @@ library
               target: ElementMacroDiagnosticTarget
                 element: self::@class::A
             severity: warning
+            correctionMessage: Correction message
 ''');
   }
 
@@ -3632,6 +3633,7 @@ library
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@constructor::new
                 severity: warning
+                correctionMessage: Correction message
 ''');
   }
 
@@ -3671,6 +3673,7 @@ library
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@field::foo
                 severity: warning
+                correctionMessage: Correction message
         accessors
           synthetic get foo @-1
             returnType: int
@@ -3712,6 +3715,7 @@ library
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@method::foo
                 severity: warning
+                correctionMessage: Correction message
 ''');
   }
 
@@ -3745,6 +3749,7 @@ library
               target: ElementMacroDiagnosticTarget
                 element: self::@mixin::A
             severity: warning
+            correctionMessage: Correction message
         superclassConstraints
           Object
 ''');

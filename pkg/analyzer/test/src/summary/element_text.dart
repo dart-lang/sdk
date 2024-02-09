@@ -935,6 +935,11 @@ class _ElementWriter {
                 _sink.writelnWithIndent(
                   'severity: ${diagnostic.severity.name}',
                 );
+                if (diagnostic.correctionMessage case var correctionMessage?) {
+                  _sink.writelnWithIndent(
+                    'correctionMessage: $correctionMessage',
+                  );
+                }
               });
           }
         },

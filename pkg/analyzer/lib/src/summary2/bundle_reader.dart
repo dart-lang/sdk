@@ -2366,6 +2366,7 @@ class ResolutionReader {
           severity: readEnum(macro.Severity.values),
           message: _readMacroDiagnosticMessage(),
           contextMessages: readTypedList(_readMacroDiagnosticMessage),
+          correctionMessage: _reader.readOptionalStringUtf8(),
         );
     }
   }

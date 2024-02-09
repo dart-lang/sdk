@@ -972,6 +972,7 @@ class ResolutionSink extends _SummaryDataWriter {
           diagnostic.contextMessages,
           _writeMacroDiagnosticMessage,
         );
+        writeOptionalStringUtf8(diagnostic.correctionMessage);
     }
   }
 

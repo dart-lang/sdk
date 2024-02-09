@@ -101,11 +101,13 @@ final class MacroDiagnostic extends AnalyzerMacroDiagnostic {
   final macro.Severity severity;
   final MacroDiagnosticMessage message;
   final List<MacroDiagnosticMessage> contextMessages;
+  final String? correctionMessage;
 
   MacroDiagnostic({
     required this.severity,
     required this.message,
     required this.contextMessages,
+    required this.correctionMessage,
   });
 }
 
