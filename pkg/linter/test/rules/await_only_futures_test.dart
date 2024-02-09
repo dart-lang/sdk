@@ -36,7 +36,7 @@ void f() async {
 }
 ''', [
       // No lint
-      error(CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE, 48, 5),
+      error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 48, 5),
     ]);
   }
 
