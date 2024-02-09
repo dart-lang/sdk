@@ -977,7 +977,7 @@ class StandardTestSuite extends TestSuite {
             jsDir,
             configuration.compiler,
             configuration.nnbdMode,
-            ddcConfig.buildOptionsDir,
+            ddcConfig.genDir,
             nullAssertions,
             weakNullSafetyErrors);
       } else {

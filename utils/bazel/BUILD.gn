@@ -3,14 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../application_snapshot.gni")
-import("../create_timestamp.gni")
 
 application_snapshot("kernel_worker") {
   main_dart = "kernel_worker.dart"
   training_args = [ "--help" ]
-}
-
-create_timestamp_file("kernel_worker_files_stamp") {
-  path = rebase_path("kernel_worker.dart")
-  output = "$target_gen_dir/kernel_worker.stamp"
 }
