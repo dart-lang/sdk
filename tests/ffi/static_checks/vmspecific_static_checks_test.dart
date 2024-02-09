@@ -10,8 +10,6 @@ import 'dart:ffi';
 
 import "package:ffi/ffi.dart";
 
-import 'dylib_utils.dart';
-
 void main() {
   testGetGeneric();
   testGetGeneric2();
@@ -525,7 +523,7 @@ void testNativeCallableIsolateLocalFunctionExceptionValueMustBeConst() {
 
 void testLookupFunctionGeneric() {
   Function generic<T extends Function>() {
-    DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+    DynamicLibrary l = DynamicLibrary.process();
     Function result = () => "dummy";
     result = l.lookupFunction<T, DoubleUnOp>("cos");
     //                        ^
@@ -540,7 +538,7 @@ void testLookupFunctionGeneric() {
 
 void testLookupFunctionGeneric2() {
   Function generic<T extends Function>() {
-    DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+    DynamicLibrary l = DynamicLibrary.process();
     Function result = () => "dummy";
     result = l.lookupFunction<NativeDoubleUnOp, T>("cos");
     //                                          ^
@@ -554,7 +552,7 @@ void testLookupFunctionGeneric2() {
 }
 
 void testLookupFunctionWrongNativeFunctionSignature() {
-  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = DynamicLibrary.process();
   l.lookupFunction<IntUnOp, IntUnOp>("cos");
   //               ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
@@ -563,7 +561,7 @@ void testLookupFunctionWrongNativeFunctionSignature() {
 }
 
 void testLookupFunctionTypeMismatch() {
-  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = DynamicLibrary.process();
   l.lookupFunction<NativeDoubleUnOp, IntUnOp>("cos");
   //                                 ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
@@ -575,7 +573,7 @@ typedef PointervoidN = Void Function(Pointer<void>);
 typedef PointervoidD = void Function(Pointer<void>);
 
 void testLookupFunctionPointervoid() {
-  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = DynamicLibrary.process();
   // TODO(https://dartbug.com/44593): This should be a compile-time error in CFE.
   // l.lookupFunction<PointervoidN, PointervoidD>("cos");
 }
@@ -584,7 +582,7 @@ typedef PointerNFdynN = Void Function(Pointer<NativeFunction>);
 typedef PointerNFdynD = void Function(Pointer<NativeFunction>);
 
 void testLookupFunctionPointerNFdyn() {
-  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = DynamicLibrary.process();
   // TODO(https://dartbug.com/44594): Should this be an error or not?
   // l.lookupFunction<PointerNFdynN, PointerNFdynD>("cos");
 }
@@ -919,7 +917,7 @@ class MyClass {
   MyClass(this.x);
 }
 
-final testLibrary = dlopenPlatformSpecific("ffi_test_functions");
+final testLibrary = DynamicLibrary.process();
 
 void testHandleVariance() {
   // Taking a more specific argument is okay.
@@ -1241,7 +1239,7 @@ final class TestStruct1405 extends Struct {
 
 void testLookupFunctionIsLeafMustBeConst() {
   bool notAConst = false;
-  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = DynamicLibrary.process();
   /**/ l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>("timesFour",
       // ^
       // [cfe] Argument 'isLeaf' must be a constant.
@@ -1264,7 +1262,7 @@ typedef NativeTakesHandle = Void Function(Handle);
 typedef TakesHandle = void Function(Object);
 
 void testLookupFunctionTakesHandle() {
-  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = DynamicLibrary.process();
   l.lookupFunction<NativeTakesHandle, TakesHandle>("takesHandle", isLeaf: true);
   //               ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.LEAF_CALL_MUST_NOT_TAKE_HANDLE
@@ -1285,7 +1283,7 @@ typedef NativeReturnsHandle = Handle Function();
 typedef ReturnsHandle = Object Function();
 
 void testLookupFunctionReturnsHandle() {
-  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = DynamicLibrary.process();
   /**/ l.lookupFunction<NativeReturnsHandle, ReturnsHandle>("returnsHandle",
       //                ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.LEAF_CALL_MUST_NOT_RETURN_HANDLE

@@ -109,7 +109,7 @@ void functionArgumentVariance() {
                   NativeFunction<
                       Pointer<NativeType> Function(
                           Pointer<Int8>)>>)>>.fromAddress(0x1234);
-  final f = p.asFunction<
+  p.asFunction<
       Pointer<NativeFunction<Pointer<NativeType> Function(Pointer<Int8>)>> Function(
           Pointer<
               NativeFunction<Pointer<Int8> Function(Pointer<NativeType>)>>)>();

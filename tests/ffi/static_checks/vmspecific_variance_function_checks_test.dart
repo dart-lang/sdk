@@ -6,7 +6,6 @@
 
 import 'dart:ffi';
 
-import 'dylib_utils.dart';
 
 // ============================================
 // Tests checks on Dart to native (asFunction).
@@ -22,7 +21,7 @@ final paramOpName = "NativeTypePointerParam";
 final returnOpName = "NativeTypePointerReturn";
 
 final DynamicLibrary ffiTestFunctions =
-    dlopenPlatformSpecific("ffi_test_functions");
+    DynamicLibrary.process();
 
 final p1 =
     ffiTestFunctions.lookup<NativeFunction<Int64PointerParamOp>>(paramOpName);
