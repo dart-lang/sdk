@@ -2366,9 +2366,9 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       node.defaultValue = _newNode as ExpressionImpl;
       var parameterElement = node.declaredElement;
       if (parameterElement is DefaultParameterElementImpl) {
-        parameterElement.constantInitializer = _newNode as ExpressionImpl;
+        parameterElement.constantInitializer = _newNode;
       } else if (parameterElement is DefaultFieldFormalParameterElementImpl) {
-        parameterElement.constantInitializer = _newNode as ExpressionImpl;
+        parameterElement.constantInitializer = _newNode;
       }
       return true;
     }

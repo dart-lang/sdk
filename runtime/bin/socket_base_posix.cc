@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX) ||            \
+    defined(DART_HOST_OS_MACOS)
 #include "bin/socket_base.h"
 
 #include <errno.h>        // NOLINT
-#include <ifaddrs.h>      // NOLINT
 #include <net/if.h>       // NOLINT
 #include <netinet/tcp.h>  // NOLINT
 #include <stdio.h>        // NOLINT
@@ -18,6 +18,7 @@
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
+#include "bin/ifaddrs.h"
 #include "bin/socket_base_macos.h"
 #include "platform/signal_blocker.h"
 

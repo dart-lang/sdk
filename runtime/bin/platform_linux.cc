@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 
 #include "bin/platform.h"
 
@@ -12,6 +12,9 @@
 #include <string.h>
 #include <sys/prctl.h>
 #include <sys/resource.h>
+#if defined(DART_HOST_OS_ANDROID)
+#include <sys/system_properties.h>
+#endif
 #include <sys/utsname.h>
 #include <unistd.h>
 
@@ -118,25 +121,24 @@ int Platform::NumberOfProcessors() {
 }
 
 const char* Platform::OperatingSystemVersion() {
+#if defined(DART_HOST_OS_ANDROID)
+  char os_version[PROP_VALUE_MAX + 1];
+  int os_version_length =
+      __system_property_get("ro.build.display.id", os_version);
+  if (os_version_length == 0) {
+    return nullptr;
+  }
+  os_version[Utils::Minimum(os_version_length, PROP_VALUE_MAX)] = '\0';
+  return DartUtils::ScopedCopyCString(os_version);
+#else
   struct utsname info;
   int ret = uname(&info);
   if (ret != 0) {
     return nullptr;
   }
-  const char* kFormat = "%s %s %s";
-  int len =
-      snprintf(nullptr, 0, kFormat, info.sysname, info.release, info.version);
-  if (len <= 0) {
-    return nullptr;
-  }
-  char* result = DartUtils::ScopedCString(len + 1);
-  ASSERT(result != nullptr);
-  len = snprintf(result, len + 1, kFormat, info.sysname, info.release,
-                 info.version);
-  if (len <= 0) {
-    return nullptr;
-  }
-  return result;
+  return DartUtils::ScopedCStringFormatted("%s %s %s", info.sysname,
+                                           info.release, info.version);
+#endif
 }
 
 const char* Platform::LibraryPrefix() {
@@ -212,4 +214,4 @@ void Platform::SetCoreDumpResourceLimit(int value) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)

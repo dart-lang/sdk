@@ -1075,7 +1075,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     }
 
     if (_substitution != null) {
-      type = _substitution!.substituteType(type);
+      type = _substitution.substituteType(type);
     }
 
     return _getConstantValue(

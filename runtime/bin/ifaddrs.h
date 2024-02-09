@@ -1,9 +1,13 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_BIN_IFADDRS_ANDROID_H_
-#define RUNTIME_BIN_IFADDRS_ANDROID_H_
+#ifndef RUNTIME_BIN_IFADDRS_H_
+#define RUNTIME_BIN_IFADDRS_H_
+
+// On Android getifaddrs API which is only supported directly by
+// Bionic starting at API level 24 so we provide our own implementation
+// which is API compatible. Otherwise we just include system ifaddrs.h
 
 #if defined(ANDROID) && __ANDROID_API__ < 24
 #include <sys/socket.h>
@@ -30,5 +34,10 @@ int getifaddrs(struct ifaddrs** __list_ptr);
 }  // namespace bin
 }  // namespace dart
 
+#else
+
+#include <ifaddrs.h>
+
 #endif  // defined(ANDROID) && __ANDROID_API__ < 24
-#endif  // RUNTIME_BIN_IFADDRS_ANDROID_H_
+
+#endif  // RUNTIME_BIN_IFADDRS_H_

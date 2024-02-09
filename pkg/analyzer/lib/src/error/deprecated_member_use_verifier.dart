@@ -376,6 +376,6 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     if (_workspacePackage == null || library == null) {
       return false;
     }
-    return _workspacePackage!.contains(library.source);
+    return _workspacePackage.contains(library.source);
   }
 }

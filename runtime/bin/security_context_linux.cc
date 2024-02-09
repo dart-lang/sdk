@@ -5,7 +5,7 @@
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 
 #include "bin/security_context.h"
 
@@ -42,9 +42,21 @@ void SSLCertContext::TrustBuiltinRoots() {
 
   if (bypass_trusting_system_roots()) {
     if (SSL_LOG_STATUS) {
-      Syslog::Print("Bypass trusting Linux built-in roots\n");
+      Syslog::Print("Bypass trusting built-in system roots\n");
     }
   } else {
+#if defined(DART_HOST_OS_ANDROID)
+    // On Android, we don't compile in the trusted root certificates. Instead,
+    // we use the directory of trusted certificates already present on the
+    // device. This saves ~240KB from the size of the binary. This has the
+    // drawback that SSL_do_handshake will synchronously hit the filesystem
+    // looking for root certs during its trust evaluation. We call
+    // SSL_do_handshake directly from the Dart thread so that Dart code can be
+    // invoked from the "bad certificate" callback called by SSL_do_handshake.
+    const char* android_cacerts = "/system/etc/security/cacerts";
+    LoadRootCertCache(android_cacerts);
+    return;
+#else
     // On Linux, we use the compiled-in trusted certs as a last resort. First,
     // we try to find the trusted certs in various standard locations. A good
     // discussion of the complexities of this endeavor can be found here:
@@ -61,14 +73,16 @@ void SSLCertContext::TrustBuiltinRoots() {
       LoadRootCertCache(cachedir);
       return;
     }
+#endif
   }
 
-  // Fall back on the compiled-in certs if the standard locations don't exist,
-  // or we aren't on Linux.
+#if defined(DART_HOST_OS_LINUX)
+  // Fall back on the compiled-in certs if the standard locations don't exist.
   if (SSL_LOG_STATUS) {
     Syslog::Print("Trusting compiled-in roots\n");
   }
   AddCompiledInCerts();
+#endif
 }
 
 void SSLCertContext::RegisterCallbacks(SSL* ssl) {
@@ -83,6 +97,6 @@ TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() const {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

@@ -5158,7 +5158,7 @@ class _WhyNotPromotedVisitor
       node = node.identifier;
     }
     if (_dataForTesting != null) {
-      _dataForTesting!.nonPromotionReasonTargets[node] = reason.shortName;
+      _dataForTesting.nonPromotionReasonTargets[node] = reason.shortName;
     }
     var variableName = reason.variable.name;
     return [_contextMessageForWrite(variableName, node, reason)];

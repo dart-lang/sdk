@@ -792,19 +792,40 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
 }
 
 Dart_Handle DartUtils::NewStringFormatted(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  char* result = ScopedCStringVFormatted(format, args);
+  va_end(args);
+  return NewString(result);
+}
+
+char* DartUtils::ScopedCStringVFormatted(const char* format, va_list args) {
   va_list measure_args;
-  va_start(measure_args, format);
+  va_copy(measure_args, args);
   intptr_t len = vsnprintf(nullptr, 0, format, measure_args);
+  if (len < 0) {
+    return nullptr;
+  }
   va_end(measure_args);
 
-  char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
+  char* buffer = ScopedCString(len + 1);
   MSAN_UNPOISON(buffer, (len + 1));
   va_list print_args;
-  va_start(print_args, format);
-  vsnprintf(buffer, (len + 1), format, print_args);
+  va_copy(print_args, args);
+  len = vsnprintf(buffer, (len + 1), format, print_args);
+  if (len < 0) {
+    return nullptr;
+  }
   va_end(print_args);
+  return buffer;
+}
 
-  return NewString(buffer);
+char* DartUtils::ScopedCStringFormatted(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  char* result = ScopedCStringVFormatted(format, args);
+  va_end(args);
+  return result;
 }
 
 bool DartUtils::SetOriginalWorkingDirectory() {

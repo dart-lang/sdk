@@ -585,11 +585,9 @@ class DescriptorInfoMultipleMixin : public DI {
 }  // namespace dart
 
 // The event handler delegation class is OS specific.
-#if defined(DART_HOST_OS_ANDROID)
-#include "bin/eventhandler_android.h"
-#elif defined(DART_HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
 #include "bin/eventhandler_fuchsia.h"
-#elif defined(DART_HOST_OS_LINUX)
+#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 #include "bin/eventhandler_linux.h"
 #elif defined(DART_HOST_OS_MACOS)
 #include "bin/eventhandler_macos.h"
