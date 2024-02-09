@@ -23,6 +23,7 @@ class BuildCommand extends DartdevCommand {
   static const String cmdName = 'build';
   static const String outputOptionName = 'output';
   static const String formatOptionName = 'format';
+  static const int genericErrorExitCode = 255;
 
   BuildCommand({bool verbose = false})
       : super(cmdName, 'Build a Dart application including native assets.',
@@ -83,7 +84,7 @@ class BuildCommand extends DartdevCommand {
     // Similar to Dart run. Possibly also in `dart compile`.
     final sourceUri = Uri(path: args.rest[0].normalizeCanonicalizePath());
     if (!checkFile(sourceUri.toFilePath())) {
-      return -1;
+      return genericErrorExitCode;
     }
 
     final outputUri = Uri.directory(

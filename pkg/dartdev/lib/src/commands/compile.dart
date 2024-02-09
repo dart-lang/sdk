@@ -19,6 +19,7 @@ import '../native_assets.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
+const int genericErrorExitCode = 255;
 const int compileErrorExitCode = 64;
 
 class Option {
@@ -199,7 +200,7 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
 
     final String sourcePath = args.rest[0];
     if (!checkFile(sourcePath)) {
-      return -1;
+      return genericErrorExitCode;
     }
 
     // Determine output file name.
@@ -215,7 +216,7 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
 
     if (!checkFileWriteable(outputFile)) {
       log.stderr('Unable to open file $outputFile for writing snapshot.');
-      return -1;
+      return genericErrorExitCode;
     }
 
     final bool soundNullSafety = args['sound-null-safety'];
@@ -311,7 +312,7 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     final String sourcePath = args.rest[0];
     if (!checkFile(sourcePath)) {
-      return -1;
+      return genericErrorExitCode;
     }
 
     // Determine output file name.
@@ -325,7 +326,7 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     if (!checkFileWriteable(outputFile)) {
       log.stderr('Unable to open file $outputFile for writing snapshot.');
-      return -1;
+      return genericErrorExitCode;
     }
 
     final enabledExperiments = args.enabledExperiments;
@@ -461,7 +462,7 @@ Remove debugging information from the output and save it separately to the speci
     }
     final String sourcePath = args.rest[0];
     if (!checkFile(sourcePath)) {
-      return -1;
+      return genericErrorExitCode;
     }
 
     if (!args['sound-null-safety'] && !shouldAllowNoSoundNullSafety()) {
@@ -697,7 +698,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     }
     final String sourcePath = args.rest[0];
     if (!checkFile(sourcePath)) {
-      return -1;
+      return genericErrorExitCode;
     }
 
     // Determine output file name.
