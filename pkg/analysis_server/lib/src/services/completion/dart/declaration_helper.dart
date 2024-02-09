@@ -364,30 +364,27 @@ class DeclarationHelper {
       case EnumElement():
         var augmented = element.augmented;
         _addStaticMembers(
-            accessors: [...element.accessors, ...?augmented?.accessors],
+            accessors: augmented?.accessors ?? element.accessors,
             constructors: const [],
             containingElement: element,
-            fields: [...element.fields, ...?augmented?.fields],
-            methods: [...element.methods, ...?augmented?.methods]);
+            fields: augmented?.fields ?? element.fields,
+            methods: augmented?.methods ?? element.methods);
       case ExtensionElement():
         var augmented = element.augmented;
         _addStaticMembers(
-            accessors: [...element.accessors, ...?augmented?.accessors],
+            accessors: augmented?.accessors ?? element.accessors,
             constructors: const [],
             containingElement: element,
-            fields: [...element.fields, ...?augmented?.fields],
-            methods: [...element.methods, ...?augmented?.methods]);
+            fields: augmented?.fields ?? element.fields,
+            methods: augmented?.methods ?? element.methods);
       case InterfaceElement():
         var augmented = element.augmented;
         _addStaticMembers(
-            accessors: [...element.accessors, ...?augmented?.accessors],
-            constructors: [
-              ...element.constructors,
-              ...?augmented?.constructors
-            ],
+            accessors: augmented?.accessors ?? element.accessors,
+            constructors: augmented?.constructors ?? element.constructors,
             containingElement: element,
-            fields: [...element.fields, ...?augmented?.fields],
-            methods: [...element.methods, ...?augmented?.methods]);
+            fields: augmented?.fields ?? element.fields,
+            methods: augmented?.methods ?? element.methods);
     }
   }
 
@@ -775,6 +772,8 @@ class DeclarationHelper {
 
   /// Adds suggestions for the [members] of the [containingElement].
   void _addMembers(Element containingElement, NodeList<ClassMember> members) {
+    // TODO(brianwilkerson): Replace this method with methods similar to
+    //  `_addMembersOfClass`.
     for (var member in members) {
       switch (member) {
         case ConstructorDeclaration():
@@ -832,7 +831,7 @@ class DeclarationHelper {
         var classElement = parent.declaredElement;
         if (classElement != null) {
           if (!mustBeType) {
-            _addMembers(classElement, parent.members);
+            _addMembersOfClass(classElement);
           }
           _suggestTypeParameters(classElement.typeParameters);
         }
@@ -887,6 +886,27 @@ class DeclarationHelper {
         if (aliasElement is TypeAliasElement) {
           _suggestTypeParameters(aliasElement.typeParameters);
         }
+    }
+  }
+
+  /// Adds suggestions for the [members] of the [containingElement].
+  void _addMembersOfClass(ClassElement classElement) {
+    // Add any immediate members from augmentations.
+    var augmented = classElement.augmented;
+    for (var accessor in augmented?.accessors ?? classElement.accessors) {
+      if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
+        _suggestProperty(accessor, classElement);
+      }
+    }
+    for (var field in augmented?.fields ?? classElement.fields) {
+      if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
+        _suggestField(field, classElement);
+      }
+    }
+    for (var method in augmented?.methods ?? classElement.methods) {
+      if (!mustBeStatic || method.isStatic) {
+        _suggestMethod(method, classElement);
+      }
     }
   }
 

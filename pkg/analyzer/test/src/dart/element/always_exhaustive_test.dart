@@ -51,6 +51,26 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
     isAlwaysExhaustive(interfaceTypeQuestion(E));
   }
 
+  test_extensionType() {
+    isAlwaysExhaustive(
+      interfaceTypeNone(
+        extensionType('A', representationType: boolNone),
+      ),
+    );
+
+    isAlwaysExhaustive(
+      interfaceTypeNone(
+        extensionType('A', representationType: boolQuestion),
+      ),
+    );
+
+    isNotAlwaysExhaustive(
+      interfaceTypeNone(
+        extensionType('A', representationType: intNone),
+      ),
+    );
+  }
+
   test_futureOr() {
     isAlwaysExhaustive(futureOrNone(boolNone));
     isAlwaysExhaustive(futureOrQuestion(boolNone));

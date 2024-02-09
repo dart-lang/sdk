@@ -11,7 +11,13 @@
 mixin TestMacros {
   /// Return the declaration of a macro that will add a member to a library.
   ///
-  /// The text of the member is provided as an argument to the macro.
+  /// The text of the member to be declared is provided as an argument to the
+  /// macro that is returned. For example, the following can be used to generate
+  /// a top level function in the library containing the class `C`:
+  /// ```dart
+  /// @DeclareInLibrary('void generatedTopLevelFunction() {}')
+  /// class C {}
+  /// ```
   String declareInLibraryMacro() {
     return '''
 macro class DeclareInLibrary
@@ -41,7 +47,15 @@ macro class DeclareInLibrary
 
   /// Return the declaration of a macro that will add a member to a type.
   ///
-  /// The text of the member is provided as an argument to the macro.
+  /// The text of the member to be declared is provided as an argument to the
+  /// macro that is returned. For example, the following can be used to generate
+  /// a method in the class `C`:
+  /// ```dart
+  /// @DeclareInType('  void generatedMethod() {}')
+  /// class C {}
+  /// ```
+  /// (Adding the indent makes the content of the generated code look nicer, but
+  /// isn't required.)
   String declareInTypeMacro() {
     return '''
 macro class DeclareInType

@@ -60,20 +60,21 @@ class _PubFilter implements FileStateFilter {
   final PubPackage targetPackage;
   final String? targetPackageName;
   final bool targetPackageIsAnalysisServer;
-  final bool targetInLib;
+  final bool targetInLibOrEntryPoint;
   final Set<String> dependencies;
 
   factory _PubFilter(PubPackage package, String path) {
-    var inLib = package.workspace.provider
-        .getFolder(package.root)
-        .getChildAssumingFolder('lib')
-        .contains(path);
+    var packageRootFolder = package.workspace.provider.getFolder(package.root);
+    var inLibOrEntryPoint =
+        packageRootFolder.getChildAssumingFolder('lib').contains(path) ||
+            packageRootFolder.getChildAssumingFolder('bin').contains(path) ||
+            packageRootFolder.getChildAssumingFolder('web').contains(path);
 
     var dependencies = <String>{};
     var pubspec = package.pubspec;
     if (pubspec != null) {
       dependencies.addAll(pubspec.dependencies.names);
-      if (!inLib) {
+      if (!inLibOrEntryPoint) {
         dependencies.addAll(pubspec.devDependencies.names);
       }
     }
@@ -84,7 +85,7 @@ class _PubFilter implements FileStateFilter {
       targetPackage: package,
       targetPackageName: packageName,
       targetPackageIsAnalysisServer: packageName == 'analysis_server',
-      targetInLib: inLib,
+      targetInLibOrEntryPoint: inLibOrEntryPoint,
       dependencies: dependencies,
     );
   }
@@ -93,7 +94,7 @@ class _PubFilter implements FileStateFilter {
     required this.targetPackage,
     required this.targetPackageName,
     required this.targetPackageIsAnalysisServer,
-    required this.targetInLib,
+    required this.targetInLibOrEntryPoint,
     required this.dependencies,
   });
 
@@ -105,10 +106,10 @@ class _PubFilter implements FileStateFilter {
     }
 
     // Normally only package URIs are available.
-    // But outside of lib/ we allow any files of this package.
+    // But outside of lib/ and entry points we allow any files of this package.
     var packageName = uri.packageName;
     if (packageName == null) {
-      if (targetInLib) {
+      if (targetInLibOrEntryPoint) {
         return false;
       } else {
         var filePackage = file.workspacePackage;

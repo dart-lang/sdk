@@ -734,6 +734,54 @@ suggestions
 ''');
   }
 
+  Future<void> test_notImported_pub_dependencies_inBin() async {
+    writeTestPackagePubspecYamlFile(r'''
+name: test
+dependencies:
+  aaa: any
+dev_dependencies:
+  bbb: any
+''');
+
+    var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
+    newFile('${aaaRoot.path}/lib/f.dart', '''
+class A01 {}
+''');
+
+    var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
+    newFile('${bbbRoot.path}/lib/f.dart', '''
+class A02 {}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
+    );
+
+    await _configureWithWorkspaceRoot();
+
+    var binPath = convertPath('$testPackageRootPath/bin/main.dart');
+    var response = await _getCodeSuggestions(
+      path: binPath,
+      content: '''
+void f() {
+  A0^
+}
+''',
+    );
+
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:aaa/f.dart
+''');
+  }
+
   Future<void> test_notImported_pub_dependencies_inLib() async {
     writeTestPackagePubspecYamlFile(r'''
 name: test
@@ -839,6 +887,54 @@ suggestions
     kind: class
     isNotImported: true
     libraryUri: package:bbb/f.dart
+''');
+  }
+
+  Future<void> test_notImported_pub_dependencies_inWeb() async {
+    writeTestPackagePubspecYamlFile(r'''
+name: test
+dependencies:
+  aaa: any
+dev_dependencies:
+  bbb: any
+''');
+
+    var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
+    newFile('${aaaRoot.path}/lib/f.dart', '''
+class A01 {}
+''');
+
+    var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
+    newFile('${bbbRoot.path}/lib/f.dart', '''
+class A02 {}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
+    );
+
+    await _configureWithWorkspaceRoot();
+
+    var webPath = convertPath('$testPackageRootPath/web/main.dart');
+    var response = await _getCodeSuggestions(
+      path: webPath,
+      content: '''
+void f() {
+  A0^
+}
+''',
+    );
+
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:aaa/f.dart
 ''');
   }
 
