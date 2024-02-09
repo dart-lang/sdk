@@ -391,7 +391,7 @@ class A {
 }
 ''');
 
-    await prepareNavigation(augmentFilePath);
+    await prepareNavigation(convertPath(augmentFilePath));
     assertHasRegion('bar', targetFile: aFile);
     assertHasTarget('bar');
   }
@@ -417,7 +417,7 @@ void f() {
 }
 ''');
 
-    await prepareNavigation(augmentFilePath);
+    await prepareNavigation(convertPath(augmentFilePath));
     assertHasRegion('bar', targetFile: aFile);
     assertHasFileTarget(augmentFilePath, 86, 3);
   }
