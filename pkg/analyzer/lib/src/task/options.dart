@@ -779,7 +779,7 @@ class PluginsOptionValidator extends OptionsValidator {
         reporter.reportErrorForSpan(
           AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
           plugins.span,
-          [_firstIncludedPluginName!],
+          [_firstIncludedPluginName],
         );
       }
     } else if (plugins is YamlList) {
@@ -791,7 +791,7 @@ class PluginsOptionValidator extends OptionsValidator {
             reporter.reportErrorForSpan(
               AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
               plugin.span,
-              [_firstIncludedPluginName!],
+              [_firstIncludedPluginName],
             );
           }
         }
@@ -825,7 +825,7 @@ class PluginsOptionValidator extends OptionsValidator {
             reporter.reportErrorForSpan(
               AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
               plugin.span,
-              [_firstIncludedPluginName!],
+              [_firstIncludedPluginName],
             );
           }
         }

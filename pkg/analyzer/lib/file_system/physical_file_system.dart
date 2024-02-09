@@ -77,7 +77,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   @override
   Folder? getStateLocation(String pluginId) {
     if (_stateLocation != null) {
-      io.Directory directory = io.Directory(join(_stateLocation!, pluginId));
+      io.Directory directory = io.Directory(join(_stateLocation, pluginId));
       directory.createSync(recursive: true);
       return _PhysicalFolder(directory);
     }

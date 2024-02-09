@@ -91,7 +91,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// Whether [_currentLibrary] is part of its containing package's public API.
   late final bool _inPackagePublicApi = _workspacePackage != null &&
-      _workspacePackage!.sourceIsInPublicApi(_currentLibrary.source);
+      _workspacePackage.sourceIsInPublicApi(_currentLibrary.source);
 
   BestPracticesVerifier(
     this._errorReporter,
@@ -1541,7 +1541,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // if we were unable to determine what package [_currentLibrary] is in.
       return false;
     }
-    return _workspacePackage!.contains(library.source);
+    return _workspacePackage.contains(library.source);
   }
 
   /// Checks for the passed as expression for the [WarningCode.UNNECESSARY_CAST]
@@ -2017,7 +2017,7 @@ class _InvalidAccessVerifier {
       // if we were unable to determine what package [_currentLibrary] is in.
       return false;
     }
-    return _workspacePackage!.contains(library.source);
+    return _workspacePackage.contains(library.source);
   }
 
   /// Check if @visibleForTemplate is applied to the given [Element].

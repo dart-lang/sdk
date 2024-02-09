@@ -3130,7 +3130,7 @@ class TypeState extends InstanceState {
     if (_type == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return StringState(_type!.getDisplayString());
+    return StringState(_type.getDisplayString());
   }
 
   @override
@@ -3153,7 +3153,7 @@ class TypeState extends InstanceState {
       }
 
       return BoolState.from(
-        typeSystem.runtimeTypesEqual(_type!, rightType),
+        typeSystem.runtimeTypesEqual(_type, rightType),
       );
     }
     return BoolState.FALSE_STATE;

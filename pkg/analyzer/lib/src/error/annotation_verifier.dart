@@ -24,7 +24,7 @@ class AnnotationVerifier {
 
   /// Whether [_currentLibrary] is part of its containing package's public API.
   late final bool _inPackagePublicApi = _workspacePackage != null &&
-      _workspacePackage!.sourceIsInPublicApi(_currentLibrary.source);
+      _workspacePackage.sourceIsInPublicApi(_currentLibrary.source);
 
   AnnotationVerifier(
     this._errorReporter,
