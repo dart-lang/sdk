@@ -80,7 +80,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitAdjacentStrings(this, contextType: contextType);
+    resolver.visitAdjacentStrings(this);
   }
 
   @override
@@ -2028,7 +2028,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitBooleanLiteral(this, contextType: contextType);
+    resolver.visitBooleanLiteral(this);
   }
 
   @override
@@ -5556,7 +5556,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitDoubleLiteral(this, contextType: contextType);
+    resolver.visitDoubleLiteral(this);
   }
 
   @override
@@ -10965,7 +10965,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitIsExpression(this, contextType: contextType);
+    resolver.visitIsExpression(this);
   }
 
   @override
@@ -13375,7 +13375,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitNullLiteral(this, contextType: contextType);
+    resolver.visitNullLiteral(this);
   }
 
   @override
@@ -15604,7 +15604,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitRethrowExpression(this, contextType: contextType);
+    resolver.visitRethrowExpression(this);
   }
 
   @override
@@ -16410,7 +16410,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSimpleStringLiteral(this, contextType: contextType);
+    resolver.visitSimpleStringLiteral(this);
   }
 
   @override
@@ -16677,7 +16677,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitStringInterpolation(this, contextType: contextType);
+    resolver.visitStringInterpolation(this);
   }
 
   @override
@@ -16962,7 +16962,7 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSuperExpression(this, contextType: contextType);
+    resolver.visitSuperExpression(this);
   }
 
   @override
@@ -17765,7 +17765,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSymbolLiteral(this, contextType: contextType);
+    resolver.visitSymbolLiteral(this);
   }
 
   @override
@@ -17900,7 +17900,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitThrowExpression(this, contextType: contextType);
+    resolver.visitThrowExpression(this);
   }
 
   @override

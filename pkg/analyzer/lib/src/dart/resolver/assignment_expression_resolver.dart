@@ -39,10 +39,7 @@ class AssignmentExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(
-    AssignmentExpressionImpl node, {
-    required DartType? contextType,
-  }) {
+  void resolve(AssignmentExpressionImpl node) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
@@ -100,8 +97,7 @@ class AssignmentExpressionResolver {
     right = _resolver.popRewrite()!;
     var whyNotPromoted = flow?.whyNotPromoted(right);
 
-    _resolveTypes(node,
-        whyNotPromoted: whyNotPromoted, contextType: contextType);
+    _resolveTypes(node, whyNotPromoted: whyNotPromoted);
 
     if (flow != null) {
       if (writeElement is PromotableElement) {
@@ -258,8 +254,7 @@ class AssignmentExpressionResolver {
   }
 
   void _resolveTypes(AssignmentExpressionImpl node,
-      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
-      required DartType? contextType}) {
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     DartType assignedType;
 
     var rightHandSide = node.rightHandSide;
@@ -301,7 +296,7 @@ class AssignmentExpressionResolver {
     } else {
       nodeType = assignedType;
     }
-    _inferenceHelper.recordStaticType(node, nodeType, contextType: contextType);
+    _inferenceHelper.recordStaticType(node, nodeType);
 
     // TODO(scheglov): Remove from ErrorVerifier?
     _checkForInvalidAssignment(

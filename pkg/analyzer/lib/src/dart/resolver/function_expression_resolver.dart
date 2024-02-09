@@ -60,7 +60,7 @@ class FunctionExpressionResolver {
       // in scope, so we can visit the documentation comment now.
       parent.documentationComment?.accept(_resolver);
     }
-    _resolve2(node, imposedType, contextType: contextType);
+    _resolve2(node, imposedType);
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
       _resolver.checkForBodyMayCompleteNormally(
@@ -153,16 +153,14 @@ class FunctionExpressionResolver {
     }).toList());
   }
 
-  void _resolve2(FunctionExpressionImpl node, DartType? imposedType,
-      {required DartType? contextType}) {
+  void _resolve2(FunctionExpressionImpl node, DartType? imposedType) {
     var functionElement = node.declaredElement as ExecutableElementImpl;
 
     if (_shouldUpdateReturnType(node)) {
       functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 
-    _inferenceHelper.recordStaticType(node, functionElement.type,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, functionElement.type);
   }
 
   static bool _shouldUpdateReturnType(FunctionExpression node) {

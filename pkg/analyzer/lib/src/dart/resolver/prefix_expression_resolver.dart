@@ -44,7 +44,7 @@ class PrefixExpressionResolver {
     var operator = node.operator.type;
 
     if (operator == TokenType.BANG) {
-      _resolveNegation(node, contextType: contextType);
+      _resolveNegation(node);
       return;
     }
 
@@ -83,7 +83,7 @@ class PrefixExpressionResolver {
     }
 
     _resolve1(node);
-    _resolve2(node, contextType: contextType);
+    _resolve2(node);
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
@@ -201,12 +201,11 @@ class PrefixExpressionResolver {
     }
   }
 
-  void _resolve2(PrefixExpressionImpl node, {required DartType? contextType}) {
+  void _resolve2(PrefixExpressionImpl node) {
     TokenType operator = node.operator.type;
     final readType = node.readType ?? node.operand.staticType;
     if (identical(readType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
     } else {
       // The other cases are equivalent to invoking a method.
       DartType staticType;
@@ -234,14 +233,12 @@ class PrefixExpressionResolver {
           }
         }
       }
-      _inferenceHelper.recordStaticType(node, staticType,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, staticType);
     }
     _resolver.nullShortingTermination(node);
   }
 
-  void _resolveNegation(PrefixExpressionImpl node,
-      {required DartType? contextType}) {
+  void _resolveNegation(PrefixExpressionImpl node) {
     var operand = node.operand;
 
     _resolver.analyzeExpression(operand, _typeProvider.boolType);
@@ -251,8 +248,7 @@ class PrefixExpressionResolver {
     _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand,
         whyNotPromoted: whyNotPromoted);
 
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
 
     _resolver.flowAnalysis.flow?.logicalNot_end(node, operand);
   }

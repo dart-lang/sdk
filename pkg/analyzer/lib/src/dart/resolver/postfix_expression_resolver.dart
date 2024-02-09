@@ -69,7 +69,7 @@ class PostfixExpressionResolver {
 
     var receiverType = node.readType!;
     _resolve1(node, receiverType);
-    _resolve2(node, receiverType, contextType: contextType);
+    _resolve2(node, receiverType);
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
@@ -160,13 +160,11 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve2(PostfixExpressionImpl node, DartType receiverType,
-      {required DartType? contextType}) {
+  void _resolve2(PostfixExpressionImpl node, DartType receiverType) {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
     } else {
       DartType operatorReturnType;
       if (receiverType.isDartCoreInt) {
@@ -186,8 +184,7 @@ class PostfixExpressionResolver {
       }
     }
 
-    _inferenceHelper.recordStaticType(node, receiverType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, receiverType);
     _resolver.nullShortingTermination(node);
   }
 
@@ -200,10 +197,8 @@ class PostfixExpressionResolver {
         node,
         ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
       );
-      _inferenceHelper.recordStaticType(operand, DynamicTypeImpl.instance,
-          contextType: contextType);
-      _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(operand, DynamicTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance);
       return;
     }
 
@@ -217,7 +212,7 @@ class PostfixExpressionResolver {
     var operandType = operand.typeOrThrow;
 
     var type = _typeSystem.promoteToNonNull(operandType);
-    _inferenceHelper.recordStaticType(node, type, contextType: contextType);
+    _inferenceHelper.recordStaticType(node, type);
 
     _resolver.nullShortingTermination(node);
     _resolver.flowAnalysis.flow?.nonNullAssert_end(operand);

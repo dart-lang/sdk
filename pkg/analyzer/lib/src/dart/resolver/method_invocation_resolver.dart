@@ -328,8 +328,7 @@ class MethodInvocationResolver with ScopeHelpers {
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(rawType: rawType is FunctionType ? rawType : null);
-    _inferenceHelper.recordStaticType(node, staticStaticType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, staticStaticType);
   }
 
   /// Given that we are accessing a property of the given [classElement] with the
@@ -363,8 +362,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (getter != null) {
       nameNode.staticElement = getter;
       _reportStaticAccessToInstanceMember(getter, nameNode);
-      _rewriteAsFunctionExpressionInvocation(node, getter.returnType,
-          contextType: contextType);
+      _rewriteAsFunctionExpressionInvocation(node, getter.returnType);
       return;
     }
 
@@ -429,8 +427,7 @@ class MethodInvocationResolver with ScopeHelpers {
     nameNode.staticElement = member;
 
     if (member is PropertyAccessorElement) {
-      return _rewriteAsFunctionExpressionInvocation(node, member.returnType,
-          contextType: contextType);
+      return _rewriteAsFunctionExpressionInvocation(node, member.returnType);
     }
 
     _setResolution(node, member.type, whyNotPromotedList,
@@ -548,8 +545,7 @@ class MethodInvocationResolver with ScopeHelpers {
         element = multiply.conflictingElements[0];
       }
       if (element is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, element.returnType,
-            contextType: contextType);
+        return _rewriteAsFunctionExpressionInvocation(node, element.returnType);
       }
       if (element is ExecutableElement) {
         return _setResolution(node, element.type, whyNotPromotedList,
@@ -559,8 +555,7 @@ class MethodInvocationResolver with ScopeHelpers {
         _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element);
         var targetType =
             _localVariableTypeProvider.getType(nameNode, isRead: true);
-        return _rewriteAsFunctionExpressionInvocation(node, targetType,
-            contextType: contextType);
+        return _rewriteAsFunctionExpressionInvocation(node, targetType);
       }
       // TODO(scheglov): This is a questionable distinction.
       if (element is PrefixElement) {
@@ -634,8 +629,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (element is PropertyAccessorElement) {
-      return _rewriteAsFunctionExpressionInvocation(node, element.returnType,
-          contextType: contextType);
+      return _rewriteAsFunctionExpressionInvocation(node, element.returnType);
     }
 
     if (element is ExecutableElement) {
@@ -684,7 +678,7 @@ class MethodInvocationResolver with ScopeHelpers {
       nameNode.staticElement = target;
       if (target is PropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(node, target.returnType,
-            contextType: contextType, isSuperAccess: true);
+            isSuperAccess: true);
       }
       _setResolution(node, target.type, whyNotPromotedList,
           contextType: contextType);
@@ -761,8 +755,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     final recordField = result.recordField;
     if (recordField != null) {
-      return _rewriteAsFunctionExpressionInvocation(node, recordField.type,
-          contextType: contextType);
+      return _rewriteAsFunctionExpressionInvocation(node, recordField.type);
     }
 
     var target = result.getter;
@@ -778,8 +771,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
 
       if (target is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, target.returnType,
-            contextType: contextType);
+        return _rewriteAsFunctionExpressionInvocation(node, target.returnType);
       }
       return _setResolution(node, target.type, whyNotPromotedList,
           contextType: contextType);
@@ -825,8 +817,7 @@ class MethodInvocationResolver with ScopeHelpers {
         nameNode.staticElement = element;
         if (element is PropertyAccessorElement) {
           return _rewriteAsFunctionExpressionInvocation(
-              node, element.returnType,
-              contextType: contextType);
+              node, element.returnType);
         }
         _setResolution(node, element.type, whyNotPromotedList,
             contextType: contextType);
@@ -867,7 +858,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// [FunctionExpressionInvocation].
   void _rewriteAsFunctionExpressionInvocation(
       MethodInvocationImpl node, DartType getterReturnType,
-      {required DartType? contextType, bool isSuperAccess = false}) {
+      {bool isSuperAccess = false}) {
     var targetType = _typeSystem.resolveToBound(getterReturnType);
 
     ExpressionImpl functionExpression;
@@ -922,8 +913,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
       functionExpression.staticType = targetType;
     }
-    _inferenceHelper.recordStaticType(node.methodName, targetType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node.methodName, targetType);
 
     var invocation = FunctionExpressionInvocationImpl(
       function: functionExpression,
