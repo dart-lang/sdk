@@ -91,7 +91,7 @@ MethodInvocation
       NullLiteral
         literal: null
         parameter: ParameterMember
-          base: self::@function::f::@parameter::t
+          base: root::@parameter::t
           substitution: {T: Iterable<int>?}
         staticType: Null
     rightParenthesis: )
