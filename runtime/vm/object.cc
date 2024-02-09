@@ -12092,13 +12092,17 @@ void Field::InitializeNew(const Field& result,
 // Use field guards if they are enabled and the isolate has never reloaded.
 // TODO(johnmccutchan): The reload case assumes the worst case (everything is
 // dynamic and possibly null). Attempt to relax this later.
+//
+// Do not use field guards for late fields as late field initialization
+// doesn't update guarded cid and length.
 #if defined(PRODUCT)
   const bool use_guarded_cid =
-      FLAG_precompiled_mode || isolate_group->use_field_guards();
+      FLAG_precompiled_mode || (isolate_group->use_field_guards() && !is_late);
 #else
   const bool use_guarded_cid =
-      FLAG_precompiled_mode || (isolate_group->use_field_guards() &&
-                                !isolate_group->HasAttemptedReload());
+      FLAG_precompiled_mode ||
+      (isolate_group->use_field_guards() &&
+       !isolate_group->HasAttemptedReload() && !is_late);
 #endif  // !defined(PRODUCT)
   result.set_guarded_cid_unsafe(use_guarded_cid ? kIllegalCid : kDynamicCid);
   result.set_is_nullable_unsafe(use_guarded_cid ? false : true);
