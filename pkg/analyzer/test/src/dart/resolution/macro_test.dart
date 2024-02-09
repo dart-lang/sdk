@@ -279,6 +279,17 @@ class A3 {}
     ]);
   }
 
+  test_diagnostic_invalidTarget_wantsClassOrMixin_hasFunction() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@TargetClassOrMixinMacro()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET, 27, 26),
+    ]);
+  }
+
   test_diagnostic_notSupportedArgument() async {
     await assertErrorsInCode('''
 import 'diagnostic.dart';

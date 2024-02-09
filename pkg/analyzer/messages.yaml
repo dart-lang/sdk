@@ -8659,6 +8659,11 @@ CompileTimeErrorCode:
       ```dart
       typedef F = int Function(int Function(String));
       ```
+  INVALID_MACRO_APPLICATION_TARGET:
+    problemMessage: "The macro can be applied only to a {0}."
+    comment: |-
+      Parameters:
+      0: the list of target kind names
   INVALID_MODIFIER_ON_CONSTRUCTOR:
     problemMessage: "The modifier '{0}' can't be applied to the body of a constructor."
     correctionMessage: Try removing the modifier.

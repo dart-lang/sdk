@@ -969,6 +969,8 @@ CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
   status: needsFix
   notes: |-
     Replace with the equivalent generic function type.
+CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET:
+  status: noFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
   status: needsFix
   notes: |-

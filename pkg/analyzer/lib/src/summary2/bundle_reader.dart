@@ -2358,6 +2358,7 @@ class ResolutionReader {
         );
       case MacroDiagnosticKind.invalidTarget:
         return InvalidMacroTargetDiagnostic(
+          annotationIndex: readUInt30(),
           supportedKinds: _reader.readStringUtf8List(),
         );
       case MacroDiagnosticKind.macro:

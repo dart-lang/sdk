@@ -6143,6 +6143,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               diagnostic.stackTrace,
             ],
           );
+        case InvalidMacroTargetDiagnostic():
+          errorReporter.atNode(
+            metadata[diagnostic.annotationIndex],
+            CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET,
+            arguments: [
+              diagnostic.supportedKinds.commaSeparatedWithOr,
+            ],
+          );
         case MacroDiagnostic():
           final errorCode = switch (diagnostic.severity) {
             macro.Severity.info => HintCode.MACRO_INFO,
@@ -6191,9 +6199,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               // TODO(scheglov): Handle this case.
               throw UnimplementedError();
           }
-        case InvalidMacroTargetDiagnostic():
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError();
       }
     }
   }

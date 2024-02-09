@@ -3560,6 +3560,7 @@ library
         returnType: void
         macroDiagnostics
           InvalidMacroTargetDiagnostic
+            annotationIndex: 0
             supportedKinds
               classType
               mixinType

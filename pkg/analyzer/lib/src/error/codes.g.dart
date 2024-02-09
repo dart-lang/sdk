@@ -2808,6 +2808,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the list of target kind names
+  static const CompileTimeErrorCode INVALID_MACRO_APPLICATION_TARGET =
+      CompileTimeErrorCode(
+    'INVALID_MACRO_APPLICATION_TARGET',
+    "The macro can be applied only to a {0}.",
+  );
+
+  ///  Parameters:
   ///  0: the invalid modifier
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
       CompileTimeErrorCode(
