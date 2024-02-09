@@ -106,11 +106,11 @@ static method test<T1 extends core::Function, T2 extends () → core::int>(self:
   const dynamic dyn_get = dyn.field;
                           ^^^");
   core::print("InstanceGet (Object)");
-  dyn.{core::Object::hashCode}{core::int};
-  nullableClass1.{core::Object::hashCode}{core::int};
+  dyn.{core::Object::hashCode}{<object>}.{core::int};
+  nullableClass1.{core::Object::hashCode}{<object>}.{core::int};
   core::print("InstanceGetTearOff (Object)");
-  dyn.{core::Object::toString}{() → core::String};
-  nullableClass1.{core::Object::toString}{() → core::String};
+  dyn.{core::Object::toString}{<object>}.{() → core::String};
+  nullableClass1.{core::Object::toString}{<object>}.{() → core::String};
   core::print("DynamicGet (Never)");
   let final Never #t7 = (let final Never #t8 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.field in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   let final Never #t9 = (let final Never #t10 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.hashCode in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");

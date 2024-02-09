@@ -3345,7 +3345,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleSub, test) {
       "ret\n");
 }
 
-static void EnterTestFrame(Assembler* assembler) {
+void EnterTestFrame(Assembler* assembler) {
   COMPILE_ASSERT(THR != CallingConventions::kArg1Reg);
   COMPILE_ASSERT(CODE_REG != CallingConventions::kArg2Reg);
   __ EnterFrame(0);
@@ -3357,7 +3357,7 @@ static void EnterTestFrame(Assembler* assembler) {
   __ LoadPoolPointer(PP);
 }
 
-static void LeaveTestFrame(Assembler* assembler) {
+void LeaveTestFrame(Assembler* assembler) {
   __ popq(THR);
   __ popq(PP);
   __ popq(CODE_REG);
@@ -6446,40 +6446,56 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   EXPECT_EQ(kMintCid, result);
 }
 
-#define LOAD_FROM_BOX_TEST(VALUE, SAME_REGISTER)                               \
-  ASSEMBLER_TEST_GENERATE(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER,          \
-                          assembler) {                                         \
-    const bool same_register = SAME_REGISTER;                                  \
-    const Register src = CallingConventions::ArgumentRegisters[0];             \
-    const Register dst =                                                       \
-        same_register ? src : CallingConventions::ArgumentRegisters[1];        \
-    const intptr_t value = VALUE;                                              \
-                                                                               \
-    EnterTestFrame(assembler);                                                 \
-                                                                               \
-    __ LoadObject(src, Integer::ZoneHandle(Integer::New(value, Heap::kOld)));  \
-    __ LoadWordFromBoxOrSmi(dst, src);                                         \
-    __ MoveRegister(CallingConventions::kReturnReg, dst);                      \
-                                                                               \
-    LeaveTestFrame(assembler);                                                 \
-    __ Ret();                                                                  \
-  }                                                                            \
-                                                                               \
-  ASSEMBLER_TEST_RUN(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER, test) {       \
-    const intptr_t res = test->InvokeWithCodeAndThread<intptr_t>(0x0);         \
-    EXPECT_EQ(static_cast<intptr_t>(VALUE), res);                              \
-  }
+// Tests that BranchLink only clobbers CODE_REG in JIT mode and does not
+// clobber any allocatable registers in AOT mode.
+ASSEMBLER_TEST_GENERATE(CallCodePreservesRegisters, assembler) {
+  const auto& do_nothing_just_return =
+      AssemblerTest::Generate("DoNothing", [](auto assembler) { __ ret(); });
 
-LOAD_FROM_BOX_TEST(0, true)
-LOAD_FROM_BOX_TEST(0, false)
-LOAD_FROM_BOX_TEST(1, true)
-LOAD_FROM_BOX_TEST(1, false)
-LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, false)
-LOAD_FROM_BOX_TEST(0x8000000000000000, true)
-LOAD_FROM_BOX_TEST(0x8000000000000000, false)
-LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, false)
+  EnterTestFrame(assembler);
+
+  const RegisterSet clobbered_regs(
+      kDartAvailableCpuRegs & ~(static_cast<RegList>(1) << RAX),
+      /*fpu_register_mask=*/0);
+  __ PushRegisters(clobbered_regs);
+
+  Label done;
+
+  const auto check_all_allocatable_registers_are_preserved_by_call = [&]() {
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      __ LoadImmediate(reg, static_cast<int32_t>(reg));
+    }
+    __ Call(do_nothing_just_return);
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      // We expect CODE_REG to be clobbered in JIT mode.
+      if (!FLAG_precompiled_mode && reg == CODE_REG) continue;
+
+      Label ok;
+      __ CompareImmediate(reg, static_cast<int32_t>(reg));
+      __ j(EQUAL, &ok);
+      __ LoadImmediate(RAX, reg);
+      __ jmp(&done);
+      __ Bind(&ok);
+    }
+  };
+
+  check_all_allocatable_registers_are_preserved_by_call();
+
+  FLAG_precompiled_mode = true;
+  check_all_allocatable_registers_are_preserved_by_call();
+  FLAG_precompiled_mode = false;
+
+  __ LoadImmediate(RAX, 42);  // 42 is SUCCESS.
+  __ Bind(&done);
+  __ PopRegisters(clobbered_regs);
+  LeaveTestFrame(assembler);
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(CallCodePreservesRegisters, test) {
+  const intptr_t result = test->InvokeWithCodeAndThread<int64_t>();
+  EXPECT_EQ(42, result);
+}
 
 }  // namespace compiler
 }  // namespace dart

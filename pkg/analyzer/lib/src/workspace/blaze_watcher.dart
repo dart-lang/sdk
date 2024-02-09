@@ -301,8 +301,8 @@ class BlazeFileWatcherService {
   Stream<List<WatchEvent>> get events => _events.stream;
 
   /// Shuts everything down including the watcher isolate.
-  /// TODO(michalt): Remove this if we really never need to shut down the
-  /// isolate.
+  // TODO(michalt): Remove this if we really never need to shut down the
+  // isolate.
   void shutdown() {
     if (_isolateHasStarted.isCompleted) {
       _toIsolatePort.send(BlazeWatcherShutdownIsolate());

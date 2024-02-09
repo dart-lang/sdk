@@ -8,9 +8,6 @@
 // VMOptions=--deterministic --optimization-counter-threshold=10
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
-// VMOptions=--write-protect-code --no-dual-map-code
-// VMOptions=--write-protect-code --no-dual-map-code --use-slow-path
-// VMOptions=--write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';
@@ -459,6 +456,12 @@ void testNoArgs() {
   Expect.approxEquals(1337.0, result);
 }
 
+// Returns a possibly ofuscated 'arg2' identifier.
+String get arg2ObfuscatedName {
+  final str = (arg2: 0).toString();
+  return str.substring('('.length, str.length - ': 0)'.length);
+}
+
 void testNativeFunctionNullableInt() {
   final sumPlus42 = ffiTestFunctions.lookupFunction<
       Int32 Function(Int32, Int32), int Function(int, int?)>("SumPlus42");
@@ -467,7 +470,7 @@ void testNativeFunctionNullableInt() {
     sumPlus42(3, null);
   } catch (e) {
     // TODO(http://dartbug.com/47098): Save param names to dwarf.
-    Expect.isTrue(e.toString().contains('ffi_param2') ||
+    Expect.isTrue(e.toString().contains(arg2ObfuscatedName) ||
         e.toString().contains('<optimized out>'));
   }
 }

@@ -92,6 +92,37 @@ class Printer implements NodeVisitor<void> {
   int _charCount = 0;
   bool inForInit = false;
   bool atStatementBegin = false;
+
+  // The JavaScript grammar has two sets of related productions for property
+  // accesses - for MemberExpression and CallExpression.  A subset of
+  // productions that illustrate the two sets:
+  //
+  //     MemberExpression :
+  //         PrimaryExpression
+  //         MemberExpression . IdentifierName
+  //         new MemberExpression Arguments
+  //         ...
+  //
+  //     CallExpression :
+  //         MemberExpression Arguments
+  //         CallExpression Arguments
+  //         CallExpression . IdentifierName
+  //         ...
+  //
+  // This means that a call can be in the 'function' part of another call, but
+  // not in the 'function' part of a `new` expression. When printing a `new`
+  // expression, a call in the 'function' part needs to be in parentheses to
+  // ensure that the arguments of the call are not mistaken for the arguments of
+  // the enclosing `new` expression.
+  //
+  // We handle the difference in required parenthesization by making the
+  // required precedence of the receiver of an access be context-dependent.
+  // Both "MemberExpression . IdentifierName" and "CallExpression
+  // . IdentifierName" are represented as a PropertyAccess AST node. The context
+  // is tracked by [inNewTarget], which is true only during the printing of
+  // the 'function' part of a NewExpression.
+  bool inNewTarget = false;
+
   bool pendingSemicolon = false;
   bool pendingSpace = false;
 
@@ -290,22 +321,18 @@ class Printer implements NodeVisitor<void> {
     }
   }
 
-  Statement unwrapBlockIfSingleStatement(Statement body) {
-    Statement result = body;
-    while (result is Block) {
-      Block block = result;
-      if (block.statements.length != 1) break;
-      result = block.statements.single;
-    }
-    return result;
-  }
-
   bool blockBody(Statement body,
-      {required bool needsSeparation, required bool needsNewline}) {
+      {required bool needsSeparation,
+      required bool needsNewline,
+      bool needsBraces = false}) {
     if (body is Block) {
       spaceOut();
       blockOut(body, shouldIndent: false, needsNewline: needsNewline);
       return true;
+    }
+    if (needsBraces) {
+      spaceOut();
+      out('{');
     }
     if (shouldCompressOutput && needsSeparation) {
       // If [shouldCompressOutput] is false, then the 'lineOut' will insert
@@ -317,6 +344,11 @@ class Printer implements NodeVisitor<void> {
     indentMore();
     visit(body);
     indentLess();
+    if (needsBraces) {
+      indent();
+      out('}');
+      return true;
+    }
     return false;
   }
 
@@ -372,19 +404,15 @@ class Printer implements NodeVisitor<void> {
   }
 
   void ifOut(If node, bool shouldIndent) {
-    Statement then = unwrapBlockIfSingleStatement(node.then);
+    Statement then = node.then;
     Statement elsePart = node.otherwise;
     bool hasElse = node.hasElse;
 
     // Handle dangling elses and a workaround for Android 4.0 stock browser.
     // Android 4.0 requires braces for a single do-while in the `then` branch.
     // See issue 10923.
-    if (hasElse) {
-      bool needsBraces = then.accept(danglingElseVisitor) || then is Do;
-      if (needsBraces) {
-        then = Block(<Statement>[then]);
-      }
-    }
+    bool needsBraces =
+        hasElse && (then is Do || then.accept(danglingElseVisitor));
     if (shouldIndent) indent();
     out('if');
     spaceOut();
@@ -392,8 +420,10 @@ class Printer implements NodeVisitor<void> {
     visitNestedExpression(node.condition, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out(')');
-    bool thenWasBlock =
-        blockBody(then, needsSeparation: false, needsNewline: !hasElse);
+    bool thenWasBlock = blockBody(then,
+        needsSeparation: false,
+        needsNewline: !hasElse,
+        needsBraces: needsBraces);
     if (hasElse) {
       if (thenWasBlock) {
         spaceOut();
@@ -407,8 +437,7 @@ class Printer implements NodeVisitor<void> {
         ifOut(elsePart, false);
         endNode(elsePart);
       } else {
-        blockBody(unwrapBlockIfSingleStatement(elsePart),
-            needsSeparation: true, needsNewline: true);
+        blockBody(elsePart, needsSeparation: true, needsNewline: true);
       }
     }
   }
@@ -440,8 +469,7 @@ class Printer implements NodeVisitor<void> {
           newInForInit: false, newAtStatementBegin: false);
     }
     out(')');
-    blockBody(unwrapBlockIfSingleStatement(loop.body),
-        needsSeparation: false, needsNewline: true);
+    blockBody(loop.body, needsSeparation: false, needsNewline: true);
   }
 
   @override
@@ -456,8 +484,7 @@ class Printer implements NodeVisitor<void> {
     visitNestedExpression(loop.object, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out(')');
-    blockBody(unwrapBlockIfSingleStatement(loop.body),
-        needsSeparation: false, needsNewline: true);
+    blockBody(loop.body, needsSeparation: false, needsNewline: true);
   }
 
   @override
@@ -468,15 +495,13 @@ class Printer implements NodeVisitor<void> {
     visitNestedExpression(loop.condition, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out(')');
-    blockBody(unwrapBlockIfSingleStatement(loop.body),
-        needsSeparation: false, needsNewline: true);
+    blockBody(loop.body, needsSeparation: false, needsNewline: true);
   }
 
   @override
   void visitDo(Do loop) {
     outIndent('do');
-    if (blockBody(unwrapBlockIfSingleStatement(loop.body),
-        needsSeparation: true, needsNewline: false)) {
+    if (blockBody(loop.body, needsSeparation: true, needsNewline: false)) {
       spaceOut();
     } else {
       indent();
@@ -618,18 +643,8 @@ class Printer implements NodeVisitor<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    Statement body = unwrapBlockIfSingleStatement(node.body);
-    // `label: break label;`
-    // Does not work on IE. The statement is a nop, so replace it by an empty
-    // statement.
-    // See:
-    // https://connect.microsoft.com/IE/feedback/details/891889/parser-bugs
-    if (body is Break && body.targetLabel == node.label) {
-      visit(EmptyStatement());
-      return;
-    }
     outIndent('${node.label}:');
-    blockBody(body, needsSeparation: false, needsNewline: true);
+    blockBody(node.body, needsSeparation: false, needsNewline: true);
   }
 
   int functionOut(Fun fun, Expression? name, VarCollector vars) {
@@ -696,9 +711,11 @@ class Printer implements NodeVisitor<void> {
                 (node is NamedFunction ||
                     node is FunctionExpression ||
                     node is ObjectInitializer));
+    final savedInForInit = inForInit;
     if (needsParentheses) {
       inForInit = false;
       atStatementBegin = false;
+      inNewTarget = false;
       out('(');
       visit(node);
       out(')');
@@ -707,6 +724,7 @@ class Printer implements NodeVisitor<void> {
       atStatementBegin = newAtStatementBegin;
       visit(node);
     }
+    inForInit = savedInForInit;
   }
 
   @override
@@ -873,12 +891,16 @@ class Printer implements NodeVisitor<void> {
   @override
   void visitNew(New node) {
     out('new ');
+    final savedInNewTarget = inNewTarget;
+    inNewTarget = true;
     visitNestedExpression(node.target, LEFT_HAND_SIDE,
         newInForInit: inForInit, newAtStatementBegin: false);
     out('(');
+    inNewTarget = false;
     visitCommaSeparated(node.arguments, ASSIGNMENT,
         newInForInit: false, newAtStatementBegin: false);
     out(')');
+    inNewTarget = savedInNewTarget;
   }
 
   @override
@@ -971,9 +993,14 @@ class Printer implements NodeVisitor<void> {
         rightPrecedenceRequirement = UNARY;
         break;
       case '**':
-        // 'a ** b ** c' parses as 'a ** (b ** c)', so the left must have higher
-        // precedence.
-        leftPrecedenceRequirement = UNARY;
+        // Exponentiation associates to the right, so `a ** b ** c` parses as `a
+        // ** (b ** c)`. To generate the appropriate output, the left has a
+        // higher precedence than the current node. The next precedence level
+        // ([UNARY]), is skipped as the left hand side of an exponentiation
+        // operator [must be an UPDATE
+        // expression](https://tc39.es/ecma262/#sec-exp-operator).  Skipping
+        // [UNARY] avoids printing `-1 ** 2`, which is a syntax error.
+        leftPrecedenceRequirement = UPDATE;
         rightPrecedenceRequirement = EXPONENTIATION;
         break;
       default:
@@ -1084,7 +1111,8 @@ class Printer implements NodeVisitor<void> {
 
   @override
   void visitAccess(PropertyAccess access) {
-    visitNestedExpression(access.receiver, CALL,
+    final precedence = inNewTarget ? LEFT_HAND_SIDE : CALL;
+    visitNestedExpression(access.receiver, precedence,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
 
     Node selector = _undefer(access.selector);
@@ -1109,6 +1137,7 @@ class Printer implements NodeVisitor<void> {
     }
 
     out('[');
+    inNewTarget = false;
     visitNestedExpression(access.selector, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out(']');
@@ -1179,15 +1208,6 @@ class Printer implements NodeVisitor<void> {
     spaceOut();
     int closingPosition;
     Node body = fun.body;
-    // Simplify arrow functions that return a single expression.
-    // Note that this can result in some sourcemapped positions disappearing
-    // around the elided Return. See http://dartbug.com/47354
-    if (fun.implicitReturnAllowed && body is Block) {
-      final statement = unwrapBlockIfSingleStatement(body);
-      if (statement is Return) {
-        body = statement.value!;
-      }
-    }
     if (body is Block) {
       closingPosition =
           blockOut(body, shouldIndent: false, needsNewline: false);
@@ -1665,6 +1685,8 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
   @override
   bool visitBlock(Block node) {
+    // TODO(sra): The following is no longer true. Revert to `=> false;`.
+
     // Singleton blocks are in many places printed as the contained statement so
     // that statement might capture the dangling else.
     if (node.statements.length != 1) return false;

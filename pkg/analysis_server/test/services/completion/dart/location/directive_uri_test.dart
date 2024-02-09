@@ -16,9 +16,6 @@ void main() {
 
 @reflectiveTest
 class DirectiveUriTest extends AbstractCompletionDriverTest {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
   Future<void> test_uri_end() async {
     await _checkDirectives(
       uriContent: 'foo0^',

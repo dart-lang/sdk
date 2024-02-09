@@ -28,10 +28,13 @@ class InheritanceOverrideVerifier {
   final TypeProvider _typeProvider;
   final InheritanceManager3 _inheritance;
   final ErrorReporter _reporter;
+  final bool _strictCasts;
 
   InheritanceOverrideVerifier(
-      this._typeSystem, this._inheritance, this._reporter)
-      : _typeProvider = _typeSystem.typeProvider;
+      this._typeSystem, this._inheritance, this._reporter,
+      {required bool strictCasts})
+      : _typeProvider = _typeSystem.typeProvider,
+        _strictCasts = strictCasts;
 
   void verifyUnit(CompilationUnit unit) {
     var library = unit.declaredElement!.library as LibraryElementImpl;
@@ -51,6 +54,7 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
+          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
@@ -66,6 +70,7 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: declaration.declaredElement!,
+          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
@@ -80,6 +85,7 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: declaration.declaredElement!,
+          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
@@ -98,6 +104,7 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
+          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
@@ -138,6 +145,7 @@ class _ClassVerifier {
   final LibraryElementImpl library;
   final Uri libraryUri;
   final InterfaceElement classElement;
+  final bool strictCasts;
 
   final Token classNameToken;
   final List<ClassMember> members;
@@ -160,6 +168,7 @@ class _ClassVerifier {
     required this.library,
     required this.classNameToken,
     required this.classElement,
+    required this.strictCasts,
     this.implementsClause,
     this.members = const [],
     this.onClause,
@@ -263,6 +272,7 @@ class _ClassVerifier {
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: reporter,
+      strictCasts: strictCasts,
     ).checkInterface(classElement, interface);
 
     if (classElement is ClassElement && !classElement.isAbstract ||
@@ -305,10 +315,10 @@ class _ClassVerifier {
         // 2. if the class contains no member named `m`, and the class member
         //    for `noSuchMethod` is the one declared in `Object`, then it's a
         //    compile-time error.
-        // TODO(brianwilkerson) This code catches some cases not caught in
+        // TODO(brianwilkerson): This code catches some cases not caught in
         //  _checkDeclaredMember, but also duplicates the diagnostic reported
         //  there in some other cases.
-        // TODO(brianwilkerson) In the case of methods inherited via mixins, the
+        // TODO(brianwilkerson): In the case of methods inherited via mixins, the
         //  diagnostic should be reported on the name of the mixin defining the
         //  method. In other cases, it should be reported on the name of the
         //  overriding method. The classNameNode is always wrong.
@@ -363,7 +373,7 @@ class _ClassVerifier {
       }
 
       // The case when members have different kinds is reported in verifier.
-      // TODO(scheglov) Do it here?
+      // TODO(scheglov): Do it here?
       if (member.kind != superMember.kind) {
         continue;
       }

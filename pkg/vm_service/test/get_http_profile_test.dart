@@ -46,7 +46,10 @@ Future<void> executeWithRandomDelay(Function f) =>
         .then((_) async {
       try {
         await f();
-      } on HttpException catch (_) {} on SocketException catch (_) {} on StateError catch (_) {} on OSError catch (_) {}
+      } on HttpException catch (_) {
+      } on SocketException catch (_) {
+      } on StateError catch (_) {
+      } on OSError catch (_) {}
     });
 
 Uri randomlyAddRequestParams(Uri uri) {
@@ -55,10 +58,12 @@ Uri randomlyAddRequestParams(Uri uri) {
       possiblePathSegments.sublist(0, rng.nextInt(possiblePathSegments.length));
   uri = uri.replace(pathSegments: segmentSubset);
   if (rng.nextInt(3) == 0) {
-    uri = uri.replace(queryParameters: {
-      'foo': 'bar',
-      'year': '2019',
-    });
+    uri = uri.replace(
+      queryParameters: {
+        'foo': 'bar',
+        'year': '2019',
+      },
+    );
   }
   return uri;
 }
@@ -75,7 +80,8 @@ Future<HttpServer> startServer() async {
     }
     // Randomly delay response.
     await Future.delayed(
-        Duration(milliseconds: rng.nextInt(maxResponseDelayMs)));
+      Duration(milliseconds: rng.nextInt(maxResponseDelayMs)),
+    );
     await response.close();
   });
   return server;
@@ -289,8 +295,12 @@ Future<void> hasValidHttpPUTs(HttpProfile profile) =>
     hasValidHttpRequests(profile, 'PUT');
 
 void hasDefaultRequestHeaders(HttpProfile profile) {
-  for(final request in profile.requests) {
-    if(!request.request!.hasError) {
+  for (final request in profile.requests) {
+    // Some requests are unable to complete due to the server closing after a
+    // random delay. Don't try and inspect the request data from these
+    // requests.
+    if (!request.isRequestComplete) continue;
+    if (!request.request!.hasError) {
       expect(request.request?.headers['host'], isNotNull);
       expect(request.request?.headers['user-agent'], isNotNull);
     }
@@ -298,15 +308,19 @@ void hasDefaultRequestHeaders(HttpProfile profile) {
 }
 
 void hasCustomRequestHeaders(HttpProfile profile) {
-  var requests = profile.requests.where((e) => e.method == "GET").toList();
-  for(final request in requests) {
-    if(!request.request!.hasError) {
+  final requests = profile.requests.where((e) => e.method == 'GET').toList();
+  for (final request in requests) {
+    // Some requests are unable to complete due to the server closing after a
+    // random delay. Don't try and inspect the request data from these
+    // requests.
+    if (!request.isRequestComplete) continue;
+    if (!request.request!.hasError) {
       expect(request.request?.headers['cookie-eater'], isNotNull);
     }
   }
 }
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     vmService = service;
     final isolateId = isolateRef.id!;
@@ -327,7 +341,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'get_http_profile_test.dart',

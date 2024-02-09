@@ -743,6 +743,16 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitInterfaceType(InterfaceType node, Node other) {
+    return strategy.checkInterfaceType(this, node, other);
+  }
+
+  @override
+  bool visitExtensionType(ExtensionType node, Node other) {
+    return strategy.checkExtensionType(this, node, other);
+  }
+
+  @override
   bool visitAuxiliaryType(AuxiliaryType node, Node other) {
     return strategy.checkAuxiliaryType(this, node, other);
   }
@@ -773,11 +783,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitInterfaceType(InterfaceType node, Node other) {
-    return strategy.checkInterfaceType(this, node, other);
-  }
-
-  @override
   bool visitFunctionType(FunctionType node, Node other) {
     return strategy.checkFunctionType(this, node, other);
   }
@@ -790,11 +795,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   @override
   bool visitFutureOrType(FutureOrType node, Node other) {
     return strategy.checkFutureOrType(this, node, other);
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node, Node other) {
-    return strategy.checkExtensionType(this, node, other);
   }
 
   @override
@@ -1715,10 +1715,11 @@ class EquivalenceStrategy {
     if (!checkExtensionMemberDescriptor_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionMemberDescriptor_member(visitor, node, other)) {
+    if (!checkExtensionMemberDescriptor_memberReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionMemberDescriptor_tearOff(visitor, node, other)) {
+    if (!checkExtensionMemberDescriptor_tearOffReference(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     return result;
@@ -1746,7 +1747,7 @@ class EquivalenceStrategy {
     if (!checkExtension_onType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtension_members(visitor, node, other)) {
+    if (!checkExtension_memberDescriptors(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkExtension_annotations(visitor, node, other)) {
@@ -1780,10 +1781,12 @@ class EquivalenceStrategy {
     if (!checkExtensionTypeMemberDescriptor_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionTypeMemberDescriptor_member(visitor, node, other)) {
+    if (!checkExtensionTypeMemberDescriptor_memberReference(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionTypeMemberDescriptor_tearOff(visitor, node, other)) {
+    if (!checkExtensionTypeMemberDescriptor_tearOffReference(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     return result;
@@ -1816,7 +1819,11 @@ class EquivalenceStrategy {
         visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionTypeDeclaration_members(visitor, node, other)) {
+    if (!checkExtensionTypeDeclaration_procedures(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeDeclaration_memberDescriptors(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkExtensionTypeDeclaration_annotations(visitor, node, other)) {
@@ -2255,7 +2262,7 @@ class EquivalenceStrategy {
     if (!checkFunctionNode_body(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkFunctionNode_futureValueType(visitor, node, other)) {
+    if (!checkFunctionNode_emittedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionNode_redirectingFactoryTarget(visitor, node, other)) {
@@ -5112,6 +5119,47 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkInterfaceType(
+      EquivalenceVisitor visitor, InterfaceType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! InterfaceType) return false;
+    if (other is! InterfaceType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkInterfaceType_classReference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkInterfaceType_declaredNullability(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkInterfaceType_typeArguments(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkExtensionType(
+      EquivalenceVisitor visitor, ExtensionType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! ExtensionType) return false;
+    if (other is! ExtensionType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkExtensionType_extensionTypeDeclarationReference(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionType_declaredNullability(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionType_typeArguments(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkAuxiliaryType(
       EquivalenceVisitor visitor, AuxiliaryType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -5181,26 +5229,6 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkInterfaceType(
-      EquivalenceVisitor visitor, InterfaceType? node, Object? other) {
-    if (identical(node, other)) return true;
-    if (node is! InterfaceType) return false;
-    if (other is! InterfaceType) return false;
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkInterfaceType_classReference(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkInterfaceType_declaredNullability(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkInterfaceType_typeArguments(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
   bool checkFunctionType(
       EquivalenceVisitor visitor, FunctionType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -5261,27 +5289,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFutureOrType_declaredNullability(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
-  bool checkExtensionType(
-      EquivalenceVisitor visitor, ExtensionType? node, Object? other) {
-    if (identical(node, other)) return true;
-    if (node is! ExtensionType) return false;
-    if (other is! ExtensionType) return false;
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkExtensionType_extensionTypeDeclarationReference(
-        visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionType_declaredNullability(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionType_typeArguments(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -6022,24 +6029,31 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkExtensionMemberDescriptor_member(EquivalenceVisitor visitor,
-      ExtensionMemberDescriptor node, ExtensionMemberDescriptor other) {
-    return visitor.checkReferences(node.member, other.member, 'member');
+  bool checkExtensionMemberDescriptor_memberReference(
+      EquivalenceVisitor visitor,
+      ExtensionMemberDescriptor node,
+      ExtensionMemberDescriptor other) {
+    return visitor.checkReferences(
+        node.memberReference, other.memberReference, 'memberReference');
   }
 
-  bool checkExtensionMemberDescriptor_tearOff(EquivalenceVisitor visitor,
-      ExtensionMemberDescriptor node, ExtensionMemberDescriptor other) {
-    return visitor.checkReferences(node.tearOff, other.tearOff, 'tearOff');
+  bool checkExtensionMemberDescriptor_tearOffReference(
+      EquivalenceVisitor visitor,
+      ExtensionMemberDescriptor node,
+      ExtensionMemberDescriptor other) {
+    return visitor.checkReferences(
+        node.tearOffReference, other.tearOffReference, 'tearOffReference');
   }
 
-  bool checkExtension_members(
+  bool checkExtension_memberDescriptors(
       EquivalenceVisitor visitor, Extension node, Extension other) {
-    return visitor.checkLists(node.members, other.members, (a, b, _) {
+    return visitor.checkLists(node.memberDescriptors, other.memberDescriptors,
+        (a, b, _) {
       if (identical(a, b)) return true;
       if (a is! ExtensionMemberDescriptor) return false;
       if (b is! ExtensionMemberDescriptor) return false;
       return checkExtensionMemberDescriptor(visitor, a, b);
-    }, 'members');
+    }, 'memberDescriptors');
   }
 
   bool checkExtension_annotations(
@@ -6095,6 +6109,12 @@ class EquivalenceStrategy {
         other.representationName, 'representationName');
   }
 
+  bool checkExtensionTypeDeclaration_procedures(EquivalenceVisitor visitor,
+      ExtensionTypeDeclaration node, ExtensionTypeDeclaration other) {
+    return visitor.checkLists(
+        node.procedures, other.procedures, visitor.checkNodes, 'procedures');
+  }
+
   bool checkExtensionTypeMemberDescriptor_name(EquivalenceVisitor visitor,
       ExtensionTypeMemberDescriptor node, ExtensionTypeMemberDescriptor other) {
     return visitor.checkNodes(node.name, other.name, 'name');
@@ -6110,24 +6130,33 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkExtensionTypeMemberDescriptor_member(EquivalenceVisitor visitor,
-      ExtensionTypeMemberDescriptor node, ExtensionTypeMemberDescriptor other) {
-    return visitor.checkReferences(node.member, other.member, 'member');
+  bool checkExtensionTypeMemberDescriptor_memberReference(
+      EquivalenceVisitor visitor,
+      ExtensionTypeMemberDescriptor node,
+      ExtensionTypeMemberDescriptor other) {
+    return visitor.checkReferences(
+        node.memberReference, other.memberReference, 'memberReference');
   }
 
-  bool checkExtensionTypeMemberDescriptor_tearOff(EquivalenceVisitor visitor,
-      ExtensionTypeMemberDescriptor node, ExtensionTypeMemberDescriptor other) {
-    return visitor.checkReferences(node.tearOff, other.tearOff, 'tearOff');
+  bool checkExtensionTypeMemberDescriptor_tearOffReference(
+      EquivalenceVisitor visitor,
+      ExtensionTypeMemberDescriptor node,
+      ExtensionTypeMemberDescriptor other) {
+    return visitor.checkReferences(
+        node.tearOffReference, other.tearOffReference, 'tearOffReference');
   }
 
-  bool checkExtensionTypeDeclaration_members(EquivalenceVisitor visitor,
-      ExtensionTypeDeclaration node, ExtensionTypeDeclaration other) {
-    return visitor.checkLists(node.members, other.members, (a, b, _) {
+  bool checkExtensionTypeDeclaration_memberDescriptors(
+      EquivalenceVisitor visitor,
+      ExtensionTypeDeclaration node,
+      ExtensionTypeDeclaration other) {
+    return visitor.checkLists(node.memberDescriptors, other.memberDescriptors,
+        (a, b, _) {
       if (identical(a, b)) return true;
       if (a is! ExtensionTypeMemberDescriptor) return false;
       if (b is! ExtensionTypeMemberDescriptor) return false;
       return checkExtensionTypeMemberDescriptor(visitor, a, b);
-    }, 'members');
+    }, 'memberDescriptors');
   }
 
   bool checkExtensionTypeDeclaration_annotations(EquivalenceVisitor visitor,
@@ -6627,10 +6656,10 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.body, other.body, 'body');
   }
 
-  bool checkFunctionNode_futureValueType(
+  bool checkFunctionNode_emittedValueType(
       EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
     return visitor.checkNodes(
-        node.futureValueType, other.futureValueType, 'futureValueType');
+        node.emittedValueType, other.emittedValueType, 'emittedValueType');
   }
 
   bool checkRedirectingFactoryTarget_targetReference(EquivalenceVisitor visitor,
@@ -9315,12 +9344,6 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.text, other.text, 'text');
   }
 
-  bool checkNeverType_declaredNullability(
-      EquivalenceVisitor visitor, NeverType node, NeverType other) {
-    return visitor.checkValues(node.declaredNullability,
-        other.declaredNullability, 'declaredNullability');
-  }
-
   bool checkInterfaceType_classReference(
       EquivalenceVisitor visitor, InterfaceType node, InterfaceType other) {
     return visitor.checkReferences(
@@ -9337,6 +9360,32 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, InterfaceType node, InterfaceType other) {
     return visitor.checkLists(node.typeArguments, other.typeArguments,
         visitor.checkNodes, 'typeArguments');
+  }
+
+  bool checkExtensionType_extensionTypeDeclarationReference(
+      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
+    return visitor.checkReferences(
+        node.extensionTypeDeclarationReference,
+        other.extensionTypeDeclarationReference,
+        'extensionTypeDeclarationReference');
+  }
+
+  bool checkExtensionType_declaredNullability(
+      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
+    return visitor.checkValues(node.declaredNullability,
+        other.declaredNullability, 'declaredNullability');
+  }
+
+  bool checkExtensionType_typeArguments(
+      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
+    return visitor.checkLists(node.typeArguments, other.typeArguments,
+        visitor.checkNodes, 'typeArguments');
+  }
+
+  bool checkNeverType_declaredNullability(
+      EquivalenceVisitor visitor, NeverType node, NeverType other) {
+    return visitor.checkValues(node.declaredNullability,
+        other.declaredNullability, 'declaredNullability');
   }
 
   bool checkFunctionType_typeParameters(
@@ -9402,26 +9451,6 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, FutureOrType node, FutureOrType other) {
     return visitor.checkValues(node.declaredNullability,
         other.declaredNullability, 'declaredNullability');
-  }
-
-  bool checkExtensionType_extensionTypeDeclarationReference(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkReferences(
-        node.extensionTypeDeclarationReference,
-        other.extensionTypeDeclarationReference,
-        'extensionTypeDeclarationReference');
-  }
-
-  bool checkExtensionType_declaredNullability(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkValues(node.declaredNullability,
-        other.declaredNullability, 'declaredNullability');
-  }
-
-  bool checkExtensionType_typeArguments(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkLists(node.typeArguments, other.typeArguments,
-        visitor.checkNodes, 'typeArguments');
   }
 
   bool checkIntersectionType_left(EquivalenceVisitor visitor,

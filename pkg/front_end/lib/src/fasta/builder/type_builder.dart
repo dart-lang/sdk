@@ -4,7 +4,7 @@
 
 library fasta.type_builder;
 
-import 'package:kernel/ast.dart' show DartType, Supertype;
+import 'package:kernel/ast.dart' show DartType, Supertype, TreeNode;
 import 'package:kernel/class_hierarchy.dart';
 
 import '../kernel/type_algorithms.dart';
@@ -106,26 +106,40 @@ enum TypeUse {
   ///
   tearOffTypeArgument,
 
-  /// A type used in an extends, with or implements clause.
-  ///
-  /// For instance `X`, `Y`, `Z` in
-  ///
-  ///    class Class extends X with Y implements Z {}
-  ///
-  // TODO(johnniwinther): The probably enclosed the mixin on clause. Is this
-  // a correct handling wrt well-boundedness?
-  superType,
-
-  /// A type used in a with clause.
+  /// A type used in an extends clause.
   ///
   /// For instance `X` in
   ///
   ///    class Class extends X {}
   ///
+  classExtendsType,
+
+  /// A type used in an implements clause or a class or mixin.
+  ///
+  /// For instance `X` in
+  ///
+  ///    class Class implements X {}
+  ///
+  classImplementsType,
+
+  /// A type used in a with clause of a class.
+  ///
+  /// For instance `X` in
+  ///
+  ///    class Class with X {}
+  ///
   /// This type use creates an intermediate type used for mixin inference. The
   /// type is not check for well-boundedness and contains [UnknownType] where
   /// type arguments are omitted.
-  mixedInType,
+  classWithType,
+
+  /// A type used in the on clause of a mixin declaration.
+  ///
+  /// For instance `X` in
+  ///
+  ///    mixin Mixin on X {}
+  ///
+  mixinOnType,
 
   /// A type used in the on clause of an extension declaration.
   ///
@@ -134,6 +148,22 @@ enum TypeUse {
   ///    extension Extension on X {}
   ///
   extensionOnType,
+
+  /// A type used in an implements clause of an extension type.
+  ///
+  /// For instance `X` in
+  ///
+  ///    extension type ExtensionType(Y y) implements X {}
+  ///
+  extensionTypeImplementsType,
+
+  /// A type used as a representation type of an extension type.
+  ///
+  /// For instance `Y` in
+  ///
+  ///    extension type ExtensionType(Y y) implements X {}
+  ///
+  extensionTypeRepresentationType,
 
   /// A type used as the definition of a typedef.
   ///
@@ -290,7 +320,7 @@ sealed class TypeBuilder {
   int? get charOffset;
 
   /// May return null, for example, for mixin applications.
-  Object? get name;
+  TypeName? get typeName;
 
   NullabilityBuilder get nullabilityBuilder;
 
@@ -318,7 +348,7 @@ sealed class TypeBuilder {
   // TODO(johnniwinther): Change [NamedTypeBuilder] to hold the
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
-  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution,
+  TypeBuilder subst(Map<NominalVariableBuilder, TypeBuilder> substitution,
       {List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
     if (substitution.isEmpty) {
@@ -381,7 +411,7 @@ sealed class TypeBuilder {
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy);
 
-  Supertype? buildSupertype(LibraryBuilder library);
+  Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse);
 
   Supertype? buildMixedInType(LibraryBuilder library);
 
@@ -444,23 +474,26 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   TypeBuilder get returnType;
   List<ParameterBuilder>? get formals;
   List<StructuralVariableBuilder>? get typeVariables;
+
+  /// If `true`, this function type was created using function formal parameter
+  /// syntax, like `f` in `method(int f()) { ... }`.
+  bool get hasFunctionFormalParameterSyntax;
 }
 
 abstract class InvalidTypeBuilder extends TypeBuilder {}
 
 abstract class NamedTypeBuilder extends TypeBuilder {
   @override
-  Object get name;
-
-  int get nameOffset;
-
-  int get nameLength;
+  TypeName get typeName;
 
   void resolveIn(
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library);
   void bind(LibraryBuilder libraryBuilder, TypeDeclarationBuilder declaration);
-  List<TypeBuilder>? get arguments;
-  NamedTypeBuilder withArguments(List<TypeBuilder> arguments);
+
+  List<TypeBuilder>? get typeArguments;
+
+  NamedTypeBuilder withTypeArguments(List<TypeBuilder> arguments);
+
   InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
       LocatedMessage message,
       {List<LocatedMessage>? context});
@@ -477,4 +510,145 @@ abstract class RecordTypeBuilder extends TypeBuilder {
 
 abstract class FixedTypeBuilder extends TypeBuilder {
   const FixedTypeBuilder();
+}
+
+/// The name of a named type as used by the [NamedTypeBuilder].
+sealed class TypeName {
+  /// The name text. For instance `List` in both `List<int>` and `core.List`.
+  String get name;
+
+  /// The offset that can be used to point to the origin of the name in
+  /// messages.
+  int get nameOffset;
+
+  /// The length that can be used to point to the [name] in messages.
+  int get nameLength;
+
+  /// If this is a qualified name, this is the prefix name. For instance `core`
+  /// in `core.String`.
+  String? get qualifier;
+
+  /// The full name including prefix, if present. For instance `core.String` for
+  /// `core . String`.
+  String get fullName;
+
+  /// The offset that can be used to point to the origin of the [fullName].
+  int get fullNameOffset;
+
+  /// The length that can be used to point to the [fullName] in messages.
+  int get fullNameLength;
+}
+
+/// A [TypeName] for a predefined type that doesn't occur in the source code and
+/// therefore has no offset.
+///
+/// For instance the use of `Object` as the implicit super type of a class.
+class PredefinedTypeName implements TypeName {
+  @override
+  final String name;
+
+  const PredefinedTypeName(this.name);
+
+  @override
+  String? get qualifier => null;
+
+  @override
+  int get nameOffset => TreeNode.noOffset;
+
+  @override
+  int get nameLength => noLength;
+
+  @override
+  String get fullName => name;
+
+  @override
+  int get fullNameOffset => nameOffset;
+
+  @override
+  int get fullNameLength => noLength;
+}
+
+/// A [TypeName] synthesized from the source code whose offset therefore doesn't
+/// necessarily correspond to the name occurring at this position in the source
+/// code.
+///
+/// For instance the enclosing class name for the return type of a constructor.
+class SyntheticTypeName implements TypeName {
+  @override
+  final String name;
+
+  @override
+  final int nameOffset;
+
+  SyntheticTypeName(this.name, this.nameOffset);
+
+  @override
+  int get nameLength => noLength;
+
+  @override
+  String? get qualifier => null;
+
+  @override
+  String get fullName => name;
+
+  @override
+  int get fullNameOffset => nameOffset;
+
+  @override
+  int get fullNameLength => noLength;
+}
+
+/// A [TypeName] occurring as an identifier in the source code.
+class IdentifierTypeName implements TypeName {
+  @override
+  final String name;
+
+  @override
+  final int nameOffset;
+
+  IdentifierTypeName(this.name, this.nameOffset);
+
+  @override
+  int get nameLength => name.length;
+
+  @override
+  String? get qualifier => null;
+
+  @override
+  String get fullName => name;
+
+  @override
+  int get fullNameOffset => nameOffset;
+
+  @override
+  int get fullNameLength => name.length;
+}
+
+/// A [TypeName] occurring as a qualified identifier in the source code.
+class QualifiedTypeName implements TypeName {
+  @override
+  final String qualifier;
+
+  final int qualifierOffset;
+
+  @override
+  final String name;
+
+  @override
+  final int nameOffset;
+
+  QualifiedTypeName(
+      this.qualifier, this.qualifierOffset, this.name, this.nameOffset);
+
+  @override
+  int get nameLength => name.length;
+
+  @override
+  String get fullName => '$qualifier.$name';
+
+  @override
+  int get fullNameOffset => qualifierOffset;
+
+  @override
+  int get fullNameLength => nameOffset - qualifierOffset + name.length;
 }

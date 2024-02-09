@@ -196,17 +196,20 @@ class MixinFullResolution {
             // and don't add several procedures with the same name to the class.
             continue outer;
           }
-          if (procedure.isAbstract &&
-              (originalProcedure.stubKind ==
-                      ProcedureStubKind.ConcreteForwardingStub ||
-                  originalProcedure.stubKind ==
-                      ProcedureStubKind.ConcreteMixinStub)) {
+          if (procedure.isAbstract) {
             // Don't replace concrete stubs with abstract methods.
-            originalProcedure.stubKind = ProcedureStubKind.Regular;
-            originalProcedure.stubTarget = null;
-            continue outer;
+            switch (originalProcedure.stubKind) {
+              case ProcedureStubKind.ConcreteForwardingStub:
+              case ProcedureStubKind.ConcreteMixinStub:
+                originalProcedure.stubKind = ProcedureStubKind.Regular;
+                originalProcedure.stubTarget = null;
+                continue outer;
+              case ProcedureStubKind.NoSuchMethodForwarder:
+                continue outer;
+              default:
+                break;
+            }
           }
-
           originalIndex = i;
           break;
         }

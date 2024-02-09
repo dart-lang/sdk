@@ -32,15 +32,13 @@ class TranslatorOptions {
   bool exportAll = false;
   bool importSharedMemory = false;
   bool inlining = true;
+  bool jsCompatibility = false;
   bool nameSection = true;
   bool omitTypeChecks = false;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
-  // If the default value for [useStringref] is changed, also update the
-  // `sdk/bin/dart2wasm` script.
-  bool useStringref = false;
-  bool jsCompatibility = false;
+  bool verifyTypeChecks = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int> watchPoints = [];
@@ -84,6 +82,10 @@ class Translator with KernelNodes {
   /// [ClassInfoCollector].
   final Map<Class, ClassInfo> classInfo = {};
 
+  /// Internalized strings to move to the JS runtime
+  final List<String> internalizedStringsForJSRuntime = [];
+  final Map<String, w.Global> _internalizedStringGlobals = {};
+
   final Map<w.HeapType, ClassInfo> classForHeapType = {};
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
@@ -108,7 +110,8 @@ class Translator with KernelNodes {
   final Map<RecordShape, Class> recordClasses;
 
   // Caches for when identical source constructs need a common representation.
-  final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
+  final Map<w.StorageType, w.ArrayType> immutableArrayTypeCache = {};
+  final Map<w.StorageType, w.ArrayType> mutableArrayTypeCache = {};
   final Map<w.BaseFunction, w.Global> functionRefCache = {};
   final Map<Procedure, ClosureImplementation> tearOffFunctionCache = {};
 
@@ -118,6 +121,8 @@ class Translator with KernelNodes {
   late final ClassInfo closureInfo = classInfo[closureClass]!;
   late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
   late final ClassInfo recordInfo = classInfo[coreTypes.recordClass]!;
+  late final w.ArrayType typeArrayType =
+      arrayTypeForDartType(InterfaceType(typeClass, Nullability.nonNullable));
   late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
           .struct
           .fields[FieldIndex.listArray]
@@ -161,8 +166,11 @@ class Translator with KernelNodes {
     boxedIntClass: boxedIntClass,
     boxedDoubleClass: boxedDoubleClass,
     boxedBoolClass: coreTypes.boolClass,
-    oneByteStringClass: stringBaseClass,
-    twoByteStringClass: stringBaseClass,
+    if (!options.jsCompatibility) ...{
+      oneByteStringClass: stringBaseClass,
+      twoByteStringClass: stringBaseClass
+    },
+    if (options.jsCompatibility) ...{jsStringClass: jsStringClass},
   };
 
   /// Type for vtable entries for dynamic calls. These entries are used in
@@ -173,13 +181,13 @@ class Translator with KernelNodes {
     w.RefType.def(closureLayouter.closureBaseStruct, nullable: false),
 
     // Type arguments
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
 
     // Positional arguments
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
   ], [
     topInfo.nullableType
   ]);
@@ -191,13 +199,13 @@ class Translator with KernelNodes {
     topInfo.nonNullableType,
 
     // Type arguments
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
 
     // Positional arguments
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
   ], [
     topInfo.nullableType
   ]);
@@ -465,7 +473,8 @@ class Translator with KernelNodes {
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag createExceptionTag() {
     w.FunctionType tagType = m.types.defineFunction(
-        [topInfo.nonNullableType, stackTraceInfo.nonNullableType], const []);
+        [topInfo.nonNullableType, stackTraceInfo.repr.nonNullableType],
+        const []);
     w.Tag tag = m.tags.define(tagType);
     return tag;
   }
@@ -473,7 +482,13 @@ class Translator with KernelNodes {
   w.ValueType translateType(DartType type) {
     w.StorageType wasmType = translateStorageType(type);
     if (wasmType is w.ValueType) return wasmType;
-    throw "Packed types are only allowed in arrays and fields";
+
+    // We represent the packed i8/i16 types as zero-extended i32 type.
+    // Dart code can currently only obtain them via loading from packed arrays
+    // and only use them for storing into packed arrays (there are no
+    // conversion or other operations on WasmI8/WasmI16).
+    if (wasmType is w.PackedType) return w.NumType.i32;
+    throw "Cannot translate $type to wasm type.";
   }
 
   bool _hasSuperclass(Class cls, Class superclass) {
@@ -564,7 +579,7 @@ class Translator with KernelNodes {
     }
     if (type is TypeParameterType) {
       return translateStorageType(nullable
-          ? type.bound.withDeclaredNullability(type.nullability)
+          ? type.bound.withDeclaredNullability(Nullability.nullable)
           : type.bound);
     }
     if (type is IntersectionType) {
@@ -586,7 +601,7 @@ class Translator with KernelNodes {
           nullable: nullable);
     }
     if (type is ExtensionType) {
-      return translateStorageType(type.typeErasure);
+      return translateStorageType(type.extensionTypeErasure);
     }
     if (type is RecordType) {
       return getRecordClassInfo(type).typeWithNullability(nullable);
@@ -604,7 +619,8 @@ class Translator with KernelNodes {
 
   w.ArrayType wasmArrayType(w.StorageType type, String name,
       {bool mutable = true}) {
-    return arrayTypeCache.putIfAbsent(
+    final cache = mutable ? mutableArrayTypeCache : immutableArrayTypeCache;
+    return cache.putIfAbsent(
         type,
         () => m.types.defineArray("Array<$name>",
             elementType: w.FieldType(type, mutable: mutable)));
@@ -913,12 +929,17 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
+    if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
+      return false;
+    }
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
     if (target.isInitializerReference) return true;
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
-    if (getPragma<Constant>(member, "wasm:prefer-inline") != null) return true;
+    if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
+      return true;
+    }
     Statement? body = member.function!.body;
     return body != null &&
         NodeCounter().countNodes(body) <= options.inliningLimit;
@@ -935,13 +956,17 @@ class Translator with KernelNodes {
             if (nameConstant is StringConstant && nameConstant.value == name) {
               Constant? value =
                   constant.fieldValues[coreTypes.pragmaOptions.fieldReference];
+              if (value == null || value is NullConstant) {
+                return defaultValue;
+              }
               if (value is PrimitiveConstant<T>) {
                 return value.value;
               }
-              if (value is NullConstant) {
-                return defaultValue;
+              if (value is! T) {
+                throw ArgumentError("$name pragma argument has unexpected type "
+                    "${value.runtimeType} (expected $T)");
               }
-              return value as T? ?? defaultValue;
+              return value as T;
             }
           }
         }
@@ -962,19 +987,30 @@ class Translator with KernelNodes {
     final ClassInfo info = classInfo[cls]!;
     functions.allocateClass(info.classId);
     final w.ArrayType arrayType = listArrayType;
-    final w.ValueType elementType = arrayType.elementType.type.unpacked;
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     generateType(b);
     b.i64_const(length);
+    makeArray(function, arrayType, length, generateItem);
+    b.struct_new(info.struct);
+
+    return info.nonNullableType;
+  }
+
+  w.ValueType makeArray(w.FunctionBuilder function, w.ArrayType arrayType,
+      int length, void Function(w.ValueType, int) generateItem) {
+    final b = function.body;
+
+    final w.ValueType elementType = arrayType.elementType.type.unpacked;
+    final arrayTypeRef = w.RefType.def(arrayType, nullable: false);
+
     if (length > maxArrayNewFixedLength) {
       // Too long for `array.new_fixed`. Set elements individually.
       b.i32_const(length);
       b.array_new_default(arrayType);
       if (length > 0) {
-        final w.Local arrayLocal =
-            function.addLocal(w.RefType.def(arrayType, nullable: false));
+        final w.Local arrayLocal = function.addLocal(arrayTypeRef);
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
@@ -990,9 +1026,7 @@ class Translator with KernelNodes {
       }
       b.array_new_fixed(arrayType, length);
     }
-    b.struct_new(info.struct);
-
-    return info.nonNullableType;
+    return arrayTypeRef;
   }
 
   /// Indexes a Dart `List` on the stack.
@@ -1016,6 +1050,19 @@ class Translator with KernelNodes {
 
   ClassInfo getRecordClassInfo(RecordType recordType) =>
       classInfo[recordClasses[RecordShape.fromType(recordType)]!]!;
+
+  w.Global getInternalizedStringGlobal(String s) {
+    w.Global? internalizedString = _internalizedStringGlobals[s];
+    if (internalizedString != null) {
+      return internalizedString;
+    }
+    final i = internalizedStringsForJSRuntime.length;
+    internalizedString = m.globals.import('s', '$i',
+        w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+    _internalizedStringGlobals[s] = internalizedString;
+    internalizedStringsForJSRuntime.add(s);
+    return internalizedString;
+  }
 }
 
 abstract class _FunctionGenerator {

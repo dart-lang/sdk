@@ -25,22 +25,21 @@ class OptionsTest {
   }
 
   Future<void> test_options() async {
-    // Copy to temp dir so that existing analysis options
-    // in the test directory hierarchy do not interfere
+    // Copy to the temp directory so that existing analysis options in the test
+    // directory hierarchy do not interfere.
     var projDir = path.join(testDirectory, 'data', 'flutter_analysis_options');
     await withTempDirAsync((String tempDirPath) async {
       await recursiveCopy(Directory(projDir), tempDirPath);
-      var expectedPath = path.join(tempDirPath, 'somepkgs', 'flutter', 'lib',
-          'analysis_options_user.yaml');
+      var expectedPath = path.join(
+          tempDirPath, 'somepkgs', 'flutter', 'lib', 'analysis_options.yaml');
       expect(FileSystemEntity.isFileSync(expectedPath), isTrue);
       await _runner.run2([
         '--packages',
         path.join(tempDirPath, 'packagelist'),
-        path.join(tempDirPath, 'lib', 'main.dart')
+        path.join(tempDirPath, 'lib', 'main.dart'),
       ]);
       expect(_runner.stdout, contains('The parameter \'child\' is required'));
-      // Should be a warning as specified in analysis_options_user.yaml
-      // not a hint
+      // Should be a warning as specified in 'analysis_options.yaml'.
       expect(_runner.stdout, contains('1 warning found'));
     });
   }

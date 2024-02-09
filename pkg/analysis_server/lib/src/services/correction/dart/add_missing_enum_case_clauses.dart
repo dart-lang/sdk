@@ -95,7 +95,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
         ? statement.rightParenthesis.end
         : location.offset;
     await builder.addDartFileEdit(file, (builder) {
-      // TODO(brianwilkerson) Consider inserting the names in order into the
+      // TODO(brianwilkerson): Consider inserting the names in order into the
       //  switch statement.
       builder.addInsertion(insertionOffset, (builder) {
         void addMissingCase(String expression) {

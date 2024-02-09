@@ -8,24 +8,14 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionMemberTest1);
-    defineReflectiveTests(ExtensionMemberTest2);
+    defineReflectiveTests(ExtensionMemberTest);
+    defineReflectiveTests(StaticExtensionMemberTest);
   });
 }
 
 @reflectiveTest
-class ExtensionMemberTest1 extends AbstractCompletionDriverTest
-    with ExtensionMemberTestCases, StaticExtensionMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ExtensionMemberTest2 extends AbstractCompletionDriverTest
-    with ExtensionMemberTestCases, StaticExtensionMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ExtensionMemberTest extends AbstractCompletionDriverTest
+    with ExtensionMemberTestCases {}
 
 mixin ExtensionMemberTestCases on AbstractCompletionDriverTest {
   @override
@@ -42,27 +32,13 @@ void f() {
   E('3').a0^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_extensionOverride_matches_partial() async {
@@ -76,27 +52,13 @@ void f() {
   E(2).a0^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_inExtendedClass() async {
@@ -352,27 +314,13 @@ void f(List<int> l) {
   l.a0^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_propertyAccess_afterLiteral_doesNotMatch() async {
@@ -426,27 +374,13 @@ void f() {
   2.a0^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_propertyAccess_matches_partial() async {
@@ -461,27 +395,35 @@ void f() {
 }
 int g() => 3;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
+  }
+
+  Future<void> test_staticMemberAccess_none() async {
+    allowedIdentifiers = {
+      'hashCode',
+      'noSuchMethod',
+      'runtimeType',
+      'toString'
+    };
+    await computeSuggestions('''
+extension E on int {
+  void a0() {}
+}
+void f() {
+  E.^
+}
 ''');
-    }
+    // The purpose of this test is to verify that Type instance members
+    // are not suggested when accessing static members of an extension.
+    assertResponse(r'''
+suggestions
+''');
   }
 
   Future<void> test_staticMemberAccess_none_partial() async {
@@ -502,6 +444,10 @@ suggestions
 ''');
   }
 }
+
+@reflectiveTest
+class StaticExtensionMemberTest extends AbstractCompletionDriverTest
+    with StaticExtensionMemberTestCases {}
 
 mixin StaticExtensionMemberTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterPeriod() async {

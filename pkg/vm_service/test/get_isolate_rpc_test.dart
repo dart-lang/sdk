@@ -7,7 +7,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-var tests = <VMTest>[
+final tests = <VMTest>[
   (VmService service) async {
     final vm = await service.getVM();
     final result = await service.getIsolate(vm.isolates!.first.id!);
@@ -55,7 +55,7 @@ var tests = <VMTest>[
   },
 ];
 
-main([args = const <String>[]]) async => runVMTests(
+void main([args = const <String>[]]) => runVMTests(
       args,
       tests,
       'get_isolate_rpc_test.dart',

@@ -146,8 +146,16 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
       final messageText = e is DebugAdapterException ? e.message : '$e';
       final errorMessage = Message(
         id: ErrorMessageType.general,
-        format: '{message}\n{stack}',
+        format: '{message}',
+        // We include stack in the payload for debugging, but we don't include
+        // it in format above because we don't want it used to build the error
+        // shown to the user.
         variables: {'message': messageText, 'stack': '$s'},
+        // DAP specification did not specify how to handle the case where
+        // showUser does not exist. VSCode defaults to true, but some other
+        // systems might default it to false.
+        // Always pass true to be consistent.
+        showUser: true,
       );
       final response = Response(
         success: false,
@@ -182,7 +190,13 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   Future<void> pauseRequest(
     Request request,
     PauseArguments args,
-    void Function(PauseResponseBody) sendResponse,
+    void Function() sendResponse,
+  );
+
+  Future<void> restartFrameRequest(
+    Request request,
+    RestartFrameArguments args,
+    void Function() sendResponse,
   );
 
   Future<void> restartRequest(
@@ -376,7 +390,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
     } else if (request.command == 'pause') {
       handle(
         request,
-        pauseRequest,
+        _withVoidResponse(pauseRequest),
         PauseArguments.fromJson,
         responseWriter,
       );
@@ -406,6 +420,13 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
         request,
         _withVoidResponse(stepOutRequest),
         StepOutArguments.fromJson,
+        responseWriter,
+      );
+    } else if (request.command == 'restartFrame') {
+      handle(
+        request,
+        _withVoidResponse(restartFrameRequest),
+        RestartFrameArguments.fromJson,
         responseWriter,
       );
     } else if (request.command == 'threads') {

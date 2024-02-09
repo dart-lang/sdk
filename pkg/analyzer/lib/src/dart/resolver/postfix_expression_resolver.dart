@@ -65,10 +65,8 @@ class PostfixExpressionResolver {
       writeElement,
       atDynamicTarget: operandResolution.atDynamicTarget,
     );
-    _resolver.migrationResolutionHooks
-        ?.setCompoundAssignmentExpressionTypes(node);
 
-    // TODO(scheglov) Use VariableElement and do in resolveForWrite() ?
+    // TODO(scheglov): Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(operand);
 
     var receiverType = node.readType!;
@@ -79,11 +77,12 @@ class PostfixExpressionResolver {
   /// Check that the result [type] of a prefix or postfix `++` or `--`
   /// expression is assignable to the write type of the [operand].
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   void _checkForInvalidAssignmentIncDec(
       PostfixExpression node, Expression operand, DartType type) {
     var operandWriteType = node.writeType!;
-    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
+    if (!_typeSystem.isAssignableTo(type, operandWriteType,
+        strictCasts: _resolver.analysisOptions.strictCasts)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
         node,
@@ -97,7 +96,7 @@ class PostfixExpressionResolver {
   /// @param element the element representing the method or function invoked by the given node
   /// @return the static return type that was computed
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   DartType _computeStaticReturnType(Element? element) {
     if (element is PropertyAccessorElement) {
       //

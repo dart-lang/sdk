@@ -954,7 +954,7 @@ void g() {
     }
 
     var import = "import '$importUri'$prefixDeclaration;";
-    //TODO(asashour) inserting imports should remove initial blank lines
+    // TODO(asashour): inserting imports should remove initial blank lines
     var oldImport = isOldRemoved
         ? ''
         : '''

@@ -10,14 +10,14 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-fib(int n) {
+int fib(int n) {
   if (n <= 1) {
     return n;
   }
   return fib(n - 1) + fib(n - 2);
 }
 
-void testMain() async {
+Future<void> testMain() async {
   int i = 10;
   while (true) {
     ++i;
@@ -62,7 +62,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async => await runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'cpu_samples_stream_test.dart',

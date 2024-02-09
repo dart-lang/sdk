@@ -515,6 +515,7 @@ abstract class Target {
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteSetLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteConstSetLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteClosureClass(CoreTypes coreTypes) => null;
   Class getRecordImplementationClass(CoreTypes coreTypes,
           int numPositionalFields, List<String> namedFields) =>
       throw UnsupportedError('Target.getRecordImplementationClass');

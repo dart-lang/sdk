@@ -11,15 +11,25 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticTypeWarningCodeTest);
     defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
-    defineReflectiveTests(StaticTypeWarningCodeWithoutNullSafetyTest);
   });
 }
 
-/// TODO(srawlins) Figure out what to do with the rest of these tests.
-///  The names do not correspond to diagnostic codes, so it isn't clear what
-///  they're testing.
+// TODO(srawlins): Figure out what to do with the rest of these tests.
+//  The names do not correspond to diagnostic codes, so it isn't clear what
+//  they're testing.
 @reflectiveTest
 class StaticTypeWarningCodeTest extends PubPackageResolutionTest {
+  test_await_flattened() async {
+    await assertErrorsInCode('''
+external Future<Future<int>> ffi();
+f() async {
+  Future<int> b = await ffi();
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+    ]);
+  }
+
   test_await_simple() async {
     await assertErrorsInCode('''
 Future<int> fi() => Future.value(0);
@@ -114,6 +124,33 @@ f(Stream<int> stream) async {
 }
 ''', [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+    ]);
+  }
+
+  test_bug21912() async {
+    await assertErrorsInCode('''
+class A {}
+class B extends A {}
+
+typedef T Function2<S, T>(S z);
+typedef B AToB(A x);
+typedef A BToA(B x);
+
+void f(
+  Function2<Function2<A, B>, Function2<B, A>> t1,
+  Function2<AToB, BToA> t2
+) {
+  {
+    Function2<Function2<int, double>, Function2<int, double>> left;
+
+    left = t1;
+    left = t2;
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 263, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 281, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 296, 2),
     ]);
   }
 
@@ -442,142 +479,6 @@ g(A<NoSuchType> a) {
 }
 ''', [
       error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 37, 10),
-    ]);
-  }
-}
-
-@reflectiveTest
-class StaticTypeWarningCodeWithoutNullSafetyTest
-    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
-  test_assert_message_suppresses_type_promotion() async {
-    // If a variable is assigned to inside the expression for an assert
-    // message, type promotion should be suppressed, just as it would be if the
-    // assignment occurred outside an assert statement.  (Note that it is a
-    // dubious practice for the computation of an assert message to have side
-    // effects, since it is only evaluated if the assert fails).
-    await assertErrorsInCode('''
-class C {
-  void foo() {}
-}
-
-f(Object x) {
-  if (x is C) {
-    x.foo();
-    assert(true, () { x = new C(); return 'msg'; }());
-  }
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 65, 3),
-    ]);
-  }
-
-  test_await_flattened() async {
-    await assertErrorsInCode('''
-Future<Future<int>> ffi() => null;
-f() async {
-  Future<int> b = await ffi();
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
-    ]);
-  }
-
-  test_bug21912() async {
-    await assertErrorsInCode('''
-class A {}
-class B extends A {}
-
-typedef T Function2<S, T>(S z);
-typedef B AToB(A x);
-typedef A BToA(B x);
-
-void main() {
-  {
-    Function2<Function2<A, B>, Function2<B, A>> t1;
-    Function2<AToB, BToA> t2;
-
-    Function2<Function2<int, double>, Function2<int, double>> left;
-
-    left = t1;
-    left = t2;
-  }
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 271, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 289, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 304, 2),
-    ]);
-  }
-
-  test_forIn_downcast() async {
-    await assertErrorsInCode('''
-f() {
-  for (int i in <num>[]) {}
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
-  }
-
-  test_typePromotion_conditional_useInThen_hasAssignment() async {
-    await assertErrorsInCode(r'''
-f(Object p) {
-  p is String ? (p.length + (p = 42)) : 0;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 6),
-    ]);
-  }
-
-  test_typePromotion_if_and_right_hasAssignment() async {
-    await assertErrorsInCode(r'''
-f(Object p) {
-  if (p is String && (p = null) == null) {
-    p.length;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 63, 6),
-    ]);
-  }
-
-  test_typePromotion_if_hasAssignment_after() async {
-    await assertErrorsInCode(r'''
-f(Object p) {
-  if (p is String) {
-    p.length;
-    p = 0;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 41, 6),
-    ]);
-  }
-
-  test_typePromotion_if_hasAssignment_inClosure_anonymous_after() async {
-    await assertErrorsInCode(r'''
-f(Object p) {
-  if (p is String) {
-    p.length;
-  }
-  () {p = 0;};
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 41, 6),
-    ]);
-  }
-
-  test_typePromotion_if_hasAssignment_inClosure_function_after() async {
-    await assertErrorsInCode(r'''
-g(Object p) {
-  if (p is String) {
-    p.length;
-  }
-  f() {p = 0;};
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 41, 6),
-      error(WarningCode.UNUSED_ELEMENT, 55, 1),
     ]);
   }
 }

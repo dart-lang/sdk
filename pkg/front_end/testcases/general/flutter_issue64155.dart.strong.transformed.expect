@@ -11,7 +11,7 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 abstract class TestMixin<R extends core::Object* = dynamic, T extends core::Object* = dynamic> extends core::Object /*isMixinDeclaration*/  {
-  method test(covariant-by-class asy::Future<self::TestMixin::R*>* fetch) → asy::Future<self::TestMixin::T*>* async /* futureValueType= self::TestMixin::T* */ {
+  method test(covariant-by-class asy::Future<self::TestMixin::R*>* fetch) → asy::Future<self::TestMixin::T*>* async /* emittedValueType= self::TestMixin::T* */ {
     final self::TestMixin::R* response = await fetch;
     self::TestMixin::T* result;
     if(response is{ForLegacy} self::Response<dynamic>*) {
@@ -94,7 +94,7 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
     : super core::Object::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  method test(covariant-by-class asy::Future<self::Response<core::String*>*>* fetch) → asy::Future<core::String*>* async /* futureValueType= core::String* */ {
+  method test(covariant-by-class asy::Future<self::Response<core::String*>*>* fetch) → asy::Future<core::String*>* async /* emittedValueType= core::String* */ {
     final self::Response<core::String*>* response = await fetch;
     core::String* result;
     if(response is{ForLegacy} self::Response<dynamic>*) {
@@ -137,7 +137,7 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
     : super core::Object::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  method test(covariant-by-class asy::Future<self::PagingResponse<core::String*>*>* fetch) → asy::Future<core::String*>* async /* futureValueType= core::String* */ {
+  method test(covariant-by-class asy::Future<self::PagingResponse<core::String*>*>* fetch) → asy::Future<core::String*>* async /* emittedValueType= core::String* */ {
     final self::PagingResponse<core::String*>* response = await fetch;
     core::String* result;
     if(response is{ForLegacy} self::Response<dynamic>*) {

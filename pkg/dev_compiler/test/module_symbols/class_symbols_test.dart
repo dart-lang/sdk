@@ -27,8 +27,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol functionSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {}
           ''';
         setUpAll(() async {
@@ -91,8 +89,6 @@ void main() async {
         late final TestDriver driver;
         late final ClassSymbol classSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           abstract class A {}
           ''';
         setUpAll(() async {
@@ -111,8 +107,6 @@ void main() async {
         late final TestDriver driver;
         late final ClassSymbol classSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A extends B {}
 
           class B {}
@@ -133,8 +127,6 @@ void main() async {
         late final TestDriver driver;
         late final List<ClassSymbol> classSymbols;
         final source = '''
-          ${options.dartLangComment}
-
           class A implements B, C {}
 
           class B implements C {}
@@ -164,8 +156,6 @@ void main() async {
         late final String fieldId;
         late final VariableSymbol fieldSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             static String publicStaticField = 'Cello';
           }
@@ -201,8 +191,6 @@ void main() async {
         late final String fieldId;
         late final VariableSymbol fieldSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             static String _privateStaticField = 'Fosse';
           }
@@ -238,8 +226,6 @@ void main() async {
         late final String fieldId;
         late final VariableSymbol fieldSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             String publicInstanceField = 'Cello';
           }
@@ -275,8 +261,6 @@ void main() async {
         late final String fieldId;
         late final VariableSymbol fieldSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             String _privateInstanceField = 'Cello';
           }
@@ -311,8 +295,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             String publicInstanceMethod() => 'Cello';
           }
@@ -344,8 +326,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             String _privateInstanceMethod() => 'Cello';
           }
@@ -377,8 +357,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             static String publicStaticMethod() => 'Cello';
           }
@@ -409,8 +387,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             static String _privateStaticMethod() => 'Fosse';
           }
@@ -442,8 +418,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             String get publicInstanceGetter => 'Fosse';
           }
@@ -475,8 +449,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             String get _privateInstanceGetter => 'Fosse';
           }
@@ -508,8 +480,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             var _value;
             A(this._value);
@@ -543,8 +513,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             var _value;
             A(this._value);
@@ -578,8 +546,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             static String get publicStaticGetter => 'Fosse';
           }
@@ -610,8 +576,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             static String get _privateStaticGetter => 'Fosse';
           }
@@ -643,8 +607,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             static String _value = 'Cello';
             static set publicStaticSetter(String v) => _value = v;
@@ -676,8 +638,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             static String _value = 'Cello';
             static set _privateStaticSetter(String v) => _value = v;
@@ -710,8 +670,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             const A();
           }
@@ -743,8 +701,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             A.named();
           }
@@ -772,8 +728,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             var _value;
             A._(this._value);
@@ -802,8 +756,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             var _value;
             A._(this._value);
@@ -833,8 +785,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             var _value;
             A._(this._value);
@@ -864,8 +814,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             var _value;
             A._(this._value);
@@ -895,8 +843,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             var _value;
             A(this._value);
@@ -926,8 +872,6 @@ void main() async {
         late final ClassSymbol classSymbol;
         late final FunctionSymbol methodSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             var _value;
             A(this._value);

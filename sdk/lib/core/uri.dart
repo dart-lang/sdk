@@ -26,7 +26,7 @@ const String _hexDigits = "0123456789ABCDEF";
 
 /// A parsed URI, such as a URL.
 ///
-/// To create a URI with specific components, use [new Uri]:
+/// To create a URI with specific components, use [Uri.new]:
 /// ```dart
 /// var httpsUri = Uri(
 ///     scheme: 'https',
@@ -2350,7 +2350,18 @@ class _Uri implements Uri {
           escapeDelimiters: true);
     }
     if (queryParameters == null) return null;
+    return _makeQueryFromParameters(queryParameters);
+  }
 
+  external static String _makeQueryFromParameters(
+      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters);
+
+  /// Default implementation of [_makeQueryFromParameters].
+  ///
+  /// This implementation is used from the patch for [_makeQueryFromParameters]
+  /// where there is not a more efficient native implementation available.
+  static String _makeQueryFromParametersDefault(
+      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
     var result = StringBuffer();
     var separator = "";
 
@@ -4206,7 +4217,7 @@ List<Uint8List> _createTables() {
   }
 
   // Create the transitions for each state.
-  var b;
+  Uint8List b;
 
   // Validate as path, if it is a scheme, we handle it later.
   b = build(_uriStart, schemeOrPath | notSimple);

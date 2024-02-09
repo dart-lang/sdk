@@ -54,11 +54,11 @@ var tests = <IsolateTest>[
   }
 ];
 
-main([args = const <String>[]]) async => await runIsolateTests(
+Future<void> main([args = const <String>[]]) async => await runIsolateTests(
       args,
       tests,
       'user_tag_changed_test.dart',
-      pause_on_start: true,
-      pause_on_exit: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
       testeeConcurrent: testMain,
     );

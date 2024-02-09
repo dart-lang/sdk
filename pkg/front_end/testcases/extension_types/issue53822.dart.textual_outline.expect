@@ -1,0 +1,4 @@
+extension type ET<T>(T _) {
+  void test() {}
+}
+main() {}

@@ -1,2 +1,0 @@
-/// Class c.
-class c {}

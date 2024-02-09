@@ -108,6 +108,21 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (parent is PostfixExpression &&
           parent.operator.type == TokenType.BANG) {
         return;
+      } else if (expression is IndexExpression && expression.isNullAware) {
+        if (parent is ConditionalExpression &&
+            identical(parent.thenExpression, node)) {
+          // In `a ? (b?[c]) : d`, the parentheses are necessary to prevent the
+          // second `?` from being interpreted as the start of a nested
+          // conditional expression (see
+          // https://github.com/dart-lang/linter/issues/4812).
+          return;
+        } else if (parent is MapLiteralEntry && identical(parent.key, node)) {
+          // In `{(a?[b]): c}`, the parentheses are necessary to prevent the
+          // second `?` from being interpreted as the start of a nested
+          // conditional expression (see
+          // https://github.com/dart-lang/linter/issues/4812).
+          return;
+        }
       }
       rule.reportLint(node);
       return;
@@ -225,7 +240,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      // TODO an API to the AST for better usage
+      // TODO(asashour): an API to the AST for better usage
       // Precedence isn't sufficient (e.g. PostfixExpression requires parenthesis)
       if (expression is PropertyAccess ||
           expression is ConstructorReference ||

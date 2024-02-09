@@ -73,11 +73,6 @@ class _ConstantOrdering
   }
 
   @override
-  int visitNonConstant(NonConstantValue a, NonConstantValue b) {
-    return 0;
-  }
-
-  @override
   int visitInt(IntConstantValue a, IntConstantValue b) {
     return a.intValue.compareTo(b.intValue);
   }

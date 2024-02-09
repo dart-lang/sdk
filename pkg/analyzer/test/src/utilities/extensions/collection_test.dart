@@ -8,8 +8,25 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(IterableExtensionTest);
+    defineReflectiveTests(IterableMapEntryExtensionTest);
     defineReflectiveTests(ListExtensionTest);
   });
+}
+
+@reflectiveTest
+class IterableExtensionTest {
+  test_whereNotType() {
+    expect(<Object>['0', 1, '2'].whereNotType<int>(), ['0', '2']);
+  }
+}
+
+@reflectiveTest
+class IterableMapEntryExtensionTest {
+  test_mapFromEntries() {
+    final entries = [MapEntry('foo', 0), MapEntry('bar', 1)];
+    expect(entries.mapFromEntries, {'foo': 0, 'bar': 1});
+  }
 }
 
 @reflectiveTest
@@ -31,6 +48,22 @@ class ListExtensionTest {
     expect([0, 1].elementAtOrNull2(0), 0);
     expect([0, 1].elementAtOrNull2(1), 1);
     expect([0, 1].elementAtOrNull2(2), isNull);
+  }
+
+  test_endsWith() {
+    expect([0, 1, 2].endsWith([]), isTrue);
+
+    expect([0, 1, 2].endsWith([2]), isTrue);
+    expect([0, 1, 2].endsWith([1]), isFalse);
+    expect([0, 1, 2].endsWith([0]), isFalse);
+
+    expect([0, 1, 2].endsWith([1, 2]), isTrue);
+    expect([0, 1, 2].endsWith([0, 2]), isFalse);
+
+    expect([0, 1, 2].endsWith([0, 1, 2]), isTrue);
+    expect([0, 1, 2].endsWith([0, 0, 2]), isFalse);
+
+    expect([0, 1, 2].endsWith([-1, 0, 1, 2]), isFalse);
   }
 
   test_nextOrNull() {

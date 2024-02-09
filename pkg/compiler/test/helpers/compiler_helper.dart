@@ -22,12 +22,9 @@ export 'package:compiler/src/diagnostics/spannable.dart';
 export 'package:compiler/src/util/output_collector.dart';
 export 'package:compiler/src/util/util.dart';
 
-String _commonTestPath(bool soundNullSafety) {
-  // Pretend this is a web/native test to allow use of 'native' keyword
-  // and import of private libraries. However, we have to choose the correct
-  // folder to enable / disable  implicit cfe opt out of null safety.
-  return soundNullSafety ? 'sdk/tests/web/native' : 'sdk/tests/web_2/native';
-}
+// Pretend this is a web/native test to allow use of 'native' keyword and import
+// of private libraries.
+const _commonTestPath = 'sdk/tests/web/native';
 
 /// Compile [code] and returns either the code for [methodName] or, if
 /// [returnAll] is true, the code for the entire program.
@@ -73,8 +70,7 @@ Future<String> compile(String code,
     options.add(Flags.noSoundNullSafety);
   }
 
-  String commonTestPath = _commonTestPath(soundNullSafety);
-  Uri entryPoint = Uri.parse('memory:$commonTestPath/main.dart');
+  Uri entryPoint = Uri.parse('memory:$_commonTestPath/main.dart');
 
   Map<String, String> source;
   methodName ??= entry;
@@ -127,8 +123,7 @@ Future<String> compileAll(String code,
     options.add(Flags.noSoundNullSafety);
   }
 
-  String commonTestPath = _commonTestPath(soundNullSafety);
-  Uri entryPoint = Uri.parse('memory:$commonTestPath/main.dart');
+  Uri entryPoint = Uri.parse('memory:$_commonTestPath/main.dart');
 
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,

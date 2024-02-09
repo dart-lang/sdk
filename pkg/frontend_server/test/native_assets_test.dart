@@ -15,9 +15,9 @@ import 'frontend_server_test.dart';
 
 void main() async {
   group('full compiler tests', () {
-    final platformKernel =
+    final Uri platformKernel =
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
-    final sdkRoot = computePlatformBinariesLocation();
+    final Uri sdkRoot = computePlatformBinariesLocation();
 
     late Directory tempDir;
     late File mainFile;
@@ -28,7 +28,7 @@ void main() async {
     setUp(() async {
       tempDir = await Directory.systemTemp.createTemp('frontendServerTest');
 
-      mainFile = File('${tempDir.path}/a.dart');
+      mainFile = new File('${tempDir.path}/a.dart');
       await mainFile.create(recursive: true);
       await mainFile.writeAsString('''
 void main() {
@@ -37,7 +37,7 @@ void main() {
 ''');
 
       packageConfigFile =
-          File('${tempDir.path}/.dart_tool/package_config.json');
+          new File('${tempDir.path}/.dart_tool/package_config.json');
       await packageConfigFile.create(recursive: true);
       await packageConfigFile.writeAsString(jsonEncode({
         "configVersion": 2,
@@ -45,19 +45,19 @@ void main() {
       }));
 
       nativeAssetsYamlFile =
-          File('${tempDir.path}/.dart_tool/native_assets.yaml');
+          new File('${tempDir.path}/.dart_tool/native_assets.yaml');
       await nativeAssetsYamlFile.create(recursive: true);
       await nativeAssetsYamlFile.writeAsString(jsonEncode({
         'format-version': [1, 0, 0],
         'native-assets': {
-          Abi.current().toString(): {
+          new Abi.current().toString(): {
             mainFile.uri.toString(): ['executable'],
           },
         },
       }));
 
       // Other setup.
-      dillFile = File('${tempDir.path}/app.dill');
+      dillFile = new File('${tempDir.path}/app.dill');
     });
 
     tearDown(() async {
@@ -65,10 +65,10 @@ void main() {
     });
 
     group('--incremental', () {
-      testPassInNativeAssetsAtStartup({
+      Future<void> testPassInNativeAssetsAtStartup({
         List<String> additionalStartupArguments = const [],
       }) async {
-        final frontendServer = FrontendServer();
+        final FrontendServer frontendServer = new FrontendServer();
         Future<int> result = frontendServer.open(<String>[
           '--sdk-root=${sdkRoot.toFilePath()}',
           '--incremental',
@@ -82,7 +82,7 @@ void main() {
         int count = 0;
         frontendServer.listen((Result compiledResult) async {
           CompilationResult result =
-              CompilationResult.parse(compiledResult.status);
+              new CompilationResult.parse(compiledResult.status);
           switch (count) {
             case 0:
               expect(await dillFile.exists(), equals(true));
@@ -92,11 +92,13 @@ void main() {
               frontendServer.accept();
               frontendServer.reset();
 
-              final component = loadComponentFromBinary(dillFile.path);
-              final nativeAssetsLibrary = _findNativeAssetsLibrary(component);
+              final Component component =
+                  loadComponentFromBinary(dillFile.path);
+              final Library? nativeAssetsLibrary =
+                  _findNativeAssetsLibrary(component);
               expect(nativeAssetsLibrary, isNotNull);
 
-              final firstLib = component.libraries.first;
+              final Library firstLib = component.libraries.first;
               expect(firstLib.importUri != _nativeAssetsLibraryUri, true);
               expect(nativeAssetsLibrary!.isNonNullableByDefault,
                   firstLib.isNonNullableByDefault);
@@ -119,8 +121,10 @@ void main() {
               frontendServer.accept();
               frontendServer.quit();
 
-              final component = loadComponentFromBinary(dillFile.path);
-              final nativeAssetsLibrary = _findNativeAssetsLibrary(component);
+              final Component component =
+                  loadComponentFromBinary(dillFile.path);
+              final Library? nativeAssetsLibrary =
+                  _findNativeAssetsLibrary(component);
               expect(nativeAssetsLibrary, isNotNull);
 
               break;
@@ -147,7 +151,7 @@ void main() {
       });
 
       test('set native assets later', () async {
-        final frontendServer = FrontendServer();
+        final FrontendServer frontendServer = new FrontendServer();
         Future<int> result = frontendServer.open(<String>[
           '--sdk-root=${sdkRoot.toFilePath()}',
           '--incremental',
@@ -160,7 +164,7 @@ void main() {
         int count = 0;
         frontendServer.listen((Result compiledResult) async {
           CompilationResult result =
-              CompilationResult.parse(compiledResult.status);
+              new CompilationResult.parse(compiledResult.status);
           switch (count) {
             case 0:
               expect(await dillFile.exists(), equals(true));
@@ -170,8 +174,10 @@ void main() {
               frontendServer.accept();
               frontendServer.reset();
 
-              final component = loadComponentFromBinary(dillFile.path);
-              final nativeAssetsLibrary = _findNativeAssetsLibrary(component);
+              final Component component =
+                  loadComponentFromBinary(dillFile.path);
+              final Library? nativeAssetsLibrary =
+                  _findNativeAssetsLibrary(component);
               expect(nativeAssetsLibrary, isNull);
 
               frontendServer.setNativeAssets(uri: nativeAssetsYamlFile.uri);
@@ -184,8 +190,10 @@ void main() {
               frontendServer.accept();
               frontendServer.quit();
 
-              final component = loadComponentFromBinary(dillFile.path);
-              final nativeAssetsLibrary = _findNativeAssetsLibrary(component);
+              final Component component =
+                  loadComponentFromBinary(dillFile.path);
+              final Library? nativeAssetsLibrary =
+                  _findNativeAssetsLibrary(component);
               expect(nativeAssetsLibrary, isNotNull);
 
               break;
@@ -195,12 +203,12 @@ void main() {
         frontendServer.close();
       });
 
-      testInitializeFromDill({
+      Future<void> testInitializeFromDill({
         bool passNativeAssetsOnFirstStartup = false,
         bool passNativeAssetsOnSecondStartup = false,
       }) async {
         {
-          final frontendServer = FrontendServer();
+          final FrontendServer frontendServer = new FrontendServer();
           Future<int> frontendServerResult = frontendServer.open(<String>[
             '--sdk-root=${sdkRoot.toFilePath()}',
             '--incremental',
@@ -212,10 +220,10 @@ void main() {
 
           frontendServer.compile(mainFile.path);
 
-          final compiledResult =
+          final Result compiledResult =
               await frontendServer.receivedResults.stream.first;
           CompilationResult result =
-              CompilationResult.parse(compiledResult.status);
+              new CompilationResult.parse(compiledResult.status);
           expect(await dillFile.exists(), equals(true));
           expect(result.filename, dillFile.path);
           expect(result.errorsCount, 0);
@@ -223,8 +231,9 @@ void main() {
           frontendServer.accept();
           frontendServer.quit();
 
-          final component = loadComponentFromBinary(dillFile.path);
-          final nativeAssetsLibrary = _findNativeAssetsLibrary(component);
+          final Component component = loadComponentFromBinary(dillFile.path);
+          final Library? nativeAssetsLibrary =
+              _findNativeAssetsLibrary(component);
           expect(nativeAssetsLibrary,
               passNativeAssetsOnFirstStartup ? isNotNull : isNull);
 
@@ -233,7 +242,7 @@ void main() {
         }
 
         {
-          final frontendServer = FrontendServer();
+          final FrontendServer frontendServer = new FrontendServer();
           Future<int> frontendServerResult = frontendServer.open(<String>[
             '--sdk-root=${sdkRoot.toFilePath()}',
             '--incremental',
@@ -246,10 +255,10 @@ void main() {
 
           frontendServer.compile(mainFile.path);
 
-          final compiledResult =
+          final Result compiledResult =
               await frontendServer.receivedResults.stream.first;
           CompilationResult result =
-              CompilationResult.parse(compiledResult.status);
+              new CompilationResult.parse(compiledResult.status);
           expect(await dillFile.exists(), equals(true));
           expect(result.filename, dillFile.path);
           expect(result.errorsCount, 0);
@@ -257,8 +266,9 @@ void main() {
           frontendServer.accept();
           frontendServer.quit();
 
-          final component = loadComponentFromBinary(dillFile.path);
-          final nativeAssetsLibrary = _findNativeAssetsLibrary(component);
+          final Component component = loadComponentFromBinary(dillFile.path);
+          final Library? nativeAssetsLibrary =
+              _findNativeAssetsLibrary(component);
           expect(nativeAssetsLibrary,
               passNativeAssetsOnSecondStartup ? isNotNull : isNull);
 
@@ -290,7 +300,7 @@ void main() {
 
     group('--aot --tfa', () {
       test('pass in native assets at startup', () async {
-        final frontendServer = FrontendServer();
+        final FrontendServer frontendServer = new FrontendServer();
         Future<int> frontendServerResult = frontendServer.open(<String>[
           '--sdk-root=${sdkRoot.toFilePath()}',
           '--platform=${platformKernel.path}',
@@ -305,18 +315,19 @@ void main() {
         frontendServer.close();
 
         expect(await dillFile.exists(), equals(true));
-        final component = loadComponentFromBinary(dillFile.path);
-        final nativeAssetsLibrary = _findNativeAssetsLibrary(component);
+        final Component component = loadComponentFromBinary(dillFile.path);
+        final Library? nativeAssetsLibrary =
+            _findNativeAssetsLibrary(component);
         expect(nativeAssetsLibrary, isNotNull);
       });
     });
   });
 }
 
-final _nativeAssetsLibraryUri = Uri.parse('vm:ffi:native-assets');
+final Uri _nativeAssetsLibraryUri = Uri.parse('vm:ffi:native-assets');
 
 Library? _findNativeAssetsLibrary(Component component) {
-  for (final library in component.libraries) {
+  for (final Library library in component.libraries) {
     if (library.importUri == _nativeAssetsLibraryUri) {
       return library;
     }

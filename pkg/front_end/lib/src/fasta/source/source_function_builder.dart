@@ -44,7 +44,7 @@ abstract class SourceFunctionBuilder
 
   TypeBuilder get returnType;
 
-  List<TypeVariableBuilder>? get typeVariables;
+  List<NominalVariableBuilder>? get typeVariables;
 
   List<FormalParameterBuilder>? get formals;
 
@@ -139,7 +139,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   final String name;
 
   @override
-  final List<TypeVariableBuilder>? typeVariables;
+  final List<NominalVariableBuilder>? typeVariables;
 
   @override
   final List<FormalParameterBuilder>? formals;
@@ -261,7 +261,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   Scope computeTypeParameterScope(Scope parent) {
     if (typeVariables == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
-    for (TypeVariableBuilder variable in typeVariables!) {
+    for (NominalVariableBuilder variable in typeVariables!) {
       local[variable.name] = variable;
     }
     return new Scope(
@@ -334,7 +334,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       }
     }
     if (typeVariables != null) {
-      for (TypeVariableBuilder t in typeVariables!) {
+      for (NominalVariableBuilder t in typeVariables!) {
         TypeParameter parameter = t.parameter;
         function.typeParameters.add(parameter);
         if (needsCheckVisitor != null) {

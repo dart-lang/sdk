@@ -45,12 +45,12 @@ import 'package:meta/meta.dart';
 @internal
 class A {}
 ''');
-    newFile('$fooPackageRootPath/lib/a.dart', '''
+    final a = newFile('$fooPackageRootPath/lib/a.dart', '''
 import 'src/a.dart';
 
 A a = A();
 ''');
-    await resolveFile2('$fooPackageRootPath/lib/a.dart');
+    await resolveFile2(a);
 
     assertNoErrorsInResult();
   }
@@ -61,12 +61,12 @@ import 'package:meta/meta.dart';
 @internal
 extension type E(int i) {}
 ''');
-    newFile('$fooPackageRootPath/lib/a.dart', '''
+    final a = newFile('$fooPackageRootPath/lib/a.dart', '''
 import 'src/a.dart';
 
 E e = E(1);
 ''');
-    await resolveFile2('$fooPackageRootPath/lib/a.dart');
+    await resolveFile2(a);
 
     assertNoErrorsInResult();
   }

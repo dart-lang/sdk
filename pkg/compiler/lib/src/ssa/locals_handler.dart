@@ -250,20 +250,18 @@ class LocalsHandler {
     // ClosureRepresentationInfos).
     final scopeInfo = _scopeInfo;
     if (scopeInfo is ClosureRepresentationInfo && scopeInfo.isClosure) {
-      ClosureRepresentationInfo closureData = scopeInfo;
       // If the freeVariableMapping is not empty, then this function was a
       // nested closure that captures variables. Redirect the captured
       // variables to fields in the closure.
-      closureData.forEachFreeVariable(_localsMap!,
-          (Local from, FieldEntity to) {
+      scopeInfo.forEachFreeVariable(_localsMap!, (Local from, FieldEntity to) {
         redirectElement(from, to);
       });
       // Inside closure redirect references to itself to [:this:].
-      HThis thisInstruction = HThis(closureData.thisLocal as ThisLocal?,
-          _abstractValueDomain.nonNullType);
+      HThis thisInstruction = HThis(
+          scopeInfo.thisLocal as ThisLocal?, _abstractValueDomain.nonNullType);
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
-      updateLocal(closureData.getClosureEntity(_localsMap!)!, thisInstruction);
+      updateLocal(scopeInfo.getClosureEntity(_localsMap!)!, thisInstruction);
     } else if (element.isInstanceMember) {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static

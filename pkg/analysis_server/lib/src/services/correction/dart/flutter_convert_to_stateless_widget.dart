@@ -37,7 +37,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     // Must be a StatefulWidget subclass.
     var widgetClassElement = widgetClass.declaredElement!;
     var superType = widgetClassElement.supertype;
-    if (superType == null || !flutter.isExactlyStatefulWidgetType(superType)) {
+    if (superType == null || !Flutter.isExactlyStatefulWidgetType(superType)) {
       return;
     }
 
@@ -125,7 +125,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     }
 
     var statelessWidgetClass = await sessionHelper.getClass(
-      flutter.widgetsUri,
+      Flutter.widgetsUri,
       'StatelessWidget',
     );
     if (statelessWidgetClass == null) {
@@ -259,8 +259,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     }
 
     var classElement = type.element;
-    return classElement is ClassElement &&
-        Flutter.instance.isExactState(classElement);
+    return classElement is ClassElement && Flutter.isExactState(classElement);
   }
 }
 
@@ -368,7 +367,7 @@ class _StatelessVerifier extends RecursiveAstVisitor<void> {
     if (methodElement is ClassMemberElement) {
       var classElement = methodElement.enclosingElement;
       if (classElement is ClassElement &&
-          Flutter.instance.isExactState(classElement) &&
+          Flutter.isExactState(classElement) &&
           !FlutterConvertToStatelessWidget._isDefaultOverride(
               node.thisOrAncestorOfType<MethodDeclaration>())) {
         canBeStateless = false;

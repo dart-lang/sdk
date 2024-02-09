@@ -1089,11 +1089,14 @@ m() {
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
           20, 6),
     ]);
-    assertSimpleIdentifier(
-      findNode.simple('isEven'),
-      element: intElement.getGetter('isEven'),
-      type: 'bool',
-    );
+
+    final node = findNode.simple('isEven');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: isEven
+  staticElement: dart:core::@class::int::@getter::isEven
+  staticType: bool
+''');
   }
 
   test_member_parenthesized_hashCode_nullable() async {

@@ -1612,8 +1612,11 @@ enum ObjectAccessKind {
   /// Property defined by an interface member.
   Instance,
 
-  /// Property defined by an extension or extension type member.
-  Static,
+  /// Property defined by an extension member.
+  Extension,
+
+  /// Property defined by an extension type member.
+  ExtensionType,
 
   /// Named record field property.
   RecordNamed,

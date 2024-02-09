@@ -8,7 +8,6 @@ import '../fasta/builder/declaration_builders.dart';
 import '../fasta/builder/library_builder.dart';
 import '../fasta/builder/member_builder.dart';
 import '../fasta/builder/type_builder.dart';
-import '../fasta/identifiers.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
 import '../fasta/source/source_loader.dart';
@@ -774,11 +773,11 @@ String typeBuilderToText(TypeBuilder type) {
 
 void _typeBuilderToText(TypeBuilder type, StringBuffer sb) {
   if (type is NamedTypeBuilder) {
-    Object name = type.name;
-    sb.write(name is Identifier ? name.name : name);
-    if (type.arguments != null && type.arguments!.isNotEmpty) {
+    TypeName typeName = type.typeName;
+    sb.write(typeName.name);
+    if (type.typeArguments != null && type.typeArguments!.isNotEmpty) {
       sb.write('<');
-      _typeBuildersToText(type.arguments!, sb);
+      _typeBuildersToText(type.typeArguments!, sb);
       sb.write('>');
     }
   } else {
@@ -797,7 +796,7 @@ void _typeBuildersToText(Iterable<TypeBuilder> types, StringBuffer sb) {
 
 /// Returns a textual representation of the [typeVariable] to be used in
 /// testing.
-String typeVariableBuilderToText(TypeVariableBuilder typeVariable) {
+String typeVariableBuilderToText(NominalVariableBuilder typeVariable) {
   String name = typeVariable.name;
   if (typeVariable.bound != null) {
     return '$name extends ${typeBuilderToText(typeVariable.bound!)}';
@@ -854,9 +853,9 @@ List<String> extensionMethodDescriptorToText(
   }
 
   return [
-    descriptorToText(descriptor.member, forTearOff: false),
-    if (descriptor.tearOff != null)
-      descriptorToText(descriptor.tearOff!, forTearOff: true),
+    descriptorToText(descriptor.memberReference, forTearOff: false),
+    if (descriptor.tearOffReference != null)
+      descriptorToText(descriptor.tearOffReference!, forTearOff: true),
   ];
 }
 

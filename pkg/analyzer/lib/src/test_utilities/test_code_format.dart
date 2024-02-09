@@ -29,6 +29,10 @@ class TestCode {
   static final _positionPattern = RegExp(r'\/\*(\d+)\*\/');
   static final _rangeStartPattern = RegExp(r'\/\*\[(\d+)\*\/');
   static final _rangeEndPattern = RegExp(r'\/\*(\d+)\]\*\/');
+
+  /// An empty code block with a single position at offset 0.
+  static final empty = TestCode.parse('^');
+
   final String code;
   final String rawCode;
 

@@ -18,7 +18,7 @@ class E extends self::_E&_Enum&M1 /*isEnum*/  {
   enum-element static const field self::E e1 = #C3;
   enum-element static const field self::E e2 = #C6;
   enum-element static const field self::E e3 = #C9;
-  const constructor •(core::int #index, core::String #name) → self::E
+  const synthetic constructor •(core::int #index, core::String #name) → self::E
     : super self::_E&_Enum&M1::•(#index, #name)
     ;
   method _enumToString() → core::String

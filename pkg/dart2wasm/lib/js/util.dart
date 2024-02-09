@@ -124,8 +124,8 @@ class CoreTypesUtil {
         // an `int` we check that the double is an integer, and then insert a
         // cast. We also let static interop types flow through without
         // conversion, both as arguments, and as the return type.
-        expression = convertAndCast(
-            returnType, invokeOneArg(dartifyRawTarget, invocation));
+        expression = convertAndCast(returnType.extensionTypeErasure,
+            invokeOneArg(dartifyRawTarget, invocation));
       }
       return expression;
     }

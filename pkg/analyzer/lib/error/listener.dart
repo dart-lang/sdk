@@ -9,8 +9,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
@@ -83,7 +83,7 @@ class ErrorReporter {
   /// location of the diagnostic will be the name of the [constructor].
   void reportErrorForName(ErrorCode code, ConstructorDeclaration constructor,
       {List<Object>? arguments}) {
-    // TODO(brianwilkerson) Consider extending this method to take any
+    // TODO(brianwilkerson): Consider extending this method to take any
     //  declaration and compute the correct range for the name of that
     //  declaration. This might make it easier to be consistent.
     if (constructor.name != null) {
@@ -232,7 +232,7 @@ class ErrorReporter {
           }
         }
         for (_TypeToConvert typeToConvert in typeGroup) {
-          // TODO(brianwilkerson) When clients do a better job of displaying
+          // TODO(brianwilkerson): When clients do a better job of displaying
           // context messages, remove the extra text added to the buffer.
           StringBuffer? buffer;
           for (Element element in typeToConvert.allElements()) {

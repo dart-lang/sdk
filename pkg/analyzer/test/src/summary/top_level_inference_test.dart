@@ -1844,7 +1844,7 @@ library
     var library = await _encodeDecodeLibrary(r'''
 var v = (() => 42)();
 ''');
-    // TODO(scheglov) add more function expression tests
+    // TODO(scheglov): add more function expression tests
     checkElementText(library, r'''
 library
   definingUnit
@@ -2263,7 +2263,7 @@ library
   }
 
   test_initializer_identifier_formalParameter() async {
-    // TODO(scheglov) I don't understand this yet
+    // TODO(scheglov): I don't understand this yet
   }
 
   @skippedTest
@@ -2273,7 +2273,7 @@ class A<T> {}
 var a = new A<int>();
 var b = new A();
 ''');
-    // TODO(scheglov) test for inference failure error
+    // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 class A<T> {
 }
@@ -2758,7 +2758,7 @@ class A {
 var vWithTypeArgument = new A().m<int>();
 var vWithoutTypeArgument = new A().m();
 ''');
-    // TODO(scheglov) test for inference failure error
+    // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 class A {
   List<T> m<T>(int p) {}
@@ -4112,7 +4112,7 @@ class C implements A, B {
   get x => null;
 }
 ''');
-    // TODO(scheglov) test for inference failure error
+    // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
   definingUnit
@@ -4162,7 +4162,7 @@ class C implements A, B {
   get x => null;
 }
 ''');
-    // TODO(scheglov) test for inference failure error
+    // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
   definingUnit
@@ -4212,7 +4212,7 @@ class C implements A<int>, B<String> {
   get x => null;
 }
 ''');
-    // TODO(scheglov) test for inference failure error
+    // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
   definingUnit
@@ -4444,7 +4444,7 @@ class C implements A, B {
   set x(_);
 }
 ''');
-    // TODO(scheglov) test for inference failure error
+    // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
   definingUnit
@@ -5259,7 +5259,7 @@ class C extends A implements B {
   m() {}
 }
 ''');
-    // TODO(scheglov) test for inference failure error
+    // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
   definingUnit

@@ -760,6 +760,17 @@ CompileType CompileType::String() {
                           kCannotBeSentinel);
 }
 
+CompileType CompileType::Object() {
+  return FromAbstractType(Type::ZoneHandle(Type::ObjectType()), kCannotBeNull,
+                          kCannotBeSentinel);
+}
+
+bool CompileType::IsObject() const {
+  if (is_nullable()) return false;
+  if (cid_ != kIllegalCid && cid_ != kDynamicCid) return false;
+  return type_ != nullptr && type_->IsObjectType();
+}
+
 intptr_t CompileType::ToCid() {
   if (cid_ == kIllegalCid) {
     // Make sure to initialize cid_ for Null type to consistently return
@@ -872,7 +883,7 @@ bool CompileType::IsAssignableTo(const AbstractType& other) {
   //
   // We might consider using an approximation of the uninstantiated type,
   // like the instantiation to bounds, and compare to that. However, in
-  // vm/dart_2/regress_b_230945329_test.dart we have a case where the compared
+  // vm/dart/regress_b_230945329_test.dart we have a case where the compared
   // uninstantiated type is the same as the one in the CompileType. Thus, no
   // approach will be able to distinguish the two types, and so we fail the
   // comparison in all cases.
@@ -992,6 +1003,31 @@ bool CompileType::CanBeFuture() {
   }
   const auto& cls = Class::Handle(zone, type.type_class());
   return CHA::ClassCanBeFuture(cls);
+}
+
+// Keep this format in sync with pkg/vm/lib/testing/il_matchers.dart.
+void CompileType::PrintTo(JSONWriter* writer) const {
+  if (IsNone()) {
+    return;
+  }
+
+  if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
+    const Class& cls =
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid_));
+    writer->PrintPropertyStr("c", String::Handle(cls.ScrubbedName()));
+  }
+
+  if (type_ != nullptr && !type_->IsDynamicType()) {
+    writer->PrintPropertyStr("t", String::Handle(type_->ScrubbedName()));
+  }
+
+  if (can_be_null_) {
+    writer->PrintPropertyBool("n", true);
+  }
+
+  if (can_be_sentinel_) {
+    writer->PrintPropertyBool("s", true);
+  }
 }
 
 void CompileType::PrintTo(BaseTextBuffer* f) const {
@@ -1659,8 +1695,8 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
 }
 
 CompileType CreateArrayInstr::ComputeType() const {
-  // TODO(fschneider): Add abstract type and type arguments to the compile type.
-  return CompileType::FromCid(kArrayCid);
+  auto type = CompileType::FromCid(kArrayCid);
+  return ComputeListFactoryType(&type, type_arguments());
 }
 
 CompileType AllocateTypedDataInstr::ComputeType() const {
@@ -1691,7 +1727,7 @@ CompileType AllocateSmallRecordInstr::ComputeType() const {
 }
 
 CompileType LoadUntaggedInstr::ComputeType() const {
-  return CompileType::Dynamic();
+  return CompileType::Object();
 }
 
 CompileType LoadClassIdInstr::ComputeType() const {
@@ -2013,6 +2049,7 @@ static CompileType ComputeArrayElementType(Value* array) {
       elem_type = ExtractElementTypeFromArrayType(elem_type);
     }
   }
+
   return CompileType::FromAbstractType(elem_type, CompileType::kCanBeNull,
                                        CompileType::kCannotBeSentinel);
 }

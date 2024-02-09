@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -743,8 +742,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     } else if (operatorType == TokenType.TILDE_SLASH) {
       return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
     } else {
-      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-      // error code.
+      // TODO(srawlins): Use a specific error code.
+      // https://github.com/dart-lang/sdk/issues/47061
       return InvalidConstant.genericError(node);
     }
   }
@@ -927,8 +926,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst) {
-      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-      // error code.
+      // TODO(srawlins): Use a specific error code.
+      // https://github.com/dart-lang/sdk/issues/47061
       return InvalidConstant.genericError(node);
     }
     var constructor = node.constructorName.staticElement;
@@ -1008,26 +1007,19 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
     }
-    var elements = <DartObjectImpl>[];
-    for (CollectionElement element in node.elements) {
-      var result = _addElementsToList(elements, element);
-      if (result is InvalidConstant) {
-        return result;
-      }
-    }
     var nodeType = node.staticType;
-    DartType elementType =
+    var elementType =
         nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
             ? nodeType.typeArguments[0]
             : _typeProvider.dynamicType;
-    InterfaceType listType = _typeProvider.listType(elementType);
-    return DartObjectImpl(
+    var listType = _typeProvider.listType(elementType);
+    var list = <DartObjectImpl>[];
+    return _buildListConstant(
+      list,
+      node.elements,
       typeSystem,
       listType,
-      ListState(
-        elementType: elementType,
-        elements: elements,
-      ),
+      elementType,
     );
   }
 
@@ -1103,8 +1095,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitNode(AstNode node) {
-    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-    // error code.
+    // TODO(srawlins): Use a specific error code.
+    // https://github.com/dart-lang/sdk/issues/47061
     return InvalidConstant.genericError(node);
   }
 
@@ -1171,8 +1163,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     } else if (node.operator.type == TokenType.MINUS) {
       return _dartObjectComputer.negated(node, operand);
     } else {
-      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-      // error code.
+      // TODO(srawlins): Use a specific error code.
+      // https://github.com/dart-lang/sdk/issues/47061
       return InvalidConstant.genericError(node);
     }
   }
@@ -1245,22 +1237,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         return InvalidConstant.forEntity(
             node, CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL);
       }
-      Map<DartObjectImpl, DartObjectImpl> map = {};
-      for (CollectionElement element in node.elements) {
-        var result = _addElementsToMap(map, element);
-        if (result is InvalidConstant) {
-          if (!node.isMap) {
-            // We don't report the error if we know this is an ambiguous map or
-            // set. [CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH]
-            // or [CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER] is
-            // already reported elsewhere.
-            result.avoidReporting = true;
-          }
-          return result;
-        }
-      }
-      DartType keyType = _typeProvider.dynamicType;
-      DartType valueType = _typeProvider.dynamicType;
+      var keyType = _typeProvider.dynamicType;
+      var valueType = _typeProvider.dynamicType;
       var nodeType = node.staticType;
       if (nodeType is InterfaceType) {
         var typeArguments = nodeType.typeArguments;
@@ -1269,27 +1247,30 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           valueType = typeArguments[1];
         }
       }
-      InterfaceType mapType = _typeProvider.mapType(keyType, valueType);
-      return DartObjectImpl(typeSystem, mapType, MapState(map));
+      var mapType = _typeProvider.mapType(keyType, valueType);
+      var map = <DartObjectImpl, DartObjectImpl>{};
+      var result = _buildMapConstant(map, node.elements, typeSystem, mapType);
+      if (result is InvalidConstant && !node.isMap) {
+        // We don't report the error if we know this is an ambiguous map or
+        // set. [CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH]
+        // or [CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER] is
+        // already reported elsewhere.
+        result.avoidReporting = true;
+      }
+      return result;
     } else {
       if (!node.isConst) {
         return InvalidConstant.forEntity(
             node, CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL);
       }
-      Set<DartObjectImpl> set = <DartObjectImpl>{};
-      for (CollectionElement element in node.elements) {
-        var result = _addElementsToSet(set, element);
-        if (result is InvalidConstant) {
-          return result;
-        }
-      }
       var nodeType = node.staticType;
-      DartType elementType =
+      var elementType =
           nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
               ? nodeType.typeArguments[0]
               : _typeProvider.dynamicType;
-      InterfaceType setType = _typeProvider.setType(elementType);
-      return DartObjectImpl(typeSystem, setType, SetState(set));
+      var setType = _typeProvider.setType(elementType);
+      var set = <DartObjectImpl>{};
+      return _buildSetConstant(set, node.elements, typeSystem, setType);
     }
   }
 
@@ -1342,190 +1323,263 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitTypeLiteral(TypeLiteral node) => evaluateConstant(node.type);
 
-  /// Add the entries produced by evaluating the given collection [element] to
-  /// the given [list]. Return an [InvalidConstant] if the evaluation of one or
-  /// more of the elements failed.
-  InvalidConstant? _addElementsToList(
-      List<DartObject> list, CollectionElement element) {
-    switch (element) {
-      case Expression():
-        var expression = evaluateConstant(element);
-        switch (expression) {
-          case InvalidConstant():
-            return expression;
-          case DartObjectImpl():
-            list.add(expression);
-            return null;
-        }
-      case ForElement():
-        return InvalidConstant.forEntity(
-            element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
-      case IfElement():
-        var condition = evaluateConstant(element.expression);
-        switch (condition) {
-          case InvalidConstant():
-            return condition;
-          case DartObjectImpl():
-            var conditionValue = condition.toBoolValue();
-            if (conditionValue == null) {
-              return InvalidConstant.forEntity(
-                  element.expression, CompileTimeErrorCode.NON_BOOL_CONDITION);
-            } else if (conditionValue) {
-              return _addElementsToList(list, element.thenElement);
-            } else if (element.elseElement != null) {
-              return _addElementsToList(list, element.elseElement!);
-            }
-            // There's no else element, but the condition value is false.
-            return null;
-        }
-      case MapLiteralEntry():
-        return InvalidConstant.forEntity(
-            element, CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP);
-      case SpreadElement():
-        var spread = evaluateConstant(element.expression);
-        switch (spread) {
-          case InvalidConstant():
-            return spread;
-          case DartObjectImpl():
-            // Special case for ...?
-            if (spread.isNull && element.isNullAware) {
-              return null;
-            }
-            var listValue = spread.toListValue() ?? spread.toSetValue();
-            if (listValue == null) {
-              return InvalidConstant.forEntity(element.expression,
-                  CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
-            }
-            list.addAll(listValue);
-            return null;
-        }
+  /// Builds a list constant by adding the evaluated entries of [elements] to
+  /// the given [list].
+  ///
+  /// The [typeSystem], [listType], and [elementType] are used to create a valid
+  /// constant. We return an [InvalidConstant] if the evaluation of any of the
+  /// elements failed.
+  Constant _buildListConstant(
+    List<DartObjectImpl> list,
+    List<CollectionElement> elements,
+    TypeSystemImpl typeSystem,
+    DartType listType,
+    DartType elementType,
+  ) {
+    for (var element in elements) {
+      switch (element) {
+        case Expression():
+          var expression = evaluateConstant(element);
+          switch (expression) {
+            case InvalidConstant():
+              return expression;
+            case DartObjectImpl():
+              list.add(expression);
+          }
+        case ForElement():
+          return InvalidConstant.forEntity(
+              element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
+        case IfElement():
+          var condition = evaluateConstant(element.expression);
+          switch (condition) {
+            case InvalidConstant():
+              return condition;
+            case DartObjectImpl():
+              // If the condition is unknown, we mark this list as unknown.
+              if (condition.isUnknown) {
+                return DartObjectImpl.validWithUnknownValue(
+                  typeSystem,
+                  listType,
+                  listElementType: elementType,
+                );
+              }
+              var conditionValue = condition.toBoolValue();
+              Constant? branchResult;
+              if (conditionValue == null) {
+                return InvalidConstant.forEntity(element.expression,
+                    CompileTimeErrorCode.NON_BOOL_CONDITION);
+              } else if (conditionValue) {
+                branchResult = _buildListConstant(
+                  list,
+                  [element.thenElement],
+                  typeSystem,
+                  listType,
+                  elementType,
+                );
+              } else if (element.elseElement != null) {
+                branchResult = _buildListConstant(
+                  list,
+                  [element.elseElement!],
+                  typeSystem,
+                  listType,
+                  elementType,
+                );
+              }
+              if (branchResult is InvalidConstant) {
+                return branchResult;
+              }
+          }
+        case MapLiteralEntry():
+          return InvalidConstant.forEntity(
+              element, CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP);
+        case SpreadElement():
+          var spread = evaluateConstant(element.expression);
+          switch (spread) {
+            case InvalidConstant():
+              return spread;
+            case DartObjectImpl():
+              // Special case for ...?
+              if (spread.isNull && element.isNullAware) {
+                continue;
+              }
+              var listValue = spread.toListValue() ?? spread.toSetValue();
+              if (listValue == null) {
+                return InvalidConstant.forEntity(element.expression,
+                    CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
+              }
+              list.addAll(listValue);
+          }
+      }
     }
+
+    return DartObjectImpl(
+      typeSystem,
+      listType,
+      ListState(
+        elementType: elementType,
+        elements: list,
+      ),
+    );
   }
 
-  /// Add the entries produced by evaluating the given map [element] to the
-  /// given [map]. Return an [InvalidConstant] if the evaluation of one or
-  /// more of the elements failed.
-  InvalidConstant? _addElementsToMap(
-      Map<DartObjectImpl, DartObjectImpl> map, CollectionElement element) {
-    switch (element) {
-      case Expression():
-        return InvalidConstant.forEntity(
-            element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
-      case ForElement():
-        return InvalidConstant.forEntity(
-            element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
-      case IfElement():
-        var condition = evaluateConstant(element.expression);
-        switch (condition) {
-          case InvalidConstant():
-            return condition;
-          case DartObjectImpl():
-            var conditionValue = condition.toBoolValue();
-            if (conditionValue == null) {
-              return InvalidConstant.forEntity(
-                  element.expression, CompileTimeErrorCode.NON_BOOL_CONDITION);
-            } else if (conditionValue) {
-              return _addElementsToMap(map, element.thenElement);
-            } else if (element.elseElement != null) {
-              return _addElementsToMap(map, element.elseElement!);
-            }
-            // There's no else element, but the condition value is false.
-            return null;
-        }
-      case MapLiteralEntry():
-        var keyResult = evaluateConstant(element.key);
-        var valueResult = evaluateConstant(element.value);
-        switch (keyResult) {
-          case InvalidConstant():
-            return keyResult;
-          case DartObjectImpl():
-            switch (valueResult) {
-              case InvalidConstant():
-                return valueResult;
-              case DartObjectImpl():
-                map[keyResult] = valueResult;
-            }
-        }
-        return null;
-      case SpreadElement():
-        var spread = evaluateConstant(element.expression);
-        switch (spread) {
-          case InvalidConstant():
-            return spread;
-          case DartObjectImpl():
-            // Special case for ...?
-            if (spread.isNull && element.isNullAware) {
-              return null;
-            }
-            var mapValue = spread.toMapValue();
-            if (mapValue == null) {
-              return InvalidConstant.forEntity(element.expression,
-                  CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP);
-            }
-            map.addAll(mapValue);
-            return null;
-        }
+  /// Builds a map constant by adding the evaluated entries of [elements] to
+  /// the given [map].
+  ///
+  /// The [typeSystem] and [mapType] are used to create a valid map constant.
+  /// We return an [InvalidConstant] if the evaluation of any of the elements
+  /// failed.
+  Constant _buildMapConstant(
+      Map<DartObjectImpl, DartObjectImpl> map,
+      List<CollectionElement> elements,
+      TypeSystemImpl typeSystem,
+      DartType mapType) {
+    for (var element in elements) {
+      switch (element) {
+        case Expression():
+          return InvalidConstant.forEntity(
+              element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
+        case ForElement():
+          return InvalidConstant.forEntity(
+              element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
+        case IfElement():
+          var condition = evaluateConstant(element.expression);
+          switch (condition) {
+            case InvalidConstant():
+              return condition;
+            case DartObjectImpl():
+              // If the condition is unknown, we mark this map as unknown.
+              if (condition.isUnknown) {
+                return DartObjectImpl.validWithUnknownValue(
+                    typeSystem, mapType);
+              }
+              Constant? branchResult;
+              var conditionValue = condition.toBoolValue();
+              if (conditionValue == null) {
+                return InvalidConstant.forEntity(element.expression,
+                    CompileTimeErrorCode.NON_BOOL_CONDITION);
+              } else if (conditionValue) {
+                branchResult = _buildMapConstant(
+                    map, [element.thenElement], typeSystem, mapType);
+              } else if (element.elseElement != null) {
+                branchResult = _buildMapConstant(
+                    map, [element.elseElement!], typeSystem, mapType);
+              }
+              if (branchResult is InvalidConstant) {
+                return branchResult;
+              }
+          }
+        case MapLiteralEntry():
+          var keyResult = evaluateConstant(element.key);
+          var valueResult = evaluateConstant(element.value);
+          switch (keyResult) {
+            case InvalidConstant():
+              return keyResult;
+            case DartObjectImpl():
+              switch (valueResult) {
+                case InvalidConstant():
+                  return valueResult;
+                case DartObjectImpl():
+                  map[keyResult] = valueResult;
+              }
+          }
+        case SpreadElement():
+          var spread = evaluateConstant(element.expression);
+          switch (spread) {
+            case InvalidConstant():
+              return spread;
+            case DartObjectImpl():
+              // Special case for ...?
+              if (spread.isNull && element.isNullAware) {
+                continue;
+              }
+              var mapValue = spread.toMapValue();
+              if (mapValue == null) {
+                return InvalidConstant.forEntity(element.expression,
+                    CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP);
+              }
+              map.addAll(mapValue);
+          }
+      }
     }
+
+    return DartObjectImpl(typeSystem, mapType, MapState(map));
   }
 
-  /// Add the entries produced by evaluating the given collection [element] to
-  /// the given [set]. Return an [InvalidConstant] if the evaluation of one or
-  /// more of the elements failed.
-  InvalidConstant? _addElementsToSet(
-      Set<DartObject> set, CollectionElement element) {
-    switch (element) {
-      case Expression():
-        var expression = evaluateConstant(element);
-        switch (expression) {
-          case InvalidConstant():
-            return expression;
-          case DartObjectImpl():
-            set.add(expression);
-            return null;
-        }
-      case ForElement():
-        return InvalidConstant.forEntity(
-            element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
-      case IfElement():
-        var condition = evaluateConstant(element.expression);
-        switch (condition) {
-          case InvalidConstant():
-            return condition;
-          case DartObjectImpl():
-            var conditionValue = condition.toBoolValue();
-            if (conditionValue == null) {
-              return InvalidConstant.forEntity(
-                  element.expression, CompileTimeErrorCode.NON_BOOL_CONDITION);
-            } else if (conditionValue) {
-              return _addElementsToSet(set, element.thenElement);
-            } else if (element.elseElement != null) {
-              return _addElementsToSet(set, element.elseElement!);
-            }
-            // There's no else element, but the condition value is false.
-            return null;
-        }
-      case MapLiteralEntry():
-        return InvalidConstant.forEntity(
-            element, CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP);
-      case SpreadElement():
-        var spread = evaluateConstant(element.expression);
-        switch (spread) {
-          case InvalidConstant():
-            return spread;
-          case DartObjectImpl():
-            // Special case for ...?
-            if (spread.isNull && element.isNullAware) {
-              return null;
-            }
-            var setValue = spread.toSetValue() ?? spread.toListValue();
-            if (setValue == null) {
-              return InvalidConstant.forEntity(element.expression,
-                  CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
-            }
-            set.addAll(setValue);
-            return null;
-        }
+  /// Builds a set constant by adding the evaluated entries of [elements] to
+  /// the given [set].
+  ///
+  /// The [typeSystem] and [setType] are used to create a valid set constant.
+  /// We return an [InvalidConstant] if the evaluation of any of the elements
+  /// failed.
+  Constant _buildSetConstant(
+      Set<DartObjectImpl> set,
+      List<CollectionElement> elements,
+      TypeSystemImpl typeSystem,
+      DartType setType) {
+    for (var element in elements) {
+      switch (element) {
+        case Expression():
+          var expression = evaluateConstant(element);
+          switch (expression) {
+            case InvalidConstant():
+              return expression;
+            case DartObjectImpl():
+              set.add(expression);
+          }
+        case ForElement():
+          return InvalidConstant.forEntity(
+              element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
+        case IfElement():
+          var condition = evaluateConstant(element.expression);
+          switch (condition) {
+            case InvalidConstant():
+              return condition;
+            case DartObjectImpl():
+              // If the condition is unknown, we mark this set as unknown.
+              if (condition.isUnknown) {
+                return DartObjectImpl.validWithUnknownValue(
+                    typeSystem, setType);
+              }
+              Constant? branchResult;
+              var conditionValue = condition.toBoolValue();
+              if (conditionValue == null) {
+                return InvalidConstant.forEntity(element.expression,
+                    CompileTimeErrorCode.NON_BOOL_CONDITION);
+              } else if (conditionValue) {
+                branchResult = _buildSetConstant(
+                    set, [element.thenElement], typeSystem, setType);
+              } else if (element.elseElement != null) {
+                branchResult = _buildSetConstant(
+                    set, [element.elseElement!], typeSystem, setType);
+              }
+              if (branchResult is InvalidConstant) {
+                return branchResult;
+              }
+          }
+        case MapLiteralEntry():
+          return InvalidConstant.forEntity(
+              element, CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP);
+        case SpreadElement():
+          var spread = evaluateConstant(element.expression);
+          switch (spread) {
+            case InvalidConstant():
+              return spread;
+            case DartObjectImpl():
+              // Special case for ...?
+              if (spread.isNull && element.isNullAware) {
+                continue;
+              }
+              var setValue = spread.toSetValue() ?? spread.toListValue();
+              if (setValue == null) {
+                return InvalidConstant.forEntity(element.expression,
+                    CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
+              }
+              set.addAll(setValue);
+          }
+      }
     }
+
+    return DartObjectImpl(typeSystem, setType, SetState(set));
   }
 
   /// Returns the result of concatenating [astNodes].
@@ -1601,7 +1655,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// the [expression] is used to identify type parameter errors, and
   /// [identifier] to determine the constant of any [ExecutableElement]s.
   ///
-  /// TODO(kallentu): Revisit this method and clean it up a bit.
+  // TODO(kallentu): Revisit this method and clean it up a bit.
   Constant _getConstantValue({
     required AstNode errorNode,
     required Expression? expression,
@@ -1678,7 +1732,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             typeArguments: variableElement.typeParameters
                 .map((t) => _typeProvider.dynamicType)
                 .toFixedList(),
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           );
       return DartObjectImpl(
         typeSystem,
@@ -1697,7 +1751,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             typeArguments: variableElement.typeParameters
                 .map((t) => t.bound ?? _typeProvider.dynamicType)
                 .toList(),
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           );
       return DartObjectImpl(
         typeSystem,
@@ -1733,8 +1787,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return InvalidConstant.genericError(errorNode, isUnresolved: true);
     }
 
-    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-    // error code.
+    // TODO(srawlins): Use a specific error code.
+    // https://github.com/dart-lang/sdk/issues/47061
     return InvalidConstant.genericError(errorNode2);
   }
 
@@ -2456,10 +2510,18 @@ class _InstanceCreationEvaluator {
       return error;
     }
 
+    var definingType = this.definingType;
+    if (definingType.element case final ExtensionTypeElement element) {
+      final representation = _fieldMap[element.representation.name];
+      if (representation != null) {
+        return representation;
+      }
+    }
+
     return DartObjectImpl(
       typeSystem,
       definingType,
-      GenericState(definingType, _fieldMap, invocation: _invocation),
+      GenericState(_fieldMap, invocation: _invocation),
     );
   }
 
@@ -2604,7 +2666,9 @@ class _InstanceCreationEvaluator {
                 // initializer is statically assignable to the field.
                 // TODO(kallentu): https://github.com/dart-lang/sdk/issues/53263
                 var isRuntimeException = _library.typeSystem.isAssignableTo(
-                    initializerExpression.typeOrThrow, field.type);
+                  initializerExpression.typeOrThrow,
+                  field.type,
+                );
                 var errorNode =
                     isRuntimeException ? initializerExpression : _errorNode;
                 return _InitializersEvaluationResult(
@@ -2758,8 +2822,10 @@ class _InstanceCreationEvaluator {
           // is statically assignable to the parameter.
           // TODO(kallentu): https://github.com/dart-lang/sdk/issues/53263
           var isEvaluationException = errorTarget is Expression &&
-              _library.typeSystem
-                  .isAssignableTo(errorTarget.typeOrThrow, parameter.type);
+              _library.typeSystem.isAssignableTo(
+                errorTarget.typeOrThrow,
+                parameter.type,
+              );
           return InvalidConstant.forEntity(errorTarget,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               arguments: [
@@ -3077,6 +3143,7 @@ extension RuntimeExtensions on TypeSystemImpl {
     DartObjectImpl obj,
     DartType type,
   ) {
+    type = type.extensionTypeErasure;
     if (!isNonNullableByDefault) {
       type = toLegacyTypeIfOptOut(type);
     }

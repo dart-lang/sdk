@@ -26,9 +26,10 @@ void matchIL$main_foo(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
     match.block('Function', [
-      match.LoadField(),
+      'list' << match.Parameter(index: 1),
+      match.LoadField('list', slot: 'TypedDataBase.length'),
       match.GenericCheckBound(),
-      match.LoadUntagged(),
+      match.LoadField('list', slot: 'PointerBase.data'),
       match.LoadIndexed(),
     ]),
   ]);

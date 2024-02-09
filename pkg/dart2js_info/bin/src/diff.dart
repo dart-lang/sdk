@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/command_runner.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/diff.dart';
 import 'package:dart2js_info/src/io.dart';
@@ -23,6 +22,10 @@ class DiffCommand extends Command<void> with PrintUsageException {
     argParser.addFlag('summary-only',
         defaultsTo: false,
         help: "Show only a summary and hide details of each library");
+    argParser.addFlag('main-only',
+        defaultsTo: false,
+        help:
+            "Only includes diffs where the entity is in the main output unit.");
   }
 
   @override
@@ -37,6 +40,7 @@ class DiffCommand extends Command<void> with PrintUsageException {
     final oldInfo = await infoFromFile(args[0]);
     final newInfo = await infoFromFile(args[1]);
     final summaryOnly = argRes['summary-only'] as bool;
+    final mainOnly = argRes['main-only'] as bool;
 
     final diffs = diff(oldInfo, newInfo);
 
@@ -48,6 +52,7 @@ class DiffCommand extends Command<void> with PrintUsageException {
     final becameUndeferred = <DeferredStatusDiff>[];
 
     for (var diff in diffs) {
+      if (mainOnly && diff.info.outputUnit?.name != 'main') continue;
       switch (diff.kind) {
         case DiffKind.add:
           adds.add(diff as AddDiff);

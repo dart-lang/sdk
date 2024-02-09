@@ -46,6 +46,8 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone,
   const auto representation = instr->representation();
   switch (representation) {
     case kTagged:
+    case kUnboxedUint32:
+    case kUnboxedInt32:
       result->set_out(
           0, Location::RegisterLocation(CallingConventions::kReturnReg));
       break;
@@ -389,13 +391,13 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
                                               Register array_reg,
+                                              Representation array_rep,
                                               Location start_loc) {
-  intptr_t offset;
-  if (IsTypedDataBaseClassId(array_cid)) {
-    __ ldr(array_reg,
-           compiler::FieldAddress(
-               array_reg, compiler::target::PointerBase::data_offset()));
-    offset = 0;
+  intptr_t offset = 0;
+  if (array_rep != kTagged) {
+    // Do nothing, array_reg already contains the payload address.
+  } else if (IsTypedDataBaseClassId(array_cid)) {
+    __ LoadFromSlot(array_reg, array_reg, Slot::PointerBase_data());
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
@@ -407,18 +409,12 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
             compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
       case kExternalOneByteStringCid:
-        __ ldr(array_reg,
-               compiler::FieldAddress(array_reg,
-                                      compiler::target::ExternalOneByteString::
-                                          external_data_offset()));
-        offset = 0;
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalOneByteString_external_data());
         break;
       case kExternalTwoByteStringCid:
-        __ ldr(array_reg,
-               compiler::FieldAddress(array_reg,
-                                      compiler::target::ExternalTwoByteString::
-                                          external_data_offset()));
-        offset = 0;
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalTwoByteString_external_data());
         break;
       default:
         UNREACHABLE();
@@ -914,7 +910,12 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       RELEASE_ASSERT(ok);
       __ LoadImmediate(
           tmp, pair_index == 0 ? Utils::Low32Bits(v) : Utils::High32Bits(v));
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ LoadImmediate(tmp, float_bits);
     } else {
+      ASSERT(representation() == kTagged);
       __ LoadObject(tmp, value_);
     }
     __ StoreToOffset(tmp, destination.base_reg(), dest_offset);
@@ -1629,13 +1630,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          ? compiler::ObjectPoolBuilderEntry::kPatchable
                          : compiler::ObjectPoolBuilderEntry::kNotPatchable);
   if (link_lazily()) {
-    compiler->GeneratePatchableCall(source(), *stub,
-                                    UntaggedPcDescriptors::kOther, locs());
+    compiler->GeneratePatchableCall(
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kResetToBootstrapNative);
   } else {
     // We can never lazy-deopt here because natives are never optimized.
     ASSERT(!compiler->is_optimizing());
     compiler->GenerateNonLazyDeoptableStubCall(
-        source(), *stub, UntaggedPcDescriptors::kOther, locs());
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kNotSnapshotable);
   }
   __ LoadFromOffset(result, SP, 0);
 
@@ -2047,8 +2050,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label loop, loop_in;
 
   // Address of input bytes.
-  __ LoadFieldFromOffset(bytes_reg, bytes_reg,
-                         compiler::target::PointerBase::data_offset());
+  __ LoadFromSlot(bytes_reg, bytes_reg, Slot::PointerBase_data());
 
   // Table.
   __ AddImmediate(
@@ -2098,24 +2100,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadFieldFromOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
   __ orr(flags_temp_reg, flags_temp_reg, compiler::Operand(flags_reg));
   __ StoreFieldToOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
-}
-
-LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register obj = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
-  if (object()->definition()->representation() == kUntagged) {
-    __ LoadFromOffset(result, obj, offset());
-  } else {
-    ASSERT(object()->definition()->representation() == kTagged);
-    __ LoadFieldFromOffset(result, obj, offset());
-  }
 }
 
 static bool CanBeImmediateIndex(Value* value,

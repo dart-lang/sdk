@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -15,7 +16,7 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
       InstanceCreationExpression parent,
       InstanceCreationExpression child) async {
     // The child must have its own child.
-    var stableChild = flutter.findChildArgument(child);
+    var stableChild = Flutter.findChildArgument(child);
     if (stableChild == null) {
       return;
     }
@@ -44,8 +45,6 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
               text,
               childIndent,
               parentIndent,
-              includeLeading: false,
-              includeTrailingNewline: false,
             );
             builder.write(parentIndent);
             builder.write('  ');
@@ -64,14 +63,12 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
         // Write all arguments of the parent.
         // Don't write its child.
         for (var argument in parentArgs.arguments) {
-          if (!flutter.isChildArgument(argument)) {
+          if (!Flutter.isChildArgument(argument)) {
             var text = utils.getNodeText(argument);
             text = utils.replaceSourceIndent(
               text,
               parentIndent,
               childIndent,
-              includeLeading: false,
-              includeTrailingNewline: false,
             );
             builder.write(childIndent);
             builder.write('  ');
@@ -107,15 +104,15 @@ class FlutterSwapWithChild extends FlutterParentAndChild {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parent = flutter.identifyNewExpression(node);
-    if (parent == null || !flutter.isWidgetCreation(parent)) {
+    var parent = Flutter.identifyNewExpression(node);
+    if (parent == null || !Flutter.isWidgetCreation(parent)) {
       return;
     }
 
-    var childArgument = flutter.findChildArgument(parent);
+    var childArgument = Flutter.findChildArgument(parent);
     var child = childArgument?.expression;
     if (child is! InstanceCreationExpression ||
-        !flutter.isWidgetCreation(child)) {
+        !Flutter.isWidgetCreation(child)) {
       return;
     }
 

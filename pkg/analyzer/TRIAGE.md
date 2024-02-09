@@ -118,7 +118,7 @@ reflecting that.
 ### Other terms
 
 * "automation" - Anything that changes the user's code automatically.
-  Autocompletion, quick fixing, refactorings, NNBD migration, etc.
+  Autocompletion, quick fixing, refactorings, etc.
 * "corrupted code" - Modification of source code in such a way that it is
   more than just a bit wrong or having some symbols that don't exist, but is
   not valid Dart and would be painful to manually correct.
@@ -126,4 +126,4 @@ reflecting that.
 * "incorrect code" - Modification of code in a way that is known to be wrong,
   but would be trivial to figure out how to fix for the human using the tool.
 * "key users" - Flutter, Pub, Fuchsia, Dart, Google/1P
-* "tool" - Analysis Server, dart analyzer, migration tool, analyzer-as-library
+* "tool" - Analysis Server, dart analyzer, analyzer-as-library

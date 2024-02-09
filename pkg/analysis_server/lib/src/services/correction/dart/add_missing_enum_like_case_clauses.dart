@@ -14,7 +14,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
 
-  // TODO: Consider enabling this lint for fix all in file.
+  // TODO(brianwilkerson): Consider enabling this lint for fix all in file.
   // @override
   // FixKind? get multiFixKind => super.multiFixKind;
 
@@ -42,7 +42,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       );
 
       await builder.addDartFileEdit(file, (builder) {
-        // TODO(brianwilkerson) Consider inserting the names in order into the
+        // TODO(brianwilkerson): Consider inserting the names in order into the
         //  switch statement.
         builder.addInsertion(location.offset, (builder) {
           builder.write(location.prefix);

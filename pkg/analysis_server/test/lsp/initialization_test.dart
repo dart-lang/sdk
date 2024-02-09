@@ -7,14 +7,15 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'change_workspace_folders_test.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -280,6 +281,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dynamicRegistration_config_documentHighlight() =>
       assertDynamicRegistration(
           'documentHighlight', {Method.textDocument_documentHighlight});
+
+  Future<void> test_dynamicRegistration_config_documentLink() =>
+      assertDynamicRegistration(
+          'documentLink', {Method.textDocument_documentLink});
 
   Future<void> test_dynamicRegistration_config_documentSymbol() =>
       assertDynamicRegistration(
@@ -753,13 +758,62 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_excludedFolders_relative() async {
-    final excludedFolderPath = join(projectFolderPath, 'excluded');
+    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
 
     await provideConfig(
       initialize,
       // Exclude the folder with a relative path.
       {
-        'analysisExcludedFolders': ['excluded']
+        'analysisExcludedFolders': ['aaa', 'bbb'].join(pathContext.separator)
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  /// Check exclusions using explicit posix paths even if we're running
+  /// on Windows. It's common for shared configs in VS Code to always use
+  /// forward slashes in paths.
+  Future<void> test_excludedFolders_relative_posix() async {
+    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+
+    await provideConfig(
+      initialize,
+      // Exclude the folder with a relative path using forward slashes.
+      {
+        'analysisExcludedFolders': ['aaa', 'bbb'].join('/')
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  Future<void> test_excludedFolders_trailingSlash() async {
+    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+
+    await provideConfig(
+      initialize,
+      // Exclude the folder with a trailing slash.
+      {
+        'analysisExcludedFolders':
+            ['aaa', 'bbb', ''].join(pathContext.separator),
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  /// Check exclusions using explicit posix paths even if we're running
+  /// on Windows. It's common for shared configs in VS Code to always use
+  /// forward slashes in paths.
+  Future<void> test_excludedFolders_trailingSlash_posix() async {
+    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+
+    await provideConfig(
+      initialize,
+      // Exclude the folder with a forward trailing slash.
+      {
+        'analysisExcludedFolders': ['aaa', 'bbb', ''].join('/'),
       },
     );
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
@@ -873,6 +927,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([]));
   }
 
+  /// Verifies a workspace that contains non-file workspace folders is handled.
+  ///
+  /// Related tests for didChangeWorkspcaeFolders are in
+  /// [ChangeWorkspaceFoldersTest].
   Future<void> test_nonFileScheme_workspaceFolders() async {
     newPubspecYamlFile(projectFolderPath, '');
 

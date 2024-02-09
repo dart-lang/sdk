@@ -52,19 +52,17 @@ static method test(dynamic value, core::bool expected) → void {
   }
   {
     final synthesized dynamic #2#0 = value;
-    function ##2#4#initializer() → dynamic
-      return (#2#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
-    late final synthesized dynamic #2#4 = ##2#4#initializer(){() → dynamic};
-    if(#2#0 is core::Map<dynamic, dynamic> && (!(#2#4 == null) || null is dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} #2#4) {
+    synthesized dynamic #2#4;
+    synthesized core::bool #2#4#isSet = false;
+    if(#2#0 is core::Map<dynamic, dynamic> && (!((#2#4#isSet ?{dynamic} #2#4{dynamic} : let final core::bool* #t1 = #2#4#isSet = true in #2#4 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} (#2#4#isSet ?{dynamic} #2#4{dynamic} : let final core::bool* #t2 = #2#4#isSet = true in #2#4 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic})) {
       matched = true;
     }
   }
   {
     final synthesized dynamic #3#0 = value;
-    function ##3#4#initializer() → core::Object?
-      return (#3#0 as{Unchecked} core::Map<core::num, core::Object>).{core::Map::[]}(#C1){(core::Object?) → core::Object?};
-    late final synthesized core::Object? #3#4 = ##3#4#initializer(){() → core::Object?};
-    if(#3#0 is core::Map<core::num, core::Object> && (!(#3#4 == null) || null is core::Object && #3#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} #3#4{core::Object}) {
+    synthesized core::Object? #3#4;
+    synthesized core::bool #3#4#isSet = false;
+    if(#3#0 is core::Map<core::num, core::Object> && (!((#3#4#isSet ?{core::Object?} #3#4{core::Object?} : let final core::bool* #t3 = #3#4#isSet = true in #3#4 = #3#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) == null) || null is core::Object && #3#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} (let core::Object? #t4 = #3#4#isSet ?{core::Object?} #3#4{core::Object?} : let final core::bool* #t5 = #3#4#isSet = true in #3#4 = #3#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?} in #t4 == null ?{core::Object} #t4 as{Unchecked} core::Object : #t4{core::Object})) {
       matched = true;
     }
   }
@@ -100,7 +98,7 @@ constants  {
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///non_constant_pattern_in_if.dart:37:21 -> BoolConstant(true)
 Evaluated: LogicalExpression @ org-dartlang-testcase:///non_constant_pattern_in_if.dart:40:34 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 98, effectively constant: 2
+Extra constant evaluation: evaluated: 125, effectively constant: 2
 
 
 Constructor coverage from constants:

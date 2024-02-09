@@ -44,7 +44,7 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       result.typeSystem as TypeSystemImpl,
       InheritanceManager3(),
       analysisOptions,
-      // todo (pq): test package or consider passing in null
+      // TODO(pq): test package or consider passing in null
       workspacePackage,
       resourceProvider.pathContext,
     );
@@ -198,17 +198,6 @@ B g() => B([f()]);
     assertCanBeConst("B([", false);
   }
 
-  void test_false_argument_list_nonBool() async {
-    await resolve('''
-const bool kIsWeb = bool.fromEnvironment('dart.library.js_util');
-class A {
-  const A(List<int> l);
-}
-A f() => A([if (!kIsWeb) ...[1, 2, 3] else ...[1]]);
-''');
-    assertCanBeConst("A([", false);
-  }
-
   void test_false_argument_nonConstConstructor() async {
     await resolve('''
 class A {}
@@ -218,6 +207,20 @@ class B {
 B f() => B(A());
 ''');
     assertCanBeConst("B(A(", false);
+  }
+
+  void test_false_constructorReference_typeParameter() async {
+    await resolve('''
+class A<T> {
+  const A();
+}
+class B<T> {
+  final A<T> Function() fn;
+  const B(this.fn);
+}
+B<T> fn<T>() => B(A<T>.new);
+''');
+    assertCanBeConst('B(A<T>.new)', false);
   }
 
   void test_false_mapKeyType_implementsEqual() async {
@@ -272,6 +275,17 @@ class A<T> {
 f<U>() => A<U>();
 ''');
     assertCanBeConst("A<U>", false);
+  }
+
+  void test_true_argument_list_nonBool() async {
+    await resolve('''
+const bool kIsWeb = bool.fromEnvironment('dart.library.js_util');
+class A {
+  const A(List<int> l);
+}
+A f() => A([if (!kIsWeb) ...[1, 2, 3] else ...[1]]);
+''');
+    assertCanBeConst("A([", true);
   }
 
   void test_true_computeDependencies() async {

@@ -225,8 +225,9 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
                            Slot::GetLengthFieldForArrayCid(array_cid));
 
   if (IsExternalTypedDataClassId(array_cid)) {
-    array = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(array), target::PointerBase::data_offset()));
+    array = builder.AddDefinition(new LoadFieldInstr(
+        new Value(array), Slot::PointerBase_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, builder.Source()));
   }
 
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
@@ -409,8 +410,9 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   }
 
   if (IsExternalTypedDataClassId(array_cid)) {
-    array = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(array), target::PointerBase::data_offset()));
+    array = builder.AddDefinition(new LoadFieldInstr(
+        new Value(array), Slot::PointerBase_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, builder.Source()));
   }
   // No store barrier.
   ASSERT(IsExternalTypedDataClassId(array_cid) ||
@@ -547,11 +549,13 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
 
   // For external strings: Load external data.
   if (cid == kExternalOneByteStringCid) {
-    str = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(str), target::ExternalOneByteString::external_data_offset()));
+    str = builder.AddDefinition(new LoadFieldInstr(
+        new Value(str), Slot::ExternalOneByteString_external_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, builder.Source()));
   } else if (cid == kExternalTwoByteStringCid) {
-    str = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(str), target::ExternalTwoByteString::external_data_offset()));
+    str = builder.AddDefinition(new LoadFieldInstr(
+        new Value(str), Slot::ExternalTwoByteString_external_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, builder.Source()));
   }
 
   Definition* load = builder.AddDefinition(new LoadIndexedInstr(

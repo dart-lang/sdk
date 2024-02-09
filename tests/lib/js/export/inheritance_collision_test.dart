@@ -4,7 +4,8 @@
 
 // Tests collisions of `@JSExport` members using inheritance.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
+
 import 'package:js/js_util.dart';
 
 // Overridden members do not count as an export name collision.
@@ -200,4 +201,18 @@ void main() {
 
   createDartExport(PartialOverrideFieldNoCollision());
   createDartExport(GetSetInheritanceNoCollision());
+
+  // Same method with different name and type.
+  createJSInteropWrapper(InheritanceOneOverrideNoCollision());
+  createJSInteropWrapper(InheritanceTwoOverridesNoCollision());
+  createJSInteropWrapper(InheritanceThreeOverridesNoCollision());
+
+  createJSInteropWrapper(InheritanceRenameOneCollision());
+  createJSInteropWrapper(InheritanceRenameTwoCollisions());
+  createJSInteropWrapper(InheritanceRenameThreeCollisions());
+
+  createJSInteropWrapper(InheritanceNoSuperclassMembers());
+
+  createJSInteropWrapper(PartialOverrideFieldNoCollision());
+  createJSInteropWrapper(GetSetInheritanceNoCollision());
 }

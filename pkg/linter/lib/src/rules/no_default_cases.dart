@@ -88,7 +88,7 @@ class _Visitor extends SimpleAstVisitor {
           var interfaceElement = expressionType.element;
           if (interfaceElement is EnumElement ||
               interfaceElement is ClassElement &&
-                  interfaceElement.isEnumLikeClass) {
+                  interfaceElement.isEnumLikeClass()) {
             rule.reportLint(member);
           }
           return;

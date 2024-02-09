@@ -4,6 +4,8 @@
 
 /// The only purpose of this file is to enable analyzer tests on `perf.dart`,
 /// the code here just has a dummy import to the rest of the code.
+library;
+
 import 'perf.dart' as m;
 
 void main() => print('done ${m.scanTotalChars}');

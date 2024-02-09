@@ -503,7 +503,8 @@ void IsolateGroup::Shutdown() {
   // pool can trigger idle notification, which can start new GC tasks).
   //
   // (The vm-isolate doesn't have a thread pool.)
-  if (!Dart::VmIsolateNameEquals(source()->name)) {
+  const bool is_vm_isolate = Dart::VmIsolateNameEquals(source()->name);
+  if (!is_vm_isolate) {
     ASSERT(thread_pool_ != nullptr);
     thread_pool_->Shutdown();
     thread_pool_.reset();
@@ -528,7 +529,7 @@ void IsolateGroup::Shutdown() {
   // If the creation of the isolate group (or the first isolate within the
   // isolate group) failed, we do not invoke the cleanup callback (the
   // embedder is responsible for handling the creation error).
-  if (initial_spawn_successful_) {
+  if (initial_spawn_successful_ && !is_vm_isolate) {
     auto group_shutdown_callback = Isolate::GroupCleanupCallback();
     if (group_shutdown_callback != nullptr) {
       group_shutdown_callback(embedder_data());
@@ -1885,6 +1886,13 @@ void IsolateGroup::SetupImagePage(const uint8_t* image_buffer,
                          is_executable);
 }
 
+void IsolateGroup::ScheduleInterrupts(uword interrupt_bits) {
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
+  for (Isolate* isolate : isolates_) {
+    isolate->ScheduleInterrupts(interrupt_bits);
+  }
+}
+
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {
   // We take the threads lock here to ensure that the mutator thread does not
   // exit the isolate while we are trying to schedule interrupts on it.
@@ -2305,14 +2313,16 @@ bool Isolate::NotifyErrorListeners(const char* message,
   arr_values[1] = &stack;
 
   SendPort& listener = SendPort::Handle(current_zone());
+  bool was_somebody_notified = false;
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
       PortMap::PostMessage(SerializeMessage(current_zone(), port_id, &arr));
+      was_somebody_notified = true;
     }
   }
-  return listeners.Length() > 0;
+  return was_somebody_notified;
 }
 
 static void ShutdownIsolate(uword parameter) {
@@ -2972,6 +2982,7 @@ static ServiceEvent IsolatePauseEvent(Isolate* isolate) {
   } else {
     ServiceEvent pause_event(isolate, ServiceEvent::kResume);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
     if (isolate->debugger() != nullptr) {
       // TODO(turnidge): Don't compute a full stack trace.
       DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
@@ -2979,6 +2990,7 @@ static ServiceEvent IsolatePauseEvent(Isolate* isolate) {
         pause_event.set_top_frame(stack->FrameAt(0));
       }
     }
+#endif
 
     return pause_event;
   }

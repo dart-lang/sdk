@@ -14,10 +14,16 @@ aaa
 aarhus
 abcompile
 ac
+aci
+acn
+acr
 adapter
 adaptor
 adopted
 advantages
+aei
+aen
+aer
 af
 albeit
 aligns
@@ -112,6 +118,7 @@ ca
 cafebabe
 calloc
 camel
+capacity
 capitalized
 caption
 captions
@@ -278,6 +285,7 @@ estat
 et
 everytime
 evicting
+ex
 examines
 exceed
 excess
@@ -295,19 +303,23 @@ fa
 fac
 faking
 falling
+faults
 favors
 fb
 fd
 fec
 fi
 fibonacci
+filesize
 filesystem
 filler
 filters
 fisk
 five
+fixtures
 fl
 flame
+flipped
 floor
 fluctuate
 foo'bar'baz
@@ -339,6 +351,7 @@ gave
 gc
 gcd
 gclient
+ge
 gesture
 gi
 gm
@@ -356,6 +369,7 @@ hardcoding
 hardly
 hb
 hc
+helpfully
 hest
 heuristics
 hi
@@ -402,6 +416,7 @@ instrument
 instrumenter
 insufficient
 intdiv
+intel
 interactions
 interactive
 interchangeable
@@ -417,6 +432,7 @@ italic
 iter
 ja
 jc
+jk
 jlcontreras
 joo
 jumped
@@ -440,6 +456,7 @@ lints
 listening
 listing
 ln
+locating
 logd
 logs
 loo
@@ -448,6 +465,7 @@ loopback
 ma
 mac
 maker
+manual
 matters
 mds
 meaningless
@@ -473,6 +491,7 @@ misspelled
 mistake
 mistakes
 mixups
+ml
 mmethod
 mod
 modelled
@@ -491,6 +510,9 @@ naturally
 negatable
 newworld
 ninja
+nn
+nnn
+nnr
 noisy
 nomatch
 nominal
@@ -538,6 +560,7 @@ party
 pause
 paused
 pays
+pb
 pc
 periodic
 periodically
@@ -569,11 +592,13 @@ processors
 producer
 profile
 profiler
+programmatically
 proportional
 protected
 proved
 proxy
 pseudocode
+pt
 pubspec
 pv
 px
@@ -629,6 +654,8 @@ runtimes
 rv
 sanitize
 saves
+scaled
+scaling
 scans
 scenarios
 scheduler
@@ -659,6 +686,7 @@ sidebar
 sigint
 signalled
 sigwinch
+silence
 slashes
 slight
 sliver
@@ -679,6 +707,7 @@ splitting
 spurious
 sqrt
 squared
+ss
 sssp
 stacks
 stashed
@@ -716,6 +745,7 @@ t\u
 ta
 tails
 taskset
+te
 templates
 theoretically
 thereby

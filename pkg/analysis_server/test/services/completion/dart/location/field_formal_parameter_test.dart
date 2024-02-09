@@ -9,24 +9,13 @@ import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FieldFormalParameterTest1);
-    defineReflectiveTests(FieldFormalParameterTest2);
+    defineReflectiveTests(FieldFormalParameterTest);
   });
 }
 
 @reflectiveTest
-class FieldFormalParameterTest1 extends AbstractCompletionDriverTest
-    with SuperFormalParameterTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class FieldFormalParameterTest2 extends AbstractCompletionDriverTest
-    with SuperFormalParameterTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class FieldFormalParameterTest extends AbstractCompletionDriverTest
+    with SuperFormalParameterTestCases {}
 
 mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
   @override

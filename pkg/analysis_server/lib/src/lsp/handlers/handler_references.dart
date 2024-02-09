@@ -47,9 +47,10 @@ class ReferencesHandler
             unit.result, offset, params, unit.result, performance)));
   }
 
-  List<Location> _getDeclarations(CompilationUnit unit, int offset) {
+  List<Location> _getDeclarations(ParsedUnitResult result, int offset) {
     final collector = NavigationCollectorImpl();
-    computeDartNavigation(server.resourceProvider, collector, unit, offset, 0);
+    computeDartNavigation(
+        server.resourceProvider, collector, result, offset, 0);
 
     return convert(collector.targets, (NavigationTarget target) {
       final targetFilePath = collector.files[target.fileIndex];
@@ -99,11 +100,10 @@ class ReferencesHandler
     final referenceResults = performance.run(
         'convert', (_) => convert(results, toLocation).whereNotNull().toList());
 
-    final compilationUnit = unit.unit;
     if (params.context.includeDeclaration == true) {
       // Also include the definition for the symbol at this location.
-      referenceResults.addAll(performance.run('_getDeclarations',
-          (_) => _getDeclarations(compilationUnit, offset)));
+      referenceResults.addAll(performance.run(
+          '_getDeclarations', (_) => _getDeclarations(unit, offset)));
     }
 
     return success(referenceResults);

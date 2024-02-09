@@ -546,6 +546,12 @@ void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitCachableIdempotentCall(
+    CachableIdempotentCallInstr* instr) {
+  // This instruction should not be inserted if its value is constant.
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitLoadLocal(LoadLocalInstr* instr) {
   // Instruction is eliminated when translating to SSA.
   UNREACHABLE();

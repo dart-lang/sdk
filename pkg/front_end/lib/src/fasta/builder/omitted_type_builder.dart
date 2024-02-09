@@ -21,7 +21,7 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   }
 
   @override
-  Supertype? buildSupertype(LibraryBuilder library) {
+  Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     throw new UnsupportedError('$runtimeType.buildSupertype');
   }
 
@@ -43,7 +43,7 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   bool get isVoidType => false;
 
   @override
-  Object? get name => null;
+  TypeName? get typeName => null;
 
   @override
   NullabilityBuilder get nullabilityBuilder =>

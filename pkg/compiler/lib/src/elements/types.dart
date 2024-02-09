@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_shared/variance.dart';
+
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart';
 import '../options.dart';
@@ -1127,7 +1129,7 @@ abstract class DartTypeSubstitutionVisitor<A>
   final Map<DartType, DartType> _map = Map.identity();
 
   DartType _mapped(DartType oldType, DartType newType) {
-    assert(_map[oldType] == null);
+    assert(!_map.containsKey(oldType));
     return _map[oldType] = newType;
   }
 
@@ -1809,9 +1811,6 @@ abstract class DartTypes {
 
   bool get useLegacySubtyping;
 
-  DartType bottomType() =>
-      useLegacySubtyping ? commonElements.nullType : neverType();
-
   DartType legacyType(DartType baseType) {
     DartType result;
     if (isStrongTopType(baseType) ||
@@ -1997,10 +1996,6 @@ abstract class DartTypes {
 
   /// Returns `true` if [s] is a subtype of [t].
   bool isSubtype(DartType s, DartType t) => _subtypeHelper(s, t);
-
-  /// Returns `true` if [s] is assignable to [t].
-  bool isAssignable(DartType s, DartType t) =>
-      isSubtype(s, t) || isSubtype(t, s);
 
   /// Returns `true` if [s] might be a subtype of [t] for some values of
   /// type variables in [s] and [t].
@@ -2268,9 +2263,6 @@ abstract class DartTypes {
                 if (!_isSubtype(sArgs[i], tArgs[i], env) ||
                     !_isSubtype(tArgs[i], sArgs[i], env)) return false;
                 break;
-              default:
-                throw StateError(
-                    "Invalid variance ${variances[i]} used for subtype check.");
             }
           }
           return true;
@@ -2424,5 +2416,12 @@ abstract class DartTypes {
       return isNonNullableIfSound(type.typeArgument);
     }
     throw UnimplementedError('isNonNullableIfSound $type');
+  }
+
+  DartType getUnionFreeType(DartType type) {
+    if (type is LegacyType) return getUnionFreeType(type.baseType);
+    if (type is NullableType) return getUnionFreeType(type.baseType);
+    if (type is FutureOrType) return getUnionFreeType(type.typeArgument);
+    return type;
   }
 }

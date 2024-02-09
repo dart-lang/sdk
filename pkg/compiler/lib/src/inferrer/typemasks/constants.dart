@@ -127,12 +127,6 @@ class ConstantValueTypeMasks
   }
 
   @override
-  TypeMask visitNonConstant(
-      NonConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.nullType;
-  }
-
-  @override
   TypeMask visitString(StringConstantValue constant, JClosedWorld closedWorld) {
     return _abstractValueDomain.stringType;
   }

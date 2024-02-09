@@ -4,7 +4,7 @@
 
 /// Information about the directives found in Dartdoc comments.
 class DartdocDirectiveInfo {
-  // TODO(brianwilkerson) Consider moving the method
+  // TODO(brianwilkerson): Consider moving the method
   //  DartUnitHoverComputer.computeDocumentation to this class.
 
   /// A regular expression used to match a macro directive. There is one group

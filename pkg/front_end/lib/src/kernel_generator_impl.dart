@@ -296,7 +296,7 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
     NeededPrecompilations? neededPrecompilations,
     ProcessedOptions options) async {
   if (neededPrecompilations != null) {
-    if (enableMacros) {
+    if (options.globalFeatures.macros.isEnabled) {
       // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
       // the compiler options for the precompilation.
       if (options.rawOptionsForTesting.macroTarget != null) {
@@ -330,6 +330,7 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
   // TODO(johnniwinther): What if sdk root isn't set? How do we then get the
   // right sdk?
   precompilationOptions.sdkRoot = options.sdkRoot;
+  precompilationOptions.sdkSummary = options.sdkSummary;
 
   Map<String, Map<String, List<String>>> macroDeclarations = {};
   neededPrecompilations.macroDeclarations

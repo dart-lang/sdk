@@ -19,6 +19,28 @@ class ImportLibraryPrefixTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PREFIX;
 
+  Future<void> test_withAnnotation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class MyAnnotation {
+  const MyAnnotation();
+}
+''');
+    await resolveTestCode('''
+// ignore: unused_import
+import 'a.dart' as prefix;
+
+@MyAnnotation()
+class B {}
+''');
+    await assertHasFix('''
+// ignore: unused_import
+import 'a.dart' as prefix;
+
+@prefix.MyAnnotation()
+class B {}
+''');
+  }
+
   Future<void> test_withClass() async {
     await resolveTestCode('''
 import 'dart:collection' as prefix;

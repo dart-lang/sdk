@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LocalLibraryTest1);
-    defineReflectiveTests(LocalLibraryTest2);
+    defineReflectiveTests(LocalLibraryTest);
   });
 }
 
 @reflectiveTest
-class LocalLibraryTest1 extends AbstractCompletionDriverTest
-    with LocalLibraryTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class LocalLibraryTest2 extends AbstractCompletionDriverTest
-    with LocalLibraryTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class LocalLibraryTest extends AbstractCompletionDriverTest
+    with LocalLibraryTestCases {}
 
 mixin LocalLibraryTestCases on AbstractCompletionDriverTest {
   @override

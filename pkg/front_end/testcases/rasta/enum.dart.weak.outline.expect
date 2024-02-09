@@ -6,7 +6,7 @@ class Foo extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Foo> values = const <self::Foo>[self::Foo::ec1, self::Foo::ec2];
   enum-element static const field self::Foo ec1 = const self::Foo::•(0, "ec1");
   enum-element static const field self::Foo ec2 = const self::Foo::•(1, "ec2");
-  const constructor •(core::int #index, core::String #name) → self::Foo
+  const synthetic constructor •(core::int #index, core::String #name) → self::Foo
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

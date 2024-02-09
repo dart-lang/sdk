@@ -128,6 +128,8 @@ main() {
             main.uri.toString(),
             null,
             null,
+            -1,
+            null,
             true);
         expect(procedure, isNotNull);
         expect(errorsReported, equals(0));
@@ -142,6 +144,8 @@ main() {
             <String>[],
             main.uri.toString(),
             null,
+            null,
+            -1,
             null,
             true);
         expect(procedure, isNotNull);
@@ -1092,6 +1096,8 @@ main() {
             'package:foo/bar.dart',
             'A',
             null,
+            -1,
+            null,
             true);
         expect(procedure, isNotNull);
       }
@@ -1117,6 +1123,8 @@ main() {
             <String>[],
             'package:foo/bar.dart',
             'A',
+            null,
+            -1,
             null,
             true);
         expect(procedure, isNotNull);
@@ -1177,6 +1185,8 @@ main() {
             barUri.toString(),
             'A',
             null,
+            -1,
+            null,
             true))!;
         // Verify that the expression only has links to the only bar we know
         // about.
@@ -1232,6 +1242,8 @@ main() {
             <String>[],
             barUri.toString(),
             'A',
+            null,
+            -1,
             null,
             true))!;
         // Verify that the expression only has links to the original bar.
@@ -1289,6 +1301,8 @@ main() {
             v1Uri.toString(),
             null,
             null,
+            -1,
+            null,
             false);
         expect(procedure, isNotNull);
         ReturnStatement returnStmt =
@@ -1311,6 +1325,8 @@ main() {
             <String>[],
             v1Uri.toString(),
             null,
+            null,
+            -1,
             null,
             false);
         expect(procedure, isNotNull);

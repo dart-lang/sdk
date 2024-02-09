@@ -4,6 +4,7 @@
 
 library masks;
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../../common.dart';
@@ -1027,13 +1028,13 @@ class CommonMasks with AbstractValueDomain {
   @override
   TypeMask readAbstractValueFromDataSource(DataSourceReader source) {
     return source
-        .readCached<TypeMask>(() => TypeMask.readFromDataSource(source, this));
+        .readIndexed<TypeMask>(() => TypeMask.readFromDataSource(source, this));
   }
 
   @override
   void writeAbstractValueToDataSink(
       DataSinkWriter sink, covariant TypeMask value) {
-    sink.writeCached<TypeMask>(
+    sink.writeIndexed<TypeMask>(
         value, (TypeMask value) => value.writeToDataSink(sink));
   }
 

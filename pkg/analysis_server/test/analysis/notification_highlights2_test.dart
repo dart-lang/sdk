@@ -1256,6 +1256,28 @@ void f() {
     assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma.max');
   }
 
+  Future<void> test_IMPORT_PREFIX_methodInvocation() async {
+    addTestFile('''
+import 'dart:math' as ma;
+void f() {
+  ma.max(1, 2);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma;');
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma.max');
+  }
+
+  Future<void> test_IMPORT_PREFIX_namedType() async {
+    addTestFile('''
+import 'dart:math' as math;
+void f(math.Random r) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'math;');
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'math.Random');
+  }
+
   Future<void> test_INSTANCE_FIELD() async {
     addTestFile('''
 class A {
@@ -2215,7 +2237,7 @@ void f(Object o) {
         ? SourceRange(0, testCode.code.length)
         : testCode.ranges[index].sourceRange;
 
-    // TODO(scheglov) Apparently, we don't sort in the server.
+    // TODO(scheglov): Apparently, we don't sort in the server.
     var sortedRegions = regions.sortedBy<num>((e) => e.offset);
 
     var buffer = StringBuffer();

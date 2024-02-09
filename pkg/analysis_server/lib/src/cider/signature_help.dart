@@ -17,7 +17,7 @@ class CiderSignatureHelpComputer {
 
   Future<SignatureHelpResponse?> compute2(
       String filePath, int line, int column) async {
-    var resolvedUnit = await _fileResolver.resolve2(path: filePath);
+    var resolvedUnit = await _fileResolver.resolve(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
     final formats = <MarkupKind>{MarkupKind.Markdown};

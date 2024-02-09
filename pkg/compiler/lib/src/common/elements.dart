@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_shared/variance.dart';
+
 import '../common.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
@@ -1056,6 +1058,12 @@ abstract class CommonElements {
       member.library == internalLibrary &&
       _isTopLevelFunctionNamed('isSentinel', member);
 
+  /// Returns `true` if [member] is the `allowInterop` function defined in
+  /// dart:js_util.
+  bool isAllowInterop(MemberEntity member) =>
+      member.library == dartJsUtilLibrary &&
+      _isTopLevelFunctionNamed('allowInterop', member);
+
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData) {
     if (nativeBasicData.isJsInteropClass(cls)) {
@@ -1490,10 +1498,10 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// argument is passed.
   DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable);
 
-  /// Returns the 'element' type of a function with the async, async* or sync*
-  /// marker [marker]. [returnType] is the return type marked function.
+  /// Returns the 'element' type of a [function] with the async, async* or sync*
+  /// marker. [returnType] is the return type of the marked function.
   DartType getAsyncOrSyncStarElementType(
-      AsyncMarker marker, DartType returnType);
+      FunctionEntity function, DartType returnType);
 
   /// Returns the 'element' type of a function with an async, async* or sync*
   /// marker. The return type of the method is inspected to determine the type

@@ -87,7 +87,7 @@ class TypesBuilder {
       builder.build();
     }
 
-    // TODO(scheglov) generalize
+    // TODO(scheglov): generalize
     _linker.elementNodes.forEach((element, node) {
       if (element is GenericFunctionTypeElementImpl &&
           node is GenericFunctionType) {
@@ -132,13 +132,9 @@ class TypesBuilder {
       var type = extendsClause.superclass.type;
       if (type is InterfaceType && _isInterfaceTypeClass(type)) {
         element.supertype = type;
-      } else {
-        element.supertype = _objectType(element);
       }
-    } else if (element.library.isDartCore && element.name == 'Object') {
+    } else if (element.isDartCoreObject) {
       element.setModifier(Modifier.DART_CORE_OBJECT, true);
-    } else {
-      element.supertype = _objectType(element);
     }
 
     element.interfaces = _toInterfaceTypeList(
@@ -148,16 +144,6 @@ class TypesBuilder {
     if (element.isAugmentation) {
       _updatedAugmented(node.withClause, element);
     } else {
-      if (element.augmentation != null) {
-        final augmented = AugmentedClassElementImpl(element);
-        element.augmentedInternal = augmented;
-        augmented.mixins.addAll(element.mixins);
-        augmented.interfaces.addAll(element.interfaces);
-        augmented.fields.addAll(element.fields.notAugmented);
-        augmented.constructors.addAll(element.constructors.notAugmented);
-        augmented.accessors.addAll(element.accessors.notAugmented);
-        augmented.methods.addAll(element.methods.notAugmented);
-      }
       _toInferMixins[element] = _ToInferMixins(element, node.withClause);
     }
   }
@@ -168,8 +154,6 @@ class TypesBuilder {
     var superType = node.superclass.type;
     if (superType is InterfaceType && _isInterfaceTypeClass(superType)) {
       element.supertype = superType;
-    } else {
-      element.supertype = _objectType(element);
     }
 
     element.mixins = _toInterfaceTypeList(
@@ -242,6 +226,31 @@ class TypesBuilder {
       }
     } else {
       throw UnimplementedError('${node.runtimeType}');
+    }
+  }
+
+  AugmentedInstanceElementImpl? _ensureAugmented(
+    InstanceElementImpl augmentation,
+  ) {
+    var augmented = augmentation.augmented;
+    if (augmented is AugmentedInstanceElementImpl?) {
+      return augmented;
+    }
+
+    final declaration = augmented.declaration;
+    switch (declaration) {
+      case ClassElementImpl():
+        final augmented = AugmentedClassElementImpl(declaration);
+        declaration.augmentedInternal = augmented;
+        augmented.mixins.addAll(declaration.mixins);
+        augmented.interfaces.addAll(declaration.interfaces);
+        augmented.fields.addAll(declaration.fields.notAugmented);
+        augmented.constructors.addAll(declaration.constructors.notAugmented);
+        augmented.accessors.addAll(declaration.accessors.notAugmented);
+        augmented.methods.addAll(declaration.methods.notAugmented);
+        return augmented;
+      default:
+        return null;
     }
   }
 
@@ -331,9 +340,6 @@ class TypesBuilder {
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
     );
-    if (!element.isAugmentation && constraints.isEmpty) {
-      constraints = [_objectType(element)];
-    }
     element.superclassConstraints = constraints;
 
     element.interfaces = _toInterfaceTypeList(
@@ -394,7 +400,7 @@ class TypesBuilder {
   }
 
   void _updatedAugmented(WithClause? withClause, InstanceElementImpl element) {
-    final augmented = element.augmented;
+    final augmented = _ensureAugmented(element);
     if (augmented == null) {
       return;
     }
@@ -434,19 +440,29 @@ class TypesBuilder {
     final typeProvider = element.library.typeProvider;
 
     if (element is InterfaceElementImpl &&
-        augmented is AugmentedInterfaceElementImpl) {
+        augmented is AugmentedInterfaceElementImpl &&
+        declaration is InterfaceElementImpl) {
+      if (declaration.supertype == null) {
+        final elementSuperType = element.supertype;
+        if (elementSuperType != null) {
+          final superType = toDeclaration.mapInterfaceType(elementSuperType);
+          declaration.supertype = superType;
+        }
+      }
+
       augmented.interfaces.addAll(
         toDeclaration.mapInterfaceTypes(element.interfaces),
       );
 
-      augmented.constructors.addAll(
-        element.constructors.notAugmented.map((element) {
+      augmented.constructors = [
+        ...augmented.constructors.notAugmented,
+        ...element.constructors.notAugmented.map((element) {
           if (toDeclaration.map.isEmpty) {
             return element;
           }
           return ConstructorMember(typeProvider, element, toDeclaration, false);
         }),
-      );
+      ];
     }
 
     if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {
@@ -455,35 +471,36 @@ class TypesBuilder {
       );
     }
 
-    if (augmented is AugmentedInstanceElementImpl) {
-      augmented.fields.addAll(
-        element.fields.notAugmented.map((element) {
-          if (toDeclaration.map.isEmpty) {
-            return element;
-          }
-          return FieldMember(typeProvider, element, toDeclaration, false);
-        }),
-      );
+    augmented.fields = [
+      ...augmented.fields.notAugmented,
+      ...element.fields.notAugmented.map((element) {
+        if (toDeclaration.map.isEmpty) {
+          return element;
+        }
+        return FieldMember(typeProvider, element, toDeclaration, false);
+      }),
+    ];
 
-      augmented.accessors.addAll(
-        element.accessors.notAugmented.map((element) {
-          if (toDeclaration.map.isEmpty) {
-            return element;
-          }
-          return PropertyAccessorMember(
-              typeProvider, element, toDeclaration, false);
-        }),
-      );
+    augmented.accessors = [
+      ...augmented.accessors.notAugmented,
+      ...element.accessors.notAugmented.map((element) {
+        if (toDeclaration.map.isEmpty) {
+          return element;
+        }
+        return PropertyAccessorMember(
+            typeProvider, element, toDeclaration, false);
+      }),
+    ];
 
-      augmented.methods.addAll(
-        element.methods.notAugmented.map((element) {
-          if (toDeclaration.map.isEmpty) {
-            return element;
-          }
-          return MethodMember(typeProvider, element, toDeclaration, false);
-        }),
-      );
-    }
+    augmented.methods = [
+      ...augmented.methods.notAugmented,
+      ...element.methods.notAugmented.map((element) {
+        if (toDeclaration.map.isEmpty) {
+          return element;
+        }
+        return MethodMember(typeProvider, element, toDeclaration, false);
+      }),
+    ];
   }
 
   /// The [FunctionType] to use when a function type is expected for a type
@@ -495,10 +512,6 @@ class TypesBuilder {
       returnType: DynamicTypeImpl.instance,
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  static InterfaceType _objectType(InterfaceElementImpl element) {
-    return element.library.typeProvider.objectType;
   }
 }
 
@@ -638,6 +651,7 @@ class _MixinInference {
       supertypeConstraints,
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
+      strictInference: false,
     );
     if (inferredTypeArguments == null) {
       return mixinType;

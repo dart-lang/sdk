@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  no-such-method-forwarder method m() → core::int
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#m, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  abstract method m() → core::int;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+}
+class MA = core::Object with self::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::MA
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
+  no-such-method-forwarder method m() → core::int
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#m, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+}
+static method throws(() → void f) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53640.dart:6:7 -> SymbolConstant(#m)
+Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53640.dart:6:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53640.dart:6:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///regress_53640.dart:6:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53640.dart:15:7 -> SymbolConstant(#m)
+Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53640.dart:15:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53640.dart:15:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///regress_53640.dart:15:7 -> MapConstant(const <Symbol*, dynamic>{})
+Extra constant evaluation: evaluated: 20, effectively constant: 8

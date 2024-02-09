@@ -1538,7 +1538,8 @@ intptr_t AssemblyImageWriter::WriteTargetWord(word value) {
   ASSERT(Utils::BitLength(value) <= compiler::target::kBitsPerWord);
   // Padding is helpful for comparing the .S with --disassemble.
   assembly_stream_->Printf("%s 0x%.*" Px "\n", kWordDirective,
-                           2 * compiler::target::kWordSize, value);
+                           static_cast<int>(2 * compiler::target::kWordSize),
+                           value);
   return compiler::target::kWordSize;
 }
 

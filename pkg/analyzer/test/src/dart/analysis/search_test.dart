@@ -714,7 +714,7 @@ class A {}
 
     // Configure `package:my`.
     writePackageConfig(
-      getFile('${myRoot.path}/.dart_tool/package_config.json').path,
+      myRoot.path,
       PackageConfigFileBuilder()..add(name: 'my', rootPath: myRoot.path),
     );
 
@@ -1635,6 +1635,64 @@ self::@function::main
   29 4:3 |v| READ_WRITE
   39 5:3 |v| READ
   44 6:3 |v| READ
+''');
+  }
+
+  test_searchReferences_LocalVariableElement_inForEachElement_expressionBody() async {
+    await resolveTestCode('''
+Object f() => [
+  for (var v in []) v,
+];
+''');
+    final element = findElement.localVar('v');
+    await assertElementReferencesText(element, r'''
+self::@function::f
+  36 2:21 |v| READ
+''');
+  }
+
+  test_searchReferences_LocalVariableElement_inForEachElement_inBlock() async {
+    await resolveTestCode('''
+Object f() {
+  {
+    return [
+      for (var v in []) v,
+    ];
+  }
+}
+''');
+    final element = findElement.localVar('v');
+    await assertElementReferencesText(element, r'''
+self::@function::f
+  54 4:25 |v| READ
+''');
+  }
+
+  test_searchReferences_LocalVariableElement_inForEachElement_inFunctionBody() async {
+    await resolveTestCode('''
+Object f() {
+  return [
+    for (var v in []) v,
+  ];
+}
+''');
+    final element = findElement.localVar('v');
+    await assertElementReferencesText(element, r'''
+self::@function::f
+  46 3:23 |v| READ
+''');
+  }
+
+  test_searchReferences_LocalVariableElement_inForEachElement_topLevel() async {
+    await resolveTestCode('''
+var x = [
+  for (var v in []) v,
+];
+''');
+    final element = findElement.localVar('v');
+    await assertElementReferencesText(element, r'''
+self::@variable::x
+  30 2:21 |v| READ
 ''');
   }
 
@@ -2621,6 +2679,22 @@ self::@function::f
   49 2:14 |v| READ
   58 2:23 |v| READ
   67 2:32 |v| WRITE
+''');
+  }
+
+  test_searchReferences_VariablePatternElement_switchExpression_topLevel() async {
+    await resolveTestCode('''
+var f = switch (0) {
+  int v when v > 0 => v + 1 + (v = 2),
+  _ => -1,
+}
+''');
+    final element = findNode.bindPatternVariableElement('int v');
+    await assertElementReferencesText(element, r'''
+self::@variable::f
+  34 2:14 |v| READ
+  43 2:23 |v| READ
+  52 2:32 |v| WRITE
 ''');
   }
 

@@ -11,15 +11,19 @@ class StackTrace {
   static StackTrace get current {
     // `Error` should be supported in most browsers.  A possible future
     // optimization we could do is to just save the `Error` object here, and
-    // stringify the stack trace when it is actually used
+    // stringify the stack trace when it is actually used.
     //
-    // Note:  We remove the last three lines of the stack trace to prevent
-    // including `Error`, `getCurrentStackTrace`, and `StackTrace.current` in
-    // the stack trace.
-    return _StringStackTrace(JS<String>(r"""() => {
+    // Note: We remove the first two frames to prevent including
+    // `getCurrentStackTrace` and `StackTrace.current`. On Chrome, the first
+    // line is not a frame but a line with just "Error", which we also remove.
+    return _StringStackTrace(JSStringImpl(JS<WasmExternRef?>(r"""() => {
           let stackString = new Error().stack.toString();
-          let userStackString = stackString.split('\n').slice(3).join('\n');
-          return stringToDartString(userStackString);
-        }"""));
+          let frames = stackString.split('\n');
+          let drop = 2;
+          if (frames[0] === 'Error') {
+              drop += 1;
+          }
+          return frames.slice(drop).join('\n');
+        }""")));
   }
 }

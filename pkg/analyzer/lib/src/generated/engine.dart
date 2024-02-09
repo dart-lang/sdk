@@ -10,12 +10,15 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/legacy.dart';
@@ -70,6 +73,7 @@ typedef AnalyzeFunctionBodiesPredicate = bool Function(Source source);
 abstract class AnalysisContext {
   /// Return the set of analysis options controlling the behavior of this
   /// context. Clients should not modify the returned set of options.
+  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions;
 
   /// Return the set of declared variables used when computing constant values.
@@ -78,6 +82,9 @@ abstract class AnalysisContext {
   /// Return the source factory used to create the sources that can be analyzed
   /// in this context.
   SourceFactory get sourceFactory;
+
+  /// Get the [AnalysisOptions] instance for the given [file].
+  AnalysisOptions getAnalysisOptionsForFile(File file);
 }
 
 /// The entry point for the functionality provided by the analysis engine. There
@@ -160,6 +167,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   Uint32List? _signatureForElements;
 
   @override
+  @Deprecated('Use `PubWorkspacePackage.sdkVersionConstraint` instead')
   VersionConstraint? sdkVersionConstraint;
 
   /// The constraint on the language version for every Dart file.
@@ -259,6 +267,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       strictInference = options.strictInference;
       strictRawTypes = options.strictRawTypes;
     }
+    // ignore: deprecated_member_use_from_same_package
     sdkVersionConstraint = options.sdkVersionConstraint;
   }
 
@@ -313,7 +322,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       ApiSignature buffer = ApiSignature();
 
       // Append environment.
+      // TODO(pq): remove
+      // ignore: deprecated_member_use_from_same_package
       if (sdkVersionConstraint != null) {
+        // ignore: deprecated_member_use_from_same_package
         buffer.addString(sdkVersionConstraint.toString());
       }
 

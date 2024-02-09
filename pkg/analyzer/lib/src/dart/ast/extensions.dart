@@ -7,8 +7,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:collection/collection.dart';
 
-/// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 Element? _readElement(AstNode node) {
   var parent = node.parent;
 
@@ -31,7 +32,7 @@ Element? _readElement(AstNode node) {
   return null;
 }
 
-/// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 Element? _writeElement(AstNode node) {
   var parent = node.parent;
 
@@ -54,7 +55,7 @@ Element? _writeElement(AstNode node) {
   return null;
 }
 
-/// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 DartType? _writeType(AstNode node) {
   var parent = node.parent;
 
@@ -75,6 +76,21 @@ DartType? _writeType(AstNode node) {
     return _writeType(parent);
   }
   return null;
+}
+
+extension ArgumentListExtension on ArgumentList {
+  /// Returns the named expression with the given [name], or `null` if none.
+  NamedExpression? byName(String name) => arguments
+      .whereType<NamedExpression>()
+      .firstWhereOrNull((e) => e.name.label.name == name);
+
+  /// Returns the argument with the given [index], or `null` if none.
+  Expression? elementAtOrNull(int index) {
+    if (index < arguments.length) {
+      return arguments[index];
+    }
+    return null;
+  }
 }
 
 extension AstNodeNullableExtension on AstNode? {
@@ -190,7 +206,7 @@ extension FormalParameterExtension on FormalParameter {
   }
 }
 
-/// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 extension IdentifierExtension on Identifier {
   Element? get readElement {
     return _readElement(this);
@@ -247,7 +263,7 @@ extension IdentifierImplExtension on IdentifierImpl {
   }
 }
 
-/// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
     return _writeElement(this) ?? staticElement;

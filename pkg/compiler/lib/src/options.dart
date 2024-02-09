@@ -20,6 +20,7 @@ enum FeatureStatus {
   canary,
 }
 
+// TODO(fishythefish): Add an API to associate numbered phases with stages.
 enum Dart2JSStage {
   all(null,
       fromDillFlag: Dart2JSStage.allFromDill,
@@ -29,21 +30,14 @@ enum Dart2JSStage {
       fromDillFlag: Dart2JSStage.cfeFromDill,
       emitsKernel: true,
       emitsJs: false),
-  modularAnalysis('modular-analysis',
-      fromDillFlag: Dart2JSStage.modularAnalysisFromDill,
-      dataOutputName: 'modular.data',
-      emitsKernel: true,
-      emitsJs: false),
   allFromDill(null, emitsKernel: false, emitsJs: true),
   cfeFromDill('cfe', emitsKernel: true, emitsJs: false),
-  modularAnalysisFromDill('modular-analysis',
-      dataOutputName: 'modular.data', emitsKernel: true, emitsJs: false),
   deferredLoadIds('deferred-load-ids',
       dataOutputName: 'deferred_load_ids.data',
       emitsKernel: false,
       emitsJs: false),
   closedWorld('closed-world',
-      dataOutputName: 'world.data', emitsKernel: true, emitsJs: false),
+      dataOutputName: 'world.data', emitsKernel: false, emitsJs: false),
   globalInference('global-inference',
       dataOutputName: 'global.data', emitsKernel: false, emitsJs: false),
   codegenAndJsEmitter('codegen-emit-js', emitsKernel: false, emitsJs: true),
@@ -73,12 +67,14 @@ enum Dart2JSStage {
       this == Dart2JSStage.all ||
       this == Dart2JSStage.allFromDill;
   bool get shouldLoadFromDill => this.index >= Dart2JSStage.allFromDill.index;
-  bool get shouldComputeModularAnalysis =>
-      this == Dart2JSStage.modularAnalysis ||
-      this == Dart2JSStage.modularAnalysisFromDill;
-  bool get canUseModularAnalysis =>
-      this == Dart2JSStage.modularAnalysis ||
-      this.index >= Dart2JSStage.modularAnalysisFromDill.index;
+
+  /// Global kernel transformations should be run in phase 0b, i.e. after
+  /// concatenating dills, but before serializing the output of phase 0.
+  // TODO(fishythefish): Add AST metadata to ensure transformations aren't rerun
+  // unnecessarily.
+  bool get shouldRunGlobalTransforms =>
+      this.index <= Dart2JSStage.cfeFromDill.index;
+
   bool get shouldReadClosedWorld => this.index > Dart2JSStage.closedWorld.index;
   bool get shouldReadGlobalInference =>
       this.index > Dart2JSStage.globalInference.index;
@@ -108,11 +104,6 @@ enum Dart2JSStage {
   static Dart2JSStage fromLegacyFlags(CompilerOptions options) {
     if (options._cfeOnly) {
       return options._fromDill ? Dart2JSStage.cfeFromDill : Dart2JSStage.cfe;
-    }
-    if (options._writeModularAnalysisUri != null) {
-      return options._fromDill
-          ? Dart2JSStage.modularAnalysisFromDill
-          : Dart2JSStage.modularAnalysis;
     }
     if (options._deferredLoadIdMapUri != null) {
       return Dart2JSStage.deferredLoadIds;
@@ -307,7 +298,6 @@ class CompilerOptions implements DiagnosticOptions {
       _inputDillUri ?? entryUri ?? _defaultInputDillUri;
 
   bool get _fromDill {
-    if (sources != null) return false;
     var targetPath = (_inputDillUri ?? entryUri)?.path;
     return targetPath == null || targetPath.endsWith('.dill');
   }
@@ -317,25 +307,9 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// List of kernel files to load.
   ///
-  /// When compiling modularly, this contains kernel files that are needed
-  /// to compile a single module.
-  ///
-  /// When linking, this contains all kernel files that form part of the final
-  /// program.
-  ///
-  /// At this time, this list points to full kernel files. In the future, we may
-  /// use a list of outline files for modular compiles, and only use full kernel
-  /// files for linking.
+  /// This contains all kernel files that form part of the final program. The
+  /// dills passed here should contain full kernel ASTs, not just outlines.
   List<Uri>? dillDependencies;
-
-  /// A list of sources to compile, only used for modular analysis.
-  List<Uri>? sources;
-
-  Uri? _writeModularAnalysisUri;
-
-  List<Uri>? modularAnalysisInputs;
-
-  bool get hasModularAnalysisInputs => modularAnalysisInputs != null;
 
   /// Uses a memory mapped view of files for I/O.
   bool memoryMappedFiles = false;
@@ -685,6 +659,19 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
+  /// Experiment to add additional runtime checks to detect code whose semantics
+  /// will change when sound null safety is enabled.
+  ///
+  /// In particular, runtime subtype checks (including those via `is` and `as`)
+  /// will produce diagnostics when they would provide different results in
+  /// sound vs. unsound mode. Note that this adds overhead, both to perform the
+  /// extra checks and because some checks that may have been optimized away
+  /// will be emitted.
+  ///
+  /// We assume this option will only be provided when all files have been
+  /// migrated to null safety (but before sound null safety is enabled).
+  bool experimentNullSafetyChecks = false;
+
   /// Whether the compiler should emit code with unsound or sound semantics.
   /// Since Dart 3.0 this is no longer inferred from sources, but defaults to
   /// sound semantics.
@@ -796,8 +783,6 @@ class CompilerOptions implements DiagnosticOptions {
       case Dart2JSStage.cfeFromDill:
       case Dart2JSStage.jsEmitter:
       case Dart2JSStage.codegenAndJsEmitter:
-      case Dart2JSStage.modularAnalysis:
-      case Dart2JSStage.modularAnalysisFromDill:
       case Dart2JSStage.deferredLoadIds:
         return null;
       case Dart2JSStage.closedWorld:
@@ -831,9 +816,6 @@ class CompilerOptions implements DiagnosticOptions {
         return _deferredLoadIdMapUri;
       case Dart2JSStage.cfe:
       case Dart2JSStage.cfeFromDill:
-      case Dart2JSStage.modularAnalysis:
-      case Dart2JSStage.modularAnalysisFromDill:
-        return _writeModularAnalysisUri;
       case Dart2JSStage.closedWorld:
         return _writeClosedWorldUri;
       case Dart2JSStage.globalInference:
@@ -942,6 +924,8 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
+      ..experimentNullSafetyChecks =
+          _hasOption(options, Flags.experimentNullSafetyChecks)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       .._outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries
@@ -964,13 +948,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..dillDependencies =
           _extractUriListOption(options, '${Flags.dillDependencies}')
-      ..sources = _extractUriListOption(options, '${Flags.sources}')
       ..readProgramSplit =
           _extractUriOption(options, '${Flags.readProgramSplit}=')
-      .._writeModularAnalysisUri =
-          _extractUriOption(options, '${Flags.writeModularAnalysis}=')
-      ..modularAnalysisInputs =
-          _extractUriListOption(options, '${Flags.readModularAnalysis}')
       .._readDataUri = _extractUriOption(options, '${Flags.readData}=')
       .._writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
       ..memoryMappedFiles = _hasOption(options, Flags.memoryMappedFiles)
@@ -1007,8 +986,6 @@ class CompilerOptions implements DiagnosticOptions {
     bool expectSourcesIn = false;
     bool expectKernelIn = false;
     bool expectKernelOut = false;
-    bool expectModularIn = false;
-    bool expectModularOut = false;
     bool expectDeferredLoadIdsOut = false;
     bool expectClosedWorldIn = false;
     bool expectClosedWorldOut = false;
@@ -1026,22 +1003,10 @@ class CompilerOptions implements DiagnosticOptions {
       case Dart2JSStage.cfe:
         expectSourcesIn = true;
         expectKernelOut = true;
-        expectModularIn = true;
-        expectModularOut = true;
         break;
       case Dart2JSStage.cfeFromDill:
         expectKernelIn = true;
         expectKernelOut = true;
-        expectModularIn = true;
-        expectModularOut = true;
-        break;
-      case Dart2JSStage.modularAnalysis:
-        expectKernelOut = true;
-        expectModularOut = true;
-        break;
-      case Dart2JSStage.modularAnalysisFromDill:
-        expectKernelOut = true;
-        expectModularOut = true;
         break;
       case Dart2JSStage.deferredLoadIds:
         expectKernelIn = true;
@@ -1050,30 +1015,25 @@ class CompilerOptions implements DiagnosticOptions {
       case Dart2JSStage.closedWorld:
         expectClosedWorldOut = true;
         expectKernelIn = true;
-        expectModularIn = true;
         break;
       case Dart2JSStage.globalInference:
         expectGlobalOut = true;
         expectKernelIn = true;
-        expectModularIn = true;
         expectClosedWorldIn = true;
         break;
       case Dart2JSStage.codegenSharded:
         expectCodegenOut = true;
         expectKernelIn = true;
-        expectModularIn = true;
         expectClosedWorldIn = true;
         expectGlobalIn = true;
         break;
       case Dart2JSStage.codegenAndJsEmitter:
         expectKernelIn = true;
-        expectModularIn = true;
         expectClosedWorldIn = true;
         expectGlobalIn = true;
         break;
       case Dart2JSStage.jsEmitter:
         expectKernelIn = true;
-        expectModularIn = true;
         expectClosedWorldIn = true;
         expectGlobalIn = true;
         expectCodegenIn = true;
@@ -1091,15 +1051,6 @@ class CompilerOptions implements DiagnosticOptions {
     // Check CFE only flags.
     if (_cfeOnly && !expectKernelOut) {
       return 'Cannot write serialized data during ${stage.name} stage.';
-    }
-
-    // Check modular analysis flags.
-    if (_writeModularAnalysisUri != null && !expectModularOut) {
-      return 'Cannot write modular data during ${stage.name} stage.';
-    }
-    if (modularAnalysisInputs != null && !expectModularIn) {
-      return 'Cannot read modular analysis inputs in '
-          'stage ${stage.name}.';
     }
 
     if (_deferredLoadIdMapUri != null && !expectDeferredLoadIdsOut) {
@@ -1179,12 +1130,19 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("'${Flags.nativeNullAssertions}' incompatible with "
           "'${Flags.noNativeNullAssertions}'");
     }
+    if (nullSafetyMode == NullSafetyMode.sound && experimentNullSafetyChecks) {
+      throw ArgumentError('${Flags.experimentNullSafetyChecks} is incompatible '
+          'with sound null safety.');
+    }
   }
 
   void deriveOptions() {
     if (benchmarkingProduction) {
       trustPrimitives = true;
       omitImplicitChecks = true;
+      // TODO(53993):
+      //   laxRuntimeTypeToString = true;
+      //   omitLateNames = true;
     }
 
     if (benchmarkingExperiment) {

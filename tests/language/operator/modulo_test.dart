@@ -13,7 +13,14 @@ main() {
   for (int i = -30; i < 30; i++) {
     Expect.equals(i % 256, foo(i));
     Expect.equals(i % -256, boo(i));
-    Expect.throws(() => hoo(i), (e) => e is UnsupportedError);
+
+    if (!webNumbers) {
+      Expect.throws(() => hoo(i), (e) => e is UnsupportedError);
+    } else {
+      // web numbers can't distinguish doubles from ints, so `i % 0`, which
+      // should throw, is evaluated as `i % 0.0`, which yields NaN.
+      Expect.isTrue(hoo(i).isNaN);
+    }
 
     Expect.equals(i ~/ 254 + i % 254, fooTwo(i));
     Expect.equals(i ~/ -254 + i % -254, booTwo(i));
@@ -35,7 +42,13 @@ main() {
       Expect.equals(i ~/ i + i % i, fooTwo2(i));
     }
   }
-  Expect.throws(() => foo2(0), (e) => e is UnsupportedError);
+  if (!webNumbers) {
+    Expect.throws(() => foo2(0), (e) => e is UnsupportedError);
+  } else {
+    // web numbers can't distinguish doubles from ints, so `0 % 0`, which should
+    // throw, is evaluated as `0.0 % 0.0`, which yields NaN.
+    Expect.isTrue(foo2(0).isNaN);
+  }
   Expect.throws(() => fooTwo2(0), (e) => e is UnsupportedError);
 }
 

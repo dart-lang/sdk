@@ -63,9 +63,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool isDeclaredInEnclosingCase(VariableDeclaration variable);
 
-  Expression_Generator_Builder scopeLookup(
-      Scope scope, String name, Token token,
-      {bool isQualified = false, PrefixBuilder? prefix});
+  Expression_Generator_Builder scopeLookup(Scope scope, Token nameToken,
+      {PrefixBuilder? prefix, Token? prefixToken});
 
   Expression_Generator_Initializer finishSend(Object receiver,
       List<TypeBuilder>? typeArguments, ArgumentsImpl arguments, int offset,
@@ -213,16 +212,16 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       required bool inImplicitCreationContext});
 }
 
-/// Checks that a generic [typedef] for a generic class.
-bool isProperRenameForClass(
+/// Checks that a generic [typedef] for a generic type declaration.
+bool isProperRenameForTypeDeclaration(
     TypeEnvironment typeEnvironment, Typedef typedef, Library typedefLibrary) {
   DartType? rhsType = typedef.type;
-  if (rhsType is! InterfaceType) {
+  if (rhsType is! TypeDeclarationType) {
     return false;
   }
 
   List<TypeParameter> fromParameters = typedef.typeParameters;
-  List<TypeParameter> toParameters = rhsType.classNode.typeParameters;
+  List<TypeParameter> toParameters = rhsType.typeDeclaration.typeParameters;
   List<DartType> typeArguments = rhsType.typeArguments;
   if (fromParameters.length != typeArguments.length) {
     return false;

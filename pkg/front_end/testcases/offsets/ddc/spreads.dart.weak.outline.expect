@@ -1,0 +1,6 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+[5]static method main([23] core::List<core::String> args) → void
+[-1]  ;

@@ -7,10 +7,9 @@ import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 import 'test_helper.dart';
 
-const String kSetHttpEnableTimelineLogging =
-    'ext.dart.io.setHttpEnableTimelineLogging';
-const String kGetHttpEnableTimelineLogging =
-    'ext.dart.io.getHttpEnableTimelineLogging';
+const String kHttpEnableTimelineLogging =
+    'ext.dart.io.httpEnableTimelineLogging';
+
 Future<void> setup() async {}
 
 var tests = <IsolateTest>[
@@ -18,33 +17,30 @@ var tests = <IsolateTest>[
     await isolate.load();
     // Ensure all HTTP service extensions are registered.
     expect(isolate.extensionRPCs.length, greaterThanOrEqualTo(2));
-    expect(
-        isolate.extensionRPCs.contains(kGetHttpEnableTimelineLogging), isTrue);
-    expect(
-        isolate.extensionRPCs.contains(kSetHttpEnableTimelineLogging), isTrue);
+    expect(isolate.extensionRPCs.contains(kHttpEnableTimelineLogging), isTrue);
   },
   (Isolate isolate) async {
     await isolate.load();
     var response =
-        await isolate.invokeRpcNoUpgrade(kGetHttpEnableTimelineLogging, {});
+        await isolate.invokeRpcNoUpgrade(kHttpEnableTimelineLogging, {});
     expect(response['type'], 'HttpTimelineLoggingState');
     expect(response['enabled'], false);
 
     response = await isolate
-        .invokeRpcNoUpgrade(kSetHttpEnableTimelineLogging, {'enabled': true});
-    expect(response['type'], 'Success');
+        .invokeRpcNoUpgrade(kHttpEnableTimelineLogging, {'enabled': true});
+    expect(response['type'], 'HttpTimelineLoggingState');
+    expect(response['enabled'], true);
 
-    response =
-        await isolate.invokeRpcNoUpgrade(kGetHttpEnableTimelineLogging, {});
+    response = await isolate.invokeRpcNoUpgrade(kHttpEnableTimelineLogging, {});
     expect(response['type'], 'HttpTimelineLoggingState');
     expect(response['enabled'], true);
 
     response = await isolate
-        .invokeRpcNoUpgrade(kSetHttpEnableTimelineLogging, {'enabled': false});
-    expect(response['type'], 'Success');
+        .invokeRpcNoUpgrade(kHttpEnableTimelineLogging, {'enabled': false});
+    expect(response['type'], 'HttpTimelineLoggingState');
+    expect(response['enabled'], false);
 
-    response =
-        await isolate.invokeRpcNoUpgrade(kGetHttpEnableTimelineLogging, {});
+    response = await isolate.invokeRpcNoUpgrade(kHttpEnableTimelineLogging, {});
     expect(response['type'], 'HttpTimelineLoggingState');
     expect(response['enabled'], false);
   },
@@ -52,11 +48,13 @@ var tests = <IsolateTest>[
     // Bad argument.
     try {
       await isolate.invokeRpcNoUpgrade(
-          kSetHttpEnableTimelineLogging, {'enabled': 'foo'});
+        kHttpEnableTimelineLogging,
+        {'enabled': 'foo'},
+      );
     } catch (e) {/* expected */}
     // Missing argument.
     try {
-      await isolate.invokeRpcNoUpgrade(kSetHttpEnableTimelineLogging, {});
+      await isolate.invokeRpcNoUpgrade(kHttpEnableTimelineLogging, {});
     } catch (e) {/* expected */}
   },
 ];

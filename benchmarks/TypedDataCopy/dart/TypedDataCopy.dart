@@ -6,11 +6,11 @@ import 'TypedDataCopyLib.dart';
 
 void main() {
   final benchmarks = [
-    () => Int8ViewToInt8View(),
-    () => Int8ToInt8(),
-    () => Int8ToUint8Clamped(),
-    () => Int8ViewToInt8(),
-    () => ByteSwap(),
+    Int8ViewToInt8View.new,
+    Int8ToInt8.new,
+    Int8ToUint8Clamped.new,
+    Int8ViewToInt8.new,
+    ByteSwap.new,
   ];
 
   // Run all the code to ensure consistent polymorphism in shared code.

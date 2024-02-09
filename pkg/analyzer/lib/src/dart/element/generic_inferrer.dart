@@ -72,6 +72,8 @@ class GenericInferrer {
   /// type arguments are allowed to be instantiated with generic function types.
   final bool genericMetadataIsEnabled;
 
+  final bool _strictInference;
+
   /// Map whose keys are type parameters for which a previous inference phase
   /// has fixed a type, and whose values are the corresponding fixed types.
   ///
@@ -99,7 +101,9 @@ class GenericInferrer {
   GenericInferrer(this._typeSystem, this._typeFormals,
       {this.errorReporter,
       this.errorNode,
-      required this.genericMetadataIsEnabled}) {
+      required this.genericMetadataIsEnabled,
+      required bool strictInference})
+      : _strictInference = strictInference {
     if (errorReporter != null) {
       assert(errorNode != null);
     }
@@ -254,7 +258,7 @@ class GenericInferrer {
 
       if (UnknownInferredType.isKnown(inferred)) {
         knownTypes[parameter] = inferred;
-      } else if (_typeSystem.strictInference) {
+      } else if (_strictInference) {
         // [typeParam] could not be inferred. A result will still be returned
         // by [infer], with [typeParam] filled in as its bounds. This is
         // considered a failure of inference, under the "strict-inference"
@@ -428,7 +432,7 @@ class GenericInferrer {
     var inferredTypes = List<DartType>.filled(
         _typeFormals.length, UnknownInferredType.instance);
     for (int i = 0; i < _typeFormals.length; i++) {
-      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
       var typeParam = _typeFormals[i] as TypeParameterElementImpl;
       _TypeConstraint? extendsClause;

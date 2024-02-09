@@ -18,8 +18,7 @@ const String udpContent = 'aghfkjdb';
 const String kClearSocketProfileRPC = 'ext.dart.io.clearSocketProfile';
 const String kGetSocketProfileRPC = 'ext.dart.io.getSocketProfile';
 const String kGetVersionRPC = 'ext.dart.io.getVersion';
-const String kPauseSocketProfilingRPC = 'ext.dart.io.pauseSocketProfiling';
-const String kStartSocketProfilingRPC = 'ext.dart.io.startSocketProfiling';
+const String kSocketProfilingEnabledRPC = 'ext.dart.io.socketProfilingEnabled';
 const String localhost = '127.0.0.1';
 
 List<Object> sockets = [];
@@ -78,9 +77,7 @@ var tests = <IsolateTest>[
     expect(isolate.extensionRPCs.length, greaterThanOrEqualTo(5));
     expect(isolate.extensionRPCs.contains(kClearSocketProfileRPC), isTrue);
     expect(isolate.extensionRPCs.contains(kGetVersionRPC), isTrue);
-    expect(isolate.extensionRPCs.contains(kPauseSocketProfilingRPC), isTrue);
-    expect(isolate.extensionRPCs.contains(kStartSocketProfilingRPC), isTrue);
-    expect(isolate.extensionRPCs.contains(kPauseSocketProfilingRPC), isTrue);
+    expect(isolate.extensionRPCs.contains(kSocketProfilingEnabledRPC), isTrue);
   },
 
   // Test getSocketProfiler
@@ -95,15 +92,16 @@ var tests = <IsolateTest>[
     expect(response['sockets'].length, 0);
   },
 
-  // Test getSocketProfile and startSocketProfiling
+  // Test getSocketProfile and socketProfilingEnabled
   (Isolate isolate) async {
     await isolate.load();
     Library lib = isolate.rootLibrary;
     await lib.load();
 
-    var response =
-        await isolate.invokeRpcNoUpgrade(kStartSocketProfilingRPC, {});
-    expect(response['type'], 'Success');
+    var response = await isolate
+        .invokeRpcNoUpgrade(kSocketProfilingEnabledRPC, {'enabled': true});
+    expect(response['type'], 'SocketProfilingState');
+    expect(response['enabled'], true);
 
     // Check whether socketTest has finished.
     Completer completer = Completer();
@@ -189,18 +187,21 @@ var tests = <IsolateTest>[
     expect(response['sockets'].length, 0);
   },
 
-  // Test pauseSocketProfiling
+  // Test socketProfilingEnabled
   (Isolate isolate) async {
     await isolate.load();
     Library lib = isolate.rootLibrary;
     await lib.load();
 
-    var response =
-        await isolate.invokeRpcNoUpgrade(kStartSocketProfilingRPC, {});
-    expect(response['type'], 'Success');
+    var response = await isolate
+        .invokeRpcNoUpgrade(kSocketProfilingEnabledRPC, {'enabled': true});
+    expect(response['type'], 'SocketProfilingState');
+    expect(response['enabled'], true);
 
-    response = await isolate.invokeRpcNoUpgrade(kPauseSocketProfilingRPC, {});
-    expect(response['type'], 'Success');
+    response = await isolate
+        .invokeRpcNoUpgrade(kSocketProfilingEnabledRPC, {'enabled': false});
+    expect(response['type'], 'SocketProfilingState');
+    expect(response['enabled'], false);
 
     // Check whether socketTest has finished.
     Completer completer = Completer();

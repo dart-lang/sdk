@@ -4,7 +4,6 @@
 
 // SharedObjects=ffi_test_functions
 
-// VMOptions=--enable-experiment=records
 
 import 'dylib_utils.dart';
 

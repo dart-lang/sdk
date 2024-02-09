@@ -63,27 +63,32 @@ Future<void> runTests() async {
   testNonExistingFunction();
 }
 
-@FfiNative<Bool Function(Int64 port, Int64 message)>('Dart_PostInteger')
-external bool dartPostInteger(int port, int message);
+typedef _PostInteger = Bool Function(Int64 port, Int64 message);
 
-@Native<Bool Function(Int64 port, Int64 message)>()
+@Native<_PostInteger>()
 external bool Dart_PostInteger(int port, int message);
 
 Future<void> testExecutable() async {
-  for (final postInteger in [dartPostInteger, Dart_PostInteger]) {
-    const int message = 1337 * 42;
+  await _testWith(Dart_PostInteger);
 
-    final completer = Completer();
+  final viaAddressOf =
+      Native.addressOf<NativeFunction<_PostInteger>>(Dart_PostInteger);
+  await _testWith(viaAddressOf.asFunction());
+}
 
-    final receivePort = ReceivePort()
-      ..listen((receivedMessage) => completer.complete(receivedMessage));
+Future<void> _testWith(bool Function(int, int) postInteger) async {
+  const int message = 1337 * 42;
 
-    final bool success = postInteger(receivePort.sendPort.nativePort, message);
-    Expect.isTrue(success);
+  final completer = Completer();
 
-    final postedMessage = await completer.future;
-    Expect.equals(message, postedMessage);
+  final receivePort = ReceivePort()
+    ..listen((receivedMessage) => completer.complete(receivedMessage));
 
-    receivePort.close();
-  }
+  final bool success = postInteger(receivePort.sendPort.nativePort, message);
+  Expect.isTrue(success);
+
+  final postedMessage = await completer.future;
+  Expect.equals(message, postedMessage);
+
+  receivePort.close();
 }

@@ -10,6 +10,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/kernel_binary.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -558,33 +559,25 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
 }
 
 Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
-    const Function& dart_function) {
+    const Function& dart_function,
+    const AbstractType* emitted_value_type) {
   Fragment body;
   if (dart_function.IsAsyncFunction()) {
-    const auto& result_type =
-        AbstractType::Handle(Z, dart_function.result_type());
-    auto& type_args = TypeArguments::ZoneHandle(Z);
-    if (result_type.IsType() &&
-        (Class::Handle(Z, result_type.type_class()).IsFutureClass() ||
-         result_type.IsFutureOrType())) {
-      ASSERT(result_type.IsFinalized());
-      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
-    }
-
+    ASSERT(emitted_value_type != nullptr);
+    auto& type_args = TypeArguments::ZoneHandle(Z, TypeArguments::New(1));
+    type_args.SetTypeAt(0, *emitted_value_type);
+    type_args = Class::Handle(Z, IG->object_store()->future_class())
+                    .GetInstanceTypeArguments(H.thread(), type_args);
     body += TranslateInstantiatedTypeArguments(type_args);
     body += B->Call1ArgStub(TokenPosition::kNoSource,
                             Call1ArgStubInstr::StubId::kInitAsync);
     body += Drop();
   } else if (dart_function.IsAsyncGenerator()) {
-    const auto& result_type =
-        AbstractType::Handle(Z, dart_function.result_type());
-    auto& type_args = TypeArguments::ZoneHandle(Z);
-    if (result_type.IsType() &&
-        (result_type.type_class() == IG->object_store()->stream_class())) {
-      ASSERT(result_type.IsFinalized());
-      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
-    }
-
+    ASSERT(emitted_value_type != nullptr);
+    auto& type_args = TypeArguments::ZoneHandle(Z, TypeArguments::New(1));
+    type_args.SetTypeAt(0, *emitted_value_type);
+    type_args = Class::Handle(Z, IG->object_store()->stream_class())
+                    .GetInstanceTypeArguments(H.thread(), type_args);
     body += TranslateInstantiatedTypeArguments(type_args);
     body += B->Call1ArgStub(TokenPosition::kNoSource,
                             Call1ArgStubInstr::StubId::kInitAsyncStar);
@@ -594,15 +587,11 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
                        SuspendInstr::StubId::kYieldAsyncStar);
     body += Drop();
   } else if (dart_function.IsSyncGenerator()) {
-    const auto& result_type =
-        AbstractType::Handle(Z, dart_function.result_type());
-    auto& type_args = TypeArguments::ZoneHandle(Z);
-    if (result_type.IsType() &&
-        (result_type.type_class() == IG->object_store()->iterable_class())) {
-      ASSERT(result_type.IsFinalized());
-      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
-    }
-
+    ASSERT(emitted_value_type != nullptr);
+    auto& type_args = TypeArguments::ZoneHandle(Z, TypeArguments::New(1));
+    type_args.SetTypeAt(0, *emitted_value_type);
+    type_args = Class::Handle(Z, IG->object_store()->iterable_class())
+                    .GetInstanceTypeArguments(H.thread(), type_args);
     body += TranslateInstantiatedTypeArguments(type_args);
     body += B->Call1ArgStub(TokenPosition::kNoSource,
                             Call1ArgStubInstr::StubId::kInitSyncStar);
@@ -617,6 +606,8 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     if (scope->num_context_variables() > 0) {
       body += CloneContext(scope->context_slots());
     }
+  } else {
+    ASSERT(emitted_value_type == nullptr);
   }
   return body;
 }
@@ -677,8 +668,10 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
 
   const bool has_body = ReadTag() == kSomething;  // read first part of body.
 
-  if (dart_function.is_native()) {
+  if (dart_function.is_old_native()) {
     body += B->NativeFunctionBody(dart_function, first_parameter);
+  } else if (dart_function.is_ffi_native()) {
+    body += B->FfiNativeFunctionBody(dart_function);
   } else if (dart_function.is_external()) {
     body += ThrowNoSuchMethodError(TokenPosition::kNoSource, dart_function,
                                    /*incompatible_arguments=*/false);
@@ -781,17 +774,30 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
 
   LocalVariable* first_parameter = nullptr;
   TokenPosition token_position = TokenPosition::kNoSource;
+  const AbstractType* emitted_value_type = nullptr;
   {
     AlternativeReadingScope alt(&reader_);
     FunctionNodeHelper function_node_helper(this);
     function_node_helper.ReadUntilExcluding(
         FunctionNodeHelper::kPositionalParameters);
-    intptr_t list_length = ReadListLength();  // read number of positionals.
-    if (list_length > 0) {
-      intptr_t first_parameter_offset = ReaderOffset() + data_program_offset_;
-      first_parameter = LookupVariable(first_parameter_offset);
+    {
+      AlternativeReadingScope alt2(&reader_);
+      intptr_t list_length = ReadListLength();  // read number of positionals.
+      if (list_length > 0) {
+        intptr_t first_parameter_offset = ReaderOffset() + data_program_offset_;
+        first_parameter = LookupVariable(first_parameter_offset);
+      }
     }
     token_position = function_node_helper.position_;
+    if (dart_function.IsSuspendableFunction()) {
+      function_node_helper.ReadUntilExcluding(
+          FunctionNodeHelper::kEmittedValueType);
+      if (ReadTag() == kSomething) {
+        emitted_value_type = &T.BuildType();  // read emitted value type.
+      } else {
+        UNREACHABLE();
+      }
+    }
   }
 
   auto graph_entry = flow_graph_builder_->graph_entry_ =
@@ -830,7 +836,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // objects than necessary during GC.
   const Fragment body =
       ClearRawParameters(dart_function) + B->BuildNullAssertions() +
-      InitSuspendableFunction(dart_function) +
+      InitSuspendableFunction(dart_function, emitted_value_type) +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
   auto extra_entry_point_style =
@@ -1878,6 +1884,7 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
   bool negate = false;
   while (PeekTag() == kNot) {
     SkipBytes(1);
+    ReadPosition();
     negate = !negate;
   }
 
@@ -1886,6 +1893,7 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
     // Handle '&&' and '||' operators specially to implement short circuit
     // evaluation.
     SkipBytes(1);  // tag.
+    ReadPosition();
 
     TestFragment left = TranslateConditionForControl();
     LogicalOperator op = static_cast<LogicalOperator>(ReadByte());
@@ -3333,22 +3341,28 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     ++argument_count;
   }
 
+  if (target.IsCachableIdempotent()) {
+    return BuildCachableIdempotentCall(position, target);
+  }
+
   const auto recognized_kind = target.recognized_kind();
   switch (recognized_kind) {
     case MethodRecognizer::kNativeEffect:
       return BuildNativeEffect();
     case MethodRecognizer::kReachabilityFence:
       return BuildReachabilityFence();
-    case MethodRecognizer::kFfiAsFunctionInternal:
-      return BuildFfiAsFunctionInternal();
+    case MethodRecognizer::kFfiCall:
+      return BuildFfiCall();
     case MethodRecognizer::kFfiNativeCallbackFunction:
       return BuildFfiNativeCallbackFunction(
-          FfiFunctionKind::kIsolateLocalStaticCallback);
+          FfiCallbackKind::kIsolateLocalStaticCallback);
+    case MethodRecognizer::kFfiNativeAddressOf:
+      return BuildFfiNativeAddressOf();
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
       return BuildFfiNativeCallbackFunction(
-          FfiFunctionKind::kIsolateLocalClosureCallback);
+          FfiCallbackKind::kIsolateLocalClosureCallback);
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
-      return BuildFfiNativeCallbackFunction(FfiFunctionKind::kAsyncCallback);
+      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsyncCallback);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
       return BuildLoadAbiSpecificInt(/*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
@@ -3523,8 +3537,9 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
   return instructions + Drop();
 }
 
-Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) *p = position;
 
   TokenPosition operand_position = TokenPosition::kNoSource;
   Fragment instructions =
@@ -3582,6 +3597,7 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
   // Skip negations of the right hand side.
   while (PeekTag() == kNot) {
     SkipBytes(1);
+    ReadPosition();
     negated = !negated;
   }
 
@@ -3591,6 +3607,7 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
 
   if (PeekTag() == kLogicalExpression) {
     SkipBytes(1);
+    ReadPosition();
     // Handle nested logical expressions specially to avoid materializing
     // intermediate boolean values.
     right_value += TranslateLogicalExpressionForValue(negated, side_exits);
@@ -3619,9 +3636,9 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
   return Fragment(left.entry, right_value.current);
 }
 
-Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) *p = position;
 
   TestFragment exits;
   exits.true_successor_addresses = new TestFragment::SuccessorAddressArray(2);
@@ -3657,8 +3674,9 @@ Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildConditionalExpression(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+    TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) *p = position;
 
   TestFragment condition = TranslateConditionForControl();  // read condition.
 
@@ -4243,6 +4261,8 @@ Fragment StreamingFlowGraphBuilder::BuildBlockExpression() {
   Fragment instructions;
 
   instructions += EnterScope(offset);
+
+  ReadPosition();                                 // ignore file offset.
   const intptr_t list_length = ReadListLength();  // read number of statements.
   for (intptr_t i = 0; i < list_length; ++i) {
     instructions += BuildStatement();  // read ith statement.
@@ -4363,8 +4383,9 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+    TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
 
   // Create a copy of the closure.
 
@@ -6203,55 +6224,127 @@ Fragment StreamingFlowGraphBuilder::BuildStoreAbiSpecificInt(bool at_index) {
   return code;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
+Fragment StreamingFlowGraphBuilder::BuildFfiCall() {
   const intptr_t argc = ReadUInt();               // Read argument count.
-  ASSERT(argc == 2);                              // Pointer, isLeaf.
+  ASSERT(argc == 1);                              // Target pointer.
   const intptr_t list_length = ReadListLength();  // Read types list length.
-  ASSERT(list_length == 2);  // Dart signature, then native signature
-  // Read types.
-  const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
-  Fragment code;
+  T.BuildTypeArguments(list_length);              // Read types.
   // Read positional argument count.
   const intptr_t positional_count = ReadListLength();
-  ASSERT(positional_count == 2);
-  code += BuildExpression();  // Build first positional argument (pointer).
+  ASSERT(positional_count == argc);
 
-  // The second argument, `isLeaf`, is only used internally and dictates whether
-  // we can do a lightweight leaf function call.
-  bool is_leaf = false;
-  Fragment frag = BuildExpression();
-  ASSERT(frag.entry->IsConstant());
-  if (frag.entry->AsConstant()->value().ptr() == Object::bool_true().ptr()) {
-    is_leaf = true;
-  }
-  Pop();
+  Fragment code;
+  // Push the target function pointer passed as Pointer object.
+  code += BuildExpression();
+  // This can only be Pointer, so it is always safe to LoadUntagged.
+  code += B->LoadUntagged(compiler::target::PointerBase::data_offset());
+  code += B->ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
 
   // Skip (empty) named arguments list.
   const intptr_t named_args_len = ReadListLength();
   ASSERT(named_args_len == 0);
 
-  code += B->BuildFfiAsFunctionInternalCall(type_arguments, is_leaf);
+  const auto& native_type = FunctionType::ZoneHandle(
+      Z, parsed_function()->function().FfiCSignature());
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  compiler::ffi::NativeFunctionTypeFromFunctionType(Z, native_type, &error);
+  if (error != nullptr) {
+    const auto& language_error = Error::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+
+  code += B->FfiCallFunctionBody(parsed_function()->function(), native_type,
+                                 /*first_argument_parameter_offset=*/1);
+
+  ASSERT(code.is_closed());
+
+  NullConstant();  // Maintain stack balance.
+
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildArgumentsCachableIdempotentCall(
+    intptr_t* argument_count) {
+  *argument_count = ReadUInt();  // read arguments count.
+
+  // List of types.
+  const intptr_t types_list_length = ReadListLength();
+  if (types_list_length != 0) {
+    FATAL("Type arguments for vm:cachable-idempotent not (yet) supported.");
+  }
+
+  Fragment code;
+  // List of positional.
+  intptr_t positional_list_length = ReadListLength();
+  for (intptr_t i = 0; i < positional_list_length; ++i) {
+    code += BuildExpression();
+    Definition* target_def = B->Peek();
+    if (!target_def->IsConstant()) {
+      FATAL(
+          "Arguments for vm:cachable-idempotent must be const, argument on "
+          "index %" Pd " is not.",
+          i);
+    }
+  }
+
+  // List of named.
+  const intptr_t named_args_len = ReadListLength();
+  if (named_args_len != 0) {
+    FATAL("Named arguments for vm:cachable-idempotent not (yet) supported.");
+  }
+
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildCachableIdempotentCall(
+    TokenPosition position,
+    const Function& target) {
+  // The call site must me fore optimized because the cache is untagged.
+  if (!parsed_function()->function().ForceOptimize()) {
+    FATAL(
+        "vm:cachable-idempotent functions can only be called from "
+        "vm:force-optimize functions.");
+  }
+  const auto& target_result_type = AbstractType::Handle(target.result_type());
+  if (!target_result_type.IsIntType()) {
+    FATAL("The return type vm:cachable-idempotent functions must be int.")
+  }
+
+  Fragment code;
+  Array& argument_names = Array::ZoneHandle(Z);
+  intptr_t argument_count;
+  code += BuildArgumentsCachableIdempotentCall(&argument_count);
+
+  code += flow_graph_builder_->CachableIdempotentCall(
+      position, target, argument_count, argument_names,
+      /*type_args_len=*/0);
+  code += flow_graph_builder_->Box(kUnboxedFfiIntPtr);
+
   return code;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
-    FfiFunctionKind kind) {
+    FfiCallbackKind kind) {
   // The call-site must look like this (guaranteed by the FE which inserts it):
   //
-  // FfiFunctionKind::kIsolateLocalStaticCallback:
+  // FfiCallbackKind::kIsolateLocalStaticCallback:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
-  // FfiFunctionKind::kAsyncCallback:
+  // FfiCallbackKind::kAsyncCallback:
   //   _nativeAsyncCallbackFunction<NativeSignatureType>()
   //
-  // FfiFunctionKind::kIsolateLocalClosureCallback:
+  // FfiCallbackKind::kIsolateLocalClosureCallback:
   //   _nativeIsolateLocalCallbackFunction<NativeSignatureType>(
   //       exceptionalReturn)
   //
   // The FE also guarantees that the arguments are constants.
 
-  const bool has_target = kind == FfiFunctionKind::kIsolateLocalStaticCallback;
-  const bool has_exceptional_return = kind != FfiFunctionKind::kAsyncCallback;
+  const bool has_target = kind == FfiCallbackKind::kIsolateLocalStaticCallback;
+  const bool has_exceptional_return = kind != FfiCallbackKind::kAsyncCallback;
   const intptr_t expected_argc =
       static_cast<int>(has_target) + static_cast<int>(has_exceptional_return);
 
@@ -6312,6 +6405,42 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
                                                exceptional_return, kind));
   code += Constant(result);
 
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFfiNativeAddressOf() {
+  const intptr_t argc = ReadUInt();
+  ASSERT(argc == 1);
+  const intptr_t types_length = ReadListLength();
+  ASSERT(types_length == 1);
+  T.BuildTypeArguments(types_length);
+  const intptr_t positional_count = ReadListLength();
+  ASSERT(positional_count == 1);
+
+  Fragment frag = BuildExpression();
+  ASSERT(frag.entry->IsConstant());
+  const auto& native_annotation =
+      Instance::Cast(frag.entry->AsConstant()->value());
+  Drop();
+
+  const auto& pointer_class =
+      Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
+  const auto& type_arguments =
+      TypeArguments::ZoneHandle(Z, IG->object_store()->type_argument_never());
+  Fragment code = Constant(type_arguments);
+  code += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
+  code += LoadLocal(MakeTemporary());  // Duplicate Pointer.
+  // FfiNativeLookupAddress pushes an unboxed value, which is safe even in
+  // unoptimized mode because then there is no reordering and we're consuming
+  // the value directly.
+  code += flow_graph_builder_->FfiNativeLookupAddress(native_annotation);
+  code += flow_graph_builder_->ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
+  code += flow_graph_builder_->StoreNativeField(
+      Slot::PointerBase_data(), InnerPointerAccess::kCannotBeInnerPointer,
+      StoreFieldInstr::Kind::kInitializing);
+
+  const intptr_t named_arg_count = ReadListLength();
+  ASSERT(named_arg_count == 0);
   return code;
 }
 

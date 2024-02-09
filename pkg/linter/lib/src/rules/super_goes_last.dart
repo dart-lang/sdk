@@ -8,6 +8,8 @@ const _desc =
     r'Place the `super` call last in a constructor initialization list.';
 
 const _details = r'''
+NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
+
 **DO** place the `super` call last in a constructor initialization list.
 
 Field initializers are evaluated in the order that they appear in the
@@ -37,6 +39,7 @@ View(Style style, List children)
     : _children = children,
       super(style) {
 ```
+
 ''';
 
 class SuperGoesLast extends LintRule {

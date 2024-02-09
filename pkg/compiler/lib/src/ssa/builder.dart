@@ -40,7 +40,7 @@ import '../js_backend/runtime_types_resolution.dart';
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
-import '../js_model/elements.dart' show JGeneratorBody;
+import '../js_model/elements.dart' show JGeneratorBody, JParameterStub;
 import '../js_model/js_strategy.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
@@ -376,39 +376,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     open(newBlock);
   }
 
-  /// Helper to implement JS_GET_FLAG.
-  ///
-  /// The concrete SSA graph builder will extract a flag parameter from the
-  /// JS_GET_FLAG call and then push a boolean result onto the stack. This
-  /// function provides the boolean value corresponding to the given [flagName].
-  /// If [flagName] is not recognized, this function returns `null` and the
-  /// concrete SSA builder reports an error.
-  bool? _getFlagValue(String flagName) {
-    switch (flagName) {
-      case 'FALSE':
-        return false;
-      case 'DEV_COMPILER':
-        return false;
-      case 'MINIFIED':
-        return options.enableMinification;
-      case 'MUST_RETAIN_METADATA':
-        return false;
-      case 'USE_CONTENT_SECURITY_POLICY':
-        return options.features.useContentSecurityPolicy.isEnabled;
-      case 'VARIANCE':
-        return options.enableVariance;
-      case 'LEGACY':
-        return options.useLegacySubtyping;
-      case 'EXTRA_NULL_SAFETY_CHECKS':
-        // TODO(fishythefish): Handle this flag as needed.
-        return false;
-      case 'PRINT_LEGACY_STARS':
-        return options.printLegacyStars;
-      default:
-        return null;
-    }
-  }
-
   StaticType _getStaticType(ir.Expression node) {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
@@ -547,6 +514,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           }
           _buildMethodSignatureNewRti(originalClosureNode);
           break;
+        case MemberKind.parameterStub:
+          _buildParameterStub(_initialTargetElement as JParameterStub,
+              _functionNodeOf(definition.node)!);
         case MemberKind.generatorBody:
           _buildGeneratorBody(_initialTargetElement as JGeneratorBody,
               _functionNodeOf(definition.node)!);
@@ -1001,12 +971,19 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           constructorData, field.enclosingClass!);
 
       MemberDefinition definition = _elementMap.getMemberDefinition(field);
-      late final ir.Field node;
+      ir.Field node;
       switch (definition.kind) {
         case MemberKind.regular:
           node = definition.node as ir.Field;
           break;
-        default:
+        case MemberKind.constructor:
+        case MemberKind.constructorBody:
+        case MemberKind.closureCall:
+        case MemberKind.closureField:
+        case MemberKind.signature:
+        case MemberKind.generatorBody:
+        case MemberKind.recordGetter:
+        case MemberKind.parameterStub:
           failedAt(field, "Unexpected member definition $definition.");
       }
 
@@ -1239,6 +1216,172 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     _closeFunction();
   }
 
+  /// Constructs a parameter stub based on the signature of [stubMember].
+  void _buildParameterStub(
+      JParameterStub stubMember, ir.FunctionNode targetFunctionNode) {
+    final stubTarget = stubMember.target;
+    final stubParameterStructure = stubMember.parameterStructure;
+
+    _openFunction(stubMember,
+        functionNode: targetFunctionNode,
+        parameterStructure: stubParameterStructure,
+        checks: TargetChecks.none);
+
+    final sourceInformation = _sourceInformationBuilder.buildStub(
+        stubTarget, stubParameterStructure.callStructure);
+    final isIntercepted =
+        closedWorld.interceptorData.isInterceptedMethod(stubMember);
+    final isNativeOrJsInterop =
+        closedWorld.nativeData.hasFixedBackendName(stubTarget);
+
+    List<HInstruction> invokeInputs = [];
+
+    if (stubMember.isInstanceMember) {
+      if (isIntercepted) {
+        // Intercepted instance members need to include the receiver parameter
+        // in the set of inputs.
+        final receiverParameter = graph.explicitReceiverParameter!;
+        final interceptor =
+            _interceptorFor(receiverParameter, sourceInformation);
+        if (!isNativeOrJsInterop) {
+          // Intercepted stubbed native calls are invoked directly on the
+          // receiver rather than forwarding to another interceptor.
+          invokeInputs.add(interceptor);
+        }
+        invokeInputs.add(receiverParameter);
+      } else {
+        // Non-intercepted instance member calls use `this` as the receiver.
+        // Use `graph.thisInstruction` which accounts for `this` being different
+        // in closures.
+        invokeInputs.add(graph.thisInstruction!);
+      }
+    }
+
+    final stubNamedParameters = stubParameterStructure.requiredNamedParameters;
+
+    final parameterLocals = parameters.keys.toList();
+    int? indexOfLastOptionalArgumentInParameters =
+        invokeInputs.length + stubParameterStructure.positionalParameters;
+
+    void updateLocalIfNecessary(DartType type, Local local) {
+      if (!isNativeOrJsInterop) return;
+      type = type.withoutNullability;
+      if (type is FunctionType) {
+        push(HInvokeStatic(
+            _commonElements.closureConverter,
+            [
+              localsHandler.readLocal(local),
+              graph.addConstantInt(type.parameterTypes.length, closedWorld)
+            ],
+            _abstractValueDomain.functionType,
+            const [],
+            targetCanThrow: false));
+        localsHandler.updateLocal(local, pop(),
+            sourceInformation: sourceInformation);
+      }
+    }
+
+    int count = 0;
+    _elementEnvironment.forEachParameter(stubTarget,
+        (DartType type, String? name, ConstantValue? value) {
+      if (count < stubParameterStructure.positionalParameters) {
+        final local = parameterLocals[count];
+        updateLocalIfNecessary(type, local);
+        invokeInputs.add(localsHandler.readLocal(local));
+      } else if (stubNamedParameters.contains(name)) {
+        // The locals may not match the order of this forEach so find the right
+        // one linearly.
+        final local =
+            parameterLocals.firstWhere((parameter) => parameter.name == name);
+        updateLocalIfNecessary(type, local);
+        invokeInputs.add(localsHandler.readLocal(local));
+        indexOfLastOptionalArgumentInParameters = invokeInputs.length;
+      } else if (value == null) {
+        invokeInputs.add(graph.addConstantNull(closedWorld));
+      } else {
+        final defaultValue = graph.addConstant(value, closedWorld);
+        invokeInputs.add(defaultValue);
+        if (!defaultValue.isConstantNull()) {
+          indexOfLastOptionalArgumentInParameters = invokeInputs.length;
+        }
+      }
+      count++;
+    });
+
+    final targetTypeArguments =
+        closedWorld.elementEnvironment.getFunctionTypeVariables(stubTarget);
+
+    if (targetTypeArguments.length > 0) {
+      if (stubParameterStructure.typeParameters == 0) {
+        // This stub does not include type parameters so use RTI to make the
+        // appropriate defaults.
+        for (final typeVariable in targetTypeArguments) {
+          invokeInputs
+              .add(_typeBuilder.analyzeTypeArgument(typeVariable, stubMember));
+        }
+      } else {
+        // `_functionTypeParameterLocals` might be empty if type arguments are
+        // elided from the target member.
+        for (final local in _functionTypeParameterLocals) {
+          invokeInputs.add(localsHandler.readLocal(local));
+        }
+      }
+    }
+
+    // We treat the return type of all these invocations as dynamic.
+    // Though we can know the return type of the target method, this doesn't
+    // help us emit better code.
+    final returnType = _abstractValueDomain.dynamicType;
+
+    if (isNativeOrJsInterop) {
+      // Native calls don't pass trailing null optional parameters.
+      final nativeInputs =
+          invokeInputs.sublist(0, indexOfLastOptionalArgumentInParameters);
+      push(HInvokeExternal(stubTarget, nativeInputs, returnType,
+          closedWorld.nativeData.getNativeMethodBehavior(stubTarget),
+          sourceInformation: sourceInformation));
+    } else if (stubTarget.isInstanceMember) {
+      if (stubTarget.enclosingClass!.isClosure) {
+        push(HInvokeClosure(
+            stubTarget.parameterStructure.callStructure.callSelector,
+            _abstractValueDomain.dynamicType,
+            invokeInputs,
+            returnType,
+            targetTypeArguments));
+      } else if (stubMember.needsSuper) {
+        push(HInvokeSuper(
+            stubTarget,
+            stubMember.enclosingClass!,
+            Selector.fromElement(stubTarget),
+            invokeInputs,
+            isIntercepted,
+            returnType,
+            targetTypeArguments,
+            sourceInformation,
+            isSetter: false));
+      } else {
+        push(HInvokeDynamicMethod(
+            Selector.fromElement(stubTarget),
+            _abstractValueDomain.dynamicType,
+            invokeInputs,
+            returnType,
+            targetTypeArguments,
+            sourceInformation,
+            isIntercepted: isIntercepted)
+          ..element = stubTarget);
+      }
+    } else {
+      push(HInvokeStatic(
+          stubTarget, invokeInputs, returnType, targetTypeArguments,
+          isIntercepted: isIntercepted,
+          targetCanThrow: !_inferredData.getCannotThrow(stubTarget)));
+    }
+
+    close(HReturn(pop(), sourceInformation)).addSuccessor(graph.exit);
+
+    _closeFunction();
+  }
+
   /// Builds generative constructor body.
   void _buildConstructorBody(ir.Constructor constructor) {
     FunctionEntity constructorBody =
@@ -1400,7 +1543,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     // Add the type parameter for the generator's element type.
     DartType elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
-        function.asyncMarker, _returnType!);
+        function, _returnType!);
 
     // TODO(sra): [elementType] can contain free type variables that are erased
     // due to no rtiNeed. We will get getter code if these type variables are
@@ -1487,7 +1630,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // Call `_makeSyncStarIterable<T>(body)`. This usually gets inlined.
 
     final elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
-        function.asyncMarker, _returnType!);
+        function, _returnType!);
     FunctionEntity method = _commonElements.syncStarIterableFactory;
     List<HInstruction> arguments = [pop()];
     List<DartType> typeArguments = const [];
@@ -1847,11 +1990,13 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         _sourceInformationBuilder.buildDeclaration(targetElement),
         isGenerativeConstructorBody: targetElement is ConstructorBodyEntity);
 
-    ir.Member memberContextNode = _elementMap.getMemberContextNode(member)!;
-    for (ir.VariableDeclaration node in elidedParameters) {
-      Local local = _localsMap.getLocalVariable(node);
-      localsHandler.updateLocal(
-          local, _defaultValueForParameter(memberContextNode, node));
+    ir.Member? memberContextNode = _elementMap.getMemberContextNode(member);
+    if (memberContextNode != null) {
+      for (ir.VariableDeclaration node in elidedParameters) {
+        Local local = _localsMap.getLocalVariable(node);
+        localsHandler.updateLocal(
+            local, _defaultValueForParameter(memberContextNode, node));
+      }
     }
 
     _addClassTypeVariablesIfNeeded(member);
@@ -4474,8 +4619,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       _handleForeignJsEmbeddedGlobal(invocation);
     } else if (name == 'JS_BUILTIN') {
       _handleForeignJsBuiltin(invocation);
-    } else if (name == 'JS_GET_FLAG') {
-      _handleForeignJsGetFlag(invocation);
+    } else if (name == 'JS_FALSE') {
+      _handleForeignJsFalse(invocation);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(closedWorld));
     } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
@@ -4980,31 +5125,16 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
         return js.js.expressionTemplateFor("$typesAccess[#]");
 
-      default:
+      case JsBuiltin.isJsInteropTypeArgument:
         reporter.internalError(
             NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
         return null;
     }
   }
 
-  void _handleForeignJsGetFlag(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 1, maxPositional: 1)) {
-      stack.add(
-          // Result expected on stack.
-          graph.addConstantBool(false, closedWorld));
-      return;
-    }
-    String name = _foreignConstantStringArgument(invocation, 0, 'JS_GET_FLAG')!;
-    final value = _getFlagValue(name);
-    if (value == null) {
-      reporter.reportErrorMessage(
-          _elementMap.getSpannable(targetElement, invocation),
-          MessageKind.GENERIC,
-          {'text': 'Error: Unknown internal flag "$name".'});
-    } else {
-      stack.add(graph.addConstantBool(value, closedWorld));
-    }
+  void _handleForeignJsFalse(ir.StaticInvocation invocation) {
+    _unexpectedForeignArguments(invocation, minPositional: 0, maxPositional: 0);
+    stack.add(graph.addConstantBool(false, closedWorld));
   }
 
   void _handleJsInterceptorConstant(ir.StaticInvocation invocation) {
@@ -6734,8 +6864,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         final node = definition.node as ir.LocalFunction;
         node.function.body!.accept(this);
         return;
-      default:
-        break;
+      case MemberKind.closureField:
+      case MemberKind.generatorBody:
+      case MemberKind.recordGetter:
+      case MemberKind.signature:
+      case MemberKind.parameterStub:
     }
     failedAt(function, "Unexpected inlined function: $definition");
   }

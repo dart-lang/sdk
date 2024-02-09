@@ -39,7 +39,8 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
     // Find the result from the first range
     final range = code.ranges.first;
     final sourceRange = range.sourceRange;
-    findRegion(sourceRange.offset, sourceRange.length, true);
+    findRegion(sourceRange.offset, sourceRange.length,
+        kind: kind, exists: true);
 
     expect(testOccurrences.element.kind, kind);
     expect(testOccurrences.element.name, elementName ?? range.text);
@@ -49,19 +50,25 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
 
   /// Finds an [Occurrences] with the given [offset] and [length].
   ///
+  /// If [kind] is provided, prefers a response with this kind if there
+  /// are multiple matches.
+  ///
   /// If [exists] is `true`, then fails if such [Occurrences] does not exist.
   /// Otherwise remembers this it into [testOccurrences].
   ///
   /// If [exists] is `false`, then fails if such [Occurrences] exists.
-  void findRegion(int offset, int length, [bool? exists]) {
+  void findRegion(int offset, int length, {ElementKind? kind, bool? exists}) {
+    var searchDescription =
+        '(offset=$offset; length=$length${kind != null ? ', kind=$kind' : ''})';
     for (var occurrences in occurrencesList) {
       if (occurrences.length != length) {
         continue;
       }
       for (var occurrenceOffset in occurrences.offsets) {
-        if (occurrenceOffset == offset) {
+        if (occurrenceOffset == offset &&
+            (kind == null || kind == occurrences.element.kind)) {
           if (exists == false) {
-            fail('Not expected to find (offset=$offset; length=$length) in\n'
+            fail('Not expected to find ($searchDescription) in\n'
                 '${occurrencesList.join('\n')}');
           }
           testOccurrences = occurrences;
@@ -70,7 +77,7 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
       }
     }
     if (exists == true) {
-      fail('Expected to find (offset=$offset; length=$length) in\n'
+      fail('Expected to find ($searchDescription) in\n'
           '${occurrencesList.join('\n')}');
     }
   }
@@ -527,6 +534,37 @@ void f(String? maybeString) {
     );
   }
 
+  Future<void> test_pattern_object_destructure_getter() async {
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
+class A {
+  String? /*[0*/key/*0]*/;
+}
+
+void f() {
+  final A(:/*[1*/key/*1]*/) = A();
+}
+      ''',
+    );
+  }
+
+  Future<void> test_pattern_object_destructure_variable() async {
+    await assertOccurrences(
+      kind: ElementKind.LOCAL_VARIABLE,
+      '''
+class A {
+  String? key;
+}
+
+void f() {
+  final A(:/*[0*/key/*0]*/) = A();
+  /*[1*/key/*1]*/;
+}
+      ''',
+    );
+  }
+
   Future<void> test_pattern_object_fieldName() async {
     await assertOccurrences(
       kind: ElementKind.FIELD,
@@ -540,7 +578,6 @@ class Shape { }
 class Square extends Shape {
   double get /*[1*/length/*1]*/ => 0;
 }
-    );
       ''',
     );
   }
@@ -683,7 +720,7 @@ dynamic V = 3;
 ''');
     await prepareOccurrences();
     var offset = findOffset('dynamic a');
-    findRegion(offset, 'dynamic'.length, false);
+    findRegion(offset, 'dynamic'.length, exists: false);
   }
 
   Future<void> test_type_void() async {
@@ -693,6 +730,6 @@ void f() {
 ''');
     await prepareOccurrences();
     var offset = findOffset('void f()');
-    findRegion(offset, 'void'.length, false);
+    findRegion(offset, 'void'.length, exists: false);
   }
 }

@@ -16,6 +16,8 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -32,9 +34,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
-import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/lint/analysis.dart';
-import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
@@ -42,65 +42,51 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:glob/glob.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
-export 'package:analyzer/src/lint/state.dart' show dart2_12, dart3, State;
+export 'package:analyzer/src/lint/state.dart'
+    show dart2_12, dart3, dart3_3, State;
 
 typedef Printer = void Function(String msg);
 
-/// Describes a String in valid camel case format.
-@deprecated // Never intended for public use.
-class CamelCaseString {
-  static final _camelCaseMatcher = RegExp(r'[A-Z][a-z]*');
-  static final _camelCaseTester = RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
-
-  final String value;
-
-  CamelCaseString(this.value) {
-    if (!isCamelCase(value)) {
-      throw ArgumentError('$value is not CamelCase');
-    }
-  }
-
-  String get humanized => _humanize(value);
-
-  @override
-  String toString() => value;
-
-  static bool isCamelCase(String name) => _camelCaseTester.hasMatch(name);
-
-  static String _humanize(String camelCase) =>
-      _camelCaseMatcher.allMatches(camelCase).map((m) => m.group(0)).join(' ');
-}
-
-/// Dart source linter.
+/// Dart source linter, only for package:linter's tools and tests.
 class DartLinter implements AnalysisErrorListener {
   final errors = <AnalysisError>[];
 
   final LinterOptions options;
+  final file_system.ResourceProvider _resourceProvider;
   final Reporter reporter;
 
   /// The total number of sources that were analyzed.  Only valid after
   /// [lintFiles] has been called.
   late int numSourcesAnalyzed;
 
-  /// Creates a new linter.
-  DartLinter(this.options, {this.reporter = const PrintingReporter()});
+  DartLinter(
+    this.options, {
+    file_system.ResourceProvider? resourceProvider,
+    this.reporter = const PrintingReporter(),
+  }) : _resourceProvider =
+            resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
 
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     List<AnalysisErrorInfo> errors = [];
-    final lintDriver = LintDriver(options);
+    final lintDriver = LintDriver(options, _resourceProvider);
     errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
     numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
-    files.where((f) => isPubspecFile(f)).forEach((p) {
+    files.where((f) => isPubspecFile(f)).forEach((path) {
       numSourcesAnalyzed++;
-      return errors.addAll(_lintPubspecFile(p));
+      var errorsForFile = lintPubspecSource(
+        contents: path.readAsStringSync(),
+        sourcePath: _resourceProvider.pathContext.normalize(path.absolute.path),
+      );
+      errors.addAll(errorsForFile);
     });
     return errors;
   }
 
+  @visibleForTesting
   Iterable<AnalysisErrorInfo> lintPubspecSource(
       {required String contents, String? sourcePath}) {
     var results = <AnalysisErrorInfo>[];
@@ -109,31 +95,29 @@ class DartLinter implements AnalysisErrorListener {
 
     var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
-    for (Linter lint in options.enabledLints) {
-      if (lint is LintRule) {
-        LintRule rule = lint;
-        var visitor = rule.getPubspecVisitor();
-        if (visitor != null) {
-          // Analyzer sets reporters; if this file is not being analyzed,
-          // we need to set one ourselves.  (Needless to say, when pubspec
-          // processing gets pushed down, this hack can go away.)
-          if (sourceUrl != null) {
-            var source = createSource(sourceUrl);
-            rule.reporter = ErrorReporter(
-              this,
-              source,
-              isNonNullableByDefault: false,
-            );
-          }
-          try {
-            spec.accept(visitor);
-          } on Exception catch (e) {
-            reporter.exception(LinterException(e.toString()));
-          }
-          if (rule._locationInfo.isNotEmpty) {
-            results.addAll(rule._locationInfo);
-            rule._locationInfo.clear();
-          }
+    for (var lint in options.enabledRules) {
+      var rule = lint;
+      var visitor = rule.getPubspecVisitor();
+      if (visitor != null) {
+        // Analyzer sets reporters; if this file is not being analyzed,
+        // we need to set one ourselves.  (Needless to say, when pubspec
+        // processing gets pushed down, this hack can go away.)
+        if (sourceUrl != null) {
+          var source = createSource(sourceUrl);
+          rule.reporter = ErrorReporter(
+            this,
+            source,
+            isNonNullableByDefault: true,
+          );
+        }
+        try {
+          spec.accept(visitor);
+        } on Exception catch (e) {
+          reporter.exception(LinterException(e.toString()));
+        }
+        if (rule._locationInfo.isNotEmpty) {
+          results.addAll(rule._locationInfo);
+          rule._locationInfo.clear();
         }
       }
     }
@@ -143,28 +127,6 @@ class DartLinter implements AnalysisErrorListener {
 
   @override
   void onError(AnalysisError error) => errors.add(error);
-
-  Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
-      lintPubspecSource(
-          contents: sourceFile.readAsStringSync(),
-          sourcePath: options.resourceProvider.pathContext
-              .normalize(sourceFile.absolute.path));
-}
-
-class FileGlobFilter extends LintFilter {
-  List<Glob> includes;
-  List<Glob> excludes;
-
-  FileGlobFilter(Iterable<String> includeGlobs, Iterable<String> excludeGlobs)
-      : includes = includeGlobs.map((glob) => Glob(glob)).toList(),
-        excludes = excludeGlobs.map((glob) => Glob(glob)).toList();
-
-  @override
-  bool filter(AnalysisError lint) {
-    // TODO specify order
-    return excludes.any((glob) => glob.matches(lint.source.fullName)) &&
-        !includes.any((glob) => glob.matches(lint.source.fullName));
-  }
 }
 
 class Group implements Comparable<Group> {
@@ -231,10 +193,16 @@ class LinterConstantEvaluationResult {
 abstract class LinterContext {
   List<LinterContextUnit> get allUnits;
 
+  @Deprecated('This field is being removed; for access to the analysis options '
+      'that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
   AnalysisOptions get analysisOptions;
 
   LinterContextUnit get currentUnit;
 
+  @Deprecated('This field is being removed; for access to the '
+      'DeclaredVariables that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
   DeclaredVariables get declaredVariables;
 
   InheritanceManager3 get inheritanceManager;
@@ -245,7 +213,7 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  /// Return `true` if it would be valid for the given [expression] to have
+  /// Returns `true` if it would be valid for the given [expression] to have
   /// a keyword of `const`.
   ///
   /// The [expression] is expected to be a node within one of the compilation
@@ -255,49 +223,56 @@ abstract class LinterContext {
   /// computationally expensive.
   bool canBeConst(Expression expression);
 
-  /// Return `true` if it would be valid for the given constructor declaration
+  /// Returns `true` if it would be valid for the given constructor declaration
   /// [node] to have a keyword of `const`.
   ///
-  /// The [node] is expected to be a node within one of the compilation
-  /// units in [allUnits].
+  /// The [node] is expected to be a node within one of the compilation units in
+  /// [allUnits].
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
   bool canBeConstConstructor(ConstructorDeclaration node);
 
-  /// Return the result of evaluating the given expression.
+  /// Returns the result of evaluating the given expression.
   LinterConstantEvaluationResult evaluateConstant(Expression node);
 
-  /// Return `true` if the given [unit] is in a test directory.
+  /// Returns `true` if the given [unit] is in a test directory.
   bool inTestDir(CompilationUnit unit);
 
-  /// Return `true` if the [feature] is enabled in the library being linted.
+  /// Returns `true` if the [feature] is enabled in the library being linted.
   bool isEnabled(Feature feature);
 
-  /// Resolve the name `id` or `id=` (if [setter] is `true`) an the location
+  /// Resolves the name `id` or `id=` (if [setter] is `true`) at the location
   /// of the [node], according to the "16.35 Lexical Lookup" of the language
   /// specification.
+  @Deprecated('Use resolveNameInScope2')
   LinterNameInScopeResolutionResult resolveNameInScope(
       String id, bool setter, AstNode node);
+
+  /// Resolves the name `id` or `id=` (if [setter] is `true`) at the location
+  /// of the [node], according to the "16.35 Lexical Lookup" of the language
+  /// specification.
+  LinterNameInScopeResolutionResult resolveNameInScope2(
+    String id,
+    AstNode node, {
+    required bool setter,
+  });
 }
 
-/// Implementation of [LinterContext]
 class LinterContextImpl implements LinterContext {
   @override
   final List<LinterContextUnit> allUnits;
 
-  @override
-  final AnalysisOptions analysisOptions;
-
+  // TODO(srawlins): Remove when the public accessor, `analysisOption`, is
+  // removed.
+  final AnalysisOptions _analysisOptions;
   @override
   final LinterContextUnit currentUnit;
 
-  @override
-  final DeclaredVariables declaredVariables;
+  final DeclaredVariables _declaredVariables;
 
   @override
   final WorkspacePackage? package;
-
   @override
   final TypeProvider typeProvider;
 
@@ -307,19 +282,33 @@ class LinterContextImpl implements LinterContext {
   @override
   final InheritanceManager3 inheritanceManager;
 
-  final List<String> testDirectories;
+  final List<String> _testDirectories;
 
   LinterContextImpl(
     this.allUnits,
     this.currentUnit,
-    this.declaredVariables,
+    DeclaredVariables declaredVariables,
     this.typeProvider,
     this.typeSystem,
     this.inheritanceManager,
-    this.analysisOptions,
+    AnalysisOptions analysisOptions,
     this.package,
     p.Context pathContext,
-  ) : testDirectories = LinterContextImpl.getTestDirectories(pathContext);
+  )   : _declaredVariables = declaredVariables,
+        _analysisOptions = analysisOptions,
+        _testDirectories = getTestDirectories(pathContext);
+
+  @override
+  @Deprecated('This field is being removed; for access to the analysis options '
+      'that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
+  AnalysisOptions get analysisOptions => _analysisOptions;
+
+  @override
+  @Deprecated('This field is being removed; for access to the '
+      'DeclaredVariables that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
+  DeclaredVariables get declaredVariables => _declaredVariables;
 
   @override
   bool canBeConst(Expression expression) {
@@ -366,7 +355,7 @@ class LinterContextImpl implements LinterContext {
     );
 
     var evaluationEngine = ConstantEvaluationEngine(
-      declaredVariables: declaredVariables,
+      declaredVariables: _declaredVariables,
       isNonNullableByDefault: isEnabled(Feature.non_nullable),
       configuration: ConstantEvaluationConfiguration(),
     );
@@ -377,7 +366,7 @@ class LinterContextImpl implements LinterContext {
     );
 
     computeConstants(
-      declaredVariables: declaredVariables,
+      declaredVariables: _declaredVariables,
       constants: dependencies,
       featureSet: libraryElement.featureSet,
       configuration: ConstantEvaluationConfiguration(),
@@ -397,7 +386,7 @@ class LinterContextImpl implements LinterContext {
   @override
   bool inTestDir(CompilationUnit unit) {
     var path = unit.declaredElement?.source.fullName;
-    return path != null && testDirectories.any(path.contains);
+    return path != null && _testDirectories.any(path.contains);
   }
 
   @override
@@ -408,7 +397,15 @@ class LinterContextImpl implements LinterContext {
 
   @override
   LinterNameInScopeResolutionResult resolveNameInScope(
-      String id, bool setter, AstNode node) {
+          String id, bool setter, AstNode node) =>
+      resolveNameInScope2(id, node, setter: setter);
+
+  @override
+  LinterNameInScopeResolutionResult resolveNameInScope2(
+    String id,
+    AstNode node, {
+    required bool setter,
+  }) {
     Scope? scope;
     for (AstNode? context = node; context != null; context = context.parent) {
       scope = ScopeResolverVisitor.getNodeNameScope(context);
@@ -485,7 +482,7 @@ class LinterContextImpl implements LinterContext {
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
     node.accept(dependenciesFinder);
     computeConstants(
-      declaredVariables: declaredVariables,
+      declaredVariables: _declaredVariables,
       constants: dependenciesFinder.dependencies.toList(),
       featureSet: libraryElement.featureSet,
       configuration: ConstantEvaluationConfiguration(),
@@ -502,7 +499,7 @@ class LinterContextImpl implements LinterContext {
       ConstantVerifier(
         errorReporter,
         libraryElement,
-        declaredVariables,
+        _declaredVariables,
       ),
     );
     return listener.hasConstError;
@@ -535,13 +532,18 @@ class LinterContextParsedImpl implements LinterContext {
   LinterContextParsedImpl(
     this.allUnits,
     this.currentUnit,
-    //  this.package,
   );
 
   @override
+  @Deprecated('This field is being removed; for access to the analysis options '
+      'that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
   AnalysisOptions get analysisOptions => throw UnimplementedError();
 
   @override
+  @Deprecated('This field is being removed; for access to the '
+      'DeclaredVariables that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
   DeclaredVariables get declaredVariables =>
       throw UnsupportedError('LinterContext with parsed results');
 
@@ -577,6 +579,14 @@ class LinterContextParsedImpl implements LinterContext {
   LinterNameInScopeResolutionResult resolveNameInScope(
           String id, bool setter, AstNode node) =>
       throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  LinterNameInScopeResolutionResult resolveNameInScope2(
+    String id,
+    AstNode node, {
+    required bool setter,
+  }) =>
+      throw UnsupportedError('LinterContext with parsed results');
 }
 
 class LinterContextUnit {
@@ -587,9 +597,9 @@ class LinterContextUnit {
   LinterContextUnit(this.content, this.unit);
 }
 
-/// TODO(scheglov) This class exists only because there are places in the
-/// analyzer and analysis server that instantiate [LinterContextUnit]. This
-/// should not happen, and should be fixed.
+// TODO(scheglov): This class exists only because there are places in the
+// analyzer and analysis server that instantiate [LinterContextUnit]. This
+// should not happen, and should be fixed.
 class LinterContextUnit2 implements LinterContextUnit {
   final FileState file;
 
@@ -647,22 +657,17 @@ class LinterNameInScopeResolutionResult {
   }
 }
 
-/// Linter options.
 class LinterOptions extends DriverOptions {
-  Iterable<LintRule> enabledLints;
-  String? analysisOptions;
+  final Iterable<LintRule> enabledRules;
+  final String? analysisOptions;
   LintFilter? filter;
-  late file_system.ResourceProvider resourceProvider;
 
-  // todo (pq): consider migrating to named params (but note Linter dep).
-  LinterOptions([Iterable<LintRule>? enabledLints, this.analysisOptions])
-      : enabledLints = enabledLints ?? Registry.ruleRegistry;
-
-  void configure(LintConfig config) {
-    enabledLints = Registry.ruleRegistry.where((LintRule rule) =>
-        !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
-    filter = FileGlobFilter(config.fileIncludes, config.fileExcludes);
-  }
+  // TODO(pq): consider migrating to named params (but note Linter dep).
+  LinterOptions({
+    Iterable<LintRule>? enabledRules,
+    this.analysisOptions,
+    this.filter,
+  }) : enabledRules = enabledRules ?? Registry.ruleRegistry;
 }
 
 /// Filtered lints are omitted from linter output.
@@ -835,85 +840,6 @@ abstract class Reporter {
   void warn(String message);
 }
 
-/// Linter implementation.
-class SourceLinter implements DartLinter, AnalysisErrorListener {
-  @override
-  final errors = <AnalysisError>[];
-  @override
-  final LinterOptions options;
-  @override
-  final Reporter reporter;
-
-  @override
-  late int numSourcesAnalyzed;
-
-  SourceLinter(this.options, {this.reporter = const PrintingReporter()});
-
-  @override
-  Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
-    List<AnalysisErrorInfo> errors = [];
-    final lintDriver = LintDriver(options);
-    errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
-    numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
-    files.where((f) => isPubspecFile(f)).forEach((p) {
-      numSourcesAnalyzed++;
-      return errors.addAll(_lintPubspecFile(p));
-    });
-    return errors;
-  }
-
-  @override
-  Iterable<AnalysisErrorInfo> lintPubspecSource(
-      {required String contents, String? sourcePath}) {
-    var results = <AnalysisErrorInfo>[];
-
-    var sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
-
-    var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
-
-    for (Linter lint in options.enabledLints) {
-      if (lint is LintRule) {
-        LintRule rule = lint;
-        var visitor = rule.getPubspecVisitor();
-        if (visitor != null) {
-          // Analyzer sets reporters; if this file is not being analyzed,
-          // we need to set one ourselves.  (Needless to say, when pubspec
-          // processing gets pushed down, this hack can go away.)
-          if (sourceUrl != null) {
-            var source = createSource(sourceUrl);
-            rule.reporter = ErrorReporter(
-              this,
-              source,
-              isNonNullableByDefault: false,
-            );
-          }
-          try {
-            spec.accept(visitor);
-          } on Exception catch (e) {
-            reporter.exception(LinterException(e.toString()));
-          }
-
-          var locationInfo = rule._locationInfo;
-          if (!identical(null, locationInfo) && locationInfo.isNotEmpty) {
-            results.addAll(rule._locationInfo);
-            rule._locationInfo.clear();
-          }
-        }
-      }
-    }
-
-    return results;
-  }
-
-  @override
-  void onError(AnalysisError error) => errors.add(error);
-
-  @override
-  Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
-      lintPubspecSource(
-          contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
-}
-
 /// An error listener that only records whether any constant related errors have
 /// been reported.
 class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
@@ -948,6 +874,8 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_WITH_NON_CONST:
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
         case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
+        case CompileTimeErrorCode
+              .CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
         case CompileTimeErrorCode.INVALID_CONSTANT:
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:

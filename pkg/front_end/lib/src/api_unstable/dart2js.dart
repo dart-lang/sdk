@@ -179,9 +179,8 @@ Future<Component?> compile(
     bool verbose,
     FileSystem fileSystem,
     DiagnosticMessageHandler onDiagnostic,
-    List<Uri> inputs,
-    bool isModularCompile) async {
-  assert(inputs.length == 1 || isModularCompile);
+    List<Uri> inputs) async {
+  assert(inputs.length == 1);
   CompilerOptions options = state.options;
   options
     ..onDiagnostic = onDiagnostic
@@ -198,7 +197,7 @@ Future<Component?> compile(
     CompilerResult compilerResult = await generateKernelInternal();
     Component? component = compilerResult.component;
     if (component == null) return null;
-    if (component.mainMethod == null && !isModularCompile) {
+    if (component.mainMethod == null) {
       context.options.report(
           messageMissingMain.withLocation(inputs.single, -1, 0),
           Severity.error);

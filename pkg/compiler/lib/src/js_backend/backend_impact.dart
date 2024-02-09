@@ -403,6 +403,7 @@ class BackendImpacts {
     staticUses: [
       _commonElements.jsAllowInterop!,
     ],
+    instantiatedClasses: [_commonElements.jsJavaScriptFunctionClass],
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeIsolateAffinityTag,
     ], fixed: true),

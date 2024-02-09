@@ -9,9 +9,15 @@
 import 'dart:io';
 import 'dart:async';
 
-Future<String> getVersion(var rootPath) {
+Future<String> getVersion(var rootPath, bool noGitHash) {
   var printVersionScript = rootPath.resolve("tools/make_version.py");
-  return Process.run("python3", [printVersionScript.toFilePath(), "--quiet"],
+  return Process.run(
+          "python3",
+          [
+            printVersionScript.toFilePath(),
+            "--quiet",
+            if (noGitHash) '--no-git-hash'
+          ],
           runInShell: true)
       .then((result) {
     if (result.exitCode != 0) {
@@ -21,8 +27,8 @@ Future<String> getVersion(var rootPath) {
   });
 }
 
-Future<String> getDart2jsSnapshotGenerationFile(var rootPath) {
-  return getVersion(rootPath).then((version) {
+Future<String> getDart2jsSnapshotGenerationFile(var rootPath, bool noGitHash) {
+  return getVersion(rootPath, noGitHash).then((version) {
     var snapshotGenerationText = """
 import 'package:compiler/src/dart2js.dart' as dart2jsMain;
 
@@ -39,11 +45,17 @@ void main(List<String> arguments) {
  * Takes the following arguments:
  * --output_dir=val     The full path to the output_dir.
  * --dart2js_main=val   The path to the dart2js main script relative to root.
+ * --no-git-hash        Omit the git hash in the output.
  */
 void main(List<String> arguments) {
+  bool noGitHash = false;
   var validArguments = ["--output_dir", "--dart2js_main"];
   var args = {};
   for (var argument in arguments) {
+    if (argument == '--no-git-hash') {
+      noGitHash = true;
+      continue;
+    }
     var argumentSplit = argument.split("=");
     if (argumentSplit.length != 2) throw "Invalid argument $argument, no =";
     if (!validArguments.contains(argumentSplit[0])) {
@@ -57,7 +69,7 @@ void main(List<String> arguments) {
   var path = scriptFile.resolve(".");
   var rootPath = path.resolve("../..");
 
-  getDart2jsSnapshotGenerationFile(rootPath).then((result) {
+  getDart2jsSnapshotGenerationFile(rootPath, noGitHash).then((result) {
     var wrapper = "${args['output_dir']}/dart2js.dart";
     new File(wrapper).writeAsStringSync(result);
   });

@@ -86,7 +86,7 @@ class ClientManager {
   /// know if it is refreshing or gone.
   Future<DevToolsClient?> findReusableClient() {
     final candidates =
-        _clients.where((c) => !c.hasConnection && !c.embedded).toList();
+        _clients.where((c) => !c.hasConnection && c.reusable).toList();
 
     return _firstResponsiveClient(candidates);
   }
@@ -101,7 +101,7 @@ class ClientManager {
     final candidates = _clients
         .where((c) =>
             c.hasConnection &&
-            !c.embedded &&
+            c.reusable &&
             _areSameVmServices(c.vmServiceUri!, vmServiceUri))
         .toList();
 
@@ -209,6 +209,7 @@ class DevToolsClient {
     });
 
     _devToolsPeer.registerMethod('currentPage', (parameters) {
+      _initialized = true;
       _currentPage = parameters['id'].asString;
       _embedded = parameters['embedded'].asBool;
     });
@@ -270,6 +271,15 @@ class DevToolsClient {
         'vmServiceUri': vmServiceUri?.toString(),
       };
 
+  /// Whether this client has initialized by sending a `currentPage` event to
+  /// indicate a page has loaded.
+  ///
+  /// Until the currentPage has been received, we do not know if a client is
+  /// embedded or not so we must not reuse any clients that are in this
+  /// uninitialized state.
+  bool get initialized => _initialized;
+  bool _initialized = false;
+
   /// The current DevTools page displayed by this client.
   String? get currentPage => _currentPage;
   String? _currentPage;
@@ -282,6 +292,10 @@ class DevToolsClient {
   /// connected to. Returns null if the client is not connected to a process.
   Uri? get vmServiceUri => _vmServiceUri;
   Uri? _vmServiceUri;
+
+  /// Whether this client can be reused when the user tries to navigate to a
+  /// different DevTools page.
+  bool get reusable => initialized && !embedded;
 
   bool get hasConnection => _vmServiceUri != null;
 

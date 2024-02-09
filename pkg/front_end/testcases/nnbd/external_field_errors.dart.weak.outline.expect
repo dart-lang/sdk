@@ -6,18 +6,18 @@ abstract class A extends core::Object {
   constructor •(core::int initializedField1) → self::A
     ;
   external get fieldWithInitializer() → core::int;
-  external set fieldWithInitializer(core::int #externalFieldValue) → void;
+  external set fieldWithInitializer(synthesized core::int #externalFieldValue) → void;
   external get initializedField1() → core::int;
-  external set initializedField1(core::int #externalFieldValue) → void;
+  external set initializedField1(synthesized core::int #externalFieldValue) → void;
   external get initializedField2() → core::int;
-  external set initializedField2(core::int #externalFieldValue) → void;
+  external set initializedField2(synthesized core::int #externalFieldValue) → void;
   external static get staticField() → core::int;
-  external static set staticField(core::int #externalFieldValue) → void;
+  external static set staticField(synthesized core::int #externalFieldValue) → void;
   external static get finalStaticField() → core::int;
 }
 abstract class B extends core::Object /*isMixinDeclaration*/  {
   external static get staticField() → core::int;
-  external static set staticField(core::int #externalFieldValue) → void;
+  external static set staticField(synthesized core::int #externalFieldValue) → void;
   external static get finalStaticField() → core::int;
 }
 extension Extension on self::A {
@@ -29,15 +29,15 @@ extension Extension on self::A {
   static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
 }
 external static get topLevelField() → core::int;
-external static set topLevelField(core::int #externalFieldValue) → void;
+external static set topLevelField(synthesized core::int #externalFieldValue) → void;
 external static get finalTopLevelField() → core::int;
 external static get constField() → core::int;
-external static set constField(core::int #externalFieldValue) → void;
+external static set constField(synthesized core::int #externalFieldValue) → void;
 external static extension-member method Extension|get#extensionInstanceField(lowered self::A #this) → core::int;
-external static extension-member method Extension|set#extensionInstanceField(lowered self::A #this, core::int #externalFieldValue) → void;
+external static extension-member method Extension|set#extensionInstanceField(lowered self::A #this, synthesized core::int #externalFieldValue) → void;
 external static extension-member method Extension|get#finalExtensionInstanceField(lowered self::A #this) → core::int;
 external static extension-member get Extension|extensionStaticField() → core::int;
-external static extension-member set Extension|extensionStaticField(core::int #externalFieldValue) → void;
+external static extension-member set Extension|extensionStaticField(synthesized core::int #externalFieldValue) → void;
 external static extension-member get Extension|finalExtensionStaticField() → core::int;
 static method main() → dynamic
   ;

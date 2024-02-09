@@ -461,7 +461,7 @@ abstract class RenameRefactoring implements Refactoring {
   /// the class when on the `new` keyword).
   static RenameRefactoringElement? getElementToRename(
       AstNode node, Element? element) {
-    // TODO(scheglov) This is bad code.
+    // TODO(scheglov): This is bad code.
     SyntacticEntity? nameNode;
     if (node is AssignedVariablePattern) {
       nameNode = node.name;

@@ -142,7 +142,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
     } else if (name.startsWith('List')) {
       return 'getAsJsonArray';
     } else {
-      // TODO (jwren) cleanup
+      // TODO(jwren): cleanup
       return 'getAsJsonArray';
     }
   }

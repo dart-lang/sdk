@@ -26,7 +26,7 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
     return super.{col::MapBase::containsValue}(value);
   mixin-super-stub method putIfAbsent(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class () → self::_MyMap&Object&MapMixin::V% ifAbsent) → self::_MyMap&Object&MapMixin::V%
     return super.{col::MapBase::putIfAbsent}(key, ifAbsent);
-  mixin-super-stub method update(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class (self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V% update, {covariant-by-class () →? self::_MyMap&Object&MapMixin::V% ifAbsent}) → self::_MyMap&Object&MapMixin::V%
+  mixin-super-stub method update(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class (self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V% update, {covariant-by-class () →? self::_MyMap&Object&MapMixin::V% ifAbsent = #C1}) → self::_MyMap&Object&MapMixin::V%
     return super.{col::MapBase::update}(key, update, ifAbsent: ifAbsent);
   mixin-super-stub method updateAll(covariant-by-class (self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V% update) → void
     return super.{col::MapBase::updateAll}(update);
@@ -78,3 +78,7 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual, dynamic message) → dynamic
   ;
+
+constants  {
+  #C1 = null
+}

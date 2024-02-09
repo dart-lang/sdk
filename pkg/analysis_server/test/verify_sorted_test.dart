@@ -31,10 +31,6 @@ void main() {
   group('linter', () {
     buildTestsForLinter();
   });
-
-  group('nnbd_migration', () {
-    buildTestsForNnbdMigration();
-  });
 }
 
 void buildTests({
@@ -63,20 +59,15 @@ void buildTests({
 void buildTestsForAnalysisServer() {
   var excludedPaths = <String>[
     'test/mock_packages',
-    // TODO(brianwilkerson) Fix the generator to sort the generated files and
+    // TODO(brianwilkerson): Fix the generator to sort the generated files and
     //  remove these exclusions.
-    'lib/lsp_protocol/protocol_custom_generated.dart',
-    'lib/lsp_protocol/protocol_generated.dart',
     'lib/protocol/protocol_constants.dart',
     'lib/protocol/protocol_generated.dart',
-    'lib/src/edit/nnbd_migration/resources/resources.g.dart',
     'test/integration/support/integration_test_methods.dart',
     'test/integration/support/protocol_matchers.dart',
     // The following are not generated, but can't be sorted because they contain
     // ignore comments in the directives, which sorting deletes.
-    'lib/src/edit/edit_domain.dart',
     'lib/src/services/kythe/schema.dart',
-    'test/services/completion/dart/test_all.dart',
   ];
 
   buildTests(
@@ -91,6 +82,7 @@ void buildTestsForAnalyzer() {
     excludedPaths: [
       'lib/src/context/packages.dart',
       'lib/src/summary/format.dart',
+      'lib/src/wolf/ir/ir.g.dart',
       'test/generated/test_all.dart',
     ],
   );
@@ -106,7 +98,7 @@ void buildTestsForAnalyzerCli() {
 }
 
 void buildTestsForAnalyzerPlugin() {
-  // TODO(brianwilkerson) Fix the generator to sort the generated files and
+  // TODO(brianwilkerson): Fix the generator to sort the generated files and
   //  remove these exclusions.
   var excludedPaths = <String>[
     'lib/protocol/protocol_common.dart',
@@ -125,12 +117,6 @@ void buildTestsForLinter() {
   buildTests(packagePath: 'linter', excludedPaths: [
     'test_data',
   ]);
-}
-
-void buildTestsForNnbdMigration() {
-  buildTests(
-      packagePath: 'nnbd_migration',
-      excludedPaths: ['lib/src/front_end/resources/resources.g.dart']);
 }
 
 void buildTestsIn(AnalysisSession session, String testDirPath,

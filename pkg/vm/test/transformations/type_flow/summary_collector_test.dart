@@ -31,11 +31,11 @@ class FakeTypesBuilder extends TypesBuilder {
   int _classIdCounter = 0;
 
   FakeTypesBuilder(CoreTypes coreTypes)
-      : super(coreTypes, /*nullSafety=*/ false);
+      : super(coreTypes, /*soundNullSafety=*/ true);
 
   @override
   TFClass getTFClass(Class c) =>
-      _classes[c] ??= new TFClass(++_classIdCounter, c, null);
+      _classes[c] ??= new TFClass(++_classIdCounter, c, {}, null);
 }
 
 class FakeEntryPointsListener implements EntryPointsListener {

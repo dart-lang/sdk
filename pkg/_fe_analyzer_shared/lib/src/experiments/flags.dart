@@ -6,14 +6,14 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 2);
+const Version defaultLanguageVersion = const Version(3, 3);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
   classModifiers(
       name: 'class-modifiers',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
 
@@ -80,19 +80,26 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 2),
       experimentReleasedVersion: const Version(3, 2)),
 
-  inlineClass(
-      name: 'inline-class',
+  inferenceUpdate3(
+      name: 'inference-update-3',
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
       experimentReleasedVersion: defaultLanguageVersion),
+
+  inlineClass(
+      name: 'inline-class',
+      isEnabledByDefault: true,
+      isExpired: false,
+      experimentEnabledVersion: const Version(3, 3),
+      experimentReleasedVersion: const Version(3, 3)),
 
   macros(
       name: 'macros',
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentReleasedVersion: const Version(3, 3)),
 
   namedArgumentsAnywhere(
       name: 'named-arguments-anywhere',
@@ -125,21 +132,28 @@ enum ExperimentalFlag {
   patterns(
       name: 'patterns',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
 
   records(
       name: 'records',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
+
+  resourceIdentifiers(
+      name: 'resource-identifiers',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   sealedClass(
       name: 'sealed-class',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
 

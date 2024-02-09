@@ -23,9 +23,7 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #1#0 = o;
     synthesized core::Object? #1#2;
     synthesized core::bool #1#2#isSet = false;
-    function #1#2#func() → core::Object?
-      return #1#2#isSet ?{core::Object?} #1#2 : let final core::bool* #t1 = #1#2#isSet = true in #1#2 = (#1#0 as{Unchecked} ({f: core::Object?})).f{core::Object?};
-    if(#1#0 is ({f: core::Object?}) && ((let final core::int #t2 = #1#2#func(){() → core::Object?} as core::int in (#1#2#func(){() → core::Object?} as core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t3 = #1#2#func(){() → core::Object?} as core::int in (#1#2#func(){() → core::Object?} as core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
+    if(#1#0 is ({f: core::Object?}) && ((let final core::int #t1 = (#1#2#isSet ?{core::Object?} #1#2{core::Object?} : let final core::bool* #t2 = #1#2#isSet = true in #1#2 = #1#0{({f: core::Object?})}.f{core::Object?}) as core::int in ((#1#2#isSet ?{core::Object?} #1#2{core::Object?} : let final core::bool* #t3 = #1#2#isSet = true in #1#2 = #1#0{({f: core::Object?})}.f{core::Object?}) as core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t4 = (#1#2#isSet ?{core::Object?} #1#2{core::Object?} : let final core::bool* #t5 = #1#2#isSet = true in #1#2 = #1#0{({f: core::Object?})}.f{core::Object?}) as core::int in ((#1#2#isSet ?{core::Object?} #1#2{core::Object?} : let final core::bool* #t6 = #1#2#isSet = true in #1#2 = #1#0{({f: core::Object?})}.f{core::Object?}) as core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
       return 2;
     }
   }
@@ -39,21 +37,19 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #3#0 = o;
     synthesized core::Object? #3#2;
     synthesized core::bool #3#2#isSet = false;
-    function #3#2#func() → core::Object?
-      return #3#2#isSet ?{core::Object?} #3#2 : let final core::bool* #t4 = #3#2#isSet = true in #3#2 = (#3#0 as{Unchecked} ({g: core::Object?})).g{core::Object?};
-    if(#3#0 is ({g: core::Object?}) && (let final core::int #t5 = #3#2#func(){() → core::Object?} as core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #3#2#func(){() → core::Object?} as core::int)) {
+    if(#3#0 is ({g: core::Object?}) && (let final core::int #t7 = (#3#2#isSet ?{core::Object?} #3#2{core::Object?} : let final core::bool* #t8 = #3#2#isSet = true in #3#2 = #3#0{({g: core::Object?})}.g{core::Object?}) as core::int in #C6 =={core::num::==}{(core::Object) → core::bool} (#3#2#isSet ?{core::Object?} #3#2{core::Object?} : let final core::bool* #t9 = #3#2#isSet = true in #3#2 = #3#0{({g: core::Object?})}.g{core::Object?}) as core::int)) {
       return 4;
     }
   }
   {
     final synthesized dynamic #4#0 = o;
-    if(#4#0 is ({a: core::Object?}) && (let final core::Object? #t6 = #4#0{({a: core::Object?})}.a{core::Object?}! in true)) {
+    if(#4#0 is ({a: core::Object?}) && (let final core::Object? #t10 = #4#0{({a: core::Object?})}.a{core::Object?}! in true)) {
       return 5;
     }
   }
   {
     final synthesized dynamic #5#0 = o;
-    if(#5#0 is ({b: core::Object?}) && (!(#5#0{({b: core::Object?})}.b{core::Object?} == null) ?{core::bool} true : false)) {
+    if(#5#0 is ({b: core::Object?}) && (!(#5#0{({b: core::Object?})}.b{core::Object?} == null) && true)) {
       return 6;
     }
   }
@@ -73,9 +69,7 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #8#0 = o;
     synthesized core::int #8#2;
     synthesized core::bool #8#2#isSet = false;
-    function #8#2#func() → core::int
-      return #8#2#isSet ?{core::int} #8#2 : let final core::bool* #t7 = #8#2#isSet = true in #8#2 = (#8#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
-    if(#8#0 is core::List<dynamic> && #8#2#func(){() → core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C8 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(#8#2#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
+    if(#8#0 is core::List<dynamic> && (#8#2#isSet ?{core::int} #8#2{core::int} : let final core::bool* #t11 = #8#2#isSet = true in #8#2 = #8#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C8 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}((#8#2#isSet ?{core::int} #8#2{core::int} : let final core::bool* #t12 = #8#2#isSet = true in #8#2 = #8#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
       return 9;
     }
   }
@@ -83,17 +77,11 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #9#0 = o;
     synthesized core::List<dynamic> #9#12;
     synthesized core::bool #9#12#isSet = false;
-    function #9#12#func() → core::List<dynamic>
-      return #9#12#isSet ?{core::List<dynamic>} #9#12 : let final core::bool* #t8 = #9#12#isSet = true in #9#12 = (#9#0 as{Unchecked} core::List<dynamic>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
     synthesized dynamic #9#15;
     synthesized core::bool #9#15#isSet = false;
-    function #9#15#func() → dynamic
-      return #9#15#isSet ?{dynamic} #9#15 : let final core::bool* #t9 = #9#15#isSet = true in #9#15 = #9#12#func(){() → core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #9#19;
     synthesized core::bool #9#19#isSet = false;
-    function #9#19#func() → dynamic
-      return #9#19#isSet ?{dynamic} #9#19 : let final core::bool* #t10 = #9#19#isSet = true in #9#19 = #9#12#func(){() → core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    if(#9#0 is core::List<dynamic> && #9#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C7){(core::num) → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && (#9#12#func(){() → core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t11 = #9#15#func(){() → dynamic} as core::int in (#9#15#func(){() → dynamic} as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t12 = #9#19#func(){() → dynamic} as core::int in (#9#19#func(){() → dynamic} as core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
+    if(#9#0 is core::List<dynamic> && #9#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C7){(core::num) → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && ((#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t13 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t14 = (#9#15#isSet ?{dynamic} #9#15{dynamic} : let final core::bool* #t15 = #9#15#isSet = true in #9#15 = (#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t16 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int in ((#9#15#isSet ?{dynamic} #9#15{dynamic} : let final core::bool* #t17 = #9#15#isSet = true in #9#15 = (#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t18 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t19 = (#9#19#isSet ?{dynamic} #9#19{dynamic} : let final core::bool* #t20 = #9#19#isSet = true in #9#19 = (#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t21 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int in ((#9#19#isSet ?{dynamic} #9#19{dynamic} : let final core::bool* #t22 = #9#19#isSet = true in #9#19 = (#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t23 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
       return 10;
     }
   }
@@ -101,21 +89,13 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #10#0 = o;
     synthesized core::int #10#2;
     synthesized core::bool #10#2#isSet = false;
-    function #10#2#func() → core::int
-      return #10#2#isSet ?{core::int} #10#2 : let final core::bool* #t13 = #10#2#isSet = true in #10#2 = (#10#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     synthesized core::List<dynamic> #10#12;
     synthesized core::bool #10#12#isSet = false;
-    function #10#12#func() → core::List<dynamic>
-      return #10#12#isSet ?{core::List<dynamic>} #10#12 : let final core::bool* #t14 = #10#12#isSet = true in #10#12 = (#10#0 as{Unchecked} core::List<dynamic>).{core::List::sublist}(2, #10#2#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
     synthesized dynamic #10#16;
     synthesized core::bool #10#16#isSet = false;
-    function #10#16#func() → dynamic
-      return #10#16#isSet ?{dynamic} #10#16 : let final core::bool* #t15 = #10#16#isSet = true in #10#16 = #10#12#func(){() → core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #10#20;
     synthesized core::bool #10#20#isSet = false;
-    function #10#20#func() → dynamic
-      return #10#20#isSet ?{dynamic} #10#20 : let final core::bool* #t16 = #10#20#isSet = true in #10#20 = #10#12#func(){() → core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    if(#10#0 is core::List<dynamic> && #10#2#func(){() → core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && #C3 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C4 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && (#10#12#func(){() → core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t17 = #10#16#func(){() → dynamic} as core::int in (#10#16#func(){() → dynamic} as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t18 = #10#20#func(){() → dynamic} as core::int in (#10#20#func(){() → dynamic} as core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(#10#2#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
+    if(#10#0 is core::List<dynamic> && (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t24 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #C3 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C4 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && ((#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t25 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t26 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t27 = (#10#16#isSet ?{dynamic} #10#16{dynamic} : let final core::bool* #t28 = #10#16#isSet = true in #10#16 = (#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t29 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t30 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int in ((#10#16#isSet ?{dynamic} #10#16{dynamic} : let final core::bool* #t31 = #10#16#isSet = true in #10#16 = (#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t32 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t33 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t34 = (#10#20#isSet ?{dynamic} #10#20{dynamic} : let final core::bool* #t35 = #10#20#isSet = true in #10#20 = (#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t36 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t37 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int in ((#10#20#isSet ?{dynamic} #10#20{dynamic} : let final core::bool* #t38 = #10#20#isSet = true in #10#20 = (#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t39 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t40 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}((#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t41 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
       return 11;
     }
   }
@@ -159,9 +139,7 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #17#0 = o;
     synthesized core::int? #17#4;
     synthesized core::bool #17#4#isSet = false;
-    function #17#4#func() → core::int?
-      return #17#4#isSet ?{core::int?} #17#4 : let final core::bool* #t19 = #17#4#isSet = true in #17#4 = (#17#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C3){(core::Object?) → core::int?};
-    if(#17#0 is core::Map<core::int, core::int> && (!(#17#4#func(){() → core::int?} == null) || null is core::int && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool}) && (let core::int? #t20 = #17#4#func(){() → core::int?} in #t20 == null ?{core::int} #t20 as{Unchecked} core::int : #t20{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
+    if(#17#0 is core::Map<core::int, core::int> && (!((#17#4#isSet ?{core::int?} #17#4{core::int?} : let final core::bool* #t42 = #17#4#isSet = true in #17#4 = #17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?}) == null) || null is core::int && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool}) && (let core::int? #t43 = #17#4#isSet ?{core::int?} #17#4{core::int?} : let final core::bool* #t44 = #17#4#isSet = true in #17#4 = #17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} in #t43 == null ?{core::int} #t43 as{Unchecked} core::int : #t43{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
       return 18;
     }
   }
@@ -187,9 +165,7 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #21#0 = o;
     synthesized dynamic #21#4;
     synthesized core::bool #21#4#isSet = false;
-    function #21#4#func() → dynamic
-      return #21#4#isSet ?{dynamic} #21#4 : let final core::bool* #t21 = #21#4#isSet = true in #21#4 = (#21#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C12){(core::Object?) → dynamic};
-    if(#21#0 is core::Map<dynamic, dynamic> && (!(#21#4#func(){() → dynamic} == null) || null is dynamic && #21#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool}) && #21#4#func(){() → dynamic} is core::int) {
+    if(#21#0 is core::Map<dynamic, dynamic> && (!((#21#4#isSet ?{dynamic} #21#4{dynamic} : let final core::bool* #t45 = #21#4#isSet = true in #21#4 = #21#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic}) == null) || null is dynamic && #21#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool}) && (#21#4#isSet ?{dynamic} #21#4{dynamic} : let final core::bool* #t46 = #21#4#isSet = true in #21#4 = #21#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic}) is core::int) {
       return 22;
     }
   }
@@ -197,9 +173,7 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #22#0 = o;
     synthesized dynamic #22#4;
     synthesized core::bool #22#4#isSet = false;
-    function #22#4#func() → dynamic
-      return #22#4#isSet ?{dynamic} #22#4 : let final core::bool* #t22 = #22#4#isSet = true in #22#4 = (#22#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
-    if(#22#0 is core::Map<dynamic, dynamic> && (!(#22#4#func(){() → dynamic} == null) || null is dynamic && #22#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #22#4#func(){() → dynamic} is core::String) {
+    if(#22#0 is core::Map<dynamic, dynamic> && (!((#22#4#isSet ?{dynamic} #22#4{dynamic} : let final core::bool* #t47 = #22#4#isSet = true in #22#4 = #22#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && #22#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (#22#4#isSet ?{dynamic} #22#4{dynamic} : let final core::bool* #t48 = #22#4#isSet = true in #22#4 = #22#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) is core::String) {
       return 23;
     }
   }
@@ -208,10 +182,11 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #23#0 = o;
     synthesized dynamic #23#4;
     synthesized core::bool #23#4#isSet = false;
-    function #23#4#func() → dynamic
-      return #23#4#isSet ?{dynamic} #23#4 : let final core::bool* #t23 = #23#4#isSet = true in #23#4 = (#23#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C7){(core::Object?) → dynamic};
-    if(#23#0 is core::Map<dynamic, dynamic> && (!(#23#4#func(){() → dynamic} == null) || null is dynamic && #23#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && (let final dynamic #t24 = a = #23#4#func(){() → dynamic} in true)) {
-      return 24;
+    if(#23#0 is core::Map<dynamic, dynamic> && (!((#23#4#isSet ?{dynamic} #23#4{dynamic} : let final core::bool* #t49 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic}) == null) || null is dynamic && #23#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool})) {
+      a = #23#4#isSet ?{dynamic} #23#4{dynamic} : let final core::bool* #t50 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic};
+      {
+        return 24;
+      }
     }
   }
   {
@@ -219,10 +194,11 @@ static method ifCase(dynamic o) → core::int {
     final synthesized dynamic #24#0 = o;
     synthesized dynamic #24#4;
     synthesized core::bool #24#4#isSet = false;
-    function #24#4#func() → dynamic
-      return #24#4#isSet ?{dynamic} #24#4 : let final core::bool* #t25 = #24#4#isSet = true in #24#4 = (#24#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
-    if(#24#0 is core::Map<dynamic, dynamic> && (!(#24#4#func(){() → dynamic} == null) || null is dynamic && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#24#4#func(){() → dynamic} is core::int && (let final core::int #t26 = b = #24#4#func(){() → dynamic} as{Unchecked} core::int in true))) {
-      return 25;
+    if(#24#0 is core::Map<dynamic, dynamic> && (!((#24#4#isSet ?{dynamic} #24#4{dynamic} : let final core::bool* #t51 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final core::bool* #t52 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) is core::int) {
+      b = (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final core::bool* #t53 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) as{Unchecked} core::int;
+      {
+        return 25;
+      }
     }
   }
   {
@@ -234,14 +210,17 @@ static method ifCase(dynamic o) → core::int {
   {
     hoisted dynamic c;
     final synthesized dynamic #26#0 = o;
-    if(#26#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #26#0{({a: core::Object?, b: core::Object?})}.a{core::Object?} && (let final core::Object? #t27 = c = #26#0{({a: core::Object?, b: core::Object?})}.b{core::Object?} in true)) {
-      return 27;
+    if(#26#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #26#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) {
+      c = #26#0{({a: core::Object?, b: core::Object?})}.b{core::Object?};
+      {
+        return 27;
+      }
     }
   }
   {
     hoisted dynamic d;
     final synthesized dynamic #27#0 = o;
-    if(#27#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #27#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t28 = d = #27#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
+    if(#27#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #27#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t54 = d = #27#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
       return 28;
     }
   }
@@ -258,9 +237,7 @@ static method ifCaseElse(dynamic o) → core::int {
       final synthesized dynamic #1#0 = o;
       synthesized core::Object? #1#2;
       synthesized core::bool #1#2#isSet = false;
-      function #1#2#func() → core::Object?
-        return #1#2#isSet ?{core::Object?} #1#2 : let final core::bool* #t29 = #1#2#isSet = true in #1#2 = (#1#0 as{Unchecked} ({f: core::Object?})).f{core::Object?};
-      if(#1#0 is ({f: core::Object?}) && ((let final core::int #t30 = #1#2#func(){() → core::Object?} as core::int in (#1#2#func(){() → core::Object?} as core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t31 = #1#2#func(){() → core::Object?} as core::int in (#1#2#func(){() → core::Object?} as core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
+      if(#1#0 is ({f: core::Object?}) && ((let final core::int #t55 = (#1#2#isSet ?{core::Object?} #1#2{core::Object?} : let final core::bool* #t56 = #1#2#isSet = true in #1#2 = #1#0{({f: core::Object?})}.f{core::Object?}) as core::int in ((#1#2#isSet ?{core::Object?} #1#2{core::Object?} : let final core::bool* #t57 = #1#2#isSet = true in #1#2 = #1#0{({f: core::Object?})}.f{core::Object?}) as core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t58 = (#1#2#isSet ?{core::Object?} #1#2{core::Object?} : let final core::bool* #t59 = #1#2#isSet = true in #1#2 = #1#0{({f: core::Object?})}.f{core::Object?}) as core::int in ((#1#2#isSet ?{core::Object?} #1#2{core::Object?} : let final core::bool* #t60 = #1#2#isSet = true in #1#2 = #1#0{({f: core::Object?})}.f{core::Object?}) as core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
         return 2;
       }
       else {
@@ -272,19 +249,17 @@ static method ifCaseElse(dynamic o) → core::int {
           final synthesized dynamic #3#0 = o;
           synthesized core::Object? #3#2;
           synthesized core::bool #3#2#isSet = false;
-          function #3#2#func() → core::Object?
-            return #3#2#isSet ?{core::Object?} #3#2 : let final core::bool* #t32 = #3#2#isSet = true in #3#2 = (#3#0 as{Unchecked} ({g: core::Object?})).g{core::Object?};
-          if(#3#0 is ({g: core::Object?}) && (let final core::int #t33 = #3#2#func(){() → core::Object?} as core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #3#2#func(){() → core::Object?} as core::int)) {
+          if(#3#0 is ({g: core::Object?}) && (let final core::int #t61 = (#3#2#isSet ?{core::Object?} #3#2{core::Object?} : let final core::bool* #t62 = #3#2#isSet = true in #3#2 = #3#0{({g: core::Object?})}.g{core::Object?}) as core::int in #C6 =={core::num::==}{(core::Object) → core::bool} (#3#2#isSet ?{core::Object?} #3#2{core::Object?} : let final core::bool* #t63 = #3#2#isSet = true in #3#2 = #3#0{({g: core::Object?})}.g{core::Object?}) as core::int)) {
             return 4;
           }
           else {
             final synthesized dynamic #4#0 = o;
-            if(#4#0 is ({a: core::Object?}) && (let final core::Object? #t34 = #4#0{({a: core::Object?})}.a{core::Object?}! in true)) {
+            if(#4#0 is ({a: core::Object?}) && (let final core::Object? #t64 = #4#0{({a: core::Object?})}.a{core::Object?}! in true)) {
               return 5;
             }
             else {
               final synthesized dynamic #5#0 = o;
-              if(#5#0 is ({b: core::Object?}) && (!(#5#0{({b: core::Object?})}.b{core::Object?} == null) ?{core::bool} true : false)) {
+              if(#5#0 is ({b: core::Object?}) && (!(#5#0{({b: core::Object?})}.b{core::Object?} == null) && true)) {
                 return 6;
               }
               else {
@@ -301,47 +276,31 @@ static method ifCaseElse(dynamic o) → core::int {
                     final synthesized dynamic #8#0 = o;
                     synthesized core::int #8#2;
                     synthesized core::bool #8#2#isSet = false;
-                    function #8#2#func() → core::int
-                      return #8#2#isSet ?{core::int} #8#2 : let final core::bool* #t35 = #8#2#isSet = true in #8#2 = (#8#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
-                    if(#8#0 is core::List<dynamic> && #8#2#func(){() → core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C8 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(#8#2#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
+                    if(#8#0 is core::List<dynamic> && (#8#2#isSet ?{core::int} #8#2{core::int} : let final core::bool* #t65 = #8#2#isSet = true in #8#2 = #8#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C8 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #8#0{core::List<dynamic>}.{core::List::[]}((#8#2#isSet ?{core::int} #8#2{core::int} : let final core::bool* #t66 = #8#2#isSet = true in #8#2 = #8#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
                       return 9;
                     }
                     else {
                       final synthesized dynamic #9#0 = o;
                       synthesized core::List<dynamic> #9#12;
                       synthesized core::bool #9#12#isSet = false;
-                      function #9#12#func() → core::List<dynamic>
-                        return #9#12#isSet ?{core::List<dynamic>} #9#12 : let final core::bool* #t36 = #9#12#isSet = true in #9#12 = (#9#0 as{Unchecked} core::List<dynamic>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
                       synthesized dynamic #9#15;
                       synthesized core::bool #9#15#isSet = false;
-                      function #9#15#func() → dynamic
-                        return #9#15#isSet ?{dynamic} #9#15 : let final core::bool* #t37 = #9#15#isSet = true in #9#15 = #9#12#func(){() → core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
                       synthesized dynamic #9#19;
                       synthesized core::bool #9#19#isSet = false;
-                      function #9#19#func() → dynamic
-                        return #9#19#isSet ?{dynamic} #9#19 : let final core::bool* #t38 = #9#19#isSet = true in #9#19 = #9#12#func(){() → core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-                      if(#9#0 is core::List<dynamic> && #9#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C7){(core::num) → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && (#9#12#func(){() → core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t39 = #9#15#func(){() → dynamic} as core::int in (#9#15#func(){() → dynamic} as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t40 = #9#19#func(){() → dynamic} as core::int in (#9#19#func(){() → dynamic} as core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
+                      if(#9#0 is core::List<dynamic> && #9#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C7){(core::num) → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #9#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && ((#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t67 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t68 = (#9#15#isSet ?{dynamic} #9#15{dynamic} : let final core::bool* #t69 = #9#15#isSet = true in #9#15 = (#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t70 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int in ((#9#15#isSet ?{dynamic} #9#15{dynamic} : let final core::bool* #t71 = #9#15#isSet = true in #9#15 = (#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t72 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t73 = (#9#19#isSet ?{dynamic} #9#19{dynamic} : let final core::bool* #t74 = #9#19#isSet = true in #9#19 = (#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t75 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int in ((#9#19#isSet ?{dynamic} #9#19{dynamic} : let final core::bool* #t76 = #9#19#isSet = true in #9#19 = (#9#12#isSet ?{core::List<dynamic>} #9#12{core::List<dynamic>} : let final core::bool* #t77 = #9#12#isSet = true in #9#12 = #9#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
                         return 10;
                       }
                       else {
                         final synthesized dynamic #10#0 = o;
                         synthesized core::int #10#2;
                         synthesized core::bool #10#2#isSet = false;
-                        function #10#2#func() → core::int
-                          return #10#2#isSet ?{core::int} #10#2 : let final core::bool* #t41 = #10#2#isSet = true in #10#2 = (#10#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
                         synthesized core::List<dynamic> #10#12;
                         synthesized core::bool #10#12#isSet = false;
-                        function #10#12#func() → core::List<dynamic>
-                          return #10#12#isSet ?{core::List<dynamic>} #10#12 : let final core::bool* #t42 = #10#12#isSet = true in #10#12 = (#10#0 as{Unchecked} core::List<dynamic>).{core::List::sublist}(2, #10#2#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
                         synthesized dynamic #10#16;
                         synthesized core::bool #10#16#isSet = false;
-                        function #10#16#func() → dynamic
-                          return #10#16#isSet ?{dynamic} #10#16 : let final core::bool* #t43 = #10#16#isSet = true in #10#16 = #10#12#func(){() → core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
                         synthesized dynamic #10#20;
                         synthesized core::bool #10#20#isSet = false;
-                        function #10#20#func() → dynamic
-                          return #10#20#isSet ?{dynamic} #10#20 : let final core::bool* #t44 = #10#20#isSet = true in #10#20 = #10#12#func(){() → core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-                        if(#10#0 is core::List<dynamic> && #10#2#func(){() → core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && #C3 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C4 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && (#10#12#func(){() → core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t45 = #10#16#func(){() → dynamic} as core::int in (#10#16#func(){() → dynamic} as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t46 = #10#20#func(){() → dynamic} as core::int in (#10#20#func(){() → dynamic} as core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(#10#2#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
+                        if(#10#0 is core::List<dynamic> && (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t78 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #C3 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C4 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && ((#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t79 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t80 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t81 = (#10#16#isSet ?{dynamic} #10#16{dynamic} : let final core::bool* #t82 = #10#16#isSet = true in #10#16 = (#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t83 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t84 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int in ((#10#16#isSet ?{dynamic} #10#16{dynamic} : let final core::bool* #t85 = #10#16#isSet = true in #10#16 = (#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t86 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t87 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t88 = (#10#20#isSet ?{dynamic} #10#20{dynamic} : let final core::bool* #t89 = #10#20#isSet = true in #10#20 = (#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t90 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t91 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int in ((#10#20#isSet ?{dynamic} #10#20{dynamic} : let final core::bool* #t92 = #10#20#isSet = true in #10#20 = (#10#12#isSet ?{core::List<dynamic>} #10#12{core::List<dynamic>} : let final core::bool* #t93 = #10#12#isSet = true in #10#12 = #10#0{core::List<dynamic>}.{core::List::sublist}(2, (#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t94 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} #10#0{core::List<dynamic>}.{core::List::[]}((#10#2#isSet ?{core::int} #10#2{core::int} : let final core::bool* #t95 = #10#2#isSet = true in #10#2 = #10#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
                           return 11;
                         }
                         else {
@@ -378,9 +337,7 @@ static method ifCaseElse(dynamic o) → core::int {
                                       final synthesized dynamic #17#0 = o;
                                       synthesized core::int? #17#4;
                                       synthesized core::bool #17#4#isSet = false;
-                                      function #17#4#func() → core::int?
-                                        return #17#4#isSet ?{core::int?} #17#4 : let final core::bool* #t47 = #17#4#isSet = true in #17#4 = (#17#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C3){(core::Object?) → core::int?};
-                                      if(#17#0 is core::Map<core::int, core::int> && (!(#17#4#func(){() → core::int?} == null) || null is core::int && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool}) && (let core::int? #t48 = #17#4#func(){() → core::int?} in #t48 == null ?{core::int} #t48 as{Unchecked} core::int : #t48{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
+                                      if(#17#0 is core::Map<core::int, core::int> && (!((#17#4#isSet ?{core::int?} #17#4{core::int?} : let final core::bool* #t96 = #17#4#isSet = true in #17#4 = #17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?}) == null) || null is core::int && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool}) && (let core::int? #t97 = #17#4#isSet ?{core::int?} #17#4{core::int?} : let final core::bool* #t98 = #17#4#isSet = true in #17#4 = #17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} in #t97 == null ?{core::int} #t97 as{Unchecked} core::int : #t97{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
                                         return 18;
                                       }
                                       else {
@@ -402,18 +359,14 @@ static method ifCaseElse(dynamic o) → core::int {
                                               final synthesized dynamic #21#0 = o;
                                               synthesized dynamic #21#4;
                                               synthesized core::bool #21#4#isSet = false;
-                                              function #21#4#func() → dynamic
-                                                return #21#4#isSet ?{dynamic} #21#4 : let final core::bool* #t49 = #21#4#isSet = true in #21#4 = (#21#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C12){(core::Object?) → dynamic};
-                                              if(#21#0 is core::Map<dynamic, dynamic> && (!(#21#4#func(){() → dynamic} == null) || null is dynamic && #21#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool}) && #21#4#func(){() → dynamic} is core::int) {
+                                              if(#21#0 is core::Map<dynamic, dynamic> && (!((#21#4#isSet ?{dynamic} #21#4{dynamic} : let final core::bool* #t99 = #21#4#isSet = true in #21#4 = #21#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic}) == null) || null is dynamic && #21#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool}) && (#21#4#isSet ?{dynamic} #21#4{dynamic} : let final core::bool* #t100 = #21#4#isSet = true in #21#4 = #21#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic}) is core::int) {
                                                 return 22;
                                               }
                                               else {
                                                 final synthesized dynamic #22#0 = o;
                                                 synthesized dynamic #22#4;
                                                 synthesized core::bool #22#4#isSet = false;
-                                                function #22#4#func() → dynamic
-                                                  return #22#4#isSet ?{dynamic} #22#4 : let final core::bool* #t50 = #22#4#isSet = true in #22#4 = (#22#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
-                                                if(#22#0 is core::Map<dynamic, dynamic> && (!(#22#4#func(){() → dynamic} == null) || null is dynamic && #22#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #22#4#func(){() → dynamic} is core::String) {
+                                                if(#22#0 is core::Map<dynamic, dynamic> && (!((#22#4#isSet ?{dynamic} #22#4{dynamic} : let final core::bool* #t101 = #22#4#isSet = true in #22#4 = #22#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && #22#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (#22#4#isSet ?{dynamic} #22#4{dynamic} : let final core::bool* #t102 = #22#4#isSet = true in #22#4 = #22#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) is core::String) {
                                                   return 23;
                                                 }
                                                 else {
@@ -421,20 +374,22 @@ static method ifCaseElse(dynamic o) → core::int {
                                                   final synthesized dynamic #23#0 = o;
                                                   synthesized dynamic #23#4;
                                                   synthesized core::bool #23#4#isSet = false;
-                                                  function #23#4#func() → dynamic
-                                                    return #23#4#isSet ?{dynamic} #23#4 : let final core::bool* #t51 = #23#4#isSet = true in #23#4 = (#23#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C7){(core::Object?) → dynamic};
-                                                  if(#23#0 is core::Map<dynamic, dynamic> && (!(#23#4#func(){() → dynamic} == null) || null is dynamic && #23#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && (let final dynamic #t52 = a = #23#4#func(){() → dynamic} in true)) {
-                                                    return 24;
+                                                  if(#23#0 is core::Map<dynamic, dynamic> && (!((#23#4#isSet ?{dynamic} #23#4{dynamic} : let final core::bool* #t103 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic}) == null) || null is dynamic && #23#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool})) {
+                                                    a = #23#4#isSet ?{dynamic} #23#4{dynamic} : let final core::bool* #t104 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic};
+                                                    {
+                                                      return 24;
+                                                    }
                                                   }
                                                   else {
                                                     hoisted core::int b;
                                                     final synthesized dynamic #24#0 = o;
                                                     synthesized dynamic #24#4;
                                                     synthesized core::bool #24#4#isSet = false;
-                                                    function #24#4#func() → dynamic
-                                                      return #24#4#isSet ?{dynamic} #24#4 : let final core::bool* #t53 = #24#4#isSet = true in #24#4 = (#24#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
-                                                    if(#24#0 is core::Map<dynamic, dynamic> && (!(#24#4#func(){() → dynamic} == null) || null is dynamic && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#24#4#func(){() → dynamic} is core::int && (let final core::int #t54 = b = #24#4#func(){() → dynamic} as{Unchecked} core::int in true))) {
-                                                      return 25;
+                                                    if(#24#0 is core::Map<dynamic, dynamic> && (!((#24#4#isSet ?{dynamic} #24#4{dynamic} : let final core::bool* #t105 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final core::bool* #t106 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) is core::int) {
+                                                      b = (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final core::bool* #t107 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) as{Unchecked} core::int;
+                                                      {
+                                                        return 25;
+                                                      }
                                                     }
                                                     else {
                                                       final synthesized dynamic #25#0 = o;
@@ -444,13 +399,16 @@ static method ifCaseElse(dynamic o) → core::int {
                                                       else {
                                                         hoisted dynamic c;
                                                         final synthesized dynamic #26#0 = o;
-                                                        if(#26#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #26#0{({a: core::Object?, b: core::Object?})}.a{core::Object?} && (let final core::Object? #t55 = c = #26#0{({a: core::Object?, b: core::Object?})}.b{core::Object?} in true)) {
-                                                          return 27;
+                                                        if(#26#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #26#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) {
+                                                          c = #26#0{({a: core::Object?, b: core::Object?})}.b{core::Object?};
+                                                          {
+                                                            return 27;
+                                                          }
                                                         }
                                                         else {
                                                           hoisted dynamic d;
                                                           final synthesized dynamic #27#0 = o;
-                                                          if(#27#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #27#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t56 = d = #27#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
+                                                          if(#27#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #27#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t108 = d = #27#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
                                                             return 28;
                                                           }
                                                           else {
@@ -492,88 +450,48 @@ static method switchStatement(dynamic o) → core::int {
     final synthesized dynamic #0#0 = o;
     synthesized core::Object? #0#4;
     synthesized core::bool #0#4#isSet = false;
-    function #0#4#func() → core::Object?
-      return #0#4#isSet ?{core::Object?} #0#4 : let final core::bool* #t57 = #0#4#isSet = true in #0#4 = (#0#0 as{Unchecked} ({f: core::Object?})).f{core::Object?};
     synthesized core::Object? #0#15;
     synthesized core::bool #0#15#isSet = false;
-    function #0#15#func() → core::Object?
-      return #0#15#isSet ?{core::Object?} #0#15 : let final core::bool* #t58 = #0#15#isSet = true in #0#15 = (#0#0 as{Unchecked} ({g: core::Object?})).g{core::Object?};
     synthesized core::Object? #0#20;
     synthesized core::bool #0#20#isSet = false;
     synthesized core::Object? #0#23;
     synthesized core::bool #0#23#isSet = false;
     synthesized core::int #0#26;
     synthesized core::bool #0#26#isSet = false;
-    function #0#26#func() → core::int
-      return #0#26#isSet ?{core::int} #0#26 : let final core::bool* #t59 = #0#26#isSet = true in #0#26 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     synthesized dynamic #0#30;
     synthesized core::bool #0#30#isSet = false;
-    function #0#30#func() → dynamic
-      return #0#30#isSet ?{dynamic} #0#30 : let final core::bool* #t60 = #0#30#isSet = true in #0#30 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #0#32;
     synthesized core::bool #0#32#isSet = false;
-    function #0#32#func() → dynamic
-      return #0#32#isSet ?{dynamic} #0#32 : let final core::bool* #t61 = #0#32#isSet = true in #0#32 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     synthesized core::bool #0#34;
     synthesized core::bool #0#34#isSet = false;
-    function #0#34#func() → core::bool
-      return #0#34#isSet ?{core::bool} #0#34 : let final core::bool* #t62 = #0#34#isSet = true in #0#34 = #0#26#func(){() → core::int}.{core::num::>=}(#C7){(core::num) → core::bool};
     synthesized core::bool #0#38;
     synthesized core::bool #0#38#isSet = false;
-    function #0#38#func() → core::bool
-      return #0#38#isSet ?{core::bool} #0#38 : let final core::bool* #t63 = #0#38#isSet = true in #0#38 = #0#26#func(){() → core::int}.{core::num::>=}(#C2){(core::num) → core::bool};
     synthesized dynamic #0#43;
     synthesized core::bool #0#43#isSet = false;
-    function #0#43#func() → dynamic
-      return #0#43#isSet ?{dynamic} #0#43 : let final core::bool* #t64 = #0#43#isSet = true in #0#43 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(#0#26#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
     synthesized core::List<dynamic> #0#47;
     synthesized core::bool #0#47#isSet = false;
-    function #0#47#func() → core::List<dynamic>
-      return #0#47#isSet ?{core::List<dynamic>} #0#47 : let final core::bool* #t65 = #0#47#isSet = true in #0#47 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
     synthesized dynamic #0#50;
     synthesized core::bool #0#50#isSet = false;
-    function #0#50#func() → dynamic
-      return #0#50#isSet ?{dynamic} #0#50 : let final core::bool* #t66 = #0#50#isSet = true in #0#50 = #0#47#func(){() → core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #0#53;
     synthesized core::bool #0#53#isSet = false;
-    function #0#53#func() → dynamic
-      return #0#53#isSet ?{dynamic} #0#53 : let final core::bool* #t67 = #0#53#isSet = true in #0#53 = #0#47#func(){() → core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     synthesized core::List<dynamic> #0#58;
     synthesized core::bool #0#58#isSet = false;
-    function #0#58#func() → core::List<dynamic>
-      return #0#58#isSet ?{core::List<dynamic>} #0#58 : let final core::bool* #t68 = #0#58#isSet = true in #0#58 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::sublist}(2, #0#26#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
     synthesized dynamic #0#61;
     synthesized core::bool #0#61#isSet = false;
-    function #0#61#func() → dynamic
-      return #0#61#isSet ?{dynamic} #0#61 : let final core::bool* #t69 = #0#61#isSet = true in #0#61 = #0#58#func(){() → core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #0#64;
     synthesized core::bool #0#64#isSet = false;
-    function #0#64#func() → dynamic
-      return #0#64#isSet ?{dynamic} #0#64 : let final core::bool* #t70 = #0#64#isSet = true in #0#64 = #0#58#func(){() → core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     synthesized core::int #0#69;
     synthesized core::bool #0#69#isSet = false;
-    function #0#69#func() → core::int
-      return #0#69#isSet ?{core::int} #0#69 : let final core::bool* #t71 = #0#69#isSet = true in #0#69 = (#0#0 as{Unchecked} self::Class).{self::Class::field}{core::int};
     synthesized core::int? #0#84;
     synthesized core::bool #0#84#isSet = false;
-    function #0#84#func() → core::int?
-      return #0#84#isSet ?{core::int?} #0#84 : let final core::bool* #t72 = #0#84#isSet = true in #0#84 = (#0#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C3){(core::Object?) → core::int?};
     synthesized dynamic #0#92;
     synthesized core::bool #0#92#isSet = false;
-    function #0#92#func() → dynamic
-      return #0#92#isSet ?{dynamic} #0#92 : let final core::bool* #t73 = #0#92#isSet = true in #0#92 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C12){(core::Object?) → dynamic};
     synthesized dynamic #0#94;
     synthesized core::bool #0#94#isSet = false;
-    function #0#94#func() → dynamic
-      return #0#94#isSet ?{dynamic} #0#94 : let final core::bool* #t74 = #0#94#isSet = true in #0#94 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     synthesized dynamic #0#96;
     synthesized core::bool #0#96#isSet = false;
-    function #0#96#func() → dynamic
-      return #0#96#isSet ?{dynamic} #0#96 : let final core::bool* #t75 = #0#96#isSet = true in #0#96 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C7){(core::Object?) → dynamic};
     synthesized dynamic #0#98;
     synthesized core::bool #0#98#isSet = false;
-    function #0#98#func() → dynamic
-      return #0#98#isSet ?{dynamic} #0#98 : let final core::bool* #t76 = #0#98#isSet = true in #0#98 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
     {
       if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
         {
@@ -582,7 +500,7 @@ static method switchStatement(dynamic o) → core::int {
       }
     }
     {
-      if(#0#0 is ({f: core::Object?}) && ((let final core::int #t77 = #0#4#func(){() → core::Object?} as core::int in (#0#4#func(){() → core::Object?} as core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t78 = #0#4#func(){() → core::Object?} as core::int in (#0#4#func(){() → core::Object?} as core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
+      if(#0#0 is ({f: core::Object?}) && ((let final core::int #t109 = (#0#4#isSet ?{core::Object?} #0#4{core::Object?} : let final core::bool* #t110 = #0#4#isSet = true in #0#4 = #0#0{({f: core::Object?})}.f{core::Object?}) as core::int in ((#0#4#isSet ?{core::Object?} #0#4{core::Object?} : let final core::bool* #t111 = #0#4#isSet = true in #0#4 = #0#0{({f: core::Object?})}.f{core::Object?}) as core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t112 = (#0#4#isSet ?{core::Object?} #0#4{core::Object?} : let final core::bool* #t113 = #0#4#isSet = true in #0#4 = #0#0{({f: core::Object?})}.f{core::Object?}) as core::int in ((#0#4#isSet ?{core::Object?} #0#4{core::Object?} : let final core::bool* #t114 = #0#4#isSet = true in #0#4 = #0#0{({f: core::Object?})}.f{core::Object?}) as core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
         {
           return 2;
         }
@@ -596,63 +514,63 @@ static method switchStatement(dynamic o) → core::int {
       }
     }
     {
-      if(#0#0 is ({g: core::Object?}) && (let final core::int #t79 = #0#15#func(){() → core::Object?} as core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #0#15#func(){() → core::Object?} as core::int)) {
+      if(#0#0 is ({g: core::Object?}) && (let final core::int #t115 = (#0#15#isSet ?{core::Object?} #0#15{core::Object?} : let final core::bool* #t116 = #0#15#isSet = true in #0#15 = #0#0{({g: core::Object?})}.g{core::Object?}) as core::int in #C6 =={core::num::==}{(core::Object) → core::bool} (#0#15#isSet ?{core::Object?} #0#15{core::Object?} : let final core::bool* #t117 = #0#15#isSet = true in #0#15 = #0#0{({g: core::Object?})}.g{core::Object?}) as core::int)) {
         {
           return 4;
         }
       }
     }
     {
-      if(#0#0 is ({a: core::Object?}) && (let final core::Object? #t80 = (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t81 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?})}.a{core::Object?})! in true)) {
+      if(#0#0 is ({a: core::Object?}) && (let final core::Object? #t118 = (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t119 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?})}.a{core::Object?})! in true)) {
         {
           return 5;
         }
       }
     }
     {
-      if(#0#0 is ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t82 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) ?{core::bool} true : false)) {
+      if(#0#0 is ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t120 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) && true)) {
         {
           return 6;
         }
       }
     }
     {
-      if(#0#0 is core::List<dynamic> && #0#26#func(){() → core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C7 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic}) {
+      if(#0#0 is core::List<dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t121 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t122 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C7 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t123 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic})) {
         {
           return 7;
         }
       }
     }
     {
-      if(#0#0 is core::List<dynamic> && #0#34#func(){() → core::bool} && #C7 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic}) {
+      if(#0#0 is core::List<dynamic> && (#0#34#isSet ?{core::bool} #0#34{core::bool} : let final core::bool* #t124 = #0#34#isSet = true in #0#34 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t125 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C7 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t126 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t127 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic})) {
         {
           return 8;
         }
       }
     }
     {
-      if(#0#0 is core::List<dynamic> && #0#38#func(){() → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C8 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#43#func(){() → dynamic}) {
+      if(#0#0 is core::List<dynamic> && (#0#38#isSet ?{core::bool} #0#38{core::bool} : let final core::bool* #t128 = #0#38#isSet = true in #0#38 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t129 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t130 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C8 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t131 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#43#isSet ?{dynamic} #0#43{dynamic} : let final core::bool* #t132 = #0#43#isSet = true in #0#43 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t133 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
         {
           return 9;
         }
       }
     }
     {
-      if(#0#0 is core::List<dynamic> && #0#34#func(){() → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic} && (#0#47#func(){() → core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t83 = #0#50#func(){() → dynamic} as core::int in (#0#50#func(){() → dynamic} as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t84 = #0#53#func(){() → dynamic} as core::int in (#0#53#func(){() → dynamic} as core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
+      if(#0#0 is core::List<dynamic> && (#0#34#isSet ?{core::bool} #0#34{core::bool} : let final core::bool* #t134 = #0#34#isSet = true in #0#34 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t135 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t136 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t137 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) && ((#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t138 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t139 = (#0#50#isSet ?{dynamic} #0#50{dynamic} : let final core::bool* #t140 = #0#50#isSet = true in #0#50 = (#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t141 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int in ((#0#50#isSet ?{dynamic} #0#50{dynamic} : let final core::bool* #t142 = #0#50#isSet = true in #0#50 = (#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t143 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t144 = (#0#53#isSet ?{dynamic} #0#53{dynamic} : let final core::bool* #t145 = #0#53#isSet = true in #0#53 = (#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t146 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int in ((#0#53#isSet ?{dynamic} #0#53{dynamic} : let final core::bool* #t147 = #0#53#isSet = true in #0#53 = (#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t148 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
         {
           return 10;
         }
       }
     }
     {
-      if(#0#0 is core::List<dynamic> && #0#38#func(){() → core::bool} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C4 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic} && (#0#58#func(){() → core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t85 = #0#61#func(){() → dynamic} as core::int in (#0#61#func(){() → dynamic} as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t86 = #0#64#func(){() → dynamic} as core::int in (#0#64#func(){() → dynamic} as core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#43#func(){() → dynamic}) {
+      if(#0#0 is core::List<dynamic> && (#0#38#isSet ?{core::bool} #0#38{core::bool} : let final core::bool* #t149 = #0#38#isSet = true in #0#38 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t150 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t151 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C4 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t152 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) && ((#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t153 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t154 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t155 = (#0#61#isSet ?{dynamic} #0#61{dynamic} : let final core::bool* #t156 = #0#61#isSet = true in #0#61 = (#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t157 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t158 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int in ((#0#61#isSet ?{dynamic} #0#61{dynamic} : let final core::bool* #t159 = #0#61#isSet = true in #0#61 = (#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t160 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t161 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t162 = (#0#64#isSet ?{dynamic} #0#64{dynamic} : let final core::bool* #t163 = #0#64#isSet = true in #0#64 = (#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t164 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t165 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int in ((#0#64#isSet ?{dynamic} #0#64{dynamic} : let final core::bool* #t166 = #0#64#isSet = true in #0#64 = (#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t167 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t168 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#43#isSet ?{dynamic} #0#43{dynamic} : let final core::bool* #t169 = #0#43#isSet = true in #0#43 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t170 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
         {
           return 11;
         }
       }
     }
     {
-      if(#0#0 is self::Class && #C1 =={core::num::==}{(core::Object) → core::bool} #0#69#func(){() → core::int}) {
+      if(#0#0 is self::Class && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#69#isSet ?{core::int} #0#69{core::int} : let final core::bool* #t171 = #0#69#isSet = true in #0#69 = #0#0{self::Class}.{self::Class::field}{core::int})) {
         {
           return 12;
         }
@@ -666,7 +584,7 @@ static method switchStatement(dynamic o) → core::int {
       }
     }
     {
-      if(#0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#69#func(){() → core::int} && #C8 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::getter}{core::int}) {
+      if(#0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#69#isSet ?{core::int} #0#69{core::int} : let final core::bool* #t172 = #0#69#isSet = true in #0#69 = #0#0{self::Class}.{self::Class::field}{core::int}) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::getter}{core::int}) {
         {
           return 14;
         }
@@ -694,14 +612,14 @@ static method switchStatement(dynamic o) → core::int {
       }
     }
     {
-      if(#0#0 is core::Map<core::int, core::int> && (!(#0#84#func(){() → core::int?} == null) || null is core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool}) && (let core::int? #t87 = #0#84#func(){() → core::int?} in #t87 == null ?{core::int} #t87 as{Unchecked} core::int : #t87{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
+      if(#0#0 is core::Map<core::int, core::int> && (!((#0#84#isSet ?{core::int?} #0#84{core::int?} : let final core::bool* #t173 = #0#84#isSet = true in #0#84 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?}) == null) || null is core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool}) && (let core::int? #t174 = #0#84#isSet ?{core::int?} #0#84{core::int?} : let final core::bool* #t175 = #0#84#isSet = true in #0#84 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} in #t174 == null ?{core::int} #t174 as{Unchecked} core::int : #t174{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
         {
           return 18;
         }
       }
     }
     {
-      if(#0#0 is core::List<dynamic> && #0#26#func(){() → core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
+      if(#0#0 is core::List<dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t176 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) {
         {
           return 19;
         }
@@ -722,14 +640,14 @@ static method switchStatement(dynamic o) → core::int {
       }
     }
     {
-      if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#92#func(){() → dynamic} == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool}) && #0#92#func(){() → dynamic} is core::int) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#92#isSet ?{dynamic} #0#92{dynamic} : let final core::bool* #t177 = #0#92#isSet = true in #0#92 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool}) && (#0#92#isSet ?{dynamic} #0#92{dynamic} : let final core::bool* #t178 = #0#92#isSet = true in #0#92 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic}) is core::int) {
         {
           return 22;
         }
       }
     }
     {
-      if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#94#func(){() → dynamic} == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #0#94#func(){() → dynamic} is core::String) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#94#isSet ?{dynamic} #0#94{dynamic} : let final core::bool* #t179 = #0#94#isSet = true in #0#94 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (#0#94#isSet ?{dynamic} #0#94{dynamic} : let final core::bool* #t180 = #0#94#isSet = true in #0#94 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) is core::String) {
         {
           return 23;
         }
@@ -737,7 +655,7 @@ static method switchStatement(dynamic o) → core::int {
     }
     {
       hoisted dynamic a;
-      if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#96#func(){() → dynamic} == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && (let final dynamic #t88 = a = #0#96#func(){() → dynamic} in true)) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#96#isSet ?{dynamic} #0#96{dynamic} : let final core::bool* #t181 = #0#96#isSet = true in #0#96 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && (let final dynamic #t182 = a = #0#96#isSet ?{dynamic} #0#96{dynamic} : let final core::bool* #t183 = #0#96#isSet = true in #0#96 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic} in true)) {
         {
           return 24;
         }
@@ -745,7 +663,7 @@ static method switchStatement(dynamic o) → core::int {
     }
     {
       hoisted core::int b;
-      if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#98#func(){() → dynamic} == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#0#98#func(){() → dynamic} is core::int && (let final core::int #t89 = b = #0#98#func(){() → dynamic} as{Unchecked} core::int in true))) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#98#isSet ?{dynamic} #0#98{dynamic} : let final core::bool* #t184 = #0#98#isSet = true in #0#98 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && ((#0#98#isSet ?{dynamic} #0#98{dynamic} : let final core::bool* #t185 = #0#98#isSet = true in #0#98 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) is core::int && (let final core::int #t186 = b = (#0#98#isSet ?{dynamic} #0#98{dynamic} : let final core::bool* #t187 = #0#98#isSet = true in #0#98 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) as{Unchecked} core::int in true))) {
         {
           return 25;
         }
@@ -760,7 +678,7 @@ static method switchStatement(dynamic o) → core::int {
     }
     {
       hoisted dynamic c;
-      if(#0#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t90 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) && (let final core::Object? #t91 = c = #0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t92 = #0#23#isSet = true in #0#23 = #0#0{({a: core::Object?, b: core::Object?})}.b{core::Object?} in true)) {
+      if(#0#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t188 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) && (let final core::Object? #t189 = c = #0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t190 = #0#23#isSet = true in #0#23 = #0#0{({a: core::Object?, b: core::Object?})}.b{core::Object?} in true)) {
         {
           return 27;
         }
@@ -768,7 +686,7 @@ static method switchStatement(dynamic o) → core::int {
     }
     {
       hoisted dynamic d;
-      if(#0#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t93 = d = #0#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
+      if(#0#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t191 = d = #0#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
         {
           return 28;
         }
@@ -786,274 +704,237 @@ static method switchStatement(dynamic o) → core::int {
 static method switchExpression(dynamic o) → core::int {
   core::print("o = ${o}");
   return block {
-    core::int #t94;
+    core::int #t192;
     final synthesized dynamic #0#0 = o;
     synthesized core::Object? #0#4;
     synthesized core::bool #0#4#isSet = false;
-    function #0#4#func() → core::Object?
-      return #0#4#isSet ?{core::Object?} #0#4 : let final core::bool* #t95 = #0#4#isSet = true in #0#4 = (#0#0 as{Unchecked} ({f: core::Object?})).f{core::Object?};
     synthesized core::Object? #0#15;
     synthesized core::bool #0#15#isSet = false;
-    function #0#15#func() → core::Object?
-      return #0#15#isSet ?{core::Object?} #0#15 : let final core::bool* #t96 = #0#15#isSet = true in #0#15 = (#0#0 as{Unchecked} ({g: core::Object?})).g{core::Object?};
     synthesized core::Object? #0#20;
     synthesized core::bool #0#20#isSet = false;
     synthesized core::Object? #0#23;
     synthesized core::bool #0#23#isSet = false;
     synthesized core::int #0#26;
     synthesized core::bool #0#26#isSet = false;
-    function #0#26#func() → core::int
-      return #0#26#isSet ?{core::int} #0#26 : let final core::bool* #t97 = #0#26#isSet = true in #0#26 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     synthesized dynamic #0#30;
     synthesized core::bool #0#30#isSet = false;
-    function #0#30#func() → dynamic
-      return #0#30#isSet ?{dynamic} #0#30 : let final core::bool* #t98 = #0#30#isSet = true in #0#30 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #0#32;
     synthesized core::bool #0#32#isSet = false;
-    function #0#32#func() → dynamic
-      return #0#32#isSet ?{dynamic} #0#32 : let final core::bool* #t99 = #0#32#isSet = true in #0#32 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     synthesized core::bool #0#34;
     synthesized core::bool #0#34#isSet = false;
-    function #0#34#func() → core::bool
-      return #0#34#isSet ?{core::bool} #0#34 : let final core::bool* #t100 = #0#34#isSet = true in #0#34 = #0#26#func(){() → core::int}.{core::num::>=}(#C7){(core::num) → core::bool};
     synthesized core::bool #0#38;
     synthesized core::bool #0#38#isSet = false;
-    function #0#38#func() → core::bool
-      return #0#38#isSet ?{core::bool} #0#38 : let final core::bool* #t101 = #0#38#isSet = true in #0#38 = #0#26#func(){() → core::int}.{core::num::>=}(#C2){(core::num) → core::bool};
     synthesized dynamic #0#43;
     synthesized core::bool #0#43#isSet = false;
-    function #0#43#func() → dynamic
-      return #0#43#isSet ?{dynamic} #0#43 : let final core::bool* #t102 = #0#43#isSet = true in #0#43 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(#0#26#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
     synthesized core::List<dynamic> #0#47;
     synthesized core::bool #0#47#isSet = false;
-    function #0#47#func() → core::List<dynamic>
-      return #0#47#isSet ?{core::List<dynamic>} #0#47 : let final core::bool* #t103 = #0#47#isSet = true in #0#47 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
     synthesized dynamic #0#50;
     synthesized core::bool #0#50#isSet = false;
-    function #0#50#func() → dynamic
-      return #0#50#isSet ?{dynamic} #0#50 : let final core::bool* #t104 = #0#50#isSet = true in #0#50 = #0#47#func(){() → core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #0#53;
     synthesized core::bool #0#53#isSet = false;
-    function #0#53#func() → dynamic
-      return #0#53#isSet ?{dynamic} #0#53 : let final core::bool* #t105 = #0#53#isSet = true in #0#53 = #0#47#func(){() → core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     synthesized core::List<dynamic> #0#58;
     synthesized core::bool #0#58#isSet = false;
-    function #0#58#func() → core::List<dynamic>
-      return #0#58#isSet ?{core::List<dynamic>} #0#58 : let final core::bool* #t106 = #0#58#isSet = true in #0#58 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::sublist}(2, #0#26#func(){() → core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>};
     synthesized dynamic #0#61;
     synthesized core::bool #0#61#isSet = false;
-    function #0#61#func() → dynamic
-      return #0#61#isSet ?{dynamic} #0#61 : let final core::bool* #t107 = #0#61#isSet = true in #0#61 = #0#58#func(){() → core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #0#64;
     synthesized core::bool #0#64#isSet = false;
-    function #0#64#func() → dynamic
-      return #0#64#isSet ?{dynamic} #0#64 : let final core::bool* #t108 = #0#64#isSet = true in #0#64 = #0#58#func(){() → core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     synthesized core::int #0#69;
     synthesized core::bool #0#69#isSet = false;
-    function #0#69#func() → core::int
-      return #0#69#isSet ?{core::int} #0#69 : let final core::bool* #t109 = #0#69#isSet = true in #0#69 = (#0#0 as{Unchecked} self::Class).{self::Class::field}{core::int};
     synthesized core::int? #0#84;
     synthesized core::bool #0#84#isSet = false;
-    function #0#84#func() → core::int?
-      return #0#84#isSet ?{core::int?} #0#84 : let final core::bool* #t110 = #0#84#isSet = true in #0#84 = (#0#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C3){(core::Object?) → core::int?};
     synthesized dynamic #0#92;
     synthesized core::bool #0#92#isSet = false;
-    function #0#92#func() → dynamic
-      return #0#92#isSet ?{dynamic} #0#92 : let final core::bool* #t111 = #0#92#isSet = true in #0#92 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C12){(core::Object?) → dynamic};
     synthesized dynamic #0#94;
     synthesized core::bool #0#94#isSet = false;
-    function #0#94#func() → dynamic
-      return #0#94#isSet ?{dynamic} #0#94 : let final core::bool* #t112 = #0#94#isSet = true in #0#94 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     synthesized dynamic #0#96;
     synthesized core::bool #0#96#isSet = false;
-    function #0#96#func() → dynamic
-      return #0#96#isSet ?{dynamic} #0#96 : let final core::bool* #t113 = #0#96#isSet = true in #0#96 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C7){(core::Object?) → dynamic};
     synthesized dynamic #0#98;
     synthesized core::bool #0#98#isSet = false;
-    function #0#98#func() → dynamic
-      return #0#98#isSet ?{dynamic} #0#98 : let final core::bool* #t114 = #0#98#isSet = true in #0#98 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic};
     #L2:
     {
       {
         if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-          #t94 = 1;
+          #t192 = 1;
           break #L2;
         }
       }
       {
-        if(#0#0 is ({f: core::Object?}) && ((let final core::int #t115 = #0#4#func(){() → core::Object?} as core::int in (#0#4#func(){() → core::Object?} as core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t116 = #0#4#func(){() → core::Object?} as core::int in (#0#4#func(){() → core::Object?} as core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
-          #t94 = 2;
+        if(#0#0 is ({f: core::Object?}) && ((let final core::int #t193 = (#0#4#isSet ?{core::Object?} #0#4{core::Object?} : let final core::bool* #t194 = #0#4#isSet = true in #0#4 = #0#0{({f: core::Object?})}.f{core::Object?}) as core::int in ((#0#4#isSet ?{core::Object?} #0#4{core::Object?} : let final core::bool* #t195 = #0#4#isSet = true in #0#4 = #0#0{({f: core::Object?})}.f{core::Object?}) as core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t196 = (#0#4#isSet ?{core::Object?} #0#4{core::Object?} : let final core::bool* #t197 = #0#4#isSet = true in #0#4 = #0#0{({f: core::Object?})}.f{core::Object?}) as core::int in ((#0#4#isSet ?{core::Object?} #0#4{core::Object?} : let final core::bool* #t198 = #0#4#isSet = true in #0#4 = #0#0{({f: core::Object?})}.f{core::Object?}) as core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
+          #t192 = 2;
           break #L2;
         }
       }
       {
         if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-          #t94 = 3;
+          #t192 = 3;
           break #L2;
         }
       }
       {
-        if(#0#0 is ({g: core::Object?}) && (let final core::int #t117 = #0#15#func(){() → core::Object?} as core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #0#15#func(){() → core::Object?} as core::int)) {
-          #t94 = 4;
+        if(#0#0 is ({g: core::Object?}) && (let final core::int #t199 = (#0#15#isSet ?{core::Object?} #0#15{core::Object?} : let final core::bool* #t200 = #0#15#isSet = true in #0#15 = #0#0{({g: core::Object?})}.g{core::Object?}) as core::int in #C6 =={core::num::==}{(core::Object) → core::bool} (#0#15#isSet ?{core::Object?} #0#15{core::Object?} : let final core::bool* #t201 = #0#15#isSet = true in #0#15 = #0#0{({g: core::Object?})}.g{core::Object?}) as core::int)) {
+          #t192 = 4;
           break #L2;
         }
       }
       {
-        if(#0#0 is ({a: core::Object?}) && (let final core::Object? #t118 = (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t119 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?})}.a{core::Object?})! in true)) {
-          #t94 = 5;
+        if(#0#0 is ({a: core::Object?}) && (let final core::Object? #t202 = (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t203 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?})}.a{core::Object?})! in true)) {
+          #t192 = 5;
           break #L2;
         }
       }
       {
-        if(#0#0 is ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t120 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) ?{core::bool} true : false)) {
-          #t94 = 6;
+        if(#0#0 is ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t204 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) && true)) {
+          #t192 = 6;
           break #L2;
         }
       }
       {
-        if(#0#0 is core::List<dynamic> && #0#26#func(){() → core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C7 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic}) {
-          #t94 = 7;
+        if(#0#0 is core::List<dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t205 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t206 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C7 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t207 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic})) {
+          #t192 = 7;
           break #L2;
         }
       }
       {
-        if(#0#0 is core::List<dynamic> && #0#34#func(){() → core::bool} && #C7 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic}) {
-          #t94 = 8;
+        if(#0#0 is core::List<dynamic> && (#0#34#isSet ?{core::bool} #0#34{core::bool} : let final core::bool* #t208 = #0#34#isSet = true in #0#34 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t209 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C7 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t210 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t211 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic})) {
+          #t192 = 8;
           break #L2;
         }
       }
       {
-        if(#0#0 is core::List<dynamic> && #0#38#func(){() → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C8 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#43#func(){() → dynamic}) {
-          #t94 = 9;
+        if(#0#0 is core::List<dynamic> && (#0#38#isSet ?{core::bool} #0#38{core::bool} : let final core::bool* #t212 = #0#38#isSet = true in #0#38 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t213 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t214 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C8 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t215 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#43#isSet ?{dynamic} #0#43{dynamic} : let final core::bool* #t216 = #0#43#isSet = true in #0#43 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t217 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
+          #t192 = 9;
           break #L2;
         }
       }
       {
-        if(#0#0 is core::List<dynamic> && #0#34#func(){() → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic} && (#0#47#func(){() → core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t121 = #0#50#func(){() → dynamic} as core::int in (#0#50#func(){() → dynamic} as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t122 = #0#53#func(){() → dynamic} as core::int in (#0#53#func(){() → dynamic} as core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
-          #t94 = 10;
+        if(#0#0 is core::List<dynamic> && (#0#34#isSet ?{core::bool} #0#34{core::bool} : let final core::bool* #t218 = #0#34#isSet = true in #0#34 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t219 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t220 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t221 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) && ((#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t222 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t223 = (#0#50#isSet ?{dynamic} #0#50{dynamic} : let final core::bool* #t224 = #0#50#isSet = true in #0#50 = (#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t225 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int in ((#0#50#isSet ?{dynamic} #0#50{dynamic} : let final core::bool* #t226 = #0#50#isSet = true in #0#50 = (#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t227 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t228 = (#0#53#isSet ?{dynamic} #0#53{dynamic} : let final core::bool* #t229 = #0#53#isSet = true in #0#53 = (#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t230 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int in ((#0#53#isSet ?{dynamic} #0#53{dynamic} : let final core::bool* #t231 = #0#53#isSet = true in #0#53 = (#0#47#isSet ?{core::List<dynamic>} #0#47{core::List<dynamic>} : let final core::bool* #t232 = #0#47#isSet = true in #0#47 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
+          #t192 = 10;
           break #L2;
         }
       }
       {
-        if(#0#0 is core::List<dynamic> && #0#38#func(){() → core::bool} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#30#func(){() → dynamic} && #C4 =={core::num::==}{(core::Object) → core::bool} #0#32#func(){() → dynamic} && (#0#58#func(){() → core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t123 = #0#61#func(){() → dynamic} as core::int in (#0#61#func(){() → dynamic} as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t124 = #0#64#func(){() → dynamic} as core::int in (#0#64#func(){() → dynamic} as core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#43#func(){() → dynamic}) {
-          #t94 = 11;
+        if(#0#0 is core::List<dynamic> && (#0#38#isSet ?{core::bool} #0#38{core::bool} : let final core::bool* #t233 = #0#38#isSet = true in #0#38 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t234 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#30#isSet ?{dynamic} #0#30{dynamic} : let final core::bool* #t235 = #0#30#isSet = true in #0#30 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) && #C4 =={core::num::==}{(core::Object) → core::bool} (#0#32#isSet ?{dynamic} #0#32{dynamic} : let final core::bool* #t236 = #0#32#isSet = true in #0#32 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) && ((#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t237 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t238 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t239 = (#0#61#isSet ?{dynamic} #0#61{dynamic} : let final core::bool* #t240 = #0#61#isSet = true in #0#61 = (#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t241 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t242 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int in ((#0#61#isSet ?{dynamic} #0#61{dynamic} : let final core::bool* #t243 = #0#61#isSet = true in #0#61 = (#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t244 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t245 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t246 = (#0#64#isSet ?{dynamic} #0#64{dynamic} : let final core::bool* #t247 = #0#64#isSet = true in #0#64 = (#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t248 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t249 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int in ((#0#64#isSet ?{dynamic} #0#64{dynamic} : let final core::bool* #t250 = #0#64#isSet = true in #0#64 = (#0#58#isSet ?{core::List<dynamic>} #0#58{core::List<dynamic>} : let final core::bool* #t251 = #0#58#isSet = true in #0#58 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t252 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#43#isSet ?{dynamic} #0#43{dynamic} : let final core::bool* #t253 = #0#43#isSet = true in #0#43 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t254 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
+          #t192 = 11;
           break #L2;
         }
       }
       {
-        if(#0#0 is self::Class && #C1 =={core::num::==}{(core::Object) → core::bool} #0#69#func(){() → core::int}) {
-          #t94 = 12;
+        if(#0#0 is self::Class && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#69#isSet ?{core::int} #0#69{core::int} : let final core::bool* #t255 = #0#69#isSet = true in #0#69 = #0#0{self::Class}.{self::Class::field}{core::int})) {
+          #t192 = 12;
           break #L2;
         }
       }
       {
         if(#0#0 is self::Class && #C7 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::finalField}{core::int}) {
-          #t94 = 13;
+          #t192 = 13;
           break #L2;
         }
       }
       {
-        if(#0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#69#func(){() → core::int} && #C8 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::getter}{core::int}) {
-          #t94 = 14;
+        if(#0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#69#isSet ?{core::int} #0#69{core::int} : let final core::bool* #t256 = #0#69#isSet = true in #0#69 = #0#0{self::Class}.{self::Class::field}{core::int}) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::getter}{core::int}) {
+          #t192 = 14;
           break #L2;
         }
       }
       {
         if(#0#0 is self::Class) {
-          #t94 = 15;
+          #t192 = 15;
           break #L2;
         }
       }
       {
         if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C9) {
-          #t94 = 16;
+          #t192 = 16;
           break #L2;
         }
       }
       {
         if(#0#0 is ({e: core::Object?}) && !(#0#0{({e: core::Object?})}.e{core::Object?} =={core::Object::==}{(core::Object) → core::bool} #C10)) {
-          #t94 = 17;
+          #t192 = 17;
           break #L2;
         }
       }
       {
-        if(#0#0 is core::Map<core::int, core::int> && (!(#0#84#func(){() → core::int?} == null) || null is core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool}) && (let core::int? #t125 = #0#84#func(){() → core::int?} in #t125 == null ?{core::int} #t125 as{Unchecked} core::int : #t125{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
-          #t94 = 18;
+        if(#0#0 is core::Map<core::int, core::int> && (!((#0#84#isSet ?{core::int?} #0#84{core::int?} : let final core::bool* #t257 = #0#84#isSet = true in #0#84 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?}) == null) || null is core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool}) && (let core::int? #t258 = #0#84#isSet ?{core::int?} #0#84{core::int?} : let final core::bool* #t259 = #0#84#isSet = true in #0#84 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} in #t258 == null ?{core::int} #t258 as{Unchecked} core::int : #t258{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
+          #t192 = 18;
           break #L2;
         }
       }
       {
-        if(#0#0 is core::List<dynamic> && #0#26#func(){() → core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t94 = 19;
+        if(#0#0 is core::List<dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t260 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) {
+          #t192 = 19;
           break #L2;
         }
       }
       {
         if(#0#0 is core::bool) {
-          #t94 = 20;
+          #t192 = 20;
           break #L2;
         }
       }
       {
         if(#0#0 is core::Map<dynamic, dynamic> && o{core::Map<dynamic, dynamic>}.{core::Map::isEmpty}{core::bool}) {
-          #t94 = 21;
+          #t192 = 21;
           break #L2;
         }
       }
       {
-        if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#92#func(){() → dynamic} == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool}) && #0#92#func(){() → dynamic} is core::int) {
-          #t94 = 22;
+        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#92#isSet ?{dynamic} #0#92{dynamic} : let final core::bool* #t261 = #0#92#isSet = true in #0#92 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool}) && (#0#92#isSet ?{dynamic} #0#92{dynamic} : let final core::bool* #t262 = #0#92#isSet = true in #0#92 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic}) is core::int) {
+          #t192 = 22;
           break #L2;
         }
       }
       {
-        if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#94#func(){() → dynamic} == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #0#94#func(){() → dynamic} is core::String) {
-          #t94 = 23;
+        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#94#isSet ?{dynamic} #0#94{dynamic} : let final core::bool* #t263 = #0#94#isSet = true in #0#94 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (#0#94#isSet ?{dynamic} #0#94{dynamic} : let final core::bool* #t264 = #0#94#isSet = true in #0#94 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) is core::String) {
+          #t192 = 23;
           break #L2;
         }
       }
       {
         hoisted dynamic a;
-        if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#96#func(){() → dynamic} == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && (let final dynamic #t126 = a = #0#96#func(){() → dynamic} in true)) {
-          #t94 = 24;
+        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#96#isSet ?{dynamic} #0#96{dynamic} : let final core::bool* #t265 = #0#96#isSet = true in #0#96 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool})) {
+          a = #0#96#isSet ?{dynamic} #0#96{dynamic} : let final core::bool* #t266 = #0#96#isSet = true in #0#96 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic};
+          #t192 = 24;
           break #L2;
         }
       }
       {
         hoisted core::int b;
-        if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#98#func(){() → dynamic} == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#0#98#func(){() → dynamic} is core::int && (let final core::int #t127 = b = #0#98#func(){() → dynamic} as{Unchecked} core::int in true))) {
-          #t94 = 25;
+        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#98#isSet ?{dynamic} #0#98{dynamic} : let final core::bool* #t267 = #0#98#isSet = true in #0#98 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#0#98#isSet ?{dynamic} #0#98{dynamic} : let final core::bool* #t268 = #0#98#isSet = true in #0#98 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) is core::int) {
+          b = (#0#98#isSet ?{dynamic} #0#98{dynamic} : let final core::bool* #t269 = #0#98#isSet = true in #0#98 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) as{Unchecked} core::int;
+          #t192 = 25;
           break #L2;
         }
       }
       {
         if(#0#0 is (core::Object?, core::Object?) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
-          #t94 = 26;
+          #t192 = 26;
           break #L2;
         }
       }
       {
         hoisted dynamic c;
-        if(#0#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t128 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) && (let final core::Object? #t129 = c = #0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t130 = #0#23#isSet = true in #0#23 = #0#0{({a: core::Object?, b: core::Object?})}.b{core::Object?} in true)) {
-          #t94 = 27;
+        if(#0#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t270 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?, b: core::Object?})}.a{core::Object?})) {
+          c = #0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t271 = #0#23#isSet = true in #0#23 = #0#0{({a: core::Object?, b: core::Object?})}.b{core::Object?};
+          #t192 = 27;
           break #L2;
         }
       }
       {
         hoisted dynamic d;
-        if(#0#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t131 = d = #0#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
-          #t94 = 28;
+        if(#0#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t272 = d = #0#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
+          #t192 = 28;
           break #L2;
         }
       }
       {
         if(true) {
-          #t94 = 0;
+          #t192 = 0;
           break #L2;
         }
       }
     }
-  } =>#t94;
+  } =>#t192;
 }
 static method test(dynamic expected, dynamic value) → dynamic {
   self::expect(expected, self::ifCase(value));
@@ -1174,4 +1055,4 @@ Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:331:12 -> Recor
 Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:332:12 -> RecordConstant(const ({c: 0, d: 1}))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:333:12 -> RecordConstant(const ({c: 0, d: 2}))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:334:11 -> RecordConstant(const ({c: 0, d: "foo"}))
-Extra constant evaluation: evaluated: 2147, effectively constant: 34
+Extra constant evaluation: evaluated: 3095, effectively constant: 34

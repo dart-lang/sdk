@@ -434,6 +434,34 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
   }
 }
 
+void Assembler::StoreWordToPoolIndex(Register src,
+                                     intptr_t index,
+                                     Register pp) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(src != pp);
+  Operand op;
+  // PP is _un_tagged on ARM64.
+  const uint32_t offset = target::ObjectPool::element_offset(index);
+  const uint32_t upper20 = offset & 0xfffff000;
+  if (Address::CanHoldOffset(offset)) {
+    str(src, Address(pp, offset));
+  } else if (Operand::CanHold(upper20, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    const uint32_t lower12 = offset & 0x00000fff;
+    ASSERT(Address::CanHoldOffset(lower12));
+    add(TMP, pp, op);
+    str(src, Address(TMP, lower12));
+  } else {
+    const uint16_t offset_low = Utils::Low16Bits(offset);
+    const uint16_t offset_high = Utils::High16Bits(offset);
+    movz(TMP, Immediate(offset_low), 0);
+    if (offset_high != 0) {
+      movk(TMP, Immediate(offset_high), 1);
+    }
+    str(src, Address(pp, TMP));
+  }
+}
+
 void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
                                             Register upper,
                                             intptr_t index) {
@@ -699,23 +727,28 @@ void Assembler::LoadQImmediate(VRegister vd, simd128_value_t immq) {
   LoadQFromOffset(vd, PP, offset);
 }
 
-void Assembler::Branch(const Code& target,
-                       Register pp,
-                       ObjectPoolBuilderEntry::Patchability patchable) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index, pp);
-  ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  br(TMP);
+void Assembler::BranchLink(intptr_t target_code_pool_index,
+                           CodeEntryKind entry_kind) {
+  CLOBBERS_LR({
+    // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+    // We don't actually use CODE_REG in the callee and caller might
+    // be using CODE_REG for a live value (e.g. a value that is alive
+    // across invocation of a shared stub like the one we use for
+    // allocating Mint boxes).
+    const Register code_reg = FLAG_precompiled_mode ? LR : CODE_REG;
+    LoadWordFromPoolIndex(code_reg, target_code_pool_index);
+    Call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
+  });
 }
 
-void Assembler::BranchLink(const Code& target,
-                           ObjectPoolBuilderEntry::Patchability patchable,
-                           CodeEntryKind entry_kind) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+void Assembler::BranchLink(
+    const Code& target,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  const intptr_t index = object_pool_builder().FindObject(
+      ToObject(target), patchable, snapshot_behavior);
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
@@ -723,8 +756,7 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           CodeEntryKind entry_kind) {
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::AddImmediate(Register dest,
@@ -998,7 +1030,7 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 #if !defined(DART_COMPRESSED_POINTERS)
   ldr(dest, slot);
 #else
-  ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
+  ldr(dest, slot, kUnsignedFourBytes);                     // Zero-extension.
 #endif
 #if defined(DEBUG)
   Label done;

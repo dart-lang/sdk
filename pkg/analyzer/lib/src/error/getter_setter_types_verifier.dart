@@ -16,12 +16,15 @@ import 'package:analyzer/src/error/codes.dart';
 class GetterSetterTypesVerifier {
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
+  final bool _strictCasts;
 
   GetterSetterTypesVerifier({
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
+    required bool strictCasts,
   })  : _typeSystem = typeSystem,
-        _errorReporter = errorReporter;
+        _errorReporter = errorReporter,
+        _strictCasts = strictCasts;
 
   ErrorCode get _errorCode {
     return _isNonNullableByDefault
@@ -39,6 +42,11 @@ class GetterSetterTypesVerifier {
     }
   }
 
+  void checkExtensionType(ExtensionTypeElement element, Interface interface) {
+    checkInterface(element, interface);
+    checkStaticAccessors(element.accessors);
+  }
+
   void checkInterface(InterfaceElement element, Interface interface) {
     var libraryUri = element.library.source.uri;
 
@@ -54,7 +62,12 @@ class GetterSetterTypesVerifier {
           if (!_match(getterType, setterType)) {
             Element errorElement;
             if (getter.enclosingElement == element) {
-              errorElement = getter;
+              if (element is ExtensionTypeElement &&
+                  element.representation.getter == getter) {
+                errorElement = setter;
+              } else {
+                errorElement = getter;
+              }
             } else if (setter.enclosingElement == element) {
               errorElement = setter;
             } else {
@@ -114,7 +127,8 @@ class GetterSetterTypesVerifier {
   bool _match(DartType getterType, DartType setterType) {
     return _isNonNullableByDefault
         ? _typeSystem.isSubtypeOf(getterType, setterType)
-        : _typeSystem.isAssignableTo(getterType, setterType);
+        : _typeSystem.isAssignableTo(getterType, setterType,
+            strictCasts: _strictCasts);
   }
 
   /// Return the return type of the [getter].

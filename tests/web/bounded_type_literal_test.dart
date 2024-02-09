@@ -17,8 +17,7 @@ main() {
   var typeLiteralToString = "${b}";
   Expect.equals(runtimeTypeToString, typeLiteralToString);
 
-  if ('$Object' == 'Object') {
-    // `true` if non-minified.
+  if (!runtimeTypeToString.contains('minified:')) {
     Expect.equals("Foo<num>", runtimeTypeToString);
     Expect.equals("Foo<num>", typeLiteralToString);
   }

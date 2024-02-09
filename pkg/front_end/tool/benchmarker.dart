@@ -15,6 +15,7 @@ void main(List<String> args) {
   int iterations = 5;
   int core = 7;
   String? aotRuntime;
+  String? checkFileSize;
   List<String> snapshots = [];
   List<String> arguments = [];
   for (String arg in args) {
@@ -28,6 +29,8 @@ void main(List<String> args) {
       snapshots.add(arg.substring("--snapshot=".length));
     } else if (arg.startsWith("--arguments=")) {
       arguments.add(arg.substring("--arguments=".length));
+    } else if (arg.startsWith("--filesize=")) {
+      checkFileSize = arg.substring("--filesize=".length);
     } else {
       throw "Don't know argument '$arg'";
     }
@@ -45,13 +48,24 @@ void main(List<String> args) {
       "${snapshots.length} snapshots.");
 
   List<List<Map<String, num>>> runResults = [];
+  List<GCInfo> gcInfos = [];
   for (String snapshot in snapshots) {
     List<Map<String, num>> snapshotResults = [];
     runResults.add(snapshotResults);
     for (int iteration = 0; iteration < iterations; iteration++) {
-      snapshotResults
-          .add(_benchmark(aotRuntime, core, snapshot, [], arguments));
+      Map<String, num> benchmarkRun =
+          _benchmark(aotRuntime, core, snapshot, [], arguments);
+      if (checkFileSize != null) {
+        File f = new File(checkFileSize);
+        if (f.existsSync()) {
+          benchmarkRun["filesize"] = f.lengthSync();
+        }
+      }
+      snapshotResults.add(benchmarkRun);
     }
+
+    // Do a single GC run too.
+    gcInfos.add(_verboseGcRun(aotRuntime, snapshot, [], arguments));
   }
   stdout.write("\n\n");
 
@@ -63,6 +77,7 @@ void main(List<String> args) {
     if (!_compare(firstSnapshotResults, compareToResults)) {
       print("No change.");
     }
+    printGcDiff(gcInfos.first, gcInfos[i]);
   }
 }
 
@@ -160,6 +175,14 @@ Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
   ProcessResult processResult = Process.runSync("perf", [
     "stat",
     "-B",
+    "-e",
+    // These doesn't influence scaling
+    "task-clock:u,context-switches:u,cpu-migrations:u,page-faults:u,"
+        // These influence scaling, so only pick 3 (apparently that's now the
+        // magic limit)
+        "cycles:u,"
+        "instructions:u,"
+        "branch-misses:u",
     "taskset",
     "-c",
     "$core",
@@ -179,10 +202,28 @@ Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
   }
   String stderr = processResult.stderr;
   List<String> lines = stderr.split("\n");
+
   Map<String, num> result = new Map<String, num>();
   for (String line in lines) {
     int pos = line.indexOf("#");
+    String? scaling;
     if (pos >= 0) {
+      // Check for scaling e.g.
+      // ```
+      //   974,702,464      cycles:u     (74.32%)
+      //   932,606,794      cycles:u     (76.01%)
+      //   922,272,003      cycles:u     (75.84%)
+      //   942,191,386      cycles:u     (74.01%)
+      // ```
+      String comment = line.substring(pos);
+      if (comment.trim().endsWith("%)")) {
+        int lastStartParen = comment.lastIndexOf("(");
+        if (lastStartParen < 0) {
+          throw "Thought it found scaling for '$comment' "
+              "but it didn't look as expected.";
+        }
+        scaling = comment.substring(lastStartParen + 1, comment.length - 1);
+      }
       line = line.substring(0, pos);
     }
     for (RegExpMatch match in _extractNumbers.allMatches(line)) {
@@ -196,10 +237,35 @@ Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
         value = int.parse(stringValue);
       }
       result[caption] = value;
+      if (scaling != null) {
+        print("WARNING: $caption is scaled at $scaling!");
+      }
     }
   }
 
   return result;
+}
+
+GCInfo _verboseGcRun(String aotRuntime, String snapshot,
+    List<String> extraVmArguments, List<String> arguments,
+    {bool silent = false}) {
+  if (!silent) stdout.write(".");
+  ProcessResult processResult = Process.runSync(aotRuntime, [
+    "--deterministic",
+    "--verbose-gc",
+    ...extraVmArguments,
+    snapshot,
+    ...arguments
+  ]);
+  if (processResult.exitCode != 0) {
+    throw "Run failed with exit code ${processResult.exitCode}.\n"
+        "stdout:\n${processResult.stdout}\n\n"
+        "stderr:\n${processResult.stderr}\n\n";
+  }
+  if (processResult.stdout != "" && !silent) {
+    print(processResult.stdout);
+  }
+  return parseVerboseGcOutput(processResult);
 }
 
 String _computeAotRuntime() {
@@ -227,4 +293,79 @@ void _checkEnvironment() {
 bool _whichOk(String what) {
   ProcessResult result = Process.runSync("which", [what]);
   return result.exitCode == 0;
+}
+
+GCInfo parseVerboseGcOutput(ProcessResult processResult) {
+  List<String> stderrLines = processResult.stderr.split("\n");
+  double combinedTime = 0;
+  Map<String, int> countWhat = {};
+  for (String line in stderrLines) {
+    if (!line.trim().startsWith("[")) continue;
+    if (line.indexOf(",") < 0) continue;
+    // Hardcoding this might not be the best solution, but works for now.
+    // The data is space and comma delimited like this (cut off in both
+    // directions):
+    //
+    // ```
+    // [ GC isolate   | space (reason)           | GC# | start | time | [...]
+    // [              |                          |     |  (s)  | (ms) | [...]
+    // [ main         ,  StartCMark(    external),    1,   0.02,   0.7, [...]
+    // [...]
+    // ```
+    //
+    // and (currently) contains this information:
+    // * [0]: GC isolate
+    // * [1]: space (reason)
+    // * [2]: GC#
+    // * [3]: start (s)
+    // * [4]: time (ms)
+    // * [5]: new gen used (MB) before
+    // * [6]: new gen used (MB) after
+    // * [7]: new gen capacity (MB) before
+    // * [8]: new gen capacity (MB) after
+    // * [9]: new gen external (MB) before
+    // * [10]: new gen external (MB) after
+    // * [11]: old gen used (MB) before
+    // * [12]: old gen used (MB) after
+    // * [13]: old gen capacity (MB) before
+    // * [14]: old gen capacity (MB) after
+    // * [15]: old gen external (MB) before
+    // * [16]: old gen external (MB) after
+    // * [17]: store buffer before
+    // * [18]: store buffer after
+    // * [19]: delta used new (MB)
+    // * [20]: delta used old (MB)
+    // * [21]: (nothing, but the cell before ends in a comma)
+    List<String> cells = line.split(",");
+    String spaceReason = cells[1].trim();
+    double time = double.parse(cells[4].trim());
+    combinedTime += time;
+    countWhat[spaceReason] = (countWhat[spaceReason] ?? 0) + 1;
+  }
+  return new GCInfo(combinedTime, countWhat);
+}
+
+void printGcDiff(GCInfo prev, GCInfo current) {
+  Set<String> allKeys = {...prev.countWhat.keys, ...current.countWhat.keys};
+  bool printedAnything = false;
+  for (String key in allKeys) {
+    int prevValue = prev.countWhat[key] ?? 0;
+    int currentValue = current.countWhat[key] ?? 0;
+    if (prevValue == currentValue) continue;
+    printedAnything = true;
+    print("$key goes from $prevValue to $currentValue");
+  }
+  if (printedAnything) {
+    print("Notice combined GC time goes "
+        "from ${prev.combinedTime.toStringAsFixed(0)} ms "
+        "to ${current.combinedTime.toStringAsFixed(0)} ms "
+        "(notice only 1 run each).");
+  }
+}
+
+class GCInfo {
+  final double combinedTime;
+  final Map<String, int> countWhat;
+
+  GCInfo(this.combinedTime, this.countWhat);
 }

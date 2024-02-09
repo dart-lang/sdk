@@ -13,17 +13,44 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
+import '../loader.dart';
 import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 import '../problems.dart' show unimplemented;
 import '../scope.dart';
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
 
-class DillClassBuilder extends ClassBuilderImpl {
+mixin DillClassMemberAccessMixin implements ClassMemberAccess {
+  Scope get scope;
+  ConstructorScope get constructorScope;
+
+  @override
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
+      constructorScope.filteredIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
+
+  @override
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
+      constructorScope.filteredNameIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
+
+  @override
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      scope.filteredIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
+
+  @override
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      scope.filteredNameIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
+}
+
+class DillClassBuilder extends ClassBuilderImpl
+    with DillClassMemberAccessMixin {
   @override
   final Class cls;
 
-  List<TypeVariableBuilder>? _typeVariables;
+  List<NominalVariableBuilder>? _typeVariables;
 
   TypeBuilder? _supertypeBuilder;
 
@@ -80,11 +107,11 @@ class DillClassBuilder extends ClassBuilderImpl {
   bool get isAugmentation => false;
 
   @override
-  List<TypeVariableBuilder>? get typeVariables {
-    List<TypeVariableBuilder>? typeVariables = _typeVariables;
+  List<NominalVariableBuilder>? get typeVariables {
+    List<NominalVariableBuilder>? typeVariables = _typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
-      typeVariables =
-          _typeVariables = computeTypeVariableBuilders(cls.typeParameters);
+      typeVariables = _typeVariables = computeTypeVariableBuilders(
+          cls.typeParameters, libraryBuilder.loader);
     }
     return typeVariables;
   }
@@ -206,26 +233,6 @@ class DillClassBuilder extends ClassBuilderImpl {
     return interfaceBuilders;
   }
 
-  @override
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      constructorScope.filteredIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
-
-  @override
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      constructorScope.filteredNameIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
-
-  @override
-  Iterator<T> fullMemberIterator<T extends Builder>() =>
-      scope.filteredIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
-
-  @override
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      scope.filteredNameIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
-
   void clearCachedValues() {
     _supertypeBuilder = null;
     _interfaceBuilders = null;
@@ -251,10 +258,11 @@ TypeBuilder? computeTypeBuilder(
       : library.loader.computeTypeBuilder(supertype.asInterfaceType);
 }
 
-List<TypeVariableBuilder>? computeTypeVariableBuilders(
-    List<TypeParameter>? typeParameters) {
+List<NominalVariableBuilder>? computeTypeVariableBuilders(
+    List<TypeParameter>? typeParameters, Loader loader) {
   if (typeParameters == null || typeParameters.length == 0) return null;
-  return new List.generate(typeParameters.length,
-      (int i) => new TypeVariableBuilder.fromKernel(typeParameters[i]),
-      growable: false);
+  return <NominalVariableBuilder>[
+    for (TypeParameter typeParameter in typeParameters)
+      new NominalVariableBuilder.fromKernel(typeParameter, loader: loader)
+  ];
 }

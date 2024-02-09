@@ -11,131 +11,135 @@ import 'package:js/js.dart';
 class JSClass {
   // https://dart.dev/guides/language/language-tour#_operators for the list of
   // operators allowed by the language.
+  @JS('rename')
   external void operator <(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop operator methods cannot be renamed using the '@JS' annotation.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator >(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator <=(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator >=(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator -(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator +(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator /(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator ~/(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator *(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator %(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator |(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator ^(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator &(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator <<(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator >>(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator >>>(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator [](_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator []=(_, __);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator ~();
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external bool operator ==(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
 }
 
 @JS()
 @anonymous
 class AnonymousClass {
+  @JS('rename')
   external void operator <(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop operator methods cannot be renamed using the '@JS' annotation.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator >(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator <=(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator >=(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator -(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator +(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator /(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator ~/(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator *(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator %(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator |(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator ^(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator &(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator <<(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator >>(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator >>>(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator [](_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator []=(_, __);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external void operator ~();
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
   external bool operator ==(_);
   //                     ^
-  // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
+  // [web] JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.
 }
 
 void main() {}

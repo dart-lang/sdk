@@ -8,7 +8,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 
 /// The result of performing some kind of analysis on a single file. Every
 /// result that implements this interface will also implement a sub-interface.
@@ -83,6 +84,9 @@ abstract class ErrorsResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileResult implements SomeFileResult, AnalysisResult {
+  /// The file resource.
+  File get file;
+
   /// Whether the file is a library augmentation.
   /// When `true`, [isLibrary] and [isPart] are `false`.
   bool get isAugmentation;
@@ -90,6 +94,10 @@ abstract class FileResult implements SomeFileResult, AnalysisResult {
   /// Whether the file is a library.
   /// When `true`, [isAugmentation] and [isPart] are `false`.
   bool get isLibrary;
+
+  /// Whether the file is a macro augmentation.
+  /// When `true`, [isAugmentation] is also `true`.
+  bool get isMacroAugmentation;
 
   /// Whether the file is a part.
   /// When `true`, [isAugmentation] and [isLibrary] are `false`.
@@ -341,7 +349,7 @@ abstract class SomeUnitElementResult {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 ///
-/// TODO(scheglov) Stop implementing [FileResult].
+// TODO(scheglov): Stop implementing [FileResult].
 abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
   /// The element of the file.
   CompilationUnitElement get element;

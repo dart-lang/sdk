@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/backend/locations.h"
+#include <limits>
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -60,8 +61,13 @@ bool RepresentationUtils::IsUnsigned(Representation rep) {
 #undef REP_IN_SET_CLAUSE
 
 compiler::OperandSize RepresentationUtils::OperandSize(Representation rep) {
-  if (rep == kTagged || rep == kUntagged) {
+  if (rep == kTagged) {
     return compiler::kObjectBytes;
+  } else if (rep == kUntagged) {
+    // Untagged addresses are either loaded from and stored to word size native
+    // fields or generated from already-extended tagged addresses when
+    // compressed pointers are enabled.
+    return compiler::kWordBytes;
   }
   ASSERT(IsUnboxedInteger(rep));
   switch (ValueSize(rep)) {
@@ -87,6 +93,38 @@ compiler::OperandSize RepresentationUtils::OperandSize(Representation rep) {
   }
   UNREACHABLE();
   return compiler::kObjectBytes;
+}
+
+#define REP_MIN_VALUE_CLAUSE(name, ____, type)                                 \
+  case k##name:                                                                \
+    return static_cast<int64_t>(std::numeric_limits<type>::min());
+int64_t RepresentationUtils::MinValue(Representation rep) {
+  switch (rep) {
+    FOR_EACH_INTEGER_REPRESENTATION_KIND(REP_MIN_VALUE_CLAUSE)
+    default:
+      UNREACHABLE();
+      return kMinInt64;
+  }
+}
+#undef REP_MIN_VALUE_CLAUSE
+
+#define REP_MAX_VALUE_CLAUSE(name, ____, type)                                 \
+  case k##name:                                                                \
+    return static_cast<int64_t>(std::numeric_limits<type>::max());
+int64_t RepresentationUtils::MaxValue(Representation rep) {
+  switch (rep) {
+    FOR_EACH_INTEGER_REPRESENTATION_KIND(REP_MAX_VALUE_CLAUSE)
+    default:
+      UNREACHABLE();
+      return kMaxInt64;
+  }
+}
+#undef REP_MAX_VALUE_CLAUSE
+
+bool RepresentationUtils::IsRepresentable(Representation rep, int64_t value) {
+  const intptr_t bit_size = ValueSize(rep) * kBitsPerByte;
+  return IsUnsigned(rep) ? Utils::IsUint(bit_size, value)
+                         : Utils::IsInt(bit_size, value);
 }
 
 const char* Location::RepresentationToCString(Representation repr) {
@@ -185,12 +223,15 @@ void LocationSummary::set_in(intptr_t index, Location loc) {
   // restrictions.
   if (always_calls()) {
     if (loc.IsUnallocated()) {
-      ASSERT(loc.policy() == Location::kAny);
+      ASSERT(loc.policy() == Location::kAny ||
+             loc.policy() == Location::kRequiresStack);
     } else if (loc.IsPairLocation()) {
       ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
-             loc.AsPairLocation()->At(0).policy() == Location::kAny);
-      ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
-             loc.AsPairLocation()->At(0).policy() == Location::kAny);
+             loc.AsPairLocation()->At(0).policy() == Location::kAny ||
+             loc.AsPairLocation()->At(0).policy() == Location::kRequiresStack);
+      ASSERT(!loc.AsPairLocation()->At(1).IsUnallocated() ||
+             loc.AsPairLocation()->At(1).policy() == Location::kAny ||
+             loc.AsPairLocation()->At(1).policy() == Location::kRequiresStack);
     }
     if (index == 0 && out(0).IsUnallocated() &&
         out(0).policy() == Location::kSameAsFirstInput) {
@@ -343,6 +384,8 @@ const char* Location::Name() const {
           return "WR";
         case kSameAsFirstInput:
           return "0";
+        case kRequiresStack:
+          return "RS";
       }
       UNREACHABLE();
     default:

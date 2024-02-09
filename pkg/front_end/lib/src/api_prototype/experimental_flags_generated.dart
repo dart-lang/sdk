@@ -62,7 +62,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag classModifiers = const ExperimentalFlag(
       name: 'class-modifiers',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -139,13 +139,21 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 2),
       experimentReleasedVersion: const Version(3, 2));
 
-  static const ExperimentalFlag inlineClass = const ExperimentalFlag(
-      name: 'inline-class',
+  static const ExperimentalFlag inferenceUpdate3 = const ExperimentalFlag(
+      name: 'inference-update-3',
       isEnabledByDefault: false,
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
       experimentReleasedVersion: defaultLanguageVersion);
+
+  static const ExperimentalFlag inlineClass = const ExperimentalFlag(
+      name: 'inline-class',
+      isEnabledByDefault: true,
+      isExpired: false,
+      enabledVersion: const Version(3, 3),
+      experimentEnabledVersion: const Version(3, 3),
+      experimentReleasedVersion: const Version(3, 3));
 
   static const ExperimentalFlag macros = const ExperimentalFlag(
       name: 'macros',
@@ -153,7 +161,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      experimentReleasedVersion: const Version(3, 3));
 
   static const ExperimentalFlag namedArgumentsAnywhere = const ExperimentalFlag(
       name: 'named-arguments-anywhere',
@@ -190,7 +198,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag patterns = const ExperimentalFlag(
       name: 'patterns',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -198,15 +206,23 @@ class ExperimentalFlag {
   static const ExperimentalFlag records = const ExperimentalFlag(
       name: 'records',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
 
+  static const ExperimentalFlag resourceIdentifiers = const ExperimentalFlag(
+      name: 'resource-identifiers',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -358,6 +374,10 @@ class GlobalFeatures {
   GlobalFeature get inferenceUpdate2 => _inferenceUpdate2 ??=
       _computeGlobalFeature(ExperimentalFlag.inferenceUpdate2);
 
+  GlobalFeature? _inferenceUpdate3;
+  GlobalFeature get inferenceUpdate3 => _inferenceUpdate3 ??=
+      _computeGlobalFeature(ExperimentalFlag.inferenceUpdate3);
+
   GlobalFeature? _inlineClass;
   GlobalFeature get inlineClass =>
       _inlineClass ??= _computeGlobalFeature(ExperimentalFlag.inlineClass);
@@ -389,6 +409,10 @@ class GlobalFeatures {
   GlobalFeature? _records;
   GlobalFeature get records =>
       _records ??= _computeGlobalFeature(ExperimentalFlag.records);
+
+  GlobalFeature? _resourceIdentifiers;
+  GlobalFeature get resourceIdentifiers => _resourceIdentifiers ??=
+      _computeGlobalFeature(ExperimentalFlag.resourceIdentifiers);
 
   GlobalFeature? _sealedClass;
   GlobalFeature get sealedClass =>
@@ -492,6 +516,11 @@ class LibraryFeatures {
       _inferenceUpdate2 ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.inferenceUpdate2, canonicalUri, libraryVersion);
 
+  LibraryFeature? _inferenceUpdate3;
+  LibraryFeature get inferenceUpdate3 =>
+      _inferenceUpdate3 ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.inferenceUpdate3, canonicalUri, libraryVersion);
+
   LibraryFeature? _inlineClass;
   LibraryFeature get inlineClass =>
       _inlineClass ??= globalFeatures._computeLibraryFeature(
@@ -535,6 +564,11 @@ class LibraryFeatures {
   LibraryFeature get records =>
       _records ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.records, canonicalUri, libraryVersion);
+
+  LibraryFeature? _resourceIdentifiers;
+  LibraryFeature get resourceIdentifiers =>
+      _resourceIdentifiers ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.resourceIdentifiers, canonicalUri, libraryVersion);
 
   LibraryFeature? _sealedClass;
   LibraryFeature get sealedClass =>
@@ -600,6 +634,8 @@ class LibraryFeatures {
         return inferenceUpdate1;
       case shared.ExperimentalFlag.inferenceUpdate2:
         return inferenceUpdate2;
+      case shared.ExperimentalFlag.inferenceUpdate3:
+        return inferenceUpdate3;
       case shared.ExperimentalFlag.inlineClass:
         return inlineClass;
       case shared.ExperimentalFlag.macros:
@@ -616,6 +652,8 @@ class LibraryFeatures {
         return patterns;
       case shared.ExperimentalFlag.records:
         return records;
+      case shared.ExperimentalFlag.resourceIdentifiers:
+        return resourceIdentifiers;
       case shared.ExperimentalFlag.sealedClass:
         return sealedClass;
       case shared.ExperimentalFlag.setLiterals:
@@ -663,6 +701,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.inferenceUpdate1;
     case "inference-update-2":
       return ExperimentalFlag.inferenceUpdate2;
+    case "inference-update-3":
+      return ExperimentalFlag.inferenceUpdate3;
     case "inline-class":
       return ExperimentalFlag.inlineClass;
     case "macros":
@@ -679,6 +719,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.patterns;
     case "records":
       return ExperimentalFlag.records;
+    case "resource-identifiers":
+      return ExperimentalFlag.resourceIdentifiers;
     case "sealed-class":
       return ExperimentalFlag.sealedClass;
     case "set-literals":
@@ -722,6 +764,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.inferenceUpdate1.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate2:
       ExperimentalFlag.inferenceUpdate2.isEnabledByDefault,
+  ExperimentalFlag.inferenceUpdate3:
+      ExperimentalFlag.inferenceUpdate3.isEnabledByDefault,
   ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass.isEnabledByDefault,
   ExperimentalFlag.macros: ExperimentalFlag.macros.isEnabledByDefault,
   ExperimentalFlag.namedArgumentsAnywhere:
@@ -733,6 +777,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.nonfunctionTypeAliases.isEnabledByDefault,
   ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
+  ExperimentalFlag.resourceIdentifiers:
+      ExperimentalFlag.resourceIdentifiers.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
@@ -747,192 +793,18 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
 };
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
-    const AllowedExperimentalFlags(sdkDefaultExperiments: {
-  ExperimentalFlag.records,
-  ExperimentalFlag.classModifiers,
-  ExperimentalFlag.sealedClass,
-}, sdkLibraryExperiments: {}, packageExperiments: {
-  "async": {
-    ExperimentalFlag.nonNullable,
-  },
-  "boolean_selector": {
-    ExperimentalFlag.nonNullable,
-  },
-  "characters": {
-    ExperimentalFlag.nonNullable,
-  },
-  "clock": {
-    ExperimentalFlag.nonNullable,
-  },
-  "collection": {
-    ExperimentalFlag.nonNullable,
-  },
-  "connectivity": {
-    ExperimentalFlag.nonNullable,
-  },
-  "connectivity_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "convert": {
-    ExperimentalFlag.nonNullable,
-  },
-  "crypto": {
-    ExperimentalFlag.nonNullable,
-  },
-  "csslib": {
-    ExperimentalFlag.nonNullable,
-  },
-  "dart_internal": {
-    ExperimentalFlag.nonNullable,
-  },
-  "device_info": {
-    ExperimentalFlag.nonNullable,
-  },
-  "device_info_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "fake_async": {
-    ExperimentalFlag.nonNullable,
-  },
-  "file": {
-    ExperimentalFlag.nonNullable,
-  },
-  "fixnum": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter_driver": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter_test": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter_goldens": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter_goldens_client": {
-    ExperimentalFlag.nonNullable,
-  },
-  "http": {
-    ExperimentalFlag.nonNullable,
-  },
-  "http_parser": {
-    ExperimentalFlag.nonNullable,
-  },
-  "intl": {
-    ExperimentalFlag.nonNullable,
-  },
-  "js": {
-    ExperimentalFlag.nonNullable,
-  },
-  "logging": {
-    ExperimentalFlag.nonNullable,
-  },
-  "matcher": {
-    ExperimentalFlag.nonNullable,
-  },
-  "meta": {
-    ExperimentalFlag.nonNullable,
-  },
-  "native_assets_builder": {
-    ExperimentalFlag.nonNullable,
-  },
-  "native_stack_traces": {
-    ExperimentalFlag.nonNullable,
-  },
-  "observatory": {
-    ExperimentalFlag.nonNullable,
-  },
-  "observatory_test_package": {
-    ExperimentalFlag.nonNullable,
-  },
-  "path": {
-    ExperimentalFlag.nonNullable,
-  },
-  "pedantic": {
-    ExperimentalFlag.nonNullable,
-  },
-  "platform": {
-    ExperimentalFlag.nonNullable,
-  },
-  "plugin_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "pool": {
-    ExperimentalFlag.nonNullable,
-  },
-  "process": {
-    ExperimentalFlag.nonNullable,
-  },
-  "pub_semver": {
-    ExperimentalFlag.nonNullable,
-  },
-  "sky_engine": {
-    ExperimentalFlag.nonNullable,
-  },
-  "source_maps": {
-    ExperimentalFlag.nonNullable,
-  },
-  "source_map_stack_trace": {
-    ExperimentalFlag.nonNullable,
-  },
-  "source_span": {
-    ExperimentalFlag.nonNullable,
-  },
-  "stack_trace": {
-    ExperimentalFlag.nonNullable,
-  },
-  "stream_channel": {
-    ExperimentalFlag.nonNullable,
-  },
-  "string_scanner": {
-    ExperimentalFlag.nonNullable,
-  },
-  "term_glyph": {
-    ExperimentalFlag.nonNullable,
-  },
-  "test": {
-    ExperimentalFlag.nonNullable,
-  },
-  "test_api": {
-    ExperimentalFlag.nonNullable,
-  },
-  "test_core": {
-    ExperimentalFlag.nonNullable,
-  },
-  "typed_data": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher_linux": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher_macos": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher_windows": {
-    ExperimentalFlag.nonNullable,
-  },
-  "vector_math": {
-    ExperimentalFlag.nonNullable,
-  },
-  "video_player": {
-    ExperimentalFlag.nonNullable,
-  },
-  "video_player_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "video_player_web": {
-    ExperimentalFlag.nonNullable,
-  },
-});
+    const AllowedExperimentalFlags(
+        sdkDefaultExperiments: {},
+        sdkLibraryExperiments: {
+      "js_interop": {
+        ExperimentalFlag.inlineClass,
+      },
+    },
+        packageExperiments: {
+      "web": {
+        ExperimentalFlag.inlineClass,
+      },
+    });
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
@@ -947,6 +819,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
   shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
+  shared.ExperimentalFlag.inferenceUpdate3: ExperimentalFlag.inferenceUpdate3,
   shared.ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass,
   shared.ExperimentalFlag.macros: ExperimentalFlag.macros,
   shared.ExperimentalFlag.namedArgumentsAnywhere:
@@ -957,6 +830,8 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.nonfunctionTypeAliases,
   shared.ExperimentalFlag.patterns: ExperimentalFlag.patterns,
   shared.ExperimentalFlag.records: ExperimentalFlag.records,
+  shared.ExperimentalFlag.resourceIdentifiers:
+      ExperimentalFlag.resourceIdentifiers,
   shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,
   shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
   shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,

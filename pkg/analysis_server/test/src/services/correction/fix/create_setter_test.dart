@@ -76,6 +76,24 @@ class CreateSetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_SETTER;
 
+  Future<void> test_extension_type() async {
+    await resolveTestCode('''
+extension type A(String s) {
+}
+void f(A a) {
+  a.test = 0;
+}
+''');
+    await assertHasFix('''
+extension type A(String s) {
+  set test(int test) {}
+}
+void f(A a) {
+  a.test = 0;
+}
+''');
+  }
+
   Future<void> test_getterContext() async {
     await resolveTestCode('''
 class A {

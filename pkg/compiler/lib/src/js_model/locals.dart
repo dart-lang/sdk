@@ -9,14 +9,14 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
+import '../elements/entity_map.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 
 import 'element_map.dart';
-import 'elements.dart' show JGeneratorBody;
+import 'elements.dart' show JGeneratorBody, JParameterStub;
 
 class GlobalLocalsMap {
   /// Tag used for identifying serialized [GlobalLocalsMap] objects in a
@@ -89,8 +89,11 @@ class GlobalLocalsMap {
     // have the concept of an initializer list, so the constructor (initializer
     // list) and the constructor body are implemented as two separate
     // constructor steps.
-    MemberEntity entity = key;
-    if (entity is ConstructorBodyEntity) key = entity.constructor;
+    if (key is ConstructorBodyEntity) {
+      key = key.constructor;
+    } else if (key is JParameterStub) {
+      key = key.target;
+    }
     return _localsMaps.putIfAbsent(key, () => KernelToLocalsMapImpl(key));
   }
 }
@@ -116,14 +119,10 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     if (localsCount > 0) {
       final variableMap = _variableMap = {};
       for (int i = 0; i < localsCount; i++) {
-        int index = source.readInt();
-        final name = source.readStringOrNull();
-        bool isRegularParameter = source.readBool();
+        final local = source.readLocal() as JLocal;
         final node = source.readTreeNode() as ir.VariableDeclaration;
-        JLocal local =
-            JLocal(name, currentMember, isRegularParameter: isRegularParameter);
         LocalData data = LocalData(node);
-        _locals.registerByIndex(index, local, data);
+        _locals.register<JLocal, LocalData>(local, data);
         variableMap[node] = local;
       }
     }
@@ -147,12 +146,10 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMember(currentMember);
-    sink.writeInt(_locals.size);
+    sink.writeInt(_locals.length);
     _locals.forEach((JLocal local, LocalData data) {
       assert(local.memberContext == currentMember);
-      sink.writeInt(local.localIndex);
-      sink.writeStringOrNull(local.name);
-      sink.writeBool(local.isRegularParameter);
+      sink.writeLocal(local);
       sink.writeTreeNode(data.node);
     });
     if (_jumpTargetMap != null) {
@@ -173,7 +170,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     } else {
       sink.writeInt(0);
     }
-    sink.writeTreeNodes(_breaksAsContinue, allowNull: true);
+    sink.writeTreeNodesOrNull(_breaksAsContinue);
     sink.end(tag);
   }
 
@@ -195,11 +192,6 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   MemberEntity get currentMember => _currentMember;
-
-  @override
-  Local getLocalByIndex(int index) {
-    return _locals.getEntity(index)!;
-  }
 
   @override
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
@@ -611,7 +603,8 @@ class JLabelDefinition extends LabelDefinition {
   }
 }
 
-class JLocal extends IndexedLocal {
+class JLocal with EntityMapKey implements Local {
+  static const String tag = 'jlocal';
   @override
   final String? name;
   final MemberEntity memberContext;
@@ -621,6 +614,23 @@ class JLocal extends IndexedLocal {
 
   JLocal(this.name, this.memberContext, {this.isRegularParameter = false}) {
     assert(memberContext is! JGeneratorBody);
+  }
+
+  factory JLocal.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    final name = source.readStringOrNull();
+    final memberContext = source.readMember();
+    final isRegularParameter = source.readBool();
+    source.end(tag);
+    return JLocal(name, memberContext, isRegularParameter: isRegularParameter);
+  }
+
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.begin(tag);
+    sink.writeStringOrNull(name);
+    sink.writeMember(memberContext);
+    sink.writeBool(isRegularParameter);
+    sink.end(tag);
   }
 
   String get _kind => 'local';

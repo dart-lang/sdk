@@ -26,17 +26,17 @@ Future<void> main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const ExtensionsDataComputer(), [
-        new TestConfig(cfeMarker, 'cfe',
+        new CfeTestConfig(cfeMarker, 'cfe',
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             allowedExperimentalFlags: const AllowedExperimentalFlags())
       ]));
 }
 
-class ExtensionsDataComputer extends DataComputer<Features> {
+class ExtensionsDataComputer extends CfeDataComputer<Features> {
   const ExtensionsDataComputer();
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     member.accept(
@@ -44,7 +44,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(CfeTestResultData testResultData, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new ExtensionsDataExtractor(testResultData.compilerResult, actualMap)
@@ -52,7 +52,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   }
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new ExtensionsDataExtractor(testResultData.compilerResult, actualMap)
@@ -60,8 +60,8 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   }
 
   @override
-  void computeExtensionData(TestResultData testResultData, Extension extension,
-      Map<Id, ActualData<Features>> actualMap,
+  void computeExtensionData(CfeTestResultData testResultData,
+      Extension extension, Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new ExtensionsDataExtractor(testResultData.compilerResult, actualMap)
         .computeForExtension(extension);
@@ -72,7 +72,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
 
   @override
   Features computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     for (FormattedMessage error in errors) {
       if (error.problemMessage.contains(',')) {
@@ -159,7 +159,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     features[Tags.builderName] = clsBuilder.name;
     if (clsBuilder.typeVariables != null) {
-      for (TypeVariableBuilder typeVariable in clsBuilder.typeVariables!) {
+      for (NominalVariableBuilder typeVariable in clsBuilder.typeVariables!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
       }
@@ -167,11 +167,11 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
 
     if (clsBuilder.supertypeBuilder != null) {
       features[Tags.builderSupertype] =
-          clsBuilder.supertypeBuilder!.name as String;
+          clsBuilder.supertypeBuilder!.typeName as String;
     }
     if (clsBuilder.interfaceBuilders != null) {
       for (TypeBuilder superinterface in clsBuilder.interfaceBuilders!) {
-        features.addElement(Tags.builderInterfaces, superinterface.name);
+        features.addElement(Tags.builderInterfaces, superinterface.typeName);
       }
     }
     if (clsBuilder.onTypes != null) {
@@ -204,7 +204,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     features[Tags.builderName] = extensionBuilder.name;
     if (extensionBuilder.typeParameters != null) {
-      for (TypeVariableBuilder typeVariable
+      for (NominalVariableBuilder typeVariable
           in extensionBuilder.typeParameters!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
@@ -217,7 +217,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       features.addElement(
           Tags.extensionTypeParameters, typeParameterToText(typeParameter));
     }
-    for (ExtensionMemberDescriptor descriptor in extension.members) {
+    for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       for (String text in extensionMethodDescriptorToText(descriptor)) {
         features.addElement(Tags.extensionMembers, text);
       }
@@ -252,7 +252,8 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
         features.markAsUnsorted(Tags.builderNamedParameters);
       }
       if (memberBuilder.typeVariables != null) {
-        for (TypeVariableBuilder typeVariable in memberBuilder.typeVariables!) {
+        for (NominalVariableBuilder typeVariable
+            in memberBuilder.typeVariables!) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }

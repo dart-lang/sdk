@@ -14,8 +14,13 @@ main() {
   Expect.equals(1, 0.9999999999999999.round());
   Expect.equals(1, 1.0.round());
   Expect.equals(1, 1.000000000000001.round());
-  Expect.equals(9223372036854775807, double.maxFinite.round()); // //# int64: ok
-
+  if (webNumbers) {
+    Expect.equals(1.7976931348623157e+308, double.maxFinite.round());
+  } else {
+    // Split 0x7fffffffffffffff into sum of two web numbers to avoid compilation
+    // error.
+    Expect.equals(0x7ffffffffffff000 + 0xfff, double.maxFinite.round());
+  }
   Expect.equals(0, (-double.minPositive).round());
   Expect.equals(0, (2.0 * -double.minPositive).round());
   Expect.equals(0, (-1.18e-38).round());
@@ -24,8 +29,11 @@ main() {
   Expect.equals(-1, (-0.9999999999999999).round());
   Expect.equals(-1, (-1.0).round());
   Expect.equals(-1, (-1.000000000000001).round());
-  Expect.equals(-9223372036854775808, (-double.maxFinite).round()); // //# int64: ok
-
+  if (webNumbers) {
+    Expect.equals(-1.7976931348623157e+308, (-double.maxFinite).round());
+  } else {
+    Expect.equals(-9223372036854775808, (-double.maxFinite).round());
+  }
   Expect.isTrue(0.0.round() is int);
   Expect.isTrue(double.minPositive.round() is int);
   Expect.isTrue((2.0 * double.minPositive).round() is int);

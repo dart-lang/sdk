@@ -353,6 +353,58 @@ void f(A x) {
 ''');
   }
 
+  test_alwaysExhaustive_sealedClass_constraintsMixin() async {
+    await assertErrorsInCode(r'''
+sealed class A {}
+
+class B extends A {}
+
+mixin M on A {}
+
+void f(A x) {
+  switch (x) {
+    case B _:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 74, 6),
+    ]);
+  }
+
+  test_alwaysExhaustive_sealedClass_hasExtensionType_1of1() async {
+    await assertNoErrorsInCode(r'''
+sealed class A {}
+class B extends A {}
+extension type EA(A it) implements A {}
+
+void f(A x) {
+  switch (x) {
+    case B():
+      break;
+  }
+}
+''');
+  }
+
+  test_alwaysExhaustive_sealedClass_hasExtensionType_1of2() async {
+    await assertErrorsInCode(r'''
+sealed class A {}
+class B extends A {}
+class C extends A {}
+extension type EA(A it) implements A {}
+
+void f(A x) {
+  switch (x) {
+    case B():
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 117, 6),
+    ]);
+  }
+
   test_alwaysExhaustive_sealedClass_implementedByEnum_3at2() async {
     await assertErrorsInCode(r'''
 sealed class A {}

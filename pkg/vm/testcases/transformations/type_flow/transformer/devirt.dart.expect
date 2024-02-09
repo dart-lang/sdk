@@ -49,10 +49,10 @@ static method callerA4([@vm.inferred-arg-type.metadata=#lib::D] self::A aa) → 
   [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}(){() → core::int};
 }
 static method callerE1() → void {
-  [@vm.direct-call.metadata=dart.core::_StringBase.toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] #C1.{core::Object::toString}(){() → core::String};
+  [@vm.direct-call.metadata=dart.core::_StringBase.toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] #C1.{core::Object::toString}{<object>}.(){() → core::String};
 }
 static method callerE2([@vm.inferred-arg-type.metadata=#lib::E] dynamic x) → void {
-  [@vm.direct-call.metadata=#lib::E.toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] x.{core::Object::toString}(){() → core::String};
+  [@vm.direct-call.metadata=#lib::E.toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] x.{core::Object::toString}{<object>}.(){() → core::String};
 }
 static method main(core::List<core::String> args) → dynamic {
   self::callerA1(new self::B::•());

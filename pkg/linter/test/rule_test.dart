@@ -16,11 +16,11 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
-import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/test_utilities/annotation.dart';
+import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:linter/src/test_utilities/test_resource_provider.dart';
 import 'package:linter/src/utils.dart';
 import 'package:path/path.dart' as p;
@@ -225,9 +225,14 @@ Future<Iterable<AnalysisErrorInfo>> _getErrorInfos(String ruleName, File file,
     resourceProvider: PhysicalResourceProvider.INSTANCE,
   );
 
-  var context = collection.contexts[0];
-  var options = context.analysisOptions as AnalysisOptionsImpl;
-  options.lintRules = context.analysisOptions.lintRules.toList();
+  var context = collection.contexts.first;
+  var contextFile = (context.currentSession.getFile(path) as FileResult).file;
+  var options =
+      context.getAnalysisOptionsForFile(contextFile) as AnalysisOptionsImpl;
+  options.lintRules = options.lintRules.toList();
+
+  // TODO(pq): consider a different way to configure lints
+  // https://github.com/dart-lang/sdk/issues/54045
   options.lintRules.add(rule);
   options.lint = true;
 
@@ -279,7 +284,7 @@ void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
   actual.sort();
   try {
     expect(actual, unorderedMatches(expected));
-    // TODO (asashour): to be removed after fixing
+    // TODO(asashour): to be removed after fixing
     // https://github.com/dart-lang/linter/issues/909
     // ignore: avoid_catches_without_on_clauses
   } catch (_) {

@@ -356,13 +356,15 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+void FlowGraphCompiler::EmitCallToStub(
+    const Code& stub,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
   } else {
-    __ Call(stub);
+    __ Call(stub, snapshot_behavior);
     AddStubCallTarget(stub);
   }
 }
@@ -402,11 +404,13 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   }
 }
 
-void FlowGraphCompiler::GeneratePatchableCall(const InstructionSource& source,
-                                              const Code& stub,
-                                              UntaggedPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  __ CallPatchable(stub);
+void FlowGraphCompiler::GeneratePatchableCall(
+    const InstructionSource& source,
+    const Code& stub,
+    UntaggedPcDescriptors::Kind kind,
+    LocationSummary* locs,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
+  __ CallPatchable(stub, CodeEntryKind::kNormal, snapshot_behavior);
   EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs,
                        pending_deoptimization_env_);
 }
@@ -537,6 +541,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  ASSERT(!FLAG_precompiled_mode);
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
@@ -546,31 +551,20 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ movq(RDX, compiler::Address(RSP, (args_desc.Count() - 1) * kWordSize));
 
   // Use same code pattern as instance call so it can be parsed by code patcher.
-  if (FLAG_precompiled_mode) {
-    // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see app_snapshot.cc.
-    __ LoadUniqueObject(RCX, StubCode::MegamorphicCall());
-    __ LoadUniqueObject(IC_DATA_REG, cache);
-    __ call(RCX);
-  } else {
-    __ LoadUniqueObject(IC_DATA_REG, cache);
-    __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
-    __ call(compiler::FieldAddress(
-        CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
-  }
+  __ LoadUniqueObject(IC_DATA_REG, cache);
+  __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+  __ call(compiler::FieldAddress(
+      CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 
   RecordSafepoint(locs);
   AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-  if (!FLAG_precompiled_mode) {
-    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
-                           source);
-    }
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after, source);
   }
   RecordCatchEntryMoves(pending_deoptimization_env_);
   EmitDropArguments(args_desc.SizeWithTypeArgs());
@@ -601,7 +595,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
-    __ LoadUniqueObject(RCX, initial_stub);
+    const auto snapshot_behavior =
+        compiler::ObjectPoolBuilderEntry::kResetToSwitchableCallMissEntryPoint;
+    __ LoadUniqueObject(RCX, initial_stub, snapshot_behavior);
   } else {
     const intptr_t entry_point_offset =
         entry_kind == Code::EntryKind::kNormal
@@ -867,17 +863,10 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
+      ASSERT(destination.container_type().SizeInBytes() <= 8);
       if (!sign_or_zero_extend) {
-        switch (dst_size) {
-          case 8:
-            __ movq(dst_reg, src_reg);
-            return;
-          case 4:
-            __ movl(dst_reg, src_reg);
-            return;
-          default:
-            UNIMPLEMENTED();
-        }
+        __ MoveRegister(dst_reg, src_reg);
+        return;
       } else {
         switch (src_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
@@ -886,15 +875,36 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
           case compiler::ffi::kInt16:
             __ movsxw(dst_reg, src_reg);
             return;
+          case compiler::ffi::kInt32:
+            __ movsxd(dst_reg, src_reg);
+            return;
+          case compiler::ffi::kInt24:
+          case compiler::ffi::kInt48:
+          case compiler::ffi::kInt40:
+          case compiler::ffi::kInt56:
+            __ MoveRegister(dst_reg, src_reg);
+            __ shlq(dst_reg, compiler::Immediate(64 - src_size * kBitsPerByte));
+            __ sarq(dst_reg, compiler::Immediate(64 - src_size * kBitsPerByte));
+            return;
           case compiler::ffi::kUint8:  // Zero extend operand.
             __ movzxb(dst_reg, src_reg);
             return;
           case compiler::ffi::kUint16:
             __ movzxw(dst_reg, src_reg);
             return;
+          case compiler::ffi::kUint32:
+            __ movl(dst_reg, src_reg);
+            return;
+          case compiler::ffi::kUint24:
+          case compiler::ffi::kUint40:
+          case compiler::ffi::kUint48:
+          case compiler::ffi::kUint56:
+            __ MoveRegister(dst_reg, src_reg);
+            __ shlq(dst_reg, compiler::Immediate(64 - src_size * kBitsPerByte));
+            __ shrq(dst_reg, compiler::Immediate(64 - src_size * kBitsPerByte));
+            return;
           default:
-            // 32 to 64 bit is covered in IL by Representation conversions.
-            UNIMPLEMENTED();
+            UNREACHABLE();
         }
       }
 
@@ -917,7 +927,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsStack();
       const auto dst_addr = NativeLocationToStackSlotAddress(dst);
       ASSERT(!sign_or_zero_extend);
-      switch (dst_size) {
+      switch (destination.container_type().SizeInBytes()) {
         case 8:
           __ movq(dst_addr, src_reg);
           return;
@@ -987,37 +997,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
-      if (!sign_or_zero_extend) {
-        switch (dst_size) {
-          case 8:
-            __ movq(dst_reg, src_addr);
-            return;
-          case 4:
-            __ movl(dst_reg, src_addr);
-            return;
-          default:
-            UNIMPLEMENTED();
-        }
-      } else {
-        switch (src_type.AsPrimitive().representation()) {
-          case compiler::ffi::kInt8:  // Sign extend operand.
-            __ movsxb(dst_reg, src_addr);
-            return;
-          case compiler::ffi::kInt16:
-            __ movsxw(dst_reg, src_addr);
-            return;
-          case compiler::ffi::kUint8:  // Zero extend operand.
-            __ movzxb(dst_reg, src_addr);
-            return;
-          case compiler::ffi::kUint16:
-            __ movzxw(dst_reg, src_addr);
-            return;
-          default:
-            // 32 to 64 bit is covered in IL by Representation conversions.
-            UNIMPLEMENTED();
-        }
-      }
-
+      EmitNativeLoad(dst_reg, src.base_register(), src.offset_in_bytes(),
+                     src_type.AsPrimitive().representation());
     } else if (destination.IsFpuRegisters()) {
       ASSERT(src_type.Equals(dst_type));
       ASSERT(src_type.IsFloat());
@@ -1037,6 +1018,95 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(destination.IsStack());
       UNREACHABLE();
     }
+  }
+}
+
+void FlowGraphCompiler::EmitNativeLoad(Register dst,
+                                       Register base,
+                                       intptr_t offset,
+                                       compiler::ffi::PrimitiveType type) {
+  switch (type) {
+    case compiler::ffi::kInt8:
+      __ LoadFromOffset(dst, base, offset, compiler::kByte);
+      break;
+    case compiler::ffi::kUint8:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedByte);
+      break;
+    case compiler::ffi::kInt16:
+      __ LoadFromOffset(dst, base, offset, compiler::kTwoBytes);
+      break;
+    case compiler::ffi::kUint16:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedTwoBytes);
+      break;
+    case compiler::ffi::kInt32:
+      __ LoadFromOffset(dst, base, offset, compiler::kFourBytes);
+      break;
+    case compiler::ffi::kUint32:
+    case compiler::ffi::kFloat:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedFourBytes);
+      break;
+    case compiler::ffi::kInt64:
+    case compiler::ffi::kUint64:
+    case compiler::ffi::kDouble:
+      __ LoadFromOffset(dst, base, offset, compiler::kEightBytes);
+      break;
+
+    case compiler::ffi::kInt24:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedTwoBytes);
+      __ LoadFromOffset(TMP, base, offset + 2, compiler::kByte);
+      __ shlq(TMP, compiler::Immediate(16));
+      __ orq(dst, TMP);
+      break;
+    case compiler::ffi::kUint24:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedTwoBytes);
+      __ LoadFromOffset(TMP, base, offset + 2, compiler::kUnsignedByte);
+      __ shlq(TMP, compiler::Immediate(16));
+      __ orq(dst, TMP);
+      break;
+    case compiler::ffi::kInt40:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedFourBytes);
+      __ LoadFromOffset(TMP, base, offset + 4, compiler::kByte);
+      __ shlq(TMP, compiler::Immediate(32));
+      __ orq(dst, TMP);
+      break;
+    case compiler::ffi::kUint40:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedFourBytes);
+      __ LoadFromOffset(TMP, base, offset + 4, compiler::kUnsignedByte);
+      __ shlq(TMP, compiler::Immediate(32));
+      __ orq(dst, TMP);
+      break;
+    case compiler::ffi::kInt48:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedFourBytes);
+      __ LoadFromOffset(TMP, base, offset + 4, compiler::kTwoBytes);
+      __ shlq(TMP, compiler::Immediate(32));
+      __ orq(dst, TMP);
+      break;
+    case compiler::ffi::kUint48:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedFourBytes);
+      __ LoadFromOffset(TMP, base, offset + 4, compiler::kUnsignedTwoBytes);
+      __ shlq(TMP, compiler::Immediate(32));
+      __ orq(dst, TMP);
+      break;
+    case compiler::ffi::kInt56:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedFourBytes);
+      __ LoadFromOffset(TMP, base, offset + 4, compiler::kUnsignedTwoBytes);
+      __ shlq(TMP, compiler::Immediate(32));
+      __ orq(dst, TMP);
+      __ LoadFromOffset(TMP, base, offset + 6, compiler::kByte);
+      __ shlq(TMP, compiler::Immediate(48));
+      __ orq(dst, TMP);
+      break;
+    case compiler::ffi::kUint56:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedFourBytes);
+      __ LoadFromOffset(TMP, base, offset + 4, compiler::kUnsignedTwoBytes);
+      __ shlq(TMP, compiler::Immediate(32));
+      __ orq(dst, TMP);
+      __ LoadFromOffset(TMP, base, offset + 6, compiler::kUnsignedByte);
+      __ shlq(TMP, compiler::Immediate(48));
+      __ orq(dst, TMP);
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 

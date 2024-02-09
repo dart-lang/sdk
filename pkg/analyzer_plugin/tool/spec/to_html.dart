@@ -5,6 +5,8 @@
 /// Code for displaying the API as HTML. This is used both for generating a
 /// full description of the API as a web page, and for generating doc comments
 /// in generated code.
+library;
+
 import 'dart:convert';
 
 import 'package:analyzer_utilities/html_dom.dart' as dom;
@@ -301,7 +303,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       link('refactorings', () => write('\u2191'));
       write(')');
     });
-    // TODO: Individual refactorings are not yet hyperlinked.
+    // TODO(brianwilkerson): Individual refactorings are not yet hyperlinked.
     element('div', {'class': 'subindex'}, () {
       element('ul', {}, () {
         for (var refactoring in refactorings) {

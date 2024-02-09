@@ -33,7 +33,6 @@ class VirtualMemory {
   uword end() const { return region_.end(); }
   void* address() const { return region_.pointer(); }
   intptr_t size() const { return region_.size(); }
-  intptr_t AliasOffset() const { return alias_.start() - region_.start(); }
 
 #if defined(DART_HOST_OS_FUCHSIA)
   static void Init(zx_handle_t vmex_resource);
@@ -42,13 +41,7 @@ class VirtualMemory {
 #endif
   static void Cleanup();
 
-  // Returns true if dual mapping is enabled.
-  static bool DualMappingEnabled();
-
   bool Contains(uword addr) const { return region_.Contains(addr); }
-  bool ContainsAlias(uword addr) const {
-    return (AliasOffset() != 0) && alias_.Contains(addr);
-  }
 
   // Changes the protection of the virtual memory area.
   static void Protect(void* address, intptr_t size, Protection mode);
@@ -113,19 +106,10 @@ class VirtualMemory {
 
   // These constructors are only used internally when reserving new virtual
   // spaces. They do not reserve any virtual address space on their own.
-  VirtualMemory(const MemoryRegion& region,
-                const MemoryRegion& alias,
-                const MemoryRegion& reserved)
-      : region_(region), alias_(alias), reserved_(reserved) {}
-
   VirtualMemory(const MemoryRegion& region, const MemoryRegion& reserved)
-      : region_(region), alias_(region), reserved_(reserved) {}
+      : region_(region), reserved_(reserved) {}
 
   MemoryRegion region_;
-
-  // Optional secondary mapping of region_ to a virtual space with different
-  // protection, e.g. allowing code execution.
-  MemoryRegion alias_;
 
   // The underlying reservation not yet given back to the OS.
   // Its address might disagree with region_ due to aligned allocations.

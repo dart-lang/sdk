@@ -12,7 +12,7 @@ extension type ExtensionType(int it) {}
 extension type GenericExtensionType<T>(T it) {}
 extension type ET_Null(Null it) implements Null {}
 extension type ET_Dynamic(dynamic it) implements dynamic {}
-extension type ET_Void(Never it) implements void {}
+extension type ET_Void(Null it) implements void {}
 extension type ET_Never(Never it) implements Never {}
 extension type ET_Object(Object it) implements Object {}
 extension type ET_Record(Record it) implements Record {}
@@ -22,7 +22,7 @@ extension type ET_FunctionType(FunctionType it) implements FunctionType {}
 extension type ET_NullableInterfaceType(NullableInterfaceType it) implements NullableInterfaceType {}
 extension type ET_NullableExtensionType(int it) implements NullableExtensionType {}
 extension type ET_FutureOr(FutureOr<int> it) implements FutureOr<int> {}
-extension type ET_Extension(Never it) implements Extension {}
+extension type ET_Extension(int it) implements Extension {}
 extension type ET_TypeVariable<T>(T it) implements T {}
 extension type ET_Class(Class it) implements Class {}
 extension type ET_GenericClass<T>(GenericClass<T> it) implements GenericClass<T> {}

@@ -337,7 +337,7 @@ class TestFile extends _TestFileBase {
         isVmIntermediateLanguageTest = false,
         super(null, Path("/fake/vm/cc/$name"), []);
 
-  TestFile._(Path suiteDirectory, Path path, List<StaticError> expectedErrors,
+  TestFile._(Path super.suiteDirectory, super.path, super.expectedErrors,
       {this.packages,
       required this.environment,
       required this.isMultitest,
@@ -356,8 +356,7 @@ class TestFile extends _TestFileBase {
         hasCompileError = false,
         hasRuntimeError = false,
         hasStaticWarning = false,
-        hasCrash = false,
-        super(suiteDirectory, path, expectedErrors) {
+        hasCrash = false {
     assert(!isMultitest || dartOptions.isEmpty);
   }
 

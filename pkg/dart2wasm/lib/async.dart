@@ -278,8 +278,8 @@ class _ExceptionHandlerStack {
 
       codeGen.b.catch_(codeGen.translator.exceptionTag);
 
-      final stackTraceLocal =
-          codeGen.addLocal(codeGen.translator.stackTraceInfo.nonNullableType);
+      final stackTraceLocal = codeGen
+          .addLocal(codeGen.translator.stackTraceInfo.repr.nonNullableType);
       codeGen.b.local_set(stackTraceLocal);
 
       final exceptionLocal =
@@ -573,8 +573,8 @@ class AsyncCodeGenerator extends CodeGenerator {
           asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
           translator.topInfo.nullableType, // Object?, await value
           translator.topInfo.nullableType, // Object?, error value
-          translator
-              .stackTraceInfo.nullableType // StackTrace?, error stack trace
+          translator.stackTraceInfo.repr
+              .nullableType // StackTrace?, error stack trace
         ], [
           // Inner function does not return a value, but it's Dart type is
           // `void Function(...)` and all Dart functions return a value, so we
@@ -647,7 +647,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.local_get(asyncStateLocal);
     b.ref_null(translator.topInfo.struct); // await value
     b.ref_null(translator.topInfo.struct); // error value
-    b.ref_null(translator.stackTraceInfo.struct); // stack trace
+    b.ref_null(translator.stackTraceInfo.repr.struct); // stack trace
     b.call(resumeFun);
     b.drop(); // drop null
 
@@ -781,22 +781,41 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.return_();
     b.end(); // masterLoop
 
-    b.catch_(translator.exceptionTag);
-
-    final stackTraceLocal = addLocal(translator.stackTraceInfo.nonNullableType);
-    b.local_set(stackTraceLocal);
+    final stackTraceLocal =
+        addLocal(translator.stackTraceInfo.repr.nonNullableType);
 
     final exceptionLocal = addLocal(translator.topInfo.nonNullableType);
+
+    void callCompleteError() {
+      b.local_get(suspendStateLocal);
+      b.struct_get(
+          asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
+      b.ref_as_non_null();
+      b.local_get(exceptionLocal);
+      b.local_get(stackTraceLocal);
+      call(translator.completerCompleteError.reference);
+      b.return_();
+    }
+
+    // Handle Dart exceptions.
+    b.catch_(translator.exceptionTag);
+    b.local_set(stackTraceLocal);
+    b.local_set(exceptionLocal);
+    callCompleteError();
+
+    // Handle JS exceptions.
+    b.catch_all();
+
+    // Create a generic JavaScript error.
+    call(translator.javaScriptErrorFactory.reference);
     b.local_set(exceptionLocal);
 
-    b.local_get(suspendStateLocal);
-    b.struct_get(
-        asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-    b.ref_as_non_null();
-    b.local_get(exceptionLocal);
-    b.local_get(stackTraceLocal);
-    call(translator.completerCompleteError.reference);
-    b.return_();
+    // JS exceptions won't have a Dart stack trace, so we attach the current
+    // Dart stack trace.
+    call(translator.stackTraceCurrent.reference);
+    b.local_set(stackTraceLocal);
+
+    callCompleteError();
 
     b.end(); // end try
 
@@ -1064,8 +1083,8 @@ class AsyncCodeGenerator extends CodeGenerator {
       if (emitGuard) {
         _getCurrentException();
         b.ref_as_non_null();
-        types.emitTypeTest(
-            this, catch_.guard, translator.coreTypes.objectNonNullableRawType);
+        types.emitTypeCheck(this, catch_.guard,
+            translator.coreTypes.objectNonNullableRawType, catch_);
         b.i32_eqz();
         // When generating guards we can't generate the catch body inside the
         // `if` block for the guard as the catch body can have suspension
@@ -1224,9 +1243,9 @@ class AsyncCodeGenerator extends CodeGenerator {
     if (inner == null) return super.visitWhileStatement(node);
     StateTarget after = afterTargets[node]!;
 
+    allocateContext(node);
     _emitTargetLabel(inner);
     jumpToTarget(after, condition: node.condition, negated: true);
-    allocateContext(node);
     visitStatement(node.body);
     jumpToTarget(inner);
     _emitTargetLabel(after);
@@ -1291,7 +1310,8 @@ class AsyncCodeGenerator extends CodeGenerator {
     wrap(node.expression, translator.topInfo.nonNullableType);
     b.local_set(exceptionLocal);
 
-    final stackTraceLocal = addLocal(translator.stackTraceInfo.nonNullableType);
+    final stackTraceLocal =
+        addLocal(translator.stackTraceInfo.repr.nonNullableType);
     call(translator.stackTraceCurrent.reference);
     b.local_set(stackTraceLocal);
 

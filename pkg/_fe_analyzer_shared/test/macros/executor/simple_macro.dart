@@ -51,6 +51,9 @@ class SimpleMacro
         ExtensionTypesMacro,
         ExtensionDeclarationsMacro,
         ExtensionDefinitionMacro,
+        ExtensionTypeTypesMacro,
+        ExtensionTypeDeclarationsMacro,
+        ExtensionTypeDefinitionMacro,
         FieldTypesMacro,
         FieldDeclarationsMacro,
         FieldDefinitionMacro,
@@ -95,8 +98,8 @@ class SimpleMacro
       required this.myString});
 
   @override
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
-      MemberDeclarationBuilder builder) async {
+  FutureOr<void> buildDeclarationsForClass(
+      ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
     var fields = await builder.fieldsOf(clazz);
     builder.declareInType(DeclarationCode.fromParts([
       'static const List<String> fieldNames = [',
@@ -116,8 +119,8 @@ class SimpleMacro
   }
 
   @override
-  FutureOr<void> buildDeclarationsForEnum(IntrospectableEnumDeclaration enuum,
-      EnumDeclarationBuilder builder) async {
+  FutureOr<void> buildDeclarationsForEnum(
+      EnumDeclaration enuum, EnumDeclarationBuilder builder) async {
     var values = await builder.valuesOf(enuum);
     builder.declareInType(DeclarationCode.fromParts([
       'static const List<String> valuesByName = {',
@@ -182,8 +185,8 @@ class SimpleMacro
   }
 
   @override
-  FutureOr<void> buildDeclarationsForMixin(IntrospectableMixinDeclaration mixin,
-      MemberDeclarationBuilder builder) async {
+  FutureOr<void> buildDeclarationsForMixin(
+      MixinDeclaration mixin, MemberDeclarationBuilder builder) async {
     var methods = await builder.methodsOf(mixin);
     builder.declareInType(DeclarationCode.fromParts([
       'static const List<String> methodNames = [',
@@ -213,8 +216,8 @@ class SimpleMacro
   }
 
   @override
-  Future<void> buildDefinitionForClass(IntrospectableClassDeclaration clazz,
-      TypeDefinitionBuilder builder) async {
+  Future<void> buildDefinitionForClass(
+      ClassDeclaration clazz, TypeDefinitionBuilder builder) async {
     // Apply ourself to all our members
     var fields = (await builder.fieldsOf(clazz));
     for (var field in fields) {
@@ -237,7 +240,7 @@ class SimpleMacro
   Future<void> buildDefinitionForConstructor(ConstructorDeclaration constructor,
       ConstructorDefinitionBuilder builder) async {
     var clazz = await builder.declarationOf(constructor.definingType)
-        as IntrospectableType;
+        as TypeDeclaration;
     var fields = (await builder.fieldsOf(clazz));
 
     builder.augment(
@@ -253,8 +256,8 @@ class SimpleMacro
   }
 
   @override
-  Future<void> buildDefinitionForEnum(IntrospectableEnumDeclaration enuum,
-      EnumDefinitionBuilder builder) async {
+  Future<void> buildDefinitionForEnum(
+      EnumDeclaration enuum, EnumDefinitionBuilder builder) async {
     // Apply ourself to all our members
     var values = (await builder.valuesOf(enuum));
     for (var value in values) {
@@ -281,8 +284,8 @@ class SimpleMacro
   @override
   FutureOr<void> buildDefinitionForEnumValue(
       EnumValueDeclaration value, EnumValueDefinitionBuilder builder) async {
-    final parent = await builder.typeDeclarationOf(value.definingEnum)
-        as IntrospectableEnumDeclaration;
+    final parent =
+        await builder.typeDeclarationOf(value.definingEnum) as EnumDeclaration;
     final constructor = (await builder.constructorsOf(parent)).first;
     final parts = [
       value.identifier,
@@ -337,20 +340,20 @@ class SimpleMacro
     final mixins = <TypeDeclaration>[];
     final superclassConstraints = <TypeDeclaration>[];
     // Test the class introspector
-    if (parentClass is IntrospectableClassDeclaration) {
+    if (parentClass is ClassDeclaration) {
       superClass =
           (await builder.typeDeclarationOf(parentClass.superclass!.identifier));
       interfaces.addAll(await Future.wait(parentClass.interfaces.map(
           (interface) => builder.typeDeclarationOf(interface.identifier))));
       mixins.addAll(await Future.wait(parentClass.mixins
           .map((mixins) => builder.typeDeclarationOf(mixins.identifier))));
-    } else if (parentClass is IntrospectableMixinDeclaration) {
+    } else if (parentClass is MixinDeclaration) {
       superclassConstraints.addAll(await Future.wait(
           parentClass.superclassConstraints.map(
               (interface) => builder.typeDeclarationOf(interface.identifier))));
       interfaces.addAll(await Future.wait(parentClass.interfaces.map(
           (interface) => builder.typeDeclarationOf(interface.identifier))));
-    } else if (parentClass is IntrospectableEnumDeclaration) {
+    } else if (parentClass is EnumDeclaration) {
       interfaces.addAll(await Future.wait(parentClass.interfaces.map(
           (interface) => builder.typeDeclarationOf(interface.identifier))));
       mixins.addAll(await Future.wait(parentClass.mixins
@@ -412,8 +415,8 @@ class SimpleMacro
   }
 
   @override
-  Future<void> buildDefinitionForMixin(IntrospectableMixinDeclaration mixin,
-      TypeDefinitionBuilder builder) async {
+  Future<void> buildDefinitionForMixin(
+      MixinDeclaration mixin, TypeDefinitionBuilder builder) async {
     // Apply ourself to all our members
     var fields = (await builder.fieldsOf(mixin));
     for (var field in fields) {
@@ -439,7 +442,10 @@ class SimpleMacro
         variable.identifier.name,
         ''' {
           print('parentClass: $definingClass');
-          print('isExternal: ${variable.hasExternal}');
+        ''',
+        if (variable is FieldDeclaration)
+          "print('isAbstract: ${variable.hasAbstract}');\n",
+        '''print('isExternal: ${variable.hasExternal}');
           print('isFinal: ${variable.hasFinal}');
           print('isLate: ${variable.hasLate}');
           return augment super;
@@ -625,8 +631,7 @@ class LibraryInfo {
 
   @override
   FutureOr<void> buildDeclarationsForExtension(
-      IntrospectableExtensionDeclaration extension,
-      MemberDeclarationBuilder builder) async {
+      ExtensionDeclaration extension, MemberDeclarationBuilder builder) async {
     final dartCoreList =
         // ignore: deprecated_member_use_from_same_package
         await builder.resolveIdentifier(Uri.parse('dart:core'), 'List');
@@ -643,8 +648,7 @@ class LibraryInfo {
 
   @override
   FutureOr<void> buildDefinitionForExtension(
-      IntrospectableExtensionDeclaration extension,
-      TypeDefinitionBuilder builder) async {
+      ExtensionDeclaration extension, TypeDefinitionBuilder builder) async {
     // Get a builder for the getter we added earlier.
     final extensionMethods = await builder.methodsOf(extension);
     final getterBuilder = await builder.buildMethod(extensionMethods
@@ -654,6 +658,56 @@ class LibraryInfo {
     // Introspect on our `on` type.
     final onType = (await builder.typeDeclarationOf(
         (extension.onType as NamedTypeAnnotation).identifier));
+    final onTypeFields = await builder.fieldsOf(onType);
+
+    getterBuilder.augment(FunctionBodyCode.fromParts([
+      '=> [',
+      for (var field in onTypeFields) "'${field.identifier.name}',",
+      '];',
+    ]));
+  }
+
+  @override
+  FutureOr<void> buildTypesForExtensionType(
+      ExtensionTypeDeclaration extensionType, TypeBuilder builder) {
+    final representationType =
+        extensionType.representationType as NamedTypeAnnotation;
+    final name = '${extensionType.identifier.name}On'
+        '${representationType.identifier.name}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForExtensionType(
+      ExtensionTypeDeclaration extensionType,
+      MemberDeclarationBuilder builder) async {
+    final dartCoreList =
+        // ignore: deprecated_member_use_from_same_package
+        await builder.resolveIdentifier(Uri.parse('dart:core'), 'List');
+    final dartCoreString =
+        // ignore: deprecated_member_use_from_same_package
+        await builder.resolveIdentifier(Uri.parse('dart:core'), 'String');
+    builder.declareInType(DeclarationCode.fromParts([
+      NamedTypeAnnotationCode(name: dartCoreList, typeArguments: [
+        NamedTypeAnnotationCode(name: dartCoreString),
+      ]),
+      ' get onTypeFieldNames;',
+    ]));
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForExtensionType(
+      ExtensionTypeDeclaration extensionType,
+      TypeDefinitionBuilder builder) async {
+    // Get a builder for the getter we added earlier.
+    final extensionTypeMethods = await builder.methodsOf(extensionType);
+    final getterBuilder = await builder.buildMethod(extensionTypeMethods
+        .singleWhere((m) => m.identifier.name == 'onTypeFieldNames')
+        .identifier);
+
+    // Introspect on our "representation" type.
+    final onType = (await builder.typeDeclarationOf(
+        (extensionType.representationType as NamedTypeAnnotation).identifier));
     final onTypeFields = await builder.fieldsOf(onType);
 
     getterBuilder.augment(FunctionBodyCode.fromParts([
@@ -682,7 +736,6 @@ Future<FunctionBodyCode> _buildFunctionAugmentation(
     if (function is ConstructorDeclaration)
       "print('isFactory: ${function.isFactory}');\n",
     '''
-      print('isAbstract: ${function.hasAbstract}');
       print('isExternal: ${function.hasExternal}');
       print('isGetter: ${function.isGetter}');
       print('isSetter: ${function.isSetter}');

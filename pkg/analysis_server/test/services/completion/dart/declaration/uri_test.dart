@@ -10,22 +10,12 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UriTest1);
-    defineReflectiveTests(UriTest2);
+    defineReflectiveTests(UriTest);
   });
 }
 
 @reflectiveTest
-class UriTest1 extends AbstractCompletionDriverTest with UriTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class UriTest2 extends AbstractCompletionDriverTest with UriTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class UriTest extends AbstractCompletionDriverTest with UriTestCases {}
 
 mixin UriTestCases on AbstractCompletionDriverTest {
   @override
@@ -102,8 +92,7 @@ library bar;
     await computeSuggestions('''
 export "package:foo/baz/^" import
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 16
 suggestions
@@ -112,53 +101,6 @@ suggestions
   package:foo/baz/too.dart
     kind: import
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 16
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:bar/
-    kind: import
-  package:bar/bar.dart
-    kind: import
-  package:foo/
-    kind: import
-  package:foo/baz/
-    kind: import
-  package:foo/baz/too.dart
-    kind: import
-  package:foo/foo.dart
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import() async {
@@ -188,6 +130,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -225,6 +169,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -265,6 +211,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -302,6 +250,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -338,6 +288,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -378,6 +330,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -391,7 +345,7 @@ suggestions
     await computeSuggestions('''
 import "" if (dart.library.io) "d^
 ''');
-    // TODO(brianwilkerson) We should be suggesting `dart:` and `package:`. The
+    // TODO(brianwilkerson): We should be suggesting `dart:` and `package:`. The
     //  test used to include those before being converted, but no longer does.
     assertResponse(r'''
 replacement
@@ -430,6 +384,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -443,8 +399,7 @@ suggestions
     await computeSuggestions('''
 import "d^" import
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -470,50 +425,16 @@ suggestions
     kind: import
   dart:math
     kind: import
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
+  dart:typed_data
     kind: import
 ''');
-    }
   }
 
   Future<void> test_import_dart2() async {
     await computeSuggestions('''
 import "dart:async"; import "d^"
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -539,42 +460,9 @@ suggestions
     kind: import
   dart:math
     kind: import
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
+  dart:typed_data
     kind: import
 ''');
-    }
   }
 
   Future<void> test_import_file() async {
@@ -584,7 +472,7 @@ suggestions
     await computeSuggestions('''
 import "^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'other.dart' and 'foo/'.
     assertResponse(r'''
 suggestions
@@ -610,6 +498,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -626,49 +516,13 @@ suggestions
     await computeSuggestions('''
 import "..^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'other.dart' and 'foo/'.
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_file_child() async {
@@ -678,49 +532,13 @@ suggestions
     await computeSuggestions('''
 import "foo/^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'foo/bar.dart'.
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_file_outside_lib() async {
@@ -739,51 +557,11 @@ suggestions
     await computeSuggestions('''
 import "../^" import
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/foo/
-    kind: import
-  package:test/other.dart
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_file_parent() async {
@@ -794,49 +572,13 @@ suggestions
     await computeSuggestions('''
 import "../^" import
 ''');
-    // TODO(brianwilkerson) Before being converted this test used to produce
+    // TODO(brianwilkerson): Before being converted this test used to produce
     //  '../blat.dart' and '../aaa/'.
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_file_parent2() async {
@@ -846,49 +588,13 @@ suggestions
     await computeSuggestions('''
 import "../b^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  '../blat.dart'.
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_no_dot_folders() async {
@@ -896,8 +602,7 @@ suggestions
     await computeSuggestions('''
 import "package:^";
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 8
 suggestions
@@ -906,41 +611,6 @@ suggestions
   package:test/
     kind: import
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 8
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_only_dart_files() async {
@@ -949,8 +619,7 @@ suggestions
     await computeSuggestions('''
 import "package:^";
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 8
 suggestions
@@ -959,41 +628,6 @@ suggestions
   package:test/
     kind: import
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 8
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_package() async {
@@ -1016,8 +650,7 @@ suggestions
     await computeSuggestions('''
 import "p^" import
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -1030,51 +663,6 @@ suggestions
   package:test/
     kind: import
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:bar/
-    kind: import
-  package:bar/bar.dart
-    kind: import
-  package:foo/
-    kind: import
-  package:foo/baz/
-    kind: import
-  package:foo/foo.dart
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_package2() async {
@@ -1097,8 +685,7 @@ suggestions
     await computeSuggestions('''
 import "package:foo/baz/^" import
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 16
 suggestions
@@ -1107,53 +694,6 @@ suggestions
   package:foo/baz/too.dart
     kind: import
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 16
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:bar/
-    kind: import
-  package:bar/bar.dart
-    kind: import
-  package:foo/
-    kind: import
-  package:foo/baz/
-    kind: import
-  package:foo/baz/too.dart
-    kind: import
-  package:foo/foo.dart
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_package2_raw() async {
@@ -1176,8 +716,7 @@ suggestions
     await computeSuggestions('''
 import r"package:foo/baz/^" import
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 16
 suggestions
@@ -1186,53 +725,6 @@ suggestions
   package:foo/baz/too.dart
     kind: import
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 16
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:bar/
-    kind: import
-  package:bar/bar.dart
-    kind: import
-  package:foo/
-    kind: import
-  package:foo/baz/
-    kind: import
-  package:foo/baz/too.dart
-    kind: import
-  package:foo/foo.dart
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_package2_with_trailing() async {
@@ -1255,8 +747,7 @@ suggestions
     await computeSuggestions('''
 import "package:foo/baz/^.dart" import
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 16
   right: 5
@@ -1266,54 +757,6 @@ suggestions
   package:foo/baz/too.dart
     kind: import
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 16
-  right: 5
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:bar/
-    kind: import
-  package:bar/bar.dart
-    kind: import
-  package:foo/
-    kind: import
-  package:foo/baz/
-    kind: import
-  package:foo/baz/too.dart
-    kind: import
-  package:foo/foo.dart
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_package_missing_lib() async {
@@ -1325,8 +768,7 @@ suggestions
     await computeSuggestions('''
 import "p^" class
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -1337,43 +779,6 @@ suggestions
   package:test/
     kind: import
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:bar/
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_package_raw() async {
@@ -1396,8 +801,7 @@ suggestions
     await computeSuggestions('''
 import r"p^" import
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -1410,51 +814,6 @@ suggestions
   package:test/
     kind: import
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:bar/
-    kind: import
-  package:bar/bar.dart
-    kind: import
-  package:foo/
-    kind: import
-  package:foo/baz/
-    kind: import
-  package:foo/foo.dart
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
-    kind: import
-''');
-    }
   }
 
   Future<void> test_import_raw() async {
@@ -1484,6 +843,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1540,6 +901,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -1579,6 +942,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -1592,7 +957,7 @@ suggestions
     await computeSuggestions('''
 import "d^
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'dart:' and 'package:'.
     assertResponse(r'''
 replacement
@@ -1605,8 +970,7 @@ suggestions
     await computeSuggestions('''
 import "d^"
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -1632,42 +996,9 @@ suggestions
     kind: import
   dart:math
     kind: import
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  dart:
-    kind: import
-  dart:async
-    kind: import
-  dart:async2
-    kind: import
-  dart:collection
-    kind: import
-  dart:convert
-    kind: import
-  dart:core
-    kind: import
-  dart:ffi
-    kind: import
-  dart:html
-    kind: import
-  dart:io
-    kind: import
-  dart:isolate
-    kind: import
-  dart:math
-    kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
-  package:test/test.dart
+  dart:typed_data
     kind: import
 ''');
-    }
   }
 
   Future<void> test_outside_import() async {
@@ -1695,7 +1026,7 @@ suggestions
     await computeSuggestions('''
 library x; part "^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'other.dart' and 'foo/'.
     assertResponse(r'''
 suggestions
@@ -1709,7 +1040,7 @@ suggestions
     await computeSuggestions('''
 library x; part "..^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'other.dart' and 'foo/'.
     assertResponse(r'''
 replacement
@@ -1725,7 +1056,7 @@ suggestions
     await computeSuggestions('''
 library x; part "foo/^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'foo/bar.dart'.
     assertResponse(r'''
 replacement
@@ -1741,7 +1072,7 @@ suggestions
     await computeSuggestions('''
 library x; part "../^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  '../blat.dart'.
     assertResponse(r'''
 replacement

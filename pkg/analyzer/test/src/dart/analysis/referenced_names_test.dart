@@ -42,6 +42,14 @@ class U {
     expect(names, unorderedEquals(['A', 'b']));
   }
 
+  test_class_extends_sameName_importPrefix() {
+    Set<String> names = _computeReferencedNames('''
+import 'a.dart' as p;
+class A extends p.A {}
+''');
+    expect(names, unorderedEquals(['A']));
+  }
+
   test_class_field() {
     Set<String> names = _computeReferencedNames('''
 class U {

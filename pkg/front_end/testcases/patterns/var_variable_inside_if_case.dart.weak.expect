@@ -5,7 +5,9 @@ static method test(dynamic x) → dynamic {
   {
     hoisted dynamic y;
     final synthesized dynamic #0#0 = x;
-    if(let final dynamic #t1 = y = #0#0 in true) {
+    if(true) {
+      y = #0#0;
+      {}
     }
   }
 }

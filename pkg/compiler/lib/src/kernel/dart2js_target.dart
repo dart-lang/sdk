@@ -21,9 +21,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../options.dart';
 import 'invocation_mirror_constants.dart';
-import 'transformations/clone_mixin_methods_with_super.dart' as transformMixins
-    show transformLibraries;
-import 'transformations/lowering.dart' as lowering show transformLibraries;
+import 'transformations/modular/transform.dart' as modularTransforms;
 
 const Iterable<String> _allowedDartSchemePaths = [
   'async',
@@ -43,10 +41,6 @@ List<Pattern> _allowedNativeTestPatterns = [
   RegExp(r'(?<!generated_)tests/web/internal'),
   'generated_tests/web/native/native_test',
   'generated_tests/web/internal/deferred_url_test',
-  RegExp(r'(?<!generated_)tests/web_2/native'),
-  RegExp(r'(?<!generated_)tests/web_2/internal'),
-  'generated_tests/web_2/native/native_test',
-  'generated_tests/web_2/internal/deferred_url_test',
   'pkg/front_end/testcases/dart2js/native',
 ];
 
@@ -72,14 +66,11 @@ class Dart2jsTarget extends Target {
   final String name;
 
   final CompilerOptions? options;
-  final bool canPerformGlobalTransforms;
   final bool supportsUnevaluatedConstants;
   Map<String, ir.Class>? _nativeClasses;
 
   Dart2jsTarget(this.name, this.flags,
-      {this.options,
-      this.canPerformGlobalTransforms = true,
-      this.supportsUnevaluatedConstants = true});
+      {this.options, this.supportsUnevaluatedConstants = true});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -178,12 +169,9 @@ class Dart2jsTarget extends Target {
         jsUtilOptimizer.visitLibrary(library);
       }
     }
-    lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
-    logger?.call("Lowering transformations performed");
-    if (canPerformGlobalTransforms) {
-      transformMixins.transformLibraries(libraries);
-      logger?.call("Mixin transformations performed");
-    }
+    modularTransforms.transformLibraries(
+        libraries, coreTypes, hierarchy, options);
+    logger?.call("Modular transformations performed");
   }
 
   @override

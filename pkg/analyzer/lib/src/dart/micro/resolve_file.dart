@@ -268,7 +268,7 @@ class FileResolver {
       Future<void> collectReferences2(
           String path, OperationPerformanceImpl performance) async {
         await performance.runAsync('collectReferences', (_) async {
-          var resolved = await resolve2(path: path);
+          var resolved = await resolve(path: path);
           var collector = ReferencesCollector(element);
           resolved.unit.accept(collector);
           var matches = collector.references;
@@ -334,7 +334,7 @@ class FileResolver {
           return ErrorEncoding.decode(file.source, error)!;
         }).toList();
       } else {
-        var unitResult = await resolve2(
+        var unitResult = await resolve(
           path: path,
           performance: performance,
         );
@@ -350,11 +350,12 @@ class FileResolver {
 
       return ErrorsResultImpl(
         session: contextObjects!.analysisSession,
-        path: path,
+        file: file.resource,
         uri: file.uri,
         lineInfo: file.lineInfo,
         isAugmentation: file.kind is AugmentationFileKind,
         isLibrary: file.kind is LibraryFileKind,
+        isMacroAugmentation: file.isMacroAugmentation,
         isPart: file.kind is PartFileKind,
         errors: errors,
       );
@@ -442,7 +443,7 @@ class FileResolver {
       performance: performance,
     );
 
-    // TODO(scheglov) Casts are unsafe.
+    // TODO(scheglov): Casts are unsafe.
     final kind = file.kind as LibraryFileKind;
     return kind.libraryCycle.apiSignature;
   }
@@ -523,7 +524,7 @@ class FileResolver {
     releaseAndClearRemovedIds();
   }
 
-  Future<ResolvedUnitResult> resolve2({
+  Future<ResolvedUnitResult> resolve({
     required String path,
     OperationPerformanceImpl? performance,
   }) async {
@@ -545,10 +546,24 @@ class FileResolver {
         path: libraryFile.path,
         performance: performance,
       );
-      return libraryResult.units.firstWhere(
+      var unit = libraryResult.units.firstWhereOrNull(
         (unitResult) => unitResult.path == path,
       );
+      if (unit == null) {
+        var unitPaths = libraryResult.units.map((u) => "'${u.path}'");
+        throw StateError(
+            "No unit found among ${unitPaths.join(', ')} equal to '$path'");
+      }
+      return unit;
     });
+  }
+
+  // TODO(pq): remove after cider extensions are updated.
+  Future<ResolvedUnitResult> resolve2({
+    required String path,
+    OperationPerformanceImpl? performance,
+  }) async {
+    return resolve(path: path, performance: performance);
   }
 
   /// The [completionLine] and [completionColumn] are zero based.
@@ -670,14 +685,8 @@ class FileResolver {
         var file = fileResult.file;
         return ResolvedUnitResultImpl(
           session: contextObjects!.analysisSession,
-          path: file.path,
-          uri: file.uri,
-          exists: file.exists,
+          fileState: file,
           content: file.content,
-          lineInfo: file.lineInfo,
-          isAugmentation: file.kind is AugmentationFileKind,
-          isLibrary: file.kind is LibraryFileKind,
-          isPart: file.kind is PartFileKind,
           unit: fileResult.unit,
           errors: fileResult.errors,
         );
@@ -773,8 +782,7 @@ class FileResolver {
         fileSystemState: fsState!,
         sourceFactory: sourceFactory,
         externalSummaries: SummaryDataStore(),
-        macroExecutor: null,
-        macroKernelBuilder: null,
+        macroSupport: null,
         testData: testData?.libraryContext,
       );
 
@@ -864,7 +872,7 @@ class FileResolver {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await resolve2(path: unitPath);
+      var unitResult = await resolve(path: unitPath);
       var visitor = ImportElementReferencesVisitor(element, unitElement);
       unitResult.unit.accept(visitor);
       var lineInfo = unitResult.lineInfo;

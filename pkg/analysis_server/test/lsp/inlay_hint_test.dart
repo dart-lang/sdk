@@ -181,6 +181,48 @@ final a = 1;
     expect(hintsAfterChange, isNotEmpty);
   }
 
+  Future<void> test_forElement() async {
+    final content = '''
+void f() {
+  [for (var i in [1, 2]) i];
+}
+''';
+    final expected = '''
+void f() {
+  (Type:<int>)[for (var (Type:int) i in (Type:<int>)[1, 2]) i];
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_forInLoop() async {
+    final content = '''
+void f() {
+  for (var i in [1, 2]) {}
+}
+''';
+    final expected = '''
+void f() {
+  for (var (Type:int) i in (Type:<int>)[1, 2]) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_forLoop() async {
+    final content = '''
+void f() {
+  for (var i = 0; i < 1; i++) {}
+}
+''';
+    final expected = '''
+void f() {
+  for (var (Type:int) i = 0; i < 1; i++) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_function_typeArguments() async {
     final content = '''
 void f1<T1, T2>(T1 a, T2 b) {}
@@ -485,6 +527,30 @@ void f() {
 void f() {
   final (int, {(int, ) test}) pattern = (test: (10,), 2);
   if (pattern case final (Type:(int, {(int,) test})) p) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_patterns_ifCase_typeArguments() async {
+    final content = '''
+class Box<T> {
+  final T value;
+  Box(this.value);
+}
+
+void f(Box<List<String>> a) {
+  if (a case Box(value: List(:final int length))) {}
+}
+''';
+    final expected = '''
+class Box<T> {
+  final T value;
+  Box(this.value);
+}
+
+void f(Box<List<String>> a) {
+  if (a case Box(Type:<List<String>>)(value: List(Type:<String>)(:final int length))) {}
 }
 ''';
     await _expectHints(content, expected);

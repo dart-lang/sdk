@@ -24,13 +24,14 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
@@ -668,7 +669,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (selectionStatements != null) {
       var selectionIndent = utils.getNodePrefix(selectionStatements[0]);
       var targetIndent = '${utils.getNodePrefix(_parentMember!)}  ';
-      source = utils.replaceSourceIndent(source, selectionIndent, targetIndent);
+      source = utils.replaceSourceIndent(source, selectionIndent, targetIndent,
+          includeLeading: true, ensureTrailingNewline: true);
     }
     // done
     return source;

@@ -119,45 +119,33 @@ class Bar {
 
   Future<void> test_documentOpen_contentChanged_analysis() async {
     const content = '// original content';
-    const newContent = '// new content';
+    const newContent = 'new content'; // triggers diagnostic
     newFile(mainFilePath, content);
 
-    // Wait for initial analysis to provide diagnostics for the file.
-    await Future.wait([
-      waitForDiagnostics(mainFileUri),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
 
-    // Capture any further diagnostics sent after we open the file.
-    List<Diagnostic>? diagnostics;
-    unawaited(waitForDiagnostics(mainFileUri).then((d) => diagnostics = d));
     await openFile(mainFileUri, newContent);
-    await pumpEventQueue(times: 5000);
+    await pumpEventQueue(times: 50000);
 
     // Expect diagnostics, because changing the content will have triggered
     // analysis.
-    expect(diagnostics, isNotNull);
+    expect(diagnostics[mainFilePath], isNotEmpty);
   }
 
   Future<void> test_documentOpen_contentUnchanged_noAnalysis() async {
     const content = '// original content';
     newFile(mainFilePath, content);
 
-    // Wait for initial analysis to provide diagnostics for the file.
-    await Future.wait([
-      waitForDiagnostics(mainFileUri),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
 
-    // Capture any further diagnostics sent after we open the file.
-    List<Diagnostic>? diagnostics;
-    unawaited(waitForDiagnostics(mainFileUri).then((d) => diagnostics = d));
     await openFile(mainFileUri, content);
     await pumpEventQueue(times: 5000);
 
     // Expect no diagnostics because the file didn't actually change content
     // when the overlay was created, so it should not have triggered analysis.
-    expect(diagnostics, isNull);
+    expect(diagnostics[mainFilePath], isNull);
   }
 
   Future<void> test_documentOpen_createsOverlay() async {
@@ -168,6 +156,47 @@ class Bar {
         equals(content));
   }
 
+  /// Verify that calling open/close repeatedly produces no errors and ends
+  /// in the closed state.
+  Future<void> test_documentOpen_documentClose_repeatedly_endClosed() async {
+    await initialize(
+      // This forces roots to be rebuilt when the files open/close which
+      // increases the workload and makes any `await` in processing open/close
+      // files more likely to trigger the failure.
+      initializationOptions: {'onlyAnalyzeProjectsWithOpenFiles': true},
+    );
+
+    await Future.wait([
+      for (var i = 0; i < 100; i++) ...[
+        openFile(mainFileUri, content),
+        closeFile(mainFileUri)
+      ]
+    ]);
+
+    expect(server.resourceProvider.hasOverlay(mainFilePath), isFalse);
+  }
+
+  /// Verify that calling open/close repeatedly produces no errors and ends
+  /// in the open state if the last entry was open.
+  Future<void> test_documentOpen_documentClose_repeatedly_endOpen() async {
+    await initialize(
+      // This forces roots to be rebuilt when the files open/close which
+      // increases the workload and makes any `await` in processing open/close
+      // files more likely to trigger the failure.
+      initializationOptions: {'onlyAnalyzeProjectsWithOpenFiles': true},
+    );
+
+    await Future.wait([
+      for (var i = 0; i < 100; i++) ...[
+        openFile(mainFileUri, content),
+        closeFile(mainFileUri)
+      ],
+      openFile(mainFileUri, content),
+    ]);
+
+    expect(server.resourceProvider.hasOverlay(mainFilePath), isTrue);
+  }
+
   /// Tests that deleting a file does not clear diagnostics while there's an
   /// overlay, and that removing the overlay later clears the diagnostics.
   ///
@@ -176,32 +205,28 @@ class Bar {
     const content = 'error';
     newFile(mainFilePath, content);
 
-    // Track the latest diagnostics as the client would.
-    Map<String, List<Diagnostic>> latestDiagnostics = {};
-    trackDiagnostics(latestDiagnostics);
-
     // Expect diagnostics after initial analysis because file has invalid
     // content.
     await initialize();
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFilePath], isNotEmpty);
 
     // Expect diagnostics after opening the file with the same contents.
     await openFile(mainFileUri, content);
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFilePath], isNotEmpty);
 
     // Expect diagnostics after deleting the file because the overlay is still
     // active.
     deleteFile(mainFilePath);
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFilePath], isNotEmpty);
 
     // Expect diagnostics to be removed after we close the file (which removes
     // the overlay).
     await closeFile(mainFileUri);
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isEmpty);
+    expect(diagnostics[mainFilePath], isEmpty);
   }
 
   /// Tests that deleting and re-creating a file while an overlay is active
@@ -214,43 +239,39 @@ class Bar {
     const content = 'error';
     newFile(mainFilePath, content);
 
-    // Track the latest diagnostics as the client would.
-    Map<String, List<Diagnostic>> latestDiagnostics = {};
-    trackDiagnostics(latestDiagnostics);
-
     // Expect diagnostics after initial analysis because file has invalid
     // content.
     await initialize();
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFilePath], isNotEmpty);
 
     // Expect diagnostics after opening the file with the same contents.
     await openFile(mainFileUri, content);
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFilePath], isNotEmpty);
 
     // Expect diagnostics after deleting the file because the overlay is still
     // active.
     deleteFile(mainFilePath);
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFilePath], isNotEmpty);
 
     // Expect diagnostics remain after re-creating the file (the overlay is still
     // active).
     newFile(mainFilePath, content);
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFilePath], isNotEmpty);
 
     // Expect diagnostics remain after we close the file because the file still
     //exists on disk.
     await closeFile(mainFileUri);
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFilePath], isNotEmpty);
 
     // Finally, expect deleteing the file clears the diagnostics.
     deleteFile(mainFilePath);
     await pumpEventQueue(times: 5000);
-    expect(latestDiagnostics[mainFilePath], isEmpty);
+    expect(diagnostics[mainFilePath], isEmpty);
   }
 
   Future<void> test_documentOpen_notifiesPlugins() async {
@@ -284,15 +305,8 @@ class Foo {}
     newFolder(binFolder);
     newFile(binMainFilePath, binMainContent);
 
-    // Track the latest diagnostics we've had for all files.
-    Map<String, List<Diagnostic>> diagnostics = {};
-    trackDiagnostics(diagnostics);
-
-    // Initialize the server and wait for initial analysis to complete.
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
 
     // Expect diagnostics because 'foo.dart' doesn't exist.
     expect(diagnostics[binMainFilePath], isNotEmpty);

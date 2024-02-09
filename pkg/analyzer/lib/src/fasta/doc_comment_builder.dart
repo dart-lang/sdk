@@ -323,7 +323,7 @@ final class DocCommentBuilder {
           }
           if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
             if (_isLinkText(content, index)) {
-              // TODO(brianwilkerson) Handle the case where there's a library
+              // TODO(brianwilkerson): Handle the case where there's a library
               // URI in the link text.
             } else {
               final reference = _parseOneCommentReference(
@@ -401,10 +401,12 @@ final class DocCommentBuilder {
         _endBlockDocDirectiveTag(parser, DocDirectiveType.endTemplate);
         return true;
       case 'example':
+        // ignore: deprecated_member_use_from_same_package
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.example));
         return true;
       case 'hideConstantImplementations':
         _pushDocDirective(parser
+            // ignore: deprecated_member_use_from_same_package
             .simpleDirective(DocDirectiveType.hideConstantImplementations));
         return true;
       case 'inject-html':
@@ -426,17 +428,12 @@ final class DocCommentBuilder {
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.youtube));
         return true;
     }
-    // Do not report [WarningCode.DOC_DIRECTIVE_UNKNOWN] until Flutter customer
-    // code is either cleaned or we support all of the directives they use.
-    // In particular, https://github.com/macosui/macos_ui uses `@image`.
-    if (1 == 2) {
-      _errorReporter?.reportErrorForOffset(
-        WarningCode.DOC_DIRECTIVE_UNKNOWN,
-        _characterSequence._offset + nameIndex,
-        nameEnd - nameIndex,
-        [name],
-      );
-    }
+    _errorReporter?.reportErrorForOffset(
+      WarningCode.DOC_DIRECTIVE_UNKNOWN,
+      _characterSequence._offset + nameIndex,
+      nameEnd - nameIndex,
+      [name],
+    );
     return false;
   }
 
@@ -691,7 +688,7 @@ final class DocCommentBuilder {
                 keyword == Keyword.NULL ||
                 keyword == Keyword.TRUE ||
                 keyword == Keyword.FALSE)) {
-          // TODO(brianwilkerson) If we want to support this we will need to
+          // TODO(brianwilkerson): If we want to support this we will need to
           // extend the definition of CommentReference to take an expression
           // rather than an identifier. For now we just ignore it to reduce the
           // number of errors produced, but that's probably not a valid long

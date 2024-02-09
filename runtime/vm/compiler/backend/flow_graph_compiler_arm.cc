@@ -363,13 +363,16 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+void FlowGraphCompiler::EmitCallToStub(
+    const Code& stub,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
   } else {
-    __ BranchLink(stub);
+    __ BranchLink(stub, compiler::ObjectPoolBuilderEntry::kNotPatchable,
+                  CodeEntryKind::kNormal, snapshot_behavior);
     AddStubCallTarget(stub);
   }
 }
@@ -409,11 +412,13 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   }
 }
 
-void FlowGraphCompiler::GeneratePatchableCall(const InstructionSource& source,
-                                              const Code& stub,
-                                              UntaggedPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  __ BranchLinkPatchable(stub);
+void FlowGraphCompiler::GeneratePatchableCall(
+    const InstructionSource& source,
+    const Code& stub,
+    UntaggedPcDescriptors::Kind kind,
+    LocationSummary* locs,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
+  __ BranchLinkPatchable(stub, CodeEntryKind::kNormal, snapshot_behavior);
   EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs,
                        pending_deoptimization_env_);
 }
@@ -535,6 +540,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  ASSERT(!FLAG_precompiled_mode);
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
@@ -545,31 +551,20 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ LoadFromOffset(R0, SP,
                     (args_desc.Count() - 1) * compiler::target::kWordSize);
   // Use same code pattern as instance call so it can be parsed by code patcher.
-  if (FLAG_precompiled_mode) {
-    // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see app_snapshot.cc.
-    CLOBBERS_LR(__ LoadUniqueObject(LR, StubCode::MegamorphicCall()));
-    __ LoadUniqueObject(IC_DATA_REG, cache);
-    CLOBBERS_LR(__ blx(LR));
-  } else {
-    __ LoadUniqueObject(IC_DATA_REG, cache);
-    __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
-    __ Call(compiler::FieldAddress(
-        CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
-  }
+  __ LoadUniqueObject(IC_DATA_REG, cache);
+  __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+  __ Call(compiler::FieldAddress(
+      CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 
   RecordSafepoint(locs);
   AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-  if (!FLAG_precompiled_mode) {
-    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
-                           source);
-    }
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after, source);
   }
   RecordCatchEntryMoves(pending_deoptimization_env_);
   EmitDropArguments(args_desc.SizeWithTypeArgs());
@@ -601,7 +596,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
-    CLOBBERS_LR(__ LoadUniqueObject(LR, initial_stub));
+    const auto snapshot_behavior =
+        compiler::ObjectPoolBuilderEntry::kResetToSwitchableCallMissEntryPoint;
+    CLOBBERS_LR(__ LoadUniqueObject(LR, initial_stub, AL, snapshot_behavior));
   } else {
     __ LoadUniqueObject(CODE_REG, initial_stub);
     const intptr_t entry_point_offset =
@@ -959,19 +956,14 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
+      ASSERT(destination.container_type().SizeInBytes() <= 4);
       if (!sign_or_zero_extend) {
-        ASSERT(dst_size == 4);
-        __ mov(dst_reg, compiler::Operand(src_reg));
+        __ MoveRegister(dst_reg, src_reg);
       } else {
-        ASSERT(sign_or_zero_extend);
-        // Arm has no sign- or zero-extension instructions, so use shifts.
-        const intptr_t shift_length =
-            (compiler::target::kWordSize - src_size) * kBitsPerByte;
-        __ Lsl(dst_reg, src_reg, compiler::Operand(shift_length));
         if (src_payload_type.IsSigned()) {
-          __ Asr(dst_reg, dst_reg, compiler::Operand(shift_length));
+          __ sbfx(dst_reg, src_reg, 0, src_size * kBitsPerByte);
         } else {
-          __ Lsr(dst_reg, dst_reg, compiler::Operand(shift_length));
+          __ ubfx(dst_reg, src_reg, 0, src_size * kBitsPerByte);
         }
       }
 
@@ -985,8 +977,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(destination.IsStack());
       const auto& dst = destination.AsStack();
       ASSERT(!sign_or_zero_extend);
-      ASSERT(dst_size <= 4);
-      auto const op_size = BytesToOperandSize(dst_size);
+      auto const op_size =
+          BytesToOperandSize(destination.container_type().SizeInBytes());
       __ StoreToOffset(src.reg_at(0), dst.base_register(),
                        dst.offset_in_bytes(), op_size);
     }
@@ -1044,12 +1036,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
-      ASSERT(!sign_or_zero_extend);
-      ASSERT(dst_size <= 4);
-      auto const op_size = BytesToOperandSize(dst_size);
-      __ LoadFromOffset(dst_reg, src.base_register(), src.offset_in_bytes(),
-                        op_size);
-
+      EmitNativeLoad(dst_reg, src.base_register(), src.offset_in_bytes(),
+                     src_payload_type.AsPrimitive().representation());
     } else if (destination.IsFpuRegisters()) {
       ASSERT(src_payload_type.Equals(dst_payload_type));
       ASSERT(src_payload_type.IsFloat());
@@ -1071,6 +1059,47 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(destination.IsStack());
       UNREACHABLE();
     }
+  }
+}
+
+void FlowGraphCompiler::EmitNativeLoad(Register dst,
+                                       Register base,
+                                       intptr_t offset,
+                                       compiler::ffi::PrimitiveType type) {
+  switch (type) {
+    case compiler::ffi::kInt8:
+      __ LoadFromOffset(dst, base, offset, compiler::kByte);
+      break;
+    case compiler::ffi::kUint8:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedByte);
+      break;
+    case compiler::ffi::kInt16:
+      __ LoadFromOffset(dst, base, offset, compiler::kTwoBytes);
+      break;
+    case compiler::ffi::kUint16:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedTwoBytes);
+      break;
+    case compiler::ffi::kInt32:
+      __ LoadFromOffset(dst, base, offset, compiler::kFourBytes);
+      break;
+    case compiler::ffi::kUint32:
+    case compiler::ffi::kFloat:
+    case compiler::ffi::kHalfDouble:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedFourBytes);
+      break;
+
+    case compiler::ffi::kInt24:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedTwoBytes);
+      __ LoadFromOffset(TMP, base, offset + 2, compiler::kByte);
+      __ orr(dst, dst, compiler::Operand(TMP, LSL, 16));
+      break;
+    case compiler::ffi::kUint24:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedTwoBytes);
+      __ LoadFromOffset(TMP, base, offset + 2, compiler::kUnsignedByte);
+      __ orr(dst, dst, compiler::Operand(TMP, LSL, 16));
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 

@@ -5,28 +5,42 @@
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../client/completion_driver_test.dart';
 import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LocalVariableTest1);
-    defineReflectiveTests(LocalVariableTest2);
+    defineReflectiveTests(LocalVariableTest);
   });
 }
 
 @reflectiveTest
-class LocalVariableTest1 extends CompletionRelevanceTest
+class LocalVariableTest extends CompletionRelevanceTest
     with LocalVariableTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
+  Future<void> test_localVariable_vs_importedClass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class FooBarClass {}
+''');
 
-@reflectiveTest
-class LocalVariableTest2 extends CompletionRelevanceTest
-    with LocalVariableTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+    await addTestFile('''
+import 'a.dart';
+
+int f() {
+  final fooBar = 0;
+  fBa^
+}
+''');
+
+    assertOrder([
+      suggestionWith(
+        completion: 'fooBar',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+      ),
+      suggestionWith(
+        completion: 'FooBarClass',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+      ),
+    ]);
+  }
 }
 
 mixin LocalVariableTestCases on CompletionRelevanceTest {

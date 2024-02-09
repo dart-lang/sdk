@@ -465,6 +465,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.name);
     _visitNode(node.typeParameters);
     _visitNode(node.representation, suffix: ' ');
+    _visitNode(node.implementsClause, suffix: ' ');
     _visitToken(node.leftBracket);
     _visitNodeList(node.members, separator: ' ');
     _visitToken(node.rightBracket);
@@ -1167,6 +1168,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitRepresentationDeclaration(RepresentationDeclaration node) {
     _visitNode(node.constructorName);
     _visitToken(node.leftParenthesis);
+    _visitNodeList(node.fieldMetadata, separator: ' ', suffix: ' ');
     _visitNode(node.fieldType, suffix: ' ');
     _visitToken(node.fieldName);
     _visitToken(node.rightParenthesis);
@@ -1377,7 +1379,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // TODO(kallentu): : Clean up TypeParameterImpl casting once variance is
     // added to the interface.
     var varianceKeyword = (node as TypeParameterImpl).varianceKeyword;
     if (varianceKeyword != null) {

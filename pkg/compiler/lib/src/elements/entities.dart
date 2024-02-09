@@ -227,10 +227,6 @@ class AsyncMarker {
   int get index => values.indexOf(this);
 }
 
-/// Values for variance annotations.
-/// This needs to be kept in sync with values of `Variance` in `dart:_rti`.
-enum Variance { legacyCovariant, covariant, contravariant, invariant }
-
 /// Stripped down super interface for constructor like entities.
 ///
 /// Currently only [ConstructorElement] but later also kernel based Dart
@@ -360,9 +356,9 @@ class ParameterStructure {
     source.begin(tag);
     int requiredPositionalParameters = source.readInt();
     int positionalParameters = source.readInt();
-    List<String> namedParameters = source.readStrings()!;
+    List<String> namedParameters = source.readStrings();
     Set<String> requiredNamedParameters =
-        source.readStrings(emptyAsNull: true)?.toSet() ?? const <String>{};
+        source.readStringsOrNull()?.toSet() ?? const <String>{};
     int typeParameters = source.readInt();
     source.end(tag);
     return ParameterStructure(

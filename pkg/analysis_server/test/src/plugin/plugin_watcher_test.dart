@@ -94,7 +94,7 @@ class PluginWatcherTest extends AbstractContextTest {
   }
 
   AnalysisOptionsImpl _analysisOptionsImpl(AnalysisDriver driver) {
-    return driver.analysisOptions as AnalysisOptionsImpl;
+    return driver.getAnalysisOptionsForFile(testFile) as AnalysisOptionsImpl;
   }
 
   /// Wait until the timer associated with the driver's FileSystemState is

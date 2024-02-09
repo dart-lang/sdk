@@ -7,7 +7,6 @@
 #include <utility>
 
 #include "vm/compiler/backend/range_analysis.h"  // For Range.
-#include "vm/compiler/ffi/call.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 #include "vm/compiler/runtime_api.h"
@@ -261,7 +260,7 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
 Fragment BaseFlowGraphBuilder::UnboxedIntConstant(
     int64_t value,
     Representation representation) {
-  const auto& obj = Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  const auto& obj = Integer::ZoneHandle(Z, Integer::NewCanonical(value));
   auto const constant = new (Z) UnboxedConstantInstr(obj, representation);
   Push(constant);
   return Fragment(constant);
@@ -277,8 +276,22 @@ Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
   Value* dest = Pop();
   Value* src = Pop();
   auto copy =
-      new (Z) MemoryCopyInstr(src, dest, src_start, dest_start, length, src_cid,
-                              dest_cid, unboxed_inputs, can_overlap);
+      new (Z) MemoryCopyInstr(src, src_cid, dest, dest_cid, src_start,
+                              dest_start, length, unboxed_inputs, can_overlap);
+  return Fragment(copy);
+}
+
+Fragment BaseFlowGraphBuilder::MemoryCopyUntagged(intptr_t element_size,
+                                                  bool unboxed_inputs,
+                                                  bool can_overlap) {
+  Value* length = Pop();
+  Value* dest_start = Pop();
+  Value* src_start = Pop();
+  Value* dest = Pop();
+  Value* src = Pop();
+  auto copy =
+      new (Z) MemoryCopyInstr(element_size, src, dest, src_start, dest_start,
+                              length, unboxed_inputs, can_overlap);
   return Fragment(copy);
 }
 
@@ -429,29 +442,6 @@ Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged(
   return Fragment(converted);
 }
 
-Fragment BaseFlowGraphBuilder::AddIntptrIntegers() {
-  Value* right = Pop();
-  Value* left = Pop();
-#if defined(TARGET_ARCH_IS_64_BIT)
-  auto add = new (Z) BinaryInt64OpInstr(
-      Token::kADD, left, right, DeoptId::kNone, Instruction::kNotSpeculative);
-#else
-  auto add =
-      new (Z) BinaryInt32OpInstr(Token::kADD, left, right, DeoptId::kNone);
-#endif
-  add->mark_truncating();
-  Push(add);
-  return Fragment(add);
-}
-
-Fragment BaseFlowGraphBuilder::UnboxSmiToIntptr() {
-  Value* value = Pop();
-  auto untagged = UnboxInstr::Create(kUnboxedIntPtr, value, DeoptId::kNone,
-                                     Instruction::kNotSpeculative);
-  Push(untagged);
-  return Fragment(untagged);
-}
-
 Fragment BaseFlowGraphBuilder::FloatToDouble() {
   Value* value = Pop();
   FloatToDoubleInstr* instr = new FloatToDoubleInstr(value, DeoptId::kNone);
@@ -473,11 +463,13 @@ Fragment BaseFlowGraphBuilder::LoadField(const Field& field,
                          calls_initializer);
 }
 
-Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field,
-                                               bool calls_initializer) {
+Fragment BaseFlowGraphBuilder::LoadNativeField(
+    const Slot& native_field,
+    InnerPointerAccess loads_inner_pointer,
+    bool calls_initializer) {
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      Pop(), native_field, InstructionSource(), calls_initializer,
-      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
+      Pop(), native_field, loads_inner_pointer, InstructionSource(),
+      calls_initializer, calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
@@ -516,6 +508,7 @@ const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
 Fragment BaseFlowGraphBuilder::StoreNativeField(
     TokenPosition position,
     const Slot& slot,
+    InnerPointerAccess stores_inner_pointer,
     StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
     compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
@@ -523,9 +516,9 @@ Fragment BaseFlowGraphBuilder::StoreNativeField(
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
   }
-  StoreFieldInstr* store =
-      new (Z) StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
-                              InstructionSource(position), kind);
+  StoreFieldInstr* store = new (Z)
+      StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
+                      stores_inner_pointer, InstructionSource(position), kind);
   return Fragment(store);
 }
 
@@ -1029,56 +1022,6 @@ Fragment BaseFlowGraphBuilder::Box(Representation from) {
   BoxInstr* box = BoxInstr::Create(from, Pop());
   Push(box);
   return Fragment(box);
-}
-
-Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
-    const TypeArguments& signatures,
-    bool is_leaf) {
-  ASSERT(signatures.IsInstantiated());
-  ASSERT(signatures.Length() == 2);
-
-  const auto& dart_type =
-      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(0)));
-  const auto& native_type =
-      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(1)));
-
-  // AbiSpecificTypes can have an incomplete mapping.
-  const char* error = nullptr;
-  compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_type, &error);
-  if (error != nullptr) {
-    const auto& language_error = Error::Handle(
-        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
-                           Report::kError, Heap::kOld));
-    Report::LongJump(language_error);
-  }
-
-  const auto& name =
-      String::Handle(parsed_function_->function().UserVisibleName());
-  const Function& target = Function::ZoneHandle(
-      compiler::ffi::TrampolineFunction(dart_type, native_type, is_leaf, name));
-
-  Fragment code;
-  // Store the pointer in the context, we cannot load the untagged address
-  // here as these can be unoptimized call sites.
-  LocalVariable* pointer = MakeTemporary();
-
-  code += Constant(target);
-
-  auto& context_slots = CompilerState::Current().GetDummyContextSlots(
-      /*context_id=*/0, /*num_variables=*/1);
-  code += AllocateContext(context_slots);
-  LocalVariable* context = MakeTemporary();
-
-  code += LoadLocal(context);
-  code += LoadLocal(pointer);
-  code += StoreNativeField(*context_slots[0]);
-
-  code += AllocateClosure();
-
-  // Drop address.
-  code += DropTempsPreserveTop(1);
-
-  return code;
 }
 
 Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Global type flow analysis.
+library;
 
 import 'dart:collection';
 import 'dart:core' hide Type;
@@ -153,7 +154,7 @@ abstract base class _Invocation extends _DependencyTracker
           (this.args == other.args);
 
   @override
-  int get hashCode => (selector.hashCode ^ args.hashCode + 31) & kHashMask;
+  int get hashCode => combineHashes(selector.hashCode, args.hashCode);
 
   @override
   String toString() => "_Invocation $selector $args";
@@ -314,9 +315,29 @@ final class _DirectInvocation extends _Invocation {
       if (selector.callKind == CallKind.PropertyGet) {
         // Tear-off.
         // TODO(alexmarkov): capture receiver type
-        assert((member is Procedure) && !member.isGetter && !member.isSetter);
+        assert((member is Procedure) &&
+            !member.isGetter &&
+            !member.isSetter &&
+            !member.isFactory &&
+            !member.isAbstract);
         typeFlowAnalysis.addRawCall(new DirectSelector(member));
         typeFlowAnalysis._tearOffTaken.add(member);
+        final Class? concreteClass = typeFlowAnalysis.target
+            .concreteClosureClass(typeFlowAnalysis.coreTypes);
+        if (concreteClass != null) {
+          if (!member.isInstanceMember) {
+            return typeFlowAnalysis
+                .addAllocatedClass(concreteClass)
+                .cls
+                .constantConcreteType(
+                    StaticTearOffConstant(member as Procedure));
+          } else {
+            return typeFlowAnalysis
+                .addAllocatedClass(concreteClass)
+                .cls
+                .closureConcreteType(member, null);
+          }
+        }
         return nullableAnyType;
       } else {
         // Call via getter.
@@ -640,7 +661,7 @@ final class _DispatchableInvocation extends _Invocation {
 
   void addCallSite(Call callSite) {
     _notifyCallSite(callSite);
-    if (!callSite.isPolymorphic) {
+    if (!callSite.isPolymorphic || !callSite.useCheckedEntry) {
       (_callSites ??= new Set<Call>()).add(callSite);
     }
   }
@@ -756,7 +777,7 @@ class _SelectorApproximation {
   /// Approximation [_Invocation] with raw arguments is created and used
   /// after number of [_Invocation] objects with same selector but
   /// different arguments reaches this limit.
-  static const int maxInvocationsPerSelector = 5000;
+  static const int maxInvocationsPerSelector = 1000;
 
   /// [_DirectInvocation] can be approximated with raw arguments
   /// if number of operations in its summary exceeds this threshold.
@@ -1031,7 +1052,6 @@ class _TFClassImpl extends TFClass {
   static const int maxAllocatedTypesInSetSpecializations = 128;
 
   final _TFClassImpl? superclass;
-  final Set<_TFClassImpl> supertypes; // List of super-types including this.
   final Set<_TFClassImpl> _allocatedSubtypes = new Set<_TFClassImpl>();
   late final Map<Name, Member> _dispatchTargetsSetters =
       _initDispatchTargets(true);
@@ -1044,11 +1064,9 @@ class _TFClassImpl extends TFClass {
   /// Lazy initialized by ClassHierarchyCache.hasNonTrivialNoSuchMethod().
   bool? hasNonTrivialNoSuchMethod;
 
-  _TFClassImpl(int id, Class classNode, this.superclass, this.supertypes,
-      RecordShape? recordShape)
-      : super(id, classNode, recordShape) {
-    supertypes.add(this);
-  }
+  _TFClassImpl(int id, Class classNode, this.superclass,
+      Set<TFClass> supertypes, RecordShape? recordShape)
+      : super(id, classNode, supertypes, recordShape);
 
   Type? _specializedConeType;
   Type get specializedConeType =>
@@ -1237,10 +1255,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
       getTFClass(coreTypes.deprecatedNullClass);
 
   _ClassHierarchyCache(this._typeFlowAnalysis, this.genericInterfacesInfo,
-      this.coreTypes, bool nullSafety)
+      this.coreTypes, bool soundNullSafety)
       : objectNoSuchMethod =
             coreTypes.index.getProcedure('dart:core', 'Object', 'noSuchMethod'),
-        super(coreTypes, nullSafety);
+        super(coreTypes, soundNullSafety);
 
   @override
   _TFClassImpl getTFClass(Class c) {
@@ -1248,13 +1266,19 @@ class _ClassHierarchyCache extends TypeHierarchy {
   }
 
   _TFClassImpl _createTFClass(Class c, RecordShape? recordShape) {
-    final supertypes = new Set<_TFClassImpl>();
-    for (var sup in c.supers) {
-      supertypes.addAll(getTFClass(sup.classNode).supertypes);
+    final supertypes = Set<TFClass>();
+    _TFClassImpl? superclass;
+    if (recordShape != null) {
+      // Record class has an ordinary class as its superclass.
+      superclass = getTFClass(c);
+      supertypes.addAll(superclass.supertypes);
+    } else {
+      for (var sup in c.supers) {
+        supertypes.addAll(getTFClass(sup.classNode).supertypes);
+      }
+      Class? superclassNode = c.superclass;
+      superclass = superclassNode != null ? getTFClass(superclassNode) : null;
     }
-    Class? superclassNode = c.superclass;
-    _TFClassImpl? superclass =
-        superclassNode != null ? getTFClass(superclassNode) : null;
     return _TFClassImpl(
         ++_classIdCounter, c, superclass, supertypes, recordShape);
   }
@@ -1270,9 +1294,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
       cls.dependencyTracker
           .invalidateDependentInvocations(_typeFlowAnalysis.workList);
 
-      for (var supertype in cls.supertypes) {
-        supertype.addAllocatedSubtype(cls);
-        supertype.dependencyTracker
+      for (final supertype in cls.supertypes) {
+        final supertypeImpl = supertype as _TFClassImpl;
+        supertypeImpl.addAllocatedSubtype(cls);
+        supertypeImpl.dependencyTracker
             .invalidateDependentInvocations(_typeFlowAnalysis.workList);
       }
 
@@ -1309,21 +1334,6 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
   void seal() {
     _sealed = true;
-  }
-
-  @override
-  bool isSubtype(Class sub, Class sup) {
-    if (kPrintTrace) {
-      tracePrint("isSubtype for sub = $sub, sup = $sup");
-    }
-    if (identical(sub, sup)) {
-      return true;
-    }
-
-    _TFClassImpl subClassData = getTFClass(sub);
-    _TFClassImpl superClassData = getTFClass(sup);
-
-    return subClassData.supertypes.contains(superClassData);
   }
 
   @override

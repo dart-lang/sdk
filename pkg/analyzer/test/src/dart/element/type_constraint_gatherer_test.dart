@@ -813,7 +813,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   ///   If `P0` is a subtype match for `Q` under constraint set `C1`.
   ///   And if `Null` is a subtype match for `Q` under constraint set `C2`.
   test_left_suffixQuestion() {
-    // TODO(scheglov) any better test case?
+    // TODO(scheglov): any better test case?
     _checkMatch(
       [T],
       numQuestion,

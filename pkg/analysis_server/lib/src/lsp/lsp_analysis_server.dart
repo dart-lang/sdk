@@ -28,7 +28,6 @@ import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
-import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
@@ -39,7 +38,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -77,10 +75,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// The channel from which messages are received and to which responses should
   /// be sent.
   final LspServerCommunicationChannel channel;
-
-  /// The workspace for rename refactorings. Should be accessed through the
-  /// refactoringWorkspace getter to be automatically created (lazily).
-  RefactoringWorkspace? _refactoringWorkspace;
 
   /// The versions of each document known to the server (keyed by path), used to
   /// send back to the client for server-initiated edits so that the client can
@@ -136,6 +130,13 @@ class LspAnalysisServer extends AnalysisServer {
   /// temporary content.
   bool suppressAnalysisResults = false;
 
+  /// Tracks files that have non-empty diagnostics on the client.
+  ///
+  /// This is an optimization to avoid sending empty diagnostics when they are
+  /// unnecessary (at startup, when a file is re-analyzed because a file it
+  /// imports was modified, etc).
+  final Set<String> _filesWithClientDiagnostics = {};
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -165,7 +166,7 @@ class LspAnalysisServer extends AnalysisServer {
           instrumentationService,
           httpClient,
           processRunner,
-          LspNotificationManager(channel, baseResourceProvider.pathContext),
+          LspNotificationManager(baseResourceProvider.pathContext),
           enableBlazeWatcher: enableBlazeWatcher,
           dartFixPromptManager: dartFixPromptManager,
         ) {
@@ -260,9 +261,6 @@ class LspAnalysisServer extends AnalysisServer {
     }
   }
 
-  RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
-      RefactoringWorkspace(driverMap.values, searchEngine);
-
   /// Whether or not the client has advertised support for
   /// 'window/showMessageRequest'.
   ///
@@ -308,7 +306,7 @@ class LspAnalysisServer extends AnalysisServer {
             // Dart settings for each workspace folder.
             for (final folder in folders)
               ConfigurationItem(
-                scopeUri: pathContext.toUri(folder).toString(),
+                scopeUri: pathContext.toUri(folder),
                 section: 'dart',
               ),
             // Global Dart settings. This comes last to simplify matching up the
@@ -355,30 +353,13 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   /// Gets the current version number of a document.
+  @override
   int? getDocumentVersion(String path) => documentVersions[path]?.version;
 
-  /// Return a [LineInfo] for the file with the given [path].
-  ///
-  /// If the file does not exist or cannot be read, returns `null`.
-  ///
-  /// This method supports non-Dart files but uses the current content of the
-  /// file which may not be the latest analyzed version of the file if it was
-  /// recently modified, so using the lineInfo from an analyzed result may be
-  /// preferable.
-  LineInfo? getLineInfo(String path) {
-    try {
-      final content = resourceProvider.getFile(path).readAsStringSync();
-      return LineInfo.fromContent(content);
-    } on FileSystemException {
-      // If the file does not exist or cannot be read, return null to allow
-      // the caller to decide how to handle this.
-      return null;
-    }
-  }
-
   /// Gets the version of a document known to the server, returning a
-  /// [OptionalVersionedTextDocumentIdentifier] with a version of `null` if the document
-  /// version is not known.
+  /// [OptionalVersionedTextDocumentIdentifier] with a version of `null` if the
+  /// document version is not known.
+  @override
   OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
       String path) {
     return OptionalVersionedTextDocumentIdentifier(
@@ -651,6 +632,17 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
+    if (errors.isEmpty && !_filesWithClientDiagnostics.contains(path)) {
+      // Don't sent empty set if client is already empty.
+      return;
+    }
+
+    if (errors.isEmpty) {
+      _filesWithClientDiagnostics.remove(path);
+    } else {
+      _filesWithClientDiagnostics.add(path);
+    }
+
     final params = PublishDiagnosticsParams(
         uri: pathContext.toUri(path), diagnostics: errors);
     final message = NotificationMessage(
@@ -912,7 +904,7 @@ class LspAnalysisServer extends AnalysisServer {
       List<String> addedPaths, List<String> removedPaths) async {
     // TODO(dantup): This is currently case-sensitive!
 
-    // Normalise all potential workspace folder paths as these may contain
+    // Normalize all potential workspace folder paths as these may contain
     // trailing slashes (the LSP spec does not specify whether folders
     // should/should not have them) and the analysis roots must be normalized.
     final pathContext = resourceProvider.pathContext;
@@ -1021,7 +1013,7 @@ class LspAnalysisServer extends AnalysisServer {
           .getDriverFor(file)
           ?.currentSession
           .uriConverter
-          .uriToPath(Uri.parse(Flutter.instance.widgetsUri)) !=
+          .uriToPath(Uri.parse(Flutter.widgetsUri)) !=
       null;
 
   void _notifyPluginsOverlayChanged(
@@ -1055,6 +1047,7 @@ class LspAnalysisServer extends AnalysisServer {
             // and caching the config for each one.
             : _workspaceFolders.map(
                 (root) => resourceProvider.pathContext.join(root, excludePath)))
+        .map(pathContext.normalize)
         .toSet();
 
     final completer = analysisContextRebuildCompleter = Completer();

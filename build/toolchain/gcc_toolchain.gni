@@ -45,6 +45,7 @@ concurrent_links = exec_script("get_concurrent_links.py", [], "value")
 #      when specified.
 template("gcc_toolchain") {
   toolchain(target_name) {
+    assert(defined(invoker.asm), "gcc_toolchain() must specify a \"asm\" value")
     assert(defined(invoker.cc), "gcc_toolchain() must specify a \"cc\" value")
     assert(defined(invoker.cxx), "gcc_toolchain() must specify a \"cxx\" value")
     assert(defined(invoker.ar), "gcc_toolchain() must specify a \"ar\" value")
@@ -60,6 +61,7 @@ template("gcc_toolchain") {
     # We can't do string interpolation ($ in strings) on things with dots in
     # them. To allow us to use $cc below, for example, we create copies of
     # these values in our scope.
+    asm = invoker.asm
     cc = invoker.cc
     cxx = invoker.cxx
     ar = invoker.ar
@@ -117,7 +119,7 @@ template("gcc_toolchain") {
     tool("asm") {
       # For GCC we can just use the C compiler to compile assembly.
       depfile = "{{output}}.d"
-      command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
+      command = "$asm -MMD -MF $depfile {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "ASM {{output}}"
       outputs =

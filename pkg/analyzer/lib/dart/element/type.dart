@@ -44,6 +44,17 @@ abstract class DartType {
   @Deprecated('Use element instead')
   Element? get element2;
 
+  /// The extension type erasure of this type.
+  ///
+  /// The extension type erasure of a type `V` is obtained by recursively
+  /// replacing every subterm of `V` which is an extension type with the
+  /// corresponding representation type.
+  ///
+  /// This getter can be used on any type, not necessary on a type that has
+  /// an extension type as a subterm. If there are no extension types, the
+  /// same type is returned.
+  DartType get extensionTypeErasure;
+
   /// Return `true` if this type represents the bottom type.
   bool get isBottom;
 
@@ -215,53 +226,59 @@ abstract class FunctionType implements DartType {
   @override
   Null get element2;
 
-  /// Return a map from the names of named parameters to the types of the named
-  /// parameters of this type of function. The entries in the map will be
-  /// iterated in the same order as the order in which the named parameters were
-  /// defined. If there were no named parameters declared then the map will be
-  /// empty.
+  /// A map from the names of named parameters to the types of the named
+  /// parameters of this type of function.
+  ///
+  /// The entries in the map are not necessarily iterated in the same order as
+  /// the order in which the named parameters are defined. If there are no
+  /// named parameters declared, then the map will be empty.
   Map<String, DartType> get namedParameterTypes;
 
   /// The names of the required positional parameters of this type of function,
-  /// in the order that the parameters appear.
+  /// not necessarily in the order that the parameters appear.
   List<String> get normalParameterNames;
 
-  /// Return a list containing the types of the normal parameters of this type
-  /// of function. The parameter types are in the same order as they appear in
-  /// the declaration of the function.
+  /// A list containing the types of the normal parameters of this type of
+  /// function.
+  ///
+  /// The parameter types are not necessarily in the same order as they appear
+  /// in the declaration of the function.
   List<DartType> get normalParameterTypes;
 
   /// The names of the optional positional parameters of this type of function,
-  /// in the order that the parameters appear.
+  /// not necessarily in the order that the parameters appear.
   List<String> get optionalParameterNames;
 
-  /// Return a map from the names of optional (positional) parameters to the
-  /// types of the optional parameters of this type of function. The entries in
-  /// the map will be iterated in the same order as the order in which the
-  /// optional parameters were defined. If there were no optional parameters
-  /// declared then the map will be empty.
+  /// A map from the names of optional (positional) parameters to the types of
+  /// the optional parameters of this type of function.
+  ///
+  /// The entries in the map are not necessarily iterated in the same order as
+  /// the order in which the optional parameters are defined. If there area no
+  /// optional parameters declared, then the map is empty.
   List<DartType> get optionalParameterTypes;
 
-  /// Return a list containing the parameters elements of this type of function.
-  /// The parameter types are in the same order as they appear in the
-  /// declaration of the function.
+  /// A list containing the parameters elements of this type of function.
+  ///
+  /// The parameter types are not necessarily in the same order as they appear
+  /// in the declaration of the function.
   List<ParameterElement> get parameters;
 
-  /// Return the type of object returned by this type of function.
+  /// The type of object returned by this type of function.
   DartType get returnType;
 
-  /// The formal type parameters of this generic function.
-  /// For example `<T> T -> T`.
-  ///
-  /// TODO(scheglov) Remove the mention for "typeParameters".
-  /// These are distinct from the `typeParameters` list, which contains type
-  /// parameters from surrounding contexts, and thus are free type variables
-  /// from the perspective of this function type.
+  /// The formal type parameters of this generic function; for example,
+  /// `<T> T -> T`.
+  //
+  // TODO(scheglov): Remove the mention for "typeParameters".
+  // These are distinct from the `typeParameters` list, which contains type
+  // parameters from surrounding contexts, and thus are free type variables
+  // from the perspective of this function type.
   List<TypeParameterElement> get typeFormals;
 
   /// Produces a new function type by substituting type parameters of this
-  /// function type with the given [argumentTypes]. The resulting function
-  /// type will have no type parameters.
+  /// function type with the given [argumentTypes].
+  ///
+  /// The resulting function type has no type parameters.
   FunctionType instantiate(List<DartType> argumentTypes);
 }
 

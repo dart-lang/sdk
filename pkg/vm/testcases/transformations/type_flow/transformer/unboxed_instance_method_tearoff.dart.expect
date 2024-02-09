@@ -170,14 +170,14 @@ static method main() → dynamic {
   self::use([@vm.inferred-type.metadata=dart.core::_Double?] d.{self::Interface::returnBoxedNullableIntOrDouble}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=#lib::X?] d.{self::Interface::returnBoxedNullableX}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=#lib::X] d.{self::Interface::returnBoxedX}(null){(self::X?) → dynamic});
-  self::use(d.{self::Interface::takePositional}{(core::int?, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic) → void});
-  self::use(d.{self::Interface::returnUnboxedSmi}{(self::X?) → dynamic});
-  self::use(d.{self::Interface::returnUnboxedInt}{(self::X?) → dynamic});
-  self::use(d.{self::Interface::returnUnboxedDouble}{(self::X?) → dynamic});
-  self::use(d.{self::Interface::returnBoxedNullableInt}{(self::X?) → dynamic});
-  self::use(d.{self::Interface::returnBoxedNullableDouble}{(self::X?) → dynamic});
-  self::use(d.{self::Interface::returnBoxedIntOrDouble}{(self::X?) → dynamic});
-  self::use(d.{self::Interface::returnBoxedNullableIntOrDouble}{(self::X?) → dynamic});
-  self::use(d.{self::Interface::returnBoxedNullableX}{(self::X?) → dynamic});
-  self::use(d.{self::Interface::returnBoxedX}{(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::takePositional}{(core::int?, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic) → void});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::returnUnboxedSmi}{(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::returnUnboxedInt}{(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::returnUnboxedDouble}{(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::returnBoxedNullableInt}{(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::returnBoxedNullableDouble}{(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::returnBoxedIntOrDouble}{(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::returnBoxedNullableIntOrDouble}{(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::returnBoxedNullableX}{(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure] d.{self::Interface::returnBoxedX}{(self::X?) → dynamic});
 }

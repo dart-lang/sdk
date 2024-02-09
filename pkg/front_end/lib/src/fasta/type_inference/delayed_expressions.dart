@@ -36,6 +36,12 @@ abstract class DelayedExpression {
       TypeEnvironment typeEnvironment, List<Statement> results,
       {List<Statement>? effects});
 
+  /// Generates the expression, putting the irrefutable tail, if any, in
+  /// [results] and returning the expression for the refutable head, if any.
+  Expression? createExpressionAndStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Expression>? expressionEffects, List<Statement>? statementEffects});
+
   /// Returns the type of the resulting expression.
   DartType getType(TypeEnvironment typeEnvironment);
 
@@ -53,6 +59,31 @@ abstract class DelayedExpression {
   /// sequence of assignments, instead of an if-statement that assigns as a
   /// side effect of matching and throws if the match fails.
   bool get isEffectOnly;
+
+  /// If `true`, this expression is either [isEffectOnly] or has a tail of
+  /// [isEffectOnly] expressions.
+  ///
+  /// This is used to optimize the matching code where assignment to pattern
+  /// variables can be moved after the matching code. For instance
+  ///
+  ///     if (_x case var x?) print(x);
+  ///
+  /// can be lowered as
+  ///
+  ///     if (_x != null) {
+  ///       var x = _x;
+  ///       print(x);
+  ///     }
+  ///
+  /// instead of
+  ///
+  ///     var x;
+  ///     if (_x != null && let _x = x in true) {
+  ///       print(x);
+  ///     }
+  ///
+  /// which makes it easier for backend to reason about the flow.
+  bool get hasIrrefutableTail;
 
   /// Returns `true` if this expression or subexpressions uses [expression].
   ///
@@ -81,7 +112,19 @@ abstract mixin class AbstractDelayedExpression implements DelayedExpression {
   }
 
   @override
+  Expression? createExpressionAndStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Expression>? expressionEffects,
+      List<Statement>? statementEffects}) {
+    return createExpression(typeEnvironment,
+        inCacheInitializer: false, effects: expressionEffects);
+  }
+
+  @override
   bool get isEffectOnly => false;
+
+  @override
+  bool get hasIrrefutableTail => false;
 }
 
 /// A [DelayedExpression] based on an explicit [Expression] value.
@@ -201,6 +244,9 @@ class DelayedAndExpression implements DelayedExpression {
   @override
   bool get isEffectOnly => _left.isEffectOnly && _right.isEffectOnly;
 
+  @override
+  bool get hasIrrefutableTail => _right.hasIrrefutableTail;
+
   static DelayedExpression merge(
       DelayedExpression? left, DelayedExpression right,
       {required int fileOffset}) {
@@ -223,6 +269,91 @@ class DelayedAndExpression implements DelayedExpression {
       {List<Statement>? effects}) {
     _left.createStatements(typeEnvironment, results, effects: effects);
     _right.createStatements(typeEnvironment, results, effects: effects);
+  }
+
+  @override
+  Expression? createExpressionAndStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Expression>? expressionEffects,
+      List<Statement>? statementEffects}) {
+    if (_right.isEffectOnly) {
+      // When [_right] is effect only, we generate [_right] fully into
+      // [results]. The enables us to generate any irrefutable tail of [_left]
+      // to [results].
+      //
+      // For instance:
+      //
+      //    String method(List<int> o) => switch (o) {
+      //       [1, var x, var y] => "$x$y",
+      //       _ => "no match"
+      //     };
+      //
+      // The delayed expression is
+      //
+      //    o.length == 3 && o[0] == 1
+      //      && let #1 = x = o[1] in true
+      //      && let #2 = y = o[2] in true
+      //
+      // and we can generate both [_right], which is `let #2 = y = o[2] in true`
+      // and a tail of [_left], that is `let #1 = x = o[1] in true`, into
+      // [results]:
+      //
+      //    if (o.length == 3 && o[0] == 1) {
+      //      x = o[1];
+      //      y = o[2];
+      //      {
+      //        #result = "$x$y";
+      //      }
+      //    }
+      //
+      Expression? left = _left.createExpressionAndStatements(
+          typeEnvironment, results,
+          expressionEffects: expressionEffects,
+          statementEffects: statementEffects);
+      _right.createStatements(typeEnvironment, results,
+          effects: statementEffects);
+      return left;
+    } else {
+      // When [_right] is _not_ effect only, we can only generate [_right]
+      // into [results].
+      //
+      // For instance:
+      //
+      //    String method(List<int> o) => switch (o) {
+      //       [var x, 2, var y] => "$x$y",
+      //       _ => "no match"
+      //     };
+      //
+      // The delayed expression is
+      //
+      //    o.length == 3
+      //      && let #1 = x = o[0] in true
+      //      && o[0] == 2
+      //      && let #2 = y = o[2] in true
+      //
+      // and we can generate [_right], which is `let #2 = y = o[2] in true` but
+      // not `let #1 = x = o[0] in true` into [results] because we must preserve
+      // the order of expressions `o[0]`, `o[1]`, and `o[2]`:
+      //
+      //    if (o.length == 3 && let #1 = x = o[0] in true && o[0] == 2) {
+      //      y = o[2];
+      //      {
+      //        #result = "$x$y";
+      //      }
+      //    }
+      //
+      Expression left = _left.createExpression(typeEnvironment,
+          inCacheInitializer: false, effects: expressionEffects);
+      Expression? right = _right.createExpressionAndStatements(
+          typeEnvironment, results,
+          expressionEffects: expressionEffects,
+          statementEffects: statementEffects);
+      if (right != null) {
+        return createAndExpression(left, right, fileOffset: fileOffset);
+      } else {
+        return left;
+      }
+    }
   }
 }
 
@@ -458,6 +589,23 @@ class EffectExpression implements DelayedExpression {
       }
     }
   }
+
+  @override
+  bool get hasIrrefutableTail => isEffectOnly;
+
+  @override
+  Expression? createExpressionAndStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Expression>? expressionEffects,
+      List<Statement>? statementEffects}) {
+    if (isEffectOnly) {
+      createStatements(typeEnvironment, results, effects: statementEffects);
+      return null;
+    } else {
+      return createExpression(typeEnvironment,
+          inCacheInitializer: false, effects: expressionEffects);
+    }
+  }
 }
 
 /// A expression that assigns [_value] to [_target].
@@ -499,7 +647,7 @@ class DelayedAssignment extends DelayedExpression {
                   effects: effects, inCacheInitializer: inCacheInitializer),
               allowFinalAssignment: true,
               fileOffset: fileOffset),
-          result: createBoolLiteral(true, fileOffset: fileOffset));
+          result: createBoolLiteral(true, fileOffset: TreeNode.noOffset));
     }
   }
 
@@ -524,12 +672,24 @@ class DelayedAssignment extends DelayedExpression {
   }
 
   @override
+  Expression? createExpressionAndStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Expression>? expressionEffects,
+      List<Statement>? statementEffects}) {
+    createStatements(typeEnvironment, results, effects: statementEffects);
+    return null;
+  }
+
+  @override
   DartType getType(TypeEnvironment typeEnvironment) {
     return typeEnvironment.coreTypes.boolNonNullableRawType;
   }
 
   @override
   bool get isEffectOnly => true;
+
+  @override
+  bool get hasIrrefutableTail => true;
 
   @override
   void registerUse() {

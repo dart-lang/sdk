@@ -46,9 +46,9 @@ abstract class AbstractA extends core::Object {
     : super core::Object::•()
     ;
   external get fieldExternalNonNullableOfAbstractA() → core::num;
-  external set fieldExternalNonNullableOfAbstractA(core::num #externalFieldValue) → void;
+  external set fieldExternalNonNullableOfAbstractA(synthesized core::num #externalFieldValue) → void;
   abstract get fieldAbstractNonNullableOfAbstractA() → core::num;
-  abstract set fieldAbstractNonNullableOfAbstractA(core::num #externalFieldValue) → void;
+  abstract set fieldAbstractNonNullableOfAbstractA(synthesized core::num #externalFieldValue) → void;
   external get fieldExternalFinalDynamicOfAbstractA() → dynamic;
   abstract get fieldAbstractFinalDynamicOfAbstractA() → dynamic;
 }
@@ -65,9 +65,9 @@ abstract class AbstractB extends core::Object {
     : super core::Object::•()
     ;
   external get fieldExternalNonNullableOfAbstractB() → core::num;
-  external set fieldExternalNonNullableOfAbstractB(core::num #externalFieldValue) → void;
+  external set fieldExternalNonNullableOfAbstractB(synthesized core::num #externalFieldValue) → void;
   abstract get fieldAbstractNonNullableOfAbstractB() → core::num;
-  abstract set fieldAbstractNonNullableOfAbstractB(core::num #externalFieldValue) → void;
+  abstract set fieldAbstractNonNullableOfAbstractB(synthesized core::num #externalFieldValue) → void;
   external get fieldExternalFinalDynamicOfAbstractB() → dynamic;
   abstract get fieldAbstractFinalDynamicOfAbstractB() → dynamic;
 }
@@ -77,9 +77,9 @@ abstract class M extends core::Object /*isMixinDeclaration*/  {
   final field dynamic fieldFinalDynamicOfM = null;
   late final [setter] field dynamic fieldLateFinalDynamicOfM;
   external get fieldExternalNonNullableOfM() → core::num;
-  external set fieldExternalNonNullableOfM(core::num #externalFieldValue) → void;
+  external set fieldExternalNonNullableOfM(synthesized core::num #externalFieldValue) → void;
   abstract get fieldAbstractNonNullableOfM() → core::num;
-  abstract set fieldAbstractNonNullableOfM(core::num #externalFieldValue) → void;
+  abstract set fieldAbstractNonNullableOfM(synthesized core::num #externalFieldValue) → void;
   external get fieldExternalFinalDynamicOfM() → dynamic;
   abstract get fieldAbstractFinalDynamicOfM() → dynamic;
 }

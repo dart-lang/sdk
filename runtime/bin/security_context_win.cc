@@ -120,19 +120,19 @@ static bool AddCertificatesFromNamedSystemStore(const wchar_t* name,
     }
 
     int status = X509_STORE_add_cert(store, root_cert);
+    // Always free the certificate after use.
+    X509_free(root_cert);
     if (status == 0) {
       int error = ERR_get_error();
       if (ERR_GET_REASON(error) == X509_R_CERT_ALREADY_IN_HASH_TABLE) {
         if (SSL_LOG_STATUS) {
           Syslog::Print("...duplicate\n");
         }
-        X509_free(root_cert);
         continue;
       }
       if (SSL_LOG_STATUS) {
         PrintSSLErr("Failed to add certificate to x509 trust store");
       }
-      X509_free(root_cert);
       CertFreeCertificateContext(cert_context);
       CertCloseStore(cert_store, 0);
       return false;

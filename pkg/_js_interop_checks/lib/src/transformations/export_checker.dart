@@ -109,7 +109,6 @@ class ExportChecker {
 
   /// Determine if [cls] is exportable, and if so, compute the export members.
   ///
-  ///
   /// Check the following:
   /// - If the class has a `@JSExport` annotation, the value should be empty.
   /// - If the class has the annotation, it should have at least one exportable
@@ -254,7 +253,7 @@ extension ExtensionMemberDescriptorExtension on ExtensionMemberDescriptor {
   bool get isSetter => kind == ExtensionMemberKind.Setter;
   bool get isMethod => kind == ExtensionMemberKind.Method;
 
-  bool get isExternal => (member.asProcedure).isExternal;
+  bool get isExternal => (memberReference.asProcedure).isExternal;
 }
 
 extension ProcedureExtension on Procedure {

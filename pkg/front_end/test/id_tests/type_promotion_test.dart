@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
+
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
@@ -22,7 +23,7 @@ Future<void> main(List<String> args) async {
           const TypePromotionDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
-class TypePromotionDataComputer extends DataComputer<DartType> {
+class TypePromotionDataComputer extends CfeDataComputer<DartType> {
   const TypePromotionDataComputer();
 
   @override
@@ -33,7 +34,7 @@ class TypePromotionDataComputer extends DataComputer<DartType> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<DartType>> actualMap,
       {bool? verbose}) {
     member.accept(new TypePromotionDataExtractor(

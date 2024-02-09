@@ -31,7 +31,7 @@ _VisitVariableDeclaration _buildVariableReporter(
         return;
       }
 
-      // todo(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
+      // TODO(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
       // ignore: deprecated_member_use_from_same_package
       var containerNodes = container.traverseNodesInDFS();
 
@@ -60,7 +60,7 @@ _VisitVariableDeclaration _buildVariableReporter(
       // might not have access to the body of such function at analysis time, so
       // trying to infer if the close method is invoked there is not always
       // possible.
-      // TODO: Should there be another lint more relaxed that omits this step?
+      // TODO(alexeidiaz): Should there be another lint more relaxed that omits this step?
       if (_hasMethodInvocationsWithVariableAsArgument(
           containerNodes, variableElement)) {
         return;

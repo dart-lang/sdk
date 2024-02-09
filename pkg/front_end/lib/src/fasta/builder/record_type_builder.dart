@@ -71,7 +71,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       this.nullabilityBuilder, this.fileUri, this.charOffset);
 
   @override
-  String? get name => null;
+  TypeName? get typeName => null;
 
   @override
   String get debugName => "Record";
@@ -262,7 +262,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   }
 
   @override
-  Supertype? buildSupertype(LibraryBuilder library) {
+  Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     library.addProblem(
         messageSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
@@ -270,7 +270,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
-    return buildSupertype(library);
+    return buildSupertype(library, TypeUse.classWithType);
   }
 
   @override

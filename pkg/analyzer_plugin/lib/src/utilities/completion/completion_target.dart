@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -174,7 +175,7 @@ class CompletionTarget {
             // Try to replace with a comment token.
             var commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
-              // TODO(scheglov) This is duplicate of the code below.
+              // TODO(scheglov): This is duplicate of the code below.
               // If the preceding comment is dartdoc token, then update
               // the containing node to be the dartdoc comment.
               // Otherwise completion is not required.

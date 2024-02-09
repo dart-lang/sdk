@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 

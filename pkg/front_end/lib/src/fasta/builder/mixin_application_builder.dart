@@ -12,7 +12,7 @@ class MixinApplicationBuilder {
   final Uri fileUri;
   final int charOffset;
 
-  List<TypeVariableBuilder>? typeVariables;
+  List<NominalVariableBuilder>? typeVariables;
 
   MixinApplicationBuilder(this.mixins, this.fileUri, this.charOffset);
 }

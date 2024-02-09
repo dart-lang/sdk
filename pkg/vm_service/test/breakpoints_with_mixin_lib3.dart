@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Foo {
-  foo() {
-    print("I should be breakable!");
+mixin class Foo {
+  void foo() {
+    print('I should be breakable!');
   }
 }
 
 class Bar {
-  bar() {
-    print("I should be breakable too!");
+  void bar() {
+    print('I should be breakable too!');
   }
 }

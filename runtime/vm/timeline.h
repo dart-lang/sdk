@@ -173,6 +173,10 @@ class RecorderSynchronizationLock : public AllStatic {
     return (recorder_state_.load(std::memory_order_acquire) == kActive);
   }
 
+  static bool IsShuttingDown() {
+    return (recorder_state_.load(std::memory_order_acquire) == kShuttingDown);
+  }
+
   static void WaitForShutdown() {
     recorder_state_.store(kShuttingDown, std::memory_order_release);
     // Spin waiting for outstanding events to be completed.
@@ -206,6 +210,10 @@ class RecorderSynchronizationLockScope {
   }
 
   bool IsActive() const { return RecorderSynchronizationLock::IsActive(); }
+
+  bool IsShuttingDown() const {
+    return RecorderSynchronizationLock::IsShuttingDown();
+  }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(RecorderSynchronizationLockScope);

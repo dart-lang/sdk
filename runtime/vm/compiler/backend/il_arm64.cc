@@ -241,14 +241,17 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
                                    compiler::Label* done,
                                    compiler::Label* copy_forwards) {
   const bool reversed = copy_forwards != nullptr;
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                         (unboxed_inputs() ? 0 : kSmiTagShift);
+#if defined(USING_MEMORY_SANITIZER)
+  __ PushPair(length_reg, dest_reg);
+#endif
   if (reversed) {
     // Verify that the overlap actually exists by checking to see if
     // dest_start < src_end.
     if (!unboxed_inputs()) {
       __ ExtendNonNegativeSmi(length_reg);
     }
-    const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
-                           (unboxed_inputs() ? 0 : kSmiTagShift);
     if (shift < 0) {
       __ add(TMP, src_reg, compiler::Operand(length_reg, ASR, -shift));
     } else {
@@ -285,18 +288,31 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   __ subs(length_reg, length_reg, compiler::Operand(loop_subtract),
           compiler::kObjectBytes);
   __ b(&loop, NOT_ZERO);
+
+#if defined(USING_MEMORY_SANITIZER)
+  __ PopPair(length_reg, dest_reg);
+  if (!unboxed_inputs()) {
+    __ ExtendNonNegativeSmi(length_reg);
+  }
+  if (shift < 0) {
+    __ AsrImmediate(length_reg, length_reg, -shift);
+  } else {
+    __ LslImmediate(length_reg, length_reg, shift);
+  }
+  __ MsanUnpoison(dest_reg, length_reg);
+#endif
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
                                               Register array_reg,
+                                              Representation array_rep,
                                               Location start_loc) {
-  intptr_t offset;
-  if (IsTypedDataBaseClassId(array_cid)) {
-    __ ldr(array_reg,
-           compiler::FieldAddress(
-               array_reg, compiler::target::PointerBase::data_offset()));
-    offset = 0;
+  intptr_t offset = 0;
+  if (array_rep != kTagged) {
+    // Do nothing, array_reg already contains the payload address.
+  } else if (IsTypedDataBaseClassId(array_cid)) {
+    __ LoadFromSlot(array_reg, array_reg, Slot::PointerBase_data());
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
@@ -308,18 +324,12 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
             compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
       case kExternalOneByteStringCid:
-        __ ldr(array_reg,
-               compiler::FieldAddress(array_reg,
-                                      compiler::target::ExternalOneByteString::
-                                          external_data_offset()));
-        offset = 0;
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalOneByteString_external_data());
         break;
       case kExternalTwoByteStringCid:
-        __ ldr(array_reg,
-               compiler::FieldAddress(array_reg,
-                                      compiler::target::ExternalTwoByteString::
-                                          external_data_offset()));
-        offset = 0;
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalTwoByteString_external_data());
         break;
       default:
         UNREACHABLE();
@@ -713,7 +723,6 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     }
   } else if (destination.IsFpuRegister()) {
     const VRegister dst = destination.fpu_reg();
-    __ LoadDImmediate(dst, Double::Cast(value_).value());
     if (representation() == kUnboxedFloat) {
       __ LoadSImmediate(dst, Double::Cast(value_).value());
     } else {
@@ -732,6 +741,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     ASSERT(destination.IsStackSlot());
     ASSERT(tmp != kNoRegister);
     const intptr_t dest_offset = destination.ToStackSlotOffset();
+    compiler::OperandSize operand_size = compiler::kWordBytes;
     if (representation() == kUnboxedInt32 ||
         representation() == kUnboxedUint32 ||
         representation() == kUnboxedInt64) {
@@ -741,6 +751,11 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       } else {
         __ LoadImmediate(tmp, value);
       }
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ LoadImmediate(tmp, float_bits);
+      operand_size = compiler::kFourBytes;
     } else {
       ASSERT(representation() == kTagged);
       if (value_.IsNull()) {
@@ -751,7 +766,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
         __ LoadObject(tmp, value_);
       }
     }
-    __ StoreToOffset(tmp, destination.base_reg(), dest_offset);
+    __ StoreToOffset(tmp, destination.base_reg(), dest_offset, operand_size);
   }
 }
 
@@ -1344,13 +1359,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      link_lazily() ? ObjectPool::Patchability::kPatchable
                                    : ObjectPool::Patchability::kNotPatchable);
   if (link_lazily()) {
-    compiler->GeneratePatchableCall(source(), *stub,
-                                    UntaggedPcDescriptors::kOther, locs());
+    compiler->GeneratePatchableCall(
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kResetToBootstrapNative);
   } else {
     // We can never lazy-deopt here because natives are never optimized.
     ASSERT(!compiler->is_optimizing());
     compiler->GenerateNonLazyDeoptableStubCall(
-        source(), *stub, UntaggedPcDescriptors::kOther, locs());
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kNotSnapshotable);
   }
   __ LoadFromOffset(result, SP, 0);
 
@@ -1405,27 +1422,22 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs & ~(1 << SP),
                                      kAbiVolatileFpuRegs);
     __ mov(temp1, SP);
-    __ PushRegisters(kVolatileRegisterSet);
+    SPILLS_LR_TO_FRAME(__ PushRegisters(kVolatileRegisterSet));
 
     // Outgoing arguments passed on the stack to the foreign function.
-    __ mov(R0, temp1);
-    __ LoadImmediate(R1, stack_space);
-    __ CallCFunction(
-        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+    __ MsanUnpoison(temp1, stack_space);
 
     // Incoming Dart arguments to this trampoline are potentially used as local
     // handles.
-    __ mov(R0, is_leaf_ ? FPREG : saved_fp_or_sp);
-    __ LoadImmediate(R1, (kParamEndSlotFromFp + InputCount()) * kWordSize);
-    __ CallCFunction(
-        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+    __ MsanUnpoison(is_leaf_ ? FPREG : saved_fp_or_sp,
+                    (kParamEndSlotFromFp + InputCount()) * kWordSize);
 
     // Outgoing arguments passed by register to the foreign function.
     __ LoadImmediate(R0, InputCount());
     __ CallCFunction(compiler::Address(
         THR, kMsanUnpoisonParamRuntimeEntry.OffsetFromThread()));
 
-    __ PopRegisters(kVolatileRegisterSet);
+    RESTORES_LR_FROM_FRAME(__ PopRegisters(kVolatileRegisterSet));
   }
 #endif
 
@@ -1811,8 +1823,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label loop, loop_in;
 
   // Address of input bytes.
-  __ LoadFieldFromOffset(bytes_reg, bytes_reg,
-                         compiler::target::PointerBase::data_offset());
+  __ LoadFromSlot(bytes_reg, bytes_reg, Slot::PointerBase_data());
 
   // Table.
   __ AddImmediate(
@@ -1873,24 +1884,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                            scan_flags_field_offset);
     __ orr(flags_temp_reg, flags_temp_reg, compiler::Operand(flags_reg));
     __ StoreFieldToOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
-  }
-}
-
-LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register obj = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
-  if (object()->definition()->representation() == kUntagged) {
-    __ LoadFromOffset(result, obj, offset());
-  } else {
-    ASSERT(object()->definition()->representation() == kTagged);
-    __ LoadFieldFromOffset(result, obj, offset());
   }
 }
 
@@ -2296,6 +2289,37 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+
+#if defined(USING_MEMORY_SANITIZER)
+  if (index.IsRegister()) {
+    __ ComputeElementAddressForRegIndex(TMP, IsExternal(), class_id(),
+                                        index_scale(), index_unboxed_, array,
+                                        index.reg());
+  } else {
+    __ ComputeElementAddressForIntIndex(TMP, IsExternal(), class_id(),
+                                        index_scale(), array,
+                                        Smi::Cast(index.constant()).Value());
+  }
+  intptr_t length_in_bytes;
+  if (IsTypedDataBaseClassId(class_id_)) {
+    length_in_bytes = compiler::TypedDataElementSizeInBytes(class_id_);
+  } else {
+    switch (class_id_) {
+      case kArrayCid:
+        length_in_bytes = compiler::target::kWordSize;
+        break;
+      case kOneByteStringCid:
+        length_in_bytes = 1;
+        break;
+      case kTwoByteStringCid:
+        length_in_bytes = 2;
+        break;
+      default:
+        FATAL("Unknown cid: %" Pd, class_id_);
+    }
+  }
+  __ MsanUnpoison(TMP, length_in_bytes);
+#endif
 }
 
 static void LoadValueCid(FlowGraphCompiler* compiler,
@@ -3636,14 +3660,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value != result);
-  compiler::Label done;
-  __ sbfx(result, value, kSmiTagSize,
-          Utils::Minimum(static_cast<intptr_t>(32), kSmiBits));
-  __ BranchIfSmi(value, &done);
-  __ LoadFieldFromOffset(result, value, Mint::value_offset(),
-                         compiler::kFourBytes);
-  __ Bind(&done);
+  __ LoadInt32FromBoxOrSmi(result, value);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {

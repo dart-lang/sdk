@@ -116,10 +116,12 @@ class ObjectPointerVisitor;
   V(FfiInt8, "Int8")                                                           \
   V(FfiIntPtr, "IntPtr")                                                       \
   V(FfiIsolateLocalCallback, "_FfiIsolateLocalCallback")                       \
+  V(FfiNative, "Native")                                                       \
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \
   V(FfiNativeTypes, "nativeTypes")                                             \
   V(FfiPointer, "Pointer")                                                     \
+  V(FfiFromAddress, "_fromAddress")                                            \
   V(FfiStructLayout, "_FfiStructLayout")                                       \
   V(FfiStructLayoutArray, "_FfiInlineArray")                                   \
   V(FfiTrampolineData, "FfiTrampolineData")                                    \
@@ -426,6 +428,7 @@ class ObjectPointerVisitor;
   V(_checkSetRangeArguments, "_checkSetRangeArguments")                        \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
+  V(_ffi_resolver_function, "_ffi_resolver_function")                          \
   V(future, "future")                                                          \
   V(_future, "_future")                                                        \
   V(_getRegisters, "_getRegisters")                                            \
@@ -480,6 +483,7 @@ class ObjectPointerVisitor;
   V(add, "add")                                                                \
   V(addStream, "addStream")                                                    \
   V(asyncStarBody, "asyncStarBody")                                            \
+  V(byteOffset, "byteOffset")                                                  \
   V(c_result, ":result")                                                       \
   V(call, "call")                                                              \
   V(callback, "callback")                                                      \
@@ -497,6 +501,7 @@ class ObjectPointerVisitor;
   V(from, "from")                                                              \
   V(get, "get")                                                                \
   V(index_temp, ":index_temp")                                                 \
+  V(isLeaf, "isLeaf")                                                          \
   V(isPaused, "isPaused")                                                      \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \
@@ -525,12 +530,15 @@ class ObjectPointerVisitor;
   V(vm_exact_result_type, "vm:exact-result-type")                              \
   V(vm_external_name, "vm:external-name")                                      \
   V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
+  V(vm_ffi_call_closure, "vm:ffi:call-closure")                                \
+  V(vm_ffi_native, "vm:ffi:native")                                            \
   V(vm_ffi_native_assets, "vm:ffi:native-assets")                              \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_force_optimize, "vm:force-optimize")                                    \
   V(vm_idempotent, "vm:idempotent")                                            \
   V(vm_invisible, "vm:invisible")                                              \
   V(vm_isolate_unsendable, "vm:isolate-unsendable")                            \
+  V(vm_cachable_idempotent, "vm:cachable-idempotent")                          \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \

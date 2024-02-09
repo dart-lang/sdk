@@ -412,6 +412,30 @@ PostfixExpression
 ''');
   }
 
+  test_nullCheck_interfaceType_viaAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef A = String;
+
+void f(A? x) {
+  x!;
+}
+''');
+
+    final node = findNode.postfix('x!');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: String?
+      alias: self::@typeAlias::A
+  operator: !
+  staticElement: <null>
+  staticType: String
+    alias: self::@typeAlias::A
+''');
+  }
+
   test_nullCheck_null() async {
     await assertErrorsInCode('''
 void f(Null x) {
@@ -518,6 +542,30 @@ void test10(Foo? foo, int? a, int b) => foo?[a]![b];
     assertTestType(8, 'Bar?');
     assertTestType(9, 'int?');
     assertTestType(10, 'int?');
+  }
+
+  test_nullCheck_recordType_viaAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef A = (int,);
+
+void f(A? x) {
+  x!;
+}
+''');
+
+    final node = findNode.postfix('x!');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: (int,)?
+      alias: self::@typeAlias::A
+  operator: !
+  staticElement: <null>
+  staticType: (int,)
+    alias: self::@typeAlias::A
+''');
   }
 
   test_nullCheck_superExpression() async {

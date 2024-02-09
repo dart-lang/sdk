@@ -21,23 +21,12 @@ final dartDirectories = [
   'tests/lib',
   'tests/standalone',
 ];
-final dart2Directories = [
-  'runtime/tests/vm/dart_2',
-  'tests/corelib_2',
-  'tests/language_2',
-  'tests/lib_2',
-  'tests/standalone_2',
-];
 
 main(List<String> args) async {
-  final testFiles = await findValidTests(dart2Directories, false);
-  final nnbdTestFiles = await findValidTests(dartDirectories, true);
+  final testFiles = await findValidTests(dartDirectories, true);
 
   File(stressTestListJson)
-      .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
-    'nnbd': nnbdTestFiles,
-    'non-nnbd': testFiles,
-  }));
+      .writeAsStringSync(const JsonEncoder.withIndent('  ').convert(testFiles));
 }
 
 Future<List<String>> findValidTests(List<String> directories, bool nnbd) async {

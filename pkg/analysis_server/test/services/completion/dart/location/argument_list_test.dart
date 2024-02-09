@@ -8,28 +8,15 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ArgumentListTest1);
-    defineReflectiveTests(ArgumentListTest2);
-    defineReflectiveTests(FlutterArgumentListTest1);
-    defineReflectiveTests(FlutterArgumentListTest2);
-    defineReflectiveTests(NamedArgumentListTest1);
-    defineReflectiveTests(NamedArgumentListTest2);
+    defineReflectiveTests(ArgumentListTest);
+    defineReflectiveTests(FlutterArgumentListTest);
+    defineReflectiveTests(NamedArgumentListTest);
   });
 }
 
 @reflectiveTest
-class ArgumentListTest1 extends AbstractCompletionDriverTest
-    with ArgumentListTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ArgumentListTest2 extends AbstractCompletionDriverTest
-    with ArgumentListTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ArgumentListTest extends AbstractCompletionDriverTest
+    with ArgumentListTestCases {}
 
 mixin ArgumentListTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterColon_beforeRightParen() async {
@@ -55,31 +42,13 @@ suggestions
     await computeSuggestions('''
 void f() {foo(bar: n^);}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterInt_beforeRightParen() async {
@@ -172,52 +141,21 @@ suggestions
     await computeSuggestions('''
 void f() {foo(n^);}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 }
 
 @reflectiveTest
-class FlutterArgumentListTest1 extends AbstractCompletionDriverTest
+class FlutterArgumentListTest extends AbstractCompletionDriverTest
     with FlutterArgumentListTestCases {
   @override
   bool get includeKeywords => false;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class FlutterArgumentListTest2 extends AbstractCompletionDriverTest
-    with FlutterArgumentListTestCases {
-  @override
-  bool get includeKeywords => false;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin FlutterArgumentListTestCases on AbstractCompletionDriverTest {
@@ -307,37 +245,13 @@ build() => new Row(
     ch^: []
   );
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   children
     kind: namedArgument
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  children
-    kind: namedArgument
-  crossAxisAlignment
-    kind: namedArgument
-  key
-    kind: namedArgument
-  mainAxisAlignment
-    kind: namedArgument
-  mainAxisSize
-    kind: namedArgument
-  textBaseline
-    kind: namedArgument
-  textDirection
-    kind: namedArgument
-  verticalDirection
-    kind: namedArgument
-''');
-    }
   }
 
   Future<void>
@@ -489,23 +403,10 @@ suggestions
 }
 
 @reflectiveTest
-class NamedArgumentListTest1 extends AbstractCompletionDriverTest
+class NamedArgumentListTest extends AbstractCompletionDriverTest
     with NamedArgumentListTestCases {
   @override
   bool get includeKeywords => false;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class NamedArgumentListTest2 extends AbstractCompletionDriverTest
-    with NamedArgumentListTestCases {
-  @override
-  bool get includeKeywords => false;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin NamedArgumentListTestCases on AbstractCompletionDriverTest {
@@ -519,14 +420,14 @@ mixin NamedArgumentListTestCases on AbstractCompletionDriverTest {
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
   |foo02: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -535,7 +436,7 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo0^)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   left: 4
@@ -544,7 +445,7 @@ suggestions
     kind: namedArgument
   |foo02: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -553,7 +454,7 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^ foo02: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   left: 1
@@ -561,7 +462,7 @@ suggestions
   foo01: ,
     kind: namedArgument
     selection: 7
-''');
+''', where: where);
       },
     );
   }
@@ -570,14 +471,14 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^, foo02: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   left: 1
 suggestions
   |foo01: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -586,14 +487,14 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^ , foo02: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   left: 1
 suggestions
   |foo01: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -602,7 +503,7 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^f,)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   right: 1
@@ -611,7 +512,7 @@ suggestions
     kind: namedArgument
   |foo02: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -620,13 +521,13 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^ foo02: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   foo01: ,
     kind: namedArgument
     selection: 7
-''');
+''', where: where);
       },
     );
   }
@@ -635,15 +536,16 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^foo02: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   right: 5
 suggestions
-  foo01: ,
+  foo01
     kind: namedArgument
-    selection: 7
-''');
+  foo02
+    kind: namedArgument
+''', where: where);
       },
     );
   }
@@ -652,12 +554,12 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^, foo02: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -666,12 +568,12 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^ , foo02: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -680,12 +582,12 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, {int? foo02, int? foo03})',
       arguments: '(1, ^, foo03: 3)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   |foo02: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -694,13 +596,13 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, {int? foo02, int? foo03})',
       arguments: '(1, ^ foo03: 3)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   foo02: ,
     kind: namedArgument
     selection: 7
-''');
+''', where: where);
       },
     );
   }
@@ -709,28 +611,28 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, {int? foo02, int? foo03})',
       arguments: '(1, ^foo03: 3)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   right: 5
 suggestions
-  foo02: ,
+  foo02
     kind: namedArgument
-    selection: 7
-''');
+  foo03
+    kind: namedArgument
+''', where: where);
       },
     );
   }
 
-  @failingTest
   Future<void> test_named_14() async {
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2^)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
-''');
+''', where: where);
       },
     );
   }
@@ -740,12 +642,12 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2 ^)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   |, foo01: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -754,12 +656,12 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2, ^)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -768,14 +670,14 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2, f^)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   left: 1
 suggestions
   |foo01: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -784,14 +686,14 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2, f^,)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   left: 1
 suggestions
   |foo01: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -800,14 +702,14 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, int foo02, int foo03, {int? foo04, int? foo05})',
       arguments: '(1, ^, 3)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   |foo04: |
     kind: namedArgument
   |foo05: |
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -817,10 +719,14 @@ suggestions
       languageVersion: '2.15',
       parameters: '(int foo01, int foo02, int foo03, {int? foo04, int? foo05})',
       arguments: '(1, ^, 3)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
-''');
+  |foo04: |
+    kind: namedArgument
+  |foo05: |
+    kind: namedArgument
+''', where: where);
       },
     );
   }
@@ -829,7 +735,7 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^: 0)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   left: 1
@@ -838,7 +744,7 @@ suggestions
     kind: namedArgument
   foo02
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -847,18 +753,16 @@ suggestions
     await _tryParametersArguments(
       parameters: '(bool foo01, {int? foo02, int? foo03})',
       arguments: '(false, ^f: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   right: 1
 suggestions
-  foo02: ,
+  foo02
     kind: namedArgument
-    selection: 7
-  foo03: ,
+  foo03
     kind: namedArgument
-    selection: 7
-''');
+''', where: where);
       },
     );
   }
@@ -867,7 +771,7 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, {int? foo02})',
       arguments: '(0, foo^ba: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 replacement
   left: 3
@@ -875,7 +779,7 @@ replacement
 suggestions
   foo02
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -884,14 +788,14 @@ suggestions
     await _tryParametersArguments(
       parameters: '(bool foo01, {int? foo02, int? foo03})',
       arguments: '(0, ^: 2)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
   foo02
     kind: namedArgument
   foo03
     kind: namedArgument
-''');
+''', where: where);
       },
     );
   }
@@ -900,10 +804,10 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo01: ^)',
-      check: () {
+      check: (String where) {
         assertResponse(r'''
 suggestions
-''');
+''', where: where);
       },
     );
   }
@@ -912,18 +816,17 @@ suggestions
     String? languageVersion,
     required String parameters,
     required String arguments,
-    required void Function() check,
+    required void Function(String) check,
   }) async {
     var languageVersionLine = languageVersion != null
         ? '// @dart = $languageVersion'
         : '// no language version override';
 
-    Future<void> computeAndCheck(String code) async {
+    Future<void> computeAndCheck(String code, String where) async {
       await computeSuggestions(code);
-      check();
+      check(where);
     }
 
-    // Annotation, local class.
     await computeAndCheck('''
 $languageVersionLine
 class A {
@@ -931,9 +834,8 @@ class A {
 }
 @A$arguments
 void f() {}
-''');
+''', ' (annotation, local class)');
 
-    // Annotation, imported class.
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A$parameters;
@@ -944,9 +846,8 @@ $languageVersionLine
 import 'a.dart';
 @A$arguments
 void f() {}
-''');
+''', ' (annotation, imported class)');
 
-    // Annotation, imported class, prefixed.
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A$parameters;
@@ -957,35 +858,31 @@ $languageVersionLine
 import 'a.dart' as p;
 @p.A$arguments
 void f() {}
-''');
+''', ' (annotation, imported class, prefixed)');
 
-    // Enum constant.
     await computeAndCheck('''
 $languageVersionLine
 enum E {
   v$arguments;
   const E$parameters;
 }
-''');
+''', ' (enum constant)');
 
-    // Function expression invocation.
     await computeAndCheck('''
 $languageVersionLine
 import 'a.dart';
 void f$parameters {}
 var v = (f)$arguments;
-''');
+''', ' (function expression invocation)');
 
-    // Instance creation, local class, generative.
     await computeAndCheck('''
 $languageVersionLine
 class A {
   A$parameters;
 }
 var v = A$arguments;
-''');
+''', ' (instance creation, local class, generative)');
 
-    // Instance creation, imported class, generative.
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   A$parameters;
@@ -995,9 +892,8 @@ class A {
 $languageVersionLine
 import 'a.dart';
 var v = A$arguments;
-''');
+''', ' (instance creation, imported class, generative)');
 
-    // Instance creation, imported class, factory.
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   factory A$parameters => throw 0;
@@ -1007,25 +903,22 @@ class A {
 $languageVersionLine
 import 'a.dart';
 var v = A$arguments;
-''');
+''', ' (instance creation, imported class, factory)');
 
-    // Method invocation, local method.
     await computeAndCheck('''
 $languageVersionLine
 class A {
   void foo$parameters {}
 }
 var v = A().foo$arguments;
-''');
+''', ' (method invocation, local method)');
 
-    // Method invocation, local function.
     await computeAndCheck('''
 $languageVersionLine
 void f$parameters {}
 var v = f$arguments;
-''');
+''', ' (method invocation, local function)');
 
-    // Method invocation, imported function.
     newFile('$testPackageLibPath/a.dart', '''
 void f$parameters {}
 ''');
@@ -1033,9 +926,8 @@ void f$parameters {}
 $languageVersionLine
 import 'a.dart';
 var v = f$arguments;
-''');
+''', ' (method invocation, imported function)');
 
-    // Super constructor invocation.
     await computeAndCheck('''
 $languageVersionLine
 class A {
@@ -1044,15 +936,14 @@ class A {
 class B extends A {
   B() : super$arguments;
 }
-''');
+''', ' (super constructor invocation)');
 
-    // This constructor invocation.
     await computeAndCheck('''
 $languageVersionLine
 class A {
   A$parameters;
   A.named() : this$arguments;
 }
-''');
+''', ' (this constructor invocation)');
   }
 }

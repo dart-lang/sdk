@@ -80,7 +80,7 @@ class CanRenameResponse {
   }
 
   FlutterWidgetState? _findFlutterStateClass(Element element, String newName) {
-    if (Flutter.instance.isStatefulWidgetDeclaration(element)) {
+    if (Flutter.isStatefulWidgetDeclaration(element)) {
       var oldStateName = '${element.displayName}State';
       var library = element.library!;
       var state =
@@ -215,8 +215,7 @@ class CheckNameResponse {
             element.setter!.nameLength));
       }
     } else if (element is LibraryImportElement) {
-      var unit =
-          (await canRename._fileResolver.resolve2(path: sourcePath)).unit;
+      var unit = (await canRename._fileResolver.resolve(path: sourcePath)).unit;
       var index = element.library.libraryImports.indexOf(element);
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
       final prefixNode = node.prefix;
@@ -240,7 +239,7 @@ class CheckNameResponse {
         }
       }
     } else {
-      var location = (await canRename._fileResolver.resolve2(path: sourcePath))
+      var location = (await canRename._fileResolver.resolve(path: sourcePath))
           .lineInfo
           .getLocation(element.nameOffset);
       infos.add(ReplaceInfo(newName, location, element.nameLength));
@@ -281,7 +280,7 @@ class CheckNameResponse {
   /// it. Otherwise return `null`.
   Future<SimpleIdentifier?> _getInterpolationIdentifier(
       String path, CharacterLocation loc) async {
-    var resolvedUnit = await canRename._fileResolver.resolve2(path: path);
+    var resolvedUnit = await canRename._fileResolver.resolve(path: path);
     var lineInfo = resolvedUnit.lineInfo;
     var node = NodeLocator(
             lineInfo.getOffsetOfLine(loc.lineNumber - 1) + loc.columnNumber)
@@ -316,7 +315,9 @@ class CheckNameResponse {
     if (node is ClassDeclaration) {
       var utils = CorrectionUtils(resolvedUnit);
       var location = utils.prepareNewConstructorLocation(
-          fileResolver.contextObjects!.analysisSession, node);
+          fileResolver.contextObjects!.analysisSession,
+          node,
+          resolvedUnit.file);
       if (location == null) {
         return null;
       }
@@ -348,7 +349,7 @@ class CiderRenameComputer {
   /// [filePath] can be renamed.
   Future<CanRenameResponse?> canRename2(
       String filePath, int line, int column) async {
-    var resolvedUnit = await _fileResolver.resolve2(path: filePath);
+    var resolvedUnit = await _fileResolver.resolve(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
 

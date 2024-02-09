@@ -151,11 +151,16 @@ static method main() → dynamic {
     hoisted core::int x;
     hoisted core::int y;
     final synthesized self::A #0#0 = a;
-    late final synthesized core::int #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int};
-    late final synthesized core::int #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int};
-    if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5 && (#0#4 is core::int && (let final dynamic #t1 = x = #0#4 in true)) && (#0#5 is core::int && (let final dynamic #t2 = y = #0#5 in true))) {
-      self::expectEquals(x, 0);
-      self::expectEquals(y, 0);
+    synthesized core::int #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized core::int #0#5;
+    synthesized core::bool #0#5#isSet = false;
+    if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5 && ((#0#4#isSet ?{core::int} #0#4{core::int} : let final dynamic #t1 = #0#4#isSet = true in #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int}) is core::int && (let final dynamic #t2 = x = #0#4#isSet ?{core::int} #0#4{core::int} : let final dynamic #t3 = #0#4#isSet = true in #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int} in true)) && (#0#5#isSet ?{core::int} #0#5{core::int} : let final dynamic #t4 = #0#5#isSet = true in #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int}) is core::int) {
+      y = #0#5#isSet ?{core::int} #0#5{core::int} : let final dynamic #t5 = #0#5#isSet = true in #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int};
+      {
+        self::expectEquals(x, 0);
+        self::expectEquals(y, 0);
+      }
     }
   }
   self::expectEquals(a.{self::A::count}{core::int}, 2);

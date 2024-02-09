@@ -35,6 +35,7 @@ import 'package:js_shared/synced/embedded_names.dart'
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
         TYPES;
+import 'package:js_shared/variance.dart';
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
@@ -119,8 +120,8 @@ class ModelEmitter {
   final SourceInformationStrategy _sourceInformationStrategy;
   final FragmentMerger fragmentMerger;
 
-  // The full code that is written to each hunk part-file.
-  final Map<OutputUnit, CodeOutput> emittedOutputBuffers = {};
+  // The length of the code that is written to each hunk part-file.
+  final Map<OutputUnit, int> emittedOutputSizes = {};
 
   final Set<OutputUnit> omittedOutputUnits = {};
 
@@ -360,7 +361,7 @@ class ModelEmitter {
     }
 
     // Return the total program size.
-    return emittedOutputBuffers.values.fold(0, (a, b) => a + b.length);
+    return emittedOutputSizes.values.fold(0, (a, b) => a + b);
   }
 
   /// Generates a simple header that provides the compiler's build id.
@@ -433,7 +434,6 @@ var ${startupMetricsGlobal} =
     CodeOutput mainOutput = StreamCodeOutput(
         _outputProvider.createOutputSink('', 'js', api.OutputType.js),
         codeOutputListeners);
-    emittedOutputBuffers[fragment.outputUnit] = mainOutput;
 
     js.Program program = js.Program([
       buildGeneratedBy(),
@@ -461,6 +461,7 @@ var ${startupMetricsGlobal} =
     }
 
     mainOutput.close();
+    emittedOutputSizes[fragment.outputUnit] = mainOutput.length;
 
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
@@ -540,6 +541,11 @@ var ${startupMetricsGlobal} =
     } else {
       output.close();
     }
+    for (final fragment in fragmentCode) {
+      for (final outputUnit in fragment.codeFragment.outputUnits) {
+        emittedOutputSizes[outputUnit] = output.length;
+      }
+    }
   }
 
   /// Writes a list of [CodeFragments] to [CodeOutput].
@@ -552,9 +558,6 @@ var ${startupMetricsGlobal} =
     for (var emittedCodeFragment in fragmentCode) {
       var codeFragment = emittedCodeFragment.codeFragment;
       var code = emittedCodeFragment.code;
-      for (var outputUnit in codeFragment.outputUnits) {
-        emittedOutputBuffers[outputUnit] = output;
-      }
       fragmentHashes[codeFragment] =
           writeCodeFragment(output, code, isFirst, outputFileName);
       isFirst = false;

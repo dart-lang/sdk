@@ -8,32 +8,24 @@ import 'dart:io' show exit;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/util/options.dart';
-
+import 'package:_fe_analyzer_shared/src/util/resolve_input_uri.dart'
+    show resolveInputUri;
 import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart';
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag, isExperimentEnabled;
-
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
-
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 import 'package:front_end/src/api_prototype/terminal_color_support.dart';
+import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
-
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/base/command_line_options.dart';
-
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         Message,
@@ -41,15 +33,10 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
         messageFastaUsageLong,
         messageFastaUsageShort,
         templateUnspecified;
-
 import 'package:front_end/src/fasta/problems.dart' show DebugAbort;
-
-import 'package:_fe_analyzer_shared/src/util/resolve_input_uri.dart'
-    show resolveInputUri;
-
+import 'package:front_end/src/isolate_macro_serializer.dart';
 import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
-
 import 'package:kernel/target/targets.dart'
     show Target, TargetFlags, TestTargetFlags, getTarget, targets;
 
@@ -254,6 +241,8 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..fileSystem = fileSystem
     ..packagesFileUri = packages
     ..target = target
+    ..macroTarget = target
+    ..macroSerializer = IsolateMacroSerializer()
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal
     ..skipForDebugging = fatalSkip

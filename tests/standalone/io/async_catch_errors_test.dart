@@ -13,7 +13,7 @@ var events = [];
 Future testSocketException() {
   var completer = new Completer();
   runZonedGuarded(() {
-    Socket.connect("4", 1).then((Socket s) {
+    Socket.connect("4", 1, timeout: Duration(seconds: 5)).then((Socket s) {
       Expect.fail("Socket should not be able to connect");
     });
   }, (err, s) {

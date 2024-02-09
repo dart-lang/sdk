@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Unit test for in-memory pipelines.
+library;
+
 import 'dart:io';
 
 import 'package:modular_test/src/io_pipeline.dart';

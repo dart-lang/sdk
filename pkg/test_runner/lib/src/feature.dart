@@ -27,6 +27,10 @@ class Feature {
 
   static const all = [nnbdLegacy, nnbd, nnbdWeak, nnbdStrong];
 
+  /// All modes that should be tested on a platform that doesn't support legacy
+  /// code.
+  static const noLegacy = [nnbd, nnbdStrong];
+
   final String name;
 
   const Feature._(this.name);

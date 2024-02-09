@@ -12,8 +12,11 @@ static method method1(core::Object object) → dynamic {
   {
     hoisted core::Object field;
     final synthesized core::Object #0#0 = object;
-    if(#0#0 is self::Class<core::Object> && (let final dynamic #t1 = field = #0#0{self::Class<core::Object>}.{self::Class::field}{core::Object} in true)) {
-      core::print(field);
+    if(#0#0 is self::Class<core::Object>) {
+      field = #0#0{self::Class<core::Object>}.{self::Class::field}{core::Object};
+      {
+        core::print(field);
+      }
     }
   }
 }

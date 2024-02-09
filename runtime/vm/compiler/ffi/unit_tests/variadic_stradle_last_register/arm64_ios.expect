@@ -1,0 +1,10 @@
+r0 int64
+S+0 int64
+S+8 int64
+S+16 int64
+S+24 int64
+S+32 int64
+S+40 int64
+M(S+48 uint64, S+56 uint64[uint32]) Struct(size: 12)
+=>
+r0 int64

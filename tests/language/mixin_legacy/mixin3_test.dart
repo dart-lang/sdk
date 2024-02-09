@@ -45,9 +45,9 @@ class P<K, V> = Object with O<V>;
 class Q<K, V> extends P<K, V> {}
 
 main() {
-  Expect.equals("List<Set<bool>>", new C0().t().toString());
-  Expect.equals("List<Set<int>>", new C1().t().toString());
-  Expect.equals("Map<Set<bool>, List<bool>>", new C2<bool>().t().toString());
-  Expect.equals("Map<Set<bool>, List<int>>", new C3<bool>().t().toString());
+  Expect.equals(List<Set<bool>>, new C0().t());
+  Expect.equals(List<Set<int>>, new C1().t());
+  Expect.equals(Map<Set<bool>, List<bool>>, new C2<bool>().t());
+  Expect.equals(Map<Set<bool>, List<int>>, new C3<bool>().t());
   Expect.equals(42, new Q<bool, int>().q());
 }

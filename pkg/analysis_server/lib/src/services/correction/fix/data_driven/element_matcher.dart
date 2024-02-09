@@ -4,11 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
     show ExtensionElement, InterfaceElement, PrefixElement;
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// An object that can be used to determine whether an element is appropriate
 /// for a given reference.
@@ -26,13 +26,19 @@ class ElementMatcher {
   /// kinds.
   final List<ElementKind> validKinds;
 
+  /// The AST node to be matched with. The node is provided in cases where the
+  /// element in question cannot be resolved and relevant information cannot be
+  /// extracted as components.
+  final AstNode? node;
+
   /// Initialize a newly created matcher representing a reference to an element
   /// whose name matches the given [components] and element [kinds] in a library
   /// that imports the [importedUris].
   ElementMatcher(
       {required this.importedUris,
       required this.components,
-      required List<ElementKind> kinds})
+      required List<ElementKind> kinds,
+      this.node})
       : assert(components.isNotEmpty),
         validKinds = kinds;
 
@@ -67,17 +73,35 @@ class ElementMatcher {
       } else {
         // The node has fewer components, which can happen, for example, when we
         // can't figure out the class that used to define a field. We treat the
-        // missing components as wildcards and match the rest.
+        // missing components as wildcards and match the rest. If node is
+        // available, we further match against it.
         for (var i = 0; i < nodeComponentCount; i++) {
           if (elementComponents[i] != components[i]) {
             return false;
           }
         }
+        if (node != null) {
+          var parent = node?.parent;
+          while (parent != null && parent.parent is! CompilationUnit) {
+            parent = parent.parent;
+          }
+          var element = (parent as CompilationUnitMember).declaredElement;
+          if (element is! InterfaceElement) {
+            return false;
+          }
+          var types = element.allSupertypes.map((e) => e.element.name);
+          for (var t in types) {
+            if (elementComponents.contains(t)) {
+              return true;
+            }
+          }
+          return false;
+        }
       }
     } else {
       // The node has more components than the element, which can happen when a
       // constructor is implicitly renamed because the class was renamed.
-      // TODO(brianwilkerson) Figure out whether we want to support this or
+      // TODO(brianwilkerson): Figure out whether we want to support this or
       //  whether we want to require fix data authors to explicitly include the
       //  change to the constructor. On the one hand it's more work for the
       //  author, on the other hand it give us more data so we're less likely to
@@ -134,7 +158,7 @@ class ElementMatcher {
       return null;
     }
     for (var importElement in library.libraryImports) {
-      // TODO(brianwilkerson) Filter based on combinators to help avoid making
+      // TODO(brianwilkerson): Filter based on combinators to help avoid making
       //  invalid suggestions.
       var uri = importElement.importedLibrary?.source.uri;
       if (uri != null) {
@@ -189,9 +213,14 @@ class _MatcherBuilder {
   }
 
   void _addMatcher(
-      {required List<String> components, required List<ElementKind> kinds}) {
+      {required List<String> components,
+      required List<ElementKind> kinds,
+      AstNode? node}) {
     matchers.add(ElementMatcher(
-        importedUris: importedUris, components: components, kinds: kinds));
+        importedUris: importedUris,
+        components: components,
+        kinds: kinds,
+        node: node));
   }
 
   /// Build a matcher for the element being invoked.
@@ -203,7 +232,7 @@ class _MatcherBuilder {
         kinds: [ElementKind.constructorKind],
       );
       // } else if (parent is ExtensionOverride) {
-      //   // TODO(brianwilkerson) Determine whether this branch can be reached.
+      //   // `TODO`(brianwilkerson) Determine whether this branch can be reached.
       //   _buildFromExtensionOverride(parent);
     } else if (parent is FunctionExpressionInvocation) {
       _buildFromFunctionExpressionInvocation(parent);
@@ -235,15 +264,15 @@ class _MatcherBuilder {
 
   /// Build a matcher for the operator being invoked.
   void _buildFromBinaryExpression(BinaryExpression node) {
-    // TODO(brianwilkerson) Implement this method in order to support changes to
+    // TODO(brianwilkerson): Implement this method in order to support changes to
     //  operators.
   }
 
   /// Build a matcher for the constructor being referenced.
   void _buildFromConstructorName(ConstructorName node) {
-    // TODO(brianwilkerson) Use the static element, if there is one, in order to
+    // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
-    // TODO(brianwilkerson) Use 'new' for the name of the unnamed constructor.
+    // TODO(brianwilkerson): Use 'new' for the name of the unnamed constructor.
     var constructorName = node.name?.name ?? ''; // ?? 'new';
     var className = node.type.name2.lexeme;
     _addMatcher(
@@ -267,7 +296,7 @@ class _MatcherBuilder {
   /// Build a matcher for the function being invoked.
   void _buildFromFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
-    // TODO(brianwilkerson) This case was missed in the original implementation
+    // TODO(brianwilkerson): This case was missed in the original implementation
     //  and there are no tests for it at this point, but it ought to be supported.
   }
 
@@ -286,7 +315,7 @@ class _MatcherBuilder {
 
   /// Build a matcher for the method being invoked.
   void _buildFromMethodInvocation(MethodInvocation node) {
-    // TODO(brianwilkerson) Use the static element, if there is one, in order to
+    // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     // var element = node.methodName.staticElement;
     // if (element != null) {
@@ -343,7 +372,7 @@ class _MatcherBuilder {
     if (parent is ConstructorName) {
       return _buildFromConstructorName(parent);
     }
-    // TODO(brianwilkerson) Use the static element, if there is one, in order to
+    // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     _addMatcher(
       components: [node.name2.lexeme],
@@ -354,7 +383,7 @@ class _MatcherBuilder {
         ElementKind.typedefKind
       ],
     );
-    // TODO(brianwilkerson) Determine whether we can ever get here as a result
+    // TODO(brianwilkerson): Determine whether we can ever get here as a result
     //  of having a removed unnamed constructor.
     // _addMatcher(
     //   components: ['', node.name.name],
@@ -368,7 +397,7 @@ class _MatcherBuilder {
     if (parent is NamedType) {
       return _buildFromNamedType(parent);
     }
-    // TODO(brianwilkerson) Use the static element, if there is one, in order to
+    // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var prefix = node.prefix;
     if (prefix.staticElement is PrefixElement) {
@@ -445,7 +474,7 @@ class _MatcherBuilder {
 
   /// Build a matcher for the property being accessed.
   void _buildFromPropertyAccess(PropertyAccess node) {
-    // TODO(brianwilkerson) Use the static element, if there is one, in order to
+    // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var propertyName = node.propertyName;
     var targetName = _nameOfTarget(node.realTarget);
@@ -470,7 +499,7 @@ class _MatcherBuilder {
 
   /// Build a matcher for the element referenced by the identifier.
   void _buildFromSimpleIdentifier(SimpleIdentifier node, Token nameToken) {
-    // TODO(brianwilkerson) Use the static element, if there is one, in order to
+    // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var parent = node.parent;
     if (parent is Label && parent.parent is NamedExpression) {
@@ -493,8 +522,14 @@ class _MatcherBuilder {
         !_isPrefix(parent.target)) {
       _buildFromPropertyAccess(parent);
     } else {
-      // TODO(brianwilkerson) See whether the list of kinds can be specified.
-      _addMatcher(components: [node.name], kinds: []);
+      // TODO(brianwilkerson): See whether the list of kinds can be specified.
+      // If we cannot resolve the element. add the parent/target information,
+      // where it should have been declared.
+      if (node.staticType is InvalidType) {
+        _addMatcher(components: [node.name], kinds: [], node: node);
+      } else {
+        _addMatcher(components: [node.name], kinds: []);
+      }
     }
   }
 

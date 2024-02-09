@@ -26,16 +26,12 @@ import 'builder.dart';
 import 'constructor_builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
-import 'metadata_builder.dart';
 import 'modifier_builder.dart';
 import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
 
 abstract class ParameterBuilder {
-  /// List of metadata builders for the metadata declared on this parameter.
-  List<MetadataBuilder>? get metadata;
-
   TypeBuilder get type;
 
   /// The kind of this parameter, i.e. if it's required, positional optional,
@@ -64,10 +60,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
 
-  /// List of metadata builders for the metadata declared on this parameter.
-  @override
-  final List<MetadataBuilder>? metadata;
-
   @override
   final int modifiers;
 
@@ -78,7 +70,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   final String name;
 
   @override
-  final Uri? fileUri;
+  final Uri fileUri;
 
   @override
   final FormalParameterKind kind;
@@ -104,12 +96,12 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   final bool isExtensionThis;
 
-  FormalParameterBuilder(this.metadata, this.kind, this.modifiers, this.type,
-      this.name, LibraryBuilder? compilationUnit, int charOffset,
-      {Uri? fileUri,
+  FormalParameterBuilder(this.kind, this.modifiers, this.type, this.name,
+      LibraryBuilder? compilationUnit, int charOffset,
+      {required Uri fileUri,
       this.isExtensionThis = false,
       required this.hasImmediatelyDeclaredInitializer})
-      : this.fileUri = fileUri ?? compilationUnit?.fileUri,
+      : this.fileUri = fileUri,
         this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
         super(compilationUnit, charOffset) {
     type.registerInferredTypeListener(this);
@@ -192,22 +184,14 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
-    // and how it should be cloned.  Consider cloning it instead of reusing it.
-    return new FunctionTypeParameterBuilder(metadata, kind,
-        type.clone(newTypes, contextLibrary, contextDeclaration), name);
+    return new FunctionTypeParameterBuilder(
+        kind, type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
   FormalParameterBuilder forPrimaryConstructor(
       SourceLibraryBuilder sourceLibraryBuilder) {
-    return new FormalParameterBuilder(
-        metadata,
-        kind,
-        modifiers | initializingFormalMask,
-        sourceLibraryBuilder.addInferableType(),
-        name,
-        null,
-        charOffset,
+    return new FormalParameterBuilder(kind, modifiers | initializingFormalMask,
+        sourceLibraryBuilder.addInferableType(), name, null, charOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
@@ -218,7 +202,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   FormalParameterBuilder forFormalParameterInitializerScope() {
     if (isInitializingFormal) {
       return new FormalParameterBuilder(
-          metadata,
           kind,
           modifiers | finalMask | initializingFormalMask,
           type,
@@ -232,7 +215,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         ..variable = variable;
     } else if (isSuperInitializingFormal) {
       return new FormalParameterBuilder(
-          metadata,
           kind,
           modifiers | finalMask | superInitializingFormalMask,
           type,
@@ -265,7 +247,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(SourceLibraryBuilder library,
+  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
       List<DelayedActionPerformer> delayedActionPerformers) {
     // For modular compilation we need to include default values for optional
     // and named parameters in several cases:
@@ -289,9 +271,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         Scope scope = declarationBuilder.scope;
         BodyBuilderContext bodyBuilderContext =
             new ParameterBodyBuilderContext(this);
-        BodyBuilder bodyBuilder = library.loader
+        BodyBuilder bodyBuilder = libraryBuilder.loader
             .createBodyBuilderForOutlineExpression(
-                library, bodyBuilderContext, scope, fileUri!);
+                libraryBuilder, bodyBuilderContext, scope, fileUri);
         bodyBuilder.constantContext = ConstantContext.required;
         assert(!initializerWasInferred);
         Expression initializer =
@@ -315,9 +297,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
 class FunctionTypeParameterBuilder implements ParameterBuilder {
   @override
-  final List<MetadataBuilder>? metadata;
-
-  @override
   final FormalParameterKind kind;
 
   @override
@@ -326,17 +305,15 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   @override
   final String? name;
 
-  FunctionTypeParameterBuilder(this.metadata, this.kind, this.type, this.name);
+  FunctionTypeParameterBuilder(this.kind, this.type, this.name);
 
   @override
   ParameterBuilder clone(
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
-    // and how it should be cloned.  Consider cloning it instead of reusing it.
-    return new FunctionTypeParameterBuilder(metadata, kind,
-        type.clone(newTypes, contextLibrary, contextDeclaration), name);
+    return new FunctionTypeParameterBuilder(
+        kind, type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
   @override

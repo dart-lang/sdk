@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Declares the type system used by global type flow analysis.
+library;
 
 import 'dart:core' hide Type;
 
@@ -24,13 +25,16 @@ import 'utils.dart';
 class TFClass {
   final int id;
   final Class classNode;
+  final Set<TFClass> supertypes; // List of super-types including this.
   final RecordShape? recordShape;
-  final Map<Constant, ConcreteType> _constantConcreteTypes = {};
+  final Map<TypeAttributes, ConcreteType> _concreteTypesWithAttributes = {};
 
   /// TFClass should not be instantiated directly.
   /// Instead, [TypeHierarchy.getTFClass] should be used to obtain [TFClass]
   /// instances specific to given [TypeHierarchy].
-  TFClass(this.id, this.classNode, this.recordShape);
+  TFClass(this.id, this.classNode, this.supertypes, this.recordShape) {
+    supertypes.add(this);
+  }
 
   /// Returns ConcreteType corresponding to this class without
   /// any extra attributes.
@@ -39,12 +43,30 @@ class TFClass {
   /// Returns ConcreteType corresponding to this class and
   /// [constant] value.
   ConcreteType constantConcreteType(Constant constant) =>
-      _constantConcreteTypes[constant] ??= ConcreteType._(this, null, constant);
+      _concreteTypeWithAttributes(
+          TypeAttributes._(constant, _closureForConstant(constant)));
+
+  /// Returns ConcreteType corresponding to this class and
+  /// given [function] in [member].
+  ConcreteType closureConcreteType(Member member, LocalFunction? function) {
+    assert(function != null ||
+        (member is Procedure &&
+            !member.isGetter &&
+            !member.isSetter &&
+            !member.isStatic &&
+            !member.isAbstract));
+    return _concreteTypeWithAttributes(
+        TypeAttributes._(null, Closure._(member, function)));
+  }
 
   /// Returns ConeType corresponding to this class.
   late final ConeType coneType = ConeType._(this);
 
   bool get isRecord => recordShape != null;
+
+  /// Tests if [this] is a subtype of [other].
+  bool isSubtypeOf(TFClass other) =>
+      identical(this, other) || supertypes.contains(other);
 
   @override
   int get hashCode => id;
@@ -53,7 +75,29 @@ class TFClass {
   bool operator ==(other) => identical(this, other);
 
   @override
-  String toString() => nodeToText(classNode);
+  String toString() => isRecord
+      ? '${nodeToText(classNode)}[$recordShape]'
+      : nodeToText(classNode);
+
+  ConcreteType _concreteTypeWithAttributes(TypeAttributes attr) =>
+      _concreteTypesWithAttributes[attr] ??= ConcreteType._(this, null, attr);
+
+  Closure? _closureForConstant(Constant c) {
+    if (c is InstantiationConstant) {
+      return _closureForConstant(c.tearOffConstant);
+    } else if (c is TearOffConstant) {
+      final target = c.target;
+      assert(target is Constructor ||
+          (target is Procedure &&
+              target.isStatic &&
+              !target.isGetter &&
+              !target.isSetter));
+      return Closure._(target, null);
+    } else if (c is TypedefTearOffConstant) {
+      throw 'Unexpected TypedefTearOffConstant $c';
+    }
+    return null;
+  }
 }
 
 /// Shape of a record (number of positional fields and a set of named fields).
@@ -96,9 +140,7 @@ class RecordShape {
   int get hashCode => (_hash == 0) ? _computeHashCode() : _hash;
 
   int _computeHashCode() {
-    int hash =
-        (((numPositionalFields * 31) & kHashMask) + listHashCode(namedFields)) &
-            kHashMask;
+    int hash = combineHashes(numPositionalFields, listHashCode(namedFields));
     if (hash == 0) {
       hash = 1;
     }
@@ -111,6 +153,11 @@ class RecordShape {
       (other is RecordShape &&
           this.numPositionalFields == other.numPositionalFields &&
           listEquals(this.namedFields, other.namedFields));
+
+  @override
+  String toString() => namedFields.isEmpty
+      ? '$numPositionalFields'
+      : '$numPositionalFields,${namedFields.join(',')}';
 }
 
 abstract class GenericInterfacesInfo {
@@ -138,9 +185,9 @@ abstract class GenericInterfacesInfo {
 
 abstract class TypesBuilder {
   final CoreTypes coreTypes;
-  final bool nullSafety;
+  final bool soundNullSafety;
 
-  TypesBuilder(this.coreTypes, this.nullSafety);
+  TypesBuilder(this.coreTypes, this.soundNullSafety);
 
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
@@ -201,11 +248,11 @@ abstract class TypesBuilder {
         result = fromStaticType(bound, canBeNull);
       }
     } else if (type is ExtensionType) {
-      result = fromStaticType(type.typeErasure, canBeNull);
+      result = fromStaticType(type.extensionTypeErasure, canBeNull);
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
     }
-    if (nullSafety && type.nullability == Nullability.nonNullable) {
+    if (soundNullSafety && type.nullability == Nullability.nonNullable) {
       canBeNull = false;
     }
     if (canBeNull) {
@@ -222,11 +269,16 @@ abstract class RuntimeTypeTranslator {
 /// Abstract interface to type hierarchy information used by types.
 abstract class TypeHierarchy extends TypesBuilder
     implements GenericInterfacesInfo {
-  TypeHierarchy(CoreTypes coreTypes, bool nullSafety)
-      : super(coreTypes, nullSafety);
+  TypeHierarchy(CoreTypes coreTypes, bool soundNullSafety)
+      : super(coreTypes, soundNullSafety);
 
   /// Test if [sub] is a subtype of [sup].
-  bool isSubtype(Class sub, Class sup);
+  bool isSubtype(Class sub, Class sup) {
+    if (kPrintTrace) {
+      tracePrint("isSubtype for sub = $sub, sup = $sup");
+    }
+    return identical(sub, sup) || getTFClass(sub).isSubtypeOf(getTFClass(sup));
+  }
 
   /// Return a more specific type for the type cone with [base] root.
   /// May return EmptyType, AnyInstanceType, WideConeType, ConcreteType or a SetType.
@@ -270,7 +322,7 @@ abstract class Type extends TypeExpr {
 
   Class? getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) => false;
+  bool isSubtypeOf(TFClass cls) => false;
 
   // Returns 'true' if this type will definitely pass a runtime type-check
   // against 'runtimeType'. Returns 'false' if the test might fail (e.g. due to
@@ -367,7 +419,10 @@ class NullableType extends Type {
   NullableType nullable() => this;
 
   @override
-  int get hashCode => (baseType.hashCode + 31) & kHashMask;
+  int get hashCode {
+    const int seed = 31;
+    return combineHashes(seed, baseType.hashCode);
+  }
 
   @override
   bool operator ==(other) =>
@@ -378,14 +433,13 @@ class NullableType extends Type {
   String toString() => "${baseType}?";
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
-      baseType.isSubtypeOf(typeHierarchy, cls);
+  bool isSubtypeOf(TFClass cls) => baseType.isSubtypeOf(cls);
 
   bool isSubtypeOfRuntimeType(
       TypeHierarchy typeHierarchy, RuntimeType other, SubtypeTestKind kind) {
     switch (kind) {
       case SubtypeTestKind.Subtype:
-        if (typeHierarchy.nullSafety &&
+        if (typeHierarchy.soundNullSafety &&
             other.nullability == Nullability.nonNullable) {
           return false;
         }
@@ -510,9 +564,10 @@ class SetType extends Type {
   }
 
   int _computeHashCode() {
-    int hash = 1237;
+    const int seed = 1237;
+    int hash = seed;
     for (var t in types) {
-      hash = (((hash * 31) & kHashMask) + t.hashCode) & kHashMask;
+      hash = combineHashes(hash, t.hashCode);
     }
     return hash;
   }
@@ -535,8 +590,8 @@ class SetType extends Type {
   String toString() => "_T ${types}";
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
-      types.every((ConcreteType t) => t.isSubtypeOf(typeHierarchy, cls));
+  bool isSubtypeOf(TFClass cls) =>
+      types.every((ConcreteType t) => t.isSubtypeOf(cls));
 
   bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other,
           SubtypeTestKind kind) =>
@@ -715,8 +770,7 @@ class ConeType extends Type {
       .getConcreteClass(typeHierarchy);
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
-      typeHierarchy.isSubtype(this.cls.classNode, cls);
+  bool isSubtypeOf(TFClass cls) => this.cls.isSubtypeOf(cls);
 
   bool isSubtypeOfRuntimeType(
       TypeHierarchy typeHierarchy, RuntimeType other, SubtypeTestKind kind) {
@@ -730,7 +784,10 @@ class ConeType extends Type {
   }
 
   @override
-  int get hashCode => (cls.id + 37) & kHashMask;
+  int get hashCode {
+    const int seed = 37;
+    return combineHashes(seed, cls.id);
+  }
 
   @override
   bool operator ==(other) => identical(this, other);
@@ -758,14 +815,14 @@ class ConeType extends Type {
       if (this == other) {
         return this;
       }
-      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+      if (other.cls.isSubtypeOf(this.cls)) {
         return this;
       }
-      if (typeHierarchy.isSubtype(this.cls.classNode, other.cls.classNode)) {
+      if (this.cls.isSubtypeOf(other.cls)) {
         return other;
       }
     } else if (other is ConcreteType) {
-      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+      if (other.cls.isSubtypeOf(this.cls)) {
         return this;
       }
     }
@@ -784,14 +841,14 @@ class ConeType extends Type {
       if (this == other) {
         return this;
       }
-      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+      if (other.cls.isSubtypeOf(this.cls)) {
         return other;
       }
-      if (typeHierarchy.isSubtype(this.cls.classNode, other.cls.classNode)) {
+      if (this.cls.isSubtypeOf(other.cls)) {
         return this;
       }
     } else if (other is ConcreteType) {
-      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+      if (other.cls.isSubtypeOf(this.cls)) {
         return other;
       } else {
         return emptyType;
@@ -813,7 +870,10 @@ class WideConeType extends ConeType {
   Class? getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
   @override
-  int get hashCode => (cls.id + 41) & kHashMask;
+  int get hashCode {
+    const int seed = 41;
+    return combineHashes(seed, cls.id);
+  }
 
   @override
   bool operator ==(other) =>
@@ -836,23 +896,23 @@ class WideConeType extends ConeType {
       return other.union(this, typeHierarchy);
     }
     if (other is ConeType) {
-      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+      if (other.cls.isSubtypeOf(this.cls)) {
         return this;
       }
-      if (typeHierarchy.isSubtype(this.cls.classNode, other.cls.classNode)) {
+      if (this.cls.isSubtypeOf(other.cls)) {
         return other;
       }
     } else if (other is ConcreteType) {
-      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+      if (other.cls.isSubtypeOf(this.cls)) {
         return this;
       }
-      if (typeHierarchy.isSubtype(this.cls.classNode, other.cls.classNode)) {
+      if (this.cls.isSubtypeOf(other.cls)) {
         return other.cls.coneType;
       }
     } else if (other is SetType) {
       bool subtypes = true;
       for (ConcreteType t in other.types) {
-        if (!typeHierarchy.isSubtype(t.cls.classNode, this.cls.classNode)) {
+        if (!t.cls.isSubtypeOf(this.cls)) {
           subtypes = false;
           break;
         }
@@ -874,11 +934,11 @@ class WideConeType extends ConeType {
       return other.intersection(this, typeHierarchy);
     }
     if (other is ConeType) {
-      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+      if (other.cls.isSubtypeOf(this.cls)) {
         return other;
       }
     } else if (other is ConcreteType) {
-      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+      if (other.cls.isSubtypeOf(this.cls)) {
         return other;
       } else {
         return emptyType;
@@ -890,6 +950,94 @@ class WideConeType extends ConeType {
     }
     // Wider approximation.
     return this;
+  }
+}
+
+/// Object representing a closure function.
+///
+/// Can be used to represent local function (FunctionExpression,
+// FunctionDeclaration) or tear-off of Procedure or Constructor.
+class Closure {
+  final Member member;
+  final LocalFunction? function;
+
+  Closure._(this.member, this.function);
+
+  @override
+  int get hashCode => combineHashes(member.hashCode, function.hashCode);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! Closure) return false;
+    return (this.member == other.member) && (this.function == other.function);
+  }
+
+  @override
+  String toString() {
+    final function = this.function;
+    if (function == null) {
+      return 'tear-off ${nodeToText(member)}';
+    }
+    switch (function) {
+      case FunctionDeclaration():
+        return function.variable.name!;
+      case FunctionExpression():
+        final location = function.location;
+        return '<anonymous closure' +
+            (location != null
+                ? ' at ${location.file.pathSegments.last}:${location.line}'
+                : '') +
+            '>';
+      default:
+        throw 'Unexpected local function ${function.runtimeType} $function';
+    }
+  }
+}
+
+/// Disjoint (mutually exclusive) attributes of Dart values.
+///
+/// If two sets of values V1 and V2 are known to have
+/// distinct attributes A1 != A2, then Intersection(V1, V2) is empty.
+///
+/// Currently used for
+///  - constant values;
+///  - closures.
+///
+class TypeAttributes {
+  final Constant? constant;
+  final Closure? closure;
+
+  TypeAttributes._(this.constant, this.closure)
+      : hashCode = constant.hashCode ^ closure.hashCode {
+    assert(constant != null || closure != null);
+  }
+
+  @override
+  final int hashCode;
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! TypeAttributes) return false;
+    return (this.constant == other.constant) && (this.closure == other.closure);
+  }
+
+  @override
+  String toString() {
+    final buf = StringBuffer();
+    final constant = this.constant;
+    if (constant != null) {
+      buf.write(nodeToText(constant));
+    }
+    final closure = this.closure;
+    if (closure != null) {
+      if (buf.isNotEmpty) {
+        buf.write(', ');
+      }
+      buf.write(closure.toString());
+    }
+    return buf.toString();
   }
 }
 
@@ -919,10 +1067,11 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   final int numImmediateTypeArgs;
   final List<Type>? typeArgs;
 
-  // May be null if constant value is not inferred.
-  final Constant? constant;
+  // Additional type attributes such as constant value and
+  // inferred closure.
+  final TypeAttributes? attributes;
 
-  ConcreteType._(this.cls, List<Type>? typeArgs_, this.constant)
+  ConcreteType._(this.cls, List<Type>? typeArgs_, this.attributes)
       : typeArgs = typeArgs_,
         numImmediateTypeArgs =
             typeArgs_ != null ? cls.classNode.typeParameters.length : 0,
@@ -936,15 +1085,14 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   ConcreteType(TFClass cls, List<Type> typeArgs) : this._(cls, typeArgs, null);
 
   ConcreteType get raw => cls.concreteType;
-  bool get isRaw => typeArgs == null && constant == null;
+  bool get isRaw => typeArgs == null && attributes == null;
 
   @override
   Class? getConcreteClass(TypeHierarchy typeHierarchy) =>
       filterArtificialNode(cls.classNode);
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class other) =>
-      typeHierarchy.isSubtype(cls.classNode, other);
+  bool isSubtypeOf(TFClass other) => cls.isSubtypeOf(other);
 
   bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy,
       RuntimeType runtimeType, SubtypeTestKind kind) {
@@ -1017,13 +1165,14 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   }
 
   int _computeHashCode() {
-    int hash = cls.hashCode ^ 0x1234 & kHashMask;
+    const int seed = 43;
+    int hash = combineHashes(seed, cls.hashCode);
     // We only need to hash the first type arguments vector, since the type
     // arguments of the implemented interfaces are implied by it.
     for (int i = 0; i < numImmediateTypeArgs; ++i) {
-      hash = (((hash * 31) & kHashMask) + typeArgs![i].hashCode) & kHashMask;
+      hash = combineHashes(hash, typeArgs![i].hashCode);
     }
-    hash = ((hash * 31) & kHashMask) + constant.hashCode;
+    hash = combineHashes(hash, attributes.hashCode);
     return hash;
   }
 
@@ -1033,7 +1182,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     if (other is ConcreteType) {
       if (!identical(this.cls, other.cls) ||
           this.numImmediateTypeArgs != other.numImmediateTypeArgs ||
-          !identical(this.constant, other.constant)) {
+          !identical(this.attributes, other.attributes)) {
         return false;
       }
       if (this.typeArgs != null) {
@@ -1056,7 +1205,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 
   @override
   String toString() {
-    if (typeArgs == null && constant == null) {
+    if (typeArgs == null && attributes == null) {
       return "_T (${cls})";
     }
     final StringBuffer buf = new StringBuffer();
@@ -1064,8 +1213,8 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     if (typeArgs != null) {
       buf.write("<${typeArgs!.take(numImmediateTypeArgs).join(', ')}>");
     }
-    if (constant != null) {
-      buf.write(", ${nodeToText(constant!)}");
+    if (attributes != null) {
+      buf.write(", $attributes");
     }
     buf.write(")");
     return buf.toString();
@@ -1089,9 +1238,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         return SetType(types);
       } else {
         assert(typeArgs != null ||
-            constant != null ||
+            attributes != null ||
             other.typeArgs != null ||
-            other.constant != null);
+            other.attributes != null);
         return raw;
       }
     } else {
@@ -1111,13 +1260,13 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       if (!identical(this.cls, other.cls)) {
         return emptyType;
       }
-      if (constant != null) {
-        if (other.constant == null) {
+      if (attributes != null) {
+        if (other.attributes == null) {
           return this;
         }
-        assert(constant != other.constant);
+        assert(attributes != other.attributes);
         return emptyType;
-      } else if (other.constant != null) {
+      } else if (other.attributes != null) {
         return other;
       }
 
@@ -1251,11 +1400,12 @@ class RuntimeType extends Type {
   late final int hashCode = _computeHashCode();
 
   int _computeHashCode() {
-    int hash = _type.hashCode ^ 0x1234 & kHashMask;
+    const int seed = 47;
+    int hash = combineHashes(seed, _type.hashCode);
     // Only hash by the type arguments of the class. The type arguments of
     // supertypes are implied by them.
     for (int i = 0; i < numImmediateTypeArgs; ++i) {
-      hash = (((hash * 31) & kHashMask) + typeArgs![i].hashCode) & kHashMask;
+      hash = combineHashes(hash, typeArgs![i].hashCode);
     }
     return hash;
   }
@@ -1292,7 +1442,7 @@ class RuntimeType extends Type {
       throw "ERROR: RuntimeType does not support isSpecialized.";
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
+  bool isSubtypeOf(TFClass cls) =>
       throw "ERROR: RuntimeType does not support isSubtypeOf.";
 
   @override
@@ -1325,7 +1475,7 @@ class RuntimeType extends Type {
       throw 'RuntimeType could be only tested for subtyping.';
     }
     final rhs = runtimeType._type;
-    if (typeHierarchy.nullSafety &&
+    if (typeHierarchy.soundNullSafety &&
         _type.nullability == Nullability.nullable &&
         rhs.nullability == Nullability.nonNullable) {
       return false;
@@ -1424,7 +1574,7 @@ class UnknownType extends Type {
       throw "ERROR: UnknownType does not support nullable().";
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
+  bool isSubtypeOf(TFClass cls) =>
       throw "ERROR: UnknownType does not support isSubtypeOf.";
 
   @override

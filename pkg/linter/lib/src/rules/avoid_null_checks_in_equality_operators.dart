@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -81,8 +80,7 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor =
-        _Visitor(this, nnbdEnabled: context.isEnabled(Feature.non_nullable));
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -122,9 +120,8 @@ class _BodyVisitor extends RecursiveAstVisitor {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final bool nnbdEnabled;
 
-  _Visitor(this.rule, {required this.nnbdEnabled});
+  _Visitor(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
@@ -141,8 +138,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Analyzer will produce UNNECESSARY_NULL_COMPARISON_FALSE|TRUE
     // See: https://github.com/dart-lang/linter/issues/2864
-    if (nnbdEnabled &&
-        parameter is VariableElement &&
+    if (parameter is VariableElement &&
         parameter.type.nullabilitySuffix != NullabilitySuffix.question) {
       return;
     }

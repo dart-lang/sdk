@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
@@ -7711,7 +7712,7 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   EXPECT_EQ(kMintCid, result);
 }
 
-static void EnterTestFrame(Assembler* assembler) {
+void EnterTestFrame(Assembler* assembler) {
   __ EnterFrame(0);
   __ PushRegister(CODE_REG);
   __ PushRegister(THR);
@@ -7721,7 +7722,7 @@ static void EnterTestFrame(Assembler* assembler) {
   __ LoadPoolPointer(PP);
 }
 
-static void LeaveTestFrame(Assembler* assembler) {
+void LeaveTestFrame(Assembler* assembler) {
   __ PopRegister(PP);
   __ PopRegister(THR);
   __ PopRegister(CODE_REG);
@@ -7729,50 +7730,58 @@ static void LeaveTestFrame(Assembler* assembler) {
   __ LeaveFrame();
 }
 
-#define LOAD_FROM_BOX_TEST(VALUE, SAME_REGISTER)                               \
-  ASSEMBLER_TEST_GENERATE(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER,          \
-                          assembler) {                                         \
-    const bool same_register = SAME_REGISTER;                                  \
-    const Register src = CallingConventions::ArgumentRegisters[0];             \
-    const Register dst =                                                       \
-        same_register ? src : CallingConventions::ArgumentRegisters[1];        \
-    const intptr_t value = VALUE;                                              \
-                                                                               \
-    EnterTestFrame(assembler);                                                 \
-                                                                               \
-    __ LoadObject(src, Integer::ZoneHandle(Integer::New(value, Heap::kOld)));  \
-    __ LoadWordFromBoxOrSmi(dst, src);                                         \
-    __ MoveRegister(CallingConventions::kReturnReg, dst);                      \
-                                                                               \
-    LeaveTestFrame(assembler);                                                 \
-                                                                               \
-    __ Ret();                                                                  \
-  }                                                                            \
-                                                                               \
-  ASSEMBLER_TEST_RUN(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER, test) {       \
-    const int64_t res = test->InvokeWithCodeAndThread<int64_t>();              \
-    EXPECT_EQ(static_cast<intptr_t>(VALUE), static_cast<intptr_t>(res));       \
-  }
+// Tests that JumpAndLink only clobbers CODE_REG in JIT mode and does not
+// clobber any allocatable registers in AOT mode.
+ASSEMBLER_TEST_GENERATE(JumpAndLinkPreservesRegisters, assembler) {
+  const auto& do_nothing_just_return =
+      AssemblerTest::Generate("DoNothing", [](auto assembler) { __ Ret(); });
 
-LOAD_FROM_BOX_TEST(0, true)
-LOAD_FROM_BOX_TEST(0, false)
-LOAD_FROM_BOX_TEST(1, true)
-LOAD_FROM_BOX_TEST(1, false)
-#if defined(TARGET_ARCH_RISCV32)
-LOAD_FROM_BOX_TEST(0x7FFFFFFF, true)
-LOAD_FROM_BOX_TEST(0x7FFFFFFF, false)
-LOAD_FROM_BOX_TEST(0x80000000, true)
-LOAD_FROM_BOX_TEST(0x80000000, false)
-LOAD_FROM_BOX_TEST(0xFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0xFFFFFFFF, false)
-#else
-LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, false)
-LOAD_FROM_BOX_TEST(0x8000000000000000, true)
-LOAD_FROM_BOX_TEST(0x8000000000000000, false)
-LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, false)
-#endif
+  EnterTestFrame(assembler);
+  __ PushRegister(RA);
+
+  const RegisterSet clobbered_regs(
+      kDartAvailableCpuRegs & ~(static_cast<RegList>(1) << A0),
+      /*fpu_register_mask=*/0);
+  __ PushRegisters(clobbered_regs);
+
+  Label done;
+
+  const auto check_all_allocatable_registers_are_preserved_by_call = [&]() {
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      __ LoadImmediate(reg, static_cast<int32_t>(reg));
+    }
+    __ JumpAndLink(do_nothing_just_return);
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      // We expect CODE_REG to be clobbered in JIT mode.
+      if (!FLAG_precompiled_mode && reg == CODE_REG) continue;
+
+      Label ok;
+      __ CompareImmediate(reg, static_cast<int32_t>(reg));
+      __ BranchIf(EQ, &ok, Assembler::kNearJump);
+      __ LoadImmediate(A0, reg);
+      __ j(&done);
+      __ Bind(&ok);
+    }
+  };
+
+  check_all_allocatable_registers_are_preserved_by_call();
+
+  FLAG_precompiled_mode = true;
+  check_all_allocatable_registers_are_preserved_by_call();
+  FLAG_precompiled_mode = false;
+
+  __ LoadImmediate(A0, 42);  // 42 is SUCCESS.
+  __ Bind(&done);
+  __ PopRegisters(clobbered_regs);
+  __ PopRegister(RA);
+  LeaveTestFrame(assembler);
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(JumpAndLinkPreservesRegisters, test) {
+  const intptr_t result = test->InvokeWithCodeAndThread<int64_t>();
+  EXPECT_EQ(42, result);
+}
 
 }  // namespace compiler
 }  // namespace dart

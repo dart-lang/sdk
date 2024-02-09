@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert' show jsonDecode;
+import 'dart:ffi' show Abi;
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
@@ -413,12 +414,13 @@ TargetEntry? _findColumn(int line, int column, TargetLineEntry? lineEntry) {
 
 /// Returns the path of the d8 executable.
 String get d8executable {
+  final arch = Abi.current().toString().split('_')[1];
   if (Platform.isWindows) {
-    return 'third_party/d8/windows/d8.exe';
+    return 'third_party/d8/windows/$arch/d8.exe';
   } else if (Platform.isLinux) {
-    return 'third_party/d8/linux/d8';
+    return 'third_party/d8/linux/$arch/d8';
   } else if (Platform.isMacOS) {
-    return 'third_party/d8/macos/d8';
+    return 'third_party/d8/macos/$arch/d8';
   }
   throw UnsupportedError('Unsupported platform.');
 }

@@ -1,0 +1,63 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  method mixinMethod() → void
+    ;
+}
+abstract class _E&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method mixinMethod() → void
+    return super.{self::M::mixinMethod}();
+}
+class E extends self::_E&_Enum&M /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::e1, self::E::e2, self::E::e3];
+  enum-element static const field self::E e1 = const self::E::•(0, "e1");
+  enum-element static const field self::E e2 = const self::E::•(1, "e2");
+  enum-element static const field self::E e3 = const self::E::•(2, "e3");
+  const synthetic constructor •(core::int #index, core::String #name) → self::E
+    ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+class F extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::F> values = const <self::F>[self::F::f1, self::F::f2, self::F::f3];
+  enum-element static const field self::F f1 = const self::F::•(0, "f1");
+  enum-element static const field self::F f2 = const self::F::•(1, "f2");
+  enum-element static const field self::F f3 = const self::F::•(2, "f3");
+  const synthetic constructor •(core::int #index, core::String #name) → self::F
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "F.${this.{core::_Enum::_name}{core::String}}";
+}
+class G extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::G> values = const <self::G>[self::G::g1, self::G::g2, self::G::g3];
+  enum-element static const field self::G g1 = const self::G::•(0, "g1");
+  enum-element static const field self::G g2 = const self::G::•(1, "g2");
+  enum-element static const field self::G g3 = const self::G::•(2, "g3");
+  const constructor •(core::int #index, core::String #name) → self::G
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "G.${this.{core::_Enum::_name}{core::String}}";
+}
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///synthetic_enum_constructor.dart:9:6 -> ListConstant(const <E*>[const E{}, const E{}, const E{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:10:3 -> InstanceConstant(const E{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:11:3 -> InstanceConstant(const E{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:12:3 -> InstanceConstant(const E{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///synthetic_enum_constructor.dart:15:6 -> ListConstant(const <F*>[const F{_Enum.index: 0, _Enum._name: "f1"}, const F{_Enum.index: 1, _Enum._name: "f2"}, const F{_Enum.index: 2, _Enum._name: "f3"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:16:3 -> InstanceConstant(const F{_Enum.index: 0, _Enum._name: "f1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:17:3 -> InstanceConstant(const F{_Enum.index: 1, _Enum._name: "f2"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:18:3 -> InstanceConstant(const F{_Enum.index: 2, _Enum._name: "f3"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///synthetic_enum_constructor.dart:21:6 -> ListConstant(const <G*>[const G{_Enum.index: 0, _Enum._name: "g1"}, const G{_Enum.index: 1, _Enum._name: "g2"}, const G{_Enum.index: 2, _Enum._name: "g3"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:22:3 -> InstanceConstant(const G{_Enum.index: 0, _Enum._name: "g1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:23:3 -> InstanceConstant(const G{_Enum.index: 1, _Enum._name: "g2"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:24:3 -> InstanceConstant(const G{_Enum.index: 2, _Enum._name: "g3"})
+Extra constant evaluation: evaluated: 28, effectively constant: 12

@@ -20,7 +20,6 @@ import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
-import '../elements/indexed.dart' show IndexedLibrary;
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -610,11 +609,13 @@ class Namer extends ModularNamer {
     return newName;
   }
 
+  final Map<LibraryEntity, int> _libraryKeys = {};
+
   /// Generates a unique key for [library].
   ///
   /// Keys are meant to be used in maps and should not be visible in the output.
   int _generateLibraryKey(LibraryEntity library) {
-    return (library as IndexedLibrary).libraryIndex;
+    return _libraryKeys[library] ??= _libraryKeys.length;
   }
 
   jsAst.Name _disambiguateGlobalMember(MemberEntity element) {
@@ -1246,11 +1247,6 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitNonConstant(NonConstantValue constant, [_]) {
-    add('null');
-  }
-
-  @override
   void visitInt(IntConstantValue constant, [_]) {
     // No `addRoot` since IntConstants are always inlined.
     if (constant.intValue < BigInt.zero) {
@@ -1477,9 +1473,6 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitNull(NullConstantValue constant, [_]) => 1;
-
-  @override
-  int visitNonConstant(NonConstantValue constant, [_]) => 1;
 
   @override
   int visitBool(BoolConstantValue constant, [_]) {
@@ -1995,9 +1988,6 @@ abstract class ModularNamer {
         return asName(fixedNames.recordShapeTag);
       case JsGetName.RECORD_SHAPE_TYPE_PROPERTY:
         return asName(fixedNames.recordShapeRecipe);
-      default:
-        throw failedAt(spannable ?? CURRENT_ELEMENT_SPANNABLE,
-            'Error: Namer has no name for "$name".');
     }
   }
 }
@@ -2448,6 +2438,7 @@ const Set<String> reservedCapitalizedGlobalSymbols = {
 
   // Some additional names
   "Isolate",
+  "URLSearchParams",
 };
 
 /// Symbols that we might be using in our JS snippets. Some of the symbols in

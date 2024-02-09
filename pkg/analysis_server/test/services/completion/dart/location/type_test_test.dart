@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TypeTestTest1);
-    defineReflectiveTests(TypeTestTest2);
+    defineReflectiveTests(TypeTestTest);
   });
 }
 
 @reflectiveTest
-class TypeTestTest1 extends AbstractCompletionDriverTest
-    with TypeTestTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class TypeTestTest2 extends AbstractCompletionDriverTest
-    with TypeTestTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class TypeTestTest extends AbstractCompletionDriverTest
+    with TypeTestTestCases {}
 
 mixin TypeTestTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterIs_beforeEnd() async {
@@ -45,50 +34,26 @@ suggestions
     await computeSuggestions('''
 void f() { if (v i^) {} }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   is
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  case
-    kind: keyword
-  is
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftOperand_beforeEnd_ifWithoutBody_partial() async {
     await computeSuggestions('''
 void f() {if (x i^)}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   is
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  case
-    kind: keyword
-  is
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftOperand_beforeLogicalAnd_partial() async {

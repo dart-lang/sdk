@@ -21,7 +21,7 @@ main() {
 
   Expect.equals(new C<D>().m(), 456);
   Expect.equals(new C<D>().C_T, D);
-  Expect.equals(new C<D>().S_T.toString(), 'C<D>');
+  Expect.equals(new C<D>().S_T, C<D>);
 }
 
 class F<L, R> {}

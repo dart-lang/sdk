@@ -339,6 +339,13 @@ class DapTestClient {
   Future<Response> pause(int threadId) =>
       sendRequest(PauseArguments(threadId: threadId));
 
+  /// Sends a restartFrame request for the given frame.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> restartFrame(int frameId) =>
+      sendRequest(RestartFrameArguments(frameId: frameId));
+
   /// Sends a next (step over) request for the given thread.
   ///
   /// [granularity] is always ignored because the Dart debugger does not support
@@ -719,7 +726,17 @@ extension DapTestClientExtension on DapTestClient {
     );
   }
 
-  /// Normalizes a non-breakpoint path being sent to the debug adapter based on
+  /// Normalizes a a path to have an uppercase drive letter. All paths verified
+  /// that come out of the adapter are normalized this way so test expectations
+  /// should be normalized the same way before comparing.
+  String uppercaseDriveLetter(String path) {
+    return _forceDriveLetterCasing(
+      path,
+      upper: true,
+    );
+  }
+
+  /// Normalizes a breakpoint path being sent to the debug adapter based on
   /// the values of [forceBreakpointDriveLetterCasingUpper] and
   /// [forceBreakpointDriveLetterCasingLower].
   String _normalizeBreakpointPath(String path) {
@@ -862,7 +879,7 @@ extension DapTestClientExtension on DapTestClient {
       final frame = result.stackFrames[0];
 
       if (file != null) {
-        expect(frame.source?.path, equals(file.path));
+        expect(frame.source?.path, equals(uppercaseDriveLetter(file.path)));
       }
       if (sourceName != null) {
         expect(frame.source?.name, equals(sourceName));
@@ -1180,11 +1197,13 @@ extension DapTestClientExtension on DapTestClient {
     int frameId,
     String expression,
     String expectedResult, {
+    String? context,
     ValueFormat? format,
   }) async {
     final response = await evaluate(
       expression,
       frameId: frameId,
+      context: context,
       format: format,
     );
     expect(response.success, isTrue);

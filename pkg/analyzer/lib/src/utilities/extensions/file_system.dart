@@ -4,6 +4,8 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:path/path.dart';
 
 extension FolderExtension on Folder {
   /// Returns the existing analysis options file in the target, or `null`.
@@ -27,5 +29,23 @@ extension FolderExtension on Folder {
   File? getExistingFile(String name) {
     final file = getChildAssumingFile(name);
     return file.exists ? file : null;
+  }
+}
+
+extension ResourceExtension on Resource {
+  /// If the path style is `Windows`, returns the corresponding Posix path.
+  /// Otherwise the path is already a Posix path, and it is returned as is.
+  String get posixPath {
+    final pathContext = provider.pathContext;
+    if (pathContext.style == Style.windows) {
+      final components = pathContext.split(path);
+      return '/${components.skip(1).join('/')}';
+    } else {
+      return path;
+    }
+  }
+
+  bool endsWithNames(List<String> expected) {
+    return provider.pathContext.split(path).endsWith(expected);
   }
 }

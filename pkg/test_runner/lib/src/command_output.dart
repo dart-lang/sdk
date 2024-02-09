@@ -108,12 +108,12 @@ class CommandOutput {
   bool _didFail(TestCase testCase) => exitCode != 0 && !hasCrashed;
 
   bool get canRunDependentCommands {
-    // FIXME(kustermann): We may need to change this
+    // TODO(kustermann): We may need to change this
     return !hasTimedOut && exitCode == 0;
   }
 
   bool get successful {
-    // FIXME(kustermann): We may need to change this
+    // TODO(kustermann): We may need to change this
     return !hasTimedOut && exitCode == 0;
   }
 
@@ -230,7 +230,7 @@ class BrowserTestJsonResult {
       return types.any((type) => messagesByType[type]!.contains(message));
     }
 
-    // FIXME(kustermann,ricow): I think this functionality doesn't work in
+    // TODO(kustermann,ricow): I think this functionality doesn't work in
     // test_controller.js: So far I haven't seen anything being reported on
     // "window.compilationerror"
     if (occurred('window_compilationerror')) {
@@ -414,7 +414,7 @@ class BrowserCommandOutput extends CommandOutput
           .replaceAll(RegExp('http://[^/]*/root_build/'), '$_buildDirectory/')
           .replaceAll(RegExp('http://[^/]*/root_dart/'), '')
           // Remove query parameters (seen in .html URIs).
-          .replaceAll(RegExp('\\?[^:]*:'), ':');
+          .replaceAll(RegExp('\\?[^:\n]*:'), ':');
       // TODO(sigmund): change internal deobfuscation code to avoid spurious
       // error messages when files do not have a corresponding source-map.
       _deobfuscateAndWriteStack(stringStack, output);
@@ -906,6 +906,15 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
 
   @override
   Expectation result(TestCase testCase) {
+    // `ffx test` isn't preserving exit codes.
+    // TODO(38752): Plumb exit codes through something else?
+    if (testCase.configuration.system == System.fuchsia) {
+      if (utf8.decode(stdout).contains("completed with result: PASSED")) {
+        return Expectation.pass;
+      }
+      return Expectation.fail;
+    }
+
     // Handle crashes and timeouts first.
     if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
     if (hasCrashed) return Expectation.crash;
@@ -948,6 +957,15 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   /// Delete existing result() function and rename, when status files are gone.
   @override
   Expectation realResult(TestCase testCase) {
+    // `ffx test` isn't preserving exit codes.
+    // TODO(38752): Plumb exit codes through something else?
+    if (testCase.configuration.system == System.fuchsia) {
+      if (utf8.decode(stdout).contains("completed with result: PASSED")) {
+        return Expectation.pass;
+      }
+      return Expectation.fail;
+    }
+
     // Handle crashes and timeouts first.
     if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
     if (hasCrashed) return Expectation.crash;
@@ -1080,7 +1098,7 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   /// Matches the location and message of a dart2js error message, which looks
   /// like:
   ///
-  ///     tests/language_2/some_test.dart:9:3:
+  ///     tests/language/some_test.dart:9:3:
   ///     Error: Some message.
   ///       BadThing();
   ///       ^
@@ -1091,16 +1109,8 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   static final _errorRegexp =
       RegExp(r"^([^:]+):(\d+):(\d+):\n(Error): (.*)$", multiLine: true);
 
-  Dart2jsCompilerCommandOutput(
-      Command command,
-      int exitCode,
-      bool timedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped);
+  Dart2jsCompilerCommandOutput(super.command, super.exitCode, super.timedOut,
+      super.stdout, super.stderr, super.time, super.compilationSkipped);
 
   @override
   void _parseErrors() {
@@ -1120,7 +1130,7 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
   /// Matches the location and message of a dart2wasm error message, which looks
   /// like:
   ///
-  ///     tests/language_2/some_test.dart:9:3: Error: Some message.
+  ///     tests/language/some_test.dart:9:3: Error: Some message.
   ///       BadThing();
   ///       ^
   ///
@@ -1130,16 +1140,8 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
   static final _errorRegexp =
       RegExp(r"^([^:]+):(\d+):(\d+): (Error): (.*)$", multiLine: true);
 
-  Dart2WasmCompilerCommandOutput(
-      Command command,
-      int exitCode,
-      bool timedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped);
+  Dart2WasmCompilerCommandOutput(super.command, super.exitCode, super.timedOut,
+      super.stdout, super.stderr, super.time, super.compilationSkipped);
 
   @override
   void _parseErrors() {
@@ -1153,7 +1155,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   /// Matches the first line of a DDC error message. DDC prints errors to
   /// stdout that look like:
   ///
-  ///     org-dartlang-app:/tests/language_2/some_test.dart:7:21: Error: Some message.
+  ///     org-dartlang-app:/tests/language/some_test.dart:7:21: Error: Some message.
   ///     Try fixing the code to be less bad.
   ///       var _ = <int>[if (1) 2];
   ///                    ^
@@ -1166,16 +1168,14 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
       multiLine: true);
 
   DevCompilerCommandOutput(
-      Command command,
-      int exitCode,
-      bool timedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped,
-      int pid)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, pid);
+      super.command,
+      super.exitCode,
+      super.timedOut,
+      super.stdout,
+      super.stderr,
+      super.time,
+      super.compilationSkipped,
+      super.pid);
 
   @override
   Expectation result(TestCase testCase) {
@@ -1229,15 +1229,13 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
 
 class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
   VMKernelCompilationCommandOutput(
-      Command command,
-      int exitCode,
-      bool timedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped);
+      super.command,
+      super.exitCode,
+      super.timedOut,
+      super.stdout,
+      super.stderr,
+      super.time,
+      super.compilationSkipped);
 
   @override
   bool get canRunDependentCommands {
@@ -1464,7 +1462,7 @@ class FastaCommandOutput extends CompilationCommandOutput
   /// Matches the first line of a Fasta error, warning, or context message.
   /// Fasta prints to stdout like:
   ///
-  ///     tests/language_2/some_test.dart:7:21: Error: Some message.
+  ///     tests/language/some_test.dart:7:21: Error: Some message.
   ///     Try fixing the code to be less bad.
   ///       var _ = <int>[if (1) 2];
   ///                    ^
@@ -1475,16 +1473,8 @@ class FastaCommandOutput extends CompilationCommandOutput
       r"^(?:([^:]+):(\d+):(\d+): )?(Context|Error|Warning): (.*)$",
       multiLine: true);
 
-  FastaCommandOutput(
-      Command command,
-      int exitCode,
-      bool hasTimedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped)
-      : super(command, exitCode, hasTimedOut, stdout, stderr, time,
-            compilationSkipped);
+  FastaCommandOutput(super.command, super.exitCode, super.hasTimedOut,
+      super.stdout, super.stderr, super.time, super.compilationSkipped);
 
   @override
   void _parseErrors() {

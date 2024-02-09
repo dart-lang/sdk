@@ -154,6 +154,19 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           FunctionNodeHelper::kPositionalParameters);
       // NOTE: FunctionNode is read further below the if.
 
+      if (function.is_ffi_native() || function.IsFfiCallClosure()) {
+        needs_expr_temp_ = true;
+        // Calls with handles need try/catch variables.
+        if (function.FfiCSignatureContainsHandles()) {
+          ++depth_.try_;
+          AddTryVariables();
+          --depth_.try_;
+          ++depth_.catch_;
+          AddCatchVariables();
+          FinalizeCatchVariables();
+          --depth_.catch_;
+        }
+      }
       intptr_t pos = 0;
       if (function.IsClosureFunction()) {
         LocalVariable* closure_parameter = MakeVariable(
@@ -230,6 +243,11 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         // async/async*/sync* function. It may reference receiver or type
         // arguments of the enclosing function which need to be captured.
         VisitDartType();
+
+        // Visit optional future value type.
+        if (helper_.ReadTag() == kSomething) {
+          VisitDartType();
+        }
       }
 
       // We generate a synthetic body for implicit closure functions - which
@@ -394,17 +412,14 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     }
     case UntaggedFunction::kFfiTrampoline: {
       needs_expr_temp_ = true;
-      // Callbacks and calls with handles need try/catch variables.
-      if ((function.GetFfiFunctionKind() != FfiFunctionKind::kCall ||
-           function.FfiCSignatureContainsHandles())) {
-        ++depth_.try_;
-        AddTryVariables();
-        --depth_.try_;
-        ++depth_.catch_;
-        AddCatchVariables();
-        FinalizeCatchVariables();
-        --depth_.catch_;
-      }
+      // Callbacks need try/catch variables.
+      ++depth_.try_;
+      AddTryVariables();
+      --depth_.try_;
+      ++depth_.catch_;
+      AddCatchVariables();
+      FinalizeCatchVariables();
+      --depth_.catch_;
       FALL_THROUGH;
     }
     case UntaggedFunction::kInvokeFieldDispatcher: {
@@ -425,7 +440,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         LocalVariable* variable = MakeVariable(
             TokenPosition::kNoSource, TokenPosition::kNoSource,
             String::ZoneHandle(Z, function.ParameterNameAt(i)),
-            AbstractType::ZoneHandle(Z, function.IsFfiTrampoline()
+            AbstractType::ZoneHandle(Z, function.IsFfiCallbackTrampoline()
                                             ? function.ParameterTypeAt(i)
                                             : Object::dynamic_type().ptr()));
         bool added = scope_->InsertParameterAt(i, variable);
@@ -804,7 +819,8 @@ void ScopeBuilder::VisitExpression() {
       VisitArguments();                      // read arguments.
       return;
     case kNot:
-      VisitExpression();  // read expression.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read expression.
       return;
     case kNullCheck:
       helper_.ReadPosition();  // read position.
@@ -812,12 +828,14 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kLogicalExpression:
       needs_expr_temp_ = true;
-      VisitExpression();     // read left.
-      helper_.SkipBytes(1);  // read operator.
-      VisitExpression();     // read right.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read left.
+      helper_.SkipBytes(1);    // read operator.
+      VisitExpression();       // read right.
       return;
     case kConditionalExpression: {
       needs_expr_temp_ = true;
+      helper_.ReadPosition();          // read position.
       VisitExpression();               // read condition.
       VisitExpression();               // read then.
       VisitExpression();               // read otherwise.
@@ -923,6 +941,7 @@ void ScopeBuilder::VisitExpression() {
 
       EnterScope(offset);
 
+      helper_.ReadPosition();  // read position.
       intptr_t list_length =
           helper_.ReadListLength();  // read number of statements.
       for (intptr_t i = 0; i < list_length; ++i) {
@@ -977,6 +996,7 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipConstantReference();
       return;
     case kInstantiation: {
+      helper_.ReadPosition();  // read position.
       VisitExpression();
       const intptr_t list_length =
           helper_.ReadListLength();  // read list length.

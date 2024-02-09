@@ -749,7 +749,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     constructorName.type.accept(this);
 
     // We have a `ConstructorReference` only when it is resolved.
-    // TODO(scheglov) The `ConstructorName` in a tear-off always has a name,
+    // TODO(scheglov): The `ConstructorName` in a tear-off always has a name,
     //  but this is not expressed via types.
     computer._addRegion_node(
         constructorName.name!, HighlightRegionType.CONSTRUCTOR_TEAR_OFF);
@@ -1194,6 +1194,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    if (node.importPrefix case final importPrefix?) {
+      computer._addRegion_token(
+        importPrefix.name,
+        HighlightRegionType.IMPORT_PREFIX,
+      );
+    }
+
     var type = node.type;
     if (type != null) {
       var isDynamic = type is DynamicType && node.name2.lexeme == 'dynamic';
@@ -1345,7 +1352,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     if (node.isMap) {
       computer._addRegion_node(node, HighlightRegionType.LITERAL_MAP);
-      // TODO(brianwilkerson) Add a highlight region for set literals. This
+      // TODO(brianwilkerson): Add a highlight region for set literals. This
       //  would be a breaking change, but would be consistent with list and map
       //  literals.
 //    } else if (node.isSet) {

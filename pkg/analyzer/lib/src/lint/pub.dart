@@ -6,7 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -265,10 +265,20 @@ abstract class PSNodeList with IterableMixin<PSNode> {
 }
 
 abstract class Pubspec {
-  factory Pubspec.parse(String source,
-          {Uri? sourceUrl, ResourceProvider? resourceProvider}) =>
-      _Pubspec(source,
-          sourceUrl: sourceUrl, resourceProvider: resourceProvider);
+  factory Pubspec.parse(String pubspec,
+      {Uri? sourceUrl, ResourceProvider? resourceProvider}) {
+    try {
+      var yaml = loadYamlNode(pubspec, sourceUrl: sourceUrl);
+      return Pubspec.parseYaml(yaml, resourceProvider: resourceProvider);
+    } on Exception {
+      return _Pubspec(YamlMap(), resourceProvider: resourceProvider);
+    }
+  }
+
+  factory Pubspec.parseYaml(YamlNode yaml,
+      {ResourceProvider? resourceProvider}) {
+    return _Pubspec(yaml, resourceProvider: resourceProvider);
+  }
 
   PSEntry? get author;
 
@@ -368,16 +378,12 @@ class _PSDependency extends PSDependency {
         switch (key.toString()) {
           case 'path':
             dep.path = _processScalar(key, v, resourceProvider);
-            break;
           case 'version':
             dep.version = _processScalar(key, v, resourceProvider);
-            break;
           case 'hosted':
             dep.host = _processHost(key, v, resourceProvider);
-            break;
           case 'git':
             dep.git = _processGitRepo(key, v, resourceProvider);
-            break;
         }
       });
     }
@@ -499,9 +505,12 @@ class _PSNode implements PSNode {
         span = node.span;
 
   @override
-  Source get source => (resourceProvider ?? PhysicalResourceProvider.INSTANCE)
-      .getFile(span.sourceUrl!.toFilePath())
-      .createSource(span.sourceUrl);
+  Source get source {
+    final provider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+    return provider
+        .getFile(provider.pathContext.fromUri(span.sourceUrl!))
+        .createSource(span.sourceUrl);
+  }
 
   @override
   String toString() => '$text';
@@ -551,9 +560,9 @@ class _Pubspec implements Pubspec {
   @override
   PSDependencyList? dependencyOverrides;
 
-  _Pubspec(String src, {Uri? sourceUrl, ResourceProvider? resourceProvider}) {
+  _Pubspec(YamlNode yaml, {ResourceProvider? resourceProvider}) {
     try {
-      _parse(src, sourceUrl: sourceUrl, resourceProvider: resourceProvider);
+      _parse(yaml, resourceProvider: resourceProvider);
     } on Exception {
       // ignore
     }
@@ -622,14 +631,12 @@ class _Pubspec implements Pubspec {
     return sb.toString();
   }
 
-  void _parse(String src,
-      {Uri? sourceUrl, ResourceProvider? resourceProvider}) {
-    var yaml = loadYamlNode(src, sourceUrl: sourceUrl);
+  void _parse(YamlNode yaml, {ResourceProvider? resourceProvider}) {
     if (yaml is! YamlMap) {
       return;
     }
-    YamlMap yamlMap = yaml;
-    yamlMap.nodes.forEach((k, v) {
+
+    yaml.nodes.forEach((k, v) {
       if (k is! YamlScalar) {
         return;
       }
@@ -637,43 +644,30 @@ class _Pubspec implements Pubspec {
       switch (key.toString()) {
         case 'author':
           author = _processScalar(key, v, resourceProvider);
-          break;
         case 'authors':
           authors = _processScalarList(key, v, resourceProvider);
-          break;
         case 'homepage':
           homepage = _processScalar(key, v, resourceProvider);
-          break;
         case 'repository':
           repository = _processScalar(key, v, resourceProvider);
-          break;
         case 'issue_tracker':
           issueTracker = _processScalar(key, v, resourceProvider);
-          break;
         case 'name':
           name = _processScalar(key, v, resourceProvider);
-          break;
         case 'description':
           description = _processScalar(key, v, resourceProvider);
-          break;
         case 'documentation':
           documentation = _processScalar(key, v, resourceProvider);
-          break;
         case 'dependencies':
           dependencies = _processDependencies(key, v, resourceProvider);
-          break;
         case 'dev_dependencies':
           devDependencies = _processDependencies(key, v, resourceProvider);
-          break;
         case 'dependency_overrides':
           dependencyOverrides = _processDependencies(key, v, resourceProvider);
-          break;
         case 'environment':
           environment = _processEnvironment(key, v, resourceProvider);
-          break;
         case 'version':
           version = _processScalar(key, v, resourceProvider);
-          break;
       }
     });
   }

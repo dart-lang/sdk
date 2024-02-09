@@ -4,13 +4,13 @@
 
 library nativewrappers;
 
-class NativeFieldWrapperClass1 {}
+base class NativeFieldWrapperClass1 {}
 
-class NativeFieldWrapperClass2 extends NativeFieldWrapperClass1 {}
+base class NativeFieldWrapperClass2 extends NativeFieldWrapperClass1 {}
 
-class NativeFieldWrapperClass3 extends NativeFieldWrapperClass2 {}
+base class NativeFieldWrapperClass3 extends NativeFieldWrapperClass2 {}
 
-class NativeFieldWrapperClass4 extends NativeFieldWrapperClass3 {}
+base class NativeFieldWrapperClass4 extends NativeFieldWrapperClass3 {}
 
 /// Gets the value of the native field of [object].
 ///

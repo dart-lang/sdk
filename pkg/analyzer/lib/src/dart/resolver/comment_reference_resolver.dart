@@ -82,17 +82,17 @@ class CommentReferenceResolver {
             prefixElement.getGetter(name.name) ??
             prefixElement.getSetter(name.name);
       } else {
-        // TODO(brianwilkerson) Report this error.
+        // TODO(brianwilkerson): Report this error.
       }
     } else if (prefixElement is InterfaceElement) {
       var constructor = prefixElement.getNamedConstructor(name.name);
       if (constructor == null) {
-        // TODO(brianwilkerson) Report this error.
+        // TODO(brianwilkerson): Report this error.
       } else {
         name.staticElement = constructor;
       }
     } else {
-      // TODO(brianwilkerson) Report this error.
+      // TODO(brianwilkerson): Report this error.
     }
   }
 
@@ -193,12 +193,12 @@ class CommentReferenceResolver {
       if (element is InterfaceElement) {
         var constructor = element.unnamedConstructor;
         if (constructor == null) {
-          // TODO(brianwilkerson) Report this error.
+          // TODO(brianwilkerson): Report this error.
         } else {
           expression.staticElement = constructor;
         }
       } else {
-        // TODO(brianwilkerson) Report this error.
+        // TODO(brianwilkerson): Report this error.
       }
     }
   }

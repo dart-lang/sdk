@@ -10,6 +10,7 @@ inference_update_2/external_field_test: SkipByDesign # Non-JS-interop external m
 inference_update_2/why_not_promoted_external_error_test: SkipByDesign # Non-JS-interop external members are not supported
 mixin_method_override_test/G5: Skip # Issue 34354
 number/int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics
+regress/regress41983_test: Slow, Pass # Stress test that requires longer time to compile
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]
@@ -19,6 +20,7 @@ closure/minify_closure_variable_collision_test: SkipByDesign # Regression test f
 call/implicit_tearoff_exceptions_test: SkipByDesign # No argument type checks in production mode, issue 45528
 control_flow_collections/for_non_bool_condition_test: Crash # Issue 36442
 regress/regress45428_test: SkipByDesign # No argument type checks in production mode, issue 45528
+type_object/futureor_tostring_test: Skip # Type syntax is not preserved in minified mode
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Slow, Pass # TODO(kasperl): Please triage.

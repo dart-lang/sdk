@@ -1826,13 +1826,28 @@ class Parser {
   /// Return the message that should be produced when the formal parameters are
   /// missing.
   codes.Message missingParameterMessage(MemberKind kind) {
-    if (kind == MemberKind.FunctionTypeAlias) {
-      return codes.messageMissingTypedefParameters;
-    } else if (kind == MemberKind.NonStaticMethod ||
-        kind == MemberKind.StaticMethod) {
-      return codes.messageMissingMethodParameters;
+    switch (kind) {
+      case MemberKind.FunctionTypeAlias:
+        return codes.messageMissingTypedefParameters;
+      case MemberKind.StaticMethod:
+      case MemberKind.NonStaticMethod:
+        return codes.messageMissingMethodParameters;
+      case MemberKind.TopLevelMethod:
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+      case MemberKind.ExtensionTypeNonStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
+      case MemberKind.Catch:
+      case MemberKind.Factory:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+      case MemberKind.Local:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
+      case MemberKind.PrimaryConstructor:
+        return codes.messageMissingFunctionParameters;
     }
-    return codes.messageMissingFunctionParameters;
   }
 
   /// Check if [token] is the usage of 'required' in a formal parameter in a
@@ -1923,12 +1938,29 @@ class Parser {
 
       if (isModifier(next)) {
         if (optional('covariant', next)) {
-          if (memberKind != MemberKind.StaticMethod &&
-              memberKind != MemberKind.TopLevelMethod &&
-              memberKind != MemberKind.ExtensionNonStaticMethod &&
-              memberKind != MemberKind.ExtensionStaticMethod) {
-            covariantToken = token = next;
-            next = token.next!;
+          switch (memberKind) {
+            case MemberKind.StaticMethod:
+            case MemberKind.TopLevelMethod:
+            case MemberKind.ExtensionNonStaticMethod:
+            case MemberKind.ExtensionStaticMethod:
+            case MemberKind.ExtensionTypeNonStaticMethod:
+            case MemberKind.ExtensionTypeStaticMethod:
+            case MemberKind.PrimaryConstructor:
+              // Error cases reported in
+              // [ModifierContext.parseFormalParameterModifiers].
+              break;
+            case MemberKind.Catch:
+            case MemberKind.Factory:
+            case MemberKind.FunctionTypeAlias:
+            case MemberKind.FunctionTypedParameter:
+            case MemberKind.GeneralizedFunctionType:
+            case MemberKind.Local:
+            case MemberKind.NonStaticMethod:
+            case MemberKind.NonStaticField:
+            case MemberKind.StaticField:
+            case MemberKind.TopLevelField:
+              covariantToken = token = next;
+              next = token.next!;
           }
         }
 
@@ -2590,9 +2622,20 @@ class Parser {
     Token token = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
-    if (abstractToken != null && sealedToken != null) {
-      reportRecoverableError(sealedToken, codes.messageAbstractSealedClass);
+    if (abstractToken != null) {
+      if (sealedToken != null) {
+        reportRecoverableError(sealedToken, codes.messageAbstractSealedClass);
+      } else if (finalToken != null) {
+        if (baseToken != null) {
+          reportRecoverableErrorWithEnd(
+              finalToken, baseToken, codes.messageAbstractFinalBaseClass);
+        } else if (interfaceToken != null) {
+          reportRecoverableErrorWithEnd(finalToken, interfaceToken,
+              codes.messageAbstractFinalInterfaceClass);
+        }
+      }
     }
+
     if (optional('=', token.next!)) {
       listener.beginNamedMixinApplication(
           beginToken,
@@ -3735,6 +3778,10 @@ class Parser {
             token);
         break;
       case DeclarationKind.ExtensionType:
+        if (staticToken == null && externalToken == null) {
+          reportRecoverableError(
+              firstName, codes.messageExtensionTypeDeclaresInstanceField);
+        }
         listener.endExtensionTypeFields(
             abstractToken,
             augmentToken,
@@ -4842,19 +4889,28 @@ class Parser {
         // that a constructor. We issue an error about the name below.
       }
     }
+    MemberKind memberKind;
+    switch (kind) {
+      case DeclarationKind.TopLevel:
+      case DeclarationKind.Class:
+      case DeclarationKind.Mixin:
+      case DeclarationKind.Enum:
+        memberKind = staticToken != null
+            ? MemberKind.StaticMethod
+            : MemberKind.NonStaticMethod;
+      case DeclarationKind.Extension:
+        memberKind = staticToken != null
+            ? MemberKind.ExtensionStaticMethod
+            : MemberKind.ExtensionNonStaticMethod;
+      case DeclarationKind.ExtensionType:
+        memberKind = staticToken != null
+            ? MemberKind.ExtensionTypeStaticMethod
+            : MemberKind.ExtensionTypeNonStaticMethod;
+    }
 
     Token beforeParam = token;
     Token? beforeInitializers = parseGetterOrFormalParameters(
-        token,
-        name,
-        isConsideredGetter,
-        kind == DeclarationKind.Extension
-            ? staticToken != null
-                ? MemberKind.ExtensionStaticMethod
-                : MemberKind.ExtensionNonStaticMethod
-            : staticToken != null
-                ? MemberKind.StaticMethod
-                : MemberKind.NonStaticMethod);
+        token, name, isConsideredGetter, memberKind);
     token = parseInitializersOpt(beforeInitializers);
     if (token == beforeInitializers) beforeInitializers = null;
 
@@ -4978,7 +5034,10 @@ class Parser {
               beforeParam.next!, beforeInitializers?.next, token);
           break;
         case DeclarationKind.ExtensionType:
-          // TODO(johnniwinther): Report an error on abstract methods.
+          if (optional(';', bodyStart) && externalToken == null) {
+            reportRecoverableError(isOperator ? name.next! : name,
+                codes.messageExtensionTypeDeclaresAbstractMember);
+          }
           listener.endExtensionTypeMethod(getOrSet, beforeStart.next!,
               beforeParam.next!, beforeInitializers?.next, token);
           break;
@@ -9764,8 +9823,8 @@ class Parser {
         if (!isBareIdentifier) {
           reportRecoverableError(
               token,
-              codes.templatePatternAssignmentDeclaresVariable
-                  .withArguments(variableName));
+              codes.templatePatternAssignmentDeclaresVariable.withArguments(
+                  variableName.isEmpty ? '(unnamed)' : variableName));
         }
         break;
     }
@@ -10311,11 +10370,7 @@ class Parser {
     while (true) {
       if (token.isEof || identical(token, limit)) return null;
       if (optional(',', token) || optional(';', token)) return token;
-      if (token is BeginToken) {
-        token = token.endGroup!;
-      } else {
-        token = token.next!;
-      }
+      token = token.endGroup ?? token.next!;
     }
   }
 }

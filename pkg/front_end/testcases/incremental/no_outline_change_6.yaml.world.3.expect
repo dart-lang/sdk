@@ -27,7 +27,7 @@ library from "org-dartlang-test:///main.dart" as main {
     enum-element static const field main::CompilationStrategy toKernel = #C7;
     enum-element static const field main::CompilationStrategy toData = #C10;
     enum-element static const field main::CompilationStrategy fromData = #C13;
-    const constructor •(dart.core::int #index, dart.core::String #name) → main::CompilationStrategy
+    const synthetic constructor •(dart.core::int #index, dart.core::String #name) → main::CompilationStrategy
       : super dart.core::_Enum::•(#index, #name)
       ;
     method _enumToString() → dart.core::String

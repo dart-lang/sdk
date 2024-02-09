@@ -21,6 +21,14 @@ main() {
 
 @reflectiveTest
 class ToSourceVisitorTest extends ParserDiagnosticsTest {
+  void test_representationDeclaration() {
+    final code = '(@foo int it)';
+    final findNode = _parseStringToFindNode('''
+extension type E$code {}
+''');
+    _assertSource(code, findNode.singleRepresentationDeclaration);
+  }
+
   void test_visitAdjacentStrings() {
     var findNode = _parseStringToFindNode(r'''
 var v = 'a' 'b';
@@ -551,7 +559,7 @@ $code
   }
 
   void test_visitClassTypeAlias_abstractAugment() {
-    // TODO(scheglov) Is this the right order of modifiers?
+    // TODO(scheglov): Is this the right order of modifiers?
     final code = 'augment abstract class C = S with M;';
     final findNode = _parseStringToFindNode('''
 $code
@@ -1238,7 +1246,7 @@ $code
   }
 
   void test_visitExtensionOverride_prefixedName_noTypeArgs() {
-    // TODO(scheglov) restore
+    // TODO(scheglov): restore
     // _assertSource(
     //     'p.E(o)',
     //     AstTestFactory.extensionOverride(
@@ -1248,7 +1256,7 @@ $code
   }
 
   void test_visitExtensionOverride_prefixedName_typeArgs() {
-    // TODO(scheglov) restore
+    // TODO(scheglov): restore
     // _assertSource(
     //     'p.E<A>(o)',
     //     AstTestFactory.extensionOverride(
@@ -1260,7 +1268,7 @@ $code
   }
 
   void test_visitExtensionOverride_simpleName_noTypeArgs() {
-    // TODO(scheglov) restore
+    // TODO(scheglov): restore
     // _assertSource(
     //     'E(o)',
     //     AstTestFactory.extensionOverride(
@@ -1270,7 +1278,7 @@ $code
   }
 
   void test_visitExtensionOverride_simpleName_typeArgs() {
-    // TODO(scheglov) restore
+    // TODO(scheglov): restore
     // _assertSource(
     //     'E<A>(o)',
     //     AstTestFactory.extensionOverride(
@@ -1279,6 +1287,30 @@ $code
     //             [AstTestFactory.namedType4('A')]),
     //         argumentList: AstTestFactory.argumentList(
     //             [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionType() {
+    final code = 'extension type E(int it) {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.singleExtensionTypeDeclaration);
+  }
+
+  void test_visitExtensionType_implements() {
+    final code = 'extension type E(int it) implements num {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.singleExtensionTypeDeclaration);
+  }
+
+  void test_visitExtensionType_method() {
+    final code = 'extension type E(int it) {void foo() {}}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.singleExtensionTypeDeclaration);
   }
 
   void test_visitFieldDeclaration_abstract() {
@@ -1414,7 +1446,7 @@ void f() {
 
   @failingTest
   void test_visitForEachPartsWithPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
@@ -1606,7 +1638,7 @@ void f() {
 
   @failingTest
   void test_visitForPartsWithPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
@@ -2852,13 +2884,13 @@ void f(x) {
 
   @failingTest
   void test_visitPatternAssignment() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
   @failingTest
   void test_visitPatternAssignmentStatement() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
@@ -2909,13 +2941,13 @@ void f(x) {
 
   @failingTest
   void test_visitPatternVariableDeclaration() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
   @failingTest
   void test_visitPatternVariableDeclarationStatement() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
@@ -3529,25 +3561,25 @@ void f() {
 
   @failingTest
   void test_visitSwitchExpression() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
   @failingTest
   void test_visitSwitchExpressionCase() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
   @failingTest
   void test_visitSwitchExpressionDefault() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
   @failingTest
   void test_visitSwitchGuard() {
-    // TODO(brianwilkerson) Test this when the parser allows.
+    // TODO(brianwilkerson): Test this when the parser allows.
     fail('Unable to parse patterns');
   }
 
@@ -3924,7 +3956,7 @@ void f() sync* {
     expect(buffer.toString(), expectedSource);
   }
 
-  /// TODO(scheglov) Use [parseStringWithErrors] everywhere? Or just there?
+  // TODO(scheglov): Use [parseStringWithErrors] everywhere? Or just there?
   FindNode _parseStringToFindNode(
     String content, {
     FeatureSet? featureSet,

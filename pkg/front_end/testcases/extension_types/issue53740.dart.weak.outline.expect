@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method foo() → void
+    ;
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B
+    ;
+  @core::override
+  method foo([core::int i = 0]) → void
+    ;
+}
+extension type ET1(self::B b) implements self::A {
+  abstract extension-type-member representation-field get b() → self::B;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(self::B b) implements self::ET1 /* = self::B */, self::B {
+  abstract extension-type-member representation-field get b() → self::B;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(self::B b) → self::ET1 /* = self::B */
+  ;
+static extension-type-member method ET1|constructor#_#new#tearOff(self::B b) → self::ET1 /* = self::B */
+  return self::ET1|constructor#(b);
+static extension-type-member method ET2|constructor#(self::B b) → self::ET2 /* = self::B */
+  ;
+static extension-type-member method ET2|constructor#_#new#tearOff(self::B b) → self::ET2 /* = self::B */
+  return self::ET2|constructor#(b);
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///issue53740.dart:10:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 5, effectively constant: 1

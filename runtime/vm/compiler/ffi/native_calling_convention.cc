@@ -23,22 +23,26 @@ const intptr_t kNoFpuRegister = -1;
 #if !defined(FFI_UNIT_TESTS)
 // In Soft FP and vararg calls, floats and doubles get passed in integer
 // registers.
-static bool SoftFpAbi(bool has_varargs) {
+static bool SoftFpAbi(bool has_varargs, bool is_result) {
 #if defined(TARGET_ARCH_ARM)
   if (has_varargs) {
     return true;
   }
   return !TargetCPUFeatures::hardfp_supported();
+#elif defined(TARGET_ARCH_ARM64) && defined(DART_TARGET_OS_WINDOWS)
+  return has_varargs && !is_result;
 #else
   return false;
 #endif
 }
 #else  // !defined(FFI_UNIT_TESTS)
-static bool SoftFpAbi(bool has_varargs) {
+static bool SoftFpAbi(bool has_varargs, bool is_result) {
 #if defined(TARGET_ARCH_ARM) && defined(DART_TARGET_OS_ANDROID)
   return true;
 #elif defined(TARGET_ARCH_ARM)
   return has_varargs;
+#elif defined(TARGET_ARCH_ARM64) && defined(DART_TARGET_OS_WINDOWS)
+  return has_varargs && !is_result;
 #else
   return false;
 #endif
@@ -57,8 +61,9 @@ static const NativeType& ConvertFloatToInt(Zone* zone, const NativeType& type) {
 // In Soft FP, floats are treated as 4 byte ints, and doubles as 8 byte ints.
 static const NativeType& ConvertIfSoftFp(Zone* zone,
                                          const NativeType& type,
-                                         bool has_varargs) {
-  if (SoftFpAbi(has_varargs) && type.IsFloat()) {
+                                         bool has_varargs,
+                                         bool is_result = false) {
+  if (SoftFpAbi(has_varargs, is_result) && type.IsFloat()) {
     return ConvertFloatToInt(zone, type);
   }
   return type;
@@ -70,6 +75,30 @@ static const NativeType& ConvertIfSoftFp(Zone* zone,
 // when converting between both.
 const PrimitiveType kFfiIntPtr =
     compiler::target::kWordSize == 8 ? kInt64 : kUint32;
+
+static PrimitiveType TypeForSize(intptr_t size) {
+  switch (size) {
+    case 8:
+      return kUint64;
+    case 7:
+      return kUint56;
+    case 6:
+      return kUint48;
+    case 5:
+      return kUint40;
+    case 4:
+      return kUint32;
+    case 3:
+      return kUint24;
+    case 2:
+      return kUint16;
+    case 1:
+      return kUint8;
+    default:
+      UNREACHABLE();
+      return kVoid;
+  }
+}
 
 // Represents the state of a stack frame going into a call, between allocations
 // of argument locations.
@@ -143,7 +172,7 @@ class ArgumentAllocator : public ValueObject {
     // even if the parts of a compound fit in 1 cpu or fpu register it will
     // be nested in a MultipleNativeLocations.
     const NativeCompoundType& compound_type = payload_type.AsCompound();
-    return AllocateCompound(compound_type, is_vararg);
+    return AllocateCompound(compound_type, is_vararg, /*is_result*/ false);
   }
 
   const NativeLocation& AllocateFloat(const NativeType& payload_type,
@@ -231,10 +260,8 @@ class ArgumentAllocator : public ValueObject {
 
     // Some calling conventions require the callee to make the lowest 32 bits
     // in registers non-garbage.
-    const auto& container_type =
-        CallingConventions::kArgumentRegisterExtension == kExtendedTo4
-            ? payload_type_converted.WidenTo4Bytes(zone_)
-            : payload_type_converted;
+    const auto& container_type = payload_type_converted.Extend(
+        zone_, CallingConventions::kArgumentRegisterExtension);
 
     return AllocateInt(payload_type, container_type, is_vararg);
   }
@@ -243,7 +270,8 @@ class ArgumentAllocator : public ValueObject {
   // If fits in two fpu and/or cpu registers, transfer in those. Otherwise,
   // transfer on stack.
   const NativeLocation& AllocateCompound(const NativeCompoundType& payload_type,
-                                         bool is_vararg) {
+                                         bool is_vararg,
+                                         bool is_result) {
     const intptr_t size = payload_type.SizeInBytes();
     if (size <= 16 && size > 0 && !payload_type.ContainsUnalignedMembers()) {
       intptr_t required_regs =
@@ -270,9 +298,13 @@ class ArgumentAllocator : public ValueObject {
             multiple_locations.Add(new (zone_) NativeFpuRegistersLocation(
                 type, type, kQuadFpuReg, reg_index));
           } else {
-            const auto& type = *new (zone_) NativePrimitiveType(kInt64);
+            const auto& payload_type =
+                *new (zone_) NativePrimitiveType(TypeForSize(Utils::Minimum(
+                    size - offset, compiler::target::kWordSize)));
+            const auto& container_type = *new (zone_) NativePrimitiveType(
+                TypeForSize(compiler::target::kWordSize));
             multiple_locations.Add(new (zone_) NativeRegistersLocation(
-                zone_, type, type, AllocateCpuRegister()));
+                zone_, payload_type, container_type, AllocateCpuRegister()));
           }
         }
         return *new (zone_)
@@ -288,7 +320,8 @@ class ArgumentAllocator : public ValueObject {
   // use a single register and sign extend.
   // Otherwise, pass a pointer to a copy.
   const NativeLocation& AllocateCompound(const NativeCompoundType& payload_type,
-                                         bool is_vararg) {
+                                         bool is_vararg,
+                                         bool is_result) {
     const NativeCompoundType& compound_type = payload_type.AsCompound();
     const intptr_t size = compound_type.SizeInBytes();
     if (size <= 8 && Utils::IsPowerOfTwo(size)) {
@@ -317,7 +350,8 @@ class ArgumentAllocator : public ValueObject {
 
 #if defined(TARGET_ARCH_IA32)
   const NativeLocation& AllocateCompound(const NativeCompoundType& payload_type,
-                                         bool is_vararg) {
+                                         bool is_vararg,
+                                         bool is_result) {
     return AllocateStack(payload_type);
   }
 #endif  // defined(TARGET_ARCH_IA32)
@@ -326,9 +360,11 @@ class ArgumentAllocator : public ValueObject {
   // Transfer homogeneous floats in FPU registers, and allocate the rest
   // in 4 or 8 size chunks in registers and stack.
   const NativeLocation& AllocateCompound(const NativeCompoundType& payload_type,
-                                         bool is_vararg) {
+                                         bool is_vararg,
+                                         bool is_result) {
     const auto& compound_type = payload_type.AsCompound();
-    if (compound_type.ContainsHomogeneousFloats() && !SoftFpAbi(has_varargs_) &&
+    if (compound_type.ContainsHomogeneousFloats() &&
+        !SoftFpAbi(has_varargs_, is_result) &&
         compound_type.NumPrimitiveMembersRecursive() <= 4) {
       const auto& elem_type = compound_type.FirstPrimitiveMember();
       const intptr_t size = compound_type.SizeInBytes();
@@ -355,7 +391,7 @@ class ArgumentAllocator : public ValueObject {
         BlockAllFpuRegisters();
         return AllocateStack(payload_type);
       }
-    } else {
+    } else if (payload_type.AlignmentInBytesStack() == 8) {
       const intptr_t chunk_size = payload_type.AlignmentInBytesStack();
       ASSERT(chunk_size == 4 || chunk_size == 8);
       const intptr_t size_rounded =
@@ -382,6 +418,8 @@ class ArgumentAllocator : public ValueObject {
       }
       return *new (zone_)
           MultipleNativeLocations(compound_type, multiple_locations);
+    } else {
+      return AllocateCompoundAsMultiple(compound_type);
     }
   }
 #endif  // defined(TARGET_ARCH_ARM)
@@ -391,10 +429,12 @@ class ArgumentAllocator : public ValueObject {
   // structs up to 16 bytes block remaining registers if they do not fit in
   // registers, and larger structs go on stack always.
   const NativeLocation& AllocateCompound(const NativeCompoundType& payload_type,
-                                         bool is_vararg) {
+                                         bool is_vararg,
+                                         bool is_result) {
     const auto& compound_type = payload_type.AsCompound();
     const intptr_t size = compound_type.SizeInBytes();
     if (compound_type.ContainsHomogeneousFloats() &&
+        !SoftFpAbi(has_varargs_, is_result) &&
         compound_type.NumPrimitiveMembersRecursive() <= 4) {
       const auto& elem_type = compound_type.FirstPrimitiveMember();
       const intptr_t elem_size = elem_type.SizeInBytes();
@@ -421,30 +461,22 @@ class ArgumentAllocator : public ValueObject {
     }
 
     if (size <= 16) {
-      const intptr_t required_regs = size / 8;
-      const bool regs_available =
-          cpu_regs_used + required_regs <= CallingConventions::kNumArgRegs;
+      const intptr_t size_rounded = Utils::RoundUp(size, 8);
+      const intptr_t num_chunks = size_rounded / 8;
+      ASSERT((num_chunks == 1) || (num_chunks == 2));
 
-      if (regs_available) {
-        const intptr_t size_rounded =
-            Utils::RoundUp(payload_type.SizeInBytes(), 8);
-        const intptr_t num_chunks = size_rounded / 8;
-        const auto& chunk_type = *new (zone_) NativePrimitiveType(kInt64);
-
-        NativeLocations& multiple_locations =
-            *new (zone_) NativeLocations(zone_, num_chunks);
-        for (int i = 0; i < num_chunks; i++) {
-          const auto& allocated_chunk = &AllocateArgument(chunk_type);
-          multiple_locations.Add(allocated_chunk);
-        }
-        return *new (zone_)
-            MultipleNativeLocations(compound_type, multiple_locations);
-
-      } else {
-        // Block all CPU registers.
+      // All-or-none: block any leftover registers.
+#if defined(DART_TARGET_OS_WINDOWS)
+      if (!HasAvailableCpuRegisters(num_chunks) && !is_vararg) {
         cpu_regs_used = CallingConventions::kNumArgRegs;
-        return AllocateStack(payload_type);
       }
+#else
+      if (!HasAvailableCpuRegisters(num_chunks)) {
+        cpu_regs_used = CallingConventions::kNumArgRegs;
+      }
+#endif
+
+      return AllocateCompoundAsMultiple(payload_type);
     }
 
     const auto& pointer_location =
@@ -458,7 +490,8 @@ class ArgumentAllocator : public ValueObject {
   // See RISC-V ABIs Specification
   // https://github.com/riscv-non-isa/riscv-elf-psabi-doc/releases
   const NativeLocation& AllocateCompound(const NativeCompoundType& payload_type,
-                                         bool is_vararg) {
+                                         bool is_vararg,
+                                         bool is_result) {
     const auto& compound_type = payload_type.AsCompound();
 
     // 2.2. Hardware Floating-point Calling Convention.
@@ -504,38 +537,58 @@ class ArgumentAllocator : public ValueObject {
     }
 
     // 2.1. Integer Calling Convention.
-    const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
-    const intptr_t size = compound_type.SizeInBytes();
-
     // If total size is <= XLEN, passed like an XLEN scalar: use a register if
     // available or pass by value on the stack.
-    if (size <= target::kWordSize) {
-      NativeLocations& multiple_locations =
-          *new (zone_) NativeLocations(zone_, 1);
-      multiple_locations.Add(&AllocateArgument(pointer_type));
-      return *new (zone_)
-          MultipleNativeLocations(compound_type, multiple_locations);
-    }
-
     // If total size is <= 2*XLEN, passed like two XLEN scalars: use registers
     // if available or pass by value on the stack. If only one register is
     // available, pass the low part by register and the high part on the
     // stack.
-    if (size <= 2 * target::kWordSize) {
-      NativeLocations& multiple_locations =
-          *new (zone_) NativeLocations(zone_, 2);
-      multiple_locations.Add(&AllocateArgument(pointer_type));
-      multiple_locations.Add(&AllocateArgument(pointer_type));
-      return *new (zone_)
-          MultipleNativeLocations(compound_type, multiple_locations);
+    if (compound_type.SizeInBytes() <= 2 * target::kWordSize) {
+      return AllocateCompoundAsMultiple(compound_type);
     }
 
     // Otherwise, passed by reference.
+    const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
     const auto& pointer_location = AllocateArgument(pointer_type);
     return *new (zone_)
         PointerToMemoryLocation(pointer_location, compound_type);
   }
 #endif
+
+  // Allocate in word-sized chunks, with the container as a full word-sized
+  // register or stack slot and the payload constrained to the struct's size.
+  //
+  // Note this describes the location at call. Consumes of this location, such
+  // as FfiCallConvertCompoundArgumentToNative or EmitReturnMoves, often assume
+  // the location of the source compound in the heap corresponds to this
+  // location with just a change in base register. This is often true, except
+  // some ABIs assume zero extension of the last chunk, so the stack location at
+  // call is bigger than the location in the heap. Here we set the container
+  // size to reflect that zero-extended stack slot and rely on loads during
+  // moves opting to use the payload size instead of the container size to stay
+  // in-bounds.
+  const NativeLocation& AllocateCompoundAsMultiple(
+      const NativeCompoundType& compound_type) {
+    const intptr_t chunk_size = compiler::target::kWordSize;
+    const intptr_t num_chunks =
+        Utils::RoundUp(compound_type.SizeInBytes(), chunk_size) / chunk_size;
+    const NativeType& container_type =
+        *new (zone_) NativePrimitiveType(TypeForSize(chunk_size));
+    NativeLocations& locations =
+        *new (zone_) NativeLocations(zone_, num_chunks);
+    intptr_t size_remaining = compound_type.SizeInBytes();
+    while (size_remaining > 0) {
+      const auto& chunk = AllocateArgument(container_type);
+
+      const intptr_t size = Utils::Minimum(size_remaining, chunk_size);
+      const NativeType& payload_type =
+          *new (zone_) NativePrimitiveType(TypeForSize(size));
+      locations.Add(
+          &chunk.WithOtherNativeType(zone_, payload_type, container_type));
+      size_remaining -= size;
+    }
+    return *new (zone_) MultipleNativeLocations(compound_type, locations);
+  }
 
   static FpuRegisterKind FpuRegKind(const NativeType& payload_type) {
 #if defined(TARGET_ARCH_ARM)
@@ -564,9 +617,7 @@ class ArgumentAllocator : public ValueObject {
     // If the stack arguments are not packed, the 32 lowest bits should not
     // contain garbage.
     const auto& container_type =
-        CallingConventions::kArgumentStackExtension == kExtendedTo4
-            ? payload_type.WidenTo4Bytes(zone_)
-            : payload_type;
+        payload_type.Extend(zone_, CallingConventions::kArgumentStackExtension);
     const auto& result = *new (zone_) NativeStackLocation(
         payload_type, container_type, CallingConventions::kStackPointerRegister,
         stack_height_in_bytes);
@@ -730,7 +781,6 @@ static const NativeLocation& CompoundResultLocation(
     intptr_t used_xmm_regs = 0;
 
     const auto& double_type = *new (zone) NativePrimitiveType(kDouble);
-    const auto& int64_type = *new (zone) NativePrimitiveType(kInt64);
 
     const bool first_half_in_xmm = payload_type.ContainsOnlyFloats(
         Range::StartAndEnd(0, Utils::Minimum<intptr_t>(size, 8)));
@@ -740,8 +790,12 @@ static const NativeLocation& CompoundResultLocation(
           CallingConventions::kReturnFpuReg));
       used_xmm_regs++;
     } else {
+      const auto& payload_type = *new (zone) NativePrimitiveType(
+          TypeForSize(Utils::Minimum(size, compiler::target::kWordSize)));
+      const auto& container_type = *new (zone) NativePrimitiveType(
+          TypeForSize(compiler::target::kWordSize));
       multiple_locations.Add(new (zone) NativeRegistersLocation(
-          zone, int64_type, int64_type, CallingConventions::kReturnReg));
+          zone, payload_type, container_type, CallingConventions::kReturnReg));
       used_regs++;
     }
     if (size > 8) {
@@ -758,8 +812,12 @@ static const NativeLocation& CompoundResultLocation(
         const Register reg = used_regs == 0
                                  ? CallingConventions::kReturnReg
                                  : CallingConventions::kSecondReturnReg;
+        const auto& payload_type = *new (zone) NativePrimitiveType(
+            TypeForSize(Utils::Minimum(size - 8, compiler::target::kWordSize)));
+        const auto& container_type = *new (zone) NativePrimitiveType(
+            TypeForSize(compiler::target::kWordSize));
         multiple_locations.Add(new (zone) NativeRegistersLocation(
-            zone, int64_type, int64_type, reg));
+            zone, payload_type, container_type, reg));
         used_regs++;
       }
     }
@@ -833,8 +891,8 @@ static const NativeLocation& CompoundResultLocation(
     const NativeCompoundType& payload_type,
     bool has_varargs) {
   const intptr_t num_members = payload_type.NumPrimitiveMembersRecursive();
-  if (payload_type.ContainsHomogeneousFloats() && !SoftFpAbi(has_varargs) &&
-      num_members <= 4) {
+  if (payload_type.ContainsHomogeneousFloats() &&
+      !SoftFpAbi(has_varargs, /*is_result*/ true) && num_members <= 4) {
     NativeLocations& multiple_locations =
         *new (zone) NativeLocations(zone, num_members);
     for (int i = 0; i < num_members; i++) {
@@ -899,11 +957,9 @@ static const NativeLocation& ResultLocation(Zone* zone,
                                             const NativeType& payload_type,
                                             bool has_varargs) {
   const auto& payload_type_converted =
-      ConvertIfSoftFp(zone, payload_type, has_varargs);
-  const auto& container_type =
-      CallingConventions::kReturnRegisterExtension == kExtendedTo4
-          ? payload_type_converted.WidenTo4Bytes(zone)
-          : payload_type_converted;
+      ConvertIfSoftFp(zone, payload_type, has_varargs, /*is_result*/ true);
+  const auto& container_type = payload_type_converted.Extend(
+      zone, CallingConventions::kReturnRegisterExtension);
 
   if (container_type.IsFloat()) {
     return *new (zone) NativeFpuRegistersLocation(

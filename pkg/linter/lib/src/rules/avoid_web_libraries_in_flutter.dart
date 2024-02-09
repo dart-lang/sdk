@@ -28,7 +28,7 @@ Web library access *is* allowed in:
 otherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are disallowed.
 ''';
 
-/// todo (pq): consider making a utility and sharing w/ `prefer_relative_imports`
+// TODO(pq): consider making a utility and sharing w/ `prefer_relative_imports`
 YamlMap _parseYaml(String content) {
   try {
     var doc = loadYamlNode(content);

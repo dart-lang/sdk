@@ -86,10 +86,6 @@ Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
   return TryResolveArtifactPath("dartdev.dart.snapshot");
 }
 
-Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevKernelPath() {
-  return TryResolveArtifactPath("dartdev.dill");
-}
-
 void DartDevIsolate::DartDevRunner::Run(
     Dart_IsolateGroupCreateCallback create_isolate,
     char** packages_file,
@@ -298,7 +294,7 @@ DartDevIsolate::DartDev_Result DartDevIsolate::RunDartDev(
   return runner_.result();
 }
 
-#endif  // if !defined(DART_PRECOMPILED_RUNTIME)
-
 }  // namespace bin
 }  // namespace dart
+
+#endif  // if !defined(DART_PRECOMPILED_RUNTIME)

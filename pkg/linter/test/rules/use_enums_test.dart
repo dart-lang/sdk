@@ -264,7 +264,7 @@ class _E {
 }
 ''', [
       // No lint.
-      // todo(pq):consider relaxing the lint to flag cases w/o a const
+      // TODO(pq): consider relaxing the lint to flag cases w/o a const
       // but all final fields.
       error(WarningCode.UNUSED_ELEMENT, 6, 2),
       error(WarningCode.UNUSED_FIELD, 29, 1),

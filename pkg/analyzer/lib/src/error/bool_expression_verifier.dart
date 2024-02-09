@@ -51,7 +51,8 @@ class BoolExpressionVerifier {
       required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
-        !_resolver.typeSystem.isAssignableTo(type, _boolType)) {
+        !_resolver.typeSystem.isAssignableTo(type, _boolType,
+            strictCasts: _resolver.analysisOptions.strictCasts)) {
       if (type.isDartCoreBool) {
         _nullableDereferenceVerifier.report(
             CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
@@ -89,7 +90,7 @@ class BoolExpressionVerifier {
   /// Check for situations where the result of a method or function is used,
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
-  // TODO(scheglov) Move this in a separate verifier.
+  // TODO(scheglov): Move this in a separate verifier.
   bool _checkForUseOfVoidResult(Expression expression) {
     if (!identical(expression.staticType, VoidTypeImpl.instance)) {
       return false;

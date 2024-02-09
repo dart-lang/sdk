@@ -6,7 +6,6 @@ import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
-import '../dart/resolution/resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -43,7 +42,8 @@ class D extends A<int> with B<int>, C {}
   }
 }
 
-mixin MixinInferenceNoPossibleSubstitutionTestCases on ResolutionTest {
+mixin MixinInferenceNoPossibleSubstitutionTestCases
+    on PubPackageResolutionTest {
   test_valid_single() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}

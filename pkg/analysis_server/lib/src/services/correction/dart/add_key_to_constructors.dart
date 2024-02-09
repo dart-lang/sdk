@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -71,8 +72,8 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
   /// The lint is on the name of the class when there are no constructors.
   Future<void> _computeClassDeclaration(
       ChangeBuilder builder, ClassDeclaration node) async {
-    var targetLocation =
-        utils.prepareNewConstructorLocation(unitResult.session, node);
+    var targetLocation = utils.prepareNewConstructorLocation(
+        unitResult.session, node, unitResult.file);
     if (targetLocation == null) {
       return;
     }
@@ -165,7 +166,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
 
   /// Return the type for the class `Key`.
   Future<DartType?> _getKeyType() async {
-    var keyClass = await sessionHelper.getClass(flutter.widgetsUri, 'Key');
+    var keyClass = await sessionHelper.getClass(Flutter.widgetsUri, 'Key');
     if (keyClass == null) {
       return null;
     }
@@ -183,7 +184,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     if (constructor.factoryKeyword != null ||
         constructor.redirectedConstructor != null) {
       // Can't have a super constructor invocation.
-      // TODO(brianwilkerson) Consider extending the redirected constructor to
+      // TODO(brianwilkerson): Consider extending the redirected constructor to
       //  also take a key, or finding the constructor invocation in the body of
       //  the factory and updating it.
       return;

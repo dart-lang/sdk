@@ -18,6 +18,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/test_support.dart';
 import '../resolution/context_collection_resolution.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -25,17 +26,86 @@ main() {
     defineReflectiveTests(ConstantVisitorWithoutNullSafetyTest);
     defineReflectiveTests(InstanceCreationEvaluatorTest);
     defineReflectiveTests(InstanceCreationEvaluatorWithoutNullSafetyTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ConstantVisitorTest extends ConstantVisitorTestSupport
     with ConstantVisitorTestCases {
+  test_asExpression_fromExtensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const a = E(42);
+const x = a as int;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+int 42
+  variable: self::@variable::x
+''');
+  }
+
+  test_asExpression_fromExtensionType_nullable() async {
+    await assertNoErrorsInCode(r'''
+extension type E(int? it) {}
+
+const x = null as E;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Null null
+  variable: self::@variable::x
+''');
+  }
+
+  test_asExpression_toExtensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = 42 as E;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+int 42
+  variable: self::@variable::x
+''');
+  }
+
+  test_binaryExpression_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const a = E(2);
+const b = E(3);
+const x = (a as num) * (b as num);
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+int 6
+  variable: self::@variable::x
+''');
+  }
+
   test_declaration_staticError_notAssignable() async {
     await assertErrorsInCode('''
 const int x = 'foo';
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5),
+    ]);
+  }
+
+  test_enum_argument_methodInvocation() async {
+    await assertErrorsInCode('''
+enum E {
+  enumValue(["text"].map((x) => x));
+
+  const E(this.strings);
+  final Iterable<String> strings;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 21, 22),
     ]);
   }
 
@@ -531,6 +601,39 @@ const v = int;
     _assertHasPrimitiveEqualityTrue('v');
   }
 
+  test_identical_extensionType_nullable() async {
+    await assertNoErrorsInCode('''
+extension type E(int it) {}
+
+class A {
+  final E? f;
+  const A() : f = null;
+}
+
+const v = A();
+''');
+    final result = _topLevelVar('v');
+    assertDartObjectText(result, r'''
+A
+  f: Null null
+  variable: self::@variable::v
+''');
+  }
+
+  test_identical_extensionType_types_recursive() async {
+    await assertNoErrorsInCode('''
+const c = identical(ExList<ExInt>, List<int>);
+
+extension type const ExInt(int value) implements int {}
+extension type const ExList<T>(List<T> value) implements List<T> {}
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
   test_identical_typeLiteral_explicitTypeArgs_differentTypeArgs() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -675,6 +778,157 @@ const b = a;
 A<int>
   t: int 0
   variable: self::@variable::b
+''');
+  }
+
+  test_instanceCreationExpression_custom_generic_extensionType_explicit() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+class C<T> {
+  const C();
+}
+
+const x = C<E>();
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+C<int>
+  variable: self::@variable::x
+''');
+  }
+
+  test_instanceCreationExpression_custom_generic_extensionType_inferred() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+class C<T> {
+  final T f;
+  const C(this.f);
+}
+
+const x = C(E(42));
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+C<int>
+  f: int 42
+  variable: self::@variable::x
+''');
+  }
+
+  test_instanceCreationExpression_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = E(42);
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+int 42
+  variable: self::@variable::x
+''');
+  }
+
+  test_isExpression_fromExtensionType_false() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const a = E(42);
+const x = a is String;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+bool false
+  variable: self::@variable::x
+''');
+  }
+
+  test_isExpression_fromExtensionType_true() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const a = E(42);
+const x = a is int;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+bool true
+  variable: self::@variable::x
+''');
+  }
+
+  test_isExpression_toExtensionType_false() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(String it) {}
+
+const x = 42 is E;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+bool false
+  variable: self::@variable::x
+''');
+  }
+
+  test_isExpression_toExtensionType_true() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = 42 is E;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+bool true
+  variable: self::@variable::x
+''');
+  }
+
+  test_listLiteral_extensionType_explicitType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = <E>[];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+List
+  elementType: int
+  variable: self::@variable::x
+''');
+  }
+
+  test_listLiteral_extensionType_inferredType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = [E(0), E(1)];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+List
+  elementType: int
+  elements
+    int 0
+    int 1
+  variable: self::@variable::x
+''');
+  }
+
+  test_mapLiteral_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = {E(0): E(1)};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Map
+  entries
+    entry
+      key: int 0
+      value: int 1
+  variable: self::@variable::x
 ''');
   }
 
@@ -1786,8 +2040,8 @@ class C<T> {
 
 const x = C<int>.();
 ''', [
-      // TODO(https://github.com/dart-lang/sdk/issues/50441): This should not be
-      // reported.
+      // TODO(kallentu): This should not be reported.
+      // https://github.com/dart-lang/sdk/issues/50441
       error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
           45, 8),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 45,
@@ -2694,7 +2948,7 @@ class C {}
 ''');
     final result = _topLevelVar('a');
     assertDartObjectText(result, '''
-Type C*
+Type C
   variable: self::@variable::a
 ''');
   }
@@ -3305,6 +3559,36 @@ const c = 3 / 0;
     final result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double Infinity
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_eqeq_double_double_nan_left() async {
+    await assertErrorsInCode('''
+const c = double.nan == 2.3;
+''', [
+      error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 10, 13),
+    ]);
+    // This test case produces a warning, but the value of the constant should
+    // be `false`.
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_eqeq_double_double_nan_right() async {
+    await assertErrorsInCode('''
+const c = 2.3 == double.nan;
+''', [
+      error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 14, 13),
+    ]);
+    // This test case produces a warning, but the value of the constant should
+    // be `false`.
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
   variable: self::@variable::c
 ''');
   }
@@ -4498,13 +4782,163 @@ A
 
   /// See https://github.com/dart-lang/sdk/issues/50045
   test_bool_fromEnvironment_dartLibraryJsUtil() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 ''');
-
-    assertDartObjectText(_topLevelVar('a'), '''
+    final result = _topLevelVar('a');
+    assertDartObjectText(result, '''
 <unknown> bool
   variable: self::@variable::a
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const x = [3, if (a) ...[1] else ...[1, 2], 4];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+<unknown> List<int>
+  variable: self::@variable::x
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list_eqeq_known() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = [3, if (a) ...[1] else ...[1, 2], 4];
+const left = [3, 1, 2, 4] == b;
+const right = b == [3, 1, 2, 4];
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list_eqeq_unknown() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = [3, if (a) ...[1] else ...[1, 2], 4];
+const left = [3, if (a) ...[1] else ...[1, 2], 4] == b;
+const right = b == [3, if (a) ...[1] else ...[1, 2], 4];
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_map() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const x = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+<unknown> Map<int, String>
+  variable: self::@variable::x
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_map_eqeq_known() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
+const left = {3:'3', 2:'2', 4:'4'} == b;
+const right = b == {3:'3', 2:'2', 4:'4'};
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_map_eqeq_unknown() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
+const left = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'} == b;
+const right = b == {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_set() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const x = {3, if (a) ...[1] else ...[1, 2], 4};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+<unknown> Set<int>
+  variable: self::@variable::x
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_set_eqeq_known() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = {3, if (a) ...[1] else ...[1, 2], 4};
+const left = {3, 1, 4} == b;
+const right = b == {3, 1, 4};
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_set_eqeq_unknown() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = {3, if (a) ...[1] else ...[1, 2], 4};
+const left = {3, if (a) ...[1] else ...[1, 2], 4} == b;
+const right = b == {3, if (a) ...[1] else ...[1, 2], 4};
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
 ''');
   }
 

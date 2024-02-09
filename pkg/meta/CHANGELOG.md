@@ -1,3 +1,13 @@
+## 1.12.0
+
+* Introduce the `@ResourceIdentifier` experimental annotation for static methods whose
+  constant literal arguments should be collected during compilation.
+
+## 1.11.0
+
+* Introduce `TargetKind.extensionType` to indicate that an annotation
+  is valid on any extension type declaration.
+
 ## 1.10.0
 
 * Introduce `@redeclare` to annotate extension type members that redeclare

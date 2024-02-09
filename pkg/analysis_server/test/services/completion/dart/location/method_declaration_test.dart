@@ -8,8 +8,7 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MethodDeclarationTest1);
-    defineReflectiveTests(MethodDeclarationTest2);
+    defineReflectiveTests(MethodDeclarationTest);
   });
 }
 
@@ -18,8 +17,7 @@ mixin MethodDeclarationInClassTestCases on AbstractCompletionDriverTest {
     await computeSuggestions('''
 class A { foo() a^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -28,50 +26,6 @@ suggestions
   async*
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
-    kind: override
-    selection: 62 14
-  @override
-  // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
-    kind: override
-    selection: 69 17
-  @override
-  String toString() {
-    // TODO: implement toString
-    return super.toString();
-  }
-    kind: override
-    selection: 68 24
-  @override
-  bool operator ==(Object other) {
-    // TODO: implement ==
-    return super == other;
-  }
-    kind: override
-    selection: 75 22
-  @override
-  noSuchMethod(Invocation invocation) {
-    // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
-  }
-    kind: override
-    selection: 90 38
-  async
-    kind: keyword
-  async*
-    kind: keyword
-  sync*
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterAnnotation_beforeName() async {
@@ -111,45 +65,13 @@ suggestions
     await computeSuggestions('''
 class A { @override d^ foo() {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   dynamic
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterArrow_beforeField_async() async {
@@ -417,8 +339,7 @@ suggestions
     await computeSuggestions('''
 class A { foo() a^ Foo foo;}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -429,124 +350,18 @@ suggestions
   async*
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
-    kind: override
-    selection: 62 14
-  @override
-  // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
-    kind: override
-    selection: 69 17
-  @override
-  String toString() {
-    // TODO: implement toString
-    return super.toString();
-  }
-    kind: override
-    selection: 68 24
-  @override
-  bool operator ==(Object other) {
-    // TODO: implement ==
-    return super == other;
-  }
-    kind: override
-    selection: 75 22
-  @override
-  noSuchMethod(Invocation invocation) {
-    // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
-  }
-    kind: override
-    selection: 90 38
-  abstract
-    kind: keyword
-  async
-    kind: keyword
-  async*
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  late
-    kind: keyword
-  static
-    kind: keyword
-  sync*
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterParameterList_beforeRightBrace() async {
     await computeSuggestions('''
 class A { foo() ^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  async
-    kind: keyword
-  async*
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  sync*
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 }
 
 @reflectiveTest
-class MethodDeclarationTest1 extends AbstractCompletionDriverTest
-    with MethodDeclarationInClassTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class MethodDeclarationTest2 extends AbstractCompletionDriverTest
-    with MethodDeclarationInClassTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class MethodDeclarationTest extends AbstractCompletionDriverTest
+    with MethodDeclarationInClassTestCases {}

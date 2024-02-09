@@ -7,6 +7,8 @@ library dart._debugger;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper' show InternalMap, jsObjectGetPrototypeOf;
+import 'dart:_foreign_helper' show JS_GET_FLAG, JS_GET_NAME;
+import 'dart:_js_shared_embedded_names' show JsGetName;
 import 'dart:_runtime' as dart;
 import 'dart:core';
 import 'dart:collection';
@@ -45,7 +47,7 @@ int maxFormatterStringLength = 100;
 
 String _typeof(object) => JS<String>('!', 'typeof #', object);
 
-List<String> getOwnPropertyNames(object) =>
+List<String> getOwnPropertyNames(Object object) =>
     JSArray<String>.of(dart.getOwnPropertyNames(object));
 
 List getOwnPropertySymbols(object) =>
@@ -63,7 +65,7 @@ class JSNative {
 void addMetadataChildren(object, Set<NameValuePair> ret) {
   ret.add(NameValuePair(
       name: "[[class]]",
-      value: dart.getReifiedType(object),
+      value: dart.getClass(object),
       config: JsonMLConfig.asClass));
 }
 
@@ -135,11 +137,21 @@ String getObjectTypeName(object) {
   return getTypeName(reifiedType);
 }
 
+/// Replaces names of Dart classes/types with a more user friendly version.
+///
+/// Strictly a string replacement so we display a more helpful string in the
+/// formatter output.
+String _hideInternalNames(String name) {
+// Replace all 'JSArray' with 'List' to make it appear more "Dart friendly"
+  final jsArrayClassName = RegExp(r'\bJSArray\b');
+  return name.replaceAll(jsArrayClassName, 'List');
+}
+
 String getTypeName(type) {
   // TODO(jacobr): it would be nice if there was a way we could distinguish
   // between a List<dynamic> created from Dart and an Array passed in from
   // JavaScript.
-  return dart.typeName(type);
+  return _hideInternalNames(dart.typeName(type));
 }
 
 String safePreview(object, config) {
@@ -325,12 +337,12 @@ class JsonMLElement {
   toJsonML() => _jsonML;
 }
 
-/// Whether an object is a native JavaScript type where we should display the
-/// JavaScript view of the object instead of the custom Dart specific render
-/// of properties.
-bool isNativeJavaScriptObject(object) {
+/// Returns `true` when [object] should display the JavaScript view of the
+/// object instead of the custom Dart specific render of properties.
+bool _useNativeJSFormatter(object) {
   var type = _typeof(object);
   if (type != 'object' && type != 'function') return true;
+  if (dart.isDartClass(object) || dart.isDartFunction(object)) return false;
 
   // Consider all regular JS objects that do not represent Dart modules native
   // JavaScript objects.
@@ -366,7 +378,7 @@ class JsonMLFormatter {
 
   header(object, config) {
     customFormattersOn = true;
-    if (config == JsonMLConfig.skipDart || isNativeJavaScriptObject(object)) {
+    if (config == JsonMLConfig.skipDart || _useNativeJSFormatter(object)) {
       return null;
     }
     var c = _simpleFormatter.preview(object, config);
@@ -476,7 +488,7 @@ class DartFormatter {
       if (object == null ||
           object is num ||
           object is String ||
-          isNativeJavaScriptObject(object)) {
+          _useNativeJSFormatter(object)) {
         return object.toString();
       }
       for (var formatter in _formatters) {
@@ -526,7 +538,7 @@ class DartFormatter {
 
 /// Default formatter for Dart Objects.
 class ObjectFormatter extends Formatter {
-  bool accept(object, config) => !isNativeJavaScriptObject(object);
+  bool accept(object, config) => !_useNativeJSFormatter(object);
 
   String preview(object) {
     var typeName = getObjectTypeName(object);
@@ -642,9 +654,9 @@ class LibraryFormatter implements Formatter {
   }
 
   classChild(String name, Object child) {
-    var typeName = getTypeName(child);
+    var className = _hideInternalNames(dart.getClassName(child));
     return NameValuePair(
-        name: typeName, value: child, config: JsonMLConfig.asClass);
+        name: className, value: child, config: JsonMLConfig.asClass);
   }
 }
 
@@ -653,18 +665,15 @@ class LibraryFormatter implements Formatter {
 /// we can distinguish them based on whether they have been tagged with
 /// runtime type information.
 class FunctionFormatter implements Formatter {
-  bool accept(object, config) {
-    if (_typeof(object) != 'function') return false;
-    return dart.getReifiedType(object) != null;
-  }
+  bool accept(object, config) => dart.isDartFunction(object);
 
   bool hasChildren(object) => true;
 
   String preview(object) {
-    // The debugger can createa a preview of a FunctionType while it's being
+    // The debugger can create a preview of a FunctionType while it's being
     // constructed (before argument types exist), so we need to catch errors.
     try {
-      return dart.typeName(dart.getReifiedType(object));
+      return getTypeName(dart.getReifiedType(object));
     } catch (e) {
       return safePreview(object, JsonMLConfig.none);
     }
@@ -904,17 +913,10 @@ class StackTraceFormatter implements Formatter {
 }
 
 class ClassFormatter implements Formatter {
-  bool accept(object, config) => config == JsonMLConfig.asClass;
+  bool accept(object, config) => dart.isDartClass(object);
 
-  String preview(type) {
-    var implements = dart.getImplements(type);
-    var typeName = getTypeName(type);
-    if (implements != null) {
-      var typeNames = implements().map(getTypeName);
-      return '${typeName} implements ${typeNames.join(", ")}';
-    } else {
-      return typeName;
-    }
+  String preview(cls) {
+    return _hideInternalNames(dart.getClassName(cls));
   }
 
   bool hasChildren(object) => true;
@@ -948,7 +950,7 @@ class ClassFormatter implements Formatter {
     }
 
     var baseProto = jsObjectGetPrototypeOf(type);
-    if (baseProto != null && !dart.isJsInterop(baseProto)) {
+    if (baseProto != null && !_useNativeJSFormatter(baseProto)) {
       ret.add(NameValuePair(
           name: "[[base class]]",
           value: baseProto,

@@ -8,9 +8,9 @@ import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:language_server_protocol/json_parsing.dart';
 
 /// Instances of the class [LspByteStreamServerChannel] implement an
 /// [LspServerCommunicationChannel] that uses a stream and a sink (typically,

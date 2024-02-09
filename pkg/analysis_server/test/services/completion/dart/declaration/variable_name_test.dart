@@ -4,24 +4,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(VariableNameTest1);
-    defineReflectiveTests(VariableNameTest2);
+    defineReflectiveTests(VariableNameTest);
   });
 }
 
 @reflectiveTest
-class VariableNameTest1 extends AbstractCompletionDriverTest
-    with VariableNameTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class VariableNameTest2 extends AbstractCompletionDriverTest
-    with VariableNameTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class VariableNameTest extends AbstractCompletionDriverTest
+    with VariableNameTestCases {}
 
 mixin VariableNameTestCases on AbstractCompletionDriverTest {
   @override
@@ -74,31 +63,13 @@ void f() {
   for (AbstractCrazyNonsenseClassName a^) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   abstractCrazyNonsenseClassName
     kind: identifier
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  abstractCrazyNonsenseClassName
-    kind: identifier
-  className
-    kind: identifier
-  crazyNonsenseClassName
-    kind: identifier
-  name
-    kind: identifier
-  nonsenseClassName
-    kind: identifier
-''');
-    }
   }
 
   @failingTest
@@ -129,31 +100,13 @@ void f() {
   for (prefix.AbstractCrazyNonsenseClassName a^) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   abstractCrazyNonsenseClassName
     kind: identifier
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  abstractCrazyNonsenseClassName
-    kind: identifier
-  className
-    kind: identifier
-  crazyNonsenseClassName
-    kind: identifier
-  name
-    kind: identifier
-  nonsenseClassName
-    kind: identifier
-''');
-    }
   }
 
   Future<void> test_localVariable_dontSuggestType_beforeEnd() async {
@@ -349,29 +302,18 @@ suggestions
     await computeSuggestions('''
 void f(A n^) {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  a
-    kind: identifier
-''');
-    }
   }
 
   Future<void> test_topLevelVariable_beforeEnd_partial() async {
     await computeSuggestions('''
 AbstractCrazyNonsenseClassName abs^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -380,41 +322,13 @@ suggestions
   abstractCrazyNonsenseClassName
     kind: identifier
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  _abstractCrazyNonsenseClassName
-    kind: identifier
-  _className
-    kind: identifier
-  _crazyNonsenseClassName
-    kind: identifier
-  _name
-    kind: identifier
-  _nonsenseClassName
-    kind: identifier
-  abstractCrazyNonsenseClassName
-    kind: identifier
-  className
-    kind: identifier
-  crazyNonsenseClassName
-    kind: identifier
-  name
-    kind: identifier
-  nonsenseClassName
-    kind: identifier
-''');
-    }
   }
 
   Future<void> test_topLevelVariable_beforeSemicolon_partial() async {
     await computeSuggestions('''
 AbstractCrazyNonsenseClassName abs^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -423,33 +337,6 @@ suggestions
   abstractCrazyNonsenseClassName
     kind: identifier
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  _abstractCrazyNonsenseClassName
-    kind: identifier
-  _className
-    kind: identifier
-  _crazyNonsenseClassName
-    kind: identifier
-  _name
-    kind: identifier
-  _nonsenseClassName
-    kind: identifier
-  abstractCrazyNonsenseClassName
-    kind: identifier
-  className
-    kind: identifier
-  crazyNonsenseClassName
-    kind: identifier
-  name
-    kind: identifier
-  nonsenseClassName
-    kind: identifier
-''');
-    }
   }
 
   Future<void> test_topLevelVariable_dontSuggestType_beforeEnd() async {

@@ -7,7 +7,7 @@ import 'dart:typed_data';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +29,7 @@ final _isFolder = TypeMatcher<Folder>();
 class FileTest extends OverlayTestSupport {
   @failingTest
   test_changes() {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     fail('Not tested');
   }
 
@@ -294,7 +294,7 @@ class FileTest extends OverlayTestSupport {
   @failingTest
   void test_resolveSymbolicLinksSync_links_existingFile_withoutOverlay() {
     fail('Not tested');
-    // TODO(brianwilkerson) Decide how to test this given that we cannot
+    // TODO(brianwilkerson): Decide how to test this given that we cannot
     // create a link in a MemoryResourceProvider.
 //    // Create a file at '/temp/a/b/test.txt'.
 //    String pathA = baseProvider.convertPath('/temp/a');
@@ -438,7 +438,7 @@ class FolderTest extends OverlayTestSupport {
 
   @failingTest
   test_changes() {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     fail('Not tested');
   }
 
@@ -645,7 +645,7 @@ class FolderTest extends OverlayTestSupport {
 
   @failingTest
   test_resolveSymbolicLinksSync_links() {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     fail('Not tested');
   }
 

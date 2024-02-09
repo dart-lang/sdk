@@ -1435,7 +1435,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
 
   List<protocol.CompletionSuggestion> _filterSuggestions(
       String prefix, List<protocol.CompletionSuggestion> suggestions) {
-    // TODO(brianwilkerson) Replace this with a more realistic filtering
+    // TODO(brianwilkerson): Replace this with a more realistic filtering
     //  algorithm.
     return suggestions
         .where((suggestion) => suggestion.completion.startsWith(prefix))

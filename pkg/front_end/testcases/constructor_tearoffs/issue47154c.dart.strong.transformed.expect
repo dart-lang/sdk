@@ -24,7 +24,7 @@ static method m<X extends core::Object? = dynamic>(self::m::X% x) → void {}
 static method main() → void {
   #C4;
   core::print((#C6.{self::B::f}{(core::String) → void} as{TypeError,CovarianceCheck} (core::String) → void).{core::Object::runtimeType}{core::Type});
-  core::print(#C7.{self::C::f}{dynamic}.{core::Object::runtimeType}{core::Type});
+  core::print(#C7.{self::C::f}{dynamic}.{core::Object::runtimeType}{<object>}.{core::Type});
 }
 
 constants  {

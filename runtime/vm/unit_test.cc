@@ -661,6 +661,8 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
             String::Handle(lib.url()).ToCString(),
             /* klass= */ nullptr,
             /* method= */ nullptr,
+            /* token_pos= */ TokenPosition::kNoSource,
+            /* script_uri= */ String::Handle(lib.url()).ToCString(),
             /* is_static= */ true);
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       return Api::NewError("%s", compilation_result.error);
@@ -749,6 +751,17 @@ void AssemblerTest::Assemble() {
   }
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 #endif  // !PRODUCT
+}
+
+const Code& AssemblerTest::Generate(
+    const char* name,
+    const std::function<void(compiler::Assembler* assembler)>& generator) {
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler assembler(&object_pool_builder, /*far_branch_level=*/0);
+  AssemblerTest test(name, &assembler, Thread::Current()->zone());
+  assembler.Ret();
+  test.Assemble();
+  return test.code();
 }
 
 bool CompilerTest::TestCompileFunction(const Function& function) {

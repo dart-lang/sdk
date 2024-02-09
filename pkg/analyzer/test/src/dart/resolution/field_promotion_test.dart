@@ -654,9 +654,9 @@ PrefixedIdentifier
   identifier: SimpleIdentifier
     token: _foo
     staticElement: self::@class::C::@getter::_foo
-    staticType: int?
+    staticType: int
   staticElement: self::@class::C::@getter::_foo
-  staticType: int?
+  staticType: int
 ''');
   }
 
@@ -708,6 +708,33 @@ PrefixedIdentifier
     staticElement: self::@enum::E::@getter::_foo
     staticType: int
   staticElement: self::@enum::E::@getter::_foo
+  staticType: int
+''');
+  }
+
+  test_extensionType_field_representation() async {
+    await assertNoErrorsInCode('''
+extension type A(int? _it) {}
+
+void f(A a) {
+  if (a._it != null) {
+    a._it;
+  }
+}
+''');
+    final node = findNode.prefixed('a._it;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  period: .
+  identifier: SimpleIdentifier
+    token: _it
+    staticElement: self::@extensionType::A::@getter::_it
+    staticType: int
+  staticElement: self::@extensionType::A::@getter::_it
   staticType: int
 ''');
   }

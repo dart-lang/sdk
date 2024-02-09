@@ -32,6 +32,7 @@ class EditBulkFixes extends LegacyHandler {
       }
 
       var codes = params.codes?.map((e) => e.toLowerCase()).toList();
+      var updatePubspec = params.updatePubspec ?? false;
       var collection = AnalysisContextCollectionImpl(
         includedPaths: params.included,
         resourceProvider: server.resourceProvider,
@@ -40,18 +41,26 @@ class EditBulkFixes extends LegacyHandler {
       );
       var workspace = DartChangeWorkspace(
           collection.contexts.map((c) => c.currentSession).toList());
-      var processor = BulkFixProcessor(server.instrumentationService, workspace,
-          useConfigFiles: params.inTestMode ?? false, codes: codes);
-      var result = await processor.fixErrors(collection.contexts);
-      var message = result.errorMessage;
-      if (message != null) {
-        sendResult(EditBulkFixesResult(message, [], []));
+      var processor = BulkFixProcessor(
+        server.instrumentationService,
+        workspace,
+        codes: codes,
+      );
+      if (!updatePubspec) {
+        var result = await processor.fixErrors(collection.contexts);
+        var message = result.errorMessage;
+        if (message != null) {
+          sendResult(EditBulkFixesResult(message, [], []));
+        } else {
+          sendResult(EditBulkFixesResult(
+              '', result.builder!.sourceChange.edits, processor.fixDetails));
+        }
       } else {
-        sendResult(EditBulkFixesResult(
-            '', result.builder!.sourceChange.edits, processor.fixDetails));
+        var result = await processor.fixPubspec(collection.contexts);
+        sendResult(EditBulkFixesResult('', result.edits, result.details));
       }
     } catch (exception, stackTrace) {
-      // TODO(brianwilkerson) Move exception handling outside [handle].
+      // TODO(brianwilkerson): Move exception handling outside [handle].
       server.sendServerErrorNotification('Exception while getting bulk fixes',
           CaughtException(exception, stackTrace), stackTrace);
     }

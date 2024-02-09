@@ -7,8 +7,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
+import 'package:analyzer/source/line_info.dart' as analyzer;
+import 'package:analyzer/source/source_range.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
-import 'package:analyzer/src/generated/source.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 
 /// An object used to convert between objects defined by the 'analyzer' package
@@ -169,7 +170,7 @@ class AnalyzerConverter {
     } else if (element is analyzer.FieldElement && element.isEnumConstant
         // MyEnum.values and MyEnum.one.index return isEnumConstant = true
         // so these additional checks are necessary.
-        // TODO(danrubel) MyEnum.values is constant, but is a list
+        // TODO(danrubel): MyEnum.values is constant, but is a list
         // so should it return isEnumConstant = true?
         // MyEnum.one.index is final but *not* constant
         // so should it return isEnumConstant = true?
@@ -195,7 +196,7 @@ class AnalyzerConverter {
   /// Return a textual representation of the parameters of the given [element],
   /// or `null` if the element does not have any parameters.
   String? _getParametersString(analyzer.Element element) {
-    // TODO(scheglov) expose the corresponding feature from ExecutableElement
+    // TODO(scheglov): expose the corresponding feature from ExecutableElement
     List<analyzer.ParameterElement> parameters;
     if (element is analyzer.ExecutableElement) {
       // valid getters don't have parameters
@@ -272,7 +273,7 @@ class AnalyzerConverter {
   }
 
   bool _isAbstract(analyzer.Element element) {
-    // TODO(scheglov) add isAbstract to Element API
+    // TODO(scheglov): add isAbstract to Element API
     if (element is analyzer.ClassElement) {
       return element.isAbstract;
     } else if (element is analyzer.MethodElement) {
@@ -284,7 +285,7 @@ class AnalyzerConverter {
   }
 
   bool _isConst(analyzer.Element element) {
-    // TODO(scheglov) add isConst to Element API
+    // TODO(scheglov): add isConst to Element API
     if (element is analyzer.ConstructorElement) {
       return element.isConst;
     } else if (element is analyzer.VariableElement) {
@@ -294,7 +295,7 @@ class AnalyzerConverter {
   }
 
   bool _isFinal(analyzer.Element element) {
-    // TODO(scheglov) add isFinal to Element API
+    // TODO(scheglov): add isFinal to Element API
     if (element is analyzer.VariableElement) {
       return element.isFinal;
     }
@@ -302,7 +303,7 @@ class AnalyzerConverter {
   }
 
   bool _isStatic(analyzer.Element element) {
-    // TODO(scheglov) add isStatic to Element API
+    // TODO(scheglov): add isStatic to Element API
     if (element is analyzer.ExecutableElement) {
       return element.isStatic;
     } else if (element is analyzer.PropertyInducingElement) {

@@ -19,14 +19,16 @@ var tests = <VMTest>[
       expect(stack.where((e) => e.contains('VmService.callMethod')).length, 1);
       // Call to vm.callMethod('foo').
       expect(
-          stack.where((e) => e.contains('test/rpc_error_test.dart')).length, 1);
+        stack.where((e) => e.contains('test/rpc_error_test.dart')).length,
+        1,
+      );
     } catch (e) {
       fail('Expected RPCError, got $e');
     }
   },
 ];
 
-main([args = const <String>[]]) async => await runVMTests(
+Future<void> main([args = const <String>[]]) async => await runVMTests(
       args,
       tests,
       'rpc_error_test.dart',

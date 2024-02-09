@@ -42,6 +42,10 @@ class AstTextStrategy {
   /// class or function.
   final bool useQualifiedTypeParameterNames;
 
+  /// If `true`, type parameter names qualified also by local functions
+  /// (if named).
+  final bool useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions;
+
   /// If `true`, newlines are used to separate statements.
   final bool useMultiline;
 
@@ -75,6 +79,7 @@ class AstTextStrategy {
       this.includeAuxiliaryProperties = false,
       this.showNullableOnly = false,
       this.useQualifiedTypeParameterNames = true,
+      this.useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions = false,
       this.useMultiline = true,
       this.indentation = '  ',
       this.maxStatementDepth = 50,
@@ -167,7 +172,9 @@ class AstPrinter {
   void writeTypeParameterName(TypeParameter parameter) {
     _sb.write(_strategy.useQualifiedTypeParameterNames
         ? qualifiedTypeParameterNameToString(parameter,
-            includeLibraryName: _strategy.includeLibraryNamesInTypes)
+            includeLibraryName: _strategy.includeLibraryNamesInTypes,
+            recurseOnLocalFunction: _strategy
+                .useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions)
         : typeParameterNameToString(parameter));
   }
 
@@ -540,4 +547,25 @@ class AstPrinter {
 
   /// Returns the text written to this printer.
   String getText() => _sb.toString();
+}
+
+class MarkingAstPrinter extends AstPrinter {
+  Set<TreeNode> markThis;
+  MarkingAstPrinter(super.strategy, this.markThis);
+
+  @override
+  void writeStatement(Statement node) {
+    bool mark = markThis.contains(node);
+    if (mark) write("***");
+    super.writeStatement(node);
+    if (mark) write("***");
+  }
+
+  @override
+  void writeExpression(Expression node, {int? minimumPrecedence}) {
+    bool mark = markThis.contains(node);
+    if (mark) write("***");
+    super.writeExpression(node, minimumPrecedence: minimumPrecedence);
+    if (mark) write("***");
+  }
 }

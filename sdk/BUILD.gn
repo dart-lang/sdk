@@ -69,8 +69,6 @@ declare_args() {
 # ........dart2js_server_platform_unsound.dill
 # ........dart2wasm_outline.dill (if not on ia32)
 # ........dart2wasm_platform.dill (if not on ia32)
-# ........dart2wasm_stringref_outline.dill (if not on ia32)
-# ........dart2wasm_stringref_platform.dill (if not on ia32)
 # ........dart2wasm_js_compatibility_outline.dill (if not on ia32)
 # ........dart2wasm_js_compatibility_platform.dill (if not on ia32)
 # ........ddc_outline.dill
@@ -85,6 +83,7 @@ declare_args() {
 # ......core/
 # ......dev_compiler/
 #.........amd/require.js
+#.........ddc/ddc_module_loader.js
 #.........web/dart_stack_trace_mapper.js
 # ......developer/
 # ......html/
@@ -524,15 +523,12 @@ copy("copy_dart2wasm_platform") {
     "../:dart2wasm_platform",
     "../utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
     "../utils/dart2wasm:compile_dart2wasm_platform",
-    "../utils/dart2wasm:compile_dart2wasm_stringref_platform",
   ]
   sources = [
     "$root_out_dir/dart2wasm_js_compatibility_outline.dill",
     "$root_out_dir/dart2wasm_js_compatibility_platform.dill",
     "$root_out_dir/dart2wasm_outline.dill",
     "$root_out_dir/dart2wasm_platform.dill",
-    "$root_out_dir/dart2wasm_stringref_outline.dill",
-    "$root_out_dir/dart2wasm_stringref_platform.dill",
   ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
@@ -584,6 +580,16 @@ copy("copy_dev_compiler_amd_require_js") {
   ]
 }
 
+# Copies dart_library.js to lib/dev_compiler/ddc as 'ddc_module_loader.js'.
+# Used to load DDC compiled legacy/DDC modules.
+copy("copy_dev_compiler_ddc_dart_library_js") {
+  visibility = [ ":copy_dev_compiler_sdk" ]
+  sources = [ "../pkg/dev_compiler/lib/js/legacy/dart_library.js" ]
+  outputs = [
+    "$root_out_dir/$dart_sdk_output/lib/dev_compiler/ddc/ddc_module_loader.js",
+  ]
+}
+
 # Copies stack_trace_mapper tool to lib/dev_compiler/web.
 # Used when running DDC compiled applications.
 copy("copy_dev_compiler_stack_trace_mapper") {
@@ -601,6 +607,7 @@ group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
   public_deps = [
     ":copy_dev_compiler_amd_require_js",
+    ":copy_dev_compiler_ddc_dart_library_js",
     ":copy_dev_compiler_dills",
     ":copy_dev_compiler_stack_trace_mapper",
   ]
@@ -667,6 +674,9 @@ action("write_version_file") {
     "--output",
     rebase_path(output),
   ]
+  if (!dart_version_git_info) {
+    args += [ "--no-git-hash" ]
+  }
 }
 
 # This rule writes the revision file.
@@ -680,6 +690,9 @@ action("write_revision_file") {
     "--output",
     rebase_path(output),
   ]
+  if (!dart_version_git_info) {
+    args += [ "--no-git-hash" ]
+  }
 }
 
 # This rule copies the README file.
@@ -707,6 +720,9 @@ action("write_dartdoc_options") {
     "--output",
     rebase_path(output),
   ]
+  if (!dart_version_git_info) {
+    args += [ "--no-git-hash" ]
+  }
 }
 
 # This rule copies the API readme file to lib/

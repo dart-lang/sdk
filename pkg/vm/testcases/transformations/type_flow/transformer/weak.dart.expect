@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
 [@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  field core::int x;
-[@vm.inferred-type.metadata=dart.core::_Closure] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field core::Function y = #C1;
+[@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::used2) (closure 0 in #lib::used2)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field core::Function y = #C1;
   synthetic constructor •() → self::A
     : self::A::x = [@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] self::used1(), super core::Object::•()
     ;

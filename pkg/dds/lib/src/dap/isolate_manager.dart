@@ -278,6 +278,36 @@ class IsolateManager {
   /// [vm.StepOption.kOver], a [StepOption.kOverAsyncSuspension] step will be
   /// sent instead.
   Future<void> resumeThread(int threadId, [String? resumeType]) async {
+    await _resume(threadId, resumeType: resumeType);
+  }
+
+  /// Rewinds an isolate to an earlier frame using its client [threadId].
+  ///
+  /// If the isolate is not paused, or already has a pending resume request
+  /// in-flight, a request will not be sent.
+  Future<void> rewindThread(int threadId, {required int frameIndex}) async {
+    await _resume(
+      threadId,
+      resumeType: vm.StepOption.kRewind,
+      frameIndex: frameIndex,
+    );
+  }
+
+  /// Resumes (or steps) an isolate using its client [threadId].
+  ///
+  /// If the isolate is not paused, or already has a pending resume request
+  /// in-flight, a request will not be sent.
+  ///
+  /// If the isolate is paused at an async suspension and the [resumeType] is
+  /// [vm.StepOption.kOver], a [vm.StepOption.kOverAsyncSuspension] step will be
+  /// sent instead.
+  ///
+  /// If [resumeType] is [vm.StepOption.kRewind], [frameIndex] must be supplied.
+  Future<void> _resume(
+    int threadId, {
+    String? resumeType,
+    int? frameIndex,
+  }) async {
     // The first time a user resumes a thread is our signal that the app is now
     // "running" and future isolates can be auto-resumed. This only affects
     // attach, as it's already `true` for launch requests.
@@ -314,7 +344,11 @@ class IsolateManager {
 
     thread.hasPendingResume = true;
     try {
-      await _adapter.vmService?.resume(thread.isolate.id!, step: resumeType);
+      await _adapter.vmService?.resume(
+        thread.isolate.id!,
+        step: resumeType,
+        frameIndex: frameIndex,
+      );
     } on vm.SentinelException {
       // It's possible during these async requests that the isolate went away
       // (for example a shutdown/restart) and we no longer care about
@@ -1123,6 +1157,19 @@ class ThreadInfo with FileUtils {
         if (results == null) {
           // If no result, all of the results are null.
           completers.forEach((uri, completer) => completer.complete(null));
+        } else if (results.length != requiredUris.length) {
+          // If the lengths of the lists are different, we have an invalid
+          // response from the VM. This is a bug in the VM/VM Service:
+          // https://github.com/dart-lang/sdk/issues/52632
+
+          final reason =
+              results.length > requiredUris.length ? 'more' : 'fewer';
+          final message =
+              'lookupResolvedPackageUris result contained $reason results than '
+              'the request. See https://github.com/dart-lang/sdk/issues/52632';
+          final error = Exception(message);
+          completers
+              .forEach((uri, completer) => completer.completeError(error));
         } else {
           // Otherwise, complete each one by index with the corresponding value.
           results.map(_convertUriToFilePath).forEachIndexed((i, result) {
@@ -1133,7 +1180,15 @@ class ThreadInfo with FileUtils {
       } catch (e) {
         // We can't leave dangling completers here because others may already
         // be waiting on them, so propagate the error to them.
-        completers.forEach((uri, completer) => completer.completeError(e));
+        completers.forEach((uri, completer) {
+          // Only complete if not already completed. It's possible an exception
+          // occurred above inside the loop and that some of the completers have
+          // already completed. We don't want to replace a good exception with
+          // "Future already completed".
+          if (!completer.isCompleted) {
+            completer.completeError(e);
+          }
+        });
 
         // Don't rethrow here, because it will cause these completers futures
         // to not have error handlers attached which can cause their errors to
@@ -1249,6 +1304,10 @@ class ThreadInfo with FileUtils {
     } else if (input.isScheme('file')) {
       return input.toFilePath();
     } else {
+      final uriConverter = _manager._adapter.uriConverter();
+      if (uriConverter != null) {
+        return uriConverter(input.toString());
+      }
       return _manager._adapter.convertOrgDartlangSdkToPath(input);
     }
   }

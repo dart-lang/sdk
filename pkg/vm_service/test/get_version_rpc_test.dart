@@ -15,7 +15,7 @@ var tests = <VMTest>[
   },
 ];
 
-main([args = const <String>[]]) async => await runVMTests(
+Future<void> main([args = const <String>[]]) async => await runVMTests(
       args,
       tests,
       'get_version_rpc_test.dart',

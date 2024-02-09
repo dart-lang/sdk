@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateConstructor extends ResolvedCorrectionProducer {
   /// The name of the constructor being created.
-  /// TODO(migration) We set this node when we have the change.
+  // TODO(migration): We set this node when we have the change.
   late String _constructorName;
 
   @override
@@ -93,7 +93,8 @@ class CreateConstructor extends ResolvedCorrectionProducer {
 
     // prepare location
     var targetLocation = CorrectionUtils(targetUnit)
-        .prepareNewConstructorLocation(unitResult.session, targetNode);
+        .prepareNewConstructorLocation(
+            unitResult.session, targetNode, targetUnit.file);
     if (targetLocation == null) {
       return;
     }
@@ -178,7 +179,8 @@ class CreateConstructor extends ResolvedCorrectionProducer {
 
     // prepare location
     var targetLocation = CorrectionUtils(targetUnit)
-        .prepareNewConstructorLocation(unitResult.session, targetNode);
+        .prepareNewConstructorLocation(
+            unitResult.session, targetNode, targetUnit.file);
     if (targetLocation == null) {
       return;
     }

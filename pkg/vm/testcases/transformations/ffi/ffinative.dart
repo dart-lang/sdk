@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests for @FfiNative related transformations.
+// Tests for @Native related transformations.
 
 // ignore_for_file: deprecated_member_use
 
@@ -11,43 +11,47 @@
 import 'dart:ffi';
 import 'dart:nativewrappers';
 
-@FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr')
+@Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr')
 external int returnIntPtr(int x);
 
-@FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr', isLeaf: true)
+@Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr', isLeaf: true)
 external int returnIntPtrLeaf(int x);
 
+@Native<IntPtr Function(IntPtr)>(isLeaf: true)
+external int returnNativeIntPtrLeaf(int x);
+
 class Classy {
-  @FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr')
+  @Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr')
   external static int returnIntPtrStatic(int x);
 }
 
 class NativeClassy extends NativeFieldWrapperClass1 {
-  @FfiNative<Void Function(Pointer<Void>, IntPtr)>('doesntmatter')
+  @Native<Void Function(Pointer<Void>, IntPtr)>(symbol: 'doesntmatter')
   external void goodHasReceiverPointer(int v);
 
-  @FfiNative<Void Function(Handle, IntPtr)>('doesntmatter')
+  @Native<Void Function(Handle, IntPtr)>(symbol: 'doesntmatter')
   external void goodHasReceiverHandle(int v);
 
-  @FfiNative<Void Function(Handle, Pointer<Void>)>('doesntmatter')
+  @Native<Void Function(Handle, Pointer<Void>)>(symbol: 'doesntmatter')
   external void goodHasReceiverHandleAndPtr(NativeClassy v);
 
-  @FfiNative<Void Function(Handle, Handle)>('doesntmatter')
+  @Native<Void Function(Handle, Handle)>(symbol: 'doesntmatter')
   external void goodHasReceiverHandleAndHandle(NativeClassy v);
 
-  @FfiNative<Void Function(Pointer<Void>, Handle)>('doesntmatter')
+  @Native<Void Function(Pointer<Void>, Handle)>(symbol: 'doesntmatter')
   external void goodHasReceiverPtrAndHandle(NativeClassy v);
 
-  @FfiNative<Handle Function(Pointer<Void>, Bool)>('doesntmatter')
+  @Native<Handle Function(Pointer<Void>, Bool)>(symbol: 'doesntmatter')
   external String? meh(bool blah);
 
-  @FfiNative<Bool Function(Pointer<Void>)>('doesntmatter')
+  @Native<Bool Function(Pointer<Void>)>(symbol: 'doesntmatter')
   external bool blah();
 
-  @FfiNative<Bool Function(Pointer<Void>)>('doesntmatter', isLeaf: true)
+  @Native<Bool Function(Pointer<Void>)>(symbol: 'doesntmatter', isLeaf: true)
   external bool get myField;
 
-  @FfiNative<Void Function(Pointer<Void>, Bool)>('doesntmatter', isLeaf: true)
+  @Native<Void Function(Pointer<Void>, Bool)>(
+      symbol: 'doesntmatter', isLeaf: true)
   external set myField(bool value);
 }
 
@@ -64,4 +68,6 @@ void main() {
   NativeClassy().blah();
   final b = NativeClassy().myField;
   NativeClassy().myField = !b;
+
+  Native.addressOf<NativeFunction<IntPtr Function(IntPtr)>>(returnIntPtr);
 }

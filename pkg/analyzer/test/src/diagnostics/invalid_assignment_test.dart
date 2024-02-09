@@ -1031,11 +1031,15 @@ int Function() foo(int Function<T extends int>() f) {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('f;'),
-      element: findElement.parameter('f'),
-      type: 'int Function()',
-    );
+    final node = findNode.simple('f;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: f
+  staticElement: self::@function::foo::@parameter::f
+  staticType: int* Function()*
+  tearOffTypeArgumentTypes
+    int*
+''');
   }
 
   test_ifNullAssignment() async {
@@ -1085,12 +1089,30 @@ class B<T> {
 @reflectiveTest
 class InvalidAssignmentWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
-  test_assignment() async {
+  test_functionType() async {
+    await assertErrorsWithStrictCasts('''
+dynamic a;
+void Function(int i) f = a;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 36, 1),
+    ]);
+  }
+
+  test_interfaceType() async {
     await assertErrorsWithStrictCasts('''
 dynamic a;
 int b = a;
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
+  }
+
+  test_recordType() async {
+    await assertErrorsWithStrictCasts('''
+dynamic a;
+(int i, ) r = a;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 25, 1),
     ]);
   }
 }

@@ -349,7 +349,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ///
   /// `null` if the session is running in noDebug mode of the connection has not
   /// yet been made.
-  vm.VmServiceInterface? vmService;
+  vm.VmService? vmService;
 
   /// The root of the Dart SDK containing the VM running the debug adapter.
   late final String dartSdkRoot;
@@ -616,7 +616,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// of attach) or from something like a vm-service-info file or Flutter
   /// app.debugPort message.
   ///
-  /// The URI protocol will be changed to ws/wss but otherwise not normalised.
+  /// The URI protocol will be changed to ws/wss but otherwise not normalized.
   /// The caller should handle any other normalisation (such as adding /ws to
   /// the end if required).
   Future<void> connectDebugger(Uri uri) async {
@@ -941,8 +941,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     void Function(EvaluateResponseBody) sendResponse,
   ) async {
     final frameId = args.frameId;
-    // TODO(dantup): Special handling for clipboard/watch (see Dart-Code DAP) to
-    // avoid wrapping strings in quotes, etc.
 
     // If the frameId was supplied, it maps to an ID we provided from stored
     // data so we need to look up the isolate + frame index for it.
@@ -957,7 +955,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     // To support global evaluation, we allow passing a file:/// URI in the
-    // context argument.
+    // context argument. This is always from the repl.
     final context = args.context;
     final targetScriptFileUri = context != null &&
             context.startsWith('file://') &&
@@ -965,9 +963,23 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         ? Uri.tryParse(context)
         : null;
 
+    /// Clipboard context means the user has chosen to copy the value to the
+    /// clipboard, so we should strip any quotes and expand to the full string.
+    final isClipboard = args.context == 'clipboard';
+
+    /// In the repl, we should also expand the full string, but keep the quotes
+    /// because that's our indicator it is a string (eg. "1" vs 1). Since
+    /// we override context with script IDs for global evaluation, we must
+    /// also treat presence of targetScriptFileUri as repl.
+    final isRepl = args.context == 'repl' || targetScriptFileUri != null;
+
+    final shouldSuppressQuotes = isClipboard;
+    final shouldExpandTruncatedValues = isClipboard || isRepl;
+
     if ((thread == null || frameIndex == null) && targetScriptFileUri == null) {
-      throw UnimplementedError(
-          'Global evaluation not currently supported without a Dart script context');
+      throw DebugAdapterException(
+          'Evaluation is only supported when the debugger is paused '
+          'unless you have a Dart file active in the editor');
     }
 
     // Parse the expression for trailing format specifiers.
@@ -980,10 +992,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           .replaceFirst(_trailingSemicolonPattern, ''),
     );
     final expression = expressionData.expression;
-    final format = expressionData.format ??
+    var format = expressionData.format ??
         // If we didn't parse a format specifier, fall back to the format in
         // the arguments.
         VariableFormat.fromDapValueFormat(args.format);
+
+    if (shouldSuppressQuotes) {
+      format = format != null
+          ? VariableFormat.from(format, noQuotes: true)
+          : VariableFormat.noQuotes();
+    }
 
     final exceptionReference = thread?.exceptionReference;
     // The value in the constant `frameExceptionExpression` is used as a special
@@ -1056,8 +1074,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final resultString = await _converter.convertVmInstanceRefToDisplayString(
         thread,
         result,
-        allowCallingToString: evaluateToStringInDebugViews,
+        allowCallingToString:
+            evaluateToStringInDebugViews || shouldExpandTruncatedValues,
         format: format,
+        allowTruncatedValue: !shouldExpandTruncatedValues,
       );
 
       final variablesReference = _converter.isSimpleKind(result.kind)
@@ -1162,8 +1182,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       supportsValueFormattingOptions: true,
       supportsLogPoints: true,
       supportsRestartRequest: supportsRestartRequest,
-      // TODO(dantup): All of these...
-      // supportsRestartFrame: true,
+      supportsRestartFrame: true,
       supportsTerminateRequest: true,
     ));
 
@@ -1274,10 +1293,35 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   Future<void> pauseRequest(
     Request request,
     PauseArguments args,
-    void Function(PauseResponseBody) sendResponse,
+    void Function() sendResponse,
   ) async {
     await isolateManager.pauseThread(args.threadId);
-    sendResponse(PauseResponseBody());
+    sendResponse();
+  }
+
+  /// Handles the clients "restartFrame" request for the frame in
+  /// [args.frameId].
+  @override
+  Future<void> restartFrameRequest(
+    Request request,
+    RestartFrameArguments args,
+    void Function() sendResponse,
+  ) async {
+    final data = isolateManager.getStoredData(args.frameId);
+    if (data == null) {
+      // Thread/frame is no longer valid.
+      return;
+    }
+
+    final thread = data.thread;
+    final frame = data.data;
+    final frameIndex = frame is vm.Frame ? frame.index : null;
+    if (frameIndex == null) {
+      return;
+    }
+
+    await isolateManager.rewindThread(thread.threadId, frameIndex: frameIndex);
+    sendResponse();
   }
 
   /// restart is called by the client when the user invokes a restart (for
@@ -1631,7 +1675,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     var totalFrames = 1;
 
     if (thread == null) {
-      throw DebugAdapterException('No thread with threadId $threadId');
+      if (isolateManager.isInvalidThreadId(threadId)) {
+        throw DebugAdapterException('Thread $threadId was not found');
+      } else {
+        // This condition means the thread ID was valid but the isolate has
+        // since exited so rather than displaying an error, just return an empty
+        // response because the client will be no longer interested in the
+        // response.
+        sendResponse(StackTraceResponseBody(
+          stackFrames: [],
+          totalFrames: 0,
+        ));
+        return;
+      }
     }
 
     if (!thread.paused) {
@@ -1679,9 +1735,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // up until the first async boundary (e.g. rewind) since we're showing
         // the user async frames which are out-of-sync with the real frames
         // past that point.
-        final firstAsyncMarkerIndex = frames.indexWhere(
+        int? firstAsyncMarkerIndex = frames.indexWhere(
           (frame) => frame.kind == vm.FrameKind.kAsyncSuspensionMarker,
         );
+        // indexWhere returns -1 if not found, we treat that as no marker (we
+        // can rewind for all frames in the stack).
+        if (firstAsyncMarkerIndex == -1) {
+          firstAsyncMarkerIndex = null;
+        }
 
         // Pre-resolve all URIs in batch so the call below does not trigger
         // many requests to the server.
@@ -2127,21 +2188,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // frames.
     final paths = await Future.wait(frames.map((frame) async {
       final uri = frame?.uri;
-      if (uri == null || thread == null) return null;
+      if (uri == null) return null;
       if (uri.isScheme('file')) {
         final path = uri.toFilePath();
         return _PathInfo(path, isUserCode: isInUserProject(path));
       }
-      if (isResolvableUri(uri)) {
-        try {
-          final path = await thread.resolveUriToPath(uri);
-          return path != null
-              ? _PathInfo(path, isUserCode: isInUserProject(path))
-              : null;
-        } catch (e, s) {
-          // Swallow errors for the same reason noted above.
-          logger?.call('Failed to resolve URIs: $e\n$s');
-        }
+      if (thread == null || !isResolvableUri(uri)) return null;
+      try {
+        final path = await thread.resolveUriToPath(uri);
+        return path != null
+            ? _PathInfo(path, isUserCode: isInUserProject(path))
+            : null;
+      } catch (e, s) {
+        // Swallow errors for the same reason noted above.
+        logger?.call('Failed to resolve URIs: $e\n$s');
       }
       return null;
     }));

@@ -1,8 +1,8 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'package:analyzer/dart/ast/ast.dart';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:scrape/scrape.dart';
 
 /// Known cases where an "if" statement could instead be an "if" element inside
@@ -15,7 +15,7 @@ final _buildMethods = <String>[];
 void main(List<String> arguments) {
   Scrape()
     ..addHistogram('build methods')
-    ..addVisitor(() => ControlFlowVisitor())
+    ..addVisitor(ControlFlowVisitor.new)
     ..runCommandLine(arguments);
 
   _buildMethods.shuffle();

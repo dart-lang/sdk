@@ -641,6 +641,33 @@ abstract interface class HeaderValue {
 }
 
 /// The [session][HttpRequest.session] of an [HttpRequest].
+///
+/// Stores arbitrary information about a browser session on the server. This
+/// information is stored in memory so it will be lost when the server exits.
+///
+/// A cookie named "DARTSESSID" is stored on the browser to associate the
+/// `HttpSession` with a particular client.
+///
+/// ```dart
+/// import 'dart:io';
+///
+/// void main() async {
+///   HttpServer.bind("localhost", 8080).then((server) {
+///     server.listen((request) {
+///       final session = request.session;
+///       if (session.isNew) {
+///         session["cart"] = [];
+///       }
+///       if (request.uri.queryParameters['buy'] != null) {
+///         final item = request.uri.queryParameters['buy'];
+///         session["cart"].add(item);
+///       }
+///       session["cart"].cast<String>().forEach(request.response.writeln);
+///       request.response.close();
+///     });
+///   });
+/// }
+/// ```
 abstract interface class HttpSession implements Map {
   /// The id of the current session.
   String get id;
@@ -1098,13 +1125,23 @@ abstract interface class HttpResponse implements IOSink {
 
 /// An HTTP client for communicating with an HTTP server.
 ///
+/// > **Note:** You should avoid directly using `HttpClient` to make HTTP
+/// > requests. You can use `HttpClient` indirectly through the
+/// > [`IOClient`](https://pub.dev/documentation/http/latest/io_client/IOClient-class.html)
+/// > adapter in [`package:http`](https://pub.dev/packages/http).
+/// >
+/// > Using a higher-level library,
+/// > like [`package:http`](https://pub.dev/packages/http), allows you to
+/// > switch implementations with minimal changes to your code. For example,
+/// > `package:http`
+/// > [`Client`](https://pub.dev/documentation/http/latest/http/Client-class.html)
+/// > has implementations for the browser and implementations that use
+/// > platform native HTTP clients on Android and iOS. Unlike `HttpClient`,
+/// > these native implementations work with the proxies, VPNs, etc.
+///
 /// Sends HTTP requests to an HTTP server and receives responses.
 /// Maintains state, including session cookies and other cookies,
 /// between multiple requests to the same server.
-///
-/// Note: [HttpClient] provides low-level HTTP functionality.
-/// We recommend users start with more developer-friendly and composable APIs
-/// found in [`package:http`](https://pub.dev/packages/http).
 ///
 /// HttpClient contains a number of methods to send an [HttpClientRequest]
 /// to an Http server and receive an [HttpClientResponse] back.

@@ -70,7 +70,7 @@ class MockServerChannel implements ServerCommunicationChannel {
           StackTrace.fromString(params['stackTrace'] as String));
     }
     // Wrap send notification in future to simulate websocket
-    // TODO(scheglov) ask Dan why and decide what to do
+    // TODO(scheglov): ask Dan why and decide what to do
 //    new Future(() => notificationController.add(notification));
     notificationController.add(notification);
   }

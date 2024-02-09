@@ -197,7 +197,7 @@ class X implements A, B, C {
 ''');
     var foo = findElement.field('foo', of: 'X');
     _assertFieldTypeDynamic(foo);
-    // TODO(scheglov) error?
+    // TODO(scheglov): error?
   }
 
   test_field_multiple_gettersSetters_notFinal_combined_same() async {

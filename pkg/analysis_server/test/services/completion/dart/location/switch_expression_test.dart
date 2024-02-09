@@ -8,27 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SwitchExpressionTest1);
-    defineReflectiveTests(SwitchExpressionTest2);
+    defineReflectiveTests(SwitchExpressionTest);
   });
 }
 
 @reflectiveTest
-class SwitchExpressionTest1 extends AbstractCompletionDriverTest
-    with SwitchExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class SwitchExpressionTest2 extends AbstractCompletionDriverTest
-    with SwitchExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
-
-// mixin SwitchCaseTestCases on AbstractCompletionDriverTest {
-// }
+class SwitchExpressionTest extends AbstractCompletionDriverTest
+    with SwitchExpressionTestCases {}
 
 mixin SwitchExpressionTestCases on AbstractCompletionDriverTest {
   Future<void> test_body_afterArrow() async {
@@ -41,8 +27,18 @@ int f(Object p01) {
 ''');
     assertResponse(r'''
 suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
   p01
     kind: parameter
+  switch
+    kind: keyword
+  true
+    kind: keyword
 ''');
   }
 
@@ -57,15 +53,24 @@ int f(Object p01) {
 
 class A1 {}
 ''');
-    // TODO(scheglov) This is wrong.
     assertResponse(r'''
 suggestions
   A1
     kind: class
   A1
     kind: constructorInvocation
-  p01
-    kind: parameter
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 
@@ -95,12 +100,22 @@ suggestions
     kind: constructorInvocation
   c01
     kind: topLevelVariable
+  const
+    kind: keyword
   f01
     kind: functionInvocation
-  p01
-    kind: parameter
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
+  var
+    kind: keyword
 ''');
   }
 
@@ -124,9 +139,8 @@ final B03 = 0;
 int A04() => 0;
 int B04() => 0;
 ''');
-    if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
-      assertResponse(r'''
+    // TODO(scheglov): This is wrong.
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -141,35 +155,6 @@ suggestions
   A04
     kind: functionInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A01
-    kind: constructorInvocation
-  A02
-    kind: topLevelVariable
-  A03
-    kind: topLevelVariable
-  A04
-    kind: functionInvocation
-  B01
-    kind: class
-  B01
-    kind: constructorInvocation
-  B02
-    kind: topLevelVariable
-  B03
-    kind: topLevelVariable
-  B04
-    kind: functionInvocation
-  p01
-    kind: parameter
-''');
-    }
   }
 
   Future<void> test_body_partial2() async {
@@ -192,9 +177,8 @@ final B03 = 0;
 int A04() => 0;
 int B04() => 0;
 ''');
-    if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
-      assertResponse(r'''
+    // TODO(scheglov): This is wrong.
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -209,35 +193,6 @@ suggestions
   A04
     kind: functionInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A01
-    kind: constructorInvocation
-  A02
-    kind: topLevelVariable
-  A03
-    kind: topLevelVariable
-  A04
-    kind: functionInvocation
-  B01
-    kind: class
-  B01
-    kind: constructorInvocation
-  B02
-    kind: topLevelVariable
-  B03
-    kind: topLevelVariable
-  B04
-    kind: functionInvocation
-  p01
-    kind: parameter
-''');
-    }
   }
 
   Future<void> test_expression() async {

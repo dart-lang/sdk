@@ -4,6 +4,9 @@
 //
 // Measure performance of string comparison.
 
+// Using string interpolation could change what this test is measuring.
+// ignore_for_file: prefer_interpolation_to_compose_strings
+
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 int equalCount = 0;
@@ -13,14 +16,14 @@ class LongStringCompare extends BenchmarkBase {
   final List<String> s = [];
 
   String generateLongString(int lengthPower) {
-    return "abc" * (1 << lengthPower) + "def";
+    return 'abc' * (1 << lengthPower) + 'def';
   }
 
   LongStringCompare(int lengthPower, this.reps)
       : super('LongStringCompare.${1 << lengthPower}.${reps}reps') {
     final single = generateLongString(lengthPower);
-    s.add(single + "." + single);
-    s.add(single + "!" + single);
+    s.add(single + '.' + single);
+    s.add(single + '!' + single);
   }
 
   @override
@@ -34,7 +37,7 @@ class LongStringCompare extends BenchmarkBase {
   void run() {
     for (int i = 0; i < reps; i++) {
       // Make string comparison code hoisting harder for the compiler to do.
-      bool comparison = s[i % 2] == s[(i + 1) % 2];
+      final bool comparison = s[i % 2] == s[(i + 1) % 2];
       if (comparison) {
         equalCount++;
       }
@@ -46,5 +49,5 @@ void main() {
   LongStringCompare(1, 3000).report();
   LongStringCompare(5, 1000).report();
   LongStringCompare(10, 30).report();
-  if (equalCount > 0) throw StateError("Unexpected equalCount: $equalCount");
+  if (equalCount > 0) throw StateError('Unexpected equalCount: $equalCount');
 }

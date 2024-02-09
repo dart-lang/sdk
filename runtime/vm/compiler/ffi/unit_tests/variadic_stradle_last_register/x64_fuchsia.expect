@@ -1,0 +1,8 @@
+rdi int64
+rsi int64
+rdx int64
+rcx int64
+r8 int64
+S+0 Struct(size: 12)
+=>
+rax int64

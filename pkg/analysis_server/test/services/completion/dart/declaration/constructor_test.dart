@@ -8,24 +8,14 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstructorTest1);
-    defineReflectiveTests(ConstructorTest2);
+    defineReflectiveTests(ConstructorTest);
+    defineReflectiveTests(NamedConstructorTest);
   });
 }
 
 @reflectiveTest
-class ConstructorTest1 extends AbstractCompletionDriverTest
-    with ConstructorTestCases, NamedConstructorTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ConstructorTest2 extends AbstractCompletionDriverTest
-    with ConstructorTestCases, NamedConstructorTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ConstructorTest extends AbstractCompletionDriverTest
+    with ConstructorTestCases {}
 
 mixin ConstructorTestCases on AbstractCompletionDriverTest {
   Future<void> test_noKeyword() async {
@@ -107,18 +97,9 @@ void f() {
   var x = new ^
 }
 ''');
-
-    if (isProtocolVersion1) {
-      assertResponse(r'''
-suggestions
-  S0
-    kind: constructorInvocation
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    }
   }
 
   Future<void> test_sealed_local() async {
@@ -134,6 +115,10 @@ suggestions
 ''');
   }
 }
+
+@reflectiveTest
+class NamedConstructorTest extends AbstractCompletionDriverTest
+    with NamedConstructorTestCases {}
 
 mixin NamedConstructorTestCases on AbstractCompletionDriverTest {
   @override
@@ -173,25 +158,13 @@ void f() {
   A Function() v = A.na^;
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   named
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  named
-    kind: constructorInvocation
-  new
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void>
@@ -250,25 +223,13 @@ void f() {
   A<int> Function() v = A<int>.na^;
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   named
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  named
-    kind: constructorInvocation
-  new
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void>

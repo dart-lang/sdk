@@ -1,0 +1,14 @@
+extension type E(int foo) {
+  factory E.redirNotEnough() = E;
+  factory E.redirTooMany1(int foo, String bar) = E;
+  factory E.redirTooMany2(int foo, String bar, num baz) = E;
+  factory E.redirTooMany3(int foo, [dynamic bar]) = E;
+  factory E.redirTooMany4(int foo, {required Object bar}) = E;
+  factory E.redirCyclic1(int foo) = E.redirCyclic2;
+  factory E.redirCyclic2(int foo) = E.redirCyclic1;
+  factory E.redirCyclicSelf(int foo) = E.redirCyclicSelf;
+}
+extension type GE<X>(X foo) {
+  factory GE.redirNotEnough1() = GE;
+  factory GE.redirNotEnough2() = GE.redirNotEnough1;
+}

@@ -6,37 +6,37 @@ library;
 //     var x = T() {};
 //             ^
 //
-// pkg/front_end/testcases/general/named_function_scope.dart:31:9: Error: Can't declare 'V' because it was already used in this scope.
+// pkg/front_end/testcases/general/named_function_scope.dart:29:5: Error: Local variable 'V' can't be referenced before it is declared.
+//     V v;
+//     ^
+// pkg/front_end/testcases/general/named_function_scope.dart:31:9: Context: This is the declaration of the variable 'V'.
 //     var V;
 //         ^
-// pkg/front_end/testcases/general/named_function_scope.dart:29:5: Context: Previous use of 'V'.
+//
+// pkg/front_end/testcases/general/named_function_scope.dart:34:5: Error: Local variable 'V' can't be referenced before it is declared.
 //     V v;
 //     ^
-//
-// pkg/front_end/testcases/general/named_function_scope.dart:36:9: Error: Can't declare 'V' because it was already used in this scope.
+// pkg/front_end/testcases/general/named_function_scope.dart:36:9: Context: This is the declaration of the variable 'V'.
 //     var V = null;
 //         ^
-// pkg/front_end/testcases/general/named_function_scope.dart:34:5: Context: Previous use of 'V'.
-//     V v;
-//     ^
 //
 // pkg/front_end/testcases/general/named_function_scope.dart:41:15: Error: A function expression can't have a name.
 //     var x = T T() {};
 //               ^
 //
-// pkg/front_end/testcases/general/named_function_scope.dart:41:15: Error: Can't declare 'T' because it was already used in this scope.
-//     var x = T T() {};
-//               ^
-// pkg/front_end/testcases/general/named_function_scope.dart:41:13: Context: Previous use of 'T'.
+// pkg/front_end/testcases/general/named_function_scope.dart:41:13: Error: Local variable 'T' can't be referenced before it is declared.
 //     var x = T T() {};
 //             ^
+// pkg/front_end/testcases/general/named_function_scope.dart:41:15: Context: This is the declaration of the variable 'T'.
+//     var x = T T() {};
+//               ^
 //
-// pkg/front_end/testcases/general/named_function_scope.dart:47:7: Error: Can't declare 'V' because it was already used in this scope.
-//     V V;
-//       ^
-// pkg/front_end/testcases/general/named_function_scope.dart:47:5: Context: Previous use of 'V'.
+// pkg/front_end/testcases/general/named_function_scope.dart:47:5: Error: Local variable 'V' can't be referenced before it is declared.
 //     V V;
 //     ^
+// pkg/front_end/testcases/general/named_function_scope.dart:47:7: Context: This is the declaration of the variable 'V'.
+//     V V;
+//       ^
 //
 // pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: A function expression can't have a name.
 //     var x = T<T>() {};
@@ -49,33 +49,47 @@ library;
 //     var x = T<T>() {};
 //               ^
 //
-// pkg/front_end/testcases/general/named_function_scope.dart:56:7: Error: Can't declare 'T' because it was already used in this scope.
-//     T T() => throw '';
-//       ^
-// pkg/front_end/testcases/general/named_function_scope.dart:55:5: Context: Previous use of 'T'.
+// pkg/front_end/testcases/general/named_function_scope.dart:55:5: Error: Local variable 'T' can't be referenced before it is declared.
 //     T t;
 //     ^
-//
-// pkg/front_end/testcases/general/named_function_scope.dart:59:7: Error: Can't declare 'T' because it was already used in this scope.
+// pkg/front_end/testcases/general/named_function_scope.dart:56:7: Context: This is the declaration of the variable 'T'.
 //     T T() => throw '';
 //       ^
-// pkg/front_end/testcases/general/named_function_scope.dart:59:5: Context: Previous use of 'T'.
+//
+// pkg/front_end/testcases/general/named_function_scope.dart:56:5: Error: Local variable 'T' can't be referenced before it is declared.
 //     T T() => throw '';
 //     ^
-//
-// pkg/front_end/testcases/general/named_function_scope.dart:63:7: Error: Can't declare 'T' because it was already used in this scope.
-//     T T(T t) => t;
+// pkg/front_end/testcases/general/named_function_scope.dart:56:7: Context: This is the declaration of the variable 'T'.
+//     T T() => throw '';
 //       ^
-// pkg/front_end/testcases/general/named_function_scope.dart:62:5: Context: Previous use of 'T'.
+//
+// pkg/front_end/testcases/general/named_function_scope.dart:59:5: Error: Local variable 'T' can't be referenced before it is declared.
+//     T T() => throw '';
+//     ^
+// pkg/front_end/testcases/general/named_function_scope.dart:59:7: Context: This is the declaration of the variable 'T'.
+//     T T() => throw '';
+//       ^
+//
+// pkg/front_end/testcases/general/named_function_scope.dart:62:5: Error: Local variable 'T' can't be referenced before it is declared.
 //     T t;
 //     ^
-//
-// pkg/front_end/testcases/general/named_function_scope.dart:66:7: Error: Can't declare 'T' because it was already used in this scope.
+// pkg/front_end/testcases/general/named_function_scope.dart:63:7: Context: This is the declaration of the variable 'T'.
 //     T T(T t) => t;
 //       ^
-// pkg/front_end/testcases/general/named_function_scope.dart:66:5: Context: Previous use of 'T'.
+//
+// pkg/front_end/testcases/general/named_function_scope.dart:63:5: Error: Local variable 'T' can't be referenced before it is declared.
 //     T T(T t) => t;
 //     ^
+// pkg/front_end/testcases/general/named_function_scope.dart:63:7: Context: This is the declaration of the variable 'T'.
+//     T T(T t) => t;
+//       ^
+//
+// pkg/front_end/testcases/general/named_function_scope.dart:66:5: Error: Local variable 'T' can't be referenced before it is declared.
+//     T T(T t) => t;
+//     ^
+// pkg/front_end/testcases/general/named_function_scope.dart:66:7: Context: This is the declaration of the variable 'T'.
+//     T T(T t) => t;
+//       ^
 //
 // pkg/front_end/testcases/general/named_function_scope.dart:69:12: Error: 'T' isn't a type.
 //     void T(T t) {}
@@ -118,37 +132,26 @@ static method test() → dynamic {
   }
   {
     self::V v;
-    invalid-type V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:31:9: Error: Can't declare 'V' because it was already used in this scope.
-    var V;
-        ^";
+    dynamic V;
   }
   {
     self::V v;
-    invalid-type V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:36:9: Error: Can't declare 'V' because it was already used in this scope.
-    var V = null;
-        ^" in null;
+    has-declared-initializer dynamic V = null;
   }
   {
     invalid-type x = block {
-      {
-        invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:15: Error: Can't declare 'T' because it was already used in this scope.
-    var x = T T() {};
-              ^";
-        function T() → self::T {
-          return invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:13: Error: A non-null value must be returned since the return type 'T' doesn't allow null.
+      function T() → self::T {
+        return invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:13: Error: A non-null value must be returned since the return type 'T' doesn't allow null.
  - 'T' is from 'pkg/front_end/testcases/general/named_function_scope.dart'.
     var x = T T() {};
             ^" in null;
-        }
       }
     } =>invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:13: Error: A function expression can't have a name.
     var x = T T() {};
             ^";
   }
   {
-    self::V V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:47:7: Error: Can't declare 'V' because it was already used in this scope.
-    V V;
-      ^";
+    self::V V;
   }
   {
     invalid-type x = block {
@@ -164,41 +167,21 @@ static method test() → dynamic {
   }
   {
     self::T t;
-    {
-      invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:56:7: Error: Can't declare 'T' because it was already used in this scope.
-    T T() => throw '';
-      ^";
-      function T() → self::T
-        return throw "";
-    }
+    function T() → self::T
+      return throw "";
   }
   {
-    {
-      invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:59:7: Error: Can't declare 'T' because it was already used in this scope.
-    T T() => throw '';
-      ^";
-      function T() → self::T
-        return throw "";
-    }
+    function T() → self::T
+      return throw "";
   }
   {
     self::T t;
-    {
-      invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:63:7: Error: Can't declare 'T' because it was already used in this scope.
-    T T(T t) => t;
-      ^";
-      function T(self::T t) → self::T
-        return t;
-    }
+    function T(self::T t) → self::T
+      return t;
   }
   {
-    {
-      invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:66:7: Error: Can't declare 'T' because it was already used in this scope.
-    T T(T t) => t;
-      ^";
-      function T(self::T t) → self::T
-        return t;
-    }
+    function T(self::T t) → self::T
+      return t;
   }
   {
     function T(invalid-type t) → void {}

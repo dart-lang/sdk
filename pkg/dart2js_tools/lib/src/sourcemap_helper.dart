@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Utility functions to make it easier to work with source-map files.
+library;
 
 import 'package:source_maps/source_maps.dart';
 // ignore: implementation_imports

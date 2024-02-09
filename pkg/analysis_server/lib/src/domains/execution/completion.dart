@@ -41,7 +41,7 @@ class RuntimeCompletionComputer {
       builder.addInsertion(contextOffset, (builder) {
         builder.writeln('{');
 
-        // TODO(scheglov) Use variables.
+        // TODO(scheglov): Use variables.
 
         builder.write(codeMarker);
         builder.writeln(';');
@@ -86,7 +86,7 @@ class RuntimeCompletionComputer {
     // Remove completions with synthetic import prefixes.
     suggestions.removeWhere((s) => s.completion.startsWith('__prefix'));
 
-    // TODO(scheglov) Add support for expressions.
+    // TODO(scheglov): Add support for expressions.
     var expressions = <RuntimeCompletionExpression>[];
     return RuntimeCompletionResult(expressions, suggestions);
   }

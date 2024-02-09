@@ -28,7 +28,7 @@ export 'c.dart';
 
     newFile('$testPackageLibPath/c.dart', '');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertNoErrorsInResult();
 
     final node = findNode.export('c.dart');
@@ -54,7 +54,7 @@ library augment 'a.dart';
 export 'c.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 8),
     ]);
@@ -82,7 +82,7 @@ library augment 'a.dart';
 export ':net';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.INVALID_URI, 33, 6),
     ]);
@@ -110,7 +110,7 @@ library augment 'a.dart';
 export '${'foo'}.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 33, 15),
     ]);
@@ -148,7 +148,7 @@ library augment 'a.dart';
 export 'foo:bar';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 9),
     ]);
@@ -180,7 +180,7 @@ export 'c.dart';
 library augment 'b.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 33, 8),
     ]);
@@ -212,7 +212,7 @@ export 'c.dart';
 part of my.lib;
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 33, 8),
     ]);
@@ -244,7 +244,7 @@ export 'c.dart';
 part of 'b.dart';
 ''');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertErrorsInResult([
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 33, 8),
     ]);

@@ -39,6 +39,13 @@ void main(List<String> args) {
     'dart:web_gl'
   };
 
+  const Set<String> duplicateClassNames = {
+    'ImageElement',
+    'ScriptElement',
+    'StyleElement',
+    'TitleElement'
+  };
+
   for (var library in component.libraries) {
     if (webLibraries.contains(library.importUri.toString())) {
       for (var cls in library.classes) {
@@ -46,9 +53,20 @@ void main(List<String> args) {
         // All strings in the maps are annotated with quotes, so that we print
         // proper Dart code when we print the maps.
         var clsName = "'${cls.name}'";
-        var nativeTypes = getNativeNames(cls);
-        nativeTypes = nativeTypes.map((name) => "'$name'").toList();
+        var nativeTypes = getNativeNames(cls).map((name) => "'$name'").toList();
         if (nativeTypes.isEmpty) nativeTypes = [clsName];
+        // There are a couple of cases where there are two classes with the same
+        // name. They are all element classes bound to an `HTML` and an `SVG`
+        // version. For now, ignore the `SVG` version, as they're unused in
+        // google3 and most of them are marked unstable, and their `HTML`
+        // variants are much more common.
+        // TODO(srujzs): Remove this if we decide to deprecate these classes.
+        if (duplicateClassNames.contains(cls.name)) {
+          if (nativeTypes.length == 1 && nativeTypes[0] == "'SVG${cls.name}'") {
+            continue;
+          }
+        }
+        assert(!dartTypeToNativeTypes.containsKey(clsName));
         dartTypeToNativeTypes[clsName] = SplayTreeSet.from(nativeTypes);
 
         var nativePropToDartProp = SplayTreeMap<String, SplayTreeSet<String>>();

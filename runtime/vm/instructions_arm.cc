@@ -16,6 +16,11 @@
 
 namespace dart {
 
+static bool IsBranchLinkScratch(Register reg) {
+  // See Assembler::BranchLink
+  return FLAG_precompiled_mode ? reg == LINK_REGISTER : reg == CODE_REG;
+}
+
 CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       target_code_pool_index_(-1) {
@@ -26,7 +31,7 @@ CallPattern::CallPattern(uword pc, const Code& code)
   Register reg;
   InstructionPattern::DecodeLoadWordFromPool(pc - 2 * Instr::kInstrSize, &reg,
                                              &target_code_pool_index_);
-  ASSERT(reg == CODE_REG);
+  ASSERT(IsBranchLinkScratch(reg));
 }
 
 ICCallPattern::ICCallPattern(uword pc, const Code& code)
@@ -40,7 +45,7 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
   Register reg;
   uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
       pc - 2 * Instr::kInstrSize, &reg, &target_pool_index_);
-  ASSERT(reg == CODE_REG);
+  ASSERT(IsBranchLinkScratch(reg));
 
   InstructionPattern::DecodeLoadWordFromPool(data_load_end, &reg,
                                              &data_pool_index_);
@@ -59,7 +64,7 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
   Register reg;
   uword native_function_load_end = InstructionPattern::DecodeLoadWordFromPool(
       end_ - 2 * Instr::kInstrSize, &reg, &target_code_pool_index_);
-  ASSERT(reg == CODE_REG);
+  ASSERT(IsBranchLinkScratch(reg));
   InstructionPattern::DecodeLoadWordFromPool(native_function_load_end, &reg,
                                              &native_function_pool_index_);
   ASSERT(reg == R9);
@@ -256,7 +261,7 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   ASSERT(reg == R9);
   InstructionPattern::DecodeLoadWordFromPool(data_load_end - Instr::kInstrSize,
                                              &reg, &target_pool_index_);
-  ASSERT(reg == CODE_REG);
+  ASSERT(IsBranchLinkScratch(reg));
 }
 
 uword SwitchableCallPattern::target_entry() const {

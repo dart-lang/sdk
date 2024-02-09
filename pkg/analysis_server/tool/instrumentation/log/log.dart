@@ -397,7 +397,7 @@ abstract class JsonBasedEntry extends LogEntry {
   /// Encode any character in the given [string] that would prevent source code
   /// from being displayed correctly: end of line markers and spaces.
   String _encodeSourceCode(String string) {
-    // TODO(brianwilkerson) This method isn't working completely. Some source
+    // TODO(brianwilkerson): This method isn't working completely. Some source
     // code produces an error of
     // "log?start=3175:261 Uncaught SyntaxError: missing ) after argument list"
     // in the sample log I was using.
@@ -407,7 +407,7 @@ abstract class JsonBasedEntry extends LogEntry {
     while (index < length) {
       var char = string.codeUnitAt(index);
       index++;
-      // TODO(brianwilkerson) Handle tabs and other special characters.
+      // TODO(brianwilkerson): Handle tabs and other special characters.
       if (char == '\r'.codeUnitAt(0)) {
         if (index < length && string.codeUnitAt(index) == '\n'.codeUnitAt(0)) {
           index++;

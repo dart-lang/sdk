@@ -67,18 +67,9 @@ mixin NotificationHandler {
         onAnalysisOverrides(
             AnalysisOverridesParams.fromJson(decoder, 'params', params));
         break;
-      case COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS:
-        onCompletionAvailableSuggestions(
-            CompletionAvailableSuggestionsParams.fromJson(
-                decoder, 'params', params));
-        break;
       case COMPLETION_NOTIFICATION_EXISTING_IMPORTS:
         onCompletionExistingImports(CompletionExistingImportsParams.fromJson(
             decoder, 'params', params));
-        break;
-      case COMPLETION_NOTIFICATION_RESULTS:
-        onCompletionResults(
-            CompletionResultsParams.fromJson(decoder, 'params', params));
         break;
       case EXECUTION_NOTIFICATION_LAUNCH_DATA:
         onExecutionLaunchData(
@@ -216,26 +207,10 @@ mixin NotificationHandler {
   /// request.
   void onAnalysisOverrides(AnalysisOverridesParams params) {}
 
-  /// Reports the pre-computed, candidate completions from symbols defined
-  /// in a corresponding library. This notification may be sent multiple times.
-  /// When a notification is processed, clients should replace any previous
-  /// information about the libraries in the list of changedLibraries, discard
-  /// any information about the libraries in the list of removedLibraries, and
-  /// preserve any previously received information about any libraries that are
-  /// not included in either list.
-  void onCompletionAvailableSuggestions(
-      CompletionAvailableSuggestionsParams params) {}
-
   /// Reports existing imports in a library. This notification may be sent
   /// multiple times for a library. When a notification is processed, clients
   /// should replace any previous information for the library.
   void onCompletionExistingImports(CompletionExistingImportsParams params) {}
-
-  /// Reports the completion suggestions that should be presented
-  /// to the user. The set of suggestions included in the
-  /// notification is always a complete list that supersedes any
-  /// previously reported suggestions.
-  void onCompletionResults(CompletionResultsParams params) {}
 
   /// Reports information needed to allow a single file to be launched.
   ///

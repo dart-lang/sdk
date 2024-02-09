@@ -45,7 +45,10 @@ void main() {
     expect(devToolsClient.vmServiceUri, isNull);
     expect(devToolsClient.embedded, false);
     expect(devToolsClient.currentPage, isNull);
+    expect(devToolsClient.initialized, false);
+    expect(devToolsClient.reusable, false);
 
+    // Embedded page
     response = await client.sendRequest('currentPage', {
       'id': 'foo',
       'embedded': true,
@@ -56,6 +59,22 @@ void main() {
     expect(devToolsClient.vmServiceUri, isNull);
     expect(devToolsClient.embedded, true);
     expect(devToolsClient.currentPage, 'foo');
+    expect(devToolsClient.initialized, true);
+    expect(devToolsClient.reusable, false);
+
+    // Non-embedded page
+    response = await client.sendRequest('currentPage', {
+      'id': 'foo2',
+      'embedded': false,
+    });
+
+    expect(response, isNull);
+    expect(devToolsClient.hasConnection, false);
+    expect(devToolsClient.vmServiceUri, isNull);
+    expect(devToolsClient.embedded, false);
+    expect(devToolsClient.currentPage, 'foo2');
+    expect(devToolsClient.initialized, true);
+    expect(devToolsClient.reusable, true);
 
     // TODO: add tests for package:devtools_shared/devtools_server.dart
   });

@@ -158,6 +158,8 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
       range,
       ifStatementIndent,
       newIndent,
+      includeLeading: true,
+      ensureTrailingNewline: true,
     );
 
     builder.write(code);

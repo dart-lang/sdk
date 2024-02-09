@@ -26,14 +26,9 @@ void VirtualMemory::Truncate(intptr_t new_size) {
     if (FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
                        size() - new_size)) {
       reserved_.set_size(new_size);
-      if (AliasOffset() != 0) {
-        FreeSubSegment(reinterpret_cast<void*>(alias_.start() + new_size),
-                       alias_.size() - new_size);
-      }
     }
   }
   region_.Subregion(region_, 0, new_size);
-  alias_.Subregion(alias_, 0, new_size);
 }
 
 VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
@@ -42,7 +37,7 @@ VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
   MemoryRegion region(pointer, size);
   MemoryRegion reserved(nullptr, 0);  // null reservation indicates VM should
                                       // not attempt to free this memory.
-  VirtualMemory* memory = new VirtualMemory(region, region, reserved);
+  VirtualMemory* memory = new VirtualMemory(region, reserved);
   ASSERT(!memory->vm_owns_region());
   return memory;
 }

@@ -15,8 +15,8 @@ main() {
   });
 }
 
-/// TODO(https://github.com/dart-lang/sdk/issues/44078): Add tests with
-/// non-function typedefs.
+// TODO(scheglov): Add tests with non-function typedefs.
+// https://github.com/dart-lang/sdk/issues/44078)
 @reflectiveTest
 class CouldNotInferTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy() async {

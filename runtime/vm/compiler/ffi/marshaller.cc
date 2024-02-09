@@ -87,10 +87,11 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
 
 CallMarshaller* CallMarshaller::FromFunction(Zone* zone,
                                              const Function& function,
+                                             intptr_t function_params_start_at,
+                                             const FunctionType& c_signature,
                                              const char** error) {
   DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
-  const auto& c_signature =
-      FunctionType::ZoneHandle(zone, function.FfiCSignature());
+  DEBUG_ASSERT(c_signature.IsNotTemporaryScopedHandle());
   const auto native_function_signature =
       NativeFunctionTypeFromFunctionType(zone, c_signature, error);
   if (*error != nullptr) {
@@ -98,8 +99,8 @@ CallMarshaller* CallMarshaller::FromFunction(Zone* zone,
   }
   const auto& native_calling_convention =
       NativeCallingConvention::FromSignature(zone, *native_function_signature);
-  return new (zone)
-      CallMarshaller(zone, function, c_signature, native_calling_convention);
+  return new (zone) CallMarshaller(zone, function, function_params_start_at,
+                                   c_signature, native_calling_convention);
 }
 
 AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
@@ -169,7 +170,7 @@ bool BaseMarshaller::IsCompound(intptr_t arg_index) const {
 }
 
 bool BaseMarshaller::ContainsHandles() const {
-  return dart_signature_.FfiCSignatureContainsHandles();
+  return c_signature_.ContainsHandles();
 }
 
 intptr_t BaseMarshaller::NumDefinitions() const {
@@ -321,8 +322,7 @@ Representation BaseMarshaller::RepInFfiCall(intptr_t def_index_global) const {
 
   if (location.IsStack()) {
     // Split the struct in architecture size chunks.
-    return compiler::target::kWordSize == 8 ? Representation::kUnboxedInt64
-                                            : Representation::kUnboxedInt32;
+    return kUnboxedWord;
   }
 
   if (location.IsMultiple()) {
@@ -447,12 +447,8 @@ Location CallMarshaller::LocInFfiCall(intptr_t def_index_global) const {
   }
 
   // Force all handles to be Stack locations.
-  // Since non-leaf calls block all registers, Any locations effectively mean
-  // Stack.
-  // TODO(dartbug.com/38985): Once we start inlining FFI trampolines, the inputs
-  // can be constants as well.
   if (IsHandle(arg_index)) {
-    return Location::Any();
+    return Location::RequiresStack();
   }
 
   if (loc.IsMultiple()) {
@@ -499,12 +495,12 @@ Location CallMarshaller::LocInFfiCall(intptr_t def_index_global) const {
   return loc.AsLocation();
 }
 
-bool CallMarshaller::PassTypedData() const {
+bool CallMarshaller::ReturnsCompound() const {
   return IsCompound(compiler::ffi::kResultIndex);
 }
 
-intptr_t CallMarshaller::TypedDataSizeInBytes() const {
-  ASSERT(PassTypedData());
+intptr_t CallMarshaller::CompoundReturnSizeInBytes() const {
+  ASSERT(ReturnsCompound());
   return Utils::RoundUp(
       Location(compiler::ffi::kResultIndex).payload_type().SizeInBytes(),
       compiler::target::kWordSize);

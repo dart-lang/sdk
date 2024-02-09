@@ -120,15 +120,14 @@ class SubtypeHelper {
           T0_nullability == NullabilitySuffix.question) {
         return false;
       }
-      // Extension types:
-      //   If `R` is a non-nullable type then `V0` is a proper subtype
-      //   of `Object`, and a non-nullable type.
+      // Extension types require explicit `Object` implementation.
       if (T0 is InterfaceTypeImpl && T0.element is ExtensionTypeElement) {
-        if (T0.representationType case final representationType?) {
-          if (_typeSystem.isNullable(representationType)) {
-            return false;
+        for (final interface in T0.interfaces) {
+          if (isSubtypeOf(interface, T1_)) {
+            return true;
           }
         }
+        return false;
       }
       // Otherwise `T0 <: T1` is true.
       return true;
@@ -465,7 +464,7 @@ class SubtypeHelper {
   bool _isInterfaceSubtypeOf(InterfaceType subType, InterfaceType superType) {
     // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
     // because top types are eliminated before `isSubtypeOf` calls this.
-    // TODO(scheglov) Replace with assert().
+    // TODO(scheglov): Replace with assert().
     if (identical(subType, superType) || superType.isDartCoreObject) {
       return true;
     }

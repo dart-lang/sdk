@@ -382,13 +382,9 @@ class IsolateSpawnState {
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
   const char* package_config() const { return package_config_; }
-  const char* library_url() const { return library_url_; }
-  const char* class_name() const { return class_name_; }
-  const char* function_name() const { return function_name_; }
   const char* debug_name() const { return debug_name_; }
   bool is_spawn_uri() const {
-    return library_url_ == nullptr &&         // No top-level entrypoint.
-           closure_tuple_handle_ == nullptr;  // No closure entrypoint.
+    return closure_tuple_handle_ == nullptr;  // No closure entrypoint.
   }
   bool paused() const { return paused_; }
   bool errors_are_fatal() const { return errors_are_fatal_; }
@@ -411,9 +407,6 @@ class IsolateSpawnState {
   Dart_Port on_error_port_;
   const char* script_url_;
   const char* package_config_;
-  const char* library_url_ = nullptr;
-  const char* class_name_ = nullptr;
-  const char* function_name_ = nullptr;
   const char* debug_name_;
   PersistentHandle* closure_tuple_handle_ = nullptr;
   IsolateGroup* isolate_group_;
@@ -489,7 +482,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
-  function_name_ = NewConstChar("main");
+  if (debug_name_ == nullptr) {
+    debug_name_ = NewConstChar("main");
+  }
 
   // By default inherit flags from spawning isolate. These can be overridden
   // from the calling code.
@@ -499,9 +494,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 IsolateSpawnState::~IsolateSpawnState() {
   delete[] script_url_;
   delete[] package_config_;
-  delete[] library_url_;
-  delete[] class_name_;
-  delete[] function_name_;
   delete[] debug_name_;
 }
 
@@ -510,78 +502,24 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
   auto IG = thread->isolate_group();
   Zone* zone = thread->zone();
 
-  const String& func_name = String::Handle(zone, String::New(function_name()));
-
-  if (library_url() == nullptr) {
-    // Handle spawnUri lookup rules.
-    // Check whether the root library defines a main function.
-    const Library& lib =
-        Library::Handle(zone, IG->object_store()->root_library());
-    Function& func =
-        Function::Handle(zone, lib.LookupFunctionAllowPrivate(func_name));
-    if (func.IsNull()) {
-      // Check whether main is reexported from the root library.
-      const Object& obj = Object::Handle(zone, lib.LookupReExport(func_name));
-      if (obj.IsFunction()) {
-        func ^= obj.ptr();
-      }
-    }
-    if (func.IsNull()) {
-      const String& msg = String::Handle(
-          zone, String::NewFormatted(
-                    "Unable to resolve function '%s' in script '%s'.",
-                    function_name(), script_url()));
-      return LanguageError::New(msg);
-    }
-    return func.ptr();
-  }
-
-  // Lookup the to be spawned function for the Isolate.spawn implementation.
-  // Resolve the library.
-  const String& lib_url = String::Handle(zone, String::New(library_url()));
+  // Handle spawnUri lookup rules.
+  // Check whether the root library defines a main function.
   const Library& lib =
-      Library::Handle(zone, Library::LookupLibrary(thread, lib_url));
-  if (lib.IsNull() || lib.IsError()) {
-    const String& msg = String::Handle(
-        zone,
-        String::NewFormatted("Unable to find library '%s'.", library_url()));
-    return LanguageError::New(msg);
-  }
-
-  // Resolve the function.
-  if (class_name() == nullptr) {
-    const Function& func =
-        Function::Handle(zone, lib.LookupFunctionAllowPrivate(func_name));
-    if (func.IsNull()) {
-      const String& msg = String::Handle(
-          zone, String::NewFormatted(
-                    "Unable to resolve function '%s' in library '%s'.",
-                    function_name(), library_url()));
-      return LanguageError::New(msg);
+      Library::Handle(zone, IG->object_store()->root_library());
+  const String& main = String::Handle(zone, String::New("main"));
+  Function& func = Function::Handle(zone, lib.LookupFunctionAllowPrivate(main));
+  if (func.IsNull()) {
+    // Check whether main is reexported from the root library.
+    const Object& obj = Object::Handle(zone, lib.LookupReExport(main));
+    if (obj.IsFunction()) {
+      func ^= obj.ptr();
     }
-    return func.ptr();
-  }
-
-  const String& cls_name = String::Handle(zone, String::New(class_name()));
-  const Class& cls = Class::Handle(zone, lib.LookupClass(cls_name));
-  if (cls.IsNull()) {
-    const String& msg = String::Handle(
-        zone, String::NewFormatted(
-                  "Unable to resolve class '%s' in library '%s'.", class_name(),
-                  (library_url() != nullptr ? library_url() : script_url())));
-    return LanguageError::New(msg);
-  }
-  Function& func = Function::Handle(zone);
-  const auto& error = cls.EnsureIsFinalized(thread);
-  if (error == Error::null()) {
-    func = cls.LookupStaticFunctionAllowPrivate(func_name);
   }
   if (func.IsNull()) {
     const String& msg = String::Handle(
-        zone, String::NewFormatted(
-                  "Unable to resolve static method '%s.%s' in library '%s'.",
-                  class_name(), function_name(),
-                  (library_url() != nullptr ? library_url() : script_url())));
+        zone,
+        String::NewFormatted(
+            "Unable to resolve function 'main' in script '%s'.", script_url()));
     return LanguageError::New(msg);
   }
   return func.ptr();
@@ -633,9 +571,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
   void Run() override {
-    const char* name = (state_->debug_name() == nullptr)
-                           ? state_->function_name()
-                           : state_->debug_name();
+    const char* name = state_->debug_name();
     ASSERT(name != nullptr);
 
     auto group = state_->isolate_group();

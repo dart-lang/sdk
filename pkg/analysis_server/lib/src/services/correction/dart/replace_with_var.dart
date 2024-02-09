@@ -35,7 +35,7 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
     if (type == null) {
       return;
     }
-    // TODO(brianwilkerson) Optimize this by removing the duplication between
+    // TODO(brianwilkerson): Optimize this by removing the duplication between
     //  [_canReplaceWithVar] and the rest of this method.
     if (!_canReplaceWithVar()) {
       return;

@@ -5,8 +5,10 @@
 #include "vm/compiler/assembler/assembler_base.h"
 
 #include "platform/utils.h"
+#include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/cpu.h"
+#include "vm/flags.h"
 #include "vm/heap/heap.h"
 #include "vm/memory_region.h"
 #include "vm/os.h"
@@ -78,6 +80,42 @@ void AssemblerBase::StoreToSlotNoBarrier(Register src,
   return StoreIntoObjectNoBarrier(base, address, src);
 }
 
+void AssemblerBase::UnrolledMemCopy(Register dst_base,
+                                    intptr_t dst_offset,
+                                    Register src_base,
+                                    intptr_t src_offset,
+                                    intptr_t size,
+                                    Register temp) {
+  intptr_t offset = 0;
+  if (target::kWordSize >= 8) {
+    while (offset + 8 <= size) {
+      LoadFromOffset(temp, Address(src_base, src_offset + offset), kEightBytes);
+      StoreToOffset(temp, Address(dst_base, dst_offset + offset), kEightBytes);
+      offset += 8;
+    }
+  }
+  while (offset + 4 <= size) {
+    LoadFromOffset(temp, Address(src_base, src_offset + offset),
+                   kUnsignedFourBytes);
+    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
+                  kUnsignedFourBytes);
+    offset += 4;
+  }
+  while (offset + 2 <= size) {
+    LoadFromOffset(temp, Address(src_base, src_offset + offset),
+                   kUnsignedTwoBytes);
+    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
+                  kUnsignedTwoBytes);
+    offset += 2;
+  }
+  while (offset + 1 <= size) {
+    LoadFromOffset(temp, Address(src_base, src_offset + offset), kUnsignedByte);
+    StoreToOffset(temp, Address(dst_base, dst_offset + offset), kUnsignedByte);
+    offset += 1;
+  }
+  ASSERT(offset == size);
+}
+
 void AssemblerBase::LoadTypeClassId(Register dst, Register src) {
   if (dst != src) {
     EnsureHasClassIdInDEBUG(kTypeCid, src, dst);
@@ -125,6 +163,35 @@ intptr_t AssemblerBase::InsertAlignedRelocation(BSS::Relocation reloc) {
   ASSERT(CodeSize() == (offset + compiler::target::kWordSize));
 
   return offset;
+}
+
+void AssemblerBase::MsanUnpoison(Register base, intptr_t length_in_bytes) {
+  LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
+                      /*preserve_registers=*/true);
+  MoveRegister(CallingConventions::ArgumentRegisters[0], base);
+  LoadImmediate(CallingConventions::ArgumentRegisters[1], length_in_bytes);
+  rt.Call(kMsanUnpoisonRuntimeEntry, /*argument_count=*/2);
+}
+
+void AssemblerBase::MsanUnpoison(Register base, Register length_in_bytes) {
+  LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
+                      /*preserve_registers=*/true);
+  const Register a0 = CallingConventions::ArgumentRegisters[0];
+  const Register a1 = CallingConventions::ArgumentRegisters[1];
+  if (length_in_bytes == a0) {
+    if (base == a1) {
+      MoveRegister(TMP, length_in_bytes);
+      MoveRegister(a0, base);
+      MoveRegister(a1, TMP);
+    } else {
+      MoveRegister(a1, length_in_bytes);
+      MoveRegister(a0, base);
+    }
+  } else {
+    MoveRegister(a0, base);
+    MoveRegister(a1, length_in_bytes);
+  }
+  rt.Call(kMsanUnpoisonRuntimeEntry, /*argument_count=*/2);
 }
 
 #if defined(DEBUG)
@@ -350,8 +417,6 @@ uword ObjIndexPair::Hash(Key key) {
 #endif
     case ObjectPoolBuilderEntry::kImmediate:
     case ObjectPoolBuilderEntry::kNativeFunction:
-    case ObjectPoolBuilderEntry::kSwitchableCallMissEntryPoint:
-    case ObjectPoolBuilderEntry::kMegamorphicCallEntryPoint:
       return key.imm_;
     case ObjectPoolBuilderEntry::kTaggedObject:
       return ObjectHash(*key.obj_);
@@ -375,15 +440,18 @@ void ObjectPoolBuilder::Reset() {
 
 intptr_t ObjectPoolBuilder::AddObject(
     const Object& obj,
-    ObjectPoolBuilderEntry::Patchability patchable) {
+    ObjectPoolBuilderEntry::Patchability patchable,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   DEBUG_ASSERT(IsNotTemporaryScopedHandle(obj));
-  return AddObject(ObjectPoolBuilderEntry(&obj, patchable));
+  return AddObject(ObjectPoolBuilderEntry(&obj, patchable, snapshot_behavior));
 }
 
-intptr_t ObjectPoolBuilder::AddImmediate(uword imm) {
-  return AddObject(
-      ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate,
-                             ObjectPoolBuilderEntry::kNotPatchable));
+intptr_t ObjectPoolBuilder::AddImmediate(
+    uword imm,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshotability) {
+  return AddObject(ObjectPoolBuilderEntry(
+      imm, ObjectPoolBuilderEntry::kImmediate, patchable, snapshotability));
 }
 
 intptr_t ObjectPoolBuilder::AddImmediate64(uint64_t imm) {
@@ -483,8 +551,9 @@ intptr_t ObjectPoolBuilder::FindObject(ObjectPoolBuilderEntry entry) {
 
 intptr_t ObjectPoolBuilder::FindObject(
     const Object& obj,
-    ObjectPoolBuilderEntry::Patchability patchable) {
-  return FindObject(ObjectPoolBuilderEntry(&obj, patchable));
+    ObjectPoolBuilderEntry::Patchability patchable,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  return FindObject(ObjectPoolBuilderEntry(&obj, patchable, snapshot_behavior));
 }
 
 intptr_t ObjectPoolBuilder::FindObject(const Object& obj,

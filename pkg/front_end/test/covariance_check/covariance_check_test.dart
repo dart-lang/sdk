@@ -19,14 +19,14 @@ Future<void> main(List<String> args) async {
           runTestFor(const CovarianceCheckDataComputer(), [defaultCfeConfig]));
 }
 
-class CovarianceCheckDataComputer extends DataComputer<String> {
+class CovarianceCheckDataComputer extends CfeDataComputer<String> {
   const CovarianceCheckDataComputer();
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     new CovarianceCheckDataExtractor(testResultData.compilerResult, actualMap)
@@ -34,7 +34,7 @@ class CovarianceCheckDataComputer extends DataComputer<String> {
   }
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     member.accept(new CovarianceCheckDataExtractor(

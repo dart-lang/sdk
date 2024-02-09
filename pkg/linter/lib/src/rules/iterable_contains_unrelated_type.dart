@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
-import '../util/unrelated_types_visitor.dart';
 
 const _desc = r'Invocation of Iterable<E>.contains with references of unrelated'
     r' types.';
 
 const _details = r'''
+NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
+
 **DON'T** invoke `contains` on `Iterable` with an instance of different type
 than the parameter type.
 
@@ -115,10 +116,6 @@ abstract class Mixin {}
 class DerivedClass3 extends ClassBase implements Mixin {}
 ```
 
-**DEPRECATED:** This rule is deprecated in favor of
-`collection_methods_unrelated_type`.
-The rule will be removed in a future Dart release.
-
 ''';
 
 class IterableContainsUnrelatedType extends LintRule {
@@ -131,30 +128,9 @@ class IterableContainsUnrelatedType extends LintRule {
           description: _desc,
           details: _details,
           group: Group.errors,
-          state:
-              State.deprecated(replacedBy: 'collection_methods_unrelated_type'),
+          state: State.removed(since: dart3_3),
         );
 
   @override
   LintCode get lintCode => code;
-
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context.typeSystem, context.typeProvider);
-    registry.addMethodInvocation(this, visitor);
-  }
-}
-
-class _Visitor extends UnrelatedTypesProcessors {
-  _Visitor(super.rule, super.typeSystem, super.typeProvider);
-
-  @override
-  List<MethodDefinition> get methods => [
-        MethodDefinitionForElement(
-          typeProvider.iterableElement,
-          'contains',
-          ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        )
-      ];
 }

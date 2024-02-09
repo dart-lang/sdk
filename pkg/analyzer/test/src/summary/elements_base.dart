@@ -32,18 +32,14 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
 
     final uriStr = 'package:test/test.dart';
     final libraryResult = await analysisSession.getLibraryByUri(uriStr);
-    libraryResult as LibraryElementResult;
 
     if (keepLinkingLibraries) {
-      return libraryResult.element as LibraryElementImpl;
+      return libraryResult.element;
     } else {
       analysisContext.changeFile(file.path);
       await analysisContext.applyPendingFileChanges();
       // Ask again, should be read from bytes.
-      final analysisSession = analysisContext.currentSession;
-      final libraryResult = await analysisSession.getLibraryByUri(uriStr);
-      libraryResult as LibraryElementResult;
-      return libraryResult.element as LibraryElementImpl;
+      return testContextLibrary(uriStr);
     }
   }
 
@@ -58,5 +54,18 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
+  }
+
+  Future<LibraryElementImpl> testContextLibrary(String uriStr) async {
+    final analysisContext = contextFor(testFile);
+    final analysisSession = analysisContext.currentSession;
+    final libraryResult = await analysisSession.getLibraryByUri(uriStr);
+    return libraryResult.element;
+  }
+}
+
+extension on SomeLibraryElementResult {
+  LibraryElementImpl get element {
+    return (this as LibraryElementResult).element as LibraryElementImpl;
   }
 }

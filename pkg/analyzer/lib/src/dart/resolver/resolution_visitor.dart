@@ -107,6 +107,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     required AnalysisErrorListener errorListener,
     required FeatureSet featureSet,
     required Scope nameScope,
+    required bool strictInference,
     ElementWalker? elementWalker,
   }) {
     var libraryElement = unitElement.library;
@@ -123,6 +124,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       libraryElement,
       isNonNullableByDefault,
       errorReporter,
+      strictInference: strictInference,
     );
 
     final recordTypeResolver = RecordTypeAnnotationResolver(
@@ -1785,11 +1787,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
+    final declaredRepresentation = declaredElement.representation.type;
+    if (typeSystem.isSubtypeOf(declaredRepresentation, type)) {
+      return;
+    }
+
     // When `type` is an extension type.
     if (type is InterfaceTypeImpl) {
       final implementedRepresentation = type.representationType;
       if (implementedRepresentation != null) {
-        final declaredRepresentation = declaredElement.representation.type;
         if (!typeSystem.isSubtypeOf(
           declaredRepresentation,
           implementedRepresentation,
@@ -1810,14 +1816,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    final declaredRepresentation = declaredElement.representation.type;
-    if (!typeSystem.isSubtypeOf(declaredRepresentation, type)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
-        node,
-        [type, declaredRepresentation],
-      );
-    }
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+      node,
+      [type, declaredRepresentation],
+    );
   }
 
   void _visitIf(IfElementOrStatementImpl node) {
@@ -1947,7 +1950,7 @@ class _VariableBinderErrors
 
   @override
   void assertInErrorRecovery() {
-    // TODO: implement assertInErrorRecovery
+    // TODO(scheglov): implement assertInErrorRecovery
     throw UnimplementedError();
   }
 

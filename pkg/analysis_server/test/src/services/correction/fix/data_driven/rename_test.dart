@@ -1343,7 +1343,7 @@ class C with p.New {}
 @reflectiveTest
 class RenameSetterTest extends _AbstractRenameTest {
   @override
-  // TODO(asashour) consider changing the kind to `setter`,
+  // TODO(asashour): consider changing the kind to `setter`,
   // and matching it as `method`
   String get _kind => 'method';
 

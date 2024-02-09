@@ -2989,6 +2989,8 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   String& method_name = String::Handle(zone);
   String& library_uri = String::Handle(zone);
   bool isStatic = false;
+  String& script_uri = String::Handle(zone);
+  TokenPosition token_pos = TokenPosition::kNoSource;
 
   if (BuildScope(thread, js, param_names, param_values)) {
     return;
@@ -3004,6 +3006,8 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     }
 
     ActivationFrame* frame = stack->FrameAt(framePos);
+    script_uri = frame->SourceUrl();
+    token_pos = frame->TokenPos();
     frame->BuildParameters(param_names, param_values, type_params_names,
                            type_params_bounds, type_params_defaults);
 
@@ -3155,6 +3159,10 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   if (!method_name.IsNull()) {
     report.AddProperty("method", method_name.ToCString());
   }
+  report.AddProperty("tokenPos", token_pos);
+  if (!script_uri.IsNull()) {
+    report.AddProperty("scriptUri", script_uri.ToCString());
+  }
   report.AddProperty("isStatic", isStatic);
 }
 
@@ -3207,6 +3215,10 @@ static const MethodParameter* const compile_expression_params[] = {
     new StringParameter("klass", false),
     new BoolParameter("isStatic", false),
     new StringParameter("method", false),
+    new Int64Parameter("tokenPos", false),
+    // TODO(jensj): Uncomment this line when DDS has rolled into flutter
+    // (https://dart-review.googlesource.com/c/sdk/+/329322).
+    // new StringParameter("scriptUri", false),
     nullptr,
 };
 
@@ -3229,6 +3241,7 @@ static void CompileExpression(Thread* thread, JSONStream* js) {
   const char* klass = js->LookupParam("klass");
   bool is_static =
       BoolParameter::Parse(js->LookupParam("isStatic"), (klass == nullptr));
+  int64_t token_pos = Int64Parameter::Parse(js->LookupParam("tokenPos"));
 
   const GrowableObjectArray& params =
       GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
@@ -3274,7 +3287,8 @@ static void CompileExpression(Thread* thread, JSONStream* js) {
           Array::Handle(Array::MakeFixedLength(type_bounds)),
           Array::Handle(Array::MakeFixedLength(type_defaults)),
           js->LookupParam("libraryUri"), js->LookupParam("klass"),
-          js->LookupParam("method"), is_static);
+          js->LookupParam("method"), TokenPosition::Deserialize(token_pos),
+          js->LookupParam("scriptUri"), is_static);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     js->PrintError(kExpressionCompilationError, "%s", compilation_result.error);

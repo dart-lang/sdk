@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:linter/src/util/dart_type_utilities.dart';
-import 'package:linter/src/util/unrelated_types_visitor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -18,11 +16,6 @@ main() {
   });
 }
 
-/// This test has the most coverage of the various [UnrelatedTypesProcessors]
-/// subclasses. 99% of the complexity in each "interface/method" case is found
-/// in [UnrelatedTypesProcessors] and [typesAreUnrelated], so we do not
-/// duplicate all of the test cases for [Iterable.contains] in the test cases
-/// for [List.remove], etc.
 @reflectiveTest
 class CollectionMethodsUnrelatedTypeIterableTest extends LintRuleTest {
   @override

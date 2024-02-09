@@ -5,10 +5,15 @@
 import 'dart:_foreign_helper' as foreign_helper;
 import 'dart:_interceptors' show JavaScriptObject;
 import 'dart:_internal' show patch;
-import 'dart:_js_helper' show staticInteropGlobalContext;
+import 'dart:_js_helper' show createObjectLiteral, staticInteropGlobalContext;
 import 'dart:_js_types';
+import 'dart:js_interop';
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
+
+@patch
+JSObjectRepType _createObjectLiteral() =>
+    createObjectLiteral<JSObjectRepType>();
 
 @patch
 @pragma('dart2js:prefer-inline')
@@ -24,11 +29,19 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   @patch
   @pragma('dart2js:prefer-inline')
   bool get isNull => foreign_helper.JS('bool', '# === null', this);
+}
 
+@patch
+extension JSAnyUtilityExtension on JSAny? {
   @patch
   @pragma('dart2js:prefer-inline')
   bool typeofEquals(String typeString) =>
       foreign_helper.JS('bool', 'typeof # === #', this, typeString);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool instanceof(JSFunction constructor) =>
+      foreign_helper.JS('bool', '# instanceof #', this, constructor);
 
   @patch
   @pragma('dart2js:prefer-inline')
@@ -41,15 +54,6 @@ extension NullableObjectUtilExtension on Object? {
   @patch
   @pragma('dart2js:prefer-inline')
   JSAny? jsify() => js_util.jsify(this) as JSAny?;
-}
-
-/// Utility extensions for [JSObject].
-@patch
-extension JSObjectUtilExtension on JSObject {
-  @patch
-  @pragma('dart2js:prefer-inline')
-  bool instanceof(JSFunction constructor) =>
-      foreign_helper.JS('bool', '# instanceof #', this, constructor);
 }
 
 /// [JSExportedDartFunction] <-> [Function]
@@ -109,12 +113,12 @@ extension ObjectToJSBoxedDartObject on Object {
   }
 }
 
-/// [JSPromise] -> [Future<JSAny?>].
+/// [JSPromise] -> [Future].
 @patch
-extension JSPromiseToFuture on JSPromise {
+extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   @patch
   @pragma('dart2js:prefer-inline')
-  Future<JSAny?> get toDart => js_util.promiseToFuture<JSAny?>(this);
+  Future<T> get toDart => js_util.promiseToFuture<T>(this);
 }
 
 /// [JSArrayBuffer] <-> [ByteBuffer]
@@ -284,17 +288,22 @@ extension Float64ListToJSFloat64Array on Float64List {
 
 /// [JSArray] <-> [List]
 @patch
-extension JSArrayToList on JSArray {
+extension JSArrayToList<T extends JSAny?> on JSArray<T> {
   @patch
   @pragma('dart2js:prefer-inline')
-  List<JSAny?> get toDart => this as List<JSAny?>;
+  List<T> get toDart {
+    // Upcast `interceptors.JSArray<Object?>` first to a `List<Object?>` so that
+    // we only need one type promotion.
+    List<Object?> t = _jsArray;
+    return t is List<T> ? t : t.cast<T>();
+  }
 }
 
 @patch
-extension ListToJSArray on List<JSAny?> {
+extension ListToJSArray<T extends JSAny?> on List<T> {
   @patch
   @pragma('dart2js:prefer-inline')
-  JSArray get toJS => this as JSArray;
+  JSArray<T> get toJS => this as JSArray<T>;
 
   // TODO(srujzs): Should we do a check to make sure this List is a JSArray
   // under the hood and then potentially proxy? This applies for user lists. For
@@ -306,7 +315,7 @@ extension ListToJSArray on List<JSAny?> {
   // check.
   @patch
   @pragma('dart2js:prefer-inline')
-  JSArray get toJSProxyOrRef => this as JSArray;
+  JSArray<T> get toJSProxyOrRef => this as JSArray<T>;
 }
 
 /// [JSNumber] -> [double] or [int].
@@ -358,3 +367,89 @@ extension StringToJSString on String {
   @pragma('dart2js:prefer-inline')
   JSString get toJS => this as JSString;
 }
+
+@patch
+extension JSAnyOperatorExtension on JSAny? {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny add(JSAny? any) => js_util.add(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny subtract(JSAny? any) => js_util.subtract(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny multiply(JSAny? any) => js_util.multiply(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny divide(JSAny? any) => js_util.divide(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny modulo(JSAny? any) => js_util.modulo(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny exponentiate(JSAny? any) => js_util.exponentiate(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool greaterThan(JSAny? any) => js_util.greaterThan(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool greaterThanOrEqualTo(JSAny? any) =>
+      js_util.greaterThanOrEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool lessThan(JSAny? any) => js_util.lessThan(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool lessThanOrEqualTo(JSAny? any) => js_util.lessThanOrEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool equals(JSAny? any) => js_util.equal(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool notEquals(JSAny? any) => js_util.notEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool strictEquals(JSAny? any) => js_util.strictEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool strictNotEquals(JSAny? any) => js_util.strictNotEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSNumber unsignedRightShift(JSAny? any) =>
+      js_util.unsignedRightShift(this, any).toJS;
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny? and(JSAny? any) => js_util.and(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny? or(JSAny? any) => js_util.or(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool get not => js_util.not(this);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool get isTruthy => js_util.isTruthy(this);
+}
+
+@patch
+@pragma('dart2js:prefer-inline')
+JSPromise<JSObject> importModule(String moduleName) =>
+    foreign_helper.JS('', 'import(#)', moduleName);

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // @dart=3.0
 
+// ignore_for_file: library_private_types_in_public_api
+
 library get_object_rpc_test;
 
 import 'dart:collection';
@@ -59,44 +61,45 @@ void warmup() {
   _DummyClass().dummyGenericFunction<Object, dynamic>(0, param: 0);
 }
 
-@pragma("vm:entry-point")
-getChattanooga() => "Chattanooga";
+@pragma('vm:entry-point')
+String getChattanooga() => 'Chattanooga';
 
-@pragma("vm:entry-point")
-getList() => [3, 2, 1];
+@pragma('vm:entry-point')
+List<int> getList() => [3, 2, 1];
 
-@pragma("vm:entry-point")
-getMap() => {"x": 3, "y": 4, "z": 5};
+@pragma('vm:entry-point')
+Map<String, int> getMap() => {'x': 3, 'y': 4, 'z': 5};
 
-@pragma("vm:entry-point")
-getSet() => {6, 7, 8};
+@pragma('vm:entry-point')
+Set<int> getSet() => {6, 7, 8};
 
-@pragma("vm:entry-point")
-getUint8List() => Uint8List.fromList([3, 2, 1]);
+@pragma('vm:entry-point')
+Uint8List getUint8List() => Uint8List.fromList([3, 2, 1]);
 
-@pragma("vm:entry-point")
-getUint64List() => Uint64List.fromList([3, 2, 1]);
+@pragma('vm:entry-point')
+Uint64List getUint64List() => Uint64List.fromList([3, 2, 1]);
 
-@pragma("vm:entry-point")
-getRecord() => (1, x: 2, 3.0, y: 4.0);
+@pragma('vm:entry-point')
+(int, double, {int x, double y}) getRecord() => (1, x: 2, 3.0, y: 4.0);
 
-@pragma("vm:entry-point")
-getDummyClass() => _DummyClass();
+@pragma('vm:entry-point')
+_DummyClass getDummyClass() => _DummyClass();
 
-@pragma("vm:entry-point")
-getDummyFinalClass() => _DummyFinalClass();
+@pragma('vm:entry-point')
+_DummyFinalClass getDummyFinalClass() => _DummyFinalClass();
 
-@pragma("vm:entry-point")
-getDummyGenericSubClass() => _DummyGenericSubClass<Object>();
+@pragma('vm:entry-point')
+_DummyGenericSubClass<Object> getDummyGenericSubClass() =>
+    _DummyGenericSubClass<Object>();
 
-@pragma("vm:entry-point")
-getDummyInterfaceClass() => _DummyInterfaceClass();
+@pragma('vm:entry-point')
+_DummyInterfaceClass getDummyInterfaceClass() => _DummyInterfaceClass();
 
-@pragma("vm:entry-point")
-getDummyClassWithMixins() => _DummyClassWithMixins();
+@pragma('vm:entry-point')
+_DummyClassWithMixins getDummyClassWithMixins() => _DummyClassWithMixins();
 
-@pragma("vm:entry-point")
-getUserTag() => UserTag('Test Tag');
+@pragma('vm:entry-point')
+UserTag getUserTag() => UserTag('Test Tag');
 
 var tests = <IsolateTest>[
   // null object.
@@ -144,7 +147,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart String.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getChattanooga', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getChattanooga',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
     final result = await service.getObject(isolateId, objectId) as Instance;
     expect(result.kind, InstanceKind.kString);
@@ -165,7 +172,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart String.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getChattanooga', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getChattanooga',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
     final result =
         await service.getObject(isolateId, objectId, count: 4) as Instance;
@@ -187,10 +198,18 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart String.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getChattanooga', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getChattanooga',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 4, count: 6) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 4,
+      count: 6,
+    ) as Instance;
     expect(result.kind, InstanceKind.kString);
     expect(result.json!['_vmType'], equals('String'));
     expect(result.id, startsWith('objects/'));
@@ -209,10 +228,18 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart String.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getChattanooga', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getChattanooga',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 100, count: 2) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 100,
+      count: 2,
+    ) as Instance;
     expect(result.kind, InstanceKind.kString);
     expect(result.json!['_vmType'], equals('String'));
     expect(result.id, startsWith('objects/'));
@@ -295,8 +322,12 @@ var tests = <IsolateTest>[
     final evalResult = await service
         .invoke(isolateId, isolate.rootLib!.id!, 'getList', []) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 2, count: 2) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 2,
+      count: 2,
+    ) as Instance;
     expect(result.kind, InstanceKind.kList);
     expect(result.json!['_vmType'], equals('GrowableObjectArray'));
     expect(result.id, startsWith('objects/'));
@@ -322,8 +353,12 @@ var tests = <IsolateTest>[
     final evalResult = await service
         .invoke(isolateId, isolate.rootLib!.id!, 'getList', []) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 100, count: 2) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 100,
+      count: 2,
+    ) as Instance;
     expect(result.kind, InstanceKind.kList);
     expect(result.json!['_vmType'], equals('GrowableObjectArray'));
     expect(result.id, startsWith('objects/'));
@@ -422,8 +457,12 @@ var tests = <IsolateTest>[
     final evalResult = await service
         .invoke(isolateId, isolate.rootLib!.id!, 'getMap', []) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 2, count: 2) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 2,
+      count: 2,
+    ) as Instance;
     expect(result.kind, InstanceKind.kMap);
     expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
@@ -452,8 +491,12 @@ var tests = <IsolateTest>[
     final evalResult = await service
         .invoke(isolateId, isolate.rootLib!.id!, 'getMap', []) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 100, count: 2) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 100,
+      count: 2,
+    ) as Instance;
     expect(result.kind, InstanceKind.kMap);
     expect(result.json!['_vmType'], equals('Map'));
     expect(result.id, startsWith('objects/'));
@@ -505,7 +548,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart list.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getUint8List', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getUint8List',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
     final result = await service.getObject(isolateId, objectId) as Instance;
     expect(result.kind, InstanceKind.kUint8List);
@@ -519,7 +566,7 @@ var tests = <IsolateTest>[
     expect(result.offset, isNull);
     expect(result.count, isNull);
     expect(result.bytes, equals('AwIB'));
-    Uint8List bytes = base64Decode(result.bytes!);
+    final Uint8List bytes = base64Decode(result.bytes!);
     expect(bytes.buffer.asUint8List().toString(), equals('[3, 2, 1]'));
   },
 
@@ -529,7 +576,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart list.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getUint8List', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getUint8List',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
     final result =
         await service.getObject(isolateId, objectId, count: 2) as Instance;
@@ -544,7 +595,7 @@ var tests = <IsolateTest>[
     expect(result.offset, isNull);
     expect(result.count, equals(2));
     expect(result.bytes, equals('AwI='));
-    Uint8List bytes = base64Decode(result.bytes!);
+    final Uint8List bytes = base64Decode(result.bytes!);
     expect(bytes.buffer.asUint8List().toString(), equals('[3, 2]'));
   },
 
@@ -554,10 +605,18 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart list.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getUint8List', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getUint8List',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 2, count: 2) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 2,
+      count: 2,
+    ) as Instance;
     expect(result.kind, InstanceKind.kUint8List);
     expect(result.json!['_vmType'], equals('TypedData'));
     expect(result.id, startsWith('objects/'));
@@ -569,7 +628,7 @@ var tests = <IsolateTest>[
     expect(result.offset, equals(2));
     expect(result.count, equals(1));
     expect(result.bytes, equals('AQ=='));
-    Uint8List bytes = base64Decode(result.bytes!);
+    final Uint8List bytes = base64Decode(result.bytes!);
     expect(bytes.buffer.asUint8List().toString(), equals('[1]'));
   },
 
@@ -579,10 +638,18 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart list.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getUint8List', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getUint8List',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 100, count: 2) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 100,
+      count: 2,
+    ) as Instance;
     expect(result.kind, InstanceKind.kUint8List);
     expect(result.json!['_vmType'], equals('TypedData'));
     expect(result.id, startsWith('objects/'));
@@ -602,7 +669,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart list.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getUint64List', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getUint64List',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
     final result = await service.getObject(isolateId, objectId) as Instance;
     expect(result.kind, InstanceKind.kUint64List);
@@ -616,7 +687,7 @@ var tests = <IsolateTest>[
     expect(result.offset, isNull);
     expect(result.count, isNull);
     expect(result.bytes, equals('AwAAAAAAAAACAAAAAAAAAAEAAAAAAAAA'));
-    Uint8List bytes = base64Decode(result.bytes!);
+    final Uint8List bytes = base64Decode(result.bytes!);
     expect(bytes.buffer.asUint64List().toString(), equals('[3, 2, 1]'));
   },
 
@@ -626,7 +697,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart list.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getUint64List', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getUint64List',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
     final result =
         await service.getObject(isolateId, objectId, count: 2) as Instance;
@@ -641,7 +716,7 @@ var tests = <IsolateTest>[
     expect(result.offset, isNull);
     expect(result.count, equals(2));
     expect(result.bytes, equals('AwAAAAAAAAACAAAAAAAAAA=='));
-    Uint8List bytes = base64Decode(result.bytes!);
+    final Uint8List bytes = base64Decode(result.bytes!);
     expect(bytes.buffer.asUint64List().toString(), equals('[3, 2]'));
   },
 
@@ -651,10 +726,18 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart list.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getUint64List', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getUint64List',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 2, count: 2) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 2,
+      count: 2,
+    ) as Instance;
     expect(result.kind, InstanceKind.kUint64List);
     expect(result.json!['_vmType'], equals('TypedData'));
     expect(result.id, startsWith('objects/'));
@@ -666,7 +749,7 @@ var tests = <IsolateTest>[
     expect(result.offset, equals(2));
     expect(result.count, equals(1));
     expect(result.bytes, equals('AQAAAAAAAAA='));
-    Uint8List bytes = base64Decode(result.bytes!);
+    final Uint8List bytes = base64Decode(result.bytes!);
     expect(bytes.buffer.asUint64List().toString(), equals('[1]'));
   },
 
@@ -676,10 +759,18 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a Dart list.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getUint64List', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getUint64List',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
-    final result = await service.getObject(isolateId, objectId,
-        offset: 100, count: 2) as Instance;
+    final result = await service.getObject(
+      isolateId,
+      objectId,
+      offset: 100,
+      count: 2,
+    ) as Instance;
     expect(result.kind, InstanceKind.kUint64List);
     expect(result.json!['_vmType'], equals('TypedData'));
     expect(result.id, startsWith('objects/'));
@@ -724,7 +815,8 @@ var tests = <IsolateTest>[
     expect(result.size, isPositive);
     expect(result.length, 4);
     final fieldsMap = HashMap.fromEntries(
-        result.fields!.map((f) => MapEntry(f.name, f.value)));
+      result.fields!.map((f) => MapEntry(f.name, f.value)),
+    );
     expect(fieldsMap.keys.length, result.length);
     // [BoundField]s have fields with type [dynamic], and such fields have
     // broken [toJson()] in the past. So, we make the following call just to
@@ -733,12 +825,12 @@ var tests = <IsolateTest>[
     expect(fieldsMap.containsKey(0), false);
     expect(fieldsMap.containsKey(1), true);
     expect(fieldsMap[1].valueAsString, '1');
-    expect(fieldsMap.containsKey("x"), true);
-    expect(fieldsMap["x"].valueAsString, '2');
+    expect(fieldsMap.containsKey('x'), true);
+    expect(fieldsMap['x'].valueAsString, '2');
     expect(fieldsMap.containsKey(2), true);
     expect(fieldsMap[2].valueAsString, '3.0');
-    expect(fieldsMap.containsKey("y"), true);
-    expect(fieldsMap["y"].valueAsString, '4.0');
+    expect(fieldsMap.containsKey('y'), true);
+    expect(fieldsMap['y'].valueAsString, '4.0');
   },
 
   // library.
@@ -769,7 +861,7 @@ var tests = <IsolateTest>[
       fail('successfully got library with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -805,7 +897,7 @@ var tests = <IsolateTest>[
       fail('successfully got script with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -814,7 +906,11 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.id!;
     final result = await service.getObject(isolateId, objectId) as Instance;
     expect(result.kind, InstanceKind.kPlainInstance);
@@ -826,16 +922,21 @@ var tests = <IsolateTest>[
     expect(result.size, isPositive);
     expect(result.length, 3);
     final fieldsMap = HashMap.fromEntries(
-        result.fields!.map((f) => MapEntry(f.name, f.value)));
+      result.fields!.map((f) => MapEntry(f.name, f.value)),
+    );
     expect(fieldsMap.keys.length, result.length);
     expect(fieldsMap.containsKey('dummyList'), true);
     expect((fieldsMap['dummyList'] as InstanceRef).kind, InstanceKind.kList);
     expect(fieldsMap.containsKey('dummyLateVarWithInit'), true);
-    expect((fieldsMap['dummyLateVarWithInit'] as Sentinel).kind,
-        SentinelKind.kNotInitialized);
+    expect(
+      (fieldsMap['dummyLateVarWithInit'] as Sentinel).kind,
+      SentinelKind.kNotInitialized,
+    );
     expect(fieldsMap.containsKey('dummyLateVar'), true);
-    expect((fieldsMap['dummyLateVar'] as Sentinel).kind,
-        SentinelKind.kNotInitialized);
+    expect(
+      (fieldsMap['dummyLateVar'] as Sentinel).kind,
+      SentinelKind.kNotInitialized,
+    );
   },
 
   // An abstract base mixin class.
@@ -844,7 +945,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Use invoke to get a reference to an instance of [_DummyClass].
     final invokeResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
     final derivedClass =
         await service.getObject(isolateId, invokeResult.classRef!.id!) as Class;
     final baseClassRef = derivedClass.superClass!;
@@ -884,7 +989,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Use invoke to get a reference to an instance of [_DummyClass].
     final invokeResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
     final result =
         await service.getObject(isolateId, invokeResult.classRef!.id!) as Class;
     expect(result.id, startsWith('classes/'));
@@ -921,8 +1030,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Use invoke to get a reference to an instance of [_DummyGenericSubClass].
     final invokeResult = await service.invoke(
-            isolateId, isolate.rootLib!.id!, 'getDummyGenericSubClass', [])
-        as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyGenericSubClass',
+      [],
+    ) as InstanceRef;
     final result =
         await service.getObject(isolateId, invokeResult.classRef!.id!) as Class;
     expect(result.id, startsWith('classes/'));
@@ -997,8 +1109,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Use invoke to get a reference to an instance of [_DummyInterfaceClass].
     final invokeResult = await service.invoke(
-            isolateId, isolate.rootLib!.id!, 'getDummyInterfaceClass', [])
-        as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyInterfaceClass',
+      [],
+    ) as InstanceRef;
     final derivedClass =
         await service.getObject(isolateId, invokeResult.classRef!.id!) as Class;
     final baseClassRef = derivedClass.superClass!;
@@ -1038,8 +1153,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Use invoke to get a reference to an instance of [_DummyInterfaceClass].
     final invokeResult = await service.invoke(
-            isolateId, isolate.rootLib!.id!, 'getDummyInterfaceClass', [])
-        as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyInterfaceClass',
+      [],
+    ) as InstanceRef;
     final result =
         await service.getObject(isolateId, invokeResult.classRef!.id!) as Class;
     expect(result.id, startsWith('classes/'));
@@ -1076,16 +1194,23 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Use invoke to get a reference to an instance of [_DummyClassWithMixins].
     final dummyClassInstanceRef = await service.invoke(
-            isolateId, isolate.rootLib!.id!, 'getDummyClassWithMixins', [])
-        as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClassWithMixins',
+      [],
+    ) as InstanceRef;
     final dummyClass = await service.getObject(
-        isolateId, dummyClassInstanceRef.classRef!.id!) as Class;
+      isolateId,
+      dummyClassInstanceRef.classRef!.id!,
+    ) as Class;
 
     final dummyClassWithTwoMixinsApplied =
         await service.getObject(isolateId, dummyClass.superClass!.id!) as Class;
     expect(dummyClassWithTwoMixinsApplied.id, startsWith('classes/'));
-    expect(dummyClassWithTwoMixinsApplied.name,
-        '__DummyClassWithMixins&Object&_DummyBaseMixin&_DummyMixin');
+    expect(
+      dummyClassWithTwoMixinsApplied.name,
+      '__DummyClassWithMixins&Object&_DummyBaseMixin&_DummyMixin',
+    );
     expect(dummyClassWithTwoMixinsApplied.isAbstract, true);
     expect(dummyClassWithTwoMixinsApplied.isConst, true);
     expect(dummyClassWithTwoMixinsApplied.isSealed, false);
@@ -1105,23 +1230,31 @@ var tests = <IsolateTest>[
     final dummyClassWithTwoMixinsAppliedJson =
         dummyClassWithTwoMixinsApplied.json!;
     expect(
-        dummyClassWithTwoMixinsAppliedJson['_vmName'],
-        startsWith(
-            '__DummyClassWithMixins&Object&_DummyBaseMixin&_DummyMixin@'));
+      dummyClassWithTwoMixinsAppliedJson['_vmName'],
+      startsWith(
+        '__DummyClassWithMixins&Object&_DummyBaseMixin&_DummyMixin@',
+      ),
+    );
     expect(dummyClassWithTwoMixinsAppliedJson['_finalized'], true);
     expect(dummyClassWithTwoMixinsAppliedJson['_implemented'], false);
     expect(dummyClassWithTwoMixinsAppliedJson['_patch'], false);
 
     expect(dummyClassWithTwoMixinsApplied.interfaces!.length, 1);
-    expect(dummyClassWithTwoMixinsApplied.interfaces!.first,
-        dummyClassWithTwoMixinsApplied.mixin!);
+    expect(
+      dummyClassWithTwoMixinsApplied.interfaces!.first,
+      dummyClassWithTwoMixinsApplied.mixin!,
+    );
     final dummyMixinType = await service.getObject(
-        isolateId, dummyClassWithTwoMixinsApplied.mixin!.id!) as Instance;
+      isolateId,
+      dummyClassWithTwoMixinsApplied.mixin!.id!,
+    ) as Instance;
     expect(dummyMixinType.kind, InstanceKind.kType);
     expect(dummyMixinType.id, startsWith('classes/'));
     expect(dummyMixinType.name, '_DummyMixin');
     final dummyMixinClass = await service.getObject(
-        isolateId, dummyMixinType.typeClass!.id!) as Class;
+      isolateId,
+      dummyMixinType.typeClass!.id!,
+    ) as Class;
     expect(dummyMixinClass.id, startsWith('classes/'));
     expect(dummyMixinClass.name, '_DummyMixin');
     expect(dummyMixinClass.isAbstract, true);
@@ -1149,10 +1282,14 @@ var tests = <IsolateTest>[
     expect(dummyMixinClassJson['_patch'], false);
 
     final dummyClassWithOneMixinApplied = await service.getObject(
-        isolateId, dummyClassWithTwoMixinsApplied.superClass!.id!) as Class;
+      isolateId,
+      dummyClassWithTwoMixinsApplied.superClass!.id!,
+    ) as Class;
     expect(dummyClassWithOneMixinApplied.id, startsWith('classes/'));
-    expect(dummyClassWithOneMixinApplied.name,
-        '__DummyClassWithMixins&Object&_DummyBaseMixin');
+    expect(
+      dummyClassWithOneMixinApplied.name,
+      '__DummyClassWithMixins&Object&_DummyBaseMixin',
+    );
     expect(dummyClassWithOneMixinApplied.isAbstract, true);
     expect(dummyClassWithOneMixinApplied.isConst, true);
     expect(dummyClassWithOneMixinApplied.isSealed, false);
@@ -1171,22 +1308,30 @@ var tests = <IsolateTest>[
     expect(dummyClassWithOneMixinApplied.subclasses!.length, 1);
     final dummyClassWithOneMixinAppliedJson =
         dummyClassWithOneMixinApplied.json!;
-    expect(dummyClassWithOneMixinAppliedJson['_vmName'],
-        startsWith('__DummyClassWithMixins&Object&_DummyBaseMixin@'));
+    expect(
+      dummyClassWithOneMixinAppliedJson['_vmName'],
+      startsWith('__DummyClassWithMixins&Object&_DummyBaseMixin@'),
+    );
     expect(dummyClassWithOneMixinAppliedJson['_finalized'], true);
     expect(dummyClassWithOneMixinAppliedJson['_implemented'], false);
     expect(dummyClassWithOneMixinAppliedJson['_patch'], false);
 
     expect(dummyClassWithOneMixinApplied.interfaces!.length, 1);
-    expect(dummyClassWithOneMixinApplied.interfaces!.first,
-        dummyClassWithOneMixinApplied.mixin!);
+    expect(
+      dummyClassWithOneMixinApplied.interfaces!.first,
+      dummyClassWithOneMixinApplied.mixin!,
+    );
     final dummyBaseMixinType = await service.getObject(
-        isolateId, dummyClassWithOneMixinApplied.mixin!.id!) as Instance;
+      isolateId,
+      dummyClassWithOneMixinApplied.mixin!.id!,
+    ) as Instance;
     expect(dummyBaseMixinType.kind, InstanceKind.kType);
     expect(dummyBaseMixinType.id, startsWith('classes/'));
     expect(dummyBaseMixinType.name, '_DummyBaseMixin');
     final dummyBaseMixinClass = await service.getObject(
-        isolateId, dummyBaseMixinType.typeClass!.id!) as Class;
+      isolateId,
+      dummyBaseMixinType.typeClass!.id!,
+    ) as Class;
     expect(dummyBaseMixinClass.id, startsWith('classes/'));
     expect(dummyBaseMixinClass.name, '_DummyBaseMixin');
     expect(dummyBaseMixinClass.isAbstract, true);
@@ -1223,7 +1368,7 @@ var tests = <IsolateTest>[
       fail('successfully got class with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -1233,8 +1378,12 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a class id.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/types/0";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/types/0';
     final result = await service.getObject(isolateId, objectId) as Instance;
     expect(result.kind, InstanceKind.kType);
     expect(result.id, equals(objectId));
@@ -1249,14 +1398,18 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/types/9999999";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/types/9999999';
     try {
       await service.getObject(isolateId, objectId);
       fail('successfully got type with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -1267,8 +1420,12 @@ var tests = <IsolateTest>[
     // Call [invoke] to get an [InstanceRef], and then use the ID of its
     // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/functions/dummyFunction";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/functions/dummyFunction';
     final result = await service.getObject(isolateId, objectId) as Func;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyFunction'));
@@ -1305,9 +1462,13 @@ var tests = <IsolateTest>[
     // Call [invoke] to get an [InstanceRef], and then use the ID of its
     // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
     final objectId =
-        "${evalResult.classRef!.id!}/functions/dummyGenericFunction";
+        '${evalResult.classRef!.id!}/functions/dummyGenericFunction';
     final result = await service.getObject(isolateId, objectId) as Func;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyGenericFunction'));
@@ -1345,7 +1506,11 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a class id.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
     final objectId = evalResult.classRef!.id!;
     final result = await service.getObject(isolateId, objectId) as Class;
     expect(result.id, startsWith('classes/'));
@@ -1398,14 +1563,18 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a class id.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/functions/invalid";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/functions/invalid';
     try {
       await service.getObject(isolateId, objectId);
       fail('successfully got function with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -1415,8 +1584,12 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a class id.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/fields/dummyVar";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/fields/dummyVar';
     final result = await service.getObject(isolateId, objectId) as Field;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyVar'));
@@ -1438,7 +1611,11 @@ var tests = <IsolateTest>[
     // Call [invoke] to get an [InstanceRef], and then use the ID of its
     // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
     final objectId =
         "${evalResult.classRef!.id!}/functions/get${Uri.encodeComponent(':')}dummyVarGetter";
     final result = await service.getObject(isolateId, objectId) as Func;
@@ -1473,7 +1650,11 @@ var tests = <IsolateTest>[
     // Call [invoke] to get an [InstanceRef], and then use the ID of its
     // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
     final objectId =
         "${evalResult.classRef!.id!}/functions/set${Uri.encodeComponent(':')}dummyVarSetter";
     final result = await service.getObject(isolateId, objectId) as Func;
@@ -1510,8 +1691,12 @@ var tests = <IsolateTest>[
     // Call [invoke] to get an [InstanceRef], and then use the ID of its
     // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/field_inits/dummyVarWithInit";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/field_inits/dummyVarWithInit';
     final result = await service.getObject(isolateId, objectId) as Func;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyVarWithInit'));
@@ -1543,9 +1728,13 @@ var tests = <IsolateTest>[
     // Call [invoke] to get an [InstanceRef], and then use the ID of its
     // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
     final objectId =
-        "${evalResult.classRef!.id!}/field_inits/dummyLateVarWithInit";
+        '${evalResult.classRef!.id!}/field_inits/dummyLateVarWithInit';
     final result = await service.getObject(isolateId, objectId) as Func;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyLateVarWithInit'));
@@ -1576,8 +1765,12 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a class id.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/field_inits/dummyLateVar";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/field_inits/dummyLateVar';
     try {
       await service.getObject(isolateId, objectId);
       fail('successfully got field initializer with bad ID');
@@ -1591,16 +1784,21 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
     final flagList = await service.getFlagList();
-    if (!flagList.flags!.any((flag) =>
-        flag.name == 'use_field_guards' && flag.valueAsString == 'true')) {
+    if (!flagList.flags!.any(
+      (flag) => flag.name == 'use_field_guards' && flag.valueAsString == 'true',
+    )) {
       // Skip the test if guards are not enabled.
       return;
     }
 
     // Call eval to get a class id.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/fields/dummyList";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/fields/dummyList';
     final result = await service.getObject(isolateId, objectId) as Field;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyList'));
@@ -1620,8 +1818,12 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a class id.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/fields/mythicalField";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/fields/mythicalField';
     try {
       await service.getObject(isolateId, objectId);
       fail('successfully got field with bad ID');
@@ -1649,8 +1851,12 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a class id.
     final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/functions/dummyFunction";
+      isolateId,
+      isolate.rootLib!.id!,
+      'getDummyClass',
+      [],
+    ) as InstanceRef;
+    final objectId = '${evalResult.classRef!.id!}/functions/dummyFunction';
     final funcResult = await service.getObject(isolateId, objectId) as Func;
     final result =
         await service.getObject(isolateId, funcResult.code!.id!) as Code;
@@ -1678,11 +1884,14 @@ var tests = <IsolateTest>[
       fail('successfully got code with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, 'get_object_rpc_test.dart',
-        testeeBefore: warmup);
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'get_object_rpc_test.dart',
+      testeeBefore: warmup,
+    );

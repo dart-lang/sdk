@@ -1,0 +1,75 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  no-such-method-forwarder method m1(core::int v, [core::String s = #C1]) → core::int
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[v, s]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  no-such-method-forwarder method m2(core::int v, {core::String s = #C5}) → core::int
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[v]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C7: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  method noSuchMethod(core::Invocation inv) → dynamic {
+    for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+      self::log = self::log.{core::String::+}("${inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::[]}(i){(core::int) → dynamic}};"){(core::String) → core::String};
+    }
+    for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+      self::log = self::log.{core::String::+}("s=${inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::[]}(new _in::Symbol::•("s")){(core::Object?) → dynamic}};"){(core::String) → core::String};
+    }
+    return 42;
+  }
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  abstract method m1(core::int v, [core::String s = #C1]) → core::int;
+  abstract method m2(core::int v, {core::String s = #C5}) → core::int;
+  method noSuchMethod(core::Invocation inv) → dynamic {
+    for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+      self::log = self::log.{core::String::+}("${inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::[]}(i){(core::int) → dynamic}};"){(core::String) → core::String};
+    }
+    for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+      self::log = self::log.{core::String::+}("s=${inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::[]}(new _in::Symbol::•("s")){(core::Object?) → dynamic}};"){(core::String) → core::String};
+    }
+    return 42;
+  }
+}
+class MA = core::Object with self::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::MA
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation inv) → dynamic
+    return super.{self::M::noSuchMethod}(inv);
+  no-such-method-forwarder method m1(core::int v, [core::String s = #C1]) → core::int
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[v, s]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  no-such-method-forwarder method m2(core::int v, {core::String s = #C5}) → core::int
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[v]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C7: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+}
+static field core::String log = "";
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method main() → dynamic {
+  new self::C::•().{self::C::m1}(1){(core::int, [core::String]) → core::int};
+  self::expect("1;s1;", self::log);
+  self::log = "";
+  new self::C::•().{self::C::m2}(2){(core::int, {s: core::String}) → core::int};
+  self::expect("2;s=s2;", self::log);
+  self::log = "";
+  new self::MA::•().{self::MA::m1}(1){(core::int, [core::String]) → core::int};
+  self::expect("1;s1;", self::log);
+  self::log = "";
+  new self::MA::•().{self::MA::m2}(2){(core::int, {s: core::String}) → core::int};
+  self::expect("2;s=s2;", self::log);
+}
+
+constants  {
+  #C1 = "s1"
+  #C2 = #m1
+  #C3 = <core::Type*>[]
+  #C4 = <core::Symbol*, dynamic>{}
+  #C5 = "s2"
+  #C6 = #m2
+  #C7 = #s
+}

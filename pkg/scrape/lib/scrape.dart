@@ -98,8 +98,12 @@ class Scrape {
   }
 
   /// Add an occurrence of [item] to [histogram].
+  ///
+  /// Creates the histogram as needed if not already defined.
   void record(String histogram, Object item) {
-    _histograms[histogram]!.add(item);
+    _histograms
+        .putIfAbsent(histogram, () => Histogram(order: SortOrder.descending))
+        .add(item);
   }
 
   /// Run the scrape using the given set of command line arguments.
@@ -229,7 +233,6 @@ class Scrape {
         if (entry.path.contains('/analyzer_cli/test/')) continue;
         if (entry.path.contains('/compiler/test/')) continue;
         if (entry.path.contains('/dart/runtime/observatory/tests/')) continue;
-        if (entry.path.contains('/dart/runtime/observatory_2/tests/')) continue;
         if (entry.path.contains('/dart/runtime/tests/')) continue;
         if (entry.path.contains('/dart/tests/')) continue;
         if (entry.path.contains('/dev_compiler/test/')) continue;
@@ -282,10 +285,10 @@ class Scrape {
         featureSet: featureSet, lineInfo: lineInfo);
 
     if (_printFiles) {
-      var line =
-          '[$_scrapedFileCount files, $_scrapedLineCount lines] ' '$shortPath';
       if (Platform.isWindows) {
         // No ANSI escape codes on Windows.
+        var line = '[$_scrapedFileCount files, $_scrapedLineCount lines] '
+            '$shortPath';
         print(line);
       } else {
         // Overwrite the same line.

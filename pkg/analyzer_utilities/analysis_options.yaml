@@ -10,10 +10,7 @@ linter:
   rules:
     - avoid_dynamic_calls
     - avoid_unused_constructor_parameters
-    - collection_methods_unrelated_type
-    - dangling_library_doc_comments
-    - depend_on_referenced_packages
-    - implicit_call_tearoffs
+    - flutter_style_todos
     - library_annotations
     - prefer_single_quotes
     - unawaited_futures

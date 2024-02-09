@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MapPatternTest1);
-    defineReflectiveTests(MapPatternTest2);
+    defineReflectiveTests(MapPatternTest);
   });
 }
 
 @reflectiveTest
-class MapPatternTest1 extends AbstractCompletionDriverTest
-    with MapPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class MapPatternTest2 extends AbstractCompletionDriverTest
-    with MapPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class MapPatternTest extends AbstractCompletionDriverTest
+    with MapPatternTestCases {}
 
 mixin MapPatternTestCases on AbstractCompletionDriverTest {
   Future<void> test_entry_key_assignmentContext_middle() async {
@@ -44,14 +33,10 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  m1
-    kind: parameter
   null
     kind: keyword
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -71,14 +56,10 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  m1
-    kind: parameter
   null
     kind: keyword
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -102,12 +83,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -131,12 +108,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -160,12 +133,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -179,8 +148,7 @@ void f(Object o1) {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -189,27 +157,6 @@ suggestions
   const
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  c1
-    kind: localVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  o1
-    kind: parameter
-  true
-    kind: keyword
-  v1
-    kind: localVariable
-''');
-    }
   }
 
   Future<void> test_entry_key_only() async {
@@ -232,12 +179,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -251,8 +194,7 @@ void f(Object o1) {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -261,27 +203,6 @@ suggestions
   const
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  c1
-    kind: localVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  o1
-    kind: parameter
-  true
-    kind: keyword
-  v1
-    kind: localVariable
-''');
-    }
   }
 
   Future<void> test_entry_value() async {
@@ -327,8 +248,7 @@ void f(Object o1) {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -337,30 +257,5 @@ suggestions
   var
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  c1
-    kind: localVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  o1
-    kind: parameter
-  true
-    kind: keyword
-  v1
-    kind: localVariable
-  var
-    kind: keyword
-''');
-    }
   }
 }

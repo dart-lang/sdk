@@ -381,7 +381,6 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
     ```dart
     var r = const (1,);
     ```
-  experiments: records
   script: >
     main() {
       var record = const (1);
@@ -422,7 +421,6 @@ RecordLiteralZeroFieldsWithTrailingComma:
     ```dart
     var r = (3, 4);
     ```
-  experiments: records
   script: >
     main() {
       var record = (,);
@@ -464,7 +462,6 @@ EmptyRecordTypeNamedFieldsList:
     ```dart
     void f((int, int) r) {}
     ```
-  experiments: records
   script: >
     main() {
       (int, int, {/*missing*/}) record = (1, 2,);
@@ -505,7 +502,6 @@ RecordTypeZeroFieldsButTrailingComma:
     ```dart
     void f((int, int) r) {}
     ```
-  experiments: records
   script: >
     main() {
       (,) record = ();
@@ -543,7 +539,6 @@ RecordTypeOnePositionalFieldNoTrailingComma:
     ```dart
     void f((int,) r) {}
     ```
-  experiments: records
   script: >
     main() {
       (int /* missing trailing comma */) record = const (1, );
@@ -552,7 +547,6 @@ RecordTypeOnePositionalFieldNoTrailingComma:
 DuplicatedRecordTypeFieldName:
   problemMessage: "Duplicated record type field name '#name'."
   correctionMessage: "Try renaming or removing one of the named record type fields."
-  experiments: records
   script: |
     ({int a, String a}) record = throw '';
 
@@ -563,7 +557,6 @@ DuplicatedRecordTypeFieldNameContext:
 DuplicatedRecordLiteralFieldName:
   problemMessage: "Duplicated record literal field name '#name'."
   correctionMessage: "Try renaming or removing one of the named record literal fields."
-  experiments: records
   script: |
     dynamic field = (a: 0, a: 1);
 
@@ -750,7 +743,6 @@ MultipleImplements:
 MultipleClauses:
   problemMessage: "Each '#string' definition can have at most one '#string2' clause."
   correctionMessage: "Try combining all of the '#string2' clauses into a single clause."
-  experiments: enhanced-enums
   analyzerCode: ParserErrorCode.MULTIPLE_CLAUSES
   index: 121
   script:
@@ -760,7 +752,6 @@ MultipleClauses:
 OutOfOrderClauses:
   problemMessage: "The '#string' clause must come before the '#string2' clause."
   correctionMessage: "Try moving the '#string' clause before the '#string2' clause."
-  experiments: enhanced-enums
   analyzerCode: ParserErrorCode.OUT_OF_ORDER_CLAUSES
   index: 122
   script: "class B {} class D {} enum A implements B with D { v; }"
@@ -1020,10 +1011,10 @@ AbstractStaticField:
 AbstractExtensionField:
   problemMessage: "Extension fields can't be declared 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword."
-# Separate class and extension field handling to support this.
-#  configuration: nnbd-strong
-#  script:
-#    - "extension C on int {abstract static var f;}"
+  analyzerCode: ABSTRACT_EXTENSION_FIELD
+  exampleAllowMoreCodes: true
+  script:
+    - "extension C on int {abstract static var f;}"
 
 AbstractFieldInitializer:
   problemMessage: "Abstract fields cannot have initializers."
@@ -1048,6 +1039,22 @@ AbstractLateField:
   configuration: nnbd-strong
   script:
     - "abstract class C {abstract late var f;}"
+
+AbstractFinalBaseClass:
+  problemMessage: "An 'abstract' class can't be declared as both 'final' and 'base'."
+  correctionMessage: "Try removing either the 'final' or 'base' keyword."
+  analyzerCode: ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS
+  index: 176
+  script:
+    - "abstract final base class C {}"
+
+AbstractFinalInterfaceClass:
+  problemMessage: "An 'abstract' class can't be declared as both 'final' and 'interface'."
+  correctionMessage: "Try removing either the 'final' or 'interface' keyword."
+  analyzerCode: ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS
+  index: 177
+  script:
+    - "abstract final interface class C {}"
 
 AbstractSealedClass:
   problemMessage: "A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract."
@@ -1086,7 +1093,6 @@ AbstractSealedClass:
     ```dart
     sealed class C {}
     ```
-  experiments: sealed-class
   script:
     - "sealed abstract class C {}"
     - "abstract sealed class C {}"
@@ -1264,9 +1270,10 @@ ExternalConstructorWithBody:
     - "class C { external C() {} }"
 
 ExternalConstructorWithFieldInitializers:
+  index: 178
   problemMessage: "An external constructor can't initialize fields."
   correctionMessage: "Try removing the field initializers, or removing the keyword 'external'."
-  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
+  analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
 
 ExternalFactoryWithBody:
   index: 86
@@ -1421,6 +1428,22 @@ ExtraneousModifierInExtension:
     ```
   script:
     - "extension on String { foo(covariant String child) {} }"
+
+ExtraneousModifierInExtensionType:
+  index: 174
+  problemMessage: "Can't have modifier '#lexeme' in an extension type."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE
+  script:
+    - "extension type ET(String i) { foo(covariant String child) {} }"
+
+ExtraneousModifierInPrimaryConstructor:
+  index: 175
+  problemMessage: "Can't have modifier '#lexeme' in a primary constructor."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+  script:
+    - "extension type ET(covariant String i) { }"
 
 FinalAndCovariant:
   index: 80
@@ -2005,7 +2028,7 @@ FunctionTypeDefaultValue:
   analyzerCode: DEFAULT_VALUE_IN_FUNCTION_TYPE
 
 PrivateNamedParameter:
-  problemMessage: "An optional named parameter can't start with '_'."
+  problemMessage: "A named parameter can't start with an underscore ('_')."
   analyzerCode: PRIVATE_OPTIONAL_PARAMETER
 
 NoFormals:
@@ -2359,7 +2382,7 @@ FastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart_runner|dartdevc|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --enable-asserts
@@ -2679,6 +2702,10 @@ ExtensionDeclaresAbstractMember:
   index: 94
   problemMessage: "Extensions can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
+  script: |
+    extension E on int {
+      void method();
+    }
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER
   comment: No parameters.
   documentation: |-
@@ -2703,10 +2730,24 @@ ExtensionDeclaresAbstractMember:
     Either provide an implementation for the member or remove it.
   hasPublishedDocs: true
 
+ExtensionTypeDeclaresAbstractMember:
+  problemMessage: "Extension types can't declare abstract members."
+  correctionMessage: "Try providing an implementation for the member."
+  analyzerCode: EXTENSION_TYPE_WITH_ABSTRACT_MEMBER
+  experiments: inline-class
+  script: |
+    extension type ET(int id) {
+      void method();
+    }
+
 ExtensionDeclaresConstructor:
   index: 92
   problemMessage: "Extensions can't declare constructors."
   correctionMessage: "Try removing the constructor declaration."
+  script: |
+    extension E on int {
+      E();
+    }
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR
   comment: No parameters.
   documentation: |-
@@ -2738,6 +2779,10 @@ ExtensionDeclaresInstanceField:
   problemMessage: "Extensions can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD
+  script: |
+    extension E on int {
+      int? field;
+    }
   comment: No parameters.
   documentation: |-
     #### Description
@@ -2763,6 +2808,16 @@ ExtensionDeclaresInstanceField:
     Remove the field, make it a static field, or convert it to be a getter,
     setter, or method.
   hasPublishedDocs: true
+
+ExtensionTypeDeclaresInstanceField:
+  problemMessage: "Extension types can't declare instance fields"
+  correctionMessage: "Try removing the field declaration or making it a static field"
+  analyzerCode: EXTENSION_TYPE_DECLARES_INSTANCE_FIELD
+  experiments: inline-class
+  script: |
+    extension type ET(int id) {
+      int? field;
+    }
 
 ConflictsWithConstructor:
   problemMessage: "Conflicts with constructor '#name'."
@@ -2833,6 +2888,10 @@ DeclaredMemberConflictsWithInheritedMember:
 
 DeclaredMemberConflictsWithInheritedMemberCause:
   problemMessage: "This is the inherited member."
+  severity: CONTEXT
+
+DeclaredMemberConflictsWithInheritedMembersCause:
+  problemMessage: "This is one of the inherited members."
   severity: CONTEXT
 
 DeclaredMemberConflictsWithOverriddenMembersCause:
@@ -3517,16 +3576,6 @@ DuplicatedDeclarationUse:
       lib2.dart: |
         class C {}
 
-DuplicatedNamePreviouslyUsed:
-  problemMessage: "Can't declare '#name' because it was already used in this scope."
-  analyzerCode: REFERENCED_BEFORE_DECLARATION
-  script:
-    - "main(arguments) { arguments; var arguments; }"
-
-DuplicatedNamePreviouslyUsedCause:
-  problemMessage: "Previous use of '#name'."
-  severity: CONTEXT
-
 DuplicatedNamedArgument:
   problemMessage: "Duplicated named argument '#name'."
   analyzerCode: DUPLICATE_NAMED_ARGUMENT
@@ -3618,7 +3667,6 @@ SupertypeIsIllegalAliased:
 SupertypeIsNullableAliased:
   problemMessage: "The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable."
   analyzerCode: EXTENDS_NON_CLASS
-  experiments: nonfunction-type-aliases
   script: |
     class A {}
     typedef B = A?;
@@ -4577,14 +4625,14 @@ NonSimpleBoundViaReference:
 
 CycleInTypeVariables:
   problemMessage: "Type '#name' is a bound of itself via '#string'."
-  correctionMessage: "Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle."
+  correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
   script:
     - "foo<A extends B, B extends A>() {}"
 
 DirectCycleInTypeVariables:
   problemMessage: "Type '#name' can't use itself as a bound."
-  correctionMessage: "Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle."
+  correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
   script:
     - "foo<A extends A>() {}"
@@ -4903,7 +4951,6 @@ IncorrectTypeArgumentInstantiation:
   problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
   correctionMessage: "Try changing type arguments so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  experiments: constructor-tearoffs
   script: |
     X bounded<X extends num>(X x) => x;
     main() {
@@ -5125,6 +5172,12 @@ FfiDartTypeMismatch:
   problemMessage: "Expected '#type' to be a subtype of '#type2'."
   external: test/ffi_test.dart
 
+FfiDefaultAssetDuplicate:
+  # Used by dart:ffi
+  problemMessage: "There may be at most one @DefaultAsset annotation on a library."
+  external: test/ffi_test.dart
+  analyzerCode: FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET
+
 FfiExpectedExceptionalReturn:
   # Used by dart:ffi
   problemMessage: "Expected an exceptional return value for a native callback returning '#type'."
@@ -5167,12 +5220,12 @@ FfiLeafCallMustNotReturnHandle:
 
 FfiNativeUnexpectedNumberOfParametersWithReceiver:
   # Used by dart:ffi
-  problemMessage: "Unexpected number of FfiNative annotation parameters. Expected #count but has #count2. FfiNative instance method annotation must have receiver as first argument."
+  problemMessage: "Unexpected number of Native annotation parameters. Expected #count but has #count2. Native instance method annotation must have receiver as first argument."
   external: test/ffi_test.dart
 
 FfiNativeUnexpectedNumberOfParameters:
   # Used by dart:ffi
-  problemMessage: "Unexpected number of FfiNative annotation parameters. Expected #count but has #count2."
+  problemMessage: "Unexpected number of Native annotation parameters. Expected #count but has #count2."
   external: test/ffi_test.dart
 
 FfiNativeOnlyNativeFieldWrapperClassCanBePointer:
@@ -5182,7 +5235,37 @@ FfiNativeOnlyNativeFieldWrapperClassCanBePointer:
 
 FfiNativeMustBeExternal:
   # Used by dart:ffi
-  problemMessage: "FfiNative functions must be marked external."
+  problemMessage: "Native functions and fields must be marked external."
+  external: test/ffi_test.dart
+
+FfiNativeDuplicateAnnotations:
+  # Used by dart:ffi
+  problemMessage: "Native functions and fields must not have more than @Native annotation."
+  external: test/ffi_test.dart
+  analyzerCode: FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS
+
+FfiNativeFieldMustBeStatic:
+  # Used by dart:ffi
+  problemMessage: "Native fields must be static."
+  analyzerCode: NATIVE_FIELD_NOT_STATIC
+  external: test/ffi_test.dart
+
+FfiNativeFieldMissingType:
+  # Used by dart:ffi
+  problemMessage: "The native type of this field could not be inferred and must be specified in the annotation."
+  analyzerCode: NATIVE_FIELD_MISSING_TYPE
+  external: test/ffi_test.dart
+
+FfiNativeFieldType:
+  # Used by dart:ffi
+  problemMessage: "Unsupported type for native fields. Native fields only support pointers, compounds and numeric types."
+  analyzerCode: NATIVE_FIELD_INVALID_TYPE
+  external: test/ffi_test.dart
+
+FfiAddressOfMustBeNative:
+  # Used by dart:ffi
+  problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native."
+  analyzerCode: ARGUMENT_MUST_BE_NATIVE
   external: test/ffi_test.dart
 
 SpreadTypeMismatch:
@@ -5389,6 +5472,24 @@ CombinedMemberSignatureFailed:
 
       abstract class C implements I2, I1 {}
 
+ExtensionTypeCombinedMemberSignatureFailed:
+  problemMessage: "Extension type '#name' inherits multiple members named '#name2' with incompatible signatures."
+  correctionMessage: "Try adding a declaration of '#name2' to '#name'."
+  analyzerCode: INCONSISTENT_INHERITANCE
+  experiments: inline-class
+  script:
+    - |
+      abstract class I1 {
+        void foo(int? x);
+      }
+      abstract class I2 {
+        void foo();
+      }
+      abstract class I3 implements I1, I2 {
+        void foo([int? x]);
+      }
+      extension type C(I3 i) implements I2, I1 {}
+
 LanguageVersionTooHigh:
   problemMessage: "The specified language version is too high. The highest supported language version is #count.#count2."
   script: >
@@ -5469,7 +5570,7 @@ VariableCouldBeNullDueToWrite:
   correctionMessage: "Try null checking the variable after the assignment.  See #string"
 
 FieldNotPromotedBecauseNotEnabled:
-  problemMessage: "'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above."
+  problemMessage: "'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above."
   correctionMessage: "See #string"
   script: >
     // @dart=3.1
@@ -5497,7 +5598,7 @@ FieldNotPromotedBecauseNotField:
     }
 
 FieldNotPromotedBecauseNotPrivate:
-  problemMessage: "'#name' refers to a public field so it couldn't be promoted."
+  problemMessage: "'#name' refers to a public property so it couldn't be promoted."
   correctionMessage: "See #string"
   script: >
     class C {
@@ -5682,6 +5783,10 @@ JsInteropDartJsInteropAnnotationForStaticInteropOnly:
   problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes."
   correctionMessage: "Try making this class an extension type or marking it as '@staticInterop'."
 
+JsInteropDisallowedInteropLibraryInDart2Wasm:
+  problemMessage: "JS interop library '#name' can't be imported when compiling to Wasm."
+  correctionMessage: "Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead."
+
 JsInteropEnclosingClassJSAnnotation:
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."
   correctionMessage: "Try adding the annotation to the enclosing class."
@@ -5743,6 +5848,14 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
+JsInteropFunctionToJSRequiresStaticType:
+  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`."
+  correctionMessage: "Insert an explicit cast to the expected function type."
+
+JsInteropFunctionToJSTypeParameters:
+  problemMessage: "Functions converted via `toJS` cannot declare type parameters."
+  correctionMessage: "Remove the declared type parameters from the function."
+
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
@@ -5775,19 +5888,15 @@ JsInteropOperatorCannotBeRenamed:
   correctionMessage: "Remove the annotation or remove the value inside the annotation."
 
 JsInteropOperatorsNotSupported:
-  problemMessage: "JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop."
-  correctionMessage: "Try replacing this with a normal method."
+  problemMessage: "JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop."
+  correctionMessage: "Try making this class a static interop type instead."
 
 JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
-JsInteropStaticInteropExternalMemberWithInvalidTypeParameters:
-  problemMessage: "External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types."
-  correctionMessage: "Try adding a valid bound to the type parameters used in this member."
-
 JsInteropStaticInteropExternalTypeViolation:
-  problemMessage: "Type '#type' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types."
+  problemMessage: "Type '#type' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type."
   correctionMessage: "Use one of the valid types instead."
 
 JsInteropStaticInteropGenerativeConstructor:
@@ -5839,21 +5948,9 @@ JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
 
-JsInteropStaticInteropWithInvalidJsTypesSupertype:
-  problemMessage: "`@staticInterop` class '#name' cannot have '#name2' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes."
-  correctionMessage: "Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '#name' to '#name2' when needed."
-
 JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
-
-JsInteropStrictModeForbiddenLibrary:
-  problemMessage: "Library '#name' is forbidden when strict mode is enabled."
-  correctionMessage: "Remove the import of a forbidden library."
-
-JsInteropFunctionToJSRequiresStaticType:
-  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`."
-  correctionMessage: "Insert an explicit cast to the expected function type."
 
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
@@ -6022,6 +6119,12 @@ NeverReachableSwitchExpressionError:
 NeverReachableSwitchStatementError:
   problemMessage: "`null` encountered as case in a switch statement with a non-nullable type."
 
+UnsoundSwitchExpressionError:
+  problemMessage: "None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details."
+
+UnsoundSwitchStatementError:
+  problemMessage: "None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details."
+
 NeverValueError:
   problemMessage: "`null` encountered as the result from expression with type `Never`."
 
@@ -6122,7 +6225,6 @@ UnsupportedDartExt:
 InstantiationNonGenericFunctionType:
   problemMessage: "The static type of the explicit instantiation operand must be a generic function type but is '#type'."
   correctionMessage: "Try changing the operand or remove the type arguments."
-  experiments: constructor-tearoffs
   script: |
     f() {}
     main() => f<int>;
@@ -6131,14 +6233,12 @@ InstantiationNullableGenericFunctionType:
   problemMessage: "The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'."
   correctionMessage: "Try changing the operand or remove the type arguments."
   analyzerCode: DISALLOWED_TYPE_INSTANTIATION_EXPRESSION
-  experiments: constructor-tearoffs
   script: |
     test(void Function<T>()? f) => f<int>;
 
 InstantiationTooFewArguments:
   problemMessage: "Too few type arguments: #count required, #count2 given."
   correctionMessage: "Try adding the missing type arguments."
-  experiments: constructor-tearoffs
   script: |
     f<X, Y>() {}
     main() => f<int>;
@@ -6146,14 +6246,12 @@ InstantiationTooFewArguments:
 InstantiationTooManyArguments:
   problemMessage: "Too many type arguments: #count allowed, but #count2 found."
   correctionMessage: "Try removing the extra type arguments."
-  experiments: constructor-tearoffs
   script: |
     f<X>() {}
     main() => f<int, String>;
 
 AbstractClassConstructorTearOff:
   problemMessage: "Constructors on abstract classes can't be torn off."
-  experiments: constructor-tearoffs
   script: |
     abstract class Class {}
     main() => Class.new;
@@ -6161,7 +6259,6 @@ AbstractClassConstructorTearOff:
 StaticTearOffFromInstantiatedClass:
   problemMessage: "Cannot access static member on an instantiated generic class."
   correctionMessage: "Try removing the type arguments or placing them after the member name."
-  experiments: constructor-tearoffs
   script: |
     class A<X> { static f() {} }
     main() => A<int>.f;
@@ -6170,13 +6267,11 @@ StaticTearOffFromInstantiatedClass:
 ConstructorTearOffWithTypeArguments:
   problemMessage: "A constructor tear-off can't have type arguments after the constructor name."
   correctionMessage: "Try removing the type arguments or placing them after the class name."
-  experiments: constructor-tearoffs
   script:
     - "class C<X> { C.foo(); } bar() { C.foo<int>; }"
 
 NewAsSelector:
   problemMessage: "'new' can only be used as a constructor reference."
-  experiments: constructor-tearoffs
   script: |
     method(dynamic d) => d.new;
 
@@ -6513,14 +6608,12 @@ ObjectMemberNameUsedForRecordField:
 RecordFieldsCantBePrivate:
   problemMessage: "Record field names can't be private."
   analyzerCode: INVALID_FIELD_NAME
-  experiments: records
   script: |
     foo() => (_bar: 1);
 
 NamedFieldClashesWithPositionalFieldInRecord:
   problemMessage: "Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field."
   analyzerCode: INVALID_FIELD_NAME
-  experiments: records
   script: |
     foo() => (0, $1: 0);
 
@@ -6538,7 +6631,6 @@ InheritedRestrictedMemberOfEnumImplementer:
 SealedClassSubtypeOutsideOfLibrary:
   problemMessage: "The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
   analyzerCode: SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
-  experiments: sealed-class
   script:
     main.dart:
       import 'lib.dart';
@@ -6549,7 +6641,6 @@ SealedClassSubtypeOutsideOfLibrary:
 CantUseClassAsMixin:
   problemMessage: "The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin."
   analyzerCode: CLASS_USED_AS_MIXIN
-  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6562,7 +6653,6 @@ BaseEnum:
   problemMessage: "Enums can't be declared to be 'base'."
   correctionMessage: "Try removing the keyword 'base'."
   analyzerCode: ParserErrorCode.BASE_ENUM
-  experiments: class-modifiers
   script:
     - "base enum E { v }"
 
@@ -6571,7 +6661,6 @@ FinalEnum:
   problemMessage: "Enums can't be declared to be 'final'."
   correctionMessage: "Try removing the keyword 'final'."
   analyzerCode: ParserErrorCode.FINAL_ENUM
-  experiments: class-modifiers
   script:
     - "final enum E { v }"
 
@@ -6580,7 +6669,6 @@ InterfaceEnum:
   problemMessage: "Enums can't be declared to be 'interface'."
   correctionMessage: "Try removing the keyword 'interface'."
   analyzerCode: ParserErrorCode.INTERFACE_ENUM
-  experiments: class-modifiers
   script:
     - "interface enum E { v }"
 
@@ -6589,7 +6677,6 @@ SealedEnum:
   problemMessage: "Enums can't be declared to be 'sealed'."
   correctionMessage: "Try removing the keyword 'sealed'."
   analyzerCode: ParserErrorCode.SEALED_ENUM
-  experiments: class-modifiers,sealed-class
   script:
     - "sealed enum E { v }"
 
@@ -6598,7 +6685,6 @@ FinalMixin:
   problemMessage: "A mixin can't be declared 'final'."
   correctionMessage: "Try removing the 'final' keyword."
   analyzerCode: ParserErrorCode.FINAL_MIXIN
-  experiments: class-modifiers
   script:
     - "final mixin M {}"
 
@@ -6607,7 +6693,6 @@ InterfaceMixin:
   problemMessage: "A mixin can't be declared 'interface'."
   correctionMessage: "Try removing the 'interface' keyword."
   analyzerCode: ParserErrorCode.INTERFACE_MIXIN
-  experiments: class-modifiers
   script:
     - "interface mixin M {}"
 
@@ -6616,7 +6701,6 @@ SealedMixin:
   problemMessage: "A mixin can't be declared 'sealed'."
   correctionMessage: "Try removing the 'sealed' keyword."
   analyzerCode: ParserErrorCode.SEALED_MIXIN
-  experiments: class-modifiers,sealed-class
   script:
     - "sealed mixin M {}"
 
@@ -6625,7 +6709,6 @@ FinalMixinClass:
   problemMessage: "A mixin class can't be declared 'final'."
   correctionMessage: "Try removing the 'final' keyword."
   analyzerCode: ParserErrorCode.FINAL_MIXIN_CLASS
-  experiments: class-modifiers
   script:
     - "final mixin class C {}"
 
@@ -6634,7 +6717,6 @@ InterfaceMixinClass:
   problemMessage: "A mixin class can't be declared 'interface'."
   correctionMessage: "Try removing the 'interface' keyword."
   analyzerCode: ParserErrorCode.INTERFACE_MIXIN_CLASS
-  experiments: class-modifiers
   script:
     - "interface mixin class C {}"
 
@@ -6643,14 +6725,12 @@ SealedMixinClass:
   problemMessage: "A mixin class can't be declared 'sealed'."
   correctionMessage: "Try removing the 'sealed' keyword."
   analyzerCode: ParserErrorCode.SEALED_MIXIN_CLASS
-  experiments: class-modifiers,sealed-class
   script:
     - "sealed mixin class C {}"
 
 BaseClassImplementedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be implemented outside of its library because it's a base class."
   analyzerCode: BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6665,7 +6745,6 @@ BaseOrFinalClassImplementedOutsideOfLibraryCause:
 BaseMixinImplementedOutsideOfLibrary:
   problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a base mixin."
   analyzerCode: BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6676,7 +6755,6 @@ BaseMixinImplementedOutsideOfLibrary:
 InterfaceClassExtendedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be extended outside of its library because it's an interface class."
   analyzerCode: INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6687,7 +6765,6 @@ InterfaceClassExtendedOutsideOfLibrary:
 FinalClassExtendedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be extended outside of its library because it's a final class."
   analyzerCode: FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6698,7 +6775,6 @@ FinalClassExtendedOutsideOfLibrary:
 FinalClassImplementedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be implemented outside of its library because it's a final class."
   analyzerCode: FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6709,7 +6785,6 @@ FinalClassImplementedOutsideOfLibrary:
 FinalClassUsedAsMixinConstraintOutsideOfLibrary:
   problemMessage: "The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class."
   analyzerCode: FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6721,7 +6796,6 @@ SubtypeOfBaseIsNotBaseFinalOrSealed:
   problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'."
   correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
   analyzerCode: SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED
-  experiments: class-modifiers,sealed-class
   script: |
       base class A {}
       class B extends A {}
@@ -6730,7 +6804,6 @@ SubtypeOfFinalIsNotBaseFinalOrSealed:
   problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'final'."
   correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
   analyzerCode: SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-  experiments: class-modifiers,sealed-class
   script: |
       final class A {}
       class B extends A {}
@@ -6739,7 +6812,6 @@ MixinSubtypeOfBaseIsNotBase:
   problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'base'."
   correctionMessage: "Try adding 'base' to the mixin."
   analyzerCode: MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
-  experiments: class-modifiers,sealed-class
   script: |
       base class A {}
       mixin B implements A {}
@@ -6748,14 +6820,12 @@ MixinSubtypeOfFinalIsNotBase:
   problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'final'."
   correctionMessage: "Try adding 'base' to the mixin."
   analyzerCode: MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
-  experiments: class-modifiers,sealed-class
   script: |
       final class A {}
       mixin B implements A {}
 
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
-  experiments: patterns
   analyzerCode: MISSING_OBJECT_PATTERN_GETTER_NAME
   script: |
     abstract class A { int get foo;}
@@ -6763,7 +6833,6 @@ UnspecifiedGetterNameInObjectPattern:
 
 JointPatternVariablesMismatch:
   problemMessage: "Variable pattern '#name' doesn't have the same type or finality in all cases."
-  experiments: patterns
   script: |
     test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
 
@@ -6771,7 +6840,6 @@ NonExhaustiveSwitchExpression:
   problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
   correctionMessage: "Try adding a wildcard pattern or cases that match '#string2'."
   analyzerCode: NON_EXHAUSTIVE_SWITCH_EXPRESSION
-  experiments: patterns
   script: |
     enum Enum { a, b }
     String method(Enum e) => switch (e) {
@@ -6782,7 +6850,6 @@ NonExhaustiveSwitchStatement:
   problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
   correctionMessage: "Try adding a default case or cases that match '#string2'."
   analyzerCode: NON_EXHAUSTIVE_SWITCH_STATEMENT
-  experiments: patterns
   script: |
     enum Enum { a, b }
     method(Enum e) {
@@ -6796,7 +6863,6 @@ UnreachableSwitchCase:
   problemMessage: "This case is covered by the previous cases."
   analyzerCode: UNREACHABLE_SWITCH_CASE
   severity: WARNING # TODO(johnniwinther): Should this be an error, warning or not emitted at all?
-  experiments: patterns
   script: |
     enum Enum { a, b }
     method(Enum e) {
@@ -6814,7 +6880,6 @@ PatternTypeMismatchInIrrefutableContext:
   problemMessage: "The matched value of type '#type' isn't assignable to the required type '#type2'."
   correctionMessage: "Try changing the required type of the pattern, or the matched value type."
   analyzerCode: PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT
-  experiments: patterns
   script: |
     method(List<String> list) {
       var <int>[a] = list;
@@ -6824,7 +6889,6 @@ DuplicatePatternAssignmentVariable:
   problemMessage: The variable '#name' is already assigned in this pattern.
   correctionMessage: Try renaming the variable.
   analyzerCode: DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE
-  experiments: patterns
   script: |
     method(List<String> list) {
       String a = '';
@@ -6839,7 +6903,6 @@ DuplicateRecordPatternField:
   problemMessage: The field '#name' is already matched in this pattern.
   correctionMessage: Try removing the duplicate field.
   analyzerCode: DUPLICATE_RECORD_PATTERN_FIELD
-  experiments: patterns
   script: |
     method(o) {
       switch (o) {
@@ -6855,7 +6918,6 @@ DuplicateRestElementInPattern:
   problemMessage: At most one rest element is allowed in a list or map pattern.
   correctionMessage: Try removing the duplicate rest element.
   analyzerCode: DUPLICATE_REST_ELEMENT_IN_PATTERN
-  experiments: patterns
   script: |
     method(o) {
       switch (o) {
@@ -6869,7 +6931,6 @@ DuplicateRestElementInPatternContext:
 
 RestPatternInMapPattern:
   problemMessage: "The '...' pattern can't appear in map patterns."
-  experiments: patterns
   script: |
     test(dynamic x) { if (x case {1: 1, ...}) {} }
 
@@ -6878,7 +6939,6 @@ UnnecessaryNullAssertPattern:
   correctionMessage: Try replacing the null-assert pattern with its nested pattern.
   analyzerCode: UNNECESSARY_NULL_ASSERT_PATTERN
   severity: WARNING
-  experiments: patterns
   script: |
     method(List<int> list) {
       if (list case [var a!]) {}
@@ -6890,7 +6950,6 @@ UnnecessaryNullCheckPattern:
   analyzerCode: UNNECESSARY_NULL_CHECK_PATTERN
   comment: No parameters.
   severity: WARNING
-  experiments: patterns
   script: |
     method(List<int> list) {
       if (list case [var a?]) {}
@@ -6900,7 +6959,6 @@ NonBoolCondition:
   problemMessage: "Conditions must have a static type of 'bool'."
   correctionMessage: Try changing the condition.
   analyzerCode: NON_BOOL_CONDITION
-  experiments: patterns
   script: |
     method(int i) {
       if (i case 5 when i) {}
@@ -6910,7 +6968,6 @@ RefutablePatternInIrrefutableContext:
   problemMessage: Refutable patterns can't be used in an irrefutable context.
   correctionMessage: Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   analyzerCode: REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT
-  experiments: patterns
   script: |
     method(int? x) {
       var (a?) = x;
@@ -6920,7 +6977,6 @@ MissingVariablePattern:
   problemMessage: "Variable pattern '#name' is missing in this branch of the logical-or pattern."
   correctionMessage: "Try declaring this variable pattern in the branch."
   analyzerCode: MISSING_VARIABLE_PATTERN
-  experiments: patterns
   script: |
     method(x) {
       if (x case [var a] || _) {}
@@ -6929,7 +6985,6 @@ MissingVariablePattern:
 MapPatternTypeArgumentMismatch:
   problemMessage: "A map pattern requires exactly two type arguments."
   analyzerCode: EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS
-  experiments: patterns
   script: |
     method(x) {
       if (x case <int>{0: 0}) {}
@@ -6938,7 +6993,6 @@ MapPatternTypeArgumentMismatch:
 ListPatternTooManyTypeArguments:
   problemMessage: "A list pattern requires exactly one type argument."
   analyzerCode: EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS
-  experiments: patterns
   script: |
     method(x) {
       if (x case <int, int>[]) {}
@@ -6947,7 +7001,6 @@ ListPatternTooManyTypeArguments:
 UnnamedObjectPatternField:
   problemMessage: "A pattern field in an object pattern must be named."
   correctionMessage: "Try adding a pattern name or ':' before the pattern."
-  experiments: patterns
   script: |
     method(x) {
       if (x case int(5)) {}
@@ -6956,7 +7009,6 @@ UnnamedObjectPatternField:
 InvalidConstantPatternNegation:
   problemMessage: "Only negation of a numeric literal is supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
-  experiments: patterns
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION
   index: 135
   script: |
@@ -6968,7 +7020,6 @@ InvalidConstantPatternNegation:
 InvalidConstantPatternUnary:
   problemMessage: "The unary operator #name is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
-  experiments: patterns
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY
   index: 136
   script: |
@@ -6982,7 +7033,6 @@ InvalidConstantPatternDuplicateConst:
   correctionMessage: "Try removing one of the 'const' keywords."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST
   index: 137
-  experiments: patterns
   script: |
     method(x) {
       if (x case const const []) {}
@@ -6992,7 +7042,6 @@ InvalidConstantPatternEmptyRecordLiteral:
   problemMessage: "The empty record literal is not supported as a constant pattern."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL
   index: 138
-  experiments: patterns,records
   script: |
     method(x) {
       if (x case const ()) {}
@@ -7003,7 +7052,6 @@ InvalidConstantPatternGeneric:
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC
   index: 139
-  experiments: patterns
   script: |
     method(x) {
       if (x case List<int>) {}
@@ -7014,7 +7062,6 @@ InvalidConstantPatternConstPrefix:
   correctionMessage: "Try wrapping the expression in 'const ( ... )' instead."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX
   index: 140
-  experiments: patterns
   script: |
     method(x) {
       if (x case const 1) {}
@@ -7025,7 +7072,6 @@ InvalidConstantPatternBinary:
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY
   index: 141
-  experiments: patterns
   script: |
     method(x) {
       if (x case 1 + 2) {}
@@ -7036,7 +7082,6 @@ PatternAssignmentDeclaresVariable:
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
   analyzerCode: ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE
   index: 145
-  experiments: patterns
   script: |
     method(x) {
       var y;
@@ -7047,7 +7092,6 @@ PatternAssignmentNotLocalVariable:
   problemMessage: Only local variables or formal parameters can be used in pattern assignments.
   correctionMessage: Try assigning to a local variable.
   analyzerCode: PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE
-  experiments: patterns
   script: |
     var global;
     method(x) {
@@ -7059,7 +7103,6 @@ VariablePatternKeywordInDeclarationContext:
   correctionMessage: Try removing the keyword.
   analyzerCode: ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT
   index: 149
-  experiments: patterns
   comment: No parameters.
   hasPublishedDocs: true
   script: |
@@ -7101,7 +7144,6 @@ IllegalPatternVariableName:
   correctionMessage: Choose a different name.
   analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME
   index: 159
-  experiments: patterns
   comment: |-
     Parameters:
     0: the illegal name
@@ -7117,7 +7159,6 @@ IllegalPatternAssignmentVariableName:
   correctionMessage: Choose a different name.
   analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME
   index: 160
-  experiments: patterns
   comment: |-
     Parameters:
     0: the illegal name
@@ -7132,7 +7173,6 @@ IllegalPatternIdentifierName:
   correctionMessage: Match the identifier using '== #lexeme'.
   analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME
   index: 161
-  experiments: patterns
   comment: |-
     Parameters:
     0: the illegal name
@@ -7149,7 +7189,6 @@ InvalidInsideUnaryPattern:
   correctionMessage: Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.
   analyzerCode: ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN
   index: 150
-  experiments: patterns
   comment: No parameters.
   script: |
     void f(x) {
@@ -7161,7 +7200,6 @@ LatePatternVariableDeclaration:
   correctionMessage: Try removing the keyword `late`.
   analyzerCode: ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION
   index: 151
-  experiments: patterns
   comment: No parameters.
   script: |
     void f(x) {
@@ -7173,7 +7211,6 @@ PatternVariableDeclarationOutsideFunctionOrMethod:
   correctionMessage: Try declaring ordinary variables and assigning from within a function or method.
   analyzerCode: ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD
   index: 152
-  experiments: patterns
   comment: No parameters.
   script: |
     class C {
@@ -7185,13 +7222,18 @@ DefaultInSwitchExpression:
   correctionMessage: Try replacing `default` with `_`.
   analyzerCode: ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION
   index: 153
-  experiments: patterns
   comment: No parameters.
   script: |
     void f(x) => switch (x) {
       1 => 'one',
       default => 'other'
     };
+
+ResourceIdentifiersNotStatic:
+  problemMessage: "Resource identifier pragma can be used on a static method only."
+
+ResourceIdentifiersMultiple:
+  problemMessage: "Only one resource identifier pragma can be used at a time."
 
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."
@@ -7297,7 +7339,7 @@ InvalidExtensionTypeSuperInterface:
     extension type E(num n) implements int {}
 
 InvalidExtensionTypeSuperExtensionType:
-  problemMessage: "The representation type '#type' of extension type '#name' must be a subtype of the representation type '#type2' of the implemented extension type '#type3'."
+  problemMessage: "The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself."
   correctionMessage: "Try changing the representation type to a subtype of '#type2'."
   experiments: inline-class
   script: |
@@ -7341,3 +7383,199 @@ ExtensionTypeWith:
   script: |
     extension type F(int i) {}
     extension type E(int i) with F {}
+
+LocalVariableUsedBeforeDeclared:
+  problemMessage: "Local variable '#name' can't be referenced before it is declared."
+  analyzerCode: REFERENCED_BEFORE_DECLARATION
+  script: |
+    foo(dynamic x, dynamic y) { y = x; dynamic x; }
+
+LocalVariableUsedBeforeDeclaredContext:
+  problemMessage: "This is the declaration of the variable '#name'."
+  severity: CONTEXT
+
+ImplementNonExtensionTypeAndExtensionTypeMember:
+  problemMessage: "The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member."
+  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+  experiments: inline-class
+  script: |
+    class Class {
+      void method() {}
+    }
+    extension type ExtensionType(Class c) {
+      void method() {}
+    }
+    extension type ExtensionType1(Class c) implements Class, ExtensionType {}
+
+ExtensionTypeMemberContext:
+  problemMessage: "This is the inherited extension type member."
+  severity: CONTEXT
+
+ExtensionTypeMemberOneOfContext:
+  problemMessage: "This is one of the inherited extension type members."
+  severity: CONTEXT
+
+NonExtensionTypeMemberContext:
+  problemMessage: "This is the inherited non-extension type member."
+  severity: CONTEXT
+
+NonExtensionTypeMemberOneOfContext:
+  problemMessage: "This is one of the inherited non-extension type members."
+  severity: CONTEXT
+
+ImplementMultipleExtensionTypeMembers:
+  problemMessage: "The extension type '#name' can't inherit the member '#name2' from more than one extension type."
+  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+  experiments: inline-class
+  script: |
+    extension type ExtensionType1(int i) {
+      void method() {}
+    }
+    extension type ExtensionType2(int i) {
+      void method() {}
+    }
+    extension type ExtensionType3(int i) implements ExtensionType1, ExtensionType2 {}
+
+RepresentationFieldModifier:
+  problemMessage: "Representation fields can't have modifiers."
+  experiments: inline-class
+  script: |
+    extension type E(final int foo) {}
+  analyzerCode: REPRESENTATION_FIELD_MODIFIER
+
+ExpectedRepresentationType:
+  problemMessage: "Expected a representation type."
+  experiments: inline-class
+  script: |
+    extension type E(var foo) {}
+  analyzerCode: EXPECTED_REPRESENTATION_TYPE
+
+ExpectedRepresentationField:
+  problemMessage: "Expected a representation field."
+  experiments: inline-class
+  script: |
+    extension type E() {}
+  analyzerCode: EXPECTED_REPRESENTATION_FIELD
+
+MultipleRepresentationFields:
+  problemMessage: "Each extension type should have exactly one representation field."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, String bar) {}
+  analyzerCode: MULTIPLE_REPRESENTATION_FIELDS
+
+ExtensionTypeConstructorWithSuperFormalParameter:
+  problemMessage: "Extension type constructors can't declare super formal parameters."
+  experiments: inline-class
+  script: |
+    extension type A(int foo) { A.named(this.foo, super.bar); }
+  analyzerCode: EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER
+
+ExtensionTypePrimaryConstructorWithInitializingFormal:
+  problemMessage: "Primary constructors in extension types can't use initializing formals."
+  correctionMessage: "Try removing `this.` from the formal parameter."
+  experiments: inline-class
+  script: |
+    extension type A(int this.foo) { }
+
+ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax:
+  problemMessage: "Primary constructors in extension types can't use function formal parameter syntax."
+  correctionMessage: "Try rewriting with an explicit function type, like `int Function() f`."
+  experiments: inline-class
+  script: |
+    extension type A(int foo()) { }
+
+ExtensionTypeRepresentationTypeBottom:
+  problemMessage: "The representation type can't be a bottom type."
+  experiments: inline-class
+  script: |
+    extension type E1(Never foo) {}
+  analyzerCode: EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM
+
+RepresentationFieldTrailingComma:
+  problemMessage: "The representation field can't have a trailing comma."
+  experiments: inline-class
+  script: |
+    extension type E(int foo,) {}
+  analyzerCode: REPRESENTATION_FIELD_TRAILING_COMMA
+
+WrongTypeParameterVarianceInSuperinterface:
+  problemMessage: "'#name' can't be used contravariantly or invariantly in '#type'."
+  experiments: inline-class
+  script: |
+    extension type E<X>(List<Function(Object?)> foo) implements List<Function(X)> {}
+  analyzerCode: WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
+
+AwaitOfExtensionTypeNotFuture:
+  problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
+  experiments: inline-class
+  script: |
+    extension type E(num foo) { test(E e) async { await e; } }
+  analyzerCode: AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE
+
+NamedParametersInExtensionTypeDeclaration:
+  problemMessage: "Extension type declarations can't have named parameters."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, {dynamic bar}) {}
+
+OptionalParametersInExtensionTypeDeclaration:
+  problemMessage: "Extension type declarations can't have optional parameters."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, [dynamic bar]) {}
+
+ClassImplementsDeferredClass:
+  problemMessage: "Classes and mixins can't implement deferred classes."
+  correctionMessage: Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.
+  analyzerCode: IMPLEMENTS_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      class B implements d.A {}
+    lib.dart: |
+      class A {}
+
+MixinDeferredMixin:
+  problemMessage: "Classes can't mix in deferred mixins."
+  correctionMessage: Try changing the import to not be deferred.
+  analyzerCode: MIXIN_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      class B with d.A {}
+    lib.dart: |
+      mixin A {}
+
+MixinSuperClassConstraintDeferredClass:
+  problemMessage: "Deferred classes can't be used as superclass constraints."
+  correctionMessage: Try changing the import to not be deferred.
+  analyzerCode: MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      mixin B on d.A {}
+    lib.dart: |
+      class A {}
+
+ExtendsDeferredClass:
+  problemMessage: "Classes can't extend deferred classes."
+  correctionMessage: Try specifying a different superclass, or removing the extends clause.
+  analyzerCode: EXTENDS_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      class B extends d.A {}
+    lib.dart: |
+      class A {}
+
+ExtensionTypeImplementsDeferred:
+  problemMessage: "Extension types can't implement deferred types."
+  correctionMessage: Try specifying a different type, removing the type from the list, or changing the import to not be deferred.
+  analyzerCode: IMPLEMENTS_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      extension type ET(d.A id) implements d.A {}
+    lib.dart: |
+      class A {}

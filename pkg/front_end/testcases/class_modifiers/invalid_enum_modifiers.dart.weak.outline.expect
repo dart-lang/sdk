@@ -28,7 +28,7 @@ import "dart:core" as core;
 class Base extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Base> values = const <self::Base>[self::Base::v];
   enum-element static const field self::Base v = const self::Base::•(0, "v");
-  const constructor •(core::int #index, core::String #name) → self::Base
+  const synthetic constructor •(core::int #index, core::String #name) → self::Base
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -37,7 +37,7 @@ class Base extends core::_Enum /*isEnum*/  {
 class Final extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Final> values = const <self::Final>[self::Final::v];
   enum-element static const field self::Final v = const self::Final::•(0, "v");
-  const constructor •(core::int #index, core::String #name) → self::Final
+  const synthetic constructor •(core::int #index, core::String #name) → self::Final
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -46,7 +46,7 @@ class Final extends core::_Enum /*isEnum*/  {
 class Interface extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Interface> values = const <self::Interface>[self::Interface::v];
   enum-element static const field self::Interface v = const self::Interface::•(0, "v");
-  const constructor •(core::int #index, core::String #name) → self::Interface
+  const synthetic constructor •(core::int #index, core::String #name) → self::Interface
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -55,7 +55,7 @@ class Interface extends core::_Enum /*isEnum*/  {
 class Sealed extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Sealed> values = const <self::Sealed>[self::Sealed::v];
   enum-element static const field self::Sealed v = const self::Sealed::•(0, "v");
-  const constructor •(core::int #index, core::String #name) → self::Sealed
+  const synthetic constructor •(core::int #index, core::String #name) → self::Sealed
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

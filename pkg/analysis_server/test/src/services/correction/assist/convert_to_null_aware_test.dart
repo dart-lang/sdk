@@ -78,7 +78,12 @@ abstract class A {
 }
 int? f(A? a1) => a1 == null ? null : a1?.m();
 ''');
-    await assertNoAssistAt('? n');
+    await assertHasAssistAt('? n', '''
+abstract class A {
+  int m();
+}
+int? f(A? a1) => a1?.m();
+''');
   }
 
   Future<void> test_equal_nullOnLeft() async {

@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../elements/entities.dart' show AsyncMarker, MemberEntity, Variance;
+import '../elements/entities.dart' show AsyncMarker, MemberEntity;
 import '../universe/record_shape.dart';
 
 /// Returns a textual representation of [node] that include the runtime type and
@@ -76,9 +77,6 @@ AsyncMarker getAsyncMarker(ir.FunctionNode node) {
       return AsyncMarker.SYNC;
     case ir.AsyncMarker.SyncStar:
       return AsyncMarker.SYNC_STAR;
-    default:
-      throw UnsupportedError(
-          "Async marker ${node.asyncMarker} is not supported.");
   }
 }
 
@@ -247,7 +245,7 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ir.ExtensionType node) {
-    return visit(node.typeErasure);
+    return visit(node.extensionTypeErasure);
   }
 
   @override

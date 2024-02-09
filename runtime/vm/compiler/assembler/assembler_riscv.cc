@@ -2983,22 +2983,26 @@ void Assembler::CompareWords(Register reg1,
   beq(temp, TMP, &loop, Assembler::kNearJump);
 }
 
-void Assembler::Jump(const Code& target,
-                     Register pp,
-                     ObjectPoolBuilderEntry::Patchability patchable) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index, pp);
-  Jump(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+void Assembler::JumpAndLink(intptr_t target_code_pool_index,
+                            CodeEntryKind entry_kind) {
+  // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+  // We don't actually use CODE_REG in the callee and caller might
+  // be using CODE_REG for a live value (e.g. a value that is alive
+  // across invocation of a shared stub like the one we use for
+  // allocating Mint boxes).
+  const Register code_reg = FLAG_precompiled_mode ? TMP : CODE_REG;
+  LoadWordFromPoolIndex(code_reg, target_code_pool_index);
+  Call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
 }
 
-void Assembler::JumpAndLink(const Code& target,
-                            ObjectPoolBuilderEntry::Patchability patchable,
-                            CodeEntryKind entry_kind) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+void Assembler::JumpAndLink(
+    const Code& target,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  const intptr_t index = object_pool_builder().FindObject(
+      ToObject(target), patchable, snapshot_behavior);
+  JumpAndLink(index, entry_kind);
 }
 
 void Assembler::JumpAndLinkWithEquivalence(const Code& target,
@@ -3006,8 +3010,7 @@ void Assembler::JumpAndLinkWithEquivalence(const Code& target,
                                            CodeEntryKind entry_kind) {
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  JumpAndLink(index, entry_kind);
 }
 
 void Assembler::Call(Address target) {
@@ -3708,6 +3711,24 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
     lui(dst, hi);
     add(dst, dst, pp);
     lx(dst, Address(dst, lo));
+  }
+}
+
+void Assembler::StoreWordToPoolIndex(Register src,
+                                     intptr_t index,
+                                     Register pp) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(src != pp);
+  const uint32_t offset = target::ObjectPool::element_offset(index);
+  // PP is untagged.
+  intx_t lo = ImmLo(offset);
+  intx_t hi = ImmHi(offset);
+  if (hi == 0) {
+    sx(src, Address(pp, lo));
+  } else {
+    lui(TMP, hi);
+    add(TMP, TMP, pp);
+    sx(src, Address(TMP, lo));
   }
 }
 
@@ -4682,9 +4703,11 @@ void Assembler::LoadFieldAddressForRegOffset(Register address,
 }
 
 // Note: the function never clobbers TMP, TMP2 scratch registers.
-void Assembler::LoadObjectHelper(Register dst,
-                                 const Object& object,
-                                 bool is_unique) {
+void Assembler::LoadObjectHelper(
+    Register dst,
+    const Object& object,
+    bool is_unique,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(IsOriginalObject(object));
   // `is_unique == true` effectively means object has to be patchable.
   // (even if the object is null)
@@ -4713,10 +4736,12 @@ void Assembler::LoadObjectHelper(Register dst,
   }
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   const intptr_t index =
-      is_unique ? object_pool_builder().AddObject(
-                      object, ObjectPoolBuilderEntry::kPatchable)
-                : object_pool_builder().FindObject(
-                      object, ObjectPoolBuilderEntry::kNotPatchable);
+      is_unique
+          ? object_pool_builder().AddObject(
+                object, ObjectPoolBuilderEntry::kPatchable, snapshot_behavior)
+          : object_pool_builder().FindObject(
+                object, ObjectPoolBuilderEntry::kNotPatchable,
+                snapshot_behavior);
   LoadWordFromPoolIndex(dst, index);
 }
 

@@ -11,6 +11,9 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         messageFfiLeafCallMustNotReturnHandle,
         messageFfiLeafCallMustNotTakeHandle,
+        messageNonPositiveArrayDimensions,
+        templateFfiSizeAnnotation,
+        templateFfiSizeAnnotationDimensions,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;
 import 'package:kernel/ast.dart';
@@ -186,7 +189,6 @@ class FfiTransformer extends Transformer {
   final Class abiSpecificIntegerClass;
   final Class abiSpecificIntegerMappingClass;
   final Class varArgsClass;
-  final Class ffiNativeClass;
   final Class nativeFieldWrapperClass1Class;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
@@ -208,12 +210,16 @@ class FfiTransformer extends Transformer {
   final Procedure structPointerGetElemAt;
   final Procedure structPointerSetElemAt;
   final Procedure structPointerElementAt;
+  final Procedure structPointerPlusOperator;
+  final Procedure structPointerMinusOperator;
   final Procedure structPointerElementAtTearoff;
   final Procedure unionPointerGetRef;
   final Procedure unionPointerSetRef;
   final Procedure unionPointerGetElemAt;
   final Procedure unionPointerSetElemAt;
   final Procedure unionPointerElementAt;
+  final Procedure unionPointerPlusOperator;
+  final Procedure unionPointerMinusOperator;
   final Procedure unionPointerElementAtTearoff;
   final Procedure structArrayElemAt;
   final Procedure unionArrayElemAt;
@@ -224,11 +230,13 @@ class FfiTransformer extends Transformer {
   final Procedure abiSpecificIntegerPointerElemAt;
   final Procedure abiSpecificIntegerPointerSetElemAt;
   final Procedure abiSpecificIntegerPointerElementAt;
+  final Procedure abiSpecificIntegerPointerPlusOperator;
+  final Procedure abiSpecificIntegerPointerMinusOperator;
   final Procedure abiSpecificIntegerPointerElementAtTearoff;
   final Procedure abiSpecificIntegerArrayElemAt;
   final Procedure abiSpecificIntegerArraySetElemAt;
   final Procedure asFunctionMethod;
-  final Procedure asFunctionInternal;
+  final Procedure ffiCallMethod;
   final Procedure sizeOfMethod;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
@@ -279,6 +287,10 @@ class FfiTransformer extends Transformer {
   final Constructor nativeCallablePrivateListenerConstructor;
   final Field nativeCallablePortField;
   final Field nativeCallablePointerField;
+  final Procedure nativeAddressOf;
+  final Procedure nativePrivateAddressOf;
+  final Class ffiCallClass;
+  final Field ffiCallIsLeafField;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
@@ -358,7 +370,6 @@ class FfiTransformer extends Transformer {
         abiSpecificIntegerMappingClass =
             index.getClass('dart:ffi', 'AbiSpecificIntegerMapping'),
         varArgsClass = index.getClass('dart:ffi', 'VarArgs'),
-        ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFieldWrapperClass1Class =
             index.getClass('dart:nativewrappers', 'NativeFieldWrapperClass1'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
@@ -418,6 +429,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'StructPointer', '[]='),
         structPointerElementAt =
             index.getProcedure('dart:ffi', 'StructPointer', 'elementAt'),
+        structPointerPlusOperator =
+            index.getProcedure('dart:ffi', 'StructPointer', '+'),
+        structPointerMinusOperator =
+            index.getProcedure('dart:ffi', 'StructPointer', '-'),
         structPointerElementAtTearoff = index.getProcedure('dart:ffi',
             'StructPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
         unionPointerGetRef =
@@ -430,6 +445,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'UnionPointer', '[]='),
         unionPointerElementAt =
             index.getProcedure('dart:ffi', 'UnionPointer', 'elementAt'),
+        unionPointerPlusOperator =
+            index.getProcedure('dart:ffi', 'UnionPointer', '+'),
+        unionPointerMinusOperator =
+            index.getProcedure('dart:ffi', 'UnionPointer', '-'),
         unionPointerElementAtTearoff = index.getProcedure('dart:ffi',
             'UnionPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
         structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
@@ -447,6 +466,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '[]='),
         abiSpecificIntegerPointerElementAt = index.getProcedure(
             'dart:ffi', 'AbiSpecificIntegerPointer', 'elementAt'),
+        abiSpecificIntegerPointerPlusOperator =
+            index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '+'),
+        abiSpecificIntegerPointerMinusOperator =
+            index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '-'),
         abiSpecificIntegerPointerElementAtTearoff = index.getProcedure(
             'dart:ffi',
             'AbiSpecificIntegerPointer',
@@ -457,8 +480,7 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerArray', '[]='),
         asFunctionMethod = index.getProcedure(
             'dart:ffi', 'NativeFunctionPointer', 'asFunction'),
-        asFunctionInternal =
-            index.getTopLevelProcedure('dart:ffi', '_asFunctionInternal'),
+        ffiCallMethod = index.getTopLevelProcedure('dart:ffi', '_ffiCall'),
         sizeOfMethod = index.getTopLevelProcedure('dart:ffi', 'sizeOf'),
         lookupFunctionMethod = index.getProcedure(
             'dart:ffi', 'DynamicLibraryExtension', 'lookupFunction'),
@@ -546,7 +568,13 @@ class FfiTransformer extends Transformer {
         nativeCallablePortField =
             index.getField('dart:ffi', '_NativeCallableListener', '_port'),
         nativeCallablePointerField =
-            index.getField('dart:ffi', '_NativeCallableBase', '_pointer') {
+            index.getField('dart:ffi', '_NativeCallableBase', '_pointer'),
+        nativeAddressOf =
+            index.getMember('dart:ffi', 'Native', 'addressOf') as Procedure,
+        nativePrivateAddressOf =
+            index.getMember('dart:ffi', 'Native', '_addressOf') as Procedure,
+        ffiCallClass = index.getClass('dart:ffi', '_FfiCall'),
+        ffiCallIsLeafField = index.getField('dart:ffi', '_FfiCall', 'isLeaf') {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!
@@ -667,19 +695,45 @@ class FfiTransformer extends Transformer {
     }
     if (fun.typeParameters.isNotEmpty) return null;
 
-    final DartType? returnType = convertNativeTypeToDartType(fun.returnType,
-        allowCompounds: true, allowHandle: true, allowVoid: true);
+    final DartType? returnType = convertNativeTypeToDartType(
+      fun.returnType,
+      allowCompounds: true,
+      allowHandle: true,
+      allowVoid: true,
+    );
     if (returnType == null) return null;
     final argumentTypes = <DartType>[];
     for (final paramDartType in flattenVarargs(fun).positionalParameters) {
       argumentTypes.add(
-        convertNativeTypeToDartType(paramDartType,
-                allowCompounds: true, allowHandle: true) ??
+        convertNativeTypeToDartType(
+              paramDartType,
+              allowCompounds: true,
+              allowHandle: true,
+            ) ??
             dummyDartType,
       );
     }
     if (argumentTypes.contains(dummyDartType)) return null;
     return FunctionType(argumentTypes, returnType, Nullability.legacy);
+  }
+
+  /// Finds a native type for the given [dartType] if there is only one possible
+  /// native type.
+  ///
+  /// This is impossible for some types (like [int] which needs a specific ffi
+  /// type to denote the width in C). This method returns `null` for those
+  /// types.
+  ///
+  /// For types where this returns a non-null value, this is the inverse of
+  /// [convertNativeTypeToDartType].
+  DartType? convertDartTypeToNativeType(DartType dartType) {
+    if (isPointerType(dartType) ||
+        isCompoundSubtype(dartType) ||
+        isArrayType(dartType)) {
+      return dartType;
+    } else {
+      return null;
+    }
   }
 
   /// Removes the VarArgs from a DartType list.
@@ -854,6 +908,14 @@ class FfiTransformer extends Transformer {
   /// ```
   Expression typedDataBaseOffset(Expression typedDataBase, Expression offset,
       Expression length, DartType dartType, int fileOffset) {
+    // Avoid generating the branch on the kind of typed data and the offset
+    // calculation if the end result is a no-op. This offset-generating method
+    // is used to load compound subtypes, which in many cases are not using any
+    // offset from their base.
+    if (offset case ConstantExpression(constant: IntConstant(value: 0))) {
+      return typedDataBase;
+    }
+
     final typedDataBaseVar = VariableDeclaration("#typedDataBase",
         initializer: typedDataBase,
         type: coreTypes.objectNonNullableRawType,
@@ -947,6 +1009,90 @@ class FfiTransformer extends Transformer {
       elementType = elementTypeAny;
     }
     return elementType;
+  }
+
+  /// Ensures that [node] has an `Array` annotation with valid dimensions
+  /// matching its [type].
+  ///
+  /// Throws an [FfiStaticTypeError] otherwise.
+  List<int> ensureArraySizeAnnotation(Member node, DartType type) {
+    final sizeAnnotations = getArraySizeAnnotations(node);
+    List<int> dimensions;
+    var success = true;
+
+    if (sizeAnnotations.length == 1) {
+      final singleElementType = arraySingleElementType(type);
+      if (singleElementType is! InterfaceType) {
+        assert(singleElementType is InvalidType);
+        throw FfiStaticTypeError();
+      } else {
+        dimensions = sizeAnnotations.single;
+        if (arrayDimensions(type) != dimensions.length) {
+          diagnosticReporter.report(
+              templateFfiSizeAnnotationDimensions.withArguments(node.name.text),
+              node.fileOffset,
+              node.name.text.length,
+              node.fileUri);
+        }
+        for (var dimension in dimensions) {
+          if (dimension <= 0) {
+            diagnosticReporter.report(messageNonPositiveArrayDimensions,
+                node.fileOffset, node.name.text.length, node.fileUri);
+            success = false;
+          }
+        }
+      }
+    } else {
+      diagnosticReporter.report(
+          templateFfiSizeAnnotation.withArguments(node.name.text),
+          node.fileOffset,
+          node.name.text.length,
+          node.fileUri);
+      throw FfiStaticTypeError();
+    }
+
+    if (!success) {
+      throw FfiStaticTypeError();
+    }
+
+    return dimensions;
+  }
+
+  Iterable<List<int>> getArraySizeAnnotations(Member node) {
+    return node.annotations
+        .whereType<ConstantExpression>()
+        .map((e) => e.constant)
+        .whereType<InstanceConstant>()
+        .where((e) => e.classNode == arraySizeClass)
+        .map(_arraySize);
+  }
+
+  /// Reads the dimensions from a constant instance of `_ArraySize`.
+  List<int> _arraySize(InstanceConstant constant) {
+    final dimensions =
+        constant.fieldValues[arraySizeDimensionsField.fieldReference];
+    if (dimensions != null) {
+      if (dimensions is ListConstant) {
+        final result = dimensions.entries
+            .whereType<IntConstant>()
+            .map((e) => e.value)
+            .toList();
+        return result;
+      }
+    }
+    final dimensionFields = [
+      arraySizeDimension1Field,
+      arraySizeDimension2Field,
+      arraySizeDimension3Field,
+      arraySizeDimension4Field,
+      arraySizeDimension5Field
+    ];
+    final result = dimensionFields
+        .map((f) => constant.fieldValues[f.fieldReference])
+        .whereType<IntConstant>()
+        .map((c) => c.value)
+        .toList();
+    return result;
   }
 
   /// Returns the number of dimensions of `Array`.
@@ -1050,6 +1196,27 @@ class FfiTransformer extends Transformer {
     return null;
   }
 
+  Expression? inlineSizeOf(InterfaceType nativeType) {
+    final Class nativeClass = nativeType.classNode;
+    final NativeType? nt = getType(nativeClass);
+    if (nt == null) {
+      // User-defined compounds.
+      final Procedure sizeOfGetter = nativeClass.procedures
+          .firstWhere((function) => function.name == Name('#sizeOf'));
+      return StaticGet(sizeOfGetter);
+    }
+    final int size = nativeTypeSizes[nt]!;
+    if (size == WORD_SIZE) {
+      return runtimeBranchOnLayout(wordSize);
+    }
+    if (size != UNKNOWN) {
+      return ConstantExpression(IntConstant(size),
+          InterfaceType(intClass, currentLibrary.nonNullable));
+    }
+    // Size unknown.
+    return null;
+  }
+
   /// Generates an expression performing an Abi specific integer load or store.
   ///
   /// If [value] is provided, it is a store, otherwise a load.
@@ -1138,39 +1305,20 @@ class FfiTransformer extends Transformer {
       ..fileOffset = nestedExpression.fileOffset;
   }
 
-  /// Creates an invocation to asFunctionInternal.
-  ///
-  /// Adds a native effect invoking a compound constructors if this is used
-  /// as return type.
-  Expression buildAsFunctionInternal({
-    required Expression functionPointer,
-    required DartType nativeSignature,
-    required DartType dartSignature,
-    required bool isLeaf,
-    required int fileOffset,
-  }) {
-    final asFunctionInternalInvocation = StaticInvocation(
-        asFunctionInternal,
-        Arguments([
-          functionPointer,
-          BoolLiteral(isLeaf),
-        ], types: [
-          dartSignature,
-          nativeSignature,
-        ]))
-      ..fileOffset = fileOffset;
-
-    if (dartSignature is FunctionType) {
-      final returnType = dartSignature.returnType;
-      if (returnType is InterfaceType) {
-        final clazz = returnType.classNode;
-        if (clazz.superclass == structClass || clazz.superclass == unionClass) {
-          return invokeCompoundConstructor(asFunctionInternalInvocation, clazz);
-        }
-      }
+  /// Returns the compound [Class] if a compound is returned, otherwise `null`.
+  Class? findCompoundReturnType(DartType dartSignature) {
+    if (dartSignature is! FunctionType) {
+      return null;
     }
-
-    return asFunctionInternalInvocation;
+    final returnType = dartSignature.returnType;
+    if (returnType is! InterfaceType) {
+      return null;
+    }
+    final clazz = returnType.classNode;
+    if (clazz.superclass == structClass || clazz.superclass == unionClass) {
+      return clazz;
+    }
+    return null;
   }
 
   /// Returns
@@ -1198,7 +1346,10 @@ class FfiTransformer extends Transformer {
   }
 
   void ensureLeafCallDoesNotUseHandles(
-      InterfaceType nativeType, bool isLeaf, TreeNode reportErrorOn) {
+    InterfaceType nativeType,
+    bool isLeaf, {
+    required TreeNode reportErrorOn,
+  }) {
     // Handles are only disallowed for leaf calls.
     if (isLeaf == false) {
       return;
@@ -1237,25 +1388,33 @@ class FfiTransformer extends Transformer {
     DartType dartType,
     TreeNode reportErrorOn, {
     bool allowHandle = false,
-    allowVoid = false,
+    bool allowVoid = false,
+    bool allowArray = false,
   }) {
     final DartType correspondingDartType = convertNativeTypeToDartType(
       nativeType,
       allowCompounds: true,
       allowHandle: allowHandle,
+      allowInlineArray: allowArray,
       allowVoid: allowVoid,
     )!;
     if (dartType == correspondingDartType) return;
     if (env.isSubtypeOf(correspondingDartType, dartType,
         SubtypeCheckMode.ignoringNullabilities)) {
       // If subtype, manually check the return type is not void.
-      if (dartType is! FunctionType || correspondingDartType is! FunctionType) {
-        return;
-      } else if ((dartType.returnType is VoidType) ==
-          (correspondingDartType.returnType is VoidType)) {
+      if (correspondingDartType is FunctionType) {
+        if (dartType is FunctionType) {
+          if ((dartType.returnType is VoidType) ==
+              (correspondingDartType.returnType is VoidType)) {
+            return;
+          }
+          // One of the return types is void, the other isn't, report error.
+        } else {
+          // One is a function type, the other isn't, report error.
+        }
+      } else {
         return;
       }
-      // One of the return types is void, the other isn't, report error.
     }
     diagnosticReporter.report(
         templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,

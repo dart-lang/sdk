@@ -281,11 +281,6 @@ class ConstantToTextVisitor
       _unsupported(constant);
 
   @override
-  void visitNonConstant(NonConstantValue constant, StringBuffer sb) {
-    sb.write('NonConstant()');
-  }
-
-  @override
   void visitInstantiation(
       InstantiationConstantValue constant, StringBuffer sb) {
     sb.write('Instantiation(');

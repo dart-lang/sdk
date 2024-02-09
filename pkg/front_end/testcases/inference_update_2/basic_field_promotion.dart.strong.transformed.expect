@@ -44,8 +44,8 @@ static method testPublicField(self::C c) → void {
 }
 static method testPrivateAbstractGetter(self::C c) → void {
   if(!(c.{self::C::_privateAbstractGetter}{core::int?} == null)) {
-    core::int? x = c.{self::C::_privateAbstractGetter}{core::int?};
-    x = null;
+    core::int x = let core::int? #t2 = c.{self::C::_privateAbstractGetter}{core::int?} in #t2 == null ?{core::int} #t2 as{Unchecked} core::int : #t2{core::int};
+    self::acceptsInt(x);
   }
 }
 static method testPublicAbstractGetter(self::C c) → void {

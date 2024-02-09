@@ -9,7 +9,7 @@ import 'package:compiler/src/util/testing.dart';
 /*class: A:implicit=[List<A<C*>*>,List<A<C2*>*>]*/
 class A<T> {}
 
-/*spec.class: A1:implicit=[A1]*/
+/*class: A1:implicit=[A1]*/
 class A1 implements A<C1> {}
 
 /*class: B:explicit=[B.T*],needsArgs,test*/

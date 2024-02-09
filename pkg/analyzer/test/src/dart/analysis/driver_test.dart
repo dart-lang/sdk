@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -20,7 +23,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart'
+    show DartUriResolver, SourceFactory;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -32,6 +36,7 @@ import '../../../util/element_type_matchers.dart';
 import '../../../utils.dart';
 import '../resolution/context_collection_resolution.dart';
 import 'base.dart';
+import 'result_printer.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -211,17 +216,92 @@ part of 'b.dart';
     );
   }
 
+  test_getResolvedLibraryByUri_library_pending_getResolvedUnit() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final driver = driverFor(a);
+
+    final collector = DriverEventCollector(driver);
+    collector.getResolvedUnit('a1', a);
+    collector.getResolvedUnit('b1', b);
+
+    final uri = Uri.parse('package:test/a.dart');
+    collector.getResolvedLibraryByUri('a2', uri);
+
+    await pumpEventQueue();
+
+    // Note, that the `get` events are reported before `stream` events.
+    // TODO(scheglov): The current state is not optimal.
+    // We resolve `a.dart` separately as `analysisId: 0`.
+    // And then again `b.dart` as `analysisId: 1`.
+    // But actually we always resolve the whole library `a.dart`.
+    // So, we resolved it twice.
+    // Even worse, for `getResolvedLibraryByUri` we resolve it again.
+    // Theoretically we could have just one resolution overall.
+    assertDriverEventsText(collector.events, r'''
+[operation] computeAnalysisResult
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: a1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
+[operation] computeAnalysisResult
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit
+  name: b1
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #1
+[operation] computeResolvedLibrary
+  library: /home/test/lib/a.dart
+[future] getResolvedLibraryByUri
+  name: a2
+  ResolvedLibraryResult
+    element: package:test/a.dart
+    units
+      ResolvedUnitResult #2
+        path: /home/test/lib/a.dart
+        uri: package:test/a.dart
+        flags: exists isLibrary
+      ResolvedUnitResult #3
+        path: /home/test/lib/b.dart
+        uri: package:test/b.dart
+        flags: exists isPart
+''');
+  }
+
   test_getResolvedLibraryByUri_notLibrary_augmentation() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 library augment 'b.dart';
 ''');
 
     final driver = driverFor(a);
+    final collector = DriverEventCollector(driver);
+
     final uri = Uri.parse('package:test/a.dart');
-    expect(
-      await driver.getResolvedLibraryByUri(uri),
-      isA<NotLibraryButAugmentationResult>(),
-    );
+    collector.getResolvedLibraryByUri('a1', uri);
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[future] getResolvedLibraryByUri
+  name: a1
+  NotLibraryButAugmentationResult
+''');
   }
 
   test_getResolvedLibraryByUri_notLibrary_part() async {
@@ -1048,7 +1128,7 @@ var A = B;
 
     // We have a result only for "a".
     await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
+    expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
@@ -1067,7 +1147,7 @@ var A = B;
     // While "b" is not analyzed explicitly, it is analyzed implicitly.
     // The change causes "a" to be reanalyzed.
     await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
+    expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
@@ -1080,6 +1160,27 @@ var A = B;
     expect(() {
       driver.changeFile('not_absolute.dart');
     }, throwsArgumentError);
+  }
+
+  test_changeFile_notExisting_toEmpty() async {
+    final b = newFile('/test/lib/b.dart', '''
+// ignore:unused_import
+import 'a.dart';
+''');
+
+    driver.addFile(b.path);
+    await waitForIdleWithoutExceptions();
+
+    // Has CompileTimeErrorCode.URI_DOES_NOT_EXIST
+    expect(allResults.withPath(b.path).errors, isNotEmpty);
+    allResults.clear();
+
+    final a = newFile('/test/lib/a.dart', '');
+    driver.changeFile(a.path);
+    await waitForIdleWithoutExceptions();
+
+    // No errors anymore.
+    expect(allResults.withPath(b.path).errors, isEmpty);
   }
 
   test_changeFile_notUsed() async {
@@ -1263,7 +1364,7 @@ var B1 = A1;
     await waitForIdleWithoutExceptions();
 
     // We have results for both "a" and "b".
-    expect(allResults, hasLength(2));
+    expect(allResults, hasLength(4));
     {
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
@@ -1290,7 +1391,7 @@ var A2 = B1;
     // We again get results for both "a" and "b".
     // The results are consistent.
     await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(2));
+    expect(allResults, hasLength(4));
     {
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
@@ -2095,7 +2196,7 @@ part of 'a.dart';
 
     // The same result is also received through the stream.
     await waitForIdleWithoutExceptions();
-    expect(allResults.toList(), [result]);
+    expect(allResults.whereType<ResolvedUnitResult>().toList(), [result]);
   }
 
   test_getResult_constants_defaultParameterValue_localFunction() async {
@@ -3403,7 +3504,7 @@ var A = B;
 
     // We have results for both "a" and "b".
     await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(2));
+    expect(allResults, hasLength(4));
     {
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
@@ -3427,7 +3528,7 @@ var A = B;
     // We don't get a result for "b".
     // But the change causes "a" to be reanalyzed.
     await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
+    expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
@@ -3586,8 +3687,8 @@ class F extends X {}
 
     await waitForIdleWithoutExceptions();
 
-    expect(allResults, hasLength(1));
-    var result = allResults.single as ResolvedUnitResult;
+    expect(allResults, hasLength(2));
+    var result = allResults.whereType<ResolvedUnitResult>().single;
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.content, content);
@@ -3613,8 +3714,8 @@ class F extends X {}
     driver.priorityFiles = [b];
     await waitForIdleWithoutExceptions();
 
-    expect(allResults, hasLength(3));
-    var result = allResults.first as ResolvedUnitResult;
+    expect(allResults, hasLength(6));
+    var result = allResults.whereType<ResolvedUnitResult>().first;
     expect(result.path, b);
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
@@ -3625,8 +3726,8 @@ class F extends X {}
     addTestFile(content);
     await waitForIdleWithoutExceptions();
 
-    expect(allResults, hasLength(1));
-    var result = allResults.single as ErrorsResult;
+    expect(allResults, hasLength(2));
+    var result = allResults.whereType<ErrorsResult>().single;
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.errors, hasLength(0));
@@ -3664,7 +3765,7 @@ var v = 0
     driver.addFile(b);
     await waitForIdleWithoutExceptions();
 
-    expect(allResults, hasLength(2));
+    expect(allResults, hasLength(4));
     allResults.clear();
 
     // Update a.dart and notify.
@@ -3673,7 +3774,7 @@ var v = 0
 
     // Only result for a.dart should be produced, b.dart is not affected.
     await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
+    expect(allResults, hasLength(2));
   }
 
   test_results_status() async {
@@ -3695,10 +3796,10 @@ var v = 0
     expect(allResults, isEmpty);
     // scheduler.waitForIdle should wait for the analysis.
     await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
+    expect(allResults, hasLength(2));
     // Make sure there is no more analysis pending.
     await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
+    expect(allResults, hasLength(2));
   }
 
   Future waitForIdleWithoutExceptions() async {
@@ -3802,6 +3903,48 @@ var v = 0
       }
     }
     fail('Cannot find the top-level variable $name in\n$unit');
+  }
+}
+
+/// Tracks events reported into the `results` stream, and results of `getXyz`
+/// requests. We are interested in relative orders, identity of the objects,
+/// absence of duplicate events, etc.
+class DriverEventCollector {
+  final AnalysisDriver driver;
+  final List<DriverEvent> events = [];
+
+  DriverEventCollector(this.driver) {
+    driver.results.listen((object) {
+      events.add(
+        ResultStreamEvent(
+          object: object,
+        ),
+      );
+    });
+  }
+
+  void getResolvedLibraryByUri(String name, Uri uri) {
+    final future = driver.getResolvedLibraryByUri(uri);
+    unawaited(future.then((value) {
+      events.add(
+        GetResolvedLibraryByUriEvent(
+          name: name,
+          result: value,
+        ),
+      );
+    }));
+  }
+
+  void getResolvedUnit(String name, File file) {
+    final future = driver.getResult(file.path);
+    unawaited(future.then((value) {
+      events.add(
+        GetResolvedUnitEvent(
+          name: name,
+          result: value,
+        ),
+      );
+    }));
   }
 }
 

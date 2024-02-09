@@ -1875,6 +1875,353 @@ void f(TextTheme theme) {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/Dart-Code/Dart-Code/issues/4857')
+  Future<void> test_material_TextTheme_title_renamed() async {
+    setPackageContent('''
+class Text() {
+  final String data;
+  Text(this.data);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Rename to 'headline6'"
+    date: 2020-01-24
+    element:
+      uris: [ '$importUri' ]
+      getter: title
+      inClass: 'TextTheme'
+    changes:
+      - kind: 'rename'
+        newName: 'headline6'
+
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+class A {
+  String? title;
+
+  void f() {
+    Text(title);
+  }
+}
+''');
+    // No fix, because title here is unrelated to the TextTheme class specified
+    // in the fix data.
+    await assertNoFix();
+  }
+
+  Future<void>
+      test_material_ThemeData_colorSchemeBackground_deprecated() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  @deprecated
+  final Color  backgroundColor;
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var themeData = ThemeData(Colors.black);
+  var color = themeData.backgroundColor;
+  print(color);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var themeData = ThemeData(Colors.black);
+  var color = themeData.colorScheme.background;
+  print(color);
+}
+''');
+  }
+
+  Future<void>
+      test_material_ThemeData_colorSchemeBackground_deprecated_noFix() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  @deprecated
+  final Color  backgroundColor;
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+
+class ElevatedButton {
+   Color? color;
+
+  ElevatedButton(this.color);
+
+  static  ElevatedButton styleFrom({Color? backgroundColor}) {
+    return ElevatedButton(backgroundColor);
+  }
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var a = ElevatedButton.styleFrom(backgroundColor: backgroundColor);
+  print(a);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void>
+      test_material_ThemeData_colorSchemeBackground_deprecated_noFix2() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  @deprecated
+  final Color  backgroundColor;
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+
+class ElevatedButton {
+   Color? color;
+
+  ElevatedButton(this.color);
+
+  static  ElevatedButton styleFrom({Color? backgroundColor}) {
+    return ElevatedButton(backgroundColor);
+  }
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+class E {
+  void m() {
+    var a = ElevatedButton.styleFrom(backgroundColor: backgroundColor);
+    print(a);
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_material_ThemeData_colorSchemeBackground_removed() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var themeData = ThemeData(Colors.black);
+  var color = themeData.backgroundColor;
+  print(color);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var themeData = ThemeData(Colors.black);
+  var color = themeData.colorScheme.background;
+  print(color);
+}
+''');
+  }
+
+  Future<void> test_material_ThemeData_colorSchemeBackground_removed2() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+class T extends ThemeData {
+  T(Color color) : super(color);
+
+  void f() {
+    var color = backgroundColor;
+    print(color);
+  }
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class T extends ThemeData {
+  T(Color color) : super(color);
+
+  void f() {
+    var color = colorScheme.background;
+    print(color);
+  }
+}
+''');
+  }
+
   Future<void>
       test_material_ThemeData_toggleableActiveColor_deprecated_1() async {
     setPackageContent('''
@@ -3561,6 +3908,44 @@ import '$importUri';
 
 void f(StatefulElement element) {
   element.dependOnInheritedElement();
+}
+''');
+  }
+
+  Future<void>
+      test_widgets_WidgetInspectorService_enum_value_deprecated() async {
+    setPackageContent('''
+enum WidgetInspectorServiceExtensions {
+  @Deprecated(use add instead)
+  setPubRootDirectories,
+  addPubRootDirectories,
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Use WidgetServiceExtensions.addPubRootDirectories'
+    date: 2023-12-12
+    element:
+      uris: ['$importUri']
+      constant: 'setPubRootDirectories'
+      inEnum: 'WidgetInspectorServiceExtensions'
+    changes:
+      - kind: 'rename'
+        newName: addPubRootDirectories
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  print(WidgetInspectorServiceExtensions.setPubRootDirectories);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  print(WidgetInspectorServiceExtensions.addPubRootDirectories);
 }
 ''');
   }

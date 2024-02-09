@@ -26,7 +26,7 @@ class E1 extends self::_E1&_Enum&M1 /*isEnum*/  {
   static const field core::List<self::E1> values = #C7;
   enum-element static const field self::E1 one = #C3;
   enum-element static const field self::E1 two = #C6;
-  const constructor •(core::int #index, core::String #name) → self::E1
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super self::_E1&_Enum&M1::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -50,7 +50,7 @@ class E2 extends self::_E2&_Enum&M1&M2 /*isEnum*/  {
   static const field core::List<self::E2> values = #C10;
   enum-element static const field self::E2 one = #C8;
   enum-element static const field self::E2 two = #C9;
-  const constructor •(core::int #index, core::String #name) → self::E2
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super self::_E2&_Enum&M1&M2::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -68,7 +68,7 @@ class E3 extends self::_E3&_Enum&M3 /*isEnum*/  {
   static const field core::List<self::E3> values = #C13;
   enum-element static const field self::E3 one = #C11;
   enum-element static const field self::E3 two = #C12;
-  const constructor •(core::int #index, core::String #name) → self::E3
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super self::_E3&_Enum&M3::•(#index, #name)
     ;
   method _enumToString() → core::String

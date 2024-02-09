@@ -303,7 +303,7 @@ class Cat {
 }                                 ICData
                                   ┌─────────────────────────────────────┐
 sameFace(animal, face) ┌─────────▶│// class, method, frequency          │
-  object.face == face; │          │[Dog, Dog.get:face, 2,               │
+  animal.face == face; │          │[Dog, Dog.get:face, 2,               │
         ┬              │          │ Cat, Cat.get:face, 1]               │
         └──────────────┤          └─────────────────────────────────────┘
 sameFace(Dog(), ...);  │          InlineCacheStub

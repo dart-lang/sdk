@@ -22,6 +22,10 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
       return;
     }
 
+    if (switchStatement.members.isEmpty) {
+      return;
+    }
+
     final groups = _groups(switchStatement);
     if (groups == null) {
       return;
@@ -134,6 +138,8 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
       range,
       firstIndent,
       blockIndent + singleIndent,
+      includeLeading: true,
+      ensureTrailingNewline: true,
     );
     builder.write(code);
   }

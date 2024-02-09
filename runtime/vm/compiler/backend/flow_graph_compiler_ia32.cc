@@ -437,10 +437,13 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+void FlowGraphCompiler::EmitCallToStub(
+    const Code& stub,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
   if (stub.InVMIsolateHeap()) {
     __ CallVmStub(stub);
   } else {
+    // Ignore snapshot_behavior, ia32 doesn't do snapshots.
     __ Call(stub);
   }
   AddStubCallTarget(stub);
@@ -567,6 +570,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  ASSERT(!FLAG_precompiled_mode);
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
@@ -895,9 +899,9 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
+      ASSERT(destination.container_type().SizeInBytes() <= 4);
       if (!sign_or_zero_extend) {
-        ASSERT(dst_size == 4);
-        __ movl(dst_reg, src_reg);
+        __ MoveRegister(dst_reg, src_reg);
       } else {
         switch (src_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
@@ -906,11 +910,21 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
           case compiler::ffi::kInt16:
             __ ExtendValue(dst_reg, src_reg, compiler::kTwoBytes);
             return;
+          case compiler::ffi::kInt24:
+            __ MoveRegister(dst_reg, src_reg);
+            __ shll(dst_reg, compiler::Immediate(8));
+            __ sarl(dst_reg, compiler::Immediate(8));
+            return;
           case compiler::ffi::kUint8:  // Zero extend operand.
             __ ExtendValue(dst_reg, src_reg, compiler::kUnsignedByte);
             return;
           case compiler::ffi::kUint16:
             __ ExtendValue(dst_reg, src_reg, compiler::kUnsignedTwoBytes);
+            return;
+          case compiler::ffi::kUint24:
+            __ MoveRegister(dst_reg, src_reg);
+            __ shll(dst_reg, compiler::Immediate(8));
+            __ shrl(dst_reg, compiler::Immediate(8));
             return;
           default:
             // 32 to 64 bit is covered in IL by Representation conversions.
@@ -927,7 +941,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(!sign_or_zero_extend);
       const auto& dst = destination.AsStack();
       const auto dst_addr = NativeLocationToStackSlotAddress(dst);
-      switch (dst_size) {
+      switch (destination.container_type().SizeInBytes()) {
         case 4:
           __ movl(dst_addr, src_reg);
           return;

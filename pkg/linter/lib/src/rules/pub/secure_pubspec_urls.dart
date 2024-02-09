@@ -89,7 +89,7 @@ class Visitor extends PubspecVisitor<void> {
     _checkUrl(repository.value);
   }
 
-  _checkUrl(PSNode? node) {
+  void _checkUrl(PSNode? node) {
     if (node == null) return;
     var text = node.text;
     if (text != null) {

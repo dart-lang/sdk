@@ -23,7 +23,6 @@ void main(List<String> args) async {
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
         soundNullSafety: true,
-        legacyCode: false,
         moduleFormat: ModuleFormat.amd,
         args: args,
       );

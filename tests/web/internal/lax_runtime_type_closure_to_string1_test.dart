@@ -16,8 +16,7 @@ main() {
   local2(int i) => i;
 
   var toString = '${local1.runtimeType}';
-  if ('$Object' == 'Object') {
-    // `true` if non-minified.
+  if (!toString.contains('minified:')) {
     Expect.equals("Closure0Args", toString);
   }
   print(toString);

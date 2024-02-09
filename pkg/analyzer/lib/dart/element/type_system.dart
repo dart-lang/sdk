@@ -64,7 +64,8 @@ abstract class TypeSystem {
     required NullabilitySuffix nullabilitySuffix,
   });
 
-  /// Return `true` if the [leftType] is assignable to the [rightType].
+  /// Return `true` if the [fromType] is assignable to the [toType]. Enforce
+  /// strict-casts, if [strictCasts] is set to true.
   ///
   /// For the Dart 2.0 type system, the definition of this relationship is given
   /// in the Dart Language Specification, section 19.4 Subtypes:
@@ -80,7 +81,7 @@ abstract class TypeSystem {
   /// while the operation is commutative in the Dart 2.0 type system, it will
   /// not be commutative when NNBD is enabled, so the order of the arguments is
   /// important.
-  bool isAssignableTo(DartType leftType, DartType rightType);
+  bool isAssignableTo(DartType fromType, DartType toType, {bool strictCasts});
 
   /// Return `true` if the [type] is a non-nullable type.
   ///

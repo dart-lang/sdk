@@ -21,8 +21,12 @@ import '../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
-runTestCase(Uri source, TargetOS os) async {
-  final target = new VmTarget(new TargetFlags());
+runTestCase(Uri source, TargetOS os, String postfix) async {
+  final enableAsserts = false;
+  final soundNullSafety = true;
+  final nnbdMode = NnbdMode.Strong;
+  final target =
+      new VmTarget(new TargetFlags(soundNullSafety: soundNullSafety));
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       environmentDefines: {
@@ -30,15 +34,12 @@ runTestCase(Uri source, TargetOS os) async {
         'test.define.isFalse': 'false'
       });
 
-  final evaluator =
-      VMConstantEvaluator.create(target, component, os, NnbdMode.Strong);
-  final enableAsserts = false;
-  component = transformComponent(component, enableAsserts, evaluator);
+  final evaluator = VMConstantEvaluator.create(target, component, os, nnbdMode);
+  component = transformComponent(target, component, evaluator, enableAsserts);
   verifyComponent(
       target, VerificationStage.afterGlobalTransformations, component);
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
-  final postfix = '.${os.name}';
   compareResultWithExpectationsFile(source, actual, expectFilePostfix: postfix);
 }
 
@@ -52,7 +53,9 @@ main() {
         .reversed) {
       if (entry.path.endsWith(".dart")) {
         for (final os in TargetOS.values) {
-          test('${entry.path}.${os.name}', () => runTestCase(entry.uri, os));
+          final postfix = '.${os.name}';
+          test('${entry.path}$postfix',
+              () => runTestCase(entry.uri, os, postfix));
         }
       }
     }

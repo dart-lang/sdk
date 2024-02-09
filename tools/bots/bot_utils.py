@@ -5,7 +5,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import hashlib
-import imp
+import importlib.util
+import importlib.machinery
 import os
 import subprocess
 import sys
@@ -14,9 +15,22 @@ DART_DIR = os.path.abspath(
     os.path.normpath(os.path.join(__file__, '..', '..', '..')))
 
 
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname,
+                                                  filename,
+                                                  loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    # The module is always executed and not cached in sys.modules.
+    # Uncomment the following line to cache the module.
+    # sys.modules[module.__name__] = module
+    loader.exec_module(module)
+    return module
+
+
 def GetUtils():
     '''Dynamically load the tools/utils.py python module.'''
-    return imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
+    return load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
 
 
 def run(command, env=None, shell=False, throw_on_error=True):

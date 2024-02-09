@@ -18,7 +18,7 @@ conclusions on language samples in the testing directory.
 From the root of the SDK:
 
 ```
-tools/test.py --build --use-sdk -c dart2analyzer co19_2 language_2
+tools/test.py --build --use-sdk -c dart2analyzer co19 language
 ```
 
 This will build the Dart VM and compile dartanalyzer into a snapshot, then use

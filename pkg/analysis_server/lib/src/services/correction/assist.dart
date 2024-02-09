@@ -347,7 +347,7 @@ class DartAssistKind {
     'Join variable declaration',
   );
   static const REMOVE_TYPE_ANNOTATION = AssistKind(
-    // todo (pq): unify w/ fix
+    // TODO(pq): unify w/ fix
     'dart.assist.remove.typeAnnotation',
     DartAssistKindPriority.PRIORITY,
     'Remove type annotation',

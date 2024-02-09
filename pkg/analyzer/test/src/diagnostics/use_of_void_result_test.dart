@@ -11,7 +11,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseOfVoidResultTest);
-    defineReflectiveTests(UseOfVoidResultTest_NonNullable);
   });
 }
 
@@ -19,24 +18,42 @@ main() {
 class UseOfVoidResultTest extends PubPackageResolutionTest {
   test_andVoidLhsError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x && true;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 19, 1),
     ]);
   }
 
   test_andVoidRhsError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   true && x;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 34, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
     ]);
+  }
+
+  test_assignment_toDynamic() async {
+    await assertErrorsInCode('''
+void f(void x) {
+  // ignore:unused_local_variable
+  dynamic v = x;
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 65, 1),
+    ]);
+  }
+
+  test_assignment_toVoid() async {
+    await assertNoErrorsInCode('''
+void f(void x) {
+  // ignore:unused_local_variable
+  void v = x;
+}
+''');
   }
 
   test_assignmentExpression_function() async {
@@ -68,28 +85,12 @@ class A {
   }
 
   test_assignmentToVoidParameterOk() async {
-    // Note: the spec may decide to disallow this, but at this point that seems
-    // highly unlikely.
     await assertNoErrorsInCode('''
-void main() {
-  void x;
-  f(x);
+void f(void x) {
+  g(x);
 }
-void f(void x) {}
+void g(void x) {}
 ''');
-  }
-
-  test_assignToVoid_notStrong_error() async {
-    // See StrongModeStaticTypeAnalyzer2Test.test_assignToVoidOk
-    // for testing that this does not have errors in strong mode.
-    await assertErrorsInCode('''
-void main() {
-  void x;
-  x = 42;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-    ]);
   }
 
   test_await() async {
@@ -102,6 +103,26 @@ void f(void x) async {
     ]);
   }
 
+  test_constructorFieldInitializer_toDynamic() async {
+    await assertErrorsInCode('''
+class A {
+  dynamic f;
+  A(void x) : f = x;
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 41, 1),
+    ]);
+  }
+
+  test_constructorFieldInitializer_toVoid() async {
+    await assertNoErrorsInCode('''
+class A {
+  void f;
+  A(void x) : f = x;
+}
+''');
+  }
+
   test_extensionApplication() async {
     await assertErrorsInCode('''
 extension E on String {
@@ -110,11 +131,11 @@ extension E on String {
 
 void f() {}
 
-main() {
+void h() {
   E(f()).g;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 71, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 73, 3),
     ]);
   }
 
@@ -159,24 +180,21 @@ class A {
 
   test_interpolateVoidValueError() async {
     await assertErrorsInCode(r'''
-void main() {
-  void x;
+void f(void x) {
   "$x";
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 28, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 1),
     ]);
   }
 
   test_negateVoidValueError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   !x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 20, 1),
     ]);
   }
 
@@ -191,25 +209,53 @@ g() {
     ]);
   }
 
+  test_nullCheck() async {
+    await assertErrorsInCode(r'''
+f(void x) {
+  x!;
+}
+''', [ExpectedError(CompileTimeErrorCode.USE_OF_VOID_RESULT, 14, 2)]);
+
+    assertType(findNode.postfix('x!'), 'void');
+  }
+
   test_orVoidLhsError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x || true;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 19, 1),
     ]);
   }
 
   test_orVoidRhsError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   false || x;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 35, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 28, 1),
+    ]);
+  }
+
+  test_recordLiteral_namedField() async {
+    await assertErrorsInCode('''
+void f(void x) {
+  (one: x,);
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 20, 6),
+    ]);
+  }
+
+  test_recordLiteral_positionalField() async {
+    await assertErrorsInCode('''
+void f(void x) {
+  (x,);
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 20, 1),
     ]);
   }
 
@@ -260,57 +306,52 @@ void f(void x) {
 
   test_useOfVoidAsIndexAssignError() async {
     await assertErrorsInCode('''
-void main(List list) {
-  void x;
+void f(List list, void x) {
   list[x] = null;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 40, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 35, 1),
     ]);
   }
 
   test_useOfVoidAsIndexError() async {
     await assertErrorsInCode('''
-void main(List list) {
-  void x;
+void f(List list, void x) {
   list[x];
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 40, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 35, 1),
     ]);
   }
 
   test_useOfVoidAssignedToDynamicError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   dynamic z = x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 38, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 31, 1),
     ]);
   }
 
   test_useOfVoidByIndexingError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x[0];
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 20, 3),
     ]);
   }
 
   test_useOfVoidCallSetterError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x.foo = null;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 28, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 3),
     ]);
   }
 
@@ -326,56 +367,45 @@ void use(Object? x) {}
 
   test_useOfVoidInConditionalConditionError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x ? null : null;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 19, 1),
     ]);
   }
 
-  @failingTest
   test_useOfVoidInConditionalLhsError() async {
-    // TODO(mfairhurst) Enable this.
-    await assertErrorsInCode('''
-void main(bool c) {
-  void x;
+    // A conditional expression is one of the allowed positions for `void`.
+    await assertNoErrorsInCode('''
+void f(bool c, void x) {
   c ? x : null;
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 36, 1),
-    ]);
+''');
   }
 
-  @failingTest
   test_useOfVoidInConditionalRhsError() async {
-    // TODO(mfairhurst) Enable this.
-    await assertErrorsInCode('''
-void main(bool c) {
-  void x;
+    // A conditional expression is one of the allowed positions for `void`.
+    await assertNoErrorsInCode('''
+void f(bool c, void x) {
   c ? null : x;
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 43, 1),
-    ]);
+''');
   }
 
   test_useOfVoidInDoWhileConditionError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   do {} while (x);
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 39, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 32, 1),
     ]);
   }
 
   test_useOfVoidInExpStmtOk() async {
     await assertNoErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x;
 }
 ''');
@@ -383,15 +413,13 @@ void main() {
 
   test_useOfVoidInForeachIterableError() async {
     await assertErrorsInCode(r'''
-void f(void x) {
-  var y;
+void f(void x, var y) {
   for (y in x) {}
 }
 ''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
-          38, 1),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 38, 1),
+          36, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 36, 1),
     ]);
   }
 
@@ -411,12 +439,11 @@ void f(void x) {
   @failingTest // This test may be completely invalid.
   test_useOfVoidInForeachVariableError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   for (x in [1, 2]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 31, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 24, 1),
     ]);
   }
 
@@ -430,96 +457,81 @@ void f(void x) {
 
   test_useOfVoidInIsTestError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x is int;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 19, 1),
     ]);
   }
 
   test_useOfVoidInListLiteralError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   <dynamic>[x];
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 36, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 29, 1),
     ]);
   }
 
   test_useOfVoidInListLiteralOk() async {
     await assertNoErrorsInCode('''
-void main() {
-  void x;
-  <void>[x]; // not strong mode; we have to specify <void>.
+void f(void x) {
+  [x];
 }
 ''');
   }
 
   test_useOfVoidInMapLiteralKeyError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
-  var m2 = <dynamic, int>{x : 4};
+void f(void x) {
+  <dynamic, int>{x : 4};
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 50, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 34, 1),
     ]);
   }
 
   test_useOfVoidInMapLiteralKeyOk() async {
-    await assertErrorsInCode('''
-void main() {
-  void x;
-  var m2 = <void, int>{x : 4}; // not strong mode; we have to specify <void>.
+    await assertNoErrorsInCode('''
+void f(void x) {
+  ({x : 4});
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
-    ]);
+''');
   }
 
   test_useOfVoidInMapLiteralValueError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
-  var m1 = <int, dynamic>{4: x};
+void f(void x) {
+  <int, dynamic>{4: x};
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 53, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 37, 1),
     ]);
   }
 
   test_useOfVoidInMapLiteralValueOk() async {
-    await assertErrorsInCode('''
-void main() {
-  void x;
-  var m1 = <int, void>{4: x}; // not strong mode; we have to specify <void>.
+    await assertNoErrorsInCode('''
+void f(void x) {
+  ({4: x});
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
-    ]);
+''');
   }
 
   test_useOfVoidInNullOperatorLhsError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
-  x ?? 499;
+void f(void x) {
+  x ?? 1;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 19, 1),
     ]);
   }
 
   test_useOfVoidInNullOperatorRhsOk() async {
     await assertNoErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   null ?? x;
 }
 ''');
@@ -527,46 +539,41 @@ void main() {
 
   test_useOfVoidInSpecialAssignmentError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x += 1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 28, 2),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 2),
     ]);
   }
 
   test_useOfVoidInWhileConditionError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   while (x) {};
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 33, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
     ]);
   }
 
   test_useOfVoidNullPropertyAccessError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 29, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
     ]);
   }
 
   test_useOfVoidPropertyAccessError() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   x.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 28, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 3),
     ]);
   }
 
@@ -586,10 +593,9 @@ extension on void {
 
   @failingTest
   test_useOfVoidReturnInNonVoidFunctionError() async {
-    // TODO(mfairhurst) Get this test to pass once codebase is compliant.
+    // TODO(mfairhurst): Get this test to pass once codebase is compliant.
     await assertErrorsInCode('''
-dynamic main() {
-  void x;
+dynamic f(void x) {
   return x;
 }
 ''', [
@@ -599,8 +605,7 @@ dynamic main() {
 
   test_useOfVoidReturnInVoidFunctionOk() async {
     await assertNoErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   return x;
 }
 ''');
@@ -608,24 +613,22 @@ void main() {
 
   test_useOfVoidWhenArgumentError() async {
     await assertErrorsInCode('''
-void use(dynamic x) { }
-void main() {
-  void x;
-  use(x);
+void f(void x) {
+  g(x);
 }
+void g(dynamic x) { }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 54, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 1),
     ]);
   }
 
   test_useOfVoidWithInitializerOk() async {
     await assertErrorsInCode('''
-void main() {
-  void x;
+void f(void x) {
   void y = x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
     ]);
   }
 
@@ -724,84 +727,21 @@ Object? f(void x) sync* {
 
   test_yieldVoid_asyncStar() async {
     await assertErrorsInCode('''
-main(void x) async* {
+dynamic f(void x) async* {
   yield x;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 30, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 35, 1),
     ]);
   }
 
   test_yieldVoid_syncStar() async {
     await assertErrorsInCode('''
-main(void x) sync* {
+dynamic f(void x) sync* {
   yield x;
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 29, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 34, 1),
     ]);
-  }
-}
-
-@reflectiveTest
-class UseOfVoidResultTest_NonNullable extends PubPackageResolutionTest {
-  test_assignment_toDynamic() async {
-    await assertErrorsInCode('''
-void f(void x) {
-  // ignore:unused_local_variable
-  dynamic v = x;
-}
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 65, 1),
-    ]);
-  }
-
-  test_assignment_toVoid() async {
-    await assertNoErrorsInCode('''
-void f(void x) {
-  // ignore:unused_local_variable
-  void v = x;
-}
-''');
-  }
-
-  test_await() async {
-    await assertErrorsInCode('''
-main(void x) async {
-  await x;
-}
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 29, 1),
-    ]);
-  }
-
-  test_constructorFieldInitializer_toDynamic() async {
-    await assertErrorsInCode('''
-class A {
-  dynamic f;
-  A(void x) : f = x;
-}
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 41, 1),
-    ]);
-  }
-
-  test_constructorFieldInitializer_toVoid() async {
-    await assertNoErrorsInCode('''
-class A {
-  void f;
-  A(void x) : f = x;
-}
-''');
-  }
-
-  test_nullCheck() async {
-    await assertErrorsInCode(r'''
-f(void x) {
-  x!;
-}
-''', [ExpectedError(CompileTimeErrorCode.USE_OF_VOID_RESULT, 14, 2)]);
-
-    assertType(findNode.postfix('x!'), 'void');
   }
 }

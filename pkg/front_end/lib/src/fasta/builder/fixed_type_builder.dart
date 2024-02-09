@@ -29,7 +29,7 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   }
 
   @override
-  Object? get name => null;
+  TypeName? get typeName => null;
 
   @override
   NullabilityBuilder get nullabilityBuilder =>
@@ -60,7 +60,7 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   }
 
   @override
-  Supertype buildSupertype(LibraryBuilder library) {
+  Supertype buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     return unhandled(
         'buildSupertype', 'FixedTypeBuilder', charOffset ?? -1, fileUri);
   }

@@ -645,6 +645,20 @@ void Heap::CheckConcurrentMarking(Thread* thread,
   }
 }
 
+void Heap::CheckFinalizeMarking(Thread* thread) {
+  ASSERT(!thread->force_growth());
+
+  PageSpace::Phase phase;
+  {
+    MonitorLocker ml(old_space_.tasks_lock());
+    phase = old_space_.phase();
+  }
+
+  if (phase == PageSpace::kAwaitingFinalization) {
+    CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kFinalize);
+  }
+}
+
 void Heap::StartConcurrentMarking(Thread* thread, GCReason reason) {
   GcSafepointOperationScope safepoint_operation(thread);
   RecordBeforeGC(GCType::kStartConcurrentMark, reason);

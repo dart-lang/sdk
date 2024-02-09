@@ -1,1 +1,4 @@
+set noparent
 file:/tools/OWNERS_CFE
+# In addition to CFE team allow global owners.
+file:/OWNERS

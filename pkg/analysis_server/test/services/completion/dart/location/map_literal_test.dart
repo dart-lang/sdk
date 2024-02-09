@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MapLiteralTest1);
-    defineReflectiveTests(MapLiteralTest2);
+    defineReflectiveTests(MapLiteralTest);
   });
 }
 
 @reflectiveTest
-class MapLiteralTest1 extends AbstractCompletionDriverTest
-    with MapLiteralTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class MapLiteralTest2 extends AbstractCompletionDriverTest
-    with MapLiteralTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class MapLiteralTest extends AbstractCompletionDriverTest
+    with MapLiteralTestCases {}
 
 mixin MapLiteralTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterComma_beforeComma() async {

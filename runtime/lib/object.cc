@@ -516,8 +516,11 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
   // The bounds on the closure may need instantiation.
   const TypeArguments& instantiator_type_args =
       TypeArguments::Handle(zone, closure.instantiator_type_arguments());
-  const TypeArguments& function_type_args =
-      TypeArguments::Handle(zone, closure.function_type_arguments());
+  const TypeArguments& function_type_args = TypeArguments::Handle(
+      zone,
+      type_args_to_check.Prepend(
+          zone, TypeArguments::Handle(zone, closure.function_type_arguments()),
+          target.NumParentTypeArguments(), target.NumTypeArguments()));
 
   AbstractType& supertype = AbstractType::Handle(zone);
   AbstractType& subtype = AbstractType::Handle(zone);

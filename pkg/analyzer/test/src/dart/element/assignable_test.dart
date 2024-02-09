@@ -16,12 +16,16 @@ main() {
 
 @reflectiveTest
 class IsAssignableToTest extends AbstractTypeSystemTest {
+  bool get strictCasts => analysisContext.analysisOptions.strictCasts;
+
   void isAssignable(DartType from, DartType to) {
-    expect(typeSystem.isAssignableTo(from, to), isTrue);
+    expect(
+        typeSystem.isAssignableTo(from, to, strictCasts: strictCasts), isTrue);
   }
 
   void isNotAssignable(DartType from, DartType to) {
-    expect(typeSystem.isAssignableTo(from, to), isFalse);
+    expect(
+        typeSystem.isAssignableTo(from, to, strictCasts: strictCasts), isFalse);
   }
 
   test_dynamicType() {

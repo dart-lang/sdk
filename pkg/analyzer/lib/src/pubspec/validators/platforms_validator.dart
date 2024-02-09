@@ -19,7 +19,9 @@ const _knownPlatforms = <String>{
 
 /// Validate platforms.
 void platformsValidator(PubspecValidationContext ctx) {
-  final platforms = ctx.contents[PubspecField.PLATFORMS_FIELD];
+  final contents = ctx.contents;
+  if (contents is! YamlMap) return;
+  final platforms = contents.nodes[PubspecField.PLATFORMS_FIELD];
   if (platforms == null) {
     return;
   }

@@ -662,6 +662,12 @@ void PageSpace::VisitObjectsImagePages(ObjectVisitor* visitor) const {
   }
 }
 
+void PageSpace::VisitObjectsUnsafe(ObjectVisitor* visitor) const {
+  for (UnsafeExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    it.page()->VisitObjectsUnsafe(visitor);
+  }
+}
+
 void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     it.page()->VisitObjectPointers(visitor);

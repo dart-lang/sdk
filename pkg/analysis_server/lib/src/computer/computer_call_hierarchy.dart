@@ -30,6 +30,7 @@ Element? _getContainer(Element element) {
     ElementKind.FUNCTION,
     ElementKind.GETTER,
     ElementKind.METHOD,
+    ElementKind.MIXIN,
     ElementKind.SETTER,
   };
   return element.thisOrAncestorMatching(
@@ -156,6 +157,7 @@ enum CallHierarchyKind {
     ElementKind.FUNCTION: function,
     ElementKind.GETTER: property,
     ElementKind.METHOD: method,
+    ElementKind.MIXIN: mixin,
     ElementKind.SETTER: property,
   };
 

@@ -38,7 +38,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
   Future<void> computeObjectPattern(InterfaceType type,
       VariableDeclaration node, ChangeBuilder builder) async {
-    // todo(pq): share reference checking w/ record computation
+    // TODO(pq): share reference checking w/ record computation
 
     var variableElement = node.declaredElement;
     if (variableElement is! LocalVariableElement) return;

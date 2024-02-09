@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ExpectedTwoMapTypeArgumentsTest extends PubPackageResolutionTest {
   test_three_type_arguments_ambiguous() async {
-    // TODO(brianwilkerson) We probably need a new error code for "expected
+    // TODO(brianwilkerson): We probably need a new error code for "expected
     //  either one or two type arguments" to handle the ambiguous case.
     await assertErrorsInCode(r'''
 main() {

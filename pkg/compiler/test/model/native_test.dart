@@ -18,7 +18,7 @@ enum Kind {
 
 main() {
   asyncTest(() async {
-    await runTest('tests/web_2/jsinterop_test.dart', '', {
+    await runTest('tests/web/jsinterop_test.dart', '', {
       'Class': Kind.regular,
       'JsInteropClass': Kind.jsInterop,
       'flag': Kind.regular,
@@ -79,7 +79,7 @@ main() {
       '53',
       '54',
     ]);
-    await runTest('tests/web_2/non_jsinterop_test.dart', '', {
+    await runTest('tests/web/non_jsinterop_test.dart', '', {
       'Class': Kind.regular,
       'JsInteropClass': Kind.jsInterop,
       'flag': Kind.regular,
@@ -139,7 +139,7 @@ main() {
     ]);
 
     await runTest(
-        'tests/web_2/native/native_test.dart', 'tests/web_2/native/', {
+        'tests/web/native/native_test.dart', 'tests/web/native/', {
       'Class': Kind.regular,
       'NativeClass': Kind.native,
       'topLevelField': Kind.regular,

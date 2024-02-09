@@ -65,19 +65,20 @@ Future<void> selfInvokes() async {
 
 Future<void> runTests() async {
   testProcessOrSystem();
+  testProcessOrSystemViaAddressOf();
   testNonExistingFunction();
 }
 
-@FfiNative<Pointer Function(IntPtr)>('malloc')
+@Native<Pointer Function(IntPtr)>(symbol: 'malloc')
 external Pointer posixMalloc(int size);
 
-@FfiNative<Void Function(Pointer)>('free')
+@Native<Void Function(Pointer)>(symbol: 'free')
 external void posixFree(Pointer pointer);
 
-@FfiNative<Pointer Function(Size)>('CoTaskMemAlloc')
+@Native<Pointer Function(Size)>(symbol: 'CoTaskMemAlloc')
 external Pointer winCoTaskMemAlloc(int cb);
 
-@FfiNative<Void Function(Pointer)>('CoTaskMemFree')
+@Native<Void Function(Pointer)>(symbol: 'CoTaskMemFree')
 external void winCoTaskMemFree(Pointer pv);
 
 @Native<Pointer Function(IntPtr)>()
@@ -107,5 +108,31 @@ void testProcessOrSystem() {
     final pointer2 = malloc(8);
     Expect.notEquals(nullptr, pointer2);
     free(pointer2);
+  }
+}
+
+void testProcessOrSystemViaAddressOf() {
+  if (Platform.isWindows) {
+    final memAlloc = Native.addressOf<NativeFunction<Pointer Function(Size)>>(
+            winCoTaskMemAlloc)
+        .asFunction<Pointer Function(int)>();
+    final memFree =
+        Native.addressOf<NativeFunction<Void Function(Pointer)>>(CoTaskMemFree)
+            .asFunction<void Function(Pointer)>();
+
+    final pointer = memAlloc(8);
+    Expect.notEquals(nullptr, pointer);
+    memFree(pointer);
+  } else {
+    final mallocViaAddrOf =
+        Native.addressOf<NativeFunction<Pointer Function(IntPtr)>>(malloc)
+            .asFunction<Pointer Function(int)>();
+    final freeViaAddrOf =
+        Native.addressOf<NativeFunction<Void Function(Pointer)>>(free)
+            .asFunction<void Function(Pointer)>();
+
+    final pointer = mallocViaAddrOf(8);
+    Expect.notEquals(nullptr, pointer);
+    freeViaAddrOf(pointer);
   }
 }

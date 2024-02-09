@@ -9,24 +9,13 @@ import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RecordTypeTest1);
-    defineReflectiveTests(RecordTypeTest2);
+    defineReflectiveTests(RecordTypeTest);
   });
 }
 
 @reflectiveTest
-class RecordTypeTest1 extends AbstractCompletionDriverTest
-    with RecordTypeTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class RecordTypeTest2 extends AbstractCompletionDriverTest
-    with RecordTypeTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class RecordTypeTest extends AbstractCompletionDriverTest
+    with RecordTypeTestCases {}
 
 mixin RecordTypeTestCases on AbstractCompletionDriverTest {
   @override

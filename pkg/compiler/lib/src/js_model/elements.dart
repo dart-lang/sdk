@@ -8,17 +8,18 @@ import 'package:kernel/ast.dart' as ir show LocalFunction;
 
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
+import '../elements/entity_map.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
+import '../universe/selector.dart';
 import 'closure.dart';
 import 'records.dart' show JRecordClass, JRecordGetter;
 
 const String jsElementPrefix = 'j:';
 
-class JLibrary extends IndexedLibrary {
+class JLibrary with EntityMapKey implements LibraryEntity {
   /// Tag used for identifying serialized [JLibrary] objects in a
   /// debugging data stream.
   static const String tag = 'library';
@@ -58,7 +59,9 @@ class JLibrary extends IndexedLibrary {
 /// Enum used for identifying [JClass] subclasses in serialization.
 enum JClassKind { node, closure, context, record }
 
-class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
+class JClass
+    with ClassHierarchyNodesMapKey, EntityMapKey
+    implements ClassEntity {
   /// Tag used for identifying serialized [JClass] objects in a
   /// debugging data stream.
   static const String tag = 'class';
@@ -125,9 +128,15 @@ enum JMemberKind {
   signatureMethod,
   contextField,
   recordGetter,
+  parameterStub,
 }
 
-abstract class JMember extends IndexedMember {
+@override
+String _membertoString(JMember member) => '${jsElementPrefix}${member._kind}'
+    '(${member.enclosingClass != null ? '${member.enclosingClass!.name}.' : ''}'
+    '${member.name})';
+
+abstract class JMember with EntityMapKey implements MemberEntity {
   @override
   final JLibrary library;
   @override
@@ -169,6 +178,8 @@ abstract class JMember extends IndexedMember {
         return JContextField.readFromDataSource(source);
       case JMemberKind.recordGetter:
         return JRecordGetter.readFromDataSource(source);
+      case JMemberKind.parameterStub:
+        return JParameterStub.readFromDataSource(source);
     }
   }
 
@@ -211,12 +222,10 @@ abstract class JMember extends IndexedMember {
   String get _kind;
 
   @override
-  String toString() => '${jsElementPrefix}$_kind'
-      '(${enclosingClass != null ? '${enclosingClass!.name}.' : ''}$name)';
+  String toString() => _membertoString(this);
 }
 
-abstract class JFunction extends JMember
-    implements FunctionEntity, IndexedFunction {
+abstract class JFunction extends JMember implements FunctionEntity {
   @override
   final ParameterStructure parameterStructure;
   @override
@@ -229,8 +238,7 @@ abstract class JFunction extends JMember
       {super.isStatic, this.isExternal = false});
 }
 
-abstract class JConstructor extends JFunction
-    implements ConstructorEntity, IndexedConstructor {
+abstract class JConstructor extends JFunction implements ConstructorEntity {
   @override
   final bool isConst;
   @override
@@ -385,6 +393,110 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
 
   @override
   String get _kind => 'constructor_body';
+
+  /// These lazy member bodies implement `==` since different SSA shards can
+  /// create different copies of the same constructor body. Upon deserialization
+  /// we should consider the different copies equivalent.
+  @override
+  bool operator ==(Object other) {
+    return other is JConstructorBody && constructor == other.constructor;
+  }
+
+  @override
+  int get hashCode => constructor.hashCode + 7;
+}
+
+class JParameterStub with EntityMapKey implements JMethod {
+  static const String kind = 'parameter-stub';
+
+  final JFunction target;
+  @override
+  final ParameterStructure parameterStructure;
+  final Selector? callSelector;
+  final bool needsSuper;
+
+  JParameterStub(this.target, this.parameterStructure,
+      {required this.callSelector, required this.needsSuper});
+
+  @override
+  String toString() => _membertoString(this);
+
+  @override
+  String get _kind => 'parameter_stub';
+
+  @override
+  bool get _isStatic => target._isStatic;
+
+  @override
+  Name get _name => target._name;
+
+  @override
+  AsyncMarker get asyncMarker => target.asyncMarker;
+
+  @override
+  JClass? get enclosingClass => target.enclosingClass;
+
+  @override
+  bool get isAbstract => target.isAbstract;
+
+  @override
+  bool get isAssignable => target.isAssignable;
+
+  @override
+  bool get isConst => target.isConst;
+
+  @override
+  bool get isExternal => target.isExternal;
+
+  @override
+  bool get isFunction => target.isFunction;
+
+  @override
+  bool get isGetter => target.isGetter;
+
+  @override
+  bool get isInstanceMember => target.isInstanceMember;
+
+  @override
+  bool get isSetter => target.isSetter;
+
+  @override
+  bool get isStatic => target.isStatic;
+
+  @override
+  bool get isTopLevel => target.isTopLevel;
+
+  @override
+  JLibrary get library => target.library;
+
+  @override
+  Name get memberName => target.memberName;
+
+  @override
+  String get name => target.name;
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(JMemberKind.parameterStub);
+    sink.begin(kind);
+    sink.writeMember(target);
+    parameterStructure.writeToDataSink(sink);
+    sink.writeValueOrNull(callSelector, (value) => value.writeToDataSink(sink));
+    sink.writeBool(needsSuper);
+    sink.end(kind);
+  }
+
+  factory JParameterStub.readFromDataSource(DataSourceReader source) {
+    source.begin(kind);
+    final target = source.readMember() as JFunction;
+    final parameterStructure = ParameterStructure.readFromDataSource(source);
+    final callSelector =
+        source.readValueOrNull(() => Selector.readFromDataSource(source));
+    final needsSuper = source.readBool();
+    source.end(kind);
+    return JParameterStub(target, parameterStructure,
+        callSelector: callSelector, needsSuper: needsSuper);
+  }
 }
 
 class JMethod extends JFunction {
@@ -490,6 +602,14 @@ class JGeneratorBody extends JFunction {
 
   @override
   String get _kind => 'generator_body';
+
+  /// These lazy member bodies implement `==` since different SSA shards can
+  /// create different copies of the same constructor body. Upon deserialization
+  /// we should consider the different copies equivalent.
+  @override
+  bool operator ==(Object other) {
+    return other is JGeneratorBody && function == other.function;
+  }
 }
 
 class JGetter extends JFunction {
@@ -626,7 +746,7 @@ class JSetter extends JFunction {
   String get _kind => 'setter';
 }
 
-class JField extends JMember implements FieldEntity, IndexedField {
+class JField extends JMember implements FieldEntity {
   /// Tag used for identifying serialized [JField] objects in a
   /// debugging data stream.
   static const String tag = 'field';
@@ -759,7 +879,7 @@ class JSignatureMethod extends JMethod {
 /// J-world they use a [JClosureCallMethod] as [JTypeVariable.typeDeclaration].
 enum JTypeVariableKind { cls, member }
 
-class JTypeVariable extends IndexedTypeVariable {
+class JTypeVariable with EntityMapKey implements TypeVariableEntity {
   /// Tag used for identifying serialized [JTypeVariable] objects in a
   /// debugging data stream.
   static const String tag = 'type-variable';

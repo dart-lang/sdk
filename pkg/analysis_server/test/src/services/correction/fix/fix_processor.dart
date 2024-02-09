@@ -92,20 +92,32 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// Return the lint code being tested.
   String? get lintCode => null;
 
-  /// Return `true` if this test uses config files.
-  bool get useConfigFiles => false;
-
   /// The workspace in which fixes contributor operates.
   Future<DartChangeWorkspace> get workspace async {
     return DartChangeWorkspace([await session]);
+  }
+
+  /// Computes fixes for the pubspecs in the given contexts.
+  Future<void> assertFixPubspec(String original, String expected) async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    var processor =
+        BulkFixProcessor(TestInstrumentationService(), await workspace);
+    var fixes = (await processor.fixPubspec([analysisContext])).edits;
+    var edits = <SourceEdit>[];
+    for (var fix in fixes) {
+      edits.addAll(fix.edits);
+    }
+    var result = SourceEdit.applySequence(original, edits);
+    expect(result, expected);
   }
 
   Future<void> assertFormat(String expectedCode) async {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
-    processor = BulkFixProcessor(TestInstrumentationService(), await workspace,
-        useConfigFiles: useConfigFiles);
+    processor = BulkFixProcessor(TestInstrumentationService(), await workspace);
     await processor.formatCode([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -136,8 +148,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
-    processor = BulkFixProcessor(TestInstrumentationService(), await workspace,
-        useConfigFiles: useConfigFiles);
+    processor = BulkFixProcessor(TestInstrumentationService(), await workspace);
     await processor.organizeDirectives([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -151,9 +162,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
-    var processor = BulkFixProcessor(
-        TestInstrumentationService(), await workspace,
-        useConfigFiles: useConfigFiles);
+    var processor =
+        BulkFixProcessor(TestInstrumentationService(), await workspace);
     if (isParse) {
       await processor.fixErrorsUsingParsedResult([analysisContext]);
     } else {
@@ -168,8 +178,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
-    processor = BulkFixProcessor(TestInstrumentationService(), await workspace,
-        useConfigFiles: useConfigFiles);
+    processor = BulkFixProcessor(TestInstrumentationService(), await workspace);
     return processor.hasFixes([analysisContext]);
   }
 
@@ -571,12 +580,12 @@ mixin WithNullSafetyLintMixin on AbstractContextTest {
   }
 }
 
-/// todo (pq): temporary
+// TODO(pq): temporary
 extension FixExtension on Fix {
   bool isFixAllFix() => kind.canBeAppliedTogether();
 }
 
 extension FixKindExtension on FixKind {
-  /// todo (pq): temporary
+  // TODO(pq): temporary
   bool canBeAppliedTogether() => priority == DartFixKindPriority.IN_FILE;
 }

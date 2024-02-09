@@ -15,6 +15,10 @@ class SuperContext {
   static const SuperContext extension = SuperContext._('extension');
 
   /// An indication that the super expression is in a context in which it is
+  /// invalid because it is in an instance member of an extension type.
+  static const SuperContext extensionType = SuperContext._('extensionType');
+
+  /// An indication that the super expression is in a context in which it is
   /// invalid because it is not in an instance member.
   static const SuperContext static = SuperContext._('static');
 
@@ -45,6 +49,8 @@ class SuperContext {
         return SuperContext.valid;
       } else if (node is ExtensionDeclaration) {
         return SuperContext.extension;
+      } else if (node is ExtensionTypeDeclaration) {
+        return SuperContext.extensionType;
       } else if (node is FieldDeclaration) {
         if (node.staticKeyword != null) {
           return SuperContext.static;

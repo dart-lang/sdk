@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -39,8 +40,8 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     fields.sort((a, b) => a.nameOffset - b.nameOffset);
 
     // Specialize for Flutter widgets.
-    if (flutter.isExactlyStatelessWidgetType(superType) ||
-        flutter.isExactlyStatefulWidgetType(superType)) {
+    if (Flutter.isExactlyStatelessWidgetType(superType) ||
+        Flutter.isExactlyStatefulWidgetType(superType)) {
       if (parameters.isNotEmpty && parameters.last.isNamed) {
         var isNullSafe =
             libraryElement.featureSet.isEnabled(Feature.non_nullable);

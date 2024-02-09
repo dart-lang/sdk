@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class UnnecessaryGettersSettersTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'unnecessary_getters_setters';
 
   test_necessary_differentType() async {

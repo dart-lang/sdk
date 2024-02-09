@@ -470,7 +470,7 @@ static intptr_t Prepare(const RegExp& regexp,
 
 static ObjectPtr ExecRaw(const RegExp& regexp,
                          const String& subject,
-                         intptr_t index,
+                         int32_t index,
                          bool sticky,
                          int32_t* output,
                          intptr_t output_size,

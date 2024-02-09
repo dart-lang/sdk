@@ -33,7 +33,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   MergedClassMemberScope? _mergedScope;
 
   @override
-  final List<TypeVariableBuilder>? typeParameters;
+  final List<NominalVariableBuilder>? typeParameters;
 
   @override
   final TypeBuilder onType;
@@ -55,8 +55,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       : _extension = new Extension(
             name: extensionName.name,
             fileUri: parent.fileUri,
-            typeParameters:
-                TypeVariableBuilder.typeParametersFromBuilders(typeParameters),
+            typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
+                typeParameters),
             reference: referenceFrom?.reference)
           ..isExtensionTypeDeclaration = false
           ..isUnnamedExtension = extensionName.isUnnamedExtension
@@ -108,6 +108,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  void addMemberInternal(SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind, Member member, Member? tearOff) {
+    unhandled("${memberBuilder.runtimeType}:${memberKind}", "addMemberInternal",
+        memberBuilder.charOffset, memberBuilder.fileUri);
+  }
+
+  @override
   void addMemberDescriptorInternal(
       SourceMemberBuilder memberBuilder,
       BuiltMemberKind memberKind,
@@ -128,8 +135,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.ExtensionTypeOperator:
       case BuiltMemberKind.ExtensionTypeFactory:
       case BuiltMemberKind.ExtensionTypeRedirectingFactory:
-        unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
-            memberBuilder.charOffset, memberBuilder.fileUri);
+      case BuiltMemberKind.ExtensionTypeRepresentationField:
+        unhandled(
+            "${memberBuilder.runtimeType}:${memberKind}",
+            "addMemberDescriptorInternal",
+            memberBuilder.charOffset,
+            memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
         kind = ExtensionMemberKind.Field;
@@ -149,10 +160,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         kind = ExtensionMemberKind.Operator;
         break;
     }
-    extension.members.add(new ExtensionMemberDescriptor(
+    extension.memberDescriptors.add(new ExtensionMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
-        member: memberReference,
-        tearOff: tearOffReference,
+        memberReference: memberReference,
+        tearOffReference: tearOffReference,
         isStatic: memberBuilder.isStatic,
         kind: kind));
   }

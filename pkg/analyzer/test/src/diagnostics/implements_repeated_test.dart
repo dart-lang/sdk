@@ -143,6 +143,64 @@ enum E implements A, A, A, A {
     ]);
   }
 
+  test_extensionType_implements_2times() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) implements int, int {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 41, 3),
+    ]);
+
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+''');
+  }
+
+  test_extensionType_implements_2times_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+typedef A = int;
+extension type B(int it) implements int, A {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 58, 1),
+    ]);
+
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    NamedType
+      name: A
+      element: self::@typeAlias::A
+      type: int
+        alias: self::@typeAlias::A
+''');
+  }
+
+  test_extensionType_implements_4times() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) implements int, int, int, int {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 41, 3),
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 46, 3),
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 51, 3),
+    ]);
+  }
+
   test_mixin_implements_2times() async {
     await assertErrorsInCode(r'''
 class A {}

@@ -8,23 +8,24 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ObjectPatternTest1);
-    defineReflectiveTests(ObjectPatternTest2);
+    defineReflectiveTests(ObjectPatternTest);
   });
 }
 
 @reflectiveTest
-class ObjectPatternTest1 extends AbstractCompletionDriverTest
+class ObjectPatternTest extends AbstractCompletionDriverTest
     with ObjectPatternTestCases {
+  @FailingTest(reason: 'Suggest invalid static field / getter')
   @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
+  Future<void> test_pattern_first() {
+    return super.test_pattern_first();
+  }
 
-@reflectiveTest
-class ObjectPatternTest2 extends AbstractCompletionDriverTest
-    with ObjectPatternTestCases {
+  @FailingTest(reason: 'Suggest invalid static field / getter')
   @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+  Future<void> test_pattern_second() {
+    return super.test_pattern_second();
+  }
 }
 
 mixin ObjectPatternTestCases on AbstractCompletionDriverTest {
@@ -99,8 +100,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -109,25 +109,6 @@ suggestions
   g11
     kind: getter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  f01
-    kind: field
-  f11
-    kind: field
-  final
-    kind: keyword
-  g01
-    kind: getter
-  g11
-    kind: getter
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void>
@@ -201,8 +182,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -211,25 +191,6 @@ suggestions
   g11
     kind: getter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  f01
-    kind: field
-  f11
-    kind: field
-  final
-    kind: keyword
-  g01
-    kind: getter
-  g11
-    kind: getter
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_forEachPartsWithPattern_first_beforeColon() async {
@@ -297,8 +258,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -307,21 +267,6 @@ suggestions
   g11
     kind: getter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  f01
-    kind: field
-  f11
-    kind: field
-  g01
-    kind: getter
-  g11
-    kind: getter
-''');
-    }
   }
 
   Future<void>
@@ -416,8 +361,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -442,41 +386,6 @@ suggestions
   x0
     kind: parameter
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  A0.f02
-    kind: field
-  A0.g02
-    kind: getter
-  A1
-    kind: class
-  A1
-    kind: constructorInvocation
-  A1.f12
-    kind: field
-  A1.g12
-    kind: getter
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-  x0
-    kind: parameter
-''');
-    }
   }
 
   Future<void> test_pattern_second() async {
@@ -507,8 +416,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -533,41 +441,6 @@ suggestions
   x0
     kind: parameter
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  A0.f02
-    kind: field
-  A0.g02
-    kind: getter
-  A1
-    kind: class
-  A1
-    kind: constructorInvocation
-  A1.f12
-    kind: field
-  A1.g12
-    kind: getter
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-  x0
-    kind: parameter
-''');
-    }
   }
 
   Future<void> test_property_first() async {
@@ -639,8 +512,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -649,21 +521,6 @@ suggestions
   f11
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  f01
-    kind: field
-  f11
-    kind: field
-  g01
-    kind: getter
-  g11
-    kind: getter
-''');
-    }
   }
 
   Future<void>
@@ -695,8 +552,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -705,21 +561,6 @@ suggestions
   f11
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  f01
-    kind: field
-  f11
-    kind: field
-  g01
-    kind: getter
-  g11
-    kind: getter
-''');
-    }
   }
 
   Future<void>

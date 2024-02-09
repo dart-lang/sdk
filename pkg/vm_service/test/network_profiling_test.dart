@@ -17,14 +17,14 @@ const String udpContent = 'aghfkjdb';
 const String kClearSocketProfileRPC = 'ext.dart.io.clearSocketProfile';
 const String kGetSocketProfileRPC = 'ext.dart.io.getSocketProfile';
 const String kGetVersionRPC = 'ext.dart.io.getVersion';
-const String kPauseSocketProfilingRPC = 'ext.dart.io.pauseSocketProfiling';
-const String kStartSocketProfilingRPC = 'ext.dart.io.startSocketProfiling';
 const String kSocketProfilingEnabledRPC = 'ext.dart.io.socketProfilingEnabled';
 const String localhost = '127.0.0.1';
 
 Future<void> waitForStreamEvent(
-    VmService service, IsolateRef isolateRef, bool state,
-    {bool useSetter = true}) async {
+  VmService service,
+  IsolateRef isolateRef,
+  bool state,
+) async {
   final completer = Completer<void>();
   final isolateId = isolateRef.id!;
   late StreamSubscription sub;
@@ -36,16 +36,7 @@ Future<void> waitForStreamEvent(
     completer.complete();
   });
   await service.streamListen(EventStreams.kExtension);
-
-  if (useSetter) {
-    state
-        // ignore: deprecated_member_use_from_same_package
-        ? await service.startSocketProfiling(isolateId)
-        // ignore: deprecated_member_use_from_same_package
-        : await service.pauseSocketProfiling(isolateId);
-  } else {
-    await service.socketProfilingEnabled(isolateId, state);
-  }
+  await service.socketProfilingEnabled(isolateId, state);
   await completer.future;
   await service.streamCancel(EventStreams.kExtension);
 }
@@ -54,15 +45,15 @@ Future<void> setup() async {}
 
 Future<void> socketTest() async {
   // Socket
-  var serverSocket = await io.ServerSocket.bind(localhost, 0);
-  var socket = await io.Socket.connect(localhost, serverSocket.port);
+  final serverSocket = await io.ServerSocket.bind(localhost, 0);
+  final socket = await io.Socket.connect(localhost, serverSocket.port);
   socket.write(content);
   await socket.flush();
   socket.destroy();
 
   // rawDatagram
   final doneCompleter = Completer<void>();
-  var server = await io.RawDatagramSocket.bind(localhost, 0);
+  final server = await io.RawDatagramSocket.bind(localhost, 0);
   server.listen((io.RawSocketEvent event) {
     if (event == io.RawSocketEvent.read) {
       server.receive();
@@ -71,9 +62,12 @@ Future<void> socketTest() async {
       }
     }
   });
-  var client = await io.RawDatagramSocket.bind(localhost, 0);
+  final client = await io.RawDatagramSocket.bind(localhost, 0);
   client.send(
-      utf8.encode(udpContent), io.InternetAddress(localhost), server.port);
+    utf8.encode(udpContent),
+    io.InternetAddress(localhost),
+    server.port,
+  );
   client.send([1, 2, 3], io.InternetAddress(localhost), server.port);
 
   // Wait for datagram to arrive.
@@ -89,9 +83,6 @@ var tests = <IsolateTest>[
     expect(isolate.extensionRPCs!.length, greaterThanOrEqualTo(5));
     expect(isolate.extensionRPCs!.contains(kClearSocketProfileRPC), isTrue);
     expect(isolate.extensionRPCs!.contains(kGetVersionRPC), isTrue);
-    expect(isolate.extensionRPCs!.contains(kPauseSocketProfilingRPC), isTrue);
-    expect(isolate.extensionRPCs!.contains(kStartSocketProfilingRPC), isTrue);
-    expect(isolate.extensionRPCs!.contains(kPauseSocketProfilingRPC), isTrue);
     expect(isolate.extensionRPCs!.contains(kSocketProfilingEnabledRPC), isTrue);
   },
 
@@ -117,18 +108,10 @@ var tests = <IsolateTest>[
     await waitForStreamEvent(service, isolateRef, initial);
     expect((await service.socketProfilingEnabled(isolateId)).enabled, initial);
   },
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final initial = (await service.socketProfilingEnabled(isolateId)).enabled;
-    await waitForStreamEvent(service, isolateRef, !initial, useSetter: false);
-    expect((await service.socketProfilingEnabled(isolateId)).enabled, !initial);
-    await waitForStreamEvent(service, isolateRef, initial, useSetter: false);
-    expect((await service.socketProfilingEnabled(isolateId)).enabled, initial);
-  }
   // TODO(bkonyi): fully port observatory test for socket profiling.
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'network_profiling_test.dart',

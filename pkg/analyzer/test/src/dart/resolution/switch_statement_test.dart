@@ -160,7 +160,7 @@ part 'a.dart';
       error(CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE, 5, 8),
     ]);
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''

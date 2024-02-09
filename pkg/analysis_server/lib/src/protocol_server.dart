@@ -16,7 +16,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/generated/source.dart' as engine;
+import 'package:analyzer/source/source.dart' as engine;
+import 'package:analyzer/source/source_range.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 export 'package:analysis_server/plugin/protocol/protocol_dart.dart';
@@ -85,7 +86,8 @@ List<T> mapEngineErrors<T>(
             engine.AnalysisResultWithErrors result, engine.AnalysisError error,
             [engine.ErrorSeverity errorSeverity])
         constructor) {
-  var analysisOptions = result.session.analysisContext.analysisOptions;
+  var analysisOptions =
+      result.session.analysisContext.getAnalysisOptionsForFile(result.file);
   var serverErrors = <T>[];
   for (var error in errors) {
     var processor = ErrorProcessor.getProcessor(analysisOptions, error);

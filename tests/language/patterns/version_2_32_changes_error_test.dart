@@ -110,24 +110,22 @@ main() {
   // variable pattern to be named `when` or `as`.
   {
     var (int when) = expr<int>();
-    //   ^
-    // [cfe] Can't declare 'int' because it was already used in this scope.
     //       ^^^^
     // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
     // [cfe] Expected ')' before this.
     //                    ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
+    // [cfe] Local variable 'int' can't be referenced before it is declared.
   }
   {
     var (int as) = expr<int>();
-    //   ^
-    // [cfe] Can't declare 'int' because it was already used in this scope.
     //         ^
     // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
     // [cfe] Expected a type, but got ')'.
     // [cfe] This couldn't be parsed.
     //                  ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
+    // [cfe] Local variable 'int' can't be referenced before it is declared.
   }
 
   // In a pattern variable declaration, it's an error for an identifier pattern

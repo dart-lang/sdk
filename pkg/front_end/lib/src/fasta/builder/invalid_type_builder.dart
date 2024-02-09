@@ -45,7 +45,7 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   }
 
   @override
-  Supertype? buildSupertype(LibraryBuilder library) {
+  Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     return null;
   }
 
@@ -67,7 +67,7 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   bool get isVoidType => false;
 
   @override
-  Object? get name => null;
+  TypeName? get typeName => null;
 
   @override
   NullabilityBuilder get nullabilityBuilder =>

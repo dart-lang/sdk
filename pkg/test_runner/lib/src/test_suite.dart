@@ -10,6 +10,8 @@
 ///   and creating [TestCase]s for those files that meet the relevant criteria.
 /// - Preparing tests, including copying files and frameworks to temporary
 ///   directories, and computing the command line and arguments to be run.
+library;
+
 import 'dart:io';
 import 'dart:math';
 
@@ -331,8 +333,7 @@ class VMTestSuite extends TestSuite {
         ? '$buildDir/gen/kernel-service.dart.snapshot'
         : '$buildDir/gen/kernel_service.dill';
     var dfePath = Path(filename).absolute.toNativePath();
-    // Enable 'records' experiment as it is used by certain vm/cc unit tests.
-    final experiments = [...configuration.experiments, 'records'];
+    final experiments = [...configuration.experiments];
     var args = [
       ...initialTargetArguments,
       // '--dfe' must be the first VM argument for run_vm_test to pick it up.
@@ -398,6 +399,7 @@ class FfiTestSuite extends TestSuite {
     "arm64_ios",
     "arm64_linux",
     "arm64_macos",
+    "arm64_win",
     "arm_android",
     "arm_ios",
     "arm_linux",
@@ -736,7 +738,7 @@ class StandardTestSuite extends TestSuite {
       _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
       _enqueueBrowserTest(testFile, expectationSet, onTest);
-    } else if (suiteName == 'service' || suiteName == 'service_2') {
+    } else if (suiteName == 'service') {
       _enqueueServiceTest(testFile, expectationSet, onTest);
     } else {
       _enqueueStandardTest(testFile, expectationSet, onTest);
@@ -1108,7 +1110,7 @@ class AnalyzeLibraryTestSuite extends StandardTestSuite {
 
   AnalyzeLibraryTestSuite(TestConfiguration configuration)
       : super(configuration, 'analyze_library', _libraryPath(configuration),
-            ['tests/lib_2/analyzer/analyze_library.status']);
+            ['tests/lib/analyzer/analyze_library.status']);
 
   @override
   List<String> additionalOptions(Path? filePath, {bool? showSdkWarnings}) =>

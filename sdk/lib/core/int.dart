@@ -26,16 +26,46 @@ part of dart.core;
 /// * [Numbers](https://dart.dev/guides/language/numbers) in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 abstract final class int extends num {
-  /// Returns the integer value of the given environment declaration [name].
+  /// Integer value for [name] in the compilation configuration environment.
   ///
-  /// The result is the same as would be returned by:
+  /// The compilation configuration environment is provided by the
+  /// surrounding tools which are compiling or running the Dart program.
+  /// The environment is a mapping from a set of string keys to their associated
+  /// string value.
+  /// The string value, or lack of a value, associated with a [name]
+  /// must be consistent across all calls to [String.fromEnvironment],
+  /// `int.fromEnvironment`, [bool.fromEnvironment] and [bool.hasEnvironment]
+  /// in a single program.
+  /// The string values can be directly accessed using
+  /// [String.fromEnvironment].
+  ///
+  /// This constructor looks up the string value for [name],
+  /// then attempts to parse it as an integer, using the same syntax rules as
+  /// [int.parse]/[int.tryParse]. That is, it accepts decimal numerals
+  /// and hexadecimal numerals with a `0x` prefix, and it accepts a leading
+  /// minus sign.
+  /// If there is no value associated with [name] in the compilation
+  /// configuration environment, or if the associated string value cannot
+  /// be parsed as an integer, the value of the constructor invocation
+  /// is the [defaultValue] integer, which defaults to the integer zero.
+  ///
+  /// The result is effectively the same as that of:
   /// ```dart template:expression
   /// int.tryParse(const String.fromEnvironment(name, defaultValue: ""))
   ///     ?? defaultValue
   /// ```
+  /// except that the constructor invocation can be a constant value.
+  ///
   /// Example:
   /// ```dart
-  /// const int.fromEnvironment("defaultPort", defaultValue: 80)
+  /// const defaultPort = int.fromEnvironment("defaultPort", defaultValue: 80);
+  /// ```
+  /// In order to check whether a value is there at all, use
+  /// [bool.hasEnvironment]. Example:
+  /// ```dart
+  /// const int? maybeDeclared = bool.hasEnvironment("defaultPort")
+  ///     ? int.fromEnvironment("defaultPort")
+  ///     : null;
   /// ```
   ///
   /// The string value, or lack of a value, associated with a [name]
@@ -47,12 +77,6 @@ abstract final class int extends num {
   /// It may work as a non-constant invocation on some platforms which
   /// have access to compiler options at run-time, but most ahead-of-time
   /// compiled platforms will not have this information.
-  // The .fromEnvironment() constructors are special in that we do not want
-  // users to call them using "new". We prohibit that by giving them bodies
-  // that throw, even though const constructors are not allowed to have bodies.
-  // Disable those static errors.
-  //ignore: const_constructor_with_body
-  //ignore: const_factory
   external const factory int.fromEnvironment(String name,
       {int defaultValue = 0});
 

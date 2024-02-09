@@ -22,7 +22,16 @@ copy("copy_dartdev_snapshot") {
 application_snapshot("generate_dartdev_snapshot") {
   main_dart = "../../pkg/dartdev/bin/dartdev.dart"
   training_args = [ "--help" ]
+
   deps = [ "../dds:dds" ]
+
+  # DDS should be run from AOT snapshot on all architectures except IA32/X86.
+  # TODO(https://dartbug.com/54434): Fix simriscv32 AOT.
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
+      dart_target_arch != "riscv32") {
+    deps += [ "../dds:dds_aot" ]
+  }
+
   vm_args = [ "--sound-null-safety" ]
   output = "$root_gen_dir/dartdev.dart.snapshot"
 }

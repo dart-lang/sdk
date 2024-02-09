@@ -17,7 +17,7 @@ abstract class _C&Object&A = core::Object with baz2::A /*isAnonymousMixin,hasCon
   abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  mixin-super-stub method toString({core::String* s}) → core::String*
+  mixin-super-stub method toString({core::String* s = #C1}) → core::String*
     return super.{baz2::A::toString}(s: s);
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -48,8 +49,9 @@ class SurroundWith extends MultiCorrectionProducer {
     // prepare environment
     var indentOld = utils.getNodePrefix(firstStatement);
     var indentNew = '$indentOld${utils.getIndent(1)}';
-    var indentedCode =
-        utils.replaceSourceRangeIndent(statementsRange, indentOld, indentNew);
+    var indentedCode = utils.replaceSourceRangeIndent(
+        statementsRange, indentOld, indentNew,
+        includeLeading: true, ensureTrailingNewline: true);
 
     return [
       _SurroundWithBlock(statementsRange, indentOld, indentNew, indentedCode),
@@ -98,8 +100,8 @@ class _SurroundWithBlock extends _SurroundWith {
       builder.addSimpleInsertion(statementsRange.offset, '$indentOld{$eol');
       builder.addSimpleReplacement(
           statementsRange,
-          utils.replaceSourceRangeIndent(
-              statementsRange, indentOld, indentNew));
+          utils.replaceSourceRangeIndent(statementsRange, indentOld, indentNew,
+              includeLeading: true, ensureTrailingNewline: true));
       builder.addSimpleInsertion(statementsRange.end, '$indentOld}$eol');
     });
   }
@@ -239,7 +241,7 @@ class _SurroundWithSetState extends _SurroundWith {
     var classDeclaration =
         node.parent?.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration != null &&
-        flutter.isState(classDeclaration.declaredElement)) {
+        Flutter.isState(classDeclaration.declaredElement)) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(statementsRange, (builder) {
           builder.write(indentOld);

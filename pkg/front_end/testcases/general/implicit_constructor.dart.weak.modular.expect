@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  method mixinMethod() → void {}
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+abstract class _C&Object&M = core::Object with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&M
+    : super core::Object::•()
+    ;
+  mixin-super-stub method mixinMethod() → void
+    return super.{self::M::mixinMethod}();
+}
+class C extends self::_C&Object&M {
+  synthetic constructor •() → self::C
+    : super self::_C&Object&M::•()
+    ;
+}
+class D = core::Object with self::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  mixin-super-stub method mixinMethod() → void
+    return super.{self::M::mixinMethod}();
+}

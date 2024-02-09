@@ -1250,7 +1250,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       //   2) set a timer terminate the connection if a close frame is
       //      not received.
       if (!_controller.hasListener && _subscription != null) {
-        _controller.stream.drain().catchError((_) => {});
+        _controller.stream.drain().catchError((_) {});
       }
       _closeTimer ??= Timer(const Duration(seconds: 5), () {
         // Reuse code and reason from the local close.

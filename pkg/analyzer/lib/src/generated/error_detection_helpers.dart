@@ -22,6 +22,8 @@ import 'package:analyzer/src/error/codes.dart';
 mixin ErrorDetectionHelpers {
   ErrorReporter get errorReporter;
 
+  bool get strictCasts;
+
   TypeSystemImpl get typeSystem;
 
   /// Verify that the given [expression] can be assigned to its corresponding
@@ -73,7 +75,8 @@ mixin ErrorDetectionHelpers {
       return;
     }
 
-    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
+    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
+        strictCasts: strictCasts)) {
       AstNode getErrorNode(AstNode node) {
         if (node is CascadeExpression) {
           return getErrorNode(node.target);
@@ -89,7 +92,8 @@ mixin ErrorDetectionHelpers {
           actualStaticType is! RecordType &&
           expression is ParenthesizedExpression) {
         var field = expectedStaticType.positionalFields.first;
-        if (typeSystem.isAssignableTo(field.type, actualStaticType)) {
+        if (typeSystem.isAssignableTo(field.type, actualStaticType,
+            strictCasts: strictCasts)) {
           errorReporter.reportErrorForNode(
             WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
             expression,
@@ -98,7 +102,44 @@ mixin ErrorDetectionHelpers {
           return;
         }
       }
-
+      if (errorCode == CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE) {
+        var additionalInfo = <String>[];
+        if (expectedStaticType is RecordType &&
+            actualStaticType is RecordType) {
+          var actualPositionalFields = actualStaticType.positionalFields.length;
+          var expectedPositionalFields =
+              expectedStaticType.positionalFields.length;
+          if (expectedPositionalFields != 0 &&
+              actualPositionalFields != expectedPositionalFields) {
+            additionalInfo.add(
+                'Expected $expectedPositionalFields positional arguments, but got $actualPositionalFields instead.');
+          }
+          var actualNamedFieldsLength = actualStaticType.namedFields.length;
+          var expectedNamedFieldsLength = expectedStaticType.namedFields.length;
+          if (expectedNamedFieldsLength != 0 &&
+              actualNamedFieldsLength != expectedNamedFieldsLength) {
+            additionalInfo.add(
+                'Expected $expectedNamedFieldsLength named arguments, but got $actualNamedFieldsLength instead.');
+          }
+          var namedFields = expectedStaticType.namedFields;
+          if (namedFields.isNotEmpty) {
+            for (var field in actualStaticType.namedFields) {
+              if (!namedFields.any((element) =>
+                  element.name == field.name && field.type == element.type)) {
+                additionalInfo.add(
+                    'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString(withNullability: true)}`.');
+              }
+            }
+          }
+        }
+        errorReporter.reportErrorForNode(
+          errorCode,
+          getErrorNode(expression),
+          [actualStaticType, expectedStaticType, additionalInfo.join(' ')],
+          computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
+        );
+        return;
+      }
       errorReporter.reportErrorForNode(
         errorCode,
         getErrorNode(expression),
@@ -124,7 +165,8 @@ mixin ErrorDetectionHelpers {
     Expression expression = initializer.expression;
     // test the static type of the expression
     DartType staticType = expression.typeOrThrow;
-    if (typeSystem.isAssignableTo(staticType, fieldType)) {
+    if (typeSystem.isAssignableTo(staticType, fieldType,
+        strictCasts: strictCasts)) {
       if (fieldType is! VoidType) {
         checkForUseOfVoidResult(expression);
       }
@@ -149,7 +191,7 @@ mixin ErrorDetectionHelpers {
           messages);
     }
 
-    // TODO(brianwilkerson) Define a hint corresponding to these errors and
+    // TODO(brianwilkerson): Define a hint corresponding to these errors and
     // report it if appropriate.
 //        // test the propagated type of the expression
 //        Type propagatedType = expression.getPropagatedType();

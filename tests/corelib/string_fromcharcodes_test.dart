@@ -6,12 +6,13 @@ import "package:expect/expect.dart";
 import "dart:typed_data";
 
 main() {
-  iter(count, [values]) => values is List
+  Iterable<int> iter(count, [values]) => values is List
       ? new Iterable<int>.generate(count, (x) => values[x])
       : new Iterable<int>.generate(count, (x) => values);
-  test(expect, iter, [start = 0, end]) {
+  void test(String expect, Iterable<int> iter, [int start = 0, int? end]) {
     var actual = new String.fromCharCodes(iter, start, end);
-    Expect.equals(expect, actual);
+    Expect.equals(expect, actual,
+        '$iter:${iter.runtimeType}[${start > 0 ? start : ""}:${end ?? ""}]');
   }
 
   testThrows(iterable, [start = 0, end]) {
@@ -141,23 +142,26 @@ main() {
     "ABCDEFGH".codeUnits,
   ]) {
     test("ABCDEFGH", iterable);
-    // start varies, end is null.
+    // start provided, end is null.
     test("ABCDEFGH", iterable, 0);
     test("BCDEFGH", iterable, 1);
     test("H", iterable, 7);
     test("", iterable, 8);
-    // start = 0, end varies.
+    test("", iterable, 10);
+    // start = 0, end provided.
     test("ABCDEFGH", iterable, 0);
     test("A", iterable, 0, 1);
     test("AB", iterable, 0, 2);
     test("ABCDEFG", iterable, 0, 7);
     test("ABCDEFGH", iterable, 0, 8);
+    test("ABCDEFGH", iterable, 0, 10);
     test("", iterable, 0, 0);
-    // Both varying.
-    test("ABCDEFGH", iterable, 0, 8);
-    test("AB", iterable, 0, 2);
+    // Both provided and start > 0.
     test("GH", iterable, 6, 8);
+    test("GH", iterable, 6, 10);
     test("DE", iterable, 3, 5);
+    test("", iterable, 8, 10);
+    test("", iterable, 10, 12);
     test("", iterable, 3, 3);
   }
   // Can split surrogates in input, but not a single big code point.
@@ -196,9 +200,13 @@ main() {
       testThrowsRange(iterable, -1);
       testThrowsRange(iterable, 0, -1);
       testThrowsRange(iterable, 2, 1);
-      testThrowsRange(iterable, 0, length + 1);
-      testThrowsRange(iterable, length + 1);
-      testThrowsRange(iterable, length + 1, length + 2);
+
+      // Positions after end are acceptable.
+      test(string, iterable, 0, length + 1);
+      test(string.substring(string.length ~/ 2), iterable, string.length ~/ 2,
+          length + 1);
+      test("", iterable, length + 1);
+      test("", iterable, length + 1, length + 2);
     }
   }
 
@@ -219,12 +227,12 @@ main() {
   const cLatin1 = const [0x00, 0xff];
   const cUtf16 = const [0x00, 0xffff, 0xdfff, 0xdbff, 0xdfff, 0xdbff];
   const cCodepoints = const [0x00, 0xffff, 0xdfff, 0x10ffff, 0xdbff];
-  List gLatin1 = cLatin1.toList(growable: true);
-  List gUtf16 = cUtf16.toList(growable: true);
-  List gCodepoints = cCodepoints.toList(growable: true);
-  List fLatin1 = cLatin1.toList(growable: false);
-  List fUtf16 = cUtf16.toList(growable: false);
-  List fCodepoints = cCodepoints.toList(growable: false);
+  List<int> gLatin1 = cLatin1.toList(growable: true);
+  List<int> gUtf16 = cUtf16.toList(growable: true);
+  List<int> gCodepoints = cCodepoints.toList(growable: true);
+  List<int> fLatin1 = cLatin1.toList(growable: false);
+  List<int> fUtf16 = cUtf16.toList(growable: false);
+  List<int> fCodepoints = cCodepoints.toList(growable: false);
   Uint8List bLatin1 = new Uint8List(2)..setRange(0, 2, cLatin1);
   Uint16List wLatin1 = new Uint16List(2)..setRange(0, 2, cLatin1);
   Uint16List wUtf16 = new Uint16List(6)..setRange(0, 6, cUtf16);

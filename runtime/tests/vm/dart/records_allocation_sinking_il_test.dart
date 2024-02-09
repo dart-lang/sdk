@@ -4,8 +4,6 @@
 
 // Verifies that compiler can eliminate record allocation.
 
-// SharedOptions=--enable-experiment=records
-
 import 'package:vm/testing/il_matchers.dart';
 
 @pragma('vm:prefer-inline')

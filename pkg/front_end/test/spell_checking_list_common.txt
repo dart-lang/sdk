@@ -735,11 +735,11 @@ cyan
 cycle
 cycles
 cyclic
+cyclicity
 dart
 dart2js
 dart2wasm
 dart2wasm_js_compatibility
-dart2wasm_stringref
 dartdevc
 data
 date
@@ -1332,6 +1332,7 @@ gathered
 gatherer
 gathering
 general
+generalization
 generalized
 generalizes
 generally
@@ -1652,6 +1653,7 @@ invalidated
 invalidates
 invalidating
 invalidation
+invariance
 invariant
 invariantly
 inversion
@@ -2024,6 +2026,7 @@ nested
 nesting
 net
 never
+nevertheless
 new
 newer
 newline
@@ -2049,6 +2052,7 @@ normally
 not
 notation
 note
+noted
 notes
 nothing
 notice
@@ -2469,6 +2473,7 @@ receive
 receiver
 recent
 recently
+recognition
 recognize
 recognized
 recognizes
@@ -2733,6 +2738,7 @@ semantic
 semantics
 semi
 semicolon
+semicolons
 send
 sending
 sends
@@ -2927,7 +2933,6 @@ stray
 stream
 strictly
 string
-stringref
 strings
 stripped
 strong

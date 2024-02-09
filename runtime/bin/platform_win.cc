@@ -35,9 +35,19 @@ class PlatformWin {
     // hitting an assertion failure.
     // See: https://msdn.microsoft.com/en-us/library/a9yf33zb.aspx
     _set_invalid_parameter_handler(InvalidParameterHandler);
-    // Disable the message box for assertions in the CRT in Debug builds.
+    // Ensure no dialog boxes for assertions, errors and warnings in the CRT
+    // in Debug builds.
     // See: https://msdn.microsoft.com/en-us/library/1y71x448.aspx
-    _CrtSetReportMode(_CRT_ASSERT, 0);
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG | _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG | _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG | _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+
+    // Set location where the C runtime writes an error message for an error
+    // that might end the program.
+    _set_error_mode(_OUT_TO_STDERR);
 
     // Disable dialog boxes for "critical" errors or when OpenFile cannot find
     // the requested file. However only disable error boxes for general
@@ -48,11 +58,12 @@ class PlatformWin {
     // Our test runner would set DART_SUPPRESS_WER to suppress WER UI during
     // test suite execution.
     // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680621(v=vs.85).aspx
-    UINT uMode = SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX;
+    UINT new_mode = SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX;
     if (getenv("DART_SUPPRESS_WER") != nullptr) {
-      uMode |= SEM_NOGPFAULTERRORBOX;
+      new_mode |= SEM_NOGPFAULTERRORBOX;
     }
-    SetErrorMode(uMode);
+    UINT existing_mode = SetErrorMode(new_mode);
+    SetErrorMode(new_mode | existing_mode);
     // Set up global exception handler to be able to dump stack trace on crash.
     SetExceptionHandler();
   }

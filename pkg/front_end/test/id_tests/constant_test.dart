@@ -9,10 +9,10 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
-        DataComputer,
+        CfeDataComputer,
+        CfeTestResultData,
         FormattedMessage,
         InternalCompilerResult,
-        TestResultData,
         createUriForFileName,
         defaultCfeConfig,
         onFailure,
@@ -30,11 +30,11 @@ Future<void> main(List<String> args) async {
       runTest: runTestFor(const ConstantsDataComputer(), [defaultCfeConfig]));
 }
 
-class ConstantsDataComputer extends DataComputer<String> {
+class ConstantsDataComputer extends CfeDataComputer<String> {
   const ConstantsDataComputer();
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     member.accept(
@@ -42,7 +42,7 @@ class ConstantsDataComputer extends DataComputer<String> {
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(CfeTestResultData testResultData, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     new ConstantsDataExtractor(testResultData.compilerResult, actualMap)
@@ -55,7 +55,7 @@ class ConstantsDataComputer extends DataComputer<String> {
   /// Returns data corresponding to [error].
   @override
   String computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);
   }
 

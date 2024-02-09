@@ -95,7 +95,7 @@ abstract class TemporaryOverlayOperation {
       } finally {
         // Ensure we always revert overlays even if the operation did not
         // explicitly do it.
-        revertOverlays();
+        await revertOverlays();
         await server.analysisDriverScheduler.waitForIdle();
         _restoreAddedFiles();
         server.suppressAnalysisResults = false;
@@ -105,10 +105,16 @@ abstract class TemporaryOverlayOperation {
   }
 
   /// Restore all overlays to the original content before any temporary overlays
-  /// were added.
-  void revertOverlays() {
+  /// were added and applies those changes.
+  Future<void> revertOverlays() async {
     for (final entry in _originalOverlays.entries) {
       final path = entry.key;
+      final context = contextManager.getContextFor(path);
+      if (context == null) {
+        throw ArgumentError(
+            'Unable to reset a temporary overlay for file with no context: $path');
+      }
+
       final overlayContent = entry.value;
       if (overlayContent != null) {
         resourceProvider.setOverlay(path,
@@ -116,9 +122,12 @@ abstract class TemporaryOverlayOperation {
       } else {
         resourceProvider.removeOverlay(path);
       }
-      contextManager.getContextFor(path)?.changeFile(path);
+      _affectedContexts.add(context);
+      context.changeFile(path);
     }
     _originalOverlays.clear();
+
+    await applyOverlays();
   }
 
   /// Removes all `addedFiles` from all drivers to prevent modifications to

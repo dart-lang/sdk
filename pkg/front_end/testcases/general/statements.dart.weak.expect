@@ -11,7 +11,7 @@ static method foo() → dynamic {
     core::print("Hello from finally block!");
   }
 }
-static method bar(dynamic d) → dynamic async* {
+static method bar(dynamic d) → dynamic async* /* emittedValueType= dynamic */ {
   await for (dynamic x in d as{TypeError,ForDynamic} asy::Stream<dynamic>) {
     yield x;
     yield* x as{TypeError,ForDynamic} asy::Stream<dynamic>;

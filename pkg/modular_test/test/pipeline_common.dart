@@ -10,6 +10,8 @@
 ///
 /// We place most of the logic here to guarantee that the two different pipeline
 /// implementations are consistent with each other.
+library;
+
 import 'dart:async';
 
 import 'package:test/test.dart';

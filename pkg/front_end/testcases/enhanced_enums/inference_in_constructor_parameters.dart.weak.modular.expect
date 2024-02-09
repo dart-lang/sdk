@@ -23,7 +23,7 @@ class E2<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
 class E3<X extends core::num, Y extends core::String, Z extends (self::E3::X, self::E3::Y) → dynamic = (Never, Never) → dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E3<core::num, core::String, (Never, Never) → dynamic>> values = #C9;
   enum-element static const field self::E3<core::num, core::String, (core::num, core::String) → dynamic> element = #C8;
-  const constructor •(core::int #index, core::String #name) → self::E3<self::E3::X, self::E3::Y, self::E3::Z>
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3<self::E3::X, self::E3::Y, self::E3::Z>
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

@@ -37,28 +37,6 @@ event will be sent on the `Extension` stream.
 
 See [SocketProfilingState](#socketprofilingstate).
 
-### startSocketProfiling
-
-```
-@Deprecated
-Success startSocketProfiling(string isolateId)
-```
-
-Start profiling new socket connections. Statistics for sockets created before profiling was enabled will not be recorded.
-
-See [Success](#success).
-
-### pauseSocketProfiling
-
-```
-@Deprecated
-Success pauseSocketProfiling(string isolateId)
-```
-
-Pause recording socket statistics. [clearSocketProfile](#clearsocketprofile) must be called in order for collected statistics to be cleared.
-
-See [Success](#success).
-
 ### clearSocketProfile
 
 ```
@@ -68,6 +46,16 @@ Success clearSocketProfile(string isolateId)
 Removes all statistics associated with prior and current sockets.
 
 See [Success](#success).
+
+### getSocketProfile
+
+```
+SocketProfile getSocketProfile(string isolateId)
+```
+
+The _getSocketProfile_ RPC is used to retrieve socket statistics collected by the socket profiler.
+Only samples collected after socket profiling was enabled by calling [socketProfilingEnabled](#socketProfilingEnabled)
+or after the last call to [clearSocketProfile](#clearsocketprofile) will be reported.
 
 ### getOpenFileById
 
@@ -112,42 +100,6 @@ The _getSpawnedProcesses_ RPC is used to retrieve the list of processed opened b
 `dart:io` from a given isolate.
 
 See [SpawnedProcessList](#spawnedprocesslist) and [SpawnedProcess](#spawnedprocess).
-
-### getSocketProfile
-
-```
-SocketProfile getSocketProfile(string isolateId)
-```
-
-The _getSocketProfile_ RPC is used to retrieve socket statistics collected by
-the socket profiler. Only samples collected after the initial [startSocketProfiling](#startsocketprofiling) or the last call to [clearSocketProfile](#clearsocketprofile) will be reported.
-
-### getHttpEnableTimelineLogging
-
-```
-@Deprecated
-HttpTimelineLoggingState getHttpEnableTimelineLogging(string isolateId)
-```
-
-The _getHttpEnableTimelineLogging_ RPC is used to remotely inspect the value of
-`HttpClient.enableTimelineLogging`, which determines if HTTP client requests
-should be logged to the timeline.
-
-See [HttpTimelineLoggingState](#httptimelineloggingstate).
-
-### setHttpEnableTimelineLogging
-
-```
-@Deprecated
-Success setHttpEnableTimelineLogging(string isolateId, bool enable)
-```
-
-The _setHttpEnableTimelineLogging_ RPC is used to remotely set the value of
-`HttpClient.enableTimelineLogging`, which determines if HTTP client requests
-should be logged to the timeline. Note: this will only change the state of HTTP
-timeline logging for the isolate specified by `isolateId`.
-
-See [Success](#success).
 
 ### httpEnableTimelineLogging
 
@@ -636,3 +588,5 @@ version | comments
 1.3 | Added `httpEnableTimelineLogging` RPC and `HttpTimelineLoggingStateChange` event, deprecated `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging`.
 1.4 | Updated `httpEnableTimelineLogging` parameter `enable` to `enabled`. `enable` will continue to be accepted.
 1.5 | Added `socketProfilingEnabled` RPC and `SocketProfilingStateChanged` event, deprecated `startSocketProfiling` and `pauseSocketProfiling`.
+1.6 | Added `isSocketProfilingAvailable`, `isHttpTimelineLoggingAvailable`, `isHttpProfilingAvailable`, removed deprecated RPCs `startSocketProfiling`,
+`pauseSocketProfiling`, `getHttpEnableTimelineLogging`, and `setHttpEnableTimelineLogging`.

@@ -18,6 +18,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -87,8 +88,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   FeatureSet get _featureSet {
     return resolveResult.unit.featureSet;
   }
-
-  Flutter get _flutter => Flutter.instance;
 
   bool get _isNonNullable => _featureSet.isEnabled(Feature.non_nullable);
 
@@ -187,8 +186,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     _enclosingClassElement = _enclosingClassNode?.declaredElement;
 
     // new MyWidget(...)
-    var newExpression = _flutter.identifyNewExpression(node);
-    if (_flutter.isWidgetCreation(newExpression)) {
+    var newExpression = Flutter.identifyNewExpression(node);
+    if (Flutter.isWidgetCreation(newExpression)) {
       _expression = newExpression;
       return RefactoringStatus();
     }
@@ -206,7 +205,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       if (statements.isNotEmpty) {
         var lastStatement = statements.last;
         if (lastStatement is ReturnStatement &&
-            _flutter.isWidgetExpression(lastStatement.expression)) {
+            Flutter.isWidgetExpression(lastStatement.expression)) {
           _statements = statements;
           _statementsRange = range.startEnd(statements.first, statements.last);
           return RefactoringStatus();
@@ -224,7 +223,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
       if (node is MethodDeclaration) {
         var returnType = node.returnType?.type;
-        if (_flutter.isWidgetType(returnType)) {
+        if (Flutter.isWidgetType(returnType)) {
           _method = node;
           return RefactoringStatus();
         }
@@ -241,10 +240,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     var result = RefactoringStatus();
 
     Future<ClassElement?> getClass(String name) async {
-      var element = await sessionHelper.getClass(_flutter.widgetsUri, name);
+      var element = await sessionHelper.getClass(Flutter.widgetsUri, name);
       if (element == null) {
         result.addFatalError(
-          "Unable to find '$name' in ${_flutter.widgetsUri}",
+          "Unable to find '$name' in ${Flutter.widgetsUri}",
         );
       }
       return element;
@@ -524,8 +523,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
                   code,
                   indentOld,
                   indentNew,
-                  includeLeading: false,
-                  includeTrailingNewline: false,
                 );
 
                 builder.writeln('{');
@@ -540,8 +537,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
                 var indentNew = '    ';
 
                 var code = utils.getRangeText(_statementsRange!);
-                code = utils.replaceSourceIndent(code, indentOld, indentNew,
-                    includeLeading: false, includeTrailingNewline: false);
+                code = utils.replaceSourceIndent(code, indentOld, indentNew);
 
                 builder.writeln('{');
 
@@ -656,7 +652,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
         }
       }
     }
-    // TODO(scheglov) support for ParameterElement
+    // TODO(scheglov): support for ParameterElement
 
     if (type != null && uniqueElements.add(element)) {
       parameters.add(_Parameter(elementName, type));

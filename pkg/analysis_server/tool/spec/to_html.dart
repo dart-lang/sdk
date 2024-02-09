@@ -300,7 +300,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       link('refactorings', () => write('\u2191'));
       write(')');
     });
-    // TODO: Individual refactorings are not yet hyperlinked.
+    // TODO(paulberry): Individual refactorings are not yet hyperlinked.
     element('div', {'class': 'subindex'}, () {
       element('ul', {}, () {
         for (var refactoring in refactorings) {

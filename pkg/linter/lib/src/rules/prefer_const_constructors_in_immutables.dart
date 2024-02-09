@@ -37,17 +37,6 @@ class A {
 
 ''';
 
-/// The name of the top-level variable used to mark a immutable class.
-String _immutableVarName = 'immutable';
-
-/// The name of `meta` library, used to define analysis annotations.
-String _metaLibName = 'meta';
-
-bool _isImmutable(Element? element) =>
-    element is PropertyAccessorElement &&
-    element.name == _immutableVarName &&
-    element.library.name == _metaLibName;
-
 class PreferConstConstructorsInImmutables extends LintRule {
   static const LintCode code = LintCode(
       'prefer_const_constructors_in_immutables',
@@ -69,6 +58,7 @@ class PreferConstConstructorsInImmutables extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addExtensionTypeDeclaration(this, visitor);
   }
 }
 
@@ -99,6 +89,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (node.constKeyword != null) return;
+    var element = node.declaredElement;
+    if (element == null) return;
+    if (element.hasImmutable) {
+      rule.reportLintForToken(node.name);
+    }
+  }
+
   bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement == null) {
@@ -118,6 +118,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (redirectInvocation != null) {
       return redirectInvocation.staticElement?.isConst ?? false;
     }
+
+    if (clazz is ExtensionTypeElement) {
+      return clazz.primaryConstructor.isConst;
+    }
+
     // Constructor with implicit `super()` call.
     var unnamedSuperConstructor =
         clazz.supertype?.constructors.firstWhereOrNull((e) => e.name.isEmpty);
@@ -128,10 +133,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// `@immutable`.
   bool _hasImmutableAnnotation(InterfaceElement clazz) {
     var selfAndInheritedClasses = _getSelfAndSuperClasses(clazz);
-    for (var cls in selfAndInheritedClasses) {
-      if (cls.metadata.any((m) => _isImmutable(m.element))) return true;
-    }
-    return false;
+    return selfAndInheritedClasses.any((cls) => cls.hasImmutable);
   }
 
   static List<InterfaceElement> _getSelfAndSuperClasses(InterfaceElement self) {

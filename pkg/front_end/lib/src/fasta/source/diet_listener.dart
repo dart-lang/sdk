@@ -24,10 +24,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/formal_parameter_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/modifier_builder.dart';
-import '../builder/type_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../crash.dart' show Crash;
 import '../fasta_codes.dart'
@@ -44,8 +41,7 @@ import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
 import '../kernel/body_builder_context.dart';
 import '../operator.dart';
-import '../problems.dart'
-    show DebugAbort, internalProblem, unexpected, unhandled;
+import '../problems.dart' show DebugAbort, internalProblem, unexpected;
 import '../scope.dart';
 import '../source/value_kinds.dart';
 import '../type_inference/type_inference_engine.dart'
@@ -59,7 +55,6 @@ import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_type_alias_builder.dart';
 import 'stack_listener_impl.dart';
 
 class DietListener extends StackListenerImpl {
@@ -321,39 +316,9 @@ class DietListener extends StackListenerImpl {
     debugEvent("FunctionTypeAlias");
 
     if (equals == null) pop(); // endToken
-    Object? name = pop();
+    pop(); // name
     // Metadata is handled in [SourceTypeAliasBuilder.buildOutlineExpressions].
     pop(); // metadata
-    checkEmpty(typedefKeyword.charOffset);
-    if (name is ParserRecovery) return;
-
-    Identifier identifier = name as Identifier;
-    Builder? typedefBuilder = lookupBuilder(
-        /*getOrSet*/ null, identifier.name, identifier.nameOffset);
-    if (typedefBuilder is SourceTypeAliasBuilder) {
-      TypeBuilder? type = typedefBuilder.type;
-      if (type is FunctionTypeBuilder) {
-        List<ParameterBuilder>? formals = type.formals;
-        if (formals != null) {
-          for (int i = 0; i < formals.length; ++i) {
-            ParameterBuilder formal = formals[i];
-            List<MetadataBuilder>? metadata = formal.metadata;
-            if (metadata != null && metadata.length > 0) {
-              // [parseMetadata] is using [Parser.parseMetadataStar] under the
-              // hood, so we only need the offset of the first annotation.
-              Token metadataToken = tokenForOffset(
-                  typedefKeyword, endToken, metadata[0].charOffset)!;
-              parseMetadata(typedefBuilder.bodyBuilderContext, typedefBuilder,
-                  metadataToken, null)!;
-            }
-          }
-        }
-      }
-    } else if (typedefBuilder != null) {
-      unhandled("${typedefBuilder.fullNameForErrors}", "endFunctionTypeAlias",
-          typedefKeyword.charOffset, uri);
-    }
-
     checkEmpty(typedefKeyword.charOffset);
   }
 
@@ -805,13 +770,19 @@ class DietListener extends StackListenerImpl {
       }
       builder = memberBuilder as SourceFunctionBuilder;
     }
-    buildFunctionBody(
-        createFunctionListener(builder),
-        beginParam,
-        metadata,
-        builder.isStatic
-            ? MemberKind.StaticMethod
-            : MemberKind.NonStaticMethod);
+    if (!(builder is SourceExtensionTypeConstructorBuilder &&
+        builder.isConst)) {
+      // TODO(johnniwinther): Ensure building of const extension type
+      //  constructor body. An error is reported by the parser but we skip
+      //  the body here to avoid overwriting the already lowering const
+      //  constructor.
+      // TODO(johnniwinther): Pass [memberKind] from the caller.
+      MemberKind memberKind = builder.isStatic
+          ? MemberKind.StaticMethod
+          : MemberKind.NonStaticMethod;
+      buildFunctionBody(
+          createFunctionListener(builder), beginParam, metadata, memberKind);
+    }
   }
 
   BodyBuilder createListener(BodyBuilderContext bodyBuilderContext,
@@ -1081,7 +1052,9 @@ class DietListener extends StackListenerImpl {
     }
     SourceFunctionBuilder builder =
         lookupConstructor(constructorName, charOffset) as SourceFunctionBuilder;
-    buildPrimaryConstructor(createFunctionListener(builder), formalsToken);
+    if (!builder.isConst) {
+      buildPrimaryConstructor(createFunctionListener(builder), formalsToken);
+    }
 
     // The current declaration is set in [beginClassOrMixinOrExtensionBody],
     // assuming that it is currently `null`, so we reset it here.

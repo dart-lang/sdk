@@ -121,7 +121,10 @@ main() async {
 
   (a?.sign.sign).hashCode;
   (a?.abs().abs()).hashCode;
-  (a?..abs()..abs()).hashCode;
+  (a
+        ?..abs()
+        ..abs())
+      .hashCode;
   (a?[0][1]).hashCode;
 
   (a?.sign)!;
@@ -158,6 +161,11 @@ main() async {
 
   var list2 = ["a", null];
   var a8 = (list2.first)!.length; // LINT
+
+  // Null-aware index expression before `:` needs to be parenthesized to avoid
+  // being interpreted as a conditional expression.
+  var a9 = a ? (b?[c]) : d; // OK
+  var a10 = {(a?[b]): c}; // OK
 }
 
 void withManyArgs(String a, bool b, int c) {}
@@ -231,6 +239,5 @@ extension<T> on Set<T> {
 
 class MyType extends Type {
   MyType.withString(String s) {}
-  MyType.withSelf(MyType myType)
-      : this.withString((myType.toString)()); // LINT
+  MyType.withSelf(MyType myType) : this.withString((myType.toString)()); // LINT
 }

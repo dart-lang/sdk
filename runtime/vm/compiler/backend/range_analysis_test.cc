@@ -693,4 +693,45 @@ ISOLATE_UNIT_TEST_CASE(RangeAnalysis_ShiftUint32Op) {
 
 #endif  // defined(DART_PRECOMPILER) && defined(TARGET_ARCH_IS_64_BIT)
 
+ISOLATE_UNIT_TEST_CASE(RangeAnalysis_LoadClassId) {
+  const char* kScript = R"(
+    @pragma('vm:never-inline')
+    bool foo(num x) {
+      return x is int;
+    }
+    void main() {
+      foo(42);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+
+  LoadClassIdInstr* load_cid = nullptr;
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveLoadClassId, &load_cid},
+      kMoveGlob,
+      kMatchAndMoveTestRange,
+      kMoveGlob,
+      kMatchReturn,
+  }));
+
+  EXPECT(load_cid->range() != nullptr);
+  EXPECT(kSmiCid < kMintCid);
+  EXPECT(kMintCid < kDoubleCid);
+  EXPECT(load_cid->range()->min().ConstantValue() == kSmiCid);
+  EXPECT(load_cid->range()->max().ConstantValue() == kDoubleCid);
+}
+
 }  // namespace dart

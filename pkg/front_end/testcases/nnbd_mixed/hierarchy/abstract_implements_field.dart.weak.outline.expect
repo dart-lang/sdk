@@ -9,11 +9,11 @@ abstract class Interface extends core::Object {
   synthetic constructor •() → self::Interface
     ;
   abstract get implementedAbstractField() → core::int;
-  abstract set implementedAbstractField(core::int #externalFieldValue) → void;
+  abstract set implementedAbstractField(synthesized core::int #externalFieldValue) → void;
   abstract get declaredConcreteImplementsAbstractField() → core::int;
-  abstract set declaredConcreteImplementsAbstractField(core::int #externalFieldValue) → void;
+  abstract set declaredConcreteImplementsAbstractField(synthesized core::int #externalFieldValue) → void;
   abstract get declaredAbstractImplementsAbstractField() → core::int;
-  abstract set declaredAbstractImplementsAbstractField(core::int #externalFieldValue) → void;
+  abstract set declaredAbstractImplementsAbstractField(synthesized core::int #externalFieldValue) → void;
 }
 abstract class AbstractClass extends core::Object implements self::Interface {
   field core::int declaredConcreteField;
@@ -22,11 +22,11 @@ abstract class AbstractClass extends core::Object implements self::Interface {
   synthetic constructor •() → self::AbstractClass
     ;
   abstract get declaredAbstractField() → core::int;
-  abstract set declaredAbstractField(core::int #externalFieldValue) → void;
+  abstract set declaredAbstractField(synthesized core::int #externalFieldValue) → void;
   abstract get declaredAbstractImplementsConcreteField() → core::int;
-  abstract set declaredAbstractImplementsConcreteField(core::int #externalFieldValue) → void;
+  abstract set declaredAbstractImplementsConcreteField(synthesized core::int #externalFieldValue) → void;
   abstract get declaredAbstractImplementsAbstractField() → core::int;
-  abstract set declaredAbstractImplementsAbstractField(core::int #externalFieldValue) → void;
+  abstract set declaredAbstractImplementsAbstractField(synthesized core::int #externalFieldValue) → void;
 }
 static method main() → dynamic
   ;

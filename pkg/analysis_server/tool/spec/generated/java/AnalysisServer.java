@@ -385,23 +385,6 @@ public interface AnalysisServer {
   public void analytics_sendTiming(String event, int millis);
 
   /**
-   * {@code completion.getSuggestionDetails}
-   *
-   * Clients must make this request when the user has selected a completion suggestion from an
-   * AvailableSuggestionSet. Analysis server will respond with the text to insert as well as any
-   * SourceChange that needs to be applied in case the completion requires an additional import to be
-   * added. It is an error if the id is no longer valid, for instance if the library has been removed
-   * after the completion suggestion is accepted.
-   *
-   * @param file The path of the file into which this completion is being inserted.
-   * @param id The identifier of the AvailableSuggestionSet containing the selected label.
-   * @param label The label from the AvailableSuggestionSet with the `id` for which insertion
-   *        information is requested.
-   * @param offset The offset in the file where the completion will be inserted.
-   */
-  public void completion_getSuggestionDetails(String file, int id, String label, int offset, GetSuggestionDetailsConsumer consumer);
-
-  /**
    * {@code completion.getSuggestionDetails2}
    *
    * Clients must make this request when the user has selected a completion suggestion with the
@@ -419,16 +402,6 @@ public interface AnalysisServer {
    *        completion becomes accessible.
    */
   public void completion_getSuggestionDetails2(String file, int offset, String completion, String libraryUri, GetSuggestionDetails2Consumer consumer);
-
-  /**
-   * {@code completion.getSuggestions}
-   *
-   * Request that completion suggestions for the given offset in the given file be returned.
-   *
-   * @param file The file containing the point at which suggestions are to be made.
-   * @param offset The offset within the file at which suggestions are to be made.
-   */
-  public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
 
   /**
    * {@code completion.getSuggestions2}
@@ -472,19 +445,6 @@ public interface AnalysisServer {
   public void completion_registerLibraryPaths(List<LibraryPathSet> paths);
 
   /**
-   * {@code completion.setSubscriptions}
-   *
-   * Subscribe for completion services. All previous subscriptions are replaced by the given set of
-   * services.
-   *
-   * It is an error if any of the elements in the list are not valid services. If there is an error,
-   * then the current subscriptions will remain unchanged.
-   *
-   * @param subscriptions A list of the services being subscribed to.
-   */
-  public void completion_setSubscriptions(List<String> subscriptions);
-
-  /**
    * {@code diagnostic.getDiagnostics}
    *
    * Return server diagnostics.
@@ -517,9 +477,14 @@ public interface AnalysisServer {
    *        difference is that in test mode the fix processor will look for a configuration file that
    *        can modify the content of the data file used to compute the fixes when data-driven fixes
    *        are being considered. If this field is omitted the flag defaults to false.
+   * @param updatePubspec A flag indicating whether to validate that the dependencies used by the
+   *        included files are listed in the pubspec file. If specified, the fix processor will
+   *        compute the set of packages imported in the source and check to see if they are listed in
+   *        the corresponding pubspec file, and compute the fixes, if any. If this field is omitted
+   *        the flag defaults to false.
    * @param codes A list of diagnostic codes to be fixed.
    */
-  public void edit_bulkFixes(List<String> included, boolean inTestMode, List<String> codes, BulkFixesConsumer consumer);
+  public void edit_bulkFixes(List<String> included, boolean inTestMode, boolean updatePubspec, List<String> codes, BulkFixesConsumer consumer);
 
   /**
    * {@code edit.format}

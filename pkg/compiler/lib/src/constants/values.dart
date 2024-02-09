@@ -34,7 +34,6 @@ enum ConstantValueKind {
   UNREACHABLE,
   INSTANTIATION,
   DEFERRED_GLOBAL,
-  NON_CONSTANT,
 }
 
 abstract class ConstantValueVisitor<R, A> {
@@ -66,7 +65,6 @@ abstract class ConstantValueVisitor<R, A> {
   R visitJsName(covariant JsNameConstantValue constant, covariant A arg);
   R visitDeferredGlobal(
       covariant DeferredGlobalConstantValue constant, covariant A arg);
-  R visitNonConstant(covariant NonConstantValue constant, covariant A arg);
   R visitInstantiation(
       covariant InstantiationConstantValue constant, covariant A arg);
 }
@@ -907,15 +905,9 @@ class ConstructedConstantValue extends ObjectConstantValue {
   @override
   final int hashCode;
 
-  ConstructedConstantValue(
-      InterfaceType type, Map<FieldEntity, ConstantValue> fields)
+  ConstructedConstantValue(super.type, Map<FieldEntity, ConstantValue> fields)
       : this.fields = fields,
-        hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type)),
-        super(type) {
-    assert((type as dynamic) != null);
-    assert(!fields.containsKey(null));
-    assert(!fields.containsValue(null));
-  }
+        hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type));
 
   @override
   bool operator ==(var otherVar) {
@@ -1225,32 +1217,4 @@ class DeferredGlobalConstantValue extends ConstantValue {
   String toStructuredText(DartTypes? dartTypes) {
     return 'DeferredGlobalConstant(${referenced.toStructuredText(dartTypes)})';
   }
-}
-
-/// A constant value resulting from a non constant or erroneous constant
-/// expression.
-// TODO(johnniwinther): Expand this to contain the error kind.
-class NonConstantValue extends ConstantValue {
-  @override
-  bool get isConstant => false;
-
-  @override
-  accept(ConstantValueVisitor visitor, arg) {
-    return visitor.visitNonConstant(this, arg);
-  }
-
-  @override
-  List<ConstantValue> getDependencies() => const [];
-
-  @override
-  DartType getType(CommonElements types) => types.dynamicType;
-
-  @override
-  ConstantValueKind get kind => ConstantValueKind.NON_CONSTANT;
-
-  @override
-  String toStructuredText(DartTypes? dartTypes) => 'NonConstant';
-
-  @override
-  String toDartText(DartTypes? dartTypes) => '>>non-constant<<';
 }

@@ -12,13 +12,16 @@ import "package:expect/expect.dart";
 
 class DirectoryMock extends FileSystemEntity implements Directory {
   static final _mockUri = Uri.parse('http:///mockdir/');
-  final String path = "/mockdir";
+  final String path;
 
-  DirectoryMock(String path);
+  DirectoryMock(this.path);
+
+  static DirectoryMock _currentDirectory = DirectoryMock("");
 
   static DirectoryMock createDirectory(String path) => new DirectoryMock(path);
-  static DirectoryMock getCurrent() => new DirectoryMock("");
-  static void setCurrent(String path) {}
+  static DirectoryMock getCurrent() => _currentDirectory;
+  static void setCurrent(String path) =>
+      _currentDirectory = DirectoryMock(path);
   static DirectoryMock getSystemTemp() => new DirectoryMock("");
   Uri get uri => _mockUri;
 
@@ -207,6 +210,15 @@ Future<Null> ioOverridesRunTest() async {
     () async {
       Expect.isTrue(new Directory("directory") is DirectoryMock);
       Expect.isTrue(Directory.current is DirectoryMock);
+
+      const mockDirectoryPath1 = "/mockDirectory1";
+      const mockDirectoryPath2 = "/mockDirectory2";
+
+      Directory.current = mockDirectoryPath1;
+      Expect.isTrue(Directory.current.path == mockDirectoryPath1);
+      Directory.current = Directory(mockDirectoryPath2);
+      Expect.isTrue(Directory.current.path == mockDirectoryPath2);
+
       Expect.identical(Uri.base, DirectoryMock._mockUri);
       Expect.isTrue(Directory.systemTemp is DirectoryMock);
       Expect.isTrue(new File("file") is FileMock);

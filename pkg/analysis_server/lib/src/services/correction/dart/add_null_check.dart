@@ -88,7 +88,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
         var leftType = coveredNode.leftOperand.staticType;
         var leftAssignable = leftType != null &&
             typeSystem.isAssignableTo(
-                typeSystem.promoteToNonNull(leftType), expectedType);
+                typeSystem.promoteToNonNull(leftType), expectedType,
+                strictCasts: analysisOptions.strictCasts);
         if (leftAssignable) {
           target = coveredNode.rightOperand;
         }
@@ -157,7 +158,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       var expectedType = parent.staticParameterElement?.type;
       if (expectedType != null &&
           !typeSystem.isAssignableTo(
-              typeSystem.promoteToNonNull(fromType), expectedType)) {
+              typeSystem.promoteToNonNull(fromType), expectedType,
+              strictCasts: analysisOptions.strictCasts)) {
         return;
       }
     } else if ((parent is PrefixedIdentifier && target == parent.prefix) ||
@@ -175,7 +177,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     if (toType != null &&
         !skipAssignabilityCheck &&
         !typeSystem.isAssignableTo(
-            typeSystem.promoteToNonNull(fromType), toType)) {
+            typeSystem.promoteToNonNull(fromType), toType,
+            strictCasts: analysisOptions.strictCasts)) {
       // The reason that `fromType` can't be assigned to `toType` is more than
       // just because it's nullable, in which case a null check won't fix the
       // problem.

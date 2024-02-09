@@ -37,8 +37,10 @@ bool isExactWidgetTypeSizedBox(DartType? type) =>
 
 bool isKDebugMode(Element? element) => _flutter.isKDebugMode(element);
 
+bool isState(InterfaceElement element) => _flutter.isState(element);
+
 bool isStatefulWidget(ClassElement? element) =>
-    _flutter.isStatefulWidget(element);
+    element != null && _flutter.isStatefulWidget(element);
 
 bool isWidgetProperty(DartType? type) {
   if (isWidgetType(type)) {
@@ -54,13 +56,17 @@ bool isWidgetProperty(DartType? type) {
 
 bool isWidgetType(DartType? type) => _flutter.isWidgetType(type);
 
-/// See: analysis_server/lib/src/utilities/flutter.dart
+/// A utility class for determining whether a given element is an expected
+/// Flutter element.
+///
+/// See pkg/analysis_server/lib/src/utilities/flutter.dart.
 class _Flutter {
   static const _nameBuildContext = 'BuildContext';
-  static const _nameStatefulWidget = 'StatefulWidget';
-  static const _nameWidget = 'Widget';
   static const _nameContainer = 'Container';
   static const _nameSizedBox = 'SizedBox';
+  static const _nameState = 'State';
+  static const _nameStatefulWidget = 'StatefulWidget';
+  static const _nameWidget = 'Widget';
 
   final String packageName;
   final String widgetsUri;
@@ -83,7 +89,7 @@ class _Flutter {
     if (element == null || !alreadySeen.add(element)) {
       return false;
     }
-    if (_isExactWidget(element, _nameWidget, _uriFramework)) {
+    if (isExactly(element, _nameWidget, _uriFramework)) {
       return true;
     }
     return hasWidgetAsAscendant(element.supertype?.element, alreadySeen);
@@ -96,46 +102,45 @@ class _Flutter {
     if (skipNullable && type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     }
-    return _isExactWidget(type.element, _nameBuildContext, _uriFramework);
+    return isExactly(type.element, _nameBuildContext, _uriFramework);
   }
 
+  /// Whether [element] is exactly the element named [type], from Flutter.
+  bool isExactly(InterfaceElement element, String type, Uri uri) =>
+      element.name == type && element.source.uri == uri;
+
   bool isExactWidget(ClassElement element) =>
-      _isExactWidget(element, _nameWidget, _uriFramework);
+      isExactly(element, _nameWidget, _uriFramework);
 
   bool isExactWidgetTypeContainer(DartType? type) =>
       type is InterfaceType &&
-      _isExactWidget(type.element, _nameContainer, _uriContainer);
+      isExactly(type.element, _nameContainer, _uriContainer);
 
   bool isExactWidgetTypeSizedBox(DartType? type) =>
       type is InterfaceType &&
-      _isExactWidget(type.element, _nameSizedBox, _uriBasic);
+      isExactly(type.element, _nameSizedBox, _uriBasic);
 
   bool isKDebugMode(Element? element) =>
       element != null &&
       element.name == 'kDebugMode' &&
       element.source?.uri == _uriFoundation;
 
-  bool isStatefulWidget(ClassElement? element) {
-    if (element == null) {
-      return false;
-    }
-    if (_isExactWidget(element, _nameStatefulWidget, _uriFramework)) {
-      return true;
-    }
-    for (var type in element.allSupertypes) {
-      if (_isExactWidget(type.element, _nameStatefulWidget, _uriFramework)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool isState(InterfaceElement element) =>
+      isExactly(element, _nameState, _uriFramework) ||
+      element.allSupertypes
+          .any((type) => isExactly(type.element, _nameState, _uriFramework));
+
+  bool isStatefulWidget(ClassElement element) =>
+      isExactly(element, _nameStatefulWidget, _uriFramework) ||
+      element.allSupertypes.any((type) =>
+          isExactly(type.element, _nameStatefulWidget, _uriFramework));
 
   bool isWidget(InterfaceElement element) {
-    if (_isExactWidget(element, _nameWidget, _uriFramework)) {
+    if (isExactly(element, _nameWidget, _uriFramework)) {
       return true;
     }
     for (var type in element.allSupertypes) {
-      if (_isExactWidget(type.element, _nameWidget, _uriFramework)) {
+      if (isExactly(type.element, _nameWidget, _uriFramework)) {
         return true;
       }
     }
@@ -144,7 +149,4 @@ class _Flutter {
 
   bool isWidgetType(DartType? type) =>
       type is InterfaceType && isWidget(type.element);
-
-  bool _isExactWidget(InterfaceElement element, String type, Uri uri) =>
-      element.name == type && element.source.uri == uri;
 }

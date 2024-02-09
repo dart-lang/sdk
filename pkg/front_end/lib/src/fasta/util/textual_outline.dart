@@ -447,6 +447,7 @@ String? textualOutline(
   bool addMarkerForUnknownForTest = false,
   bool returnNullOnError = true,
   required bool enablePatterns,
+  TextualOutlineInfoForTesting? infoForTesting,
 }) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
@@ -473,6 +474,7 @@ String? textualOutline(
   ClassMemberParser classMemberParser =
       new ClassMemberParser(listener, allowPatterns: enablePatterns);
   classMemberParser.parseUnit(firstToken);
+  infoForTesting?.hasParserErrors = listener.gotError;
   if (listener.gotError && returnNullOnError) {
     return null;
   }
@@ -921,4 +923,8 @@ class TextualOutlineListener extends Listener {
     }
     gotError = true;
   }
+}
+
+class TextualOutlineInfoForTesting {
+  bool hasParserErrors = false;
 }

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/extensions.dart';
+import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -22,10 +24,12 @@ bool hasFix(ErrorCode errorCode) {
     return FixProcessor.lintProducerMap.containsKey(lintName) ||
         FixProcessor.lintMultiProducerMap.containsKey(lintName);
   }
-  // TODO(brianwilkerson) Either deprecate the part of the protocol supported by
-  //  this function, or handle error codes associated with non-dart files.
+  // TODO(brianwilkerson): Either deprecate the part of the protocol supported
+  //  by this function, or handle error codes associated with non-dart files.
   return FixProcessor.nonLintProducerMap.containsKey(errorCode) ||
-      FixProcessor.nonLintMultiProducerMap.containsKey(errorCode);
+      FixProcessor.nonLintMultiProducerMap.containsKey(errorCode) ||
+      AnalysisOptionsFixGenerator.codesWithFixes.contains(errorCode) ||
+      PubspecFixGenerator.codesWithFixes.contains(errorCode);
 }
 
 /// An enumeration of quick fix kinds for the errors found in an analysis
@@ -281,22 +285,7 @@ class DartFixKind {
   static const ADD_REQUIRED = FixKind(
     'dart.fix.add.required',
     DartFixKindPriority.DEFAULT,
-    "Add '@required' annotation",
-  );
-  static const ADD_REQUIRED_MULTI = FixKind(
-    'dart.fix.add.required.multi',
-    DartFixKindPriority.IN_FILE,
-    "Add '@required' annotations everywhere in file",
-  );
-  static const ADD_REQUIRED2 = FixKind(
-    'dart.fix.add.required',
-    DartFixKindPriority.DEFAULT,
     "Add 'required' keyword",
-  );
-  static const ADD_REQUIRED2_MULTI = FixKind(
-    'dart.fix.add.required.multi',
-    DartFixKindPriority.IN_FILE,
-    "Add 'required' keywords everywhere in file",
   );
   static const ADD_RETURN_NULL = FixKind(
     'dart.fix.add.returnNull',
@@ -413,6 +402,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Convert to block body',
   );
+  static const CONVERT_INTO_BLOCK_BODY_MULTI = FixKind(
+    'dart.fix.convert.bodyToBlock.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert to block body everywhere in file',
+  );
   static const CONVERT_FOR_EACH_TO_FOR_LOOP = FixKind(
     'dart.fix.convert.toForLoop',
     DartFixKindPriority.DEFAULT,
@@ -482,6 +476,16 @@ class DartFixKind {
     'dart.fix.convert.toDoubleQuotedString.multi',
     DartFixKindPriority.IN_FILE,
     'Convert to double quoted strings everywhere in file',
+  );
+  static const CONVERT_TO_FLUTTER_STYLE_TODO = FixKind(
+    'dart.fix.convert.toFlutterStyleTodo',
+    DartFixKindPriority.DEFAULT,
+    'Convert to flutter style todo',
+  );
+  static const CONVERT_TO_FLUTTER_STYLE_TODO_MULTI = FixKind(
+    'dart.fix.convert.toFlutterStyleTodo.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert to flutter style todos everywhere in file',
   );
   static const CONVERT_TO_FOR_ELEMENT = FixKind(
     'dart.fix.convert.toForElement',
@@ -749,7 +753,7 @@ class DartFixKind {
     "Create method '{0}'",
   );
 
-  // todo (pq): used by LintNames.hash_and_equals; consider removing.
+  // TODO(pq): used by LintNames.hash_and_equals; consider removing.
   static const CREATE_METHOD_MULTI = FixKind(
     'dart.fix.create.method.multi',
     DartFixKindPriority.IN_FILE,
@@ -881,7 +885,7 @@ class DartFixKind {
     'Make final',
   );
 
-  // todo (pq): consider parameterizing: 'Make {fields} final...'
+  // TODO(pq): consider parameterizing: 'Make {fields} final...'
   static const MAKE_FINAL_MULTI = FixKind(
     'dart.fix.makeFinal.multi',
     DartFixKindPriority.IN_FILE,
@@ -978,7 +982,8 @@ class DartFixKind {
     'Remove argument',
   );
 
-  // todo (pq): used by LintNames.avoid_redundant_argument_values; consider a parameterized message
+  // TODO(pq): used by LintNames.avoid_redundant_argument_values;
+  //  consider a parameterized message
   static const REMOVE_ARGUMENT_MULTI = FixKind(
     'dart.fix.remove.argument.multi',
     DartFixKindPriority.IN_FILE,
@@ -1080,7 +1085,7 @@ class DartFixKind {
     'Remove duplicate case statement',
   );
 
-  // todo (pq): is this dangerous to bulk apply?  Consider removing.
+  // TODO(pq): is this dangerous to bulk apply?  Consider removing.
   static const REMOVE_DUPLICATE_CASE_MULTI = FixKind(
     'dart.fix.remove.duplicateCase.multi',
     DartFixKindPriority.IN_FILE,
@@ -1192,7 +1197,7 @@ class DartFixKind {
     'Remove method declaration',
   );
 
-  // todo (pq): parameterize to make scope explicit
+  // TODO(pq): parameterize to make scope explicit
   static const REMOVE_METHOD_DECLARATION_MULTI = FixKind(
     'dart.fix.remove.methodDeclaration.multi',
     DartFixKindPriority.IN_FILE,
@@ -1277,16 +1282,6 @@ class DartFixKind {
     'dart.fix.remove.returnedValue.multi',
     DartFixKindPriority.IN_FILE,
     'Remove invalid returned values in file',
-  );
-  static const REMOVE_SET_LITERAL = FixKind(
-    'dart.fix.remove.setLiteral',
-    DartFixKindPriority.DEFAULT,
-    'Remove set literal',
-  );
-  static const REMOVE_SET_LITERAL_MULTI = FixKind(
-    'dart.fix.remove.setLiteral.multi',
-    DartFixKindPriority.IN_FILE,
-    'Remove set literal everywhere in file',
   );
   static const REMOVE_THIS_EXPRESSION = FixKind(
     'dart.fix.remove.thisExpression',
@@ -1724,7 +1719,7 @@ class DartFixKind {
     'Replace with identifier',
   );
 
-  // todo (pq): parameterize message (used by LintNames.avoid_types_on_closure_parameters)
+  // TODO(pq): parameterize message (used by LintNames.avoid_types_on_closure_parameters)
   static const REPLACE_WITH_IDENTIFIER_MULTI = FixKind(
     'dart.fix.replace.withIdentifier.multi',
     DartFixKindPriority.IN_FILE,
@@ -1929,11 +1924,6 @@ class DartFixKind {
     'dart.fix.use.rethrow.multi',
     DartFixKindPriority.IN_FILE,
     'Replace throw with rethrow where possible in file',
-  );
-  static const WRAP_IN_FUTURE = FixKind(
-    'dart.fix.wrap.future',
-    DartFixKindPriority.DEFAULT,
-    "Wrap in 'Future.value'",
   );
   static const WRAP_IN_TEXT = FixKind(
     'dart.fix.flutter.wrap.text',

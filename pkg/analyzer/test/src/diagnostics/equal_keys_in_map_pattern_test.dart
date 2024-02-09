@@ -51,6 +51,29 @@ void f(x) {
     ]);
   }
 
+  test_identical_type() async {
+    await assertErrorsInCode('''
+void f(x) {
+  if (x case {int: 0, int: 0}) {}
+}
+''', [
+      error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 34, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 26, 3)]),
+    ]);
+  }
+
+  test_identical_type_extensionType() async {
+    await assertErrorsInCode('''
+void f(x) {
+  if (x case {int: 0, E: 0}) {}
+}
+extension type E(int it) {}
+''', [
+      error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 34, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 26, 3)]),
+    ]);
+  }
+
   test_notIdentical_double() async {
     await assertNoErrorsInCode('''
 void f(x) {

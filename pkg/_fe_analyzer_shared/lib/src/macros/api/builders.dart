@@ -22,7 +22,20 @@ abstract interface class TypePhaseIntrospector {
   /// Returns an [Identifier] for a top level [name] in [library].
   ///
   /// You should only do this for libraries that are definitely in the
-  /// transitive import graph of the library you are generating code into.
+  /// transitive import graph of the library you are generating code into. If
+  /// [library] is not in this transitive import graph, then an unspecified
+  /// [Exception] should be thrown. The best way to ensure this, is to have the
+  /// macro library itself import [library] (even if it doesn't directly use
+  /// it).
+  ///
+  /// When the name alone is not sufficient to disambiguate between multiple
+  /// declarations, such as the case of a field (which has a synthetic getter),
+  /// an [Identifier] pointing to the non-synthetic declaration will be
+  /// returned. Future calls to `declarationOf(identifier)` will return that
+  /// non-synthetic declaration.
+  ///
+  /// If [name] does not exist in [library], then an unspecified [Exception]
+  /// should be thrown.
   @Deprecated(
       'This API should eventually be replaced with a different, safer API.')
   Future<Identifier> resolveIdentifier(Uri library, String name);
@@ -72,6 +85,9 @@ abstract interface class DeclarationPhaseIntrospector
     implements TypePhaseIntrospector {
   /// Instantiates a new [StaticType] for a given [type] annotation.
   ///
+  /// Throws if [type] is a [RawTypeAnnotationCode], more specific subtypes must
+  /// be used, as raw [Identifier]s are not allowed.
+  ///
   /// Throws an error if the [type] object contains [Identifier]s which cannot
   /// be resolved. This should only happen in the case of incomplete or invalid
   /// programs, but macros may be asked to run in this state during the
@@ -83,53 +99,37 @@ abstract interface class DeclarationPhaseIntrospector
   ///
   /// This may be incomplete if additional declaration macros are going to run
   /// on [enuum].
-  Future<List<EnumValueDeclaration>> valuesOf(
-      covariant IntrospectableEnum enuum);
+  Future<List<EnumValueDeclaration>> valuesOf(covariant EnumDeclaration enuum);
 
   /// The fields available for [type].
   ///
   /// This may be incomplete if additional declaration macros are going to run
   /// on [type].
-  Future<List<FieldDeclaration>> fieldsOf(covariant IntrospectableType type);
+  Future<List<FieldDeclaration>> fieldsOf(covariant TypeDeclaration type);
 
   /// The methods available for [type].
   ///
   /// This may be incomplete if additional declaration macros are going to run
   /// on [type].
-  Future<List<MethodDeclaration>> methodsOf(covariant IntrospectableType type);
+  Future<List<MethodDeclaration>> methodsOf(covariant TypeDeclaration type);
 
   /// The constructors available for [type].
   ///
   /// This may be incomplete if additional declaration macros are going to run
   /// on [type].
   Future<List<ConstructorDeclaration>> constructorsOf(
-      covariant IntrospectableType type);
+      covariant TypeDeclaration type);
 
   /// [TypeDeclaration]s for all the types declared in [library].
   ///
   /// Note that this includes [ExtensionDeclaration]s as well, even though they
   /// do not actually introduce a new type.
-  ///
-  /// In the declarations phase these are not [IntrospectableType]s, since
-  /// types are still incomplete at that point.
-  ///
-  /// In the definitions phase, these are [IntrospectableType]s where
-  /// appropriate (but, for instance, type aliases will not be).
   Future<List<TypeDeclaration>> typesOf(covariant Library library);
 
   /// Resolves an [identifier] to its [TypeDeclaration].
   ///
   /// If [identifier] does not resolve to a [TypeDeclaration], then an
   /// [ArgumentError] is thrown.
-  ///
-  /// In the declaration phase, this will return [IntrospectableType] instances
-  /// only for those types that are introspectable. Specifically, types are only
-  /// introspectable if they are supertypes or "on" types of the declaration the
-  /// macro originally annotated (which guarantees no cycles, and that they are
-  /// complete).
-  ///
-  /// In the definition phase, this will return [IntrospectableType] instances
-  /// for all type definitions which can have members (ie: not type aliases).
   Future<TypeDeclaration> typeDeclarationOf(covariant Identifier identifier);
 }
 
@@ -164,14 +164,11 @@ abstract interface class EnumDeclarationBuilder
 abstract interface class DefinitionPhaseIntrospector
     implements DeclarationPhaseIntrospector {
   /// Resolves any [identifier] to its [Declaration].
-  ///
-  /// This will return [IntrospectableType] instances for type declarations.
   Future<Declaration> declarationOf(covariant Identifier identifier);
 
-  /// Resolves an [identifier] referring to a type to its [IntrospectableType]
-  /// declaration.
+  /// Resolves an [identifier] referring to a type to its [TypeDeclaration].
   @override
-  Future<IntrospectableType> typeDeclarationOf(covariant Identifier identifier);
+  Future<TypeDeclaration> typeDeclarationOf(covariant Identifier identifier);
 
   /// Infers a real type annotation for [omittedType].
   ///
@@ -180,8 +177,6 @@ abstract interface class DefinitionPhaseIntrospector
   Future<TypeAnnotation> inferType(covariant OmittedTypeAnnotation omittedType);
 
   /// Returns a list of all the [Declaration]s in the given [library].
-  ///
-  /// Where applicable, these will be introspectable declarations.
   Future<List<Declaration>> topLevelDeclarationsOf(covariant Library library);
 }
 

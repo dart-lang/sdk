@@ -22,7 +22,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   final Map<Name, Procedure>? tearOffs;
 
-  List<TypeVariableBuilder>? _typeVariables;
+  List<NominalVariableBuilder>? _typeVariables;
   TypeBuilder? _type;
 
   @override
@@ -37,9 +37,10 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<TypeVariableBuilder>? get typeVariables {
+  List<NominalVariableBuilder>? get typeVariables {
     if (_typeVariables == null && typedef.typeParameters.isNotEmpty) {
-      _typeVariables = computeTypeVariableBuilders(typedef.typeParameters);
+      _typeVariables = computeTypeVariableBuilders(
+          typedef.typeParameters, libraryBuilder.loader);
     }
     return _typeVariables;
   }

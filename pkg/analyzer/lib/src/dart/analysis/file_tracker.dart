@@ -173,7 +173,7 @@ class FileTracker {
       }
 
       _logger.writeln('API signatures mismatch found.');
-      // TODO(scheglov) schedule analysis of only affected files
+      // TODO(scheglov): schedule analysis of only affected files
       var pendingChangedFiles = <String>{};
       var pendingImportFiles = <String>{};
       var pendingErrorFiles = <String>{};

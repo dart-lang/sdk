@@ -1,6 +1,6 @@
-// Copyright 2019 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: implementation_imports
 
@@ -80,11 +80,11 @@ class StrongComponents {
     }
 
     if (entrypoint == null) {
-      throw Exception('Could not find entrypoint $mainUri in Component.');
+      throw new Exception('Could not find entrypoint $mainUri in Component.');
     }
 
     final List<List<Library>> results = computeStrongComponents(
-        _LibraryGraph(entrypoint, loadedLibraries, partialComponent));
+        new _LibraryGraph(entrypoint, loadedLibraries, partialComponent));
     for (List<Library> component in results) {
       assert(component.isNotEmpty);
       final Uri moduleUri = component

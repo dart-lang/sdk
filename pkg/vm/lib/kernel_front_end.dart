@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Defines the VM-specific translation of Dart source code to kernel binaries.
+library;
 
 import 'dart:async';
 import 'dart:io' show File, IOSink;
@@ -64,6 +65,7 @@ import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
 import 'transformations/vm_constant_evaluator.dart' as vm_constant_evaluator;
 import 'transformations/deferred_loading.dart' as deferred_loading;
+import 'transformations/resource_identifier.dart' as resource_identifier;
 import 'transformations/to_string_transformer.dart' as to_string_transformer;
 
 /// Declare options consumed by [runCompiler].
@@ -105,6 +107,8 @@ void declareCompilerOptions(ArgParser args) {
   args.addOption('native-assets',
       help:
           'Provide the native-assets mapping for @Native external functions.');
+  args.addOption('resources-file',
+      help: 'The path to store the collected usages of resource identifiers.');
   args.addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
@@ -191,6 +195,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   }
 
   final String? nativeAssetsPath = options['native-assets'];
+  final String? resourcesFilePath = options['resources-file'];
   if ((options.rest.length != 1) || (platformKernel == null)) {
     print(usage);
     return badUsageExitCode;
@@ -211,7 +216,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
-  final bool nullSafety = options['sound-null-safety'];
+  final bool soundNullSafety = options['sound-null-safety'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? manifestFilename = options['manifest'];
@@ -271,6 +276,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final Uri? nativeAssetsUri =
       nativeAssetsPath == null ? null : resolveInputUri(nativeAssetsPath);
 
+  final Uri? resourcesFileUri =
+      resourcesFilePath == null ? null : resolveInputUri(resourcesFilePath);
+
   Uri mainUri = resolveInputUri(input);
   if (packagesUri != null) {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
@@ -286,7 +294,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
-    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
+    ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
@@ -297,7 +305,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   compilerOptions.target = createFrontEndTarget(targetName,
       trackWidgetCreation: options['track-widget-creation'],
-      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+      soundNullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: supportMirrors ?? !(aot || minimalKernel));
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
@@ -307,6 +315,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final results = await compileToKernel(mainUri, compilerOptions,
       additionalSources: additionalSources,
       nativeAssets: nativeAssetsUri,
+      resourcesFile: resourcesFileUri,
       includePlatform: additionalDills.isNotEmpty,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       keepClassNamesImplementing: options['keep-class-names-implementing'],
@@ -415,6 +424,7 @@ Future<KernelCompilationResults> compileToKernel(
   CompilerOptions options, {
   List<Uri> additionalSources = const <Uri>[],
   Uri? nativeAssets,
+  Uri? resourcesFile,
   bool includePlatform = false,
   List<String> deleteToStringPackageUris = const <String>[],
   List<String> keepClassNamesImplementing = const <String>[],
@@ -482,7 +492,8 @@ Future<KernelCompilationResults> compileToKernel(
         minimalKernel: minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
         useRapidTypeAnalysis: useRapidTypeAnalysis,
-        keepClassNamesImplementing: keepClassNamesImplementing);
+        keepClassNamesImplementing: keepClassNamesImplementing,
+        resourcesFile: resourcesFile);
 
     if (minimalKernel) {
       // compiledSources is component.uriToSource.keys.
@@ -546,7 +557,8 @@ Future runGlobalTransformations(
     NnbdMode nnbdMode = NnbdMode.Weak,
     Map<String, String>? environmentDefines,
     List<String>? keepClassNamesImplementing,
-    String? targetOS}) async {
+    String? targetOS,
+    Uri? resourcesFile}) async {
   assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
@@ -567,7 +579,7 @@ Future runGlobalTransformations(
       target, component, os, nnbdMode,
       environmentDefines: environmentDefines, coreTypes: coreTypes);
   unreachable_code_elimination.transformComponent(
-      component, enableAsserts, evaluator);
+      target, component, evaluator, enableAsserts);
 
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,
@@ -593,6 +605,10 @@ Future runGlobalTransformations(
       component, coreTypes, target, hierarchy, keepClassNamesImplementing);
 
   deferred_loading.transformComponent(component, coreTypes, target);
+
+  if (resourcesFile != null) {
+    resource_identifier.transformComponent(component, resourcesFile);
+  }
 }
 
 /// Runs given [action] with [CompilerContext]. This is needed to
@@ -691,14 +707,14 @@ bool parseCommandLineDefines(
 /// Create front-end target with given name.
 Target? createFrontEndTarget(String targetName,
     {bool trackWidgetCreation = false,
-    bool nullSafety = true,
+    bool soundNullSafety = true,
     bool supportMirrors = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
-      soundNullSafety: nullSafety,
+      soundNullSafety: soundNullSafety,
       supportMirrors: supportMirrors);
   return getTarget(targetName, targetFlags);
 }

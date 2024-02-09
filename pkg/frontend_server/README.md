@@ -15,4 +15,4 @@ This API stability does not cover any of the source code APIs.
 * The frontend_server kernel compilation and expression evaluation for kernel should be considered "stable".
 * The frontend_server JavaScript compilation is semi-stable, but clients should anticipate coordinated breaking changes in the future.
 * The frontend_server JavaScript expression evaluation is experimental and is expected to change significantly from Dec 2020 through the end of 2021.
-* Specific flags like the --flutter-widget-cache may be added for experimentation and should not be considered stable.
+* Specific flags may be added for experimentation and should not be considered stable.

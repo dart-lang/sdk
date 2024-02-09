@@ -16,5 +16,5 @@ main() {
   // Getting "int" when calling toString() on the int type is not required.
   // However, we want to keep the original names for the most common core
   // types so we make sure to handle these specifically in the compiler.
-  Expect.equals("A<B<int>>", new A<B<int>>().runtimeType.toString());
+  Expect.equals(A<B<int>>, new A<B<int>>().runtimeType);
 }

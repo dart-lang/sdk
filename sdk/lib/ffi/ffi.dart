@@ -69,7 +69,7 @@ final class Pointer<T extends NativeType> extends NativeType {
   /// On 32-bit systems, the upper 32-bits of the result are 0.
   external int get address;
 
-  /// Cast Pointer<T> to a Pointer<V>.
+  /// Cast Pointer<T> to a Pointer<U>.
   external Pointer<U> cast<U extends NativeType>();
 
   /// Equality for Pointers only depends on their address.
@@ -188,9 +188,9 @@ abstract final class NativeCallable<T extends Function> {
   /// Unlike [Pointer.fromFunction], [NativeCallable]s can be constructed from
   /// any Dart function or closure, not just static or top level functions.
   ///
-  /// This callback must be [close]d when it is no longer needed, but it will
-  /// *not* keep its [Isolate] alive. After the isolate is terminated, or
-  /// [NativeCallable.close] is called, invoking the [nativeFunction] from
+  /// This callback must be [close]d when it is no longer needed. The [Isolate]
+  /// that created the callback will be kept alive until [close] is called.
+  /// After [NativeCallable.close] is called, invoking the [nativeFunction] from
   /// native code will cause undefined behavior.
   factory NativeCallable.isolateLocal(
       @DartRepresentationOf("T") Function callback,
@@ -214,6 +214,8 @@ abstract final class NativeCallable<T extends Function> {
   ///
   /// This callback must be [close]d when it is no longer needed. The [Isolate]
   /// that created the callback will be kept alive until [close] is called.
+  /// After [NativeCallable.close] is called, invoking the [nativeFunction] from
+  /// native code will cause undefined behavior.
   ///
   /// For example:
   ///
@@ -307,25 +309,53 @@ extension Int8Pointer on Pointer<Int8> {
 
   external void set value(int value);
 
-  /// The 8-bit two's complement integer at `address + index`.
+  /// The 8-bit two's complement integer at `address + sizeOf<Int8>() * index`.
   ///
   /// A Dart integer is truncated to 8 bits (as if by `.toSigned(8)`) before
   /// being stored, and the 8-bit value is sign-extended when it is loaded.
   external int operator [](int index);
 
-  /// The 8-bit two's complement integer at `address + index`.
+  /// The 8-bit two's complement integer at `address + sizeOf<Int8>() * index`.
   ///
   /// A Dart integer is truncated to 8 bits (as if by `.toSigned(8)`) before
   /// being stored, and the 8-bit value is sign-extended when it is loaded.
   external void operator []=(int index, int value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Int8> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Int8> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Int8>() * index);
+
+  /// A pointer to the [offset]th [Int8] after this one.
+  ///
+  /// Returns a pointer to the [Int8] whose address is
+  /// [offset] times the size of `Int8` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Int8>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Int8> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Int8>() * offset);
+
+  /// A pointer to the [offset]th [Int8] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Int8] whose address is
+  /// [offset] times the size of `Int8` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Int8>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Int8> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Int8>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + length`.
+  /// to `address + sizeOf<Int8>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -352,7 +382,7 @@ extension Int16Pointer on Pointer<Int16> {
 
   external void set value(int value);
 
-  /// The 16-bit two's complement integer at `address + 2 * index`.
+  /// The 16-bit two's complement integer at `address + sizeOf<Int16>() * index`.
   ///
   /// A Dart integer is truncated to 16 bits (as if by `.toSigned(16)`) before
   /// being stored, and the 16-bit value is sign-extended when it is loaded.
@@ -360,7 +390,7 @@ extension Int16Pointer on Pointer<Int16> {
   /// The [address] must be 2-byte aligned.
   external int operator [](int index);
 
-  /// The 16-bit two's complement integer at `address + 2 * index`.
+  /// The 16-bit two's complement integer at `address + sizeOf<Int16>() * index`.
   ///
   /// A Dart integer is truncated to 16 bits (as if by `.toSigned(16)`) before
   /// being stored, and the 16-bit value is sign-extended when it is loaded.
@@ -369,12 +399,40 @@ extension Int16Pointer on Pointer<Int16> {
   external void operator []=(int index, int value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Int16> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Int16> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Int16>() * index);
+
+  /// A pointer to the [offset]th [Int16] after this one.
+  ///
+  /// Returns a pointer to the [Int16] whose address is
+  /// [offset] times the size of `Int16` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Int16>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Int16> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Int16>() * offset);
+
+  /// A pointer to the [offset]th [Int16] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Int16] whose address is
+  /// [offset] times the size of `Int16` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Int16>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Int16> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Int16>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + 2 * length`.
+  /// to `address + sizeOf<Int16>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -403,7 +461,7 @@ extension Int32Pointer on Pointer<Int32> {
 
   external void set value(int value);
 
-  /// The 32-bit two's complement integer at `address + 4 * index`.
+  /// The 32-bit two's complement integer at `address + sizeOf<Int32>() * index`.
   ///
   /// A Dart integer is truncated to 32 bits (as if by `.toSigned(32)`) before
   /// being stored, and the 32-bit value is sign-extended when it is loaded.
@@ -411,7 +469,7 @@ extension Int32Pointer on Pointer<Int32> {
   /// The [address] must be 4-byte aligned.
   external int operator [](int index);
 
-  /// The 32-bit two's complement integer at `address + 4 * index`.
+  /// The 32-bit two's complement integer at `address + sizeOf<Int32>() * index`.
   ///
   /// A Dart integer is truncated to 32 bits (as if by `.toSigned(32)`) before
   /// being stored, and the 32-bit value is sign-extended when it is loaded.
@@ -420,12 +478,40 @@ extension Int32Pointer on Pointer<Int32> {
   external void operator []=(int index, int value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Int32> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Int32> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Int32>() * index);
+
+  /// A pointer to the [offset]th [Int32] after this one.
+  ///
+  /// Returns a pointer to the [Int32] whose address is
+  /// [offset] times the size of `Int32` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Int32>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Int32> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Int32>() * offset);
+
+  /// A pointer to the [offset]th [Int32] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Int32] whose address is
+  /// [offset] times the size of `Int32` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Int32>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Int32> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Int32>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + 4 * length`.
+  /// to `address + sizeOf<Int32>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -451,23 +537,51 @@ extension Int64Pointer on Pointer<Int64> {
 
   external void set value(int value);
 
-  /// The 64-bit two's complement integer at `address + 8 * index`.
+  /// The 64-bit two's complement integer at `address + sizeOf<Int64>() * index`.
   ///
   /// The [address] must be 8-byte aligned.
   external int operator [](int index);
 
-  /// The 64-bit two's complement integer at `address + 8 * index`.
+  /// The 64-bit two's complement integer at `address + sizeOf<Int64>() * index`.
   ///
   /// The [address] must be 8-byte aligned.
   external void operator []=(int index, int value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Int64> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Int64> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Int64>() * index);
+
+  /// A pointer to the [offset]th [Int64] after this one.
+  ///
+  /// Returns a pointer to the [Int64] whose address is
+  /// [offset] times the size of `Int64` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Int64>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Int64> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Int64>() * offset);
+
+  /// A pointer to the [offset]th [Int64] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Int64] whose address is
+  /// [offset] times the size of `Int64` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Int64>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Int64> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Int64>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + 8 * length`.
+  /// to `address + sizeOf<Int64>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -494,25 +608,53 @@ extension Uint8Pointer on Pointer<Uint8> {
 
   external void set value(int value);
 
-  /// The 8-bit unsigned integer at `address + index`.
+  /// The 8-bit unsigned integer at `address + sizeOf<Uint8>() * index`.
   ///
   /// A Dart integer is truncated to 8 bits (as if by `.toUnsigned(8)`) before
   /// being stored, and the 8-bit value is zero-extended when it is loaded.
   external int operator [](int index);
 
-  /// The 8-bit unsigned integer at `address + index`.
+  /// The 8-bit unsigned integer at `address + sizeOf<Uint8>() * index`.
   ///
   /// A Dart integer is truncated to 8 bits (as if by `.toUnsigned(8)`) before
   /// being stored, and the 8-bit value is zero-extended when it is loaded.
   external void operator []=(int index, int value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Uint8> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Uint8> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Uint8>() * index);
+
+  /// A pointer to the [offset]th [Uint8] after this one.
+  ///
+  /// Returns a pointer to the [Uint8] whose address is
+  /// [offset] times the size of `Uint8` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Uint8>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Uint8> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Uint8>() * offset);
+
+  /// A pointer to the [offset]th [Uint8] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Uint8] whose address is
+  /// [offset] times the size of `Uint8` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Uint8>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Uint8> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Uint8>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + length`.
+  /// to `address + sizeOf<Uint8>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -539,7 +681,7 @@ extension Uint16Pointer on Pointer<Uint16> {
 
   external void set value(int value);
 
-  /// The 16-bit unsigned integer at `address + 2 * index`.
+  /// The 16-bit unsigned integer at `address + sizeOf<Uint16>() * index`.
   ///
   /// A Dart integer is truncated to 16 bits (as if by `.toUnsigned(16)`) before
   /// being stored, and the 16-bit value is zero-extended when it is loaded.
@@ -547,7 +689,7 @@ extension Uint16Pointer on Pointer<Uint16> {
   /// The [address] must be 2-byte aligned.
   external int operator [](int index);
 
-  /// The 16-bit unsigned integer at `address + 2 * index`.
+  /// The 16-bit unsigned integer at `address + sizeOf<Uint16>() * index`.
   ///
   /// A Dart integer is truncated to 16 bits (as if by `.toUnsigned(16)`) before
   /// being stored, and the 16-bit value is zero-extended when it is loaded.
@@ -556,12 +698,40 @@ extension Uint16Pointer on Pointer<Uint16> {
   external void operator []=(int index, int value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Uint16> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Uint16> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Uint16>() * index);
+
+  /// A pointer to the [offset]th [Uint16] after this one.
+  ///
+  /// Returns a pointer to the [Uint16] whose address is
+  /// [offset] times the size of `Uint16` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Uint16>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Uint16> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Uint16>() * offset);
+
+  /// A pointer to the [offset]th [Uint16] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Uint16] whose address is
+  /// [offset] times the size of `Uint16` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Uint16>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Uint16> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Uint16>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + 2 * length`.
+  /// to `address + sizeOf<Uint16>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -590,7 +760,7 @@ extension Uint32Pointer on Pointer<Uint32> {
 
   external void set value(int value);
 
-  /// The 32-bit unsigned integer at `address + 4 * index`.
+  /// The 32-bit unsigned integer at `address + sizeOf<Uint32>() * index`.
   ///
   /// A Dart integer is truncated to 32 bits (as if by `.toUnsigned(32)`) before
   /// being stored, and the 32-bit value is zero-extended when it is loaded.
@@ -598,7 +768,7 @@ extension Uint32Pointer on Pointer<Uint32> {
   /// The [address] must be 4-byte aligned.
   external int operator [](int index);
 
-  /// The 32-bit unsigned integer at `address + 4 * index`.
+  /// The 32-bit unsigned integer at `address + sizeOf<Uint32>() * index`.
   ///
   /// A Dart integer is truncated to 32 bits (as if by `.toUnsigned(32)`) before
   /// being stored, and the 32-bit value is zero-extended when it is loaded.
@@ -607,12 +777,40 @@ extension Uint32Pointer on Pointer<Uint32> {
   external void operator []=(int index, int value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Uint32> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Uint32> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Uint32>() * index);
+
+  /// A pointer to the [offset]th [Uint32] after this one.
+  ///
+  /// Returns a pointer to the [Uint32] whose address is
+  /// [offset] times the size of `Uint32` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Uint32>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Uint32> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Uint32>() * offset);
+
+  /// A pointer to the [offset]th [Uint32] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Uint32] whose address is
+  /// [offset] times the size of `Uint32` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Uint32>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Uint32> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Uint32>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + 4 * length`.
+  /// to `address + sizeOf<Uint32>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -638,23 +836,51 @@ extension Uint64Pointer on Pointer<Uint64> {
 
   external void set value(int value);
 
-  /// The 64-bit unsigned integer at `address + 8 * index`.
+  /// The 64-bit unsigned integer at `address + sizeOf<Uint64>() * index`.
   ///
   /// The [address] must be 8-byte aligned.
   external int operator [](int index);
 
-  /// The 64-bit unsigned integer at `address + 8 * index`.
+  /// The 64-bit unsigned integer at `address + sizeOf<Uint64>() * index`.
   ///
   /// The [address] must be 8-byte aligned.
   external void operator []=(int index, int value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Uint64> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Uint64> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Uint64>() * index);
+
+  /// A pointer to the [offset]th [Uint64] after this one.
+  ///
+  /// Returns a pointer to the [Uint64] whose address is
+  /// [offset] times the size of `Uint64` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Uint64>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Uint64> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Uint64>() * offset);
+
+  /// A pointer to the [offset]th [Uint64] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Uint64] whose address is
+  /// [offset] times the size of `Uint64` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Uint64>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Uint64> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Uint64>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + 8 * length`.
+  /// to `address + sizeOf<Uint64>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -683,7 +909,7 @@ extension FloatPointer on Pointer<Float> {
 
   external void set value(double value);
 
-  /// The float at `address + 4 * index`.
+  /// The float at `address + sizeOf<Float>() * index`.
   ///
   /// A Dart double loses precision before being stored, and the float value is
   /// converted to a double when it is loaded.
@@ -691,7 +917,7 @@ extension FloatPointer on Pointer<Float> {
   /// The [address] must be 4-byte aligned.
   external double operator [](int index);
 
-  /// The float at `address + 4 * index`.
+  /// The float at `address + sizeOf<Float>() * index`.
   ///
   /// A Dart double loses precision before being stored, and the float value is
   /// converted to a double when it is loaded.
@@ -700,12 +926,40 @@ extension FloatPointer on Pointer<Float> {
   external void operator []=(int index, double value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Float> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Float> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Float>() * index);
+
+  /// A pointer to the [offset]th [Float] after this one.
+  ///
+  /// Returns a pointer to the [Float] whose address is
+  /// [offset] times the size of `Float` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Float>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Float> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Float>() * offset);
+
+  /// A pointer to the [offset]th [Float] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Float] whose address is
+  /// [offset] times the size of `Float` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Float>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Float> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Float>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + 4 * length`.
+  /// to `address + sizeOf<Float>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -731,23 +985,51 @@ extension DoublePointer on Pointer<Double> {
 
   external void set value(double value);
 
-  /// The double at `address + 8 * index`.
+  /// The double at `address + sizeOf<Double>() * index`.
   ///
   /// The [address] must be 8-byte aligned.
   external double operator [](int index);
 
-  /// The double at `address + 8 * index`.
+  /// The double at `address + sizeOf<Double>() * index`.
   ///
   /// The [address] must be 8-byte aligned.
   external void operator []=(int index, double value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Double> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Double> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Double>() * index);
+
+  /// A pointer to the [offset]th [Double] after this one.
+  ///
+  /// Returns a pointer to the [Double] whose address is
+  /// [offset] times the size of `Double` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Double>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Double> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Double>() * offset);
+
+  /// A pointer to the [offset]th [Double] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Double] whose address is
+  /// [offset] times the size of `Double` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Double>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Double> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Double>() * offset);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + 8 * length`.
+  /// to `address + sizeOf<Double>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -772,14 +1054,42 @@ extension BoolPointer on Pointer<Bool> {
 
   external void set value(bool value);
 
-  /// The bool at `address + index`.
+  /// The bool at `address + sizeOf<Bool>() * index`.
   external bool operator [](int index);
 
-  /// The bool at `address + index`.
+  /// The bool at `address + sizeOf<Bool>() * index`.
   external void operator []=(int index, bool value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<Bool> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<Bool> elementAt(int index) =>
+      Pointer.fromAddress(address + sizeOf<Bool>() * index);
+
+  /// A pointer to the [offset]th [Bool] after this one.
+  ///
+  /// Returns a pointer to the [Bool] whose address is
+  /// [offset] times the size of `Bool` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Bool>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<Bool> operator +(int offset) =>
+      Pointer.fromAddress(address + sizeOf<Bool>() * offset);
+
+  /// A pointer to the [offset]th [Bool] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Bool] whose address is
+  /// [offset] times the size of `Bool` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Bool>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<Bool> operator -(int offset) =>
+      Pointer.fromAddress(address - sizeOf<Bool>() * offset);
 }
 
 /// Bounds checking indexing methods on [Array]s of [Int8].
@@ -906,7 +1216,30 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   external void operator []=(int index, Pointer<T> value);
 
   /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
   external Pointer<Pointer<T>> elementAt(int index);
+
+  /// A pointer to the [offset]th [Pointer<T>] after this one.
+  ///
+  /// Returns a pointer to the [Pointer<T>] whose address is
+  /// [offset] times the size of `Pointer<T>` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<Pointer<T>>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  external Pointer<Pointer<T>> operator +(int offset);
+
+  /// A pointer to the [offset]th [Pointer<T>] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [Pointer<T>] whose address is
+  /// [offset] times the size of `Pointer<T>` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<Pointer<T>>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  external Pointer<Pointer<T>> operator -(int offset);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Struct].
@@ -944,8 +1277,31 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   /// where `T` is a compile-time constant type.
   external void operator []=(int index, T value);
 
-  /// Pointer arithmetic (takes element size into account).
+  /// Pointer arithmetic (takes element size into account)
+  @Deprecated('Use operator + instead')
   external Pointer<T> elementAt(int index);
+
+  /// A pointer to the [offset]th [T] after this one.
+  ///
+  /// Returns a pointer to the [T] whose address is
+  /// [offset] times the size of `T` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<T>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  external Pointer<T> operator +(int offset);
+
+  /// A pointer to the [offset]th [T] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [T] whose address is
+  /// [offset] times the size of `T` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<T>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  external Pointer<T> operator -(int offset);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Union].
@@ -984,7 +1340,30 @@ extension UnionPointer<T extends Union> on Pointer<T> {
   external void operator []=(int index, T value);
 
   /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
   external Pointer<T> elementAt(int index);
+
+  /// A pointer to the [offset]th [T] after this one.
+  ///
+  /// Returns a pointer to the [T] whose address is
+  /// [offset] times the size of `T` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<T>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  external Pointer<T> operator +(int offset);
+
+  /// A pointer to the [offset]th [T] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [T] whose address is
+  /// [offset] times the size of `T` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<T>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  external Pointer<T> operator -(int offset);
 }
 
 /// Extension on [Pointer] specialized for the type argument
@@ -1004,7 +1383,30 @@ extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
   external void operator []=(int index, int value);
 
   /// Pointer arithmetic (takes element size into account).
+  @Deprecated('Use operator + instead')
   external Pointer<T> elementAt(int index);
+
+  /// A pointer to the [offset]th [T] after this one.
+  ///
+  /// Returns a pointer to the [T] whose address is
+  /// [offset] times the size of `T` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<T>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  external Pointer<T> operator +(int offset);
+
+  /// A pointer to the [offset]th [T] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [T] whose address is
+  /// [offset] times the size of `T` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<T>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  external Pointer<T> operator -(int offset);
 }
 
 /// Bounds checking indexing methods on [Array]s of [Pointer].
@@ -1117,84 +1519,71 @@ abstract final class NativeApi {
   external static Pointer<Void> get initializeApiDLData;
 }
 
-/// Annotation to be used for marking an external function as FFI native.
+/// Annotation binding an external declaration to its native implementation.
 ///
-/// Example:
-///
-/// ```dart template:top
-/// @Native<Int64 Function(Int64, Int64)>(symbol: 'FfiNative_Sum', isLeaf:true)
-/// external int sum(int a, int b);
-/// ```
-///
-/// Calling such functions will throw an exception if no resolver
-/// was set on the library or the resolver failed to resolve the name.
-///
-/// See `Dart_SetFfiNativeResolver` in `dart_api.h`
-///
-/// NOTE: This experimental feature is replaced by [Native].
-@Since('2.14')
-@Deprecated('Use Native instead.')
-final class FfiNative<T> {
-  final String nativeName;
-
-  /// Whether the function is a leaf function.
-  ///
-  /// Leaf functions are small, short-running, non-blocking functions which are
-  /// not allowed to call back into Dart or use any Dart VM APIs. Leaf functions
-  /// are invoked bypassing some of the heavier parts of the standard
-  /// Dart-to-Native calling sequence which reduces the invocation overhead,
-  /// making leaf calls faster than non-leaf calls. However, this implies that a
-  /// thread executing a leaf function can't cooperate with the Dart runtime. A
-  /// long running or blocking leaf function will delay any operation which
-  /// requires synchronization between all threads associated with an isolate
-  /// group until after the leaf function returns. For example, if one isolate
-  /// in a group is trying to perform a GC and a second isolate is blocked in a
-  /// leaf call, then the first isolate will have to pause and wait until this
-  /// leaf call returns.
-  final bool isLeaf;
-
-  const FfiNative(this.nativeName, {this.isLeaf = false});
-}
-
-/// Annotation specifying how to bind an external function to native code.
-///
-/// The annotation applies only to `external` function declarations.
+/// Can only be applied to `external` declarations of static and top-level
+/// functions and variables.
 ///
 /// A [Native]-annotated `external` function is implemented by native code.
 /// The implementation is found in the native library denoted by [assetId].
+/// Similarly, a [Native]-annotated `external` variable is implemented by
+/// reading from or writing to native memory.
 ///
 /// The compiler and/or runtime provides a binding from [assetId] to native
 /// library, which depends on the target platform.
 /// The compiler/runtime can then resolve/lookup symbols (identifiers)
-/// against the native library, to find a native function,
-/// and bind an `external` Dart function declaration to that native function.
+/// against the native library, to find a native function or a native global
+/// variable, and bind an `external` Dart function or variable declaration to
+/// that native declaration.
+/// By default, the runtime expects a native symbol with the same name as the
+/// annotated function or variable in Dart. This can be overridden with the
+/// [symbol] parameter on the annotation.
 ///
-/// Use this annotation on `external` functions to specify that they
-/// are resolved against an asset, and to, optionally, provide overrides
-/// of the default symbol and asset IDs.
+/// If this annotation is used on a function, then the type argument [T] to the
+/// [Native] annotation must be a function type representing the native
+/// function's parameter and return types. The parameter and return types must
+/// be subtypes of [NativeType].
 ///
-/// The type argument to the [Native] annotation must be a function type
-/// representing the native function's parameter and return types.
+/// If this annotation is used on an external variable, then the type argument
+/// [T] must be a compatible native type. For example, an [int] field can be
+/// annotated with [Int32].
+/// If the type argument to `@Native` is omitted, it defaults to the Dart type
+/// of the annotated declaration, which *must* then be a native type too.
+/// This will never work for function declarations, but can apply to variables
+/// whose type is some of the types of this library, such as [Pointer].
+/// For native global variables that cannot be re-assigned, a final variable in
+/// Dart or a getter can be used to prevent assignments to the native field.
 ///
 /// Example:
 ///
 /// ```dart template:top
 /// @Native<Int64 Function(Int64, Int64)>()
 /// external int sum(int a, int b);
+///
+/// @Native<Int64>()
+/// external int aGlobalInt;
+///
+/// @Native()
+/// external final Pointer<Char> aGlobalString;
 /// ```
 ///
-/// Calling such function will try to resolve the [symbol] in (in that order)
+/// Calling a `@Native` function, as well as reading or writing to a `@Native`
+/// variable, will try to resolve the [symbol] in (in the order):
 /// 1. the provided or default [assetId],
 /// 2. the native resolver set with `Dart_SetFfiNativeResolver` in
 ///    `dart_api.h`, and
 /// 3. the current process.
 ///
 /// At least one of those three *must* provide a binding for the symbol,
-/// otherwise the method call fails.
+/// otherwise the method call or the variable access fails.
 ///
 /// NOTE: This is an experimental feature and may change in the future.
 @Since('2.19')
 final class Native<T> {
+  // Implementation note: VM hardcodes the layout of this class (number and
+  // order of its fields), so adding/removing/changing fields requires
+  // updating the VM code (see Function::GetNativeAnnotation()).
+
   /// The native symbol to be resolved, if not using the default.
   ///
   /// If not specified, the default symbol used for native function lookup
@@ -1274,6 +1663,8 @@ final class Native<T> {
   /// in a group is trying to perform a GC and a second isolate is blocked in a
   /// leaf call, then the first isolate will have to pause and wait until this
   /// leaf call returns.
+  ///
+  /// This value has no meaning for native fields.
   final bool isLeaf;
 
   const Native({
@@ -1281,6 +1672,65 @@ final class Native<T> {
     this.isLeaf = false,
     this.symbol,
   });
+
+  /// The native address of the implementation of [native].
+  ///
+  /// When calling this function, the argument for [native] must be an
+  /// expression denoting a variable or function declaration which is annotated
+  /// with [Native].
+  /// For a variable declaration, the type [T] must be the same native type
+  /// as the type argument to that `@Native` annotation.
+  /// For a function declaration, the type [T] must be `NativeFunction<F>`
+  /// where `F` was the type argument to that `@Native` annotation.
+  ///
+  /// For example, for a native C library exposing a function:
+  ///
+  /// ```C
+  /// #include <stdint.h>
+  /// int64_t sum(int64_t a, int64_t b) { return a + b; }
+  /// ```
+  ///
+  /// The following code binds `sum` to a Dart function declaration, and
+  /// extracts the address of the native `sum` implementation:
+  ///
+  /// ```dart
+  /// import 'dart:ffi';
+  ///
+  /// typedef NativeAdd = Int64 Function(Int64, Int64);
+  ///
+  /// @Native<NativeAdd>()
+  /// external int sum(int a, int b);
+  ///
+  /// void main() {
+  ///   Pointer<NativeFunction<NativeAdd>> addressSum = Native.addressOf(sum);
+  /// }
+  /// ```
+  ///
+  /// Similarly, for a native C library exposing a global variable:
+  ///
+  /// ```C
+  /// const char* myString;
+  /// ```
+  ///
+  /// The following code binds `myString` to a top-level variable in Dart, and
+  /// extracts the address of the underlying native field:
+  ///
+  /// ```dart
+  /// import 'dart:ffi';
+  ///
+  /// @Native()
+  /// external Pointer<Char> myString;
+  ///
+  /// void main() {
+  ///   // This pointer points to the memory location where the loader has
+  ///   // placed the `myString` global itself. To get the string value, read
+  ///   // the myString field directly.
+  ///   Pointer<Pointer<Char>> addressMyString = Native.addressOf(myString);
+  /// }
+  /// ```
+  @Since('3.3')
+  external static Pointer<T> addressOf<T extends NativeType>(
+      @DartRepresentationOf('T') Object native);
 }
 
 /// Annotation specifying the default asset ID for the current library.
@@ -1334,15 +1784,3 @@ final class DefaultAsset {
     this.id,
   );
 }
-
-// Bootstrapping native for getting the FFI native C function pointer to look
-// up the FFI resolver.
-@pragma('vm:external-name', 'Ffi_GetFfiNativeResolver')
-external Pointer<NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>
-    _get_ffi_native_resolver<T extends NativeFunction>();
-
-// Resolver for FFI Native C function pointers.
-@pragma('vm:entry-point')
-final _ffi_resolver = _get_ffi_native_resolver<
-        NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>()
-    .asFunction<int Function(Object, Object, int)>();

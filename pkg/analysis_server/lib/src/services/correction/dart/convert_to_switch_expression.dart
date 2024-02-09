@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -19,6 +20,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   /// Local variable reference used in assignment switch expression generation.
   LocalVariableElement? writeElement;
+
+  /// Assignment operator used in assignment switch expression generation.
+  TokenType? assignmentOperator;
 
   /// Function reference used in argument switch expression generation.
   FunctionElement? functionElement;
@@ -40,13 +44,16 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
       }
     }
 
-    if (isReturnSwitch(switchStatement)) {
-      await convertReturnSwitchExpression(
-          builder, switchStatement, followingThrow);
-    } else if (isAssignmentSwitch(switchStatement)) {
-      await convertAssignmentSwitchExpression(builder, switchStatement);
-    } else if (isArgumentSwitch(switchStatement)) {
-      await convertArgumentSwitchExpression(builder, switchStatement);
+    switch (_getSupportedSwitchType(switchStatement)) {
+      case _SupportedSwitchType.returnValue:
+        await convertReturnSwitchExpression(
+            builder, switchStatement, followingThrow);
+      case _SupportedSwitchType.assignment:
+        await convertAssignmentSwitchExpression(builder, switchStatement);
+      case _SupportedSwitchType.argument:
+        await convertArgumentSwitchExpression(builder, switchStatement);
+      case null:
+        return;
     }
   }
 
@@ -152,11 +159,12 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '${writeElement!.name} = ');
+      builder.addSimpleInsertion(
+          node.offset, '${writeElement!.name} ${assignmentOperator!.lexeme} ');
 
       var memberCount = node.members.length;
       for (var i = 0; i < memberCount; ++i) {
-        // todo(pq): extract shared replacement logic
+        // TODO(pq): extract shared replacement logic
         var member = node.members[i];
         if (member is SwitchDefault) {
           convertSwitchDefault(builder, member);
@@ -215,7 +223,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
       var memberCount = node.members.length;
       for (var i = 0; i < memberCount; ++i) {
-        // todo(pq): extract shared replacement logic
+        // TODO(pq): extract shared replacement logic
         var member = node.members[i];
         if (member is SwitchDefault) {
           convertSwitchDefault(builder, member);
@@ -262,73 +270,6 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     return deletion;
   }
 
-  // todo(pq): refactor the `is` checks to a single `getSwitchKind`
-  // that only looks at members once
-  // see: https://dart-review.googlesource.com/c/sdk/+/287904
-  bool isArgumentSwitch(SwitchStatement node) {
-    for (var member in node.members) {
-      if (member is! SwitchPatternCase && member is! SwitchDefault) {
-        return false;
-      }
-      if (member.labels.isNotEmpty) return false;
-      var statements = member.statements;
-      if (statements.length == 1) {
-        if (statements.first.isThrowExpressionStatement) continue;
-      } else if (statements.length == 2) {
-        if (statements[1] is! BreakStatement) return false;
-      } else {
-        return false;
-      }
-
-      var s = statements.first;
-      if (s is! ExpressionStatement) return false;
-      var expression = s.expression;
-      if (expression is! MethodInvocation) return false;
-      var element = expression.methodName.staticElement;
-      if (element is! FunctionElement) return false;
-      if (functionElement == null) {
-        functionElement = element;
-      } else {
-        if (functionElement != element) return false;
-      }
-    }
-
-    return functionElement != null;
-  }
-
-  bool isAssignmentSwitch(SwitchStatement node) {
-    for (var member in node.members) {
-      if (member is! SwitchPatternCase && member is! SwitchDefault) {
-        return false;
-      }
-      if (member.labels.isNotEmpty) return false;
-      var statements = member.statements;
-      if (statements.length == 1) {
-        if (statements.first.isThrowExpressionStatement) continue;
-      } else if (statements.length == 2) {
-        if (statements[1] is! BreakStatement) return false;
-      } else {
-        return false;
-      }
-
-      var s = statements.first;
-      if (s is! ExpressionStatement) return false;
-      var expression = s.expression;
-      if (expression is! AssignmentExpression) return false;
-      var leftHandSide = expression.leftHandSide;
-      if (leftHandSide is! SimpleIdentifier) return false;
-      if (writeElement == null) {
-        var element = leftHandSide.staticElement;
-        if (element is! LocalVariableElement) return false;
-        writeElement = element;
-      } else {
-        if (writeElement != leftHandSide.staticElement) return false;
-      }
-    }
-
-    return writeElement != null;
-  }
-
   bool isEffectivelyExhaustive(SwitchStatement node, DartType? expressionType) {
     if (expressionType == null) return false;
     if ((typeSystem as TypeSystemImpl).isAlwaysExhaustive(expressionType)) {
@@ -342,29 +283,127 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     return last is SwitchDefault;
   }
 
-  bool isReturnSwitch(SwitchStatement node) {
-    for (var member in node.members) {
-      if (member is! SwitchPatternCase && member is! SwitchDefault) {
-        return false;
-      }
-      if (member.labels.isNotEmpty) return false;
-      var statements = member.statements;
-      if (statements.length != 1) return false;
-      var s = statements.first;
-      if (s is ReturnStatement && s.expression != null) continue;
-      if (s is! ExpressionStatement || s.expression is! ThrowExpression) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   void _deleteStatements(
     DartFileEditBuilder builder,
     List<Statement> statements,
   ) {
     final range = utils.getLinesRangeStatements(statements);
     builder.addDeletion(range);
+  }
+
+  _SupportedSwitchType? _getSupportedSwitchType(SwitchStatement node) {
+    var members = node.members;
+    if (members.isEmpty) {
+      return null;
+    }
+
+    var canBeReturn = true;
+    var canBeAssignment = true;
+    var canBeArgument = true;
+
+    for (var member in members) {
+      // Each member must be a pattern-based case or a default.
+      if (member is! SwitchPatternCase && member is! SwitchDefault) {
+        return null;
+      }
+
+      if (member.labels.isNotEmpty) return null;
+
+      var statements = member.statements;
+      // We currently only support converting switch members
+      // with one non-break statement.
+      if (statements.isEmpty || statements.length > 2) {
+        return null;
+      }
+
+      if (statements case [_, var secondStatement]) {
+        // If there is a second statement, it must be a break statement.
+        if (secondStatement is! BreakStatement) return null;
+
+        // A return switch case can't have a second statement.
+        canBeReturn = false;
+      }
+
+      var statement = statements.first;
+      if (statement is ExpressionStatement) {
+        var expression = statement.expression;
+        // Any type of switch can have a throw expression as a statement.
+        if (expression is ThrowExpression) {
+          if (members.length == 1) {
+            // If there is only one case and it's a throw expression,
+            // then assume it's a return switch.
+            canBeAssignment = false;
+            canBeArgument = false;
+          }
+          continue;
+        }
+
+        // A return switch case's statement can't be a non-throw expression.
+        canBeReturn = false;
+
+        if (canBeArgument && expression is MethodInvocation) {
+          // An assignment switch case's statement can't be a method invocation.
+          canBeAssignment = false;
+
+          var element = expression.methodName.staticElement;
+          if (element is! FunctionElement) return null;
+          if (functionElement == null) {
+            functionElement = element;
+          } else if (functionElement != element) {
+            // The function invoked in each case must be the same.
+            return null;
+          }
+        } else if (canBeAssignment && expression is AssignmentExpression) {
+          // An argument switch case's statement can't be an assignment.
+          canBeArgument = false;
+
+          var leftHandSide = expression.leftHandSide;
+          if (leftHandSide is! SimpleIdentifier) return null;
+          if (writeElement == null) {
+            var element = leftHandSide.staticElement;
+            if (element is! LocalVariableElement) return null;
+            writeElement = element;
+            assignmentOperator = expression.operator.type;
+          } else if (writeElement != leftHandSide.staticElement ||
+              expression.operator.type != assignmentOperator) {
+            // The variable written to and the assignment operator used
+            // in each case must be the same.
+            return null;
+          }
+        } else {
+          // The expression has an unsupported type.
+          return null;
+        }
+      } else {
+        // If the statement is not an expression,
+        // it must be a return statement with a
+        // non-null expression as part of a return switch.
+        if (!canBeReturn ||
+            statement is! ReturnStatement ||
+            statement.expression == null) {
+          return null;
+        }
+
+        canBeAssignment = false;
+        canBeArgument = false;
+      }
+
+      if (!canBeReturn && !canBeAssignment && !canBeArgument) {
+        return null;
+      }
+    }
+
+    if (canBeReturn) {
+      assert(!canBeAssignment && !canBeArgument);
+      return _SupportedSwitchType.returnValue;
+    } else if (canBeAssignment) {
+      assert(!canBeArgument);
+      return _SupportedSwitchType.assignment;
+    } else if (canBeArgument) {
+      return _SupportedSwitchType.argument;
+    }
+
+    return null;
   }
 
   /// Given [nextLineOffset] that is an offset on the next line (the line
@@ -403,6 +442,18 @@ final class _IndentationFullFirstRightAll extends _Indentation {
   _IndentationFullFirstRightAll({
     required this.level,
   });
+}
+
+/// The different switch types supported by this conversion.
+enum _SupportedSwitchType {
+  /// Each case statement returns a value.
+  returnValue,
+
+  /// Each case statement assigns to a local variable.
+  assignment,
+
+  /// Each case statement passes a value to the same function.
+  argument,
 }
 
 extension on Statement {

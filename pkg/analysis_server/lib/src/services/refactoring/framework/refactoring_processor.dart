@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/refactoring/convert_all_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/convert_selected_formal_parameters_to_named.dart';
@@ -10,6 +9,7 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_c
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/services/refactoring/move_selected_formal_parameters_left.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A function that can be executed to create a refactoring producer.
 typedef ProducerGenerator = RefactoringProducer Function(RefactoringContext);

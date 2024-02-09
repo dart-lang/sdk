@@ -1,3 +1,16 @@
+# main
+
+- removed lint: `always_require_non_null_named_parameters`
+- removed lint: `avoid_returning_null`
+- removed lint: `avoid_returning_null_for_future`
+- removed lint: `iterable_contains_unrelated_type`
+- removed lint: `list_remove_unrelated_type`
+
+# 3.2.0
+
+- new lint: `annotate_redeclares` (experimental)
+- stable: `use_build_context_synchronously`
+
 # 3.1.0
 
 - new lint: `no_self_assignments`

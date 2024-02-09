@@ -117,6 +117,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   },
   'ExtensionTypeDeclaration': {
     'typeParameters': FieldRule(isDeclaration: true),
+    '_procedures': FieldRule(name: 'procedures'),
   },
   'Field': {
     'reference': FieldRule(name: 'fieldReference'),
@@ -696,12 +697,12 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
       if (node == classNode) {
         astClass = new AstClass(node,
             kind: AstClassKind.root, isInterchangeable: isInterchangeable);
-      } else if (classHierarchy.isSubtypeOf(node, classNode)) {
+      } else if (classHierarchy.isSubInterfaceOf(node, classNode)) {
         AstClass? superclass = computeAstClass(node.superclass);
         AstClassKind? kind;
         String? declarativeName;
         if (!node.isAbstract &&
-            classHierarchy.isSubtypeOf(node, classNamedNode)) {
+            classHierarchy.isSubInterfaceOf(node, classNamedNode)) {
           kind = AstClassKind.named;
         } else if (declarativeClasses.contains(node)) {
           kind = AstClassKind.declarative;
@@ -777,21 +778,21 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
             return new FieldType(type, AstFieldKind.use);
           }
         }
-        if (type is InterfaceType &&
+        if (type is TypeDeclarationType &&
             typeEnvironment.isSubtypeOf(type, coreTypes.listNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
           DartType elementType = typeEnvironment
               .getTypeArgumentsAsInstanceOf(type, coreTypes.listClass)!
               .single;
           return new ListFieldType(type, computeFieldType(elementType));
-        } else if (type is InterfaceType &&
+        } else if (type is TypeDeclarationType &&
             typeEnvironment.isSubtypeOf(type, coreTypes.setNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
           DartType elementType = typeEnvironment
               .getTypeArgumentsAsInstanceOf(type, coreTypes.setClass)!
               .single;
           return new SetFieldType(type, computeFieldType(elementType));
-        } else if (type is InterfaceType &&
+        } else if (type is TypeDeclarationType &&
             typeEnvironment.isSubtypeOf(type, coreTypes.mapNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
           List<DartType> typeArguments = typeEnvironment

@@ -30,7 +30,7 @@ external JSBoolean boolF(JSBoolean b);
 external void voidF(JSString s);
 
 @JS('jsFunction')
-external JSAny? anyF(JSAny? n);
+external JSAny? anyF([JSAny? n]);
 
 @JS()
 external JSAny? callFunctionWithUndefined();
@@ -39,6 +39,7 @@ external JSAny? callFunctionWithUndefined();
 external JSAny? callFunctionWithJSNull();
 
 void main() {
+  // Test primitive conversions.
   jsFunction = ((String arg) => arg).toJS;
   expect(stringF('stringF'.toJS).toDart, 'stringF');
   Expect.throws(() => anyF(0.toJS));
@@ -70,6 +71,7 @@ void main() {
   jsFunction = ((String arg) => arg).toJS;
   voidF('voidF'.toJS);
 
+  // Test nullability with JS null and JS undefined.
   eval('''
     globalThis.callFunctionWithUndefined = function() {
       return globalThis.jsFunction(undefined);
@@ -108,4 +110,71 @@ void main() {
   expectNullFail(((String arg) => arg).toJS);
 
   expectNullFail(((JSString arg) => arg).toJS);
+
+  // Test conversions with allowed type parameters.
+  void setBoundAnyFunction<T extends JSAny?>() {
+    jsFunction = ((T t) => t).toJS;
+  }
+
+  final zero = 0.toJS;
+  final empty = ''.toJS;
+
+  setBoundAnyFunction();
+  expect(anyF(null), null);
+  expect(anyF(zero), zero);
+  setBoundAnyFunction<JSAny>();
+  // TODO(srujzs): The commented out null checks do not throw. There should be a
+  // check within the body of the callback that the parameter is the right
+  // generic type, but there isn't.
+  // Expect.throws(() => anyF());
+  // Expect.throws(() => anyF(null));
+  expect(anyF(zero), zero);
+  setBoundAnyFunction<JSNumber>();
+  // Expect.throws(() => anyF(null));
+  Expect.throws(() {
+    final any = anyF(empty);
+    // TODO(54179): Better way of writing this is to cast to JSNumber and
+    // convert, but currently that does not throw on dart2wasm.
+    if (!any.typeofEquals('number')) {
+      throw TypeError();
+    }
+  });
+  expect(anyF(zero), zero);
+
+  void setBoundNonNullAnyFunction<T extends JSAny>() {
+    jsFunction = ((T t) => t).toJS;
+  }
+
+  setBoundNonNullAnyFunction();
+  Expect.throws(() => anyF());
+  if (hasSoundNullSafety) Expect.throws(() => anyF(null));
+  expect(anyF(zero), zero);
+  setBoundNonNullAnyFunction<JSNumber>();
+  if (hasSoundNullSafety) Expect.throws(() => anyF(null));
+  Expect.throws(() {
+    final any = anyF(empty);
+    // TODO(54179): Better way of writing this is to cast to JSNumber and
+    // convert, but currently that does not throw on dart2wasm.
+    if (!any.typeofEquals('number')) {
+      throw TypeError();
+    }
+  });
+  expect(anyF(zero), zero);
+
+  void setBoundJSNumberFunction<T extends JSNumber>() {
+    jsFunction = ((T t) => t).toJS;
+  }
+
+  setBoundJSNumberFunction();
+  Expect.throws(() => anyF());
+  if (hasSoundNullSafety) Expect.throws(() => anyF(null));
+  Expect.throws(() {
+    final any = anyF(empty);
+    // TODO(54179): Better way of writing this is to cast to JSNumber and
+    // convert, but currently that does not throw on dart2wasm.
+    if (!any.typeofEquals('number')) {
+      throw TypeError();
+    }
+  });
+  expect(anyF(zero), zero);
 }

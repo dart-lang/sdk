@@ -342,7 +342,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   ForwardingCorpse::Init();
   Api::Init();
   NativeSymbolResolver::Init();
-  NOT_IN_PRODUCT(Profiler::Init());
   UnwindingRecordsPlatform::Init();
   Page::Init();
   StoreBuffer::Init();
@@ -486,6 +485,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     vm_isolate_group()->heap()->Verify("Dart::DartInit", kRequireMarked);
 #endif
   }
+  NOT_IN_PRODUCT(Profiler::Init());
   // Allocate the "persistent" scoped handles for the predefined API
   // values (such as Dart_True, Dart_False and Dart_Null).
   Api::InitHandles();

@@ -58,6 +58,7 @@ class LintNames {
   static const String cast_nullable_to_non_nullable =
       'cast_nullable_to_non_nullable';
   static const String combinators_ordering = 'combinators_ordering';
+  static const String comment_references = 'comment_references';
   static const String constant_identifier_names = 'constant_identifier_names';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
@@ -76,6 +77,7 @@ class LintNames {
   static const String empty_statements = 'empty_statements';
   static const String eol_at_end_of_file = 'eol_at_end_of_file';
   static const String exhaustive_cases = 'exhaustive_cases';
+  static const String flutter_style_todos = 'flutter_style_todos';
   static const String hash_and_equals = 'hash_and_equals';
   static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
   static const String implicit_reopen = 'implicit_reopen';

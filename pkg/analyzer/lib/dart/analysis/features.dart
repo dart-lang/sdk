@@ -40,6 +40,9 @@ abstract class Feature {
   /// Feature information for inference-update-2.
   static final inference_update_2 = ExperimentalFeatures.inference_update_2;
 
+  /// Feature information for inference-update-3.
+  static final inference_update_3 = ExperimentalFeatures.inference_update_3;
+
   /// Feature information for inline classes.
   static final inline_class = ExperimentalFeatures.inline_class;
 

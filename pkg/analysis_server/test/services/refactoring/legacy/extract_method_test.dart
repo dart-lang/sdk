@@ -3491,7 +3491,7 @@ mixin A {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsError(
-        "Class 'A' already declares method with name 'res'.");
+        "Mixin 'A' already declares method with name 'res'.");
   }
 
   Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {

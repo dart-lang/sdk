@@ -50,7 +50,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
           }
           _addExtensionMembers(extensions, defaultKind, thisExtendedType);
         }
-        // TODO(scheglov) It seems that we don't support non-interface types.
+        // TODO(scheglov): It seems that we don't support non-interface types.
       }
       return;
     }
@@ -116,7 +116,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         inheritanceDistance = memberBuilder.request.featureComputer
             .inheritanceDistanceFeature(type.element, extendedType.element);
       }
-      // TODO(brianwilkerson) We might want to apply the substitution to the
+      // TODO(brianwilkerson): We might want to apply the substitution to the
       //  members of the extension for display purposes.
       _addInstanceMembers(
           instantiatedExtension.extension, kind, inheritanceDistance);

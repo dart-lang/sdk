@@ -10,7 +10,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:test/test.dart';
 
-/// TODO(scheglov) Remove it after SDK 3.1 published.
+// TODO(scheglov): Remove it after SDK 3.1 published.
 void main() {
   group('_fe_analyzer_shared', () {
     buildTests(packagePath: '_fe_analyzer_shared');

@@ -13,6 +13,7 @@ const String cfeMarker = 'cfe';
 const String cfeWithNnbdMarker = '$cfeMarker:nnbd';
 const String dart2jsMarker = 'dart2js';
 const String analyzerMarker = 'analyzer';
+const String ddcMarker = 'ddc';
 
 /// Markers used in annotated tests shared by CFE, analyzer and dart2js.
 const List<String> sharedMarkers = [
@@ -986,6 +987,13 @@ Future<void> runTests<T>(Directory dataDir,
   }
 }
 
+const String _dartLocationMessage = """
+* Note that the 'dart' executable *must* be the one
+  located in the 'dart-sdk/bin' folder of the build
+  directory, for instance
+
+    out/ReleaseX64/dart-sdk/bin/dart""";
+
 /// Generates an error message for the [mismatches] and [errors] using
 /// [markerOptions] to provide a re-run/re-generation command.
 ///
@@ -1030,8 +1038,9 @@ String generateErrorMessage(MarkerOptions markerOptions,
       }
       message.writeln();
     });
+    message.writeln();
+    message.writeln(_dartLocationMessage);
   }
-  message.writeln();
   if (errors.isNotEmpty) {
     Map<MarkerTester, Set<String>> erroneous = {};
     errors.forEach((String testName, Set<String> markers) {
@@ -1054,6 +1063,7 @@ String generateErrorMessage(MarkerOptions markerOptions,
       }
       message.writeln();
     });
+    message.writeln(_dartLocationMessage);
   }
   message.writeln();
   message.writeln('==========================================================');

@@ -1,6 +1,6 @@
-// Copyright 2022 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
 
@@ -9,11 +9,11 @@ import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
 
-import 'analytics.dart';
 import 'core.dart';
 import 'resident_frontend_constants.dart';
 import 'resident_frontend_utils.dart';
 import 'sdk.dart';
+import 'unified_analytics.dart';
 
 typedef CompileRequestGeneratorCallback = String Function({
   required String executable,

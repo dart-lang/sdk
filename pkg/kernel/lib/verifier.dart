@@ -259,10 +259,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     variableStack.length = stackHeight;
   }
 
-  void visitChildren(TreeNode node) {
+  /// Calls [f] with [node] set up as the parent node.
+  void inTreeNode(TreeNode node, void Function() f) {
     TreeNode? oldParent = enterParent(node);
-    node.visitChildren(this);
+    f();
     exitParent(oldParent);
+  }
+
+  void visitChildren(TreeNode node) {
+    inTreeNode(node, () => node.visitChildren(this));
   }
 
   void visitWithLocalScope(TreeNode node) {
@@ -365,6 +370,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         for (Class class_ in library.classes) {
           class_.members.forEach(declareMember);
         }
+        for (ExtensionTypeDeclaration extensionTypeDeclaration
+            in library.extensionTypeDeclarations) {
+          extensionTypeDeclaration.procedures.forEach(declareMember);
+        }
       }
       visitChildren(component);
     } finally {
@@ -372,6 +381,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         library.members.forEach(undeclareMember);
         for (Class class_ in library.classes) {
           class_.members.forEach(undeclareMember);
+        }
+        for (ExtensionTypeDeclaration extensionTypeDeclaration
+            in library.extensionTypeDeclarations) {
+          extensionTypeDeclaration.procedures.forEach(undeclareMember);
         }
       }
       variableStack.forEach(undeclareVariable);
@@ -403,8 +416,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (_extensionsMembers == null) {
       Map<Reference, ExtensionMemberDescriptor> map = _extensionsMembers = {};
       for (Extension extension in library.extensions) {
-        for (ExtensionMemberDescriptor descriptor in extension.members) {
-          Reference memberReference = descriptor.member;
+        for (ExtensionMemberDescriptor descriptor
+            in extension.memberDescriptors) {
+          Reference memberReference = descriptor.memberReference;
           map[memberReference] = descriptor;
           Member member = memberReference.asMember;
           if (!member.isExtensionMember) {
@@ -413,7 +427,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
                 "Member $member (${descriptor}) from $extension is not marked "
                 "as an extension member.");
           }
-          Reference? tearOffReference = descriptor.tearOff;
+          Reference? tearOffReference = descriptor.tearOffReference;
           if (tearOffReference != null) {
             map[tearOffReference] = descriptor;
             Member tearOff = tearOffReference.asMember;
@@ -438,8 +452,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       for (ExtensionTypeDeclaration extensionTypeDeclaration
           in library.extensionTypeDeclarations) {
         for (ExtensionTypeMemberDescriptor descriptor
-            in extensionTypeDeclaration.members) {
-          Reference memberReference = descriptor.member;
+            in extensionTypeDeclaration.memberDescriptors) {
+          Reference memberReference = descriptor.memberReference;
           map[memberReference] = descriptor;
           Member member = memberReference.asMember;
           if (!member.isExtensionTypeMember) {
@@ -448,7 +462,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
                 "Member $member (${descriptor}) from $extensionTypeDeclaration "
                 "is not marked as an extension type member.");
           }
-          Reference? tearOffReference = descriptor.tearOff;
+          Reference? tearOffReference = descriptor.tearOffReference;
           if (tearOffReference != null) {
             map[tearOffReference] = descriptor;
             Member tearOff = tearOffReference.asMember;
@@ -495,7 +509,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             node,
             "Extension type can only implement extension types and interface "
             "types. Found $type.");
-      } else if (type.isPotentiallyNullable) {
+      } else if (type is ExtensionType &&
+              type.nullability == Nullability.nullable ||
+          type is! ExtensionType && type.isPotentiallyNullable) {
         problem(
             node,
             "Extension type can only implement non-nullable types. "
@@ -557,11 +573,21 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     assert(node.isExtensionTypeMember);
     Map<Reference, ExtensionTypeMemberDescriptor> extensionTypeMembers =
         _computeExtensionTypeMembers(node.enclosingLibrary);
-    if (!extensionTypeMembers.containsKey(node.reference)) {
-      problem(
-          node,
-          "Extension type member $node is not found in any extension type "
-          "declaration of the enclosing library.");
+    if (node is Procedure &&
+        node.stubKind == ProcedureStubKind.RepresentationField) {
+      if (extensionTypeMembers.containsKey(node.reference)) {
+        problem(
+            node,
+            "Extension type representation field $node is found amongst the "
+            "lowered extension type members of the enclosing library.");
+      }
+    } else {
+      if (!extensionTypeMembers.containsKey(node.reference)) {
+        problem(
+            node,
+            "Extension type member $node is not found in any extension type "
+            "declaration of the enclosing library.");
+      }
     }
   }
 
@@ -780,7 +806,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentAsyncMarker = node.asyncMarker;
     if (!isOutline &&
         node.asyncMarker == AsyncMarker.Async &&
-        node.futureValueType == null) {
+        node.emittedValueType == null) {
       problem(node,
           "No future value type set for async function in opt-in library.");
     }
@@ -1284,10 +1310,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitConstantExpression(ConstantExpression node) {
     enterTreeNode(node);
-    bool oldInConstant = inConstant;
-    inConstant = true;
-    visitChildren(node);
-    inConstant = oldInConstant;
+    inTreeNode(node, () {
+      bool oldInConstant = inConstant;
+      node.type.accept(this);
+      // Only visit the [Constant] in constant context.
+      inConstant = true;
+      node.constant.accept(this);
+      inConstant = oldInConstant;
+    });
     exitTreeNode(node);
   }
 
@@ -1299,8 +1329,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (identical(node.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
       problem(node, "Unset default type on type parameter $node");
     }
-    if (inConstant) {
-      // Don't expect the type parameters to have the current parent as parent.
+    // ignore: deprecated_member_use_from_same_package
+    if (node.parent == null) {
+      // TODO(johnniwinther): Enable this check.
+      // problem(node, "Type parameter without parent: $node");
       node.visitChildren(this);
     } else {
       visitChildren(node);
@@ -1315,6 +1347,24 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     undeclareTypeParameters(node.parameters);
   }
 
+  void _checkInterfaceTarget(Expression node, Member interfaceTarget) {
+    if (!interfaceTarget.isInstanceMember) {
+      problem(
+          node, "Interface target $interfaceTarget is not an instance member.");
+    }
+    if (interfaceTarget is Procedure &&
+        interfaceTarget.stubKind == ProcedureStubKind.RepresentationField) {
+      problem(node,
+          "Representation field used as interface target: $interfaceTarget.");
+    }
+    if (interfaceTarget.enclosingClass == null) {
+      problem(
+          node,
+          "Interface target $interfaceTarget does not have an "
+          "enclosing class.");
+    }
+  }
+
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
     if (node.name != node.interfaceTarget.name) {
@@ -1323,6 +1373,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Instance invocation with name '${node.name}' has a "
           "target with name '${node.interfaceTarget.name}'.");
     }
+    _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceInvocation(node);
   }
 
@@ -1334,6 +1385,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Instance get with name '${node.name}' has a "
           "target with name '${node.interfaceTarget.name}'.");
     }
+    _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceGet(node);
   }
 
@@ -1345,6 +1397,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Instance tear-off with name '${node.name}' has a "
           "target with name '${node.interfaceTarget.name}'.");
     }
+    _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceTearOff(node);
   }
 
@@ -1356,6 +1409,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Instance set with name '${node.name}' has a "
           "target with name '${node.interfaceTarget.name}'.");
     }
+    _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceSet(node);
   }
 
@@ -1542,10 +1596,13 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void defaultDartType(DartType node) {
-    if (!KnownTypes.isKnown(node)) {
+    if (!AllowedTypes.isAllowed(node, inConstant: inConstant)) {
       final TreeNode? localContext = this.localContext;
       final TreeNode? remoteContext = this.remoteContext;
-      problem(localContext, "Unexpected appearance of the unknown type.",
+      problem(
+          localContext,
+          "Unexpected appearance of the disallowed type $node"
+          "${inConstant ? " inside a constant" : ""}.",
           origin: remoteContext);
     }
 
@@ -1801,12 +1858,16 @@ bool _isCompileTimeErrorEncoding(TreeNode? node) {
   return node is Let && node.variable.initializer is InvalidExpression;
 }
 
-class KnownTypes implements DartTypeVisitor<bool> {
-  static bool isKnown(DartType type) {
-    return type.accept(const KnownTypes());
+class AllowedTypes implements DartTypeVisitor<bool> {
+  static bool isAllowed(DartType type, {required bool inConstant}) {
+    return type.accept(inConstant
+        ? const AllowedTypes(inConstant: true)
+        : const AllowedTypes(inConstant: false));
   }
 
-  const KnownTypes();
+  final bool inConstant;
+
+  const AllowedTypes({required this.inConstant});
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) => false;
@@ -1821,7 +1882,7 @@ class KnownTypes implements DartTypeVisitor<bool> {
   bool visitFutureOrType(FutureOrType node) => true;
 
   @override
-  bool visitExtensionType(ExtensionType node) => true;
+  bool visitExtensionType(ExtensionType node) => !inConstant;
 
   @override
   bool visitInterfaceType(InterfaceType node) => true;

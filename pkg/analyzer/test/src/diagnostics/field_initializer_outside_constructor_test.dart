@@ -38,7 +38,7 @@ class A {
   }
 
   test_functionTypedFieldFormalParameter() async {
-    // TODO(srawlins) Fix the duplicate error messages.
+    // TODO(srawlins): Fix the duplicate error messages.
     await assertErrorsInCode(r'''
 class A {
   int Function()? x;
@@ -62,7 +62,7 @@ class A {
   }
 
   test_method() async {
-    // TODO(brianwilkerson) Fix the duplicate error messages.
+    // TODO(brianwilkerson): Fix the duplicate error messages.
     await assertErrorsInCode(r'''
 class A {
   int? x;

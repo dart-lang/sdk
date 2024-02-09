@@ -74,6 +74,7 @@ void weakNullSafetyErrors(bool showErrors) {
   }
 
   _weakNullSafetyErrors = showErrors;
+  extraNullSafetyChecks = showErrors;
 }
 
 @notNull
@@ -220,15 +221,34 @@ F assertInterop<F extends Function?>(F f) {
   return f;
 }
 
-bool isDartFunction(obj) =>
-    JS<bool>('!', '# instanceof Function', obj) &&
-    JS<bool>(
-        '!',
-        '#[#] != null',
-        obj,
-        JS_GET_FLAG("NEW_RUNTIME_TYPES")
-            ? JS_GET_NAME(JsGetName.SIGNATURE_NAME)
-            : _runtimeType);
+/// Returns `true` when [obj] represents a Dart class.
+@notNull
+bool isDartClass(Object? obj) {
+  // All Dart classes are instances of JavaScript functions.
+  if (!JS<bool>('!', '# instanceof Function', obj)) return false;
+  if (JS_GET_FLAG("NEW_RUNTIME_TYPES")) {
+    // All Dart classes have an interface type recipe attached to them.
+    return JS('', '#.#', obj, rti.interfaceTypeRecipePropertyName) != null;
+  } else {
+    // All Dart classes inherit this type tag from the Dart Core Object class.
+    return _equalType(JS('!', '#[#]', obj, _runtimeType), Type);
+  }
+}
+
+/// Returns `true` when [obj] represents a Dart function.
+@notNull
+bool isDartFunction(Object? obj) {
+  if (!JS<bool>('!', '# instanceof Function', obj)) return false;
+  if (JS_GET_FLAG("NEW_RUNTIME_TYPES")) {
+    // All Dart functions have a signature attached to them.
+    return JS('!', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME)) != null;
+  } else {
+    // All Dart functions have a signature attached to them but we must test
+    // that it is a function type to differentiate from Dart classes.
+    return _jsInstanceOf(
+        JS('!', '#[#]', obj, _runtimeType), AbstractFunctionType);
+  }
+}
 
 Expando<Function> _assertInteropExpando = Expando<Function>();
 
@@ -1217,21 +1237,16 @@ gFnType(instantiateFn, typeBounds) =>
 
 /// Whether the given JS constructor [obj] is a Dart class type.
 @notNull
-bool isType(obj) => JS('', '#[#] === #', obj, _runtimeType, Type);
+bool isType(obj) => JS_GET_FLAG('NEW_RUNTIME_TYPES')
+    ? JS('', '#[#]', obj, rti.interfaceTypeRecipePropertyName) != null
+    : JS('', '#[#] === #', obj, _runtimeType, Type);
 
 void checkTypeBound(
     @notNull Object type, @notNull Object bound, @notNull String name) {
-  bool validSubtype;
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    validSubtype = compileTimeFlag('soundNullSafety')
-        // Check subtype directly in sound mode.
-        ? rti.isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
-            JS<rti.Rti>('!', '#', type), JS<rti.Rti>('!', '#', bound))
-        // Check subtype but issue warnings/errors in weak mode.
-        : _isSubtypeWithWarning(type, bound);
-  } else {
-    validSubtype = isSubtypeOf(type, bound);
-  }
+  var validSubtype = JS_GET_FLAG('NEW_RUNTIME_TYPES')
+      ? rti.isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
+          JS<rti.Rti>('!', '#', type), JS<rti.Rti>('!', '#', bound))
+      : isSubtypeOf(type, bound);
   if (!validSubtype) {
     throwTypeError('type `$type` does not extend `$bound` of `$name`.');
   }
@@ -2361,12 +2376,13 @@ class RecordType extends DartType {
   @JSExportName('is')
   bool is_T(obj) {
     if (!(obj is RecordImpl)) return false;
-    if (shape != obj.shape) return false;
-    if (types.length != obj.values.length) {
+    if (shape != JS<Shape>('!', '#[#]', obj, shapeProperty)) return false;
+    var values = JS<JSArray>('!', '#[#]', obj, valuesProperty);
+    if (types.length != values.length) {
       return false;
     }
     for (var i = 0; i < types.length; i++) {
-      if (!JS<bool>('!', '#.is(#)', types[i], obj.values[i])) {
+      if (!JS<bool>('!', '#.is(#)', types[i], values[i])) {
         return false;
       }
     }

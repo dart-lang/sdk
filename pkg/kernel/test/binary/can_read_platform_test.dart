@@ -7,54 +7,10 @@ import 'dart:io';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart';
 
+import 'find_sdk_dills.dart';
+
 void main() {
-  File exe = new File(Platform.resolvedExecutable).absolute;
-  int steps = 0;
-  Directory parent = exe.parent.parent;
-  while (true) {
-    Set<String> foundDirs = {};
-    for (FileSystemEntity entry in parent.listSync(recursive: false)) {
-      if (entry is Directory) {
-        List<String> pathSegments = entry.uri.pathSegments;
-        String name = pathSegments[pathSegments.length - 2];
-        foundDirs.add(name);
-      }
-    }
-    if (foundDirs.contains("pkg") &&
-        foundDirs.contains("tools") &&
-        foundDirs.contains("tests")) {
-      break;
-    }
-    steps++;
-    if (parent.uri == parent.parent.uri) {
-      throw "Reached end without finding the root.";
-    }
-    parent = parent.parent;
-  }
-  // We had to go $steps steps to reach the "root" --- now we should go 2 steps
-  // shorter to be in the "compiled dir".
-  parent = exe.parent;
-  for (int i = steps - 2; i >= 0; i--) {
-    parent = parent.parent;
-  }
-
-  List<File> dills = [];
-  for (FileSystemEntity entry in parent.listSync(recursive: false)) {
-    if (entry is File) {
-      if (entry.path.toLowerCase().endsWith(".dill")) {
-        dills.add(entry);
-      }
-    }
-  }
-  Directory sdk = new Directory.fromUri(parent.uri.resolve("dart-sdk/"));
-  for (FileSystemEntity entry in sdk.listSync(recursive: true)) {
-    if (entry is File) {
-      if (entry.path.toLowerCase().endsWith(".dill")) {
-        dills.add(entry);
-      }
-    }
-  }
-
+  List<File> dills = findSdkDills();
   print("Found ${dills.length} dills!");
 
   List<File> errors = [];

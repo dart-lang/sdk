@@ -50,12 +50,12 @@ static method func2(self::T0 t0) → void {
 }
 static method getDynamic() → dynamic
   return self::unknown();
-static method use(dynamic x) → dynamic
+static method use([@vm.inferred-arg-type.metadata=dart.core::_Closure] dynamic x) → dynamic
   return self::unknown(x);
 static method main(core::List<core::String> args) → dynamic {
   self::func1(self::getDynamic() as{TypeError,ForDynamic} self::T0);
   self::use(#C1);
-  self::use(new self::A::•().{self::A::method1}{(self::T0) → void});
+  self::use([@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::A.method1)] new self::A::•().{self::A::method1}{(self::T0) → void});
   self::B bb = self::getDynamic() as{TypeError,ForDynamic} self::B;
   [@vm.direct-call.metadata=#lib::C.method2] [@vm.inferred-type.metadata=!? (skip check)] bb.{self::B::method2}(self::getDynamic()){(dynamic) → void};
   self::getDynamic(){dynamic}.method3(self::getDynamic());

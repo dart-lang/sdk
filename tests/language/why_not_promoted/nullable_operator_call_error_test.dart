@@ -9,8 +9,8 @@
 class C1 {
   int? bad;
   //   ^^^
-  // [context 1] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 3] 'bad' refers to a public field so it couldn't be promoted.
+  // [context 1] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'bad' refers to a public property so it couldn't be promoted.
 }
 
 userDefinableBinaryOpLhs(C1 c) {
@@ -24,8 +24,8 @@ userDefinableBinaryOpLhs(C1 c) {
 class C2 {
   int? bad;
   //   ^^^
-  // [context 2] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 4] 'bad' refers to a public field so it couldn't be promoted.
+  // [context 2] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 4] 'bad' refers to a public property so it couldn't be promoted.
 }
 
 userDefinableUnaryOp(C2 c) {

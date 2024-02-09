@@ -1,0 +1,75 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/late_fields.dart:6:12: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late int id = 0;
+//            ^^
+//
+// pkg/front_end/testcases/extension_types/late_fields.dart:6:12: Error: 'id' is already declared in this scope.
+//   late int id = 0;
+//            ^^
+// pkg/front_end/testcases/extension_types/late_fields.dart:5:24: Context: Previous declaration of 'id'.
+// extension type ET1(int id) {
+//                        ^^
+//
+// pkg/front_end/testcases/extension_types/late_fields.dart:10:12: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late int x = 0;
+//            ^
+//
+// pkg/front_end/testcases/extension_types/late_fields.dart:14:14: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final x = 0;
+//              ^
+//
+// pkg/front_end/testcases/extension_types/late_fields.dart:18:18: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final int x;
+//                  ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type ET1(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get x() → core::int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get x() → core::int;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+extension type ET4(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get x() → core::int;
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int id) → self::ET1 /* = core::int */
+  ;
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1 /* = core::int */
+  return self::ET1|constructor#(id);
+static extension-type-member method ET2|constructor#(core::int id) → self::ET2 /* = core::int */
+  ;
+static extension-type-member method ET2|constructor#_#new#tearOff(core::int id) → self::ET2 /* = core::int */
+  return self::ET2|constructor#(id);
+static extension-type-member method ET3|constructor#(core::int id) → self::ET3 /* = core::int */
+  ;
+static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3 /* = core::int */
+  return self::ET3|constructor#(id);
+static extension-type-member method ET4|constructor#(core::int id) → self::ET4 /* = core::int */
+  ;
+static extension-type-member method ET4|constructor#_#new#tearOff(core::int id) → self::ET4 /* = core::int */
+  return self::ET4|constructor#(id);
+static method main() → dynamic
+  ;

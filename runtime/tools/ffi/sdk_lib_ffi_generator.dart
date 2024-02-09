@@ -7,6 +7,8 @@
 // The PointerPointer and PointerStruct extension are written by hand since
 // those are not repetitive.
 
+// ignore_for_file: unused_local_variable
+
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -191,7 +193,7 @@ void generatePublicExtension(
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
-  /// to `address + ${sizeTimes}length`.
+  /// to `address + sizeOf<$nativeType>() * length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
@@ -216,14 +218,39 @@ $platform$truncate$alignment  external $dartType get value;
 
   external void set value($dartType value);
 
-  /// The $property at `address + ${sizeTimes}index`.
+  /// The $property at `address + sizeOf<$nativeType>() * index`.
 $platform$truncate$alignment  external $dartType operator [](int index);
 
-  /// The $property at `address + ${sizeTimes}index`.
+  /// The $property at `address + sizeOf<$nativeType>() * index`.
 $platform$truncate$alignment  external void operator []=(int index, $dartType value);
 
   /// Pointer arithmetic (takes element size into account).
-  external Pointer<$nativeType> elementAt(int index);
+  @Deprecated('Use operator + instead')
+  Pointer<$nativeType> elementAt(int index) => Pointer.fromAddress(address + sizeOf<$nativeType>() * index);
+
+  /// A pointer to the [offset]th [$nativeType] after this one.
+  ///
+  /// Returns a pointer to the [$nativeType] whose address is
+  /// [offset] times the size of `$nativeType` after the address of this pointer.
+  /// That is `(this + offset).address == this.address + offset * sizeOf<$nativeType>()`.
+  ///
+  /// Also `(this + offset).value` is equivalent to `this[offset]`,
+  /// and similarly for setting.
+  @Since('3.3')
+  Pointer<$nativeType> operator +(int offset) => Pointer.fromAddress(address + sizeOf<$nativeType>() * offset);
+
+  /// A pointer to the [offset]th [$nativeType] before this one.
+  ///
+  /// Equivalent to `this + (-offset)`.
+  ///
+  /// Returns a pointer to the [$nativeType] whose address is
+  /// [offset] times the size of `$nativeType` before the address of this pointer.
+  /// That is, `(this - offset).address == this.address - offset * sizeOf<$nativeType>()`.
+  ///
+  /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
+  /// and similarly for setting,
+  @Since('3.3')
+  Pointer<$nativeType> operator -(int offset) => Pointer.fromAddress(address - sizeOf<$nativeType>() * offset);
 
 $asTypedList
 }
@@ -258,6 +285,7 @@ void generatePatchExtension(
       ? ""
       : """
   @patch
+  @pragma("vm:prefer-inline")
   $typedListType asTypedList(
     int length, {
      Pointer<NativeFinalizerFunction>? finalizer,
@@ -290,9 +318,6 @@ extension ${nativeType}Pointer on Pointer<$nativeType> {
 
   @patch
   operator []=(int index, $dartType value) => _store$nativeType(this, ${sizeTimes}index, value);
-
-  @patch
-  Pointer<$nativeType> elementAt(int index) => Pointer.fromAddress(address + ${sizeTimes}index);
 
 $asTypedList
 }

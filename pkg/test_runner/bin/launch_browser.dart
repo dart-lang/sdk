@@ -7,6 +7,7 @@
 /// The usage is:
 ///   DARTBIN launch_browser.dart BROWSER_NAME URL
 /// DARTBIN should be the checked in stable binary.
+library;
 
 import 'package:test_runner/src/browser_controller.dart';
 import 'package:test_runner/src/configuration.dart';

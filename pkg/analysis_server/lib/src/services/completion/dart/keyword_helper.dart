@@ -104,25 +104,31 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of an element in a collection [literal].
   void addCollectionElementKeywords(
-      TypedLiteral literal, NodeList<CollectionElement> elements) {
-    // TODO(brianwilkerson) Consider determining whether there is a comma before
+      TypedLiteral literal, NodeList<CollectionElement> elements,
+      {bool mustBeStatic = false}) {
+    // TODO(brianwilkerson): Consider determining whether there is a comma before
     //  the selection and inserting the comma if there isn't one.
     addKeyword(Keyword.FOR);
     addKeyword(Keyword.IF);
-    // TODO(brianwilkerson) Consider replacing the lines above with the
+    // TODO(brianwilkerson): Consider replacing the lines above with the
     // following lines:
     // addKeywordFromText(Keyword.FOR, ' (^)');
     // addKeywordFromText(Keyword.IF, ' (^)');
     var preceedingElement = elements.elementBefore(offset);
     if (preceedingElement != null) {
       var nextToken = preceedingElement.endToken.next!;
-      if ( //nextToken.type == TokenType.COMMA &&
-          (nextToken.isSynthetic || offset <= nextToken.offset) &&
-              preceedingElement.couldHaveTrailingElse) {
-        addKeyword(Keyword.ELSE);
+      if (nextToken.isSynthetic || offset <= nextToken.offset) {
+        if (preceedingElement.couldHaveTrailingElse) {
+          addKeyword(Keyword.ELSE);
+        } else {
+          var index = elements.indexOf(preceedingElement);
+          if (index > 0 && elements[index - 1].couldHaveTrailingElse) {
+            addKeyword(Keyword.ELSE);
+          }
+        }
       }
     }
-    addExpressionKeywords(literal);
+    addExpressionKeywords(literal, mustBeStatic: mustBeStatic);
   }
 
   /// Add the keywords that are appropriate when the selection is after the
@@ -158,7 +164,7 @@ class KeywordHelper {
   /// beginning of a constant expression. The flag [inConstantContext] should be
   /// `true` if the expression is inside a constant context.
   void addConstantExpressionKeywords({required bool inConstantContext}) {
-    // TODO(brianwilkerson) Use this method in place of `addExpressionKeywords`
+    // TODO(brianwilkerson): Use this method in place of `addExpressionKeywords`
     //  when in a constant context in order to not suggest invalid keywords.
     addKeyword(Keyword.FALSE);
     addKeyword(Keyword.NULL);
@@ -169,28 +175,26 @@ class KeywordHelper {
   }
 
   /// Add the keywords that are appropriate when the selection is in the
-  /// initializer list of the given [node].
-  void addConstructorInitializerKeywords(ConstructorDeclaration node) {
+  /// [initializer] list of the given [constructor].
+  void addConstructorInitializerKeywords(
+      ConstructorDeclaration constructor, ConstructorInitializer? initializer) {
     addKeyword(Keyword.ASSERT);
-    var suggestSuper = node.parent is! ExtensionTypeDeclaration;
-    var initializers = node.initializers;
-    if (initializers.isNotEmpty) {
+    var initializers = constructor.initializers;
+    if (initializer == null || initializers.last == initializer) {
       var last = initializers.lastNonSynthetic;
-      if (offset >= last.end &&
-          last is! SuperConstructorInvocation &&
-          last is! RedirectingConstructorInvocation) {
-        if (suggestSuper) {
+      if (last == initializer ||
+          (last is! SuperConstructorInvocation &&
+              last is! RedirectingConstructorInvocation)) {
+        if (constructor.parent is! ExtensionTypeDeclaration) {
           addKeyword(Keyword.SUPER);
         }
         addKeyword(Keyword.THIS);
       }
-    } else {
-      // if (separator.end <= offset && offset <= separator.next!.offset) {
-      if (suggestSuper) {
-        addKeyword(Keyword.SUPER);
+    } else if (initializer is ConstructorFieldInitializer) {
+      var equals = initializer.equals;
+      if (equals.end <= offset && offset <= equals.next!.offset) {
+        addKeyword(Keyword.THIS);
       }
-      addKeyword(Keyword.THIS);
-      // }
     }
   }
 
@@ -198,7 +202,7 @@ class KeywordHelper {
   /// beginning of a directive in a compilation unit. The [before] directive is
   /// the directive before the one being added.
   void addDirectiveKeywords(CompilationUnit unit, Directive? before) {
-    // TODO(brianwilkerson) If we had both the members before and after the new
+    // TODO(brianwilkerson): If we had both the members before and after the new
     //  directive, we could limit the keywords based on surrounding members.
     if (before == null && !unit.directives.any((d) => d is LibraryDirective)) {
       addKeyword(Keyword.LIBRARY);
@@ -242,7 +246,8 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of an expression. The [node] provides context to determine which
   /// keywords to include.
-  void addExpressionKeywords(AstNode? node) {
+  void addExpressionKeywords(AstNode? node,
+      {bool mustBeConstant = false, bool mustBeStatic = false}) {
     /// Return `true` if `const` should be suggested for the given [node].
     bool constIsValid(AstNode? node) {
       if (node is CollectionElement && node is! Expression) {
@@ -250,7 +255,10 @@ class KeywordHelper {
       }
       if (node is Expression) {
         return !node.inConstantContext;
-      } else if (node is ExpressionStatement || node is IfStatement) {
+      } else if (node is Block ||
+          node is EmptyStatement ||
+          node is ExpressionStatement ||
+          node is IfStatement) {
         return true;
       } else if (node is PatternVariableDeclaration) {
         return true;
@@ -263,6 +271,8 @@ class KeywordHelper {
         return true;
       } else if (node is VariableDeclaration) {
         return !node.isConst;
+      } else if (node is VariableDeclarationStatement) {
+        return !node.variables.isConst;
       } else if (node is WhenClause) {
         return true;
       }
@@ -274,7 +284,7 @@ class KeywordHelper {
       if (node is CollectionElement && node is! Expression) {
         node = node.parent;
       }
-      if (node is SwitchPatternCase) {
+      if (node is SwitchPatternCase && offset <= node.colon.offset) {
         return false;
       }
       return true;
@@ -287,11 +297,12 @@ class KeywordHelper {
       if (constIsValid(node)) {
         addKeyword(Keyword.CONST);
       }
-      if (node.inClassMemberBody) {
+      if (!mustBeConstant && !mustBeStatic) {
         addKeyword(Keyword.SUPER);
         addKeyword(Keyword.THIS);
       }
-      if (node.inAsyncMethodOrFunction) {
+      if (node.inAsyncMethodOrFunction ||
+          node.inAsyncStarOrSyncStarMethodOrFunction) {
         addKeyword(Keyword.AWAIT);
       }
       if (switchIsValid(node) && featureSet.isEnabled(Feature.patterns)) {
@@ -329,6 +340,20 @@ class KeywordHelper {
   }
 
   /// Add the keywords that are appropriate when the selection is at the
+  /// beginning of a member in an extension type.
+  void addExtensionTypeMemberKeywords({required bool isStatic}) {
+    addKeyword(Keyword.CONST);
+    addKeyword(Keyword.DYNAMIC);
+    addKeyword(Keyword.FINAL);
+    addKeyword(Keyword.GET);
+    if (!isStatic) addKeyword(Keyword.OPERATOR);
+    addKeyword(Keyword.SET);
+    if (!isStatic) addKeyword(Keyword.STATIC);
+    addKeyword(Keyword.VAR);
+    addKeyword(Keyword.VOID);
+  }
+
+  /// Add the keywords that are appropriate when the selection is at the
   /// beginning of field declaration.
   ///
   /// If the declaration consists of a single variable and the name of the
@@ -341,7 +366,7 @@ class KeywordHelper {
     }
     var fields = node.fields;
     if (fields.type == null) {
-      // TODO(brianwilkerson) We should probably not suggest types if `var` is
+      // TODO(brianwilkerson): We should probably not suggest types if `var` is
       //  being used.
       addKeyword(Keyword.DYNAMIC);
       addKeyword(Keyword.VOID);
@@ -520,10 +545,6 @@ class KeywordHelper {
   /// beginning of a statement. The [node] provides context to determine which
   /// keywords to include.
   void addStatementKeywords(AstNode node) {
-    if (node.inClassMemberBody) {
-      addKeyword(Keyword.SUPER);
-      addKeyword(Keyword.THIS);
-    }
     if (node.inAsyncMethodOrFunction) {
       addKeyword(Keyword.AWAIT);
     } else if (node.inAsyncStarOrSyncStarMethodOrFunction) {
@@ -538,22 +559,31 @@ class KeywordHelper {
     if (node.inSwitch) {
       addKeyword(Keyword.BREAK);
     }
-    // TODO(brianwilkerson) Add `else` when after an `if` statement, similar to
-    //  the way `addCollectionElementKeywords` works.
     addKeyword(Keyword.ASSERT);
-    addKeyword(Keyword.CONST);
     addKeyword(Keyword.DO);
     addKeyword(Keyword.DYNAMIC);
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.FOR);
     addKeyword(Keyword.IF);
+    if (node.inCatchClause) {
+      addKeyword(Keyword.RETHROW);
+    }
     addKeyword(Keyword.RETURN);
-    addKeyword(Keyword.SWITCH);
+    if (!featureSet.isEnabled(Feature.patterns)) {
+      // We don't suggest `switch` when patterns is enabled because `switch`
+      // will be suggested by `addExpressionKeywords`, which should always be
+      // called in conjunction with this method.
+      addKeyword(Keyword.SWITCH);
+    }
     addKeyword(Keyword.THROW);
     addKeyword(Keyword.TRY);
     addKeyword(Keyword.VAR);
     addKeyword(Keyword.VOID);
     addKeyword(Keyword.WHILE);
+    if (node.inAsyncStarOrSyncStarMethodOrFunction) {
+      addKeyword(Keyword.YIELD);
+      addKeywordFromText(Keyword.YIELD, '*');
+    }
     if (featureSet.isEnabled(Feature.non_nullable)) {
       addKeyword(Keyword.LATE);
     }

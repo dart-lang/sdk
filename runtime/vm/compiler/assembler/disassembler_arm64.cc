@@ -580,19 +580,21 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
     }
     case 'p': {
       if (format[1] == 'c') {
+        int64_t off;
         if (format[2] == 'a') {
           ASSERT(STRING_STARTS_WITH(format, "pcadr"));
           const uint64_t immhi = instr->SImm19Field();
           const uint64_t immlo = instr->Bits(29, 2);
-          const uint64_t off = (immhi << 2) | immlo;
-          const uint64_t pc = reinterpret_cast<int64_t>(instr);
-          const uint64_t dest = pc + off;
-          buffer_pos_ +=
-              Utils::SNPrint(current_position_in_buffer(),
-                             remaining_size_in_buffer(), "0x%" Px64, dest);
+          off = (immhi << 2) | immlo;
         } else {
           ASSERT(STRING_STARTS_WITH(format, "pcldr"));
-          const uint64_t off = instr->SImm19Field() << 2;
+          off = instr->SImm19Field() << 2;
+        }
+        if (FLAG_disassemble_relative) {
+          buffer_pos_ +=
+              Utils::SNPrint(current_position_in_buffer(),
+                             remaining_size_in_buffer(), "%+" Pd64 "", off);
+        } else {
           const uint64_t pc = reinterpret_cast<int64_t>(instr);
           const uint64_t dest = pc + off;
           buffer_pos_ +=

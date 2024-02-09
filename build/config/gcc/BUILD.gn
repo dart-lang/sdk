@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/toolchain/rbe.gni")
+
 # This config causes functions not to be automatically exported from shared
 # libraries. By default, all symbols are exported but this means there are
 # lots of exports that slow everything down. In general we explicitly mark
@@ -57,7 +59,11 @@ config("relative_paths") {
   # if root_build_dir is not a subdirectory //, but there isn't a better
   # option to keep all source file name references uniformly relative to
   # a single root.
-  absolute_path = rebase_path("//")
+  if (use_rbe) {
+    absolute_path = "/b/f/w/"
+  } else {
+    absolute_path = rebase_path("//")
+  }
   relative_path = ""
   cflags = [
     # This makes sure that the DW_AT_comp_dir string (the current

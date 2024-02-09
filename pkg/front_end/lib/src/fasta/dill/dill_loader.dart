@@ -350,7 +350,7 @@ severity: $severity
 
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
-    return type.accept(_typeBuilderComputer);
+    return _typeBuilderComputer.visit(type);
   }
 
   bool containsLibraryBuilder(Uri importUri) =>

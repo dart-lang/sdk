@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/reference_from_index.dart' show IndexedClass;
+import 'package:kernel/reference_from_index.dart' show IndexedContainer;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
@@ -100,31 +100,31 @@ class KernelTarget extends TargetImplementation {
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder dynamicType = new NamedTypeBuilderImpl(
-      "dynamic", const NullabilityBuilder.inherent(),
+      const PredefinedTypeName("dynamic"), const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
-      "Object", const NullabilityBuilder.omitted(),
+      const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
   //  have NullType?
   final NamedTypeBuilder nullType = new NamedTypeBuilderImpl(
-      "Null", const NullabilityBuilder.inherent(),
+      const PredefinedTypeName("Null"), const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder bottomType = new NamedTypeBuilderImpl(
-      "Never", const NullabilityBuilder.omitted(),
+      const PredefinedTypeName("Never"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder enumType = new NamedTypeBuilderImpl(
-      "Enum", const NullabilityBuilder.omitted(),
+      const PredefinedTypeName("Enum"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilderImpl(
-      "_Enum", const NullabilityBuilder.omitted(),
+      const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
@@ -335,7 +335,10 @@ class KernelTarget extends TargetImplementation {
       loader.resolveParts();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
-      NeededPrecompilations? result = loader.computeMacroDeclarations();
+      NeededPrecompilations? result =
+          context.options.globalFeatures.macros.isEnabled
+              ? loader.computeMacroDeclarations()
+              : null;
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.unknownComputeNeededPrecompilations);
@@ -490,7 +493,8 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_buildClassHierarchyMembers);
-      loader.buildClassHierarchyMembers(sortedSourceClassBuilders);
+      loader.buildClassHierarchyMembers(
+          sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeHierarchy);
       loader.computeHierarchy();
@@ -529,7 +533,8 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_checkRedirectingFactories);
-      loader.checkRedirectingFactories(sortedSourceClassBuilders);
+      loader.checkRedirectingFactories(
+          sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_finishSynthesizedParameters);
@@ -848,7 +853,7 @@ class KernelTarget extends TargetImplementation {
       if (proc.isFactory) return;
     }
 
-    IndexedClass? indexedClass = builder.referencesFromIndexed;
+    IndexedContainer? indexedClass = builder.indexedContainer;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -897,7 +902,7 @@ class KernelTarget extends TargetImplementation {
     if (supertype is TypeAliasBuilder) {
       TypeAliasBuilder aliasBuilder = supertype;
       NamedTypeBuilder namedBuilder = type;
-      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.typeArguments,
           isUsedAsClass: true,
           usedAsClassCharOffset: namedBuilder.charOffset,
           usedAsClassFileUri: namedBuilder.fileUri);
@@ -906,7 +911,7 @@ class KernelTarget extends TargetImplementation {
       installForwardingConstructors(supertype);
     }
 
-    IndexedClass? indexedClass = builder.referencesFromIndexed;
+    IndexedContainer? indexedClass = builder.indexedContainer;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -969,7 +974,7 @@ class KernelTarget extends TargetImplementation {
               builder, constructorReference, tearOffReference));
         }
       case TypeAliasBuilder():
-      case TypeVariableBuilder():
+      case NominalVariableBuilder():
       case StructuralVariableBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
@@ -1059,8 +1064,7 @@ class KernelTarget extends TargetImplementation {
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
-        new DelayedDefaultValueCloner(
-            superConstructor, constructor, substitutionMap,
+        new DelayedDefaultValueCloner(superConstructor, constructor,
             libraryBuilder: libraryBuilder);
 
     TypeDependency? typeDependency;
@@ -1457,8 +1461,7 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.fileUri);
             }
           }
-          fieldBuilder.field.initializer = new NullLiteral()
-            ..parent = fieldBuilder.field;
+          fieldBuilder.buildImplicitDefaultValue();
         }
       }
     }
@@ -1472,9 +1475,7 @@ class KernelTarget extends TargetImplementation {
       for (SourceFieldBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
-          FieldInitializer initializer =
-              new FieldInitializer(fieldBuilder.field, new NullLiteral())
-                ..isSynthetic = true;
+          Initializer initializer = fieldBuilder.buildImplicitInitializer();
           constructorBuilder.prependInitializer(initializer);
           if (fieldBuilder.isFinal) {
             libraryBuilder.addProblem(
@@ -1620,7 +1621,7 @@ class KernelTarget extends TargetImplementation {
         VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
     assert(allowVerificationErrorForTesting || errors.isEmpty,
-        "Verification errors found.");
+        "Verification errors found: $errors");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {

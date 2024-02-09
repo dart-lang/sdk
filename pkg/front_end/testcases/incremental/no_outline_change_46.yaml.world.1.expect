@@ -6,6 +6,6 @@ library from "org-dartlang-test:///main.dart" as main {
       : super dart.core::Object::•()
       ;
     external get x() → dart.core::int;
-    external set x(dart.core::int #externalFieldValue) → void;
+    external set x(synthesized dart.core::int #externalFieldValue) → void;
   }
 }

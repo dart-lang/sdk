@@ -3188,41 +3188,17 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
         UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
         uint8_t bits = entry_bits[j];
         ObjectPool::EntryType type = ObjectPool::TypeBits::decode(bits);
-        if (weak && (type == ObjectPool::EntryType::kTaggedObject)) {
-          // By default, every switchable call site will put (ic_data, code)
-          // into the object pool. The [code] is initialized (at AOT
-          // compile-time) to be [StubCode::SwitchableCallMiss] or
-          // [StubCode::MegamorphicCall].
-          //
-          // In --use-bare-instruction we reduce the extra indirection via
-          // the [code] object and store instead (ic_data, entrypoint) in
-          // the object pool.
-          //
-          // Since the actual [entrypoint] is only known at AOT runtime we
-          // switch all existing entries for these stubs to entrypoints
-          // encoded as EntryType::kSwitchableCallMissEntryPoint and
-          // EntryType::kMegamorphicCallEntryPoint.
-          if (entry.raw_obj_ == StubCode::SwitchableCallMiss().ptr()) {
-            type = ObjectPool::EntryType::kSwitchableCallMissEntryPoint;
-            bits = ObjectPool::EncodeBits(type,
-                                          ObjectPool::Patchability::kPatchable);
-          } else if (entry.raw_obj_ == StubCode::MegamorphicCall().ptr()) {
-            type = ObjectPool::EntryType::kMegamorphicCallEntryPoint;
-            bits = ObjectPool::EncodeBits(type,
-                                          ObjectPool::Patchability::kPatchable);
-          }
-        }
+        auto snapshot_behavior = ObjectPool::SnapshotBehaviorBits::decode(bits);
+        ASSERT(snapshot_behavior !=
+               ObjectPool::SnapshotBehavior::kNotSnapshotable);
         s->Write<uint8_t>(bits);
+        if (snapshot_behavior != ObjectPool::SnapshotBehavior::kSnapshotable) {
+          // The deserializer will reset this to a specific value, no need to
+          // write anything.
+          continue;
+        }
         switch (type) {
           case ObjectPool::EntryType::kTaggedObject: {
-            if ((entry.raw_obj_ == StubCode::CallNoScopeNative().ptr()) ||
-                (entry.raw_obj_ == StubCode::CallAutoScopeNative().ptr())) {
-              // Natives can run while precompiling, becoming linked and
-              // switching their stub. Reset to the initial stub used for
-              // lazy-linking.
-              s->WriteElementRef(StubCode::CallBootstrapNative().ptr(), j);
-              break;
-            }
             if (weak && !s->HasRef(entry.raw_obj_)) {
               // Any value will do, but null has the shortest id.
               s->WriteElementRef(Object::null(), j);
@@ -3239,11 +3215,6 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             // Write nothing. Will initialize with the lazy link entry.
             break;
           }
-          case ObjectPool::EntryType::kSwitchableCallMissEntryPoint:
-          case ObjectPool::EntryType::kMegamorphicCallEntryPoint:
-            // Write nothing. Entry point is initialized during
-            // snapshot deserialization.
-            break;
           default:
             UNREACHABLE();
         }
@@ -3277,15 +3248,11 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
     ASSERT(!is_canonical());  // Never canonical.
     fill_position_ = d.Position();
 #if defined(DART_PRECOMPILED_RUNTIME)
-    const uint8_t immediate_bits =
-        ObjectPool::EncodeBits(ObjectPool::EntryType::kImmediate,
-                               ObjectPool::Patchability::kPatchable);
-    uword switchable_call_miss_entry_point = 0;
-    uword megamorphic_call_entry_point = 0;
-    switchable_call_miss_entry_point =
+    const uint8_t immediate_bits = ObjectPool::EncodeBits(
+        ObjectPool::EntryType::kImmediate, ObjectPool::Patchability::kPatchable,
+        ObjectPool::SnapshotBehavior::kSnapshotable);
+    uword switchable_call_miss_entry_point =
         StubCode::SwitchableCallMiss().MonomorphicEntryPoint();
-    megamorphic_call_entry_point =
-        StubCode::MegamorphicCall().MonomorphicEntryPoint();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
@@ -3298,6 +3265,31 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
         const uint8_t entry_bits = d.Read<uint8_t>();
         pool->untag()->entry_bits()[j] = entry_bits;
         UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+        const auto snapshot_behavior =
+            ObjectPool::SnapshotBehaviorBits::decode(entry_bits);
+        ASSERT(snapshot_behavior !=
+               ObjectPool::SnapshotBehavior::kNotSnapshotable);
+        switch (snapshot_behavior) {
+          case ObjectPool::SnapshotBehavior::kSnapshotable:
+            // Handled below.
+            break;
+          case ObjectPool::SnapshotBehavior::kResetToBootstrapNative:
+            entry.raw_obj_ = StubCode::CallBootstrapNative().ptr();
+            continue;
+#if defined(DART_PRECOMPILED_RUNTIME)
+          case ObjectPool::SnapshotBehavior::
+              kResetToSwitchableCallMissEntryPoint:
+            pool->untag()->entry_bits()[j] = immediate_bits;
+            entry.raw_value_ =
+                static_cast<intptr_t>(switchable_call_miss_entry_point);
+            continue;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+          case ObjectPool::SnapshotBehavior::kSetToZero:
+            entry.raw_value_ = 0;
+            continue;
+          default:
+            FATAL("Unexpected snapshot behavior: %d\n", snapshot_behavior);
+        }
         switch (ObjectPool::TypeBits::decode(entry_bits)) {
           case ObjectPool::EntryType::kTaggedObject:
             entry.raw_obj_ = d.ReadRef();
@@ -3311,18 +3303,6 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             entry.raw_value_ = static_cast<intptr_t>(new_entry);
             break;
           }
-#if defined(DART_PRECOMPILED_RUNTIME)
-          case ObjectPool::EntryType::kSwitchableCallMissEntryPoint:
-            pool->untag()->entry_bits()[j] = immediate_bits;
-            entry.raw_value_ =
-                static_cast<intptr_t>(switchable_call_miss_entry_point);
-            break;
-          case ObjectPool::EntryType::kMegamorphicCallEntryPoint:
-            pool->untag()->entry_bits()[j] = immediate_bits;
-            entry.raw_value_ =
-                static_cast<intptr_t>(megamorphic_call_entry_point);
-            break;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
           default:
             UNREACHABLE();
         }
@@ -3331,42 +3311,6 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (d->is_non_root_unit()) {
-      // If this is a non-root unit, some pool entries that should be canonical
-      // may have been replaced be with other objects during canonicalization.
-
-      intptr_t restore_position = d->position();
-      d->set_position(fill_position_);
-
-      auto Z = d->zone();
-      ObjectPool& pool = ObjectPool::Handle(Z);
-      Object& entry = Object::Handle(Z);
-      for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-        pool ^= refs.At(id);
-        const intptr_t length = d->ReadUnsigned();
-        for (intptr_t j = 0; j < length; j++) {
-          const uint8_t entry_bits = d->Read<uint8_t>();
-          switch (ObjectPool::TypeBits::decode(entry_bits)) {
-            case ObjectPool::EntryType::kTaggedObject:
-              entry = refs.At(d->ReadUnsigned());
-              pool.SetObjectAt(j, entry);
-              break;
-            case ObjectPool::EntryType::kImmediate:
-              d->Read<intptr_t>();
-              break;
-            case ObjectPool::EntryType::kNativeFunction: {
-              // Read nothing.
-              break;
-            }
-            default:
-              UNREACHABLE();
-          }
-        }
-      }
-
-      d->set_position(restore_position);
-    }
-
 #if defined(DART_PRECOMPILED_RUNTIME) &&                                       \
     (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
     if (FLAG_disassemble) {
@@ -7142,9 +7086,7 @@ class ProgramDeserializationRoots : public DeserializationRoots {
 
   void PostLoad(Deserializer* d, const Array& refs) {
     auto isolate_group = d->isolate_group();
-    {
-      isolate_group->class_table()->CopySizesFromClassObjects();
-    }
+    { isolate_group->class_table()->CopySizesFromClassObjects(); }
     d->heap()->old_space()->EvaluateAfterLoading();
 
     auto object_store = isolate_group->object_store();

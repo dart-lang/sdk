@@ -50,16 +50,34 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  # path: ^1.8.0
+  web: ^0.4.0
 
 dev_dependencies:
   build_runner: ^2.4.0
   build_web_compilers: ^4.0.0
-  lints: ^2.1.0
+  lints: ^3.0.0
 ''';
 
 final String _readme = '''
-An absolute bare-bones web app.
+A bare-bones Dart web app.
+
+Uses [`package:web`](https://pub.dev/packages/web)
+to interop with JS and the DOM.
+
+## Running and building
+
+To run the app, use these commands:
+```
+dart pub global activate webdev
+webdev serve
+```
+
+To build a production version ready for deployment, use these commands:
+```
+webdev build
+```
+
+For more details, see https://dart.dev/web/get-started
 ''';
 
 final String _index = '''
@@ -85,10 +103,13 @@ final String _index = '''
 ''';
 
 final String _main = '''
-import 'dart:html';
+import 'package:web/helpers.dart';
 
 void main() {
-  querySelector('#output')?.text = 'Your Dart app is running.';
+  final now = DateTime.now();
+  final element = document.querySelector('#output') as HTMLDivElement;
+  element.text = 'The time is \${now.hour}:\${now.minute}'
+      ' and your Dart web app is running!';
 }
 ''';
 

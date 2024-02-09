@@ -294,22 +294,22 @@ const isWithClause = TypeMatcher<WithClause>();
 
 const isYieldStatement = TypeMatcher<YieldStatement>();
 
-/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
-/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
+// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
+// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
 final Matcher isForEachStatement = predicate(
     (Object o) => o is ForStatement && o.forLoopParts is ForEachParts);
 
-/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
-/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
+// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
+// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
 final Matcher isForStatement =
     predicate((Object o) => o is ForStatement && o.forLoopParts is ForParts);
 
-/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
-/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
+// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
+// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
 final Matcher isMapLiteral =
     predicate((Object o) => o is SetOrMapLiteral && o.isMap);
 
-/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
-/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
+// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
+// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
 final Matcher isSetLiteral =
     predicate((Object o) => o is SetOrMapLiteral && o.isSet);

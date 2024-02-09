@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
     show eraseStaticInteropTypesForJSCompilers;
 import 'package:js_shared/synced/recipe_syntax.dart' show Recipe;
+import 'package:js_shared/variance.dart' as shared_variance;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -129,7 +130,7 @@ class TypeRecipeGenerator {
       for (var i = 0; i < cls.typeParameters.length; i++) {
         var paramRecipe = '${cls.name}.${cls.typeParameters[i].name!}';
         var argumentRecipe = _futureOrNormalizer
-            .normalize(type.typeArguments[i])
+            .normalize(type.typeArguments[i].extensionTypeErasure)
             .accept(_recipeVisitor);
         supertypeEntries[paramRecipe] = argumentRecipe;
       }
@@ -150,14 +151,16 @@ class TypeRecipeGenerator {
         var recipe = interfaceTypeRecipe(currentClass);
         var typeArgumentRecipes = [
           for (var typeArgument in currentType.typeArguments)
-            _futureOrNormalizer.normalize(typeArgument).accept(_recipeVisitor)
+            _futureOrNormalizer
+                .normalize(typeArgument.extensionTypeErasure)
+                .accept(_recipeVisitor)
         ];
         // Encode the type argument mapping portion of this type rule.
         for (var i = 0; i < currentClass.typeParameters.length; i++) {
           var paramRecipe =
               '${currentClass.name}.${currentClass.typeParameters[i].name!}';
           var argumentRecipe = _futureOrNormalizer
-              .normalize(currentType.typeArguments[i])
+              .normalize(currentType.typeArguments[i].extensionTypeErasure)
               .accept(_recipeVisitor);
           supertypeEntries[paramRecipe] = argumentRecipe;
         }
@@ -167,6 +170,23 @@ class TypeRecipeGenerator {
       if (supertypeEntries.isNotEmpty) rules[recipe] = supertypeEntries;
     }
     return rules;
+  }
+
+  /// A mapping of type parameter variances for every [InterfaceType] that's
+  /// appeared in type recipes.
+  Map<String, Iterable<int>> get variances {
+    return {
+      for (var type in _recipeVisitor.visitedInterfaceTypes)
+        if (type.classNode case var cls && Class(:var typeParameters)
+            // Only emit type parameter variances for the interface if there
+            // exists at least one type parameter that doesn't have legacy
+            // covariance to avoid encoding extra information.
+            when typeParameters.any((element) => !element.isLegacyCovariant))
+          interfaceTypeRecipe(cls): [
+            for (var typeParameter in typeParameters)
+              _convertVariance(typeParameter)
+          ]
+    };
   }
 
   /// Returns a mapping of type hierarchies for all [InterfaceType]s that have
@@ -193,6 +213,21 @@ class TypeRecipeGenerator {
   Iterable<String> get visitedJsInteropTypeRecipes =>
       _recipeVisitor.visitedJsInteropTypes
           .map((type) => interfaceTypeRecipe(type.classNode));
+
+  /// Converts the AST variance of the [typeParameter] to one that can be used
+  /// at runtime.
+  int _convertVariance(TypeParameter typeParameter) {
+    if (typeParameter.isLegacyCovariant) {
+      return shared_variance.Variance.legacyCovariant.index;
+    }
+    return switch (typeParameter.variance) {
+      Variance.covariant => shared_variance.Variance.covariant.index,
+      Variance.contravariant => shared_variance.Variance.contravariant.index,
+      Variance.invariant => shared_variance.Variance.invariant.index,
+      var variance =>
+        throw UnsupportedError('Variance $variance is not supported.'),
+    };
+  }
 }
 
 /// A visitor to generate type recipe strings from a [DartType].
@@ -252,14 +287,12 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       Set.unmodifiable(_visitedJsInteropTypes);
 
   @override
-  String visitAuxiliaryType(AuxiliaryType node) {
-    throw UnsupportedError(
-        'Unsupported auxiliary type $node (${node.runtimeType}).');
-  }
+  String visitAuxiliaryType(AuxiliaryType node) =>
+      throwUnsupportedAuxiliaryType(node);
 
   @override
-  String visitInvalidType(DartType node) =>
-      throw UnimplementedError('Unknown DartType: $node');
+  String visitInvalidType(InvalidType node) =>
+      throwUnsupportedInvalidType(node);
 
   @override
   String visitDynamicType(DynamicType node) => Recipe.pushDynamicString;
@@ -370,7 +403,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
 
   @override
   String visitExtensionType(ExtensionType node) =>
-      node.typeErasure.accept(this);
+      node.extensionTypeErasure.accept(this);
 
   @override
   String visitRecordType(RecordType node) {

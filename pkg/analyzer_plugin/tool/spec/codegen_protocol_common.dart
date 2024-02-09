@@ -52,6 +52,8 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
       writeln(
           "import 'package:$packageName/src/protocol/protocol_internal.dart';");
     }
+    writeln();
+    writeln('// ignore_for_file: flutter_style_todos');
   }
 
   @override

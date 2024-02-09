@@ -22,7 +22,8 @@ class Mirrors : public AllStatic {
   V(kFactoryCtor)                                                              \
   V(kExternal)                                                                 \
   V(kSynthetic)                                                                \
-  V(kExtensionMember)
+  V(kExtensionMember)                                                          \
+  V(kExtensionTypeMember)
 
   // These offsets much be kept in sync with those in mirrors_impl.dart.
   enum KindShifts {

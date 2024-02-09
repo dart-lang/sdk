@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
@@ -48,18 +49,24 @@ Future<LinkResult> link({
 class Linker {
   final LinkedElementFactory elementFactory;
   final macro.MultiMacroExecutor? macroExecutor;
-  final DeclarationBuilder macroDeclarationBuilder = DeclarationBuilder();
+  late final DeclarationBuilder macroDeclarationBuilder;
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
 
   final Map<ElementImpl, ast.AstNode> elementNodes = Map.identity();
 
-  late InheritanceManager3 inheritance; // TODO(scheglov) cache it
+  late InheritanceManager3 inheritance; // TODO(scheglov): cache it
 
   late Uint8List resolutionBytes;
 
-  Linker(this.elementFactory, this.macroExecutor);
+  LibraryMacroApplier? _macroApplier;
+
+  Linker(this.elementFactory, this.macroExecutor) {
+    macroDeclarationBuilder = DeclarationBuilder(
+      nodeOfElement: (element) => elementNodes[element],
+    );
+  }
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -68,6 +75,8 @@ class Linker {
   DeclaredVariables get declaredVariables {
     return analysisContext.declaredVariables;
   }
+
+  LibraryMacroApplier? get macroApplier => _macroApplier;
 
   Reference get rootReference => elementFactory.rootReference;
 
@@ -97,6 +106,12 @@ class Linker {
     _writeLibraries();
   }
 
+  void _buildClassSyntheticConstructors() {
+    for (final library in builders.values) {
+      library.buildClassSyntheticConstructors();
+    }
+  }
+
   void _buildElementNameUnions() {
     for (final builder in builders.values) {
       final element = builder.element;
@@ -110,82 +125,7 @@ class Linker {
     }
   }
 
-  Future<void> _buildOutlines({
-    required OperationPerformanceImpl performance,
-  }) async {
-    _createTypeSystemIfNotLinkingDartCore();
-
-    await performance.runAsync(
-      'computeLibraryScopes',
-      (performance) async {
-        await _computeLibraryScopes(
-          performance: performance,
-        );
-      },
-    );
-
-    _createTypeSystem();
-    _resolveTypes();
-    _resolveConstructorFieldFormals();
-    _buildEnumChildren();
-    _computeFieldPromotability();
-
-    await performance.runAsync(
-      'executeMacroDeclarationsPhase',
-      (performance) async {
-        await _executeMacroDeclarationsPhase(
-          performance: performance,
-        );
-      },
-    );
-
-    SuperConstructorResolver(this).perform();
-    _performTopLevelInference();
-    _resolveConstructors();
-    _resolveConstantInitializers();
-    _resolveDefaultValues();
-    _resolveMetadata();
-    _collectMixinSuperInvokedNames();
-    _buildElementNameUnions();
-    _detachNodes();
-  }
-
-  void _collectMixinSuperInvokedNames() {
-    for (var library in builders.values) {
-      library.collectMixinSuperInvokedNames();
-    }
-  }
-
-  void _computeFieldPromotability() {
-    for (var library in builders.values) {
-      library.computeFieldPromotability();
-    }
-  }
-
-  Future<void> _computeLibraryScopes({
-    required OperationPerformanceImpl performance,
-  }) async {
-    for (var library in builders.values) {
-      library.buildElements();
-    }
-
-    await performance.runAsync(
-      'executeMacroTypesPhase',
-      (performance) async {
-        for (var library in builders.values) {
-          await library.executeMacroTypesPhase(
-            performance: performance,
-          );
-        }
-      },
-    );
-
-    for (final library in builders.values) {
-      library.buildClassSyntheticConstructors();
-    }
-
-    macroDeclarationBuilder.transferToElements();
-
+  void _buildExportScopes() {
     for (var library in builders.values) {
       library.buildInitialExportScope();
     }
@@ -235,6 +175,129 @@ class Linker {
     }
   }
 
+  Future<LibraryMacroApplier?> _buildMacroApplier() async {
+    final macroExecutor = this.macroExecutor;
+    if (macroExecutor == null) {
+      return null;
+    }
+
+    final macroApplier = LibraryMacroApplier(
+      elementFactory: elementFactory,
+      macroExecutor: macroExecutor,
+      isLibraryBeingLinked: (uri) => builders.containsKey(uri),
+      declarationBuilder: macroDeclarationBuilder,
+      runDeclarationsPhase: _executeMacroDeclarationsPhase,
+    );
+
+    for (final library in builders.values) {
+      await library.fillMacroApplier(macroApplier);
+    }
+
+    return _macroApplier = macroApplier;
+  }
+
+  Future<void> _buildOutlines({
+    required OperationPerformanceImpl performance,
+  }) async {
+    _createTypeSystemIfNotLinkingDartCore();
+
+    await performance.runAsync(
+      'computeLibraryScopes',
+      (performance) async {
+        await _computeLibraryScopes(
+          performance: performance,
+        );
+      },
+    );
+
+    _createTypeSystem();
+    _resolveTypes();
+    _setDefaultSupertypes();
+
+    await performance.runAsync(
+      'executeMacroDeclarationsPhase',
+      (performance) async {
+        await _executeMacroDeclarationsPhase(
+          targetElement: null,
+        );
+      },
+    );
+
+    _buildClassSyntheticConstructors();
+    _resolveConstructorFieldFormals();
+    _buildEnumChildren();
+    _computeFieldPromotability();
+    SuperConstructorResolver(this).perform();
+    _performTopLevelInference();
+    _resolveConstructors();
+    _resolveConstantInitializers();
+    _resolveDefaultValues();
+    _resolveMetadata();
+
+    // TODO(scheglov): verify if any resolutions should happen after
+    await performance.runAsync(
+      'executeMacroDefinitionsPhase',
+      (performance) async {
+        await _executeMacroDefinitionsPhase(
+          performance: performance,
+        );
+      },
+    );
+
+    _collectMixinSuperInvokedNames();
+    _buildElementNameUnions();
+    _detachNodes();
+
+    await performance.runAsync(
+      'mergeMacroAugmentations',
+      (performance) async {
+        await _mergeMacroAugmentations(
+          performance: performance,
+        );
+      },
+    );
+  }
+
+  void _collectMixinSuperInvokedNames() {
+    for (var library in builders.values) {
+      library.collectMixinSuperInvokedNames();
+    }
+  }
+
+  void _computeFieldPromotability() {
+    for (var library in builders.values) {
+      library.computeFieldPromotability();
+    }
+  }
+
+  Future<void> _computeLibraryScopes({
+    required OperationPerformanceImpl performance,
+  }) async {
+    for (var library in builders.values) {
+      library.buildElements();
+    }
+
+    await performance.runAsync(
+      'buildMacroApplier',
+      (performance) async {
+        await _buildMacroApplier();
+      },
+    );
+
+    await performance.runAsync(
+      'executeMacroTypesPhase',
+      (performance) async {
+        for (var library in builders.values) {
+          await library.executeMacroTypesPhase(
+            performance: performance,
+          );
+        }
+      },
+    );
+
+    _buildExportScopes();
+  }
+
   void _createTypeSystem() {
     elementFactory.createTypeProviders(
       elementFactory.dartCoreElement,
@@ -260,10 +323,45 @@ class Linker {
   }
 
   Future<void> _executeMacroDeclarationsPhase({
+    required Element? targetElement,
+  }) async {
+    while (true) {
+      var hasProgress = false;
+      for (final library in builders.values) {
+        final stepResult = await library.executeMacroDeclarationsPhase(
+          targetElement: targetElement,
+        );
+        switch (stepResult) {
+          case MacroDeclarationsPhaseStepResult.nothing:
+            break;
+          case MacroDeclarationsPhaseStepResult.otherProgress:
+            hasProgress = true;
+          case MacroDeclarationsPhaseStepResult.topDeclaration:
+            hasProgress = true;
+            _buildExportScopes();
+        }
+      }
+      if (!hasProgress) {
+        break;
+      }
+    }
+  }
+
+  Future<void> _executeMacroDefinitionsPhase({
     required OperationPerformanceImpl performance,
   }) async {
     for (final library in builders.values) {
-      await library.executeMacroDeclarationsPhase(
+      await library.executeMacroDefinitionsPhase(
+        performance: performance,
+      );
+    }
+  }
+
+  Future<void> _mergeMacroAugmentations({
+    required OperationPerformanceImpl performance,
+  }) async {
+    for (final library in builders.values) {
+      await library.mergeMacroAugmentations(
         performance: performance,
       );
     }
@@ -310,6 +408,12 @@ class Linker {
     computeSimplyBounded(this);
     TypeAliasSelfReferenceFinder().perform(this);
     TypesBuilder(this).build(nodesToBuildType);
+  }
+
+  void _setDefaultSupertypes() {
+    for (final library in builders.values) {
+      library.setDefaultSupertypes();
+    }
   }
 
   void _writeLibraries() {

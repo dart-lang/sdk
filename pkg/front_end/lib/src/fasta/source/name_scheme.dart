@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 
-enum FieldNameType { Field, Getter, Setter, IsSetField }
+enum FieldNameType { Field, Getter, Setter, IsSetField, RepresentationField }
 
 enum ContainerType { Library, Class, ExtensionType, Extension }
 
@@ -32,6 +32,7 @@ class NameScheme {
   bool get isExtensionTypeMember =>
       containerType == ContainerType.ExtensionType;
 
+  // TODO(johnniwinther): Why do we need [isSynthesized] ?
   MemberName getFieldMemberName(FieldNameType fieldNameType, String name,
       {required bool isSynthesized}) {
     bool hasSynthesizedName;
@@ -93,6 +94,8 @@ class NameScheme {
           return baseName;
         case FieldNameType.IsSetField:
           return "$namePrefix$baseName${late_lowering.lateIsSetSuffix}";
+        case FieldNameType.RepresentationField:
+          return name;
       }
     }
   }
@@ -174,6 +177,15 @@ class NameScheme {
             libraryName, containerName!, name,
             isTearOff: isTearOff);
     }
+  }
+
+  /// Returns the [MemberName] corresponding to the declared member, i.e. the
+  /// name of the member without any applied lowering.
+  MemberName getDeclaredName(String name) {
+    // TODO(johnniwinther): Add a helper method for `isPrivate`.
+    return name.startsWith('_')
+        ? new PrivateMemberName(libraryName, name)
+        : new PublicMemberName(name);
   }
 }
 

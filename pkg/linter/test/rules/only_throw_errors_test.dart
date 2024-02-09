@@ -19,12 +19,12 @@ class OnlyThrowErrorsTest extends LintRuleTest {
   String get lintRule => 'only_throw_errors';
 
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
     noSoundNullSafety = false;
   }
 
-  tearDown() {
+  void tearDown() {
     noSoundNullSafety = true;
   }
 

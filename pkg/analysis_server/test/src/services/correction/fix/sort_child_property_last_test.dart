@@ -42,7 +42,7 @@ void f() {
   );
 }
 ''');
-    // todo (pq): two diagnostics are produced but only the first is fixed.
+    // TODO(pq): two diagnostics are produced but only the first is fixed.
     // see: linter/test/rules/sort_child_properties_last.dart:nestedChildren()
     await assertHasFix('''
 import 'package:flutter/material.dart';

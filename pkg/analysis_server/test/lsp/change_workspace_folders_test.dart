@@ -6,6 +6,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'initialization_test.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -18,6 +19,7 @@ void main() {
 class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
   late String workspaceFolder1Path, workspaceFolder2Path, workspaceFolder3Path;
   late Uri workspaceFolder1Uri, workspaceFolder2Uri, workspaceFolder3Uri;
+  late Uri nonFileWorkspaceFolderUri;
 
   @override
   void setUp() {
@@ -36,6 +38,8 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     newPubspecYamlFile(workspaceFolder1Path, '');
     newPubspecYamlFile(workspaceFolder2Path, '');
     newPubspecYamlFile(workspaceFolder3Path, '');
+
+    nonFileWorkspaceFolderUri = Uri.parse('dart-foo:/foo.dart');
   }
 
   Future<void> test_changeWorkspaceFolders_add() async {
@@ -284,6 +288,47 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
       unorderedEquals([workspaceFolder1Path]),
     );
     expectContextBuilds();
+  }
+
+  /// Verifies adding non-file workspace folders does not fail.
+  ///
+  /// Related tests for initial workspace folders are in [InitializationTest].
+  Future<void> test_changeWorkspaceFolders_nonFile_add() async {
+    await initialize(workspaceFolders: [workspaceFolder1Uri]);
+    await changeWorkspaceFolders(add: [
+      workspaceFolder2Uri,
+      nonFileWorkspaceFolderUri,
+    ]);
+
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([
+        workspaceFolder1Path,
+        workspaceFolder2Path,
+      ]),
+    );
+  }
+
+  /// Verifies removing non-file workspace folders does not fail.
+  ///
+  /// Related tests for initial workspace folders are in [InitializationTest].
+  Future<void> test_changeWorkspaceFolders_nonFile_remove() async {
+    await initialize(workspaceFolders: [
+      workspaceFolder1Uri,
+      workspaceFolder2Uri,
+      nonFileWorkspaceFolderUri,
+    ]);
+    await changeWorkspaceFolders(remove: [
+      workspaceFolder2Uri,
+      nonFileWorkspaceFolderUri,
+    ]);
+
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([
+        workspaceFolder1Path,
+      ]),
+    );
   }
 
   Future<void> test_changeWorkspaceFolders_openFileOutsideRoot() async {

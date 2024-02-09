@@ -10,25 +10,26 @@
 
 class C {
   final int? _i;
-  //         ^^
-  // [context 1] '_i' couldn't be promoted because there is a conflicting declaration elsewhere in the library.
   C(this._i);
 }
 
 class D {
   int? _i;
-  //   ^
+  //   ^^
+  // [context 1] '_i' couldn't be promoted because there is a conflicting non-promotable field in class 'D'.  See http://dart.dev/go/non-promo-conflicting-non-promotable-field
   // [context 2] '_i' couldn't be promoted because there is a conflicting non-promotable field in class 'D'.
 }
 
 class E {
   int? get _i => 0;
-  //       ^
+  //       ^^
+  // [context 1] '_i' couldn't be promoted because there is a conflicting getter in class 'E'.  See http://dart.dev/go/non-promo-conflicting-getter
   // [context 2] '_i' couldn't be promoted because there is a conflicting getter in class 'E'.
 }
 
 class F implements C {
 //    ^
+// [context 1] '_i' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'F'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
 // [context 2] '_i' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'F'.
   @override
   noSuchMethod(Invocation invocation) => 0;

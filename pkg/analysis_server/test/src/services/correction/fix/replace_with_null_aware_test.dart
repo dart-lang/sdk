@@ -11,7 +11,6 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithNullAwareTest);
-    defineReflectiveTests(ReplaceWithNullAwareWithoutNullSafetyTest);
     defineReflectiveTests(UncheckedMethodInvocationOfNullableValueTest);
     defineReflectiveTests(UncheckedPropertyAccessOfNullableValueTest);
   });
@@ -101,54 +100,6 @@ void f(List<int>? l) {
       errorFilter: (error) => error.length == 1,
       matchFixMessage: "Replace the '..' with a '?..' in the invocation",
     );
-  }
-}
-
-@reflectiveTest
-class ReplaceWithNullAwareWithoutNullSafetyTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
-
-  @override
-  String? get testPackageLanguageVersion => '2.9';
-
-  Future<void> test_chain() async {
-    await resolveTestCode('''
-void f(x) {
-  x?.a.b.c;
-}
-''');
-    await assertHasFix('''
-void f(x) {
-  x?.a?.b?.c;
-}
-''');
-  }
-
-  Future<void> test_methodInvocation() async {
-    await resolveTestCode('''
-void f(x) {
-  x?.a.b();
-}
-''');
-    await assertHasFix('''
-void f(x) {
-  x?.a?.b();
-}
-''');
-  }
-
-  Future<void> test_propertyAccess() async {
-    await resolveTestCode('''
-void f(x) {
-  x?.a().b;
-}
-''');
-    await assertHasFix('''
-void f(x) {
-  x?.a()?.b;
-}
-''');
   }
 }
 

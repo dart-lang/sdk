@@ -9,8 +9,8 @@
 class C1 {
   C2? bad;
   //  ^^^
-  // [context 1] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 7] 'bad' refers to a public field so it couldn't be promoted.
+  // [context 1] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 7] 'bad' refers to a public property so it couldn't be promoted.
 }
 
 class C2 {
@@ -30,8 +30,8 @@ class C3 {
   C4? ok;
   C5? bad;
   //  ^^^
-  // [context 2] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 8] 'bad' refers to a public field so it couldn't be promoted.
+  // [context 2] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 8] 'bad' refers to a public property so it couldn't be promoted.
 }
 
 class C4 {}
@@ -60,8 +60,8 @@ extension_invocation_method(C3 c) {
 class C6 {
   C7? bad;
   //  ^^^
-  // [context 3] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 9] 'bad' refers to a public field so it couldn't be promoted.
+  // [context 3] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 9] 'bad' refers to a public property so it couldn't be promoted.
 }
 
 class C7 {
@@ -81,8 +81,8 @@ instance_getter_invocation(C6 c) {
 class C8 {
   C10? bad;
   //   ^^^
-  // [context 4] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 10] 'bad' refers to a public field so it couldn't be promoted.
+  // [context 4] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 10] 'bad' refers to a public property so it couldn't be promoted.
 }
 
 class C10 {}
@@ -103,8 +103,8 @@ extension_invocation_getter(C8 c) {
 class C11 {
   void Function()? bad;
   //               ^^^
-  // [context 5] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 11] 'bad' refers to a public field so it couldn't be promoted.
+  // [context 5] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 11] 'bad' refers to a public property so it couldn't be promoted.
 }
 
 function_invocation(C11 c) {
@@ -119,8 +119,8 @@ function_invocation(C11 c) {
 class C12 {
   C13? bad;
   //   ^^^
-  // [context 6] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 12] 'bad' refers to a public field so it couldn't be promoted.
+  // [context 6] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 12] 'bad' refers to a public property so it couldn't be promoted.
 }
 
 class C13 {

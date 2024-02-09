@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -30,7 +31,7 @@ class AddLate extends ResolvedCorrectionProducer {
             var keyword = variableList.keyword;
             if (keyword == null) {
               await _insertAt(builder, variableList.variables[0].offset);
-              // TODO(brianwilkerson) Consider converting this into an assist and
+              // TODO(brianwilkerson): Consider converting this into an assist and
               //  expand it to support converting `var` to `late` as well as
               //  working anywhere a non-late local variable or field is selected.
 //          } else if (keyword.type == Keyword.VAR) {

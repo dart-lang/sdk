@@ -62,6 +62,7 @@ verbose_gc_to_bmu_test: SkipByDesign # No verbose_gc in product mode
 http_launch_test: Skip
 io/addlatexhash_test: Skip
 io/issue_46436_test: SkipByDesign # Uses mirrors.
+io/print_test: SkipByDesign # Attempts to spawn dart using Platform.executable
 io/socket_sigpipe_test: SkipByDesign # Spawns server process using Platform.executable
 io/wait_for_event_isolate_test: SkipByDesign # Uses mirrors.
 io/wait_for_event_microtask_test: SkipByDesign # Uses mirrors.

@@ -463,6 +463,8 @@ class KernelCompilationRequest : public ValueObject {
       char const* library_uri,
       char const* klass,
       char const* method,
+      int64_t token_pos,
+      char const* script_uri,
       bool is_static,
       const MallocGrowableArray<char*>* experimental_flags) {
     if (port_ == ILLEGAL_PORT) {
@@ -605,6 +607,18 @@ class KernelCompilationRequest : public ValueObject {
     is_static_object.type = Dart_CObject_kBool;
     is_static_object.value.as_bool = is_static;
 
+    Dart_CObject token_pos_object;
+    token_pos_object.type = Dart_CObject_kInt64;
+    token_pos_object.value.as_int64 = token_pos;
+
+    Dart_CObject script_uri_object;
+    if (script_uri != nullptr) {
+      script_uri_object.type = Dart_CObject_kString;
+      script_uri_object.value.as_string = const_cast<char*>(script_uri);
+    } else {
+      script_uri_object.type = Dart_CObject_kNull;
+    }
+
     auto isolate_group = thread->isolate_group();
     auto source = isolate_group->source();
 
@@ -699,6 +713,8 @@ class KernelCompilationRequest : public ValueObject {
                                    &class_object,
                                    &method_object,
                                    &is_static_object,
+                                   &token_pos_object,
+                                   &script_uri_object,
                                    &dills_object,
                                    &num_blob_loads,
                                    &enable_asserts,
@@ -859,11 +875,11 @@ class KernelCompilationRequest : public ValueObject {
                                        ? isolate_group->asserts()
                                        : FLAG_enable_asserts;
 
-    Dart_CObject null_safety;
-    null_safety.type = Dart_CObject_kBool;
-    null_safety.value.as_bool = (isolate_group != nullptr)
-                                    ? isolate_group->null_safety()
-                                    : FLAG_sound_null_safety;
+    Dart_CObject sound_null_safety;
+    sound_null_safety.type = Dart_CObject_kBool;
+    sound_null_safety.value.as_bool = (isolate_group != nullptr)
+                                          ? isolate_group->null_safety()
+                                          : FLAG_sound_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -940,7 +956,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &dart_incremental,
                                    &dart_snapshot,
                                    &dart_embed_sources,
-                                   &null_safety,
+                                   &sound_null_safety,
                                    &isolate_id,
                                    &files,
                                    &enable_asserts,
@@ -976,17 +992,11 @@ class KernelCompilationRequest : public ValueObject {
  private:
   void LoadKernelFromResponse(Dart_CObject* response) {
     ASSERT((response->type == Dart_CObject_kTypedData) ||
-           (response->type == Dart_CObject_kBool) ||
            (response->type == Dart_CObject_kNull));
 
     if (response->type == Dart_CObject_kNull) {
       return;
     }
-    if (response->type == Dart_CObject_kBool) {
-      result_.null_safety = response->value.as_bool;
-      return;
-    }
-
     ASSERT(response->value.as_typed_data.type == Dart_TypedData_kUint8);
     result_.kernel_size = response->value.as_typed_data.length;
     result_.kernel = static_cast<uint8_t*>(malloc(result_.kernel_size));
@@ -1206,6 +1216,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
     const char* library_url,
     const char* klass,
     const char* method,
+    TokenPosition token_pos,
+    const char* script_uri,
     bool is_static) {
   Dart_Port kernel_port = WaitForKernelPort();
   if (kernel_port == ILLEGAL_PORT) {
@@ -1215,14 +1227,19 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
     return result;
   }
 
+  intptr_t token_pos_int = -1;
+  if (token_pos.IsReal()) {
+    token_pos_int = token_pos.Pos();
+  }
+
   TransitionVMToNative transition(Thread::Current());
   KernelCompilationRequest request;
   ASSERT(is_static || (klass != nullptr));
   return request.SendAndWaitForResponse(
       kernel_port, platform_kernel, platform_kernel_size, expression,
       definitions, definition_types, type_definitions, type_bounds,
-      type_defaults, library_url, klass, method, is_static,
-      experimental_flags_);
+      type_defaults, library_url, klass, method, token_pos_int, script_uri,
+      is_static, experimental_flags_);
 }
 
 Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(

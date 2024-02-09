@@ -12,7 +12,7 @@ const _truncatedError =
 
 /// Records the output from a test.
 class OutputLog implements StreamConsumer<List<int>> {
-  // TODO(45618): Reduce this if language_2/unsorted/disassemble_test is fixed
+  // TODO(45618): Reduce this if language/unsorted/disassemble_test is fixed
   // to produce less output and any other large-output tests are fixed.
   static const _maxLength = 10 * 1024 * 1024;
 

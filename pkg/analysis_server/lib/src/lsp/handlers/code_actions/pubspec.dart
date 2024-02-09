@@ -15,7 +15,7 @@ import 'package:yaml/yaml.dart';
 class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   PubspecCodeActionsProducer(
     super.server,
-    super.path,
+    super.file,
     super.lineInfo, {
     required super.offset,
     required super.length,
@@ -44,27 +44,25 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
     }
     final lineInfo = LineInfo.fromContent(content);
 
-    YamlDocument document;
+    YamlNode node;
     try {
-      document = loadYamlDocument(content);
+      node = loadYamlNode(content);
     } catch (exception) {
       return [];
     }
-    var yamlContent = document.contents;
-    if (yamlContent is! YamlMap) {
-      yamlContent = YamlMap();
-    }
-
     final errors = validatePubspec(
-      contents: yamlContent.nodes,
+      contents: node,
       source: pubspecFile.createSource(),
       provider: resourceProvider,
+      analysisOptions: server.contextManager
+          .getContextFor(path)
+          ?.getAnalysisOptionsForFile(pubspecFile),
     );
 
     final codeActions = <CodeActionWithPriority>[];
     for (final error in errors) {
       final generator =
-          PubspecFixGenerator(resourceProvider, error, content, document);
+          PubspecFixGenerator(resourceProvider, error, content, node);
       final fixes = await generator.computeFixes();
       if (fixes.isEmpty) {
         continue;

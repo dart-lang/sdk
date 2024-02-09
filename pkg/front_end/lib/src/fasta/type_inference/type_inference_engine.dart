@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/field_promotability.dart';
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    hide NamedType, RecordType;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
@@ -15,6 +17,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../kernel/benchmarker.dart' show Benchmarker;
+import '../kernel/exhaustiveness.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
@@ -25,6 +28,7 @@ import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import 'factor_type.dart';
 import 'type_inferrer.dart';
+import 'type_schema.dart';
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type
@@ -213,6 +217,7 @@ abstract class TypeInferenceEngine {
 
   static Member? resolveInferenceNode(
       Member? member, ClassHierarchyBase hierarchy) {
+    // TODO(johnniwinther): Can we remove this now?
     if (member is Field) {
       DartType type = member.type;
       if (type is InferredType) {
@@ -457,16 +462,21 @@ class FlowAnalysisResult {
   final Map<TreeNode, String> nonPromotionReasonTargets = {};
 }
 
-/// CFE-specific implementation of [TypeOperations].
+/// CFE-specific implementation of [FlowAnalysisOperations].
 class OperationsCfe
-    with TypeOperations<DartType>
-    implements Operations<VariableDeclaration, DartType> {
+    implements TypeAnalyzerOperations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
   final Nullability nullability;
 
-  /// If `null`, field promotion is disabled for this library.  If not `null`,
-  /// information about which fields are promotable in this library.
+  /// Information about which fields are promotable in this library.
+  ///
+  /// If field promotion is disabled for the current library, this field is
+  /// still populated, so that [whyPropertyIsNotPromotable] can figure out
+  /// whether enabling field promotion would cause a field to be promotable.
+  ///
+  /// The value is `null` if the current source library builder is for a patch
+  /// file (patch files don't support field promotion).
   final FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
   final Map<DartType, DartType> typeCacheNonNullable;
@@ -475,13 +485,48 @@ class OperationsCfe
 
   OperationsCfe(this.typeEnvironment,
       {required this.nullability,
-      this.fieldNonPromotabilityInfo,
+      required this.fieldNonPromotabilityInfo,
       required this.typeCacheNonNullable,
       required this.typeCacheNullable,
       required this.typeCacheLegacy});
 
   @override
   DartType get boolType => typeEnvironment.coreTypes.boolRawType(nullability);
+
+  @override
+  DartType get doubleType => throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  DartType get dynamicType => const DynamicType();
+
+  @override
+  DartType get errorType => const InvalidType();
+
+  @override
+  DartType get intType => throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  DartType get neverType => const NeverType.nonNullable();
+
+  @override
+  DartType get objectQuestionType =>
+      typeEnvironment.coreTypes.objectNullableRawType;
+
+  @override
+  DartType get unknownType => const UnknownType();
+
+  @override
+  shared.RecordType<DartType>? asRecordType(DartType type) {
+    if (type is RecordType) {
+      return new shared.RecordType(
+          positional: type.positional,
+          named: type.named
+              .map((field) => new shared.NamedType(field.name, field.type))
+              .toList());
+    } else {
+      return null;
+    }
+  }
 
   @override
   TypeClassification classifyType(DartType? type) {
@@ -504,6 +549,11 @@ class OperationsCfe
   }
 
   @override
+  bool isAlwaysExhaustiveType(DartType type) {
+    return computeIsAlwaysExhaustiveType(type, typeEnvironment.coreTypes);
+  }
+
+  @override
   bool isNever(DartType type) {
     return typeEnvironment.coreTypes.isBottom(type);
   }
@@ -512,14 +562,18 @@ class OperationsCfe
   bool isPropertyPromotable(covariant Member property) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.fieldNonPromotabilityInfo;
-    if (fieldNonPromotabilityInfo == null) return false;
+    if (fieldNonPromotabilityInfo == null) {
+      // This only happens when compiling patch files. Patch files don't support
+      // field promotion.
+      return false;
+    }
     if (property is Procedure) {
+      if (property.stubKind == ProcedureStubKind.RepresentationField) {
+        // Representation fields are promotable if they're non-public.
+        return property.name.isPrivate;
+      }
       if (!property.isAccessor) {
         // We don't promote methods.
-        return false;
-      }
-      if (property.isAbstract && !property.isAbstractFieldAccessor) {
-        // We don't promote direct references to abstract getter declarations.
         return false;
       }
     }
@@ -534,7 +588,9 @@ class OperationsCfe
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      return PropertyNonPromotabilityReason.isNotEnabled;
+      // This only happens when compiling patch files. Patch files don't support
+      // field promotion.
+      return null;
     }
     return fieldNonPromotabilityInfo.individualPropertyReasons[property];
   }
@@ -668,6 +724,23 @@ class OperationsCfe
   bool isError(DartType type) => type is InvalidType;
 
   @override
+  bool isVariableFinal(VariableDeclaration node) {
+    return node.isFinal;
+  }
+
+  @override
+  DartType iterableType(DartType elementType) {
+    return new InterfaceType(typeEnvironment.coreTypes.iterableClass,
+        Nullability.nonNullable, <DartType>[elementType]);
+  }
+
+  @override
+  DartType listType(DartType elementType) {
+    return new InterfaceType(typeEnvironment.coreTypes.listClass,
+        Nullability.nonNullable, <DartType>[elementType]);
+  }
+
+  @override
   DartType lub(DartType type1, DartType type2) {
     return typeEnvironment.getStandardUpperBound(type1, type2,
         isNonNullableByDefault: true);
@@ -679,8 +752,14 @@ class OperationsCfe
   }
 
   @override
+  DartType mapType({required DartType keyType, required DartType valueType}) {
+    return new InterfaceType(typeEnvironment.coreTypes.mapClass,
+        Nullability.nonNullable, <DartType>[keyType, valueType]);
+  }
+
+  @override
   DartType? matchListType(DartType type) {
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           typeEnvironment.getTypeArgumentsAsInstanceOf(
               type, typeEnvironment.coreTypes.listClass);
@@ -696,10 +775,10 @@ class OperationsCfe
 
   @override
   MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
-    if (type is! InterfaceType) {
+    if (type is! TypeDeclarationType) {
       return null;
     } else {
-      InterfaceType? mapType = typeEnvironment.getTypeAsInstanceOf(
+      TypeDeclarationType? mapType = typeEnvironment.getTypeAsInstanceOf(
           type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
           isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (mapType == null) {
@@ -714,7 +793,7 @@ class OperationsCfe
 
   @override
   DartType? matchStreamType(DartType type) {
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           typeEnvironment.getTypeArgumentsAsInstanceOf(
               type, typeEnvironment.coreTypes.streamClass);
@@ -741,11 +820,13 @@ class OperationsCfe
 
   @override
   DartType? matchIterableType(DartType type) {
-    if (type is! InterfaceType) {
+    if (type is! TypeDeclarationType) {
       return null;
     } else {
-      InterfaceType? interfaceType = typeEnvironment.getTypeAsInstanceOf(type,
-          typeEnvironment.coreTypes.iterableClass, typeEnvironment.coreTypes,
+      TypeDeclarationType? interfaceType = typeEnvironment.getTypeAsInstanceOf(
+          type,
+          typeEnvironment.coreTypes.iterableClass,
+          typeEnvironment.coreTypes,
           isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (interfaceType == null) {
         return null;
@@ -753,6 +834,29 @@ class OperationsCfe
         return interfaceType.typeArguments.single;
       }
     }
+  }
+
+  @override
+  DartType recordType(
+      {required List<DartType> positional,
+      required List<shared.NamedType<DartType>> named}) {
+    List<NamedType> namedFields = [];
+    for (shared.NamedType<DartType> namedType in named) {
+      namedFields.add(new NamedType(namedType.name, namedType.type));
+    }
+    namedFields.sort((f1, f2) => f1.name.compareTo(f2.name));
+    return new RecordType(positional, namedFields, Nullability.nonNullable);
+  }
+
+  @override
+  DartType streamType(DartType elementType) {
+    return new InterfaceType(typeEnvironment.coreTypes.streamClass,
+        Nullability.nonNullable, <DartType>[elementType]);
+  }
+
+  @override
+  DartType extensionTypeErasure(DartType type) {
+    return type.extensionTypeErasure;
   }
 }
 

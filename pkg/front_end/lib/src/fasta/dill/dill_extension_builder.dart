@@ -11,11 +11,13 @@ import '../builder/type_builder.dart';
 import '../scope.dart';
 import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
+import 'dill_builder_mixins.dart';
 
-class DillExtensionBuilder extends ExtensionBuilderImpl {
+class DillExtensionBuilder extends ExtensionBuilderImpl
+    with DillDeclarationBuilderMixin {
   @override
   final Extension extension;
-  List<TypeVariableBuilder>? _typeParameters;
+  List<NominalVariableBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, LibraryBuilder parent)
@@ -32,20 +34,20 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
                 parent: parent.scope,
                 debugName: "extension ${extension.name}",
                 isModifiable: false)) {
-    for (ExtensionMemberDescriptor descriptor in extension.members) {
+    for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       Name name = descriptor.name;
       switch (descriptor.kind) {
         case ExtensionMemberKind.Method:
           if (descriptor.isStatic) {
-            Procedure procedure = descriptor.member.asProcedure;
+            Procedure procedure = descriptor.memberReference.asProcedure;
             scope.addLocalMember(
                 name.text,
                 new DillExtensionStaticMethodBuilder(
                     procedure, descriptor, this),
                 setter: false);
           } else {
-            Procedure procedure = descriptor.member.asProcedure;
-            Procedure? tearOff = descriptor.tearOff?.asProcedure;
+            Procedure procedure = descriptor.memberReference.asProcedure;
+            Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
             assert(tearOff != null, "No tear found for ${descriptor}");
             scope.addLocalMember(
                 name.text,
@@ -55,25 +57,25 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
           }
           break;
         case ExtensionMemberKind.Getter:
-          Procedure procedure = descriptor.member.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
           scope.addLocalMember(name.text,
               new DillExtensionGetterBuilder(procedure, descriptor, this),
               setter: false);
           break;
         case ExtensionMemberKind.Field:
-          Field field = descriptor.member.asField;
+          Field field = descriptor.memberReference.asField;
           scope.addLocalMember(
               name.text, new DillExtensionFieldBuilder(field, descriptor, this),
               setter: false);
           break;
         case ExtensionMemberKind.Setter:
-          Procedure procedure = descriptor.member.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
           scope.addLocalMember(name.text,
               new DillExtensionSetterBuilder(procedure, descriptor, this),
               setter: true);
           break;
         case ExtensionMemberKind.Operator:
-          Procedure procedure = descriptor.member.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
           scope.addLocalMember(name.text,
               new DillExtensionOperatorBuilder(procedure, descriptor, this),
               setter: false);
@@ -83,9 +85,10 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
   }
 
   @override
-  List<TypeVariableBuilder>? get typeParameters {
+  List<NominalVariableBuilder>? get typeParameters {
     if (_typeParameters == null && extension.typeParameters.isNotEmpty) {
-      _typeParameters = computeTypeVariableBuilders(extension.typeParameters);
+      _typeParameters = computeTypeVariableBuilders(
+          extension.typeParameters, libraryBuilder.loader);
     }
     return _typeParameters;
   }
@@ -95,4 +98,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
     return _onType ??=
         libraryBuilder.loader.computeTypeBuilder(extension.onType);
   }
+
+  @override
+  List<TypeParameter> get typeParameterNodes => extension.typeParameters;
 }

@@ -453,7 +453,7 @@ class B = Object with A {}''', codes:
   void test_expressionList_multiple_end() {
     List<Expression> result = parseExpressionList(', 2, 3, 4');
     expectNotNullIfNoErrors(result);
-// TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+// TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
 //    listener.assertErrors(
 //        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)]);
@@ -466,7 +466,7 @@ class B = Object with A {}''', codes:
   void test_expressionList_multiple_middle() {
     List<Expression> result = parseExpressionList('1, 2, , 4');
     expectNotNullIfNoErrors(result);
-// TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+// TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
 //    listener.assertErrors(
 //        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)]);
@@ -1150,7 +1150,7 @@ class C {
   }
 
   void test_keywordInPlaceOfIdentifier() {
-// TODO(brianwilkerson) We could do better with this.
+// TODO(brianwilkerson): We could do better with this.
     parseCompilationUnit("do() {}",
         codes: [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD]);
   }

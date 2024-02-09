@@ -30,7 +30,7 @@ class C<T> {
   void test(String nameOfT, bool expectedResult) {
     check(bool expectedResult, f()) {
       if (!expectedResult) {
-        Expect.throwsTypeError(f);
+        if (!dart2jsProductionMode) Expect.throwsTypeError(f);
       } else {
         f();
       }

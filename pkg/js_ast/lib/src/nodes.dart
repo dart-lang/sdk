@@ -1739,6 +1739,9 @@ class New extends Call {
 
   @override
   New _clone() => New(target, arguments);
+
+  @override
+  int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
 class Binary extends Expression {
@@ -2049,13 +2052,8 @@ class ArrowFunction extends FunctionExpression {
   @override
   final AsyncModifier asyncModifier;
 
-  /// Indicates whether it is permissible to try to emit this arrow function
-  /// in a form with an implicit 'return'.
-  final bool implicitReturnAllowed;
-
   ArrowFunction(this.params, this.body,
-      {this.asyncModifier = AsyncModifier.sync,
-      this.implicitReturnAllowed = true});
+      {this.asyncModifier = AsyncModifier.sync});
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrowFunction(this);
@@ -2081,9 +2079,8 @@ class ArrowFunction extends FunctionExpression {
   }
 
   @override
-  ArrowFunction _clone() => ArrowFunction(params, body,
-      asyncModifier: asyncModifier,
-      implicitReturnAllowed: implicitReturnAllowed);
+  ArrowFunction _clone() =>
+      ArrowFunction(params, body, asyncModifier: asyncModifier);
 
   @override
   int get precedenceLevel => ASSIGNMENT;

@@ -16,10 +16,6 @@ assert/initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporti
 assert/initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assert/initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
 
-[ $arch == arm64 && $runtime == vm ]
-class/large_class_declaration_test: SkipSlow # Uses too much memory.
-closure/cycles_test: Pass, Slow
-
 [ $arch == ia32 && $mode == release && $runtime == vm ]
 syntax/deep_nesting_expression_test/01: Crash, Pass # Issue 31496
 

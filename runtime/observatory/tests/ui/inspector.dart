@@ -216,7 +216,7 @@ class Node {
         extractPrivateField(reflectClass(A).typeVariables.single, '_reflectee');
     typedDataArray = Uint8List(32);
     typedDataView = Uint8List.view(typedDataArray.buffer, 16);
-    typedDataUnmodifiableView = UnmodifiableUint8ListView(typedDataArray);
+    typedDataUnmodifiableView = typedDataArray.asUnmodifiableView();
     userTag = new UserTag("Example tag name");
     weakProperty =
         extractPrivateField(expando, '_data').firstWhere((e) => e != null);

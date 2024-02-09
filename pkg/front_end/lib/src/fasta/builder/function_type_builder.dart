@@ -32,6 +32,8 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   final Uri? fileUri;
   @override
   final int charOffset;
+  @override
+  final bool hasFunctionFormalParameterSyntax;
 
   factory FunctionTypeBuilderImpl(
       TypeBuilder returnType,
@@ -39,7 +41,8 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       List<ParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri? fileUri,
-      int charOffset) {
+      int charOffset,
+      {bool hasFunctionFormalParameterSyntax = false}) {
     bool isExplicit = true;
     if (!returnType.isExplicit) {
       isExplicit = false;
@@ -61,17 +64,35 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       }
     }
     return isExplicit
-        ? new _ExplicitFunctionTypeBuilder(returnType, typeVariables, formals,
-            nullabilityBuilder, fileUri, charOffset)
-        : new _InferredFunctionTypeBuilder(returnType, typeVariables, formals,
-            nullabilityBuilder, fileUri, charOffset);
+        ? new _ExplicitFunctionTypeBuilder(
+            returnType,
+            typeVariables,
+            formals,
+            nullabilityBuilder,
+            fileUri,
+            charOffset,
+            hasFunctionFormalParameterSyntax)
+        : new _InferredFunctionTypeBuilder(
+            returnType,
+            typeVariables,
+            formals,
+            nullabilityBuilder,
+            fileUri,
+            charOffset,
+            hasFunctionFormalParameterSyntax);
   }
 
-  FunctionTypeBuilderImpl._(this.returnType, this.typeVariables, this.formals,
-      this.nullabilityBuilder, this.fileUri, this.charOffset);
+  FunctionTypeBuilderImpl._(
+      this.returnType,
+      this.typeVariables,
+      this.formals,
+      this.nullabilityBuilder,
+      this.fileUri,
+      this.charOffset,
+      this.hasFunctionFormalParameterSyntax);
 
   @override
-  String? get name => null;
+  TypeName? get typeName => null;
 
   @override
   String get debugName => "Function";
@@ -163,7 +184,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   }
 
   @override
-  Supertype? buildSupertype(LibraryBuilder library) {
+  Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     library.addProblem(
         messageSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
@@ -171,7 +192,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
-    return buildSupertype(library);
+    return buildSupertype(library, TypeUse.classWithType);
   }
 
   @override
@@ -221,9 +242,10 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
       List<ParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri? fileUri,
-      int charOffset)
+      int charOffset,
+      bool hasFunctionFormalParameterSyntax)
       : super._(returnType, typeVariables, formals, nullabilityBuilder, fileUri,
-            charOffset);
+            charOffset, hasFunctionFormalParameterSyntax);
 
   @override
   bool get isExplicit => true;
@@ -250,9 +272,10 @@ class _InferredFunctionTypeBuilder extends FunctionTypeBuilderImpl
       List<ParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri? fileUri,
-      int charOffset)
+      int charOffset,
+      bool hasFunctionFormalParameterSyntax)
       : super._(returnType, typeVariables, formals, nullabilityBuilder, fileUri,
-            charOffset);
+            charOffset, hasFunctionFormalParameterSyntax);
 
   @override
   bool get isExplicit => false;

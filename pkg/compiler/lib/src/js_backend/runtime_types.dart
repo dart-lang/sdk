@@ -97,19 +97,6 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
     TypeChecks typeChecks = _substitutions._computeChecks(classUseMap);
     return TrivialTypesChecks(typeChecks);
   }
-
-  Set<ClassEntity> computeCheckedClasses(
-      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
-    return _closedWorld.classHierarchy
-        .getClassSet(_closedWorld.commonElements.objectClass)
-        .subtypes()
-        .toSet();
-  }
-
-  Set<FunctionType> computeCheckedFunctions(
-      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
-    return {};
-  }
 }
 
 mixin RuntimeTypesSubstitutionsMixin implements RuntimeTypesSubstitutions {

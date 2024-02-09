@@ -58,10 +58,8 @@ mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
           error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
               206, 10),
         ];
-        break;
       case _Variant.patterns:
         expectedErrors = [];
-        break;
     }
 
     await assertErrorsInCode('''
@@ -104,13 +102,11 @@ void f(A e) {
               171,
               10),
         ];
-        break;
       case _Variant.patterns:
         expectedErrors = [
           error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 145, 2),
           error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 171, 10),
         ];
-        break;
     }
 
     await assertErrorsInCode('''

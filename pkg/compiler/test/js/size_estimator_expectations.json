@@ -168,9 +168,14 @@
       "minified": "function foo(){return function bar(){return null}}"
     },
     {
-      "original": "if (x == true) { bar(); }",
+      "original": "if (x == true) bar();",
       "expected": "if(#==!0)#()",
       "minified": "if(x==true)bar()"
+    },
+    {
+      "original": "if (x == true) { bar(); }",
+      "expected": "if(#==!0){#();}",
+      "minified": "if(x==true){bar()}"
     },
     {
       "original": "if (x > 4 && y < 5) { 1; 2; }",
@@ -179,11 +184,21 @@
     },
     {
       "original": "if (x == true) { return true; } else if (y < 3 || z > 5) { return l != null ? 'a' : 4; } else { foo(); return; }",
+      "expected": "if(#==!0){return !0;}else if(#<3||#>5){return #!=null?\"a\":4;}else{#();return;}",
+      "minified": "if(x==true){return true}else if(y<3||z>5){return l!=null?\"a\":4}else{foo();return}"
+    },
+    {
+      "original": "if (x == true) return true; else if (y < 3 || z > 5) return l != null ? 'a' : 4; else { foo(); return; }",
       "expected": "if(#==!0)return !0;else if(#<3||#>5)return #!=null?\"a\":4;else{#();return;}",
       "minified": "if(x==true)return true;else if(y<3||z>5)return l!=null?\"a\":4;else{foo();return}"
     },
     {
       "original": "for (var a = 0; a < 10; a++) { foo(a); }",
+      "expected": "for(var #=0;#<10;#++){#(#);}",
+      "minified": "for(var a=0;a<10;a++){foo(a)}"
+    },
+    {
+      "original": "for (var a = 0; a < 10; a++) foo(a);",
       "expected": "for(var #=0;#<10;#++)#(#)",
       "minified": "for(var a=0;a<10;a++)foo(a)"
     },
@@ -194,6 +209,11 @@
     },
     {
       "original": "while (x != null) { foo(); }",
+      "expected": "while(#!=null){#();}",
+      "minified": "while(x!=null){foo()}"
+    },
+    {
+      "original": "while (x != null) foo();",
       "expected": "while(#!=null)#()",
       "minified": "while(x!=null)foo()"
     },

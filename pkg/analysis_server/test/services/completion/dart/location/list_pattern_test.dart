@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ListPatternTest1);
-    defineReflectiveTests(ListPatternTest2);
+    defineReflectiveTests(ListPatternTest);
   });
 }
 
 @reflectiveTest
-class ListPatternTest1 extends AbstractCompletionDriverTest
-    with ListPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ListPatternTest2 extends AbstractCompletionDriverTest
-    with ListPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ListPatternTest extends AbstractCompletionDriverTest
+    with ListPatternTestCases {}
 
 mixin ListPatternTestCases on AbstractCompletionDriverTest {
   Future<void> test_element_first() async {
@@ -54,14 +43,10 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
   v01
     kind: topLevelVariable
-  v11
-    kind: localVariable
   var
     kind: keyword
 ''');
@@ -93,14 +78,10 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
   v01
     kind: topLevelVariable
-  v11
-    kind: localVariable
   var
     kind: keyword
 ''');
@@ -132,14 +113,10 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
   v01
     kind: topLevelVariable
-  v11
-    kind: localVariable
   var
     kind: keyword
 ''');
@@ -171,14 +148,10 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
   v01
     kind: topLevelVariable
-  v11
-    kind: localVariable
   var
     kind: keyword
 ''');

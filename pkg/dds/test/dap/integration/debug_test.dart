@@ -89,11 +89,45 @@ main() {
       expect(proc, isNotNull);
       expect(
         runInTerminalArgs!.args,
-        containsAllInOrder([Platform.resolvedExecutable, testFile.path]),
+        containsAllInOrder([
+          Platform.resolvedExecutable,
+          dap.client.uppercaseDriveLetter(testFile.path),
+        ]),
       );
       expect(proc!.pid, isPositive);
       expect(proc!.exitCode, completes);
     });
+
+    test('runs a simple script with commas in the filename', () async {
+      final packageUri = await dap.createFooPackage('foo,foo.dart');
+      final testFile = dap.createTestFile(
+        '''
+          import '$packageUri';
+          void main() {
+            foo();
+          }
+        ''',
+      );
+
+      final outputEvents = await dap.client.collectOutput(
+        launch: () => dap.client.launch(
+          testFile.path,
+          args: ['one', 'two'],
+        ),
+      );
+
+      // Expect the normal applications output. This means we set up the
+      // debugger without crashing, even though we imported files with commas
+      // in the name.
+      final output = outputEvents.skip(1).map((e) => e.output).join();
+      expectLines(output, [
+        'Hello!',
+        'World!',
+        'args: [one, two]',
+        '',
+        'Exited.',
+      ]);
+    }, skip: 'Fails because of https://github.com/dart-lang/sdk/issues/52632');
 
     test('does not resume isolates if user passes --pause-isolates-on-exit',
         () async {
@@ -489,6 +523,46 @@ main() {
         client.expectStop('pause'),
         client.pause(thread.threadId),
       ], eagerError: true);
+    });
+
+    test('can restart frame', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(restartFrameProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final outputEventsFuture = dap.client.outputEvents.toList();
+
+      // Stop at the breakpoint in the printMessage function.
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final threadId = stop.threadId!;
+
+      // Restart back to the main function and expect a new stop event.
+      final stack =
+          await client.getValidStack(threadId, startFrame: 0, numFrames: 2);
+      final mainFunctionFrame = stack.stackFrames[1];
+      await Future.wait([
+        client.expectStop('step'),
+        client.restartFrame(mainFunctionFrame.id),
+      ], eagerError: true);
+
+      // Resume, hit breakpoint again, resume to end.
+      await Future.wait([
+        client.expectStop('breakpoint'),
+        client.continue_(threadId),
+      ], eagerError: true);
+      await Future.wait([
+        client.event('terminated'),
+        client.continue_(threadId),
+      ], eagerError: true);
+
+      // Finally, verify we got output that shows we restarted and re-ran the
+      // code before the breakpoint.
+      final outputEvents = await outputEventsFuture;
+      final outputMessages = outputEvents.map((e) => e.output.trim());
+
+      expect(
+        outputMessages,
+        containsAll(['Hello', 'Hello', 'World']),
+      );
     });
 
     test('forwards tool events to client', () async {

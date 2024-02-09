@@ -6,7 +6,7 @@
 if (!self.dart_library) {
   self.dart_library = typeof module != 'undefined' && module.exports || {};
 
-  (function(dart_library) {
+  (function (dart_library) {
     'use strict';
 
     // Throws an error related to module loading.
@@ -18,7 +18,7 @@ if (!self.dart_library) {
       // capturing the exception.
       if (!!self.dispatchEvent) {
         self.dispatchEvent(
-            new CustomEvent('dartLoadException', {detail: message}));
+          new CustomEvent('dartLoadException', { detail: message }));
       }
       throw Error(message);
     }
@@ -83,7 +83,7 @@ if (!self.dart_library) {
     // in CSV format.
     function metricsCsv() {
       let buffer =
-          'Module, JS Size, Dart Size, Load Start, Load End, Cumulative JS Size\n';
+        'Module, JS Size, Dart Size, Load Start, Load End, Cumulative JS Size\n';
       const keys = Array.from(_libraries.keys());
       keys.sort(_sortFn);
       let cumulativeJsSize = 0;
@@ -95,7 +95,7 @@ if (!self.dart_library) {
         const loadStart = lib.firstLibraryValue[_metrics].loadStart;
         const loadEnd = lib.firstLibraryValue[_metrics].loadEnd;
         buffer += '"' + lib._name + '", ' + jsSize + ', ' + dartSize + ', ' +
-            loadStart + ', ' + loadEnd + ', ' + cumulativeJsSize + '\n';
+          loadStart + ', ' + loadEnd + ', ' + cumulativeJsSize + '\n';
       }
       return buffer;
     }
@@ -108,7 +108,7 @@ if (!self.dart_library) {
     // Returns a proxy that delegates to the underlying loader.
     // This defers loading of a module until a library is actually used.
     const loadedModule = Symbol('loadedModule');
-    self.dart_library.defer = function(module, name, patch) {
+    self.dart_library.defer = function (module, name, patch) {
       let done = false;
       function loadDeferred() {
         done = true;
@@ -121,11 +121,11 @@ if (!self.dart_library) {
       // library object should be get (to read a top-level variable, method, or
       // Class) or set (to write a top-level variable).
       return new Proxy({}, {
-        get: function(o, p) {
+        get: function (o, p) {
           if (!done) loadDeferred();
           return module[name][p];
         },
-        set: function(o, p, value) {
+        set: function (o, p, value) {
           if (!done) loadDeferred();
           module[name][p] = value;
           return true;
@@ -138,9 +138,9 @@ if (!self.dart_library) {
     // App name to set of libraries that were not only loaded on the page but
     // also executed.
     const _executedLibraries = new Map();
-    self.dart_library.executedLibraryCount = function() {
+    self.dart_library.executedLibraryCount = function () {
       let count = 0;
-      _executedLibraries.forEach(function(executedLibraries, _) {
+      _executedLibraries.forEach(function (executedLibraries, _) {
         count += executedLibraries.size;
       });
       return count;
@@ -161,7 +161,7 @@ if (!self.dart_library) {
 
     class LibraryLoader {
       constructor(name, defaultLibraryValue, imports, loader, data) {
-        imports.forEach(function(i) {
+        imports.forEach(function (i) {
           let deps = _reverseImports.get(i);
           if (!deps) {
             deps = new Set();
@@ -171,7 +171,7 @@ if (!self.dart_library) {
         });
         this._name = name;
         this._defaultLibraryValue =
-            defaultLibraryValue ? defaultLibraryValue : {};
+          defaultLibraryValue ? defaultLibraryValue : {};
         this._imports = imports;
         this._loader = loader;
         data.jsSize = loader.toString().length;
@@ -184,7 +184,7 @@ if (!self.dart_library) {
         // TODO(b/204209941): Remove _firstLibraryInstance after debugger and
         // metrics support multiple apps.
         this._firstLibraryInstance =
-            new LibraryInstance(this._deepCopyDefaultValue());
+          new LibraryInstance(this._deepCopyDefaultValue());
         this._firstLibraryInstanceUsed = false;
 
         // App name to instance map.
@@ -254,7 +254,7 @@ if (!self.dart_library) {
           // Load / parse other modules on demand.
           let done = false;
           instance.libraryValue = new Proxy(library, {
-            get: function(o, name) {
+            get: function (o, name) {
               if (name == _metrics) {
                 return o[name];
               }
@@ -295,12 +295,12 @@ if (!self.dart_library) {
 
     // Map from name to LibraryLoader
     let _libraries = new Map();
-    self.dart_library.libraries = function() {
+    self.dart_library.libraries = function () {
       return _libraries.keys();
     };
-    self.dart_library.debuggerLibraries = function() {
+    self.dart_library.debuggerLibraries = function () {
       let debuggerLibraries = [];
-      _libraries.forEach(function(value, key, map) {
+      _libraries.forEach(function (value, key, map) {
         debuggerLibraries.push(value.load(_firstStartedAppName));
       });
       Object.setPrototypeOf(debuggerLibraries, null);
@@ -312,7 +312,7 @@ if (!self.dart_library) {
       let lib = _libraries.get(name);
       if (lib._instanceMap.size === 0) return;
       lib._firstLibraryInstance =
-          new LibraryInstance(lib._deepCopyDefaultValue());
+        new LibraryInstance(lib._deepCopyDefaultValue());
       lib._firstLibraryInstanceUsed = false;
       lib._instanceMap.clear();
       let deps = _reverseImports.get(name);
@@ -327,7 +327,7 @@ if (!self.dart_library) {
         _invalidateLibrary(name);
       }
       result =
-          new LibraryLoader(name, defaultLibraryValue, imports, loader, data);
+        new LibraryLoader(name, defaultLibraryValue, imports, loader, data);
       _libraries.set(name, result);
       return result;
     }
@@ -335,8 +335,8 @@ if (!self.dart_library) {
 
     // Store executed modules upon reload.
     if (!!self.addEventListener && !!self.localStorage) {
-      self.addEventListener('beforeunload', function(event) {
-        _nameToApp.forEach(function(_, appName) {
+      self.addEventListener('beforeunload', function (event) {
+        _nameToApp.forEach(function (_, appName) {
           if (!_executedLibraries.get(appName)) {
             return;
           }
@@ -345,7 +345,7 @@ if (!self.dart_library) {
             'modules': Array.from(_executedLibraries.get(appName).keys()),
           };
           self.localStorage.setItem(
-              `dartLibraryCache:${appName}`, JSON.stringify(libraryCache));
+            `dartLibraryCache:${appName}`, JSON.stringify(libraryCache));
         });
       });
     }
@@ -365,31 +365,31 @@ if (!self.dart_library) {
       }
       if (proxy) return proxy;
       let proxyLib = new Proxy({}, {
-        get: function(o, p) {
+        get: function (o, p) {
           let lib = _libraries.get(name);
           if (self.$dartJITModules) {
             // The backing module changed so update the reference
             if (!lib) {
               let xhr = new XMLHttpRequest();
-              let sourceURL = $dartLoader.moduleIdToUrl.get(name);
+              let sourceURL = self.$dartLoader.moduleIdToUrl.get(name);
               xhr.open('GET', sourceURL, false);
               xhr.withCredentials = true;
               xhr.send();
               // Add inline policy to make eval() call Trusted Types compatible
               // when running in a TT compatible browser
               let policy = {
-                createScript: function(script) {
+                createScript: function (script) {
                   return script;
                 }
               };
               if (self.trustedTypes && self.trustedTypes.createPolicy) {
                 policy = self.trustedTypes.createPolicy(
-                    'dartDdcModuleLoading#dart_library', policy);
+                  'dartDdcModuleLoading#dart_library', policy);
               }
               // Append sourceUrl so the resource shows up in the Chrome
               // console.
               eval(policy.createScript(
-                  xhr.responseText + '//@ sourceURL=' + sourceURL));
+                xhr.responseText + '//@ sourceURL=' + sourceURL));
               lib = _libraries.get(name);
             }
           }
@@ -482,7 +482,7 @@ if (!self.dart_library) {
       const dirtyAppNames = new Array();
       const dirtySubapps = new Array();
       if (config && config.runId) {
-        _nameToApp.forEach(function(app, appName) {
+        _nameToApp.forEach(function (app, appName) {
           dirtySubapps.push(...app.uuidToSubapp.values());
           dirtyAppNames.push(appName);
         });
@@ -499,11 +499,11 @@ if (!self.dart_library) {
           const result = subapp.library.onReloadStart();
           if (result && result.then) {
             let resolve;
-            onReloadStartPromises.push(new Promise(function(res, _) {
+            onReloadStartPromises.push(new Promise(function (res, _) {
               resolve = res;
             }));
             const dart = sdk.libraryValueInApp(subapp.appName).dart;
-            result.then(dart.dynamic, function() {
+            result.then(dart.dynamic, function () {
               resolve();
             });
           }
@@ -530,11 +530,11 @@ if (!self.dart_library) {
       // Starts the subapps in their starting order.
       for (const subapp of dirtySubapps) {
         // Call the module loader to reload the necessary modules.
-        self.$dartReloadModifiedModules(subapp.appName, function() {
+        self.$dartReloadModifiedModules(subapp.appName, function () {
           // Once the modules are loaded, rerun `main()`.
           start(
-              subapp.appName, subapp.uuid, subapp.moduleName,
-              subapp.libraryName, true);
+            subapp.appName, subapp.uuid, subapp.moduleName,
+            subapp.libraryName, true);
         });
       }
     }
@@ -542,23 +542,23 @@ if (!self.dart_library) {
 
     // Creates a script with the proper nonce value for strict CSP or noops on
     // invalid platforms.
-    self.dart_library.createScript = (function() {
+    self.dart_library.createScript = (function () {
       // Exit early if we aren't modifying an HtmlElement (such as in D8).
       if (self.document.createElement == void 0) return;
       // Find the nonce value. (Note, this is only computed once.)
-      let scripts = Array.from(document.getElementsByTagName('script'));
+      const scripts = Array.from(document.getElementsByTagName('script'));
       let nonce;
       scripts.some(
-          script => (nonce = script.nonce || script.getAttribute('nonce')));
+        script => (nonce = script.nonce || script.getAttribute('nonce')));
       // If present, return a closure that automatically appends the nonce.
       if (nonce) {
-        return function() {
+        return function () {
           let script = document.createElement('script');
           script.nonce = nonce;
           return script;
         };
       } else {
-        return function() {
+        return function () {
           return document.createElement('script');
         };
       }
@@ -601,7 +601,7 @@ if (!self.dart_library) {
     /// `libraryName` inside a parent app that is identified by `appName`.
     function start(appName, uuid, moduleName, libraryName, isReload) {
       console.info(
-          `DDC: Subapp Module [${appName}:${moduleName}:${uuid}] is starting`);
+        `DDC: Subapp Module [${appName}:${moduleName}:${uuid}] is starting`);
       if (libraryName == null) libraryName = moduleName;
       const library = import_(moduleName, appName)[libraryName];
 
@@ -667,6 +667,354 @@ if (!self.dart_library) {
   })(dart_library);
 }
 
+// Initialize the DDC module loader.
+//
+// Scripts are JS objects with the following structure:
+//   {"src": "path/to/script.js", "id": "lookup_id_for_script"}
+(function () {
+  let _currentDirectory = (function () {
+    let _url;
+    let lines = new Error().stack.split('\n');
+    function lookupUrl() {
+      if (lines.length > 2) {
+        let match = lines[1].match(/^\s+at (.+):\d+:\d+.*$/);
+        // Chrome.
+        if (match) return match[1];
+        // Chrome nested eval case.
+        match = lines[1].match(/^\s+at eval [(](.+):\d+:\d+[)]$/);
+        if (match) return match[1];
+        // Edge.
+        match = lines[1].match(/^\s+at.+\((.+):\d+:\d+\)$/);
+        if (match) return match[1];
+        // Firefox.
+        match = lines[0].match(/[<][@](.+):\d+:\d+$/);
+        if (match) return match[1];
+      }
+      // Safari.
+      return lines[0].match(/[@](.+):\d+:\d+$/)[1];
+    }
+    _url = lookupUrl();
+    let lastSlash = _url.lastIndexOf('/');
+    if (lastSlash == -1) return _url;
+    let currentDirectory = _url.substring(0, lastSlash + 1);
+    return currentDirectory;
+  })();
+
+  let trimmedDirectory = _currentDirectory.endsWith("/") ?
+    _currentDirectory.substring(0, _currentDirectory.length - 1)
+    : _currentDirectory;
+
+  if (!self.$dartLoader) {
+    self.$dartLoader = {
+      // Maps cosmetic (but stable) module names to their fully resolved URL.
+      //
+      // TODO(markzipan): Multi-app scripts can have module name conflicts.
+      // This should ideally be separated per-app.
+      moduleIdToUrl: new Map(),
+      // Contains root directories below which scripts are resolved.
+      rootDirectories: new Array(),
+      // This mapping is required for proper translation of stack traces.
+      urlToModuleId: new Map(),
+      // The DDCLoader used for this app. Should not be used in multi-app
+      // scenarios.
+      loader: null,
+      // The LoadConfiguration used for this app's DDCLoader. Should not be used
+      // in multi-app scenarios.
+      loadConfig: null
+    };
+
+    // Every distinct DDC app requires its own load configuration.
+    self.$dartLoader.LoadConfiguration = class LoadConfiguration {
+      constructor() {
+        // Identifies the bootstrap script.
+        // This should be set by bootstrappers for bootstrap-specific hooks.
+        this.bootstrapScript = null;
+
+        // True if the bootstrap script should be loaded on the this attempt.
+        this.tryLoadBootstrapScript = false;
+
+        // The underlying function that loads scripts.
+        //
+        // @param {function(!DDCLoader)}
+        this.loadScriptFn = (_) => { };
+
+        // The root for script URLs. Defaults to the root of this file.
+        //
+        // TODO(markzipan): Using the default is not safe in a multi-app scenario
+        // due to apps clobbering state on dartLoader. Move this to the local
+        // DDCLoader, which is unique per-app.
+        this.root = trimmedDirectory;
+
+        // Optional event handlers.
+        // Called when modules begin loading.
+        this.onLoadStart = () => { };
+        // Called when the app fails to load after retrying.
+        this.onLoadError = () => { };
+        // Called if loading the bootstrap script is successful.
+        this.onBootstrapSuccess = () => { };
+        // Called if the bootstrap script fails to load.
+        this.onBootstrapError = () => { };
+
+        this.maxRequestPoolSize = 1000;
+
+        // Max retry to prevent from load failing scripts forever.
+        this.maxAttempts = 6;
+      }
+    };
+  }
+
+  // Add a `forceLoadModule` function to the dartLoader since it's required by
+  // the google3 load strategy.
+  // TODO(markzipan): Is there a cleaner way to integrate this?
+  self.$dartLoader.forceLoadModule = function (moduleName) {
+    let script = self.dart_library.createScript();
+    let policy = {
+      createScriptURL: function (src) { return src; }
+    };
+    if (self.trustedTypes && self.trustedTypes.createPolicy) {
+      policy = self.trustedTypes.createPolicy('dartDdcModuleUrl', policy);
+    }
+    script.setAttribute('src', policy.createScriptURL(_currentDirectory + moduleName + '.js'));
+    document.head.appendChild(script);
+  };
+
+  // Handles JS script downloads and evaluation for a DDC app.
+  //
+  // Every DDC application requires exactly one DDCLoader.
+  self.$dartLoader.DDCLoader = class DDCLoader {
+    constructor(loadConfig) {
+      this.attemptCount = 0;
+
+      this.loadConfig = loadConfig;
+
+      // Scripts that await to be loaded.
+      this.queue = new Array();
+
+      // These refer to scripts already added to the document (as script tag).
+      this.numToLoad = 0;
+      this.numLoaded = 0;
+      this.numFailed = 0;
+
+      // Resets all the fields and makes a load attempt.
+      this.nextAttempt = function () {
+        if (this.attemptCount == 0) {
+          this.loadConfig.onLoadStart();
+        }
+        this.attemptCount++;
+        this.queue = new Array();
+        this.numToLoad = 0;
+        this.numLoaded = 0;
+        this.numFailed = 0;
+
+        this.loadConfig.loadScriptFn(this);
+      };
+    }
+
+    // If all scripts from all the current visited scripts queue are being processed
+    // (loaded or failed).
+    scriptsActivelyBeingLoaded() {
+      return this.numToLoad > this.numLoaded + this.numFailed;
+    };
+
+    // Joins path segments from the root directory to [script]'s path to get a
+    // complete URL.
+    getScriptUrl(script) {
+      // Get path segments for src
+      let splitSrc = script.src.toString().toString().split("/");
+      let j = 0;
+      // Count number of relative path segments
+      while (splitSrc[j] == "..") {
+        j++;
+      }
+      // Get path segments for root directory
+      let splitDir = this.loadConfig.root.split("/");
+      // Account for relative path from the root directory
+      let splitPath = splitDir
+        .slice(0, splitDir.length - j)
+        .concat(splitSrc.slice(j));
+      // Join path segments to get a complete path
+      return splitPath.join("/");
+    };
+
+    // Adds [script] to the dartLoader's internals as if it had been loaded and
+    // returns its fully resolved source path.
+    //
+    // Should be called when scripts are loaded on the page externally from
+    // dartLoader's API.
+    registerScript(script) {
+      const src = this.getScriptUrl(script);
+      // TODO(markzipan): moduleIdToUrl and urlToModuleId may conflict in
+      // multi-app scenarios. Fix this by moving them into the DDCLoader.
+      self.$dartLoader.moduleIdToUrl.set(script.id, src);
+      self.$dartLoader.urlToModuleId.set(src, script.id);
+      return src;
+    };
+
+    // Adds [scripts] to [queue] according to validation function [allowScriptFn].
+    //
+    // Scripts aren't loaded until loadEnqueuedModules is called.
+    addScriptsToQueue(scripts, allowScriptFn) {
+      for (let i = 0; i < scripts.length; i++) {
+        const script = scripts[i];
+
+        // Only load the bootstrap script after every other script has finished loading.
+        if (script.src == this.loadConfig.bootstrapScript.src) {
+          this.loadConfig.tryLoadBootstrapScript = true;
+          continue;
+        }
+        // Skip loading already-loaded scripts.
+        if (script.id == null || self.$dartLoader.moduleIdToUrl.has(script.id)) {
+          continue;
+        }
+
+        // Register this script's resolved URL.
+        let resolvedSrc = this.registerScript(script);
+
+        // Deferred scripts should be registered but not added during bootstrap.
+        if (self.$dartLoader.bootstrapModules !== void 0 &&
+          !self.$dartLoader.bootstrapModules.has(script.id)) {
+          continue;
+        }
+
+        if (!allowScriptFn || allowScriptFn(script)) {
+          this.queue.push({ id: script.id, src: resolvedSrc });
+        }
+      }
+
+      if (this.queue.length > 0) {
+        console.info(
+          `DDC is about to load ${this.queue.length}/${scripts.length} scripts with pool size = ${this.loadConfig.maxRequestPoolSize}`);
+      }
+    };
+
+    // Creates a script element to be loaded into the provided container.
+    createAndLoadScript(src, id, container, onError, onLoad) {
+      let el = self.dart_library.createScript();
+      el.src = policy.createScriptURL(src);
+      el.async = false;
+      el.defer = true;
+      el.id = id;
+      el.onerror = onError;
+      el.onload = onLoad;
+      container.appendChild(el);
+    };
+
+    // Retrieves scripts from the loader queue, with at most [maxRequests]
+    // outgoing requests.
+    //
+    // TODO(markzipan): Rewrite this with a promise pool.
+    loadMore(maxRequests) {
+      let fragment = document.createDocumentFragment();
+      let inflightRequests = 0;
+      while (this.queue.length > 0 && inflightRequests++ < maxRequests) {
+        const script = this.queue.shift();
+        this.numToLoad++;
+        this.createAndLoadScript(script.src.toString(), script.id, fragment, this.onError.bind(this), this.onLoad.bind(this));
+      }
+      if (inflightRequests > 0) {
+        document.head.appendChild(fragment);
+      } else if (!this.scriptsActivelyBeingLoaded()) {
+        this.loadBootstrapJs();
+      }
+    };
+
+    loadOneMore() {
+      if (this.queue.length > 0) {
+        this.loadMore(1);
+      }
+    };
+
+    loadEnqueuedModules() {
+      this.loadMore(this.loadConfig.maxRequestPoolSize);
+    };
+
+    // Loads just the bootstrap script.
+    //
+    // The bootstrapper is loaded only after all other scripts are loaded.
+    loadBootstrapJs() {
+      if (!this.loadConfig.tryLoadBootstrapScript) {
+        return;
+      }
+      const script = this.loadConfig.bootstrapScript;
+      const src = this.registerScript(script);
+      this.createAndLoadScript(src, script.id, document.head, null, null);
+      this.loadConfig.tryLoadBootstrapScript = false;
+    };
+
+    // Loads/retries compiled JS scripts.
+    //
+    // Should always be called after a script is loaded or errors.
+    processAfterLoadOrErrorEvent() {
+      if (this.scriptsActivelyBeingLoaded()) {
+        if (this.numFailed == 0) {
+          this.loadOneMore();
+        } else if (this.attemptCount > this.maxAttempts) {
+          // Some scripts have failed to load. Continue loading the rest.
+          this.loadOneMore();
+        } else {
+          // Some scripts have failed to load, but we can still make another
+          // load attempt. Wait for scheduled scripts to finish.
+        }
+        return;
+      }
+
+      // Retry failed scripts to a limit, then load the bootstrap script.
+      if (this.numFailed == 0) {
+        this.loadBootstrapJs();
+        return;
+      }
+      // Reload whatever failed if maxAttempts is not reached.
+      if (this.numFailed > 0) {
+        if (this.attemptCount <= this.loadConfig.maxAttempts) {
+          this.nextAttempt();
+        } else {
+          console.error(
+            `Failed to load DDC scripts after ${this.loadConfig.maxAttempts} tries`);
+          this.loadConfig.onLoadError();
+          this.loadBootstrapJs();
+        }
+      }
+    };
+
+    onLoad(e) {
+      this.numLoaded++;
+      if (e.target.src == this.loadConfig.bootstrapScript.src) {
+        this.loadConfig.onBootstrapSuccess();
+      }
+      this.processAfterLoadOrErrorEvent();
+    };
+
+    onError(e) {
+      this.numFailed++;
+      const target = e.target;
+      self.$dartLoader.moduleIdToUrl.delete(target.id);
+      self.$dartLoader.urlToModuleId.delete(target.src);
+      self.deferred_loader.clearModule(target.id);
+
+      if (target.src == this.loadConfig.bootstrapScript.src) {
+        this.loadConfig.onBootstrapError();
+      }
+      this.processAfterLoadOrErrorEvent();
+    };
+  };
+
+  let policy = {
+    createScriptURL: function (src) { return src; }
+  };
+
+  if (self.trustedTypes && self.trustedTypes.createPolicy) {
+    policy = self.trustedTypes.createPolicy("dartDdcModuleUrl", policy);
+  }
+
+  self.$dartLoader.loadScripts = function (scripts, loader) {
+    loader.loadConfig.loadScriptFn = function (loader) {
+      loader.addScriptsToQueue(scripts, null);
+      loader.loadEnqueuedModules();
+    };
+    loader.nextAttempt();
+  };
+})();
+
 if (!self.deferred_loader) {
   self.deferred_loader = {
     // Module IDs already loaded on the page (e.g., during bootstrap or after
@@ -690,8 +1038,8 @@ if (!self.deferred_loader) {
    * @param {!Map<string, !Array<string>>} moduleGraph non-deferred import graph
    * @param {!Array<string>} loadedModules moduled loaded during bootstrap
    */
-  self.deferred_loader.initDeferredLoader = function(
-      moduleToUrlMapping, moduleGraph, loadedModules) {
+  self.deferred_loader.initDeferredLoader = function (
+    moduleToUrlMapping, moduleGraph, loadedModules) {
     self.deferred_loader.moduleToUrl = moduleToUrlMapping;
     self.deferred_loader.moduleGraph = moduleGraph;
     for (let i = 0; i < loadedModules.length; i++) {
@@ -707,7 +1055,7 @@ if (!self.deferred_loader) {
    * @param {string} moduleId
    * @return {!Array<string>} module IDs that must be loaded with [moduleId]
    */
-  let dependenciesToLoad = function(moduleId) {
+  let dependenciesToLoad = function (moduleId) {
     let stack = [moduleId];
     let seen = new Set();
     while (stack.length > 0) {
@@ -730,7 +1078,7 @@ if (!self.deferred_loader) {
    * @param {string} moduleUrl
    * @param {function()} onLoad Callback after a successful load
    */
-  let loadScript = function(moduleUrl, onLoad) {
+  let loadScript = function (moduleUrl, onLoad) {
     // A head element won't be created for D8, so just load synchronously.
     if (self.document.head == void 0) {
       self.load(moduleUrl);
@@ -738,7 +1086,7 @@ if (!self.deferred_loader) {
     }
     let script = dart_library.createScript();
     let policy = {
-      createScriptURL: function(src) {
+      createScriptURL: function (src) {
         return src;
       }
     };
@@ -760,8 +1108,8 @@ if (!self.deferred_loader) {
    * @param {function(function())} onSuccess callback after a successful load
    * @param {function(!Error)} onError callback after a failed load
    */
-  self.deferred_loader.loadDeferred = function(
-      loadId, targetModule, onSuccess, onError) {
+  self.deferred_loader.loadDeferred = function (
+    loadId, targetModule, onSuccess, onError) {
     // loadLibrary had already been called, and its module has already been
     // loaded, so just complete the future.
     if (self.deferred_loader.loadIds.has(loadId)) {
@@ -780,28 +1128,28 @@ if (!self.deferred_loader) {
     // before completing the callback.
     let modulesToLoad = dependenciesToLoad(targetModule);
     Promise
-        .all(modulesToLoad.map(module => {
-          let url = self.deferred_loader.moduleToUrl.get(module);
-          if (url === void 0) {
-            console.log('Unable to find URL for module: ' + module);
-            return;
-          }
-          let promise = self.deferred_loader.moduleToPromise.get(module);
-          if (promise !== void 0) return promise;
-          self.deferred_loader.moduleToPromise.set(
-              module,
-              new Promise((resolve) => loadScript(url, () => {
-                            self.deferred_loader.loadedModules.add(module);
-                            resolve();
-                          })));
-          return self.deferred_loader.moduleToPromise.get(module);
-        }))
-        .then(() => {
-          onSuccess(() => self.deferred_loader.loadIds.add(loadId));
-        })
-        .catch((error) => {
-          onError(error.message);
-        });
+      .all(modulesToLoad.map(module => {
+        let url = self.deferred_loader.moduleToUrl.get(module);
+        if (url === void 0) {
+          console.log('Unable to find URL for module: ' + module);
+          return;
+        }
+        let promise = self.deferred_loader.moduleToPromise.get(module);
+        if (promise !== void 0) return promise;
+        self.deferred_loader.moduleToPromise.set(
+          module,
+          new Promise((resolve) => loadScript(url, () => {
+            self.deferred_loader.loadedModules.add(module);
+            resolve();
+          })));
+        return self.deferred_loader.moduleToPromise.get(module);
+      }))
+      .then(() => {
+        onSuccess(() => self.deferred_loader.loadIds.add(loadId));
+      })
+      .catch((error) => {
+        onError(error.message);
+      });
   };
 
   /**
@@ -810,7 +1158,7 @@ if (!self.deferred_loader) {
    *     loaded
    * @return {boolean}
    */
-  self.deferred_loader.isLoaded = function(loadId) {
+  self.deferred_loader.isLoaded = function (loadId) {
     return self.deferred_loader.loadIds.has(loadId);
   };
 
@@ -820,7 +1168,7 @@ if (!self.deferred_loader) {
    *
    * TODO(markzipan): Determine how deep we should clear moduleId's references.
    */
-  self.deferred_loader.clearModule = function(moduleId) {
+  self.deferred_loader.clearModule = function (moduleId) {
     self.deferred_loader.loadedModules.delete(moduleId);
     self.deferred_loader.moduleToUrl.delete(moduleId);
     self.deferred_loader.moduleToPromise.delete(moduleId);
@@ -829,7 +1177,7 @@ if (!self.deferred_loader) {
   /**
    * Clears state required for hot restart.
    */
-  self.deferred_loader.hotRestart = function() {
+  self.deferred_loader.hotRestart = function () {
     self.deferred_loader.loadIds = new Set();
   };
 }

@@ -31,24 +31,15 @@ final testSuiteDirectories = [
   Path('pkg'),
   Path('runtime/observatory/tests/observatory_ui'),
   Path('runtime/observatory/tests/service'),
-  Path('runtime/observatory_2/tests/observatory_ui_2'),
-  Path('runtime/observatory_2/tests/service_2'),
   Path('runtime/tests/vm'),
   Path('samples'),
   Path('tests/corelib'),
-  Path('tests/corelib_2'),
   Path('tests/dartdevc'),
-  Path('tests/dartdevc_2'),
   Path('tests/ffi'),
-  Path('tests/ffi_2'),
   Path('tests/language'),
-  Path('tests/language_2'),
   Path('tests/lib'),
-  Path('tests/lib_2'),
   Path('tests/standalone'),
-  Path('tests/standalone_2'),
   Path('tests/web'),
-  Path('tests/web_2'),
   Path('third_party/pkg/dart_style'),
   Path('third_party/pkg/dartdoc'),
   Path('third_party/pkg/native/pkgs/native_assets_builder'),
@@ -153,7 +144,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       }
 
       for (var key in configuration.selectors.keys) {
-        if (key == 'co19_2' || key == 'co19') {
+        if (key == 'co19') {
           testSuites.add(Co19TestSuite(configuration, key));
         } else if (configuration.compiler == Compiler.dartk &&
             configuration.runtime == Runtime.vm &&

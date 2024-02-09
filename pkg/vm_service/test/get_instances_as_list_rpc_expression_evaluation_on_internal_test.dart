@@ -9,7 +9,7 @@ import 'common/test_helper.dart';
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    late final gotError;
+    late final bool gotError;
 
     Future<void> getInstancesAndExecuteExpression(ClassHeapStats member) async {
       final result = await service.getInstancesAsList(
@@ -21,11 +21,12 @@ final tests = <IsolateTest>[
       // This has previously caused an exception like
       // 'ServerRpcException(evaluate: Unexpected exception: FormatException:
       // Unexpected character (at offset 329)'
-      service.evaluate(isolateId, result.id!, 'this').catchError((error) {
+      await service.evaluate(isolateId, result.id!, 'this').catchError((error) {
         if (error.code == 113 &&
             error.message == 'Expression compilation error' &&
             error.details.contains(
-                "invalid 'targetId' parameter: Cannot evaluate against a VM-internal object")) {
+              "invalid 'targetId' parameter: Cannot evaluate against a VM-internal object",
+            )) {
           gotError = true;
           return Response();
         } else {
@@ -47,5 +48,8 @@ final tests = <IsolateTest>[
   }
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(args, tests,
-    'get_instances_as_list_rpc_expression_evaluation_on_internal_test.dart');
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'get_instances_as_list_rpc_expression_evaluation_on_internal_test.dart',
+    );

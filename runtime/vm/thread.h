@@ -1498,12 +1498,21 @@ class RuntimeCallDeoptScope : public StackResource {
 void WindowsThreadCleanUp();
 #endif
 
+#if !defined(PRODUCT)
 // Disable thread interrupts.
 class DisableThreadInterruptsScope : public StackResource {
  public:
   explicit DisableThreadInterruptsScope(Thread* thread);
   ~DisableThreadInterruptsScope();
 };
+#else
+class DisableThreadInterruptsScope : public StackResource {
+ public:
+  explicit DisableThreadInterruptsScope(Thread* thread)
+      : StackResource(thread) {}
+  ~DisableThreadInterruptsScope() {}
+};
+#endif  // !defined(PRODUCT)
 
 // Within a NoSafepointScope, the thread must not reach any safepoint. Used
 // around code that manipulates raw object pointers directly without handles.

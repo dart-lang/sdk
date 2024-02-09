@@ -41,7 +41,7 @@ class PluginWatcher implements DriverWatcher {
     var contextRoot = driver.analysisContext!.contextRoot;
     _driverInfo[driver] = _DriverInfo(
         contextRoot, <String>[contextRoot.root.path, _getSdkPath(driver)]);
-    var enabledPlugins = driver.analysisOptions.enabledPluginNames;
+    var enabledPlugins = driver.enabledPluginNames;
     for (var hostPackageName in enabledPlugins) {
       //
       // Determine whether the package exists and defines a plugin.
@@ -62,7 +62,7 @@ class PluginWatcher implements DriverWatcher {
           //
           // Add the plugin to the context root.
           //
-          // TODO(brianwilkerson) Do we need to wait for the plugin to be added?
+          // TODO(brianwilkerson): Do we need to wait for the plugin to be added?
           // If we don't, then tests don't have any way to know when to expect
           // that the list of plugins has been updated.
           manager.addPluginToContextRoot(
@@ -88,7 +88,7 @@ class PluginWatcher implements DriverWatcher {
   String _getSdkPath(AnalysisDriver driver) {
     var coreSource = driver.sourceFactory.forUri('dart:core');
 
-    // TODO(scheglov) Debug for https://github.com/dart-lang/sdk/issues/35226
+    // TODO(scheglov): Debug for https://github.com/dart-lang/sdk/issues/35226
     if (coreSource == null) {
       var sdk = driver.sourceFactory.dartSdk;
       if (sdk is AbstractDartSdk) {

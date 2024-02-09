@@ -10,7 +10,7 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 //
 // The set of benchmarks compares the cost of reading typed data lists, mostly
 // different kinds of [Uint8List] - plain [Uint8List]s, [Uint8List]s that are
-// views of another [Uint8List], and [UnmodifiableUint8ListView]s of these.
+// views of another [Uint8List], and unmodifiable views of these.
 //
 // The benchmarks do not try to use external [Uint8List]s, since this is does
 // not easily translate to the web.
@@ -168,15 +168,15 @@ class Polymorphic1 extends Base {
 }
 
 /// [Polymorphic2] calls `sum` with a flat allocated [Uint8List] and an
-/// [UnmodifiableUint8ListView] of the same list. This mildly polymorphic, so
+/// unmodifiable view of the same list. This mildly polymorphic, so
 /// there is the possibility that `sum` runs slower than [Monomorphic.sum].
 ///
 /// The workload can be varied:
 ///
-///  - `view` measures the cost of accessing the [UnmodifiableUint8ListView].
+///  - `view` measures the cost of accessing the unmodifiable view.
 ///
 ///  - `array` measures the cost of accessing a simple [Uint8List] using the
-///     same code that can also access an [UnmodifiableUint8ListView].
+///     same code that can also access an unmodifiable view of a [Uint8List].
 class Polymorphic2 extends Base {
   final List<int> data1;
   final List<int> data2;
@@ -185,7 +185,7 @@ class Polymorphic2 extends Base {
 
   factory Polymorphic2(int n, String variant) {
     final data1 = Uint8List(n)..setToOnes();
-    final data2 = UnmodifiableUint8ListView(data1);
+    final data2 = data1.asUnmodifiableView();
     if (variant == 'array') return Polymorphic2._(n, variant, data1, data1);
     if (variant == 'view') return Polymorphic2._(n, variant, data2, data2);
     throw UnimplementedError('No variant "$variant"');
@@ -219,7 +219,7 @@ class Polymorphic2 extends Base {
 }
 
 /// [Polymorphic3] is similar to [Polymorphic2], but the 'other' list is an
-/// [UnmodifiableUint8ListView] of a modifiable view.
+/// unmodifiable view of a modifiable view.
 class Polymorphic3 extends Base {
   final List<int> data1;
   final List<int> data2;
@@ -228,7 +228,7 @@ class Polymorphic3 extends Base {
   factory Polymorphic3(int n, String variant) {
     final data1 = Uint8List(n)..setToOnes();
     final view1 = Uint8List.sublistView(Uint8List(n + 1)..setToOnes(), 1);
-    final data2 = UnmodifiableUint8ListView(view1);
+    final data2 = view1.asUnmodifiableView();
     if (variant == 'array') return Polymorphic3._(n, variant, data1, data1);
     if (variant == 'view') return Polymorphic3._(n, variant, data2, data2);
     throw UnimplementedError('No variant "$variant"');
@@ -261,7 +261,7 @@ class Polymorphic3 extends Base {
   }
 }
 
-/// [Polymorphic4] stacks [UnmodifiableUint8ListView]s five levels deep.
+/// [Polymorphic4] stacks unmodifiable views five levels deep.
 class Polymorphic4 extends Base {
   final List<int> data1;
   final List<int> data2;
@@ -270,11 +270,11 @@ class Polymorphic4 extends Base {
 
   factory Polymorphic4(int n, String variant) {
     final data1 = Uint8List(n)..setToOnes();
-    var data2 = UnmodifiableUint8ListView(data1);
-    data2 = UnmodifiableUint8ListView(data2);
-    data2 = UnmodifiableUint8ListView(data2);
-    data2 = UnmodifiableUint8ListView(data2);
-    data2 = UnmodifiableUint8ListView(data2);
+    var data2 = data1.asUnmodifiableView();
+    data2 = data2.asUnmodifiableView();
+    data2 = data2.asUnmodifiableView();
+    data2 = data2.asUnmodifiableView();
+    data2 = data2.asUnmodifiableView();
     if (variant == 'array') return Polymorphic4._(n, variant, data1, data1);
     if (variant == 'view') return Polymorphic4._(n, variant, data2, data2);
     throw UnimplementedError('No variant "$variant"');
@@ -342,11 +342,11 @@ class Polymorphic5 extends Base {
     final data4 = Int8List(n)..setToOnes();
     final data5 = Int16List(n)..setToOnes();
 
-    final data6 = UnmodifiableUint8ListView(data1);
-    final data7 = UnmodifiableUint16ListView(data2);
-    final data8 = UnmodifiableUint32ListView(data3);
-    final data9 = UnmodifiableInt8ListView(data4);
-    final data10 = UnmodifiableInt16ListView(data5);
+    final data6 = data1.asUnmodifiableView();
+    final data7 = data2.asUnmodifiableView();
+    final data8 = data3.asUnmodifiableView();
+    final data9 = data4.asUnmodifiableView();
+    final data10 = data5.asUnmodifiableView();
 
     if (variant == 'array') {
       return Polymorphic5._(n, variant, data1, data1, data1, data1, data1,

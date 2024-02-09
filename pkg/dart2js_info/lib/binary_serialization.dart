@@ -5,6 +5,7 @@
 /// Info serialization to a binary form.
 ///
 /// Unlike the JSON codec, this serialization is designed to be streamed.
+library;
 
 import 'dart:convert';
 

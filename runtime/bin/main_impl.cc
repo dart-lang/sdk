@@ -372,11 +372,11 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     CHECK_RESULT(result);
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Disable pausing the DartDev isolate on start and exit.
   const char* isolate_name = nullptr;
   result = Dart_StringToCString(Dart_DebugName(), &isolate_name);
   CHECK_RESULT(result);
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (strstr(isolate_name, DART_DEV_ISOLATE_NAME) != nullptr) {
     Dart_SetShouldPauseOnStart(false);
     Dart_SetShouldPauseOnExit(false);
@@ -1297,6 +1297,9 @@ void main(int argc, char** argv) {
     // so generated code should not depend on the CPU features
     // of the system where snapshot was generated.
     vm_options.AddArgument("--target-unknown-cpu");
+#if !defined(TARGET_ARCH_IA32)
+    vm_options.AddArgument("--link_natives_lazily");
+#endif
   }
   // If we need to write an app-jit snapshot or a depfile, then add an exit
   // hook that writes the snapshot and/or depfile as appropriate.

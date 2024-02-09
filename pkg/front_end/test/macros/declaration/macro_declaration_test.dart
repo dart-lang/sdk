@@ -19,11 +19,9 @@ import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:kernel/ast.dart' hide Arguments;
+import 'package:kernel/ast.dart' hide Arguments, TypeDeclaration;
 
 Future<void> main(List<String> args) async {
-  enableMacros = true;
-
   Directory dataDir =
       new Directory.fromUri(Platform.script.resolve('data/tests'));
   await runTests<Features>(dataDir,
@@ -33,7 +31,7 @@ Future<void> main(List<String> args) async {
       runTest: runTestFor(const MacroDataComputer(), [new MacroTestConfig()]));
 }
 
-class MacroTestConfig extends TestConfig {
+class MacroTestConfig extends CfeTestConfig {
   MacroTestConfig()
       : super(cfeMarker, 'cfe',
             explicitExperimentalFlags: {ExperimentalFlag.macros: true},
@@ -51,25 +49,25 @@ class MacroTestConfig extends TestConfig {
   }
 }
 
-class MacroDataComputer extends DataComputer<Features> {
+class MacroDataComputer extends CfeDataComputer<Features> {
   const MacroDataComputer();
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     member.accept(new MacroDataExtractor(testResultData, actualMap));
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(CfeTestResultData testResultData, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new MacroDataExtractor(testResultData, actualMap).computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new MacroDataExtractor(testResultData, actualMap)
@@ -81,7 +79,7 @@ class MacroDataComputer extends DataComputer<Features> {
 
   @override
   Features? computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     features[Tags.error] = errorsToText(errors, useCodes: true);
     return features;
@@ -126,7 +124,7 @@ String strongComponentToString(Iterable<Uri> uris) {
 }
 
 class MacroDataExtractor extends CfeDataExtractor<Features> {
-  final TestResultData testResultData;
+  final CfeTestResultData testResultData;
 
   MacroDataExtractor(
       this.testResultData, Map<Id, ActualData<Features>> actualMap)

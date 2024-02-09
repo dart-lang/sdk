@@ -159,7 +159,7 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
             '$name.interfaces[$i]');
       }
     }
-    if (introspector != null && declaration is IntrospectableClassDeclaration) {
+    if (introspector != null) {
       List<FieldDeclaration> fieldsOf =
           await introspector.fieldsOf(declaration);
       expect(
@@ -197,7 +197,6 @@ void checkFunctionDeclaration(FunctionDeclaration actual) {
   String name = actual.identifier.name;
   FunctionData? expected = expectedFunctionData[name];
   if (expected != null) {
-    expect(expected.isAbstract, actual.hasAbstract, '$name.isAbstract');
     expect(expected.isExternal, actual.hasExternal, '$name.isExternal');
     expect(expected.isOperator, actual.isOperator, '$name.isOperator');
     expect(expected.isGetter, actual.isGetter, '$name.isGetter');

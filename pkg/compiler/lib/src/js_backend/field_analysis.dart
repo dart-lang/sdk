@@ -657,7 +657,7 @@ class FieldAnalysisData {
     sink.writeBool(isLateBackingField);
     sink.writeBool(isEager);
     sink.writeIntOrNull(eagerCreationIndex);
-    sink.writeMembers(eagerFieldDependenciesForTesting, allowNull: true);
+    sink.writeMembersOrNull(eagerFieldDependenciesForTesting);
     sink.end(tag);
   }
 

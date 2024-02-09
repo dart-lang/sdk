@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Declares classes which describe a call: selectors and arguments.
+library;
 
 import 'dart:core' hide Type;
 
@@ -105,7 +106,7 @@ class DirectSelector extends Selector {
   }
 
   @override
-  int get hashCode => (super.hashCode ^ member.hashCode) & kHashMask;
+  int get hashCode => combineHashes(super.hashCode, member.hashCode);
 
   @override
   bool operator ==(other) =>
@@ -125,7 +126,7 @@ class InterfaceSelector extends Selector {
       : super(callKind);
 
   @override
-  int get hashCode => (super.hashCode ^ member.hashCode + 31) & kHashMask;
+  int get hashCode => combineHashes(super.hashCode, member.hashCode);
 
   @override
   bool operator ==(other) =>
@@ -143,7 +144,10 @@ class VirtualSelector extends InterfaceSelector {
       : super(member, callKind: callKind);
 
   @override
-  int get hashCode => (super.hashCode + 37) & kHashMask;
+  int get hashCode {
+    const int seed = 37;
+    return combineHashes(seed, super.hashCode);
+  }
 
   @override
   bool operator ==(other) =>
@@ -167,7 +171,7 @@ class DynamicSelector extends Selector {
   Member? get member => null;
 
   @override
-  int get hashCode => (super.hashCode ^ name.hashCode + 37) & kHashMask;
+  int get hashCode => combineHashes(super.hashCode, name.hashCode);
 
   @override
   bool operator ==(other) =>
@@ -205,10 +209,10 @@ class Args<T extends TypeExpr> {
   int _computeHashCode() {
     int hash = 1231;
     for (var v in values) {
-      hash = (((hash * 31) & kHashMask) + v.hashCode) & kHashMask;
+      hash = combineHashes(hash, v.hashCode);
     }
     for (var n in names) {
-      hash = (((hash * 31) & kHashMask) + n.hashCode) & kHashMask;
+      hash = combineHashes(hash, n.hashCode);
     }
     return hash;
   }

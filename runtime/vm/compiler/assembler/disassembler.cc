@@ -205,26 +205,24 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
                                          bool optimized) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle(zone);
-  if (FLAG_print_variable_descriptors) {
-    var_descriptors = code.GetLocalVarDescriptors();
-  }
   THR_Print("Code for %sfunction '%s' (%s) {\n", optimized ? "optimized " : "",
             function_fullname, function_info);
   code.Disassemble();
   THR_Print("}\n");
 
 #if defined(TARGET_ARCH_IA32)
-  THR_Print("Pointer offsets for function: {\n");
-  // Pointer offsets are stored in descending order.
-  Object& obj = Object::Handle(zone);
-  for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
-    const uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
-    obj = LoadUnaligned(reinterpret_cast<ObjectPtr*>(addr));
-    THR_Print(" %d : %#" Px " '%s'\n", code.GetPointerOffsetAt(i), addr,
-              obj.ToCString());
+  if (code.pointer_offsets_length() > 0) {
+    THR_Print("Pointer offsets for function: {\n");
+    // Pointer offsets are stored in descending order.
+    Object& obj = Object::Handle(zone);
+    for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
+      const uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
+      obj = LoadUnaligned(reinterpret_cast<ObjectPtr*>(addr));
+      THR_Print(" %d : %#" Px " '%s'\n", code.GetPointerOffsetAt(i), addr,
+                obj.ToCString());
+    }
+    THR_Print("}\n");
   }
-  THR_Print("}\n");
 #else
   ASSERT(code.pointer_offsets_length() == 0);
 #endif
@@ -234,21 +232,25 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   } else {
     const ObjectPool& object_pool =
         ObjectPool::Handle(zone, code.GetObjectPool());
-    if (!object_pool.IsNull()) {
+    if (!object_pool.IsNull() && object_pool.Length() > 0) {
       object_pool.DebugPrint();
     }
   }
 
   code.DumpSourcePositions(/*relative_addresses=*/FLAG_disassemble_relative);
 
-  THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
-  PcDescriptors::PrintHeaderString();
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(zone, code.pc_descriptors());
-  THR_Print("%s}\n", descriptors.ToCString());
-
   const uword start = code.PayloadStart();
   const uword base = FLAG_disassemble_relative ? 0 : start;
+
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone, code.pc_descriptors());
+  if (descriptors.Length() > 0) {
+    TextBuffer buffer(100);
+    buffer.Printf("PC Descriptors for function '%s' {\n", function_fullname);
+    descriptors.WriteToBuffer(&buffer, base);
+    buffer.AddString("}\n");
+    THR_Print("%s", buffer.buffer());
+  }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const Array& deopt_table = Array::Handle(zone, code.deopt_info_array());
@@ -276,18 +278,22 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
   const auto& stackmaps =
       CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
-  if (!stackmaps.IsNull()) {
+  if (!stackmaps.IsNull() && stackmaps.payload_size() > 0) {
     TextBuffer buffer(100);
     buffer.Printf("StackMaps for function '%s' {\n", function_fullname);
-    stackmaps.WriteToBuffer(&buffer, "\n");
-    buffer.AddString("}\n");
+    stackmaps.WriteToBuffer(&buffer, base, "\n");
+    buffer.AddString("\n}\n");
     THR_Print("%s", buffer.buffer());
   }
 
+  LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle(zone);
   if (FLAG_print_variable_descriptors) {
+    var_descriptors = code.GetLocalVarDescriptors();
+  }
+  const intptr_t var_desc_length =
+      var_descriptors.IsNull() ? 0 : var_descriptors.Length();
+  if (var_desc_length > 0) {
     THR_Print("Variable Descriptors for function '%s' {\n", function_fullname);
-    intptr_t var_desc_length =
-        var_descriptors.IsNull() ? 0 : var_descriptors.Length();
     String& var_name = String::Handle(zone);
     for (intptr_t i = 0; i < var_desc_length; i++) {
       var_name = var_descriptors.GetName(i);
@@ -315,10 +321,16 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     THR_Print("}\n");
   }
 
-  THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(zone, code.exception_handlers());
-  THR_Print("%s}\n", handlers.ToCString());
+  if (handlers.num_entries() > 0 || handlers.has_async_handler()) {
+    TextBuffer buffer(100);
+    buffer.Printf("Exception Handlers for function '%s' {\n",
+                  function_fullname);
+    handlers.WriteToBuffer(&buffer, base);
+    buffer.AddString("}\n");
+    THR_Print("%s", buffer.buffer());
+  }
 
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   if (FLAG_precompiled_mode &&
@@ -354,17 +366,17 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 #if defined(DART_PRECOMPILED_RUNTIME)
   THR_Print("(Cannot show static call target functions in AOT runtime.)\n");
 #else
-  {
-    THR_Print("Static call target functions {\n");
-    const auto& table = Array::Handle(zone, code.static_calls_target_table());
-    auto& cls = Class::Handle(zone);
-    auto& kind_type_and_offset = Smi::Handle(zone);
-    auto& function = Function::Handle(zone);
-    auto& object = Object::Handle(zone);
-    auto& code = Code::Handle(zone);
-    auto& dst_type = AbstractType::Handle(zone);
-    if (!table.IsNull()) {
-      StaticCallsTable static_calls(table);
+  const auto& table = Array::Handle(zone, code.static_calls_target_table());
+  if (!table.IsNull()) {
+    StaticCallsTable static_calls(table);
+    if (static_calls.Length() > 0) {
+      THR_Print("Static call target functions {\n");
+      auto& cls = Class::Handle(zone);
+      auto& kind_type_and_offset = Smi::Handle(zone);
+      auto& function = Function::Handle(zone);
+      auto& object = Object::Handle(zone);
+      auto& code = Code::Handle(zone);
+      auto& dst_type = AbstractType::Handle(zone);
       for (auto& call : static_calls) {
         kind_type_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
         function = call.Get<Code::kSCallTableFunctionTarget>();
@@ -421,8 +433,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
                     function.ToFullyQualifiedCString(), skind, s_entry_point);
         }
       }
+      THR_Print("}\n");
     }
-    THR_Print("}\n");
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -465,7 +477,7 @@ void Disassembler::DisassembleStub(const char* name, const Code& code) {
   const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
   if (FLAG_precompiled_mode) {
     THR_Print("(No object pool for bare instructions.)\n");
-  } else if (!object_pool.IsNull()) {
+  } else if (!object_pool.IsNull() && object_pool.Length() > 0) {
     object_pool.DebugPrint();
   }
 }

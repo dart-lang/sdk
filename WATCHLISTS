@@ -18,8 +18,8 @@
         '^pkg/analyzer_cli|'
         '^pkg/analyzer_plugin|'
         '^pkg/analyzer_utilities|'
-        '^pkg/meta|'
-        '^pkg/nnbd_migration'
+        '^pkg/linter|'
+        '^pkg/meta'
       )
     },
     'build': {

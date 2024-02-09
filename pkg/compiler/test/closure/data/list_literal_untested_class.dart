@@ -9,8 +9,7 @@ class A<T> {
   /*member: A.method:hasThis*/
   @pragma('dart2js:noInline')
   method() {
-    /*spec.fields=[this],free=[this],hasThis*/
-    /*prod.hasThis*/
+    /*fields=[this],free=[this],hasThis*/
     dynamic local() => <T>[];
     return local;
   }

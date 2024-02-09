@@ -811,7 +811,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseExpression_assign() {
-    // TODO(brianwilkerson) Implement more tests for this method.
+    // TODO(brianwilkerson): Implement more tests for this method.
     Expression expression = parseExpression('x = y');
     var assignmentExpression = expression as AssignmentExpression;
     expect(assignmentExpression.leftHandSide, isNotNull);
@@ -1000,7 +1000,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseExpressionWithoutCascade_assign() {
-    // TODO(brianwilkerson) Implement more tests for this method.
+    // TODO(brianwilkerson): Implement more tests for this method.
     Expression expression = parseExpressionWithoutCascade('x = y');
     expect(expression, isNotNull);
     assertNoErrors();
@@ -1965,7 +1965,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseSimpleIdentifier1_normalIdentifier() {
-    // TODO(brianwilkerson) Implement tests for this method.
+    // TODO(brianwilkerson): Implement tests for this method.
   }
 
   void test_parseSimpleIdentifier_builtInIdentifier() {
@@ -2372,7 +2372,7 @@ class ExpressionParserTest extends FastaParserTestCase {
 
   @failingTest
   void test_parseUnaryExpression_decrement_super() {
-    // TODO(danrubel) Reports a different error and different token stream.
+    // TODO(danrubel): Reports a different error and different token stream.
     // Expected: TokenType:<MINUS>
     //   Actual: TokenType:<MINUS_MINUS>
     PrefixExpression expression = parseUnaryExpression('--super');
@@ -2403,7 +2403,7 @@ class ExpressionParserTest extends FastaParserTestCase {
 
   @failingTest
   void test_parseUnaryExpression_decrement_super_withComment() {
-    // TODO(danrubel) Reports a different error and different token stream.
+    // TODO(danrubel): Reports a different error and different token stream.
     // Expected: TokenType:<MINUS>
     //   Actual: TokenType:<MINUS_MINUS>
 

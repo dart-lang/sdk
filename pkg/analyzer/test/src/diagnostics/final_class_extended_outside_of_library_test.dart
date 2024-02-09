@@ -48,7 +48,7 @@ class A implements MapEntry<int, int> {
 }
 ''');
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
 
     await assertNoErrorsInCode(r'''

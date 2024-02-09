@@ -11,13 +11,13 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
   synthetic constructor •() → self::MyFinalizable
     : super core::Object::•()
     ;
-  method use() → asy::Future<core::int> async /* futureValueType= core::int */ {
+  method use() → asy::Future<core::int> async /* emittedValueType= core::int */ {
     return block {
       final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
       _in::reachabilityFence(this);
     } =>:expressionValueWrappedFinalizable;
   }
-  method use2() → asy::Future<core::int> async /* futureValueType= core::int */ {
+  method use2() → asy::Future<core::int> async /* emittedValueType= core::int */ {
     return block {
       final synthesized core::int :expressionValueWrappedFinalizable = await block {
         final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
@@ -33,9 +33,9 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
     } =>:expressionValueWrappedFinalizable;
   }
 }
-static method doSomething() → asy::Future<core::int> async /* futureValueType= core::int */ 
+static method doSomething() → asy::Future<core::int> async /* emittedValueType= core::int */ 
   return 3;
-static method useFinalizableAsync(ffi::Finalizable finalizable) → asy::Future<core::int> async /* futureValueType= core::int */ {
+static method useFinalizableAsync(ffi::Finalizable finalizable) → asy::Future<core::int> async /* emittedValueType= core::int */ {
   await block {
     final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 6);
     _in::reachabilityFence(finalizable);
@@ -60,7 +60,7 @@ static method useFinalizableAsync(ffi::Finalizable finalizable) → asy::Future<
     _in::reachabilityFence(finalizable3);
   } =>:expressionValueWrappedFinalizable;
 }
-static method main() → void async /* futureValueType= void */ {
+static method main() → void async /* emittedValueType= void */ {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();
   final asy::Future<core::int> asyncResult = self::useFinalizableAsync(finalizable);
   core::print(await block {

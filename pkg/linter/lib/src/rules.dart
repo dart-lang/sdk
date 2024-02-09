@@ -49,6 +49,7 @@ import 'rules/avoid_type_to_string.dart';
 import 'rules/avoid_types_as_parameter_names.dart';
 import 'rules/avoid_types_on_closure_parameters.dart';
 import 'rules/avoid_unnecessary_containers.dart';
+import 'rules/avoid_unstable_final_fields.dart';
 import 'rules/avoid_unused_constructor_parameters.dart';
 import 'rules/avoid_void_async.dart';
 import 'rules/avoid_web_libraries_in_flutter.dart';
@@ -78,6 +79,7 @@ import 'rules/empty_constructor_bodies.dart';
 import 'rules/empty_statements.dart';
 import 'rules/enable_null_safety.dart';
 import 'rules/eol_at_end_of_file.dart';
+import 'rules/erase_dart_type_extension_types.dart';
 import 'rules/exhaustive_cases.dart';
 import 'rules/file_names.dart';
 import 'rules/flutter_style_todos.dart';
@@ -281,6 +283,7 @@ void registerLintRules() {
     ..register(AvoidTypesAsParameterNames())
     ..register(AvoidTypesOnClosureParameters())
     ..register(AvoidUnnecessaryContainers())
+    ..register(AvoidUnstableFinalFields())
     ..register(AvoidUnusedConstructorParameters())
     ..register(AvoidVoidAsync())
     ..register(AvoidWebLibrariesInFlutter())
@@ -311,6 +314,7 @@ void registerLintRules() {
     ..register(EmptyStatements())
     ..register(EnableNullSafety())
     ..register(EolAtEndOfFile())
+    ..register(EraseDartTypeExtensionTypes())
     ..register(ExhaustiveCases())
     ..register(FileNames())
     ..register(FlutterStyleTodos())

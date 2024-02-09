@@ -39,8 +39,11 @@ class CodeChecker extends RecursiveAstVisitor {
   final TypeSystemImpl _typeSystem;
   final TypeProvider _typeProvider;
   final ErrorReporter _errorReporter;
+  final bool _strictCasts;
 
-  CodeChecker(this._typeProvider, this._typeSystem, this._errorReporter);
+  CodeChecker(this._typeProvider, this._typeSystem, this._errorReporter,
+      {required bool strictCasts})
+      : _strictCasts = strictCasts;
 
   void checkArgument(Expression arg, DartType expectedType) {
     // Preserve named argument structure, so their immediate parent is the
@@ -662,7 +665,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (_typeSystem.isAssignableTo(from, to)) {
+    if (_typeSystem.isAssignableTo(from, to, strictCasts: _strictCasts)) {
       return true;
     }
 

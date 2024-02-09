@@ -469,7 +469,7 @@ void f(int Function(int) p) {
   v = p;
 }
 ''');
-    // TODO(brianwilkerson) Improve `DartChangeBuilder.writeType` so that
+    // TODO(brianwilkerson): Improve `DartChangeBuilder.writeType` so that
     //  unnecessary parameter names (`p1`) are not written.
     await assertHasAssistAt('var ', '''
 void f(int Function(int) p) {

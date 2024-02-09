@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 void main() {
   final baz = Foo<Null>().baz;
-  Expect.equals("Baz<Bar<Null>?>", baz.runtimeType.toString());
+  Expect.equals(Baz<Bar<Null>?>, baz.runtimeType);
   baz.v = baz.v;
 }
 

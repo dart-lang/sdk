@@ -9,6 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/task/options.dart';
 
 /// A completion generator that can produce completion suggestions for analysis
@@ -16,7 +17,7 @@ import 'package:analyzer/src/task/options.dart';
 class AnalysisOptionsGenerator extends YamlCompletionGenerator {
   /// The producer representing the known valid structure of an analysis options
   /// file.
-  // TODO(brianwilkerson) We need to support multiple valid formats.
+  // TODO(brianwilkerson): We need to support multiple valid formats.
   //  For example, the lint rules can either be a list or a map, but we only
   //  suggest list items.
   static MapProducer analysisOptionsProducer = MapProducer({
@@ -38,9 +39,9 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
     AnalyzerOptions.codeStyle: MapProducer({
       AnalyzerOptions.format: BooleanProducer(),
     }),
-    // TODO(brianwilkerson) Create a producer to produce `package:` URIs.
+    // TODO(brianwilkerson): Create a producer to produce `package:` URIs.
     AnalyzerOptions.include: EmptyProducer(),
-    // TODO(brianwilkerson) Create constants for 'linter' and 'rules'.
+    // TODO(brianwilkerson): Create constants for 'linter' and 'rules'.
     'linter': MapProducer({
       'rules': ListProducer(_LintRuleProducer()),
     }),
@@ -103,7 +104,10 @@ class _LintRuleProducer extends Producer {
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
     for (var rule in Registry.ruleRegistry.rules) {
-      yield identifier(rule.name);
+      // TODO(pq): consider suggesting internal lints if editing an SDK options file
+      if (!rule.state.isInternal) {
+        yield identifier(rule.name);
+      }
     }
   }
 }

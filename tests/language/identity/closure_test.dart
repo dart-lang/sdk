@@ -41,4 +41,7 @@ main() {
   // Null handling.
   Expect.isFalse(myIdentical(42, null));
   Expect.isTrue(myIdentical(null, null));
+
+  // Assigning to the variable prevents dart2js from optimizing calls.
+  myIdentical = identical;
 }

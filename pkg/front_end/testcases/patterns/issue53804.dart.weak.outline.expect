@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int? f1;
+  field core::double? f2;
+  synthetic constructor •() → self::A
+    ;
+  @core::pragma::_("vm:never-inline")
+  method foo() → core::String
+    ;
+}
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue53804.dart:9:4 -> InstanceConstant(const pragma{pragma.name: "vm:never-inline", pragma.options: null})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

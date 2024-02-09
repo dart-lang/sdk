@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    return "C";
+  no-such-method-forwarder method foo() → core::String
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  method noSuchMethod(core::Invocation i) → dynamic
+    return "M";
+  abstract method foo() → core::String;
+}
+class MA = core::Object with self::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::MA
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
+  no-such-method-forwarder method foo() → core::String
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+}
+static method main() → void {
+  self::C c = new self::C::•();
+  core::Function f1 = c.{self::C::foo}{() → core::String};
+  core::print(f1());
+  self::MA ma = new self::MA::•();
+  core::Function f2 = ma.{self::MA::foo}{() → core::String};
+  core::print(f2());
+}
+
+constants  {
+  #C1 = #foo
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol*, dynamic>{}
+}

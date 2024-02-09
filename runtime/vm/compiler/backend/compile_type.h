@@ -21,6 +21,7 @@ class BaseTextBuffer;
 class Definition;
 class FlowGraphDeserializer;
 class FlowGraphSerializer;
+class JSONWriter;
 
 template <typename T>
 class GrowableArray;
@@ -191,6 +192,9 @@ class CompileType : public ZoneAllocated {
   // Create non-nullable String type.
   static CompileType String();
 
+  // Create non-nullable Object type.
+  static CompileType Object();
+
   // Perform a join operation over the type lattice.
   void Union(CompileType* other);
 
@@ -209,6 +213,9 @@ class CompileType : public ZoneAllocated {
   }
 
   bool IsNone() const { return (cid_ == kIllegalCid) && (type_ == nullptr); }
+
+  // Return true if value of this type is a non-nullable Object.
+  bool IsObject() const;
 
   // Return true if value of this type is a non-nullable int.
   bool IsInt() { return !is_nullable() && IsNullableInt(); }
@@ -276,6 +283,7 @@ class CompileType : public ZoneAllocated {
   bool Specialize(GrowableArray<intptr_t>* class_ids);
 
   void PrintTo(BaseTextBuffer* f) const;
+  void PrintTo(JSONWriter* writer) const;
 
   const char* ToCString() const;
 

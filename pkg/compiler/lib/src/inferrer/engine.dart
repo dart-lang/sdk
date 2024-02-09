@@ -608,6 +608,7 @@ class InferrerEngine {
       case MemberKind.signature:
       case MemberKind.generatorBody:
       case MemberKind.recordGetter:
+      case MemberKind.parameterStub:
         break;
     }
     failedAt(member, 'Unexpected member definition: $definition.');
@@ -1646,26 +1647,22 @@ class KernelGlobalTypeInferenceElementData
       AbstractValueDomain abstractValueDomain) {
     sink.inMemberContext(context, () {
       sink.begin(tag);
-      sink.writeTreeNodeMapInContext(
+      sink.writeTreeNodeMapInContextOrNull(
           _receiverMap,
           (AbstractValue? value) =>
-              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-          allowNull: true);
-      sink.writeTreeNodeMapInContext(
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value));
+      sink.writeTreeNodeMapInContextOrNull(
           _iteratorMap,
           (AbstractValue? value) =>
-              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-          allowNull: true);
-      sink.writeTreeNodeMapInContext(
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value));
+      sink.writeTreeNodeMapInContextOrNull(
           _currentMap,
           (AbstractValue? value) =>
-              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-          allowNull: true);
-      sink.writeTreeNodeMapInContext(
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value));
+      sink.writeTreeNodeMapInContextOrNull(
           _moveNextMap,
           (AbstractValue? value) =>
-              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-          allowNull: true);
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value));
       sink.end(tag);
     });
   }

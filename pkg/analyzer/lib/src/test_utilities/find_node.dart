@@ -106,6 +106,9 @@ class FindNode {
 
   LabeledStatement get singleLabeledStatement => _single();
 
+  LibraryAugmentationDirective get singleLibraryAugmentationDirective =>
+      _single();
+
   LibraryDirective get singleLibraryDirective => _single();
 
   ListLiteral get singleListLiteral => _single();
@@ -115,6 +118,8 @@ class FindNode {
   MethodInvocation get singleMethodInvocation => _single();
 
   MixinDeclaration get singleMixinDeclaration => _single();
+
+  NamedType get singleNamedType => _single();
 
   OnClause get singleOnClause => _single();
 
@@ -386,6 +391,10 @@ class FindNode {
 
   ExtensionOverride extensionOverride(String search) {
     return _node(search, (n) => n is ExtensionOverride);
+  }
+
+  ExtensionTypeDeclaration extensionTypeDeclaration(String search) {
+    return _node(search, (n) => n is ExtensionTypeDeclaration);
   }
 
   FieldDeclaration fieldDeclaration(String search) {

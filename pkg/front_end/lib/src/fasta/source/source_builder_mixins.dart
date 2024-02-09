@@ -10,12 +10,14 @@ import '../builder/builder.dart';
 import '../builder/builder_mixins.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/procedure_builder.dart';
-import '../fasta_codes.dart'
-    show templateExtensionMemberConflictsWithObjectMember;
+import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
+import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
 import '../util/helpers.dart';
@@ -170,32 +172,41 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
       Member? tearOff, BuiltMemberKind memberKind,
       {required bool addMembersToLibrary}) {
-    if (addMembersToLibrary &&
-        !memberBuilder.isPatch &&
+    if (!memberBuilder.isPatch &&
         !memberBuilder.isDuplicate &&
         !memberBuilder.isConflictingSetter) {
-      Reference addMember(Member member) {
-        if (member is Field) {
-          libraryBuilder.library.addField(member);
-          return member.fieldReference;
-        } else if (member is Procedure) {
-          libraryBuilder.library.addProcedure(member);
-          return member.reference;
-        } else {
-          unhandled("${member.runtimeType}", "buildBuilders", member.fileOffset,
-              member.fileUri);
+      if (memberKind == BuiltMemberKind.ExtensionTypeRepresentationField) {
+        addMemberInternal(memberBuilder, memberKind, member, tearOff);
+      } else {
+        if (addMembersToLibrary) {
+          Reference addMember(Member member) {
+            if (member is Field) {
+              libraryBuilder.library.addField(member);
+              return member.fieldReference;
+            } else if (member is Procedure) {
+              libraryBuilder.library.addProcedure(member);
+              return member.reference;
+            } else {
+              unhandled("${member.runtimeType}", "buildBuilders",
+                  member.fileOffset, member.fileUri);
+            }
+          }
+
+          Reference memberReference = addMember(member);
+          Reference? tearOffReference;
+          if (tearOff != null) {
+            tearOffReference = addMember(tearOff);
+          }
+          addMemberDescriptorInternal(
+              memberBuilder, memberKind, memberReference, tearOffReference);
         }
       }
-
-      Reference memberReference = addMember(member);
-      Reference? tearOffReference;
-      if (tearOff != null) {
-        tearOffReference = addMember(tearOff);
-      }
-      addMemberDescriptorInternal(
-          memberBuilder, memberKind, memberReference, tearOffReference);
     }
   }
+
+  /// Adds [member] and [tearOff] to this declaration.
+  void addMemberInternal(SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind, Member member, Member? tearOff);
 
   /// Adds a descriptor for [member] to this declaration.
   void addMemberDescriptorInternal(
@@ -203,4 +214,93 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
       BuiltMemberKind memberKind,
       Reference memberReference,
       Reference? tearOffReference);
+
+  /// Type parameters declared.
+  ///
+  /// This is `null` if the declaration is not generic.
+  List<NominalVariableBuilder>? get typeParameters;
+
+  @override
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
+    if (arguments == null && typeParameters == null) {
+      return <DartType>[];
+    }
+
+    if (arguments == null && typeParameters != null) {
+      List<DartType> result =
+          new List<DartType>.generate(typeParameters!.length, (int i) {
+        if (typeParameters![i].defaultType == null) {
+          throw 'here';
+        }
+        return typeParameters![i].defaultType!.buildAliased(
+            library, TypeUse.defaultTypeAsTypeArgument, hierarchy);
+      }, growable: true);
+      return result;
+    }
+
+    if (arguments != null && arguments.length != typeVariablesCount) {
+      // That should be caught and reported as a compile-time error earlier.
+      return unhandled(
+          templateTypeArgumentMismatch
+              .withArguments(typeVariablesCount)
+              .problemMessage,
+          "buildTypeArguments",
+          -1,
+          null);
+    }
+
+    assert(arguments!.length == typeVariablesCount);
+    List<DartType> result =
+        new List<DartType>.generate(arguments!.length, (int i) {
+      return arguments[i]
+          .buildAliased(library, TypeUse.typeArgument, hierarchy);
+    }, growable: true);
+    return result;
+  }
+
+  @override
+  int get typeVariablesCount => typeParameters?.length ?? 0;
+}
+
+mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
+  /// Checks for conflicts between constructors and static members declared
+  /// in this type declaration.
+  void checkConstructorStaticConflict() {
+    NameIterator<MemberBuilder> iterator =
+        constructorScope.filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      String name = iterator.name;
+      MemberBuilder constructor = iterator.current;
+      Builder? member = scope.lookupLocalMember(name, setter: false);
+      if (member == null) continue;
+      if (!member.isStatic) continue;
+      // TODO(ahe): Revisit these messages. It seems like the last two should
+      // be `context` parameter to this message.
+      addProblem(templateConflictsWithMember.withArguments(name),
+          constructor.charOffset, noLength);
+      if (constructor.isFactory) {
+        addProblem(
+            templateConflictsWithFactory.withArguments("${this.name}.${name}"),
+            member.charOffset,
+            noLength);
+      } else {
+        addProblem(
+            templateConflictsWithConstructor
+                .withArguments("${this.name}.${name}"),
+            member.charOffset,
+            noLength);
+      }
+    }
+
+    scope.forEachLocalSetter((String name, Builder setter) {
+      Builder? constructor = constructorScope.lookupLocalMember(name);
+      if (constructor == null || !setter.isStatic) return;
+      addProblem(templateConflictsWithConstructor.withArguments(name),
+          setter.charOffset, noLength);
+      addProblem(templateConflictsWithSetter.withArguments(name),
+          constructor.charOffset, noLength);
+    });
+  }
 }

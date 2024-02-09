@@ -493,8 +493,10 @@ class List<E> implements Iterable<E> {
   external factory List.unmodifiable(Iterable elements);
 
   E get last => throw 0;
+  set length(int newLength) {}
   E operator [](int index) => throw 0;
   void operator []=(int index, E value) {}
+  void set first(E value) {}
 
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
@@ -812,6 +814,8 @@ final class Packed {
 
 abstract final class DynamicLibrary {
   external factory DynamicLibrary.open(String name);
+
+  external Pointer<T> lookup<T extends NativeType>(String symbolName);
 }
 
 extension DynamicLibraryExtension on DynamicLibrary {
@@ -863,12 +867,6 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   external T operator [](int index);
 }
 
-final class FfiNative<T> {
-  final String nativeName;
-  final bool isLeaf;
-  const FfiNative(this.nativeName, {this.isLeaf = false});
-}
-
 @Since('2.19')
 final class Native<T> {
   final String? symbol;
@@ -880,6 +878,14 @@ final class Native<T> {
     this.isLeaf: false,
     this.symbol,
   });
+
+  external static Pointer<T> addressOf<T extends NativeType>(
+      @DartRepresentationOf('T') Object object);
+}
+
+final class DefaultAsset {
+  final String id;
+  const DefaultAsset(this.id);
 }
 
 final class Asset {
@@ -933,6 +939,11 @@ final class AbiSpecificIntegerMapping {
   final Map<Abi, NativeType> mapping;
 
   const AbiSpecificIntegerMapping(this.mapping);
+}
+
+@AbiSpecificIntegerMapping({})
+final class Int extends AbiSpecificInteger {
+  const Int();
 }
 
 @Since('2.17')
@@ -1258,6 +1269,14 @@ class IOSink implements Sink<List<int>> {
   Future<dynamic> close() {}
 }
 
+class Platform {
+  @deprecated
+  static final bool isAndroid = (operatingSystem == "android");
+
+  @deprecated
+  static final String localHostname = 'hostname';
+}
+
 class ProcessStartMode {
   static const normal = const ProcessStartMode._internal(0);
   const ProcessStartMode._internal(int mode);
@@ -1356,23 +1375,52 @@ class Point<T extends num> {}
   ],
 );
 
+final MockSdkLibrary _LIB_TYPED_DATA = MockSdkLibrary(
+  'typed_data',
+  [
+    MockSdkLibraryUnit(
+      'typed_data/typed_data.dart',
+      '''
+library dart.typed_data;
+
+abstract final class Uint8List {
+  external factory Uint8List(int length);
+}
+
+abstract final class Int8List {
+  external factory Int8List(int length);
+}
+
+abstract final class Float32List {
+  external factory Float32List(int length);
+}
+
+abstract final class Float64List {
+  external factory Float64List(int length);
+}
+''',
+    )
+  ],
+);
+
 final MockSdkLibrary _LIB_WASM = MockSdkLibrary('_wasm', [
   MockSdkLibraryUnit('_wasm/wasm.dart', ''),
 ]);
 
 final List<MockSdkLibrary> _LIBRARIES = [
-  _LIB_CORE,
   _LIB_ASYNC,
   _LIB_ASYNC2,
   _LIB_COLLECTION,
   _LIB_CONVERT,
+  _LIB_CORE,
   _LIB_FFI,
-  _LIB_IO,
-  _LIB_ISOLATE,
-  _LIB_MATH,
   _LIB_HTML_DART2JS,
   _LIB_INTERCEPTORS,
   _LIB_INTERNAL,
+  _LIB_IO,
+  _LIB_ISOLATE,
+  _LIB_MATH,
+  _LIB_TYPED_DATA,
   _LIB_WASM,
 ];
 

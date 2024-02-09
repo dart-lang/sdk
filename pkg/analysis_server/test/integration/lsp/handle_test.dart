@@ -32,7 +32,7 @@ void main() {
 /// functionality are in `test/lsp`.
 @reflectiveTest
 class LspOverLegacyTest extends AbstractAnalysisServerIntegrationTest
-    with LspRequestHelpersMixin {
+    with LspRequestHelpersMixin, LspEditHelpersMixin {
   late final testFile = sourcePath('lib/test.dart');
 
   Uri get testFileUri => Uri.file(testFile);

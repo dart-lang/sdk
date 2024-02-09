@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
@@ -31,7 +32,7 @@ class ClosureDataImpl implements ClosureData {
   final JsToElementMap _elementMap;
 
   /// Map of the scoping information that corresponds to a particular entity.
-  final Deferrable<Map<MemberEntity, ScopeInfo>> _scopeMap;
+  final Map<MemberEntity, ScopeInfo> _scopeMap;
   final Deferrable<Map<ir.TreeNode, CapturedScope>> _capturedScopesMap;
   // Indicates the type variables (if any) that are captured in a given
   // Signature function.
@@ -45,14 +46,13 @@ class ClosureDataImpl implements ClosureData {
 
   ClosureDataImpl(
       this._elementMap,
-      Map<MemberEntity, ScopeInfo> scopeMap,
+      this._scopeMap,
       Map<ir.TreeNode, CapturedScope> capturedScopesMap,
       Map<MemberEntity, CapturedScope> capturedScopeForSignatureMap,
       Map<ir.LocalFunction, ClosureRepresentationInfo>
           localClosureRepresentationMap,
       this._enclosingMembers)
-      : _scopeMap = Deferrable.eager(scopeMap),
-        _capturedScopesMap = Deferrable.eager(capturedScopesMap),
+      : _capturedScopesMap = Deferrable.eager(capturedScopesMap),
         _capturedScopeForSignatureMap =
             Deferrable.eager(capturedScopeForSignatureMap),
         _localClosureRepresentationMap =
@@ -65,11 +65,6 @@ class ClosureDataImpl implements ClosureData {
       this._capturedScopeForSignatureMap,
       this._localClosureRepresentationMap,
       this._enclosingMembers);
-
-  static Map<MemberEntity, ScopeInfo> _readScopeMap(DataSourceReader source) {
-    return source.readMemberMap(
-        (MemberEntity member) => ScopeInfo.readFromDataSource(source));
-  }
 
   static Map<ir.TreeNode, CapturedScope> _readCapturedScopesMap(
       DataSourceReader source) {
@@ -94,7 +89,8 @@ class ClosureDataImpl implements ClosureData {
       JsToElementMap elementMap, DataSourceReader source) {
     source.begin(tag);
     // TODO(johnniwinther): Support shared [ScopeInfo].
-    final scopeMap = source.readDeferrable(_readScopeMap);
+    final scopeMap = source.readMemberMap((MemberEntity member) =>
+        source.readDeferrable(ScopeInfo.readFromDataSource));
     final capturedScopesMap = source.readDeferrable(_readCapturedScopesMap);
     final capturedScopeForSignatureMap =
         source.readDeferrable(_readCapturedScopeForSignatureMap);
@@ -105,7 +101,7 @@ class ClosureDataImpl implements ClosureData {
     source.end(tag);
     return ClosureDataImpl._deserialized(
         elementMap,
-        scopeMap,
+        DeferrableValueMap(scopeMap),
         capturedScopesMap,
         capturedScopeForSignatureMap,
         localClosureRepresentationMap,
@@ -116,8 +112,10 @@ class ClosureDataImpl implements ClosureData {
   @override
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeDeferrable(() => sink.writeMemberMap(_scopeMap.loaded(),
-        (MemberEntity member, ScopeInfo info) => info.writeToDataSink(sink)));
+    sink.writeMemberMap(
+        _scopeMap,
+        (_, ScopeInfo info) =>
+            sink.writeDeferrable(() => info.writeToDataSink(sink)));
     sink.writeDeferrable(() => sink.writeTreeNodeMap(
             _capturedScopesMap.loaded(), (CapturedScope scope) {
           scope.writeToDataSink(sink);
@@ -144,11 +142,12 @@ class ClosureDataImpl implements ClosureData {
     // eagerly with the J-model; a constructor body should have it's own
     // [ClosureRepresentationInfo].
     if (entity is ConstructorBodyEntity) {
-      ConstructorBodyEntity constructorBody = entity;
-      entity = constructorBody.constructor;
+      entity = entity.constructor;
+    } else if (entity is JParameterStub) {
+      entity = entity.target;
     }
 
-    return _scopeMap.loaded()[entity]!;
+    return _scopeMap[entity]!;
   }
 
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
@@ -166,7 +165,11 @@ class ClosureDataImpl implements ClosureData {
       case MemberKind.signature:
         return _capturedScopeForSignatureMap.loaded()[entity] ??
             const CapturedScope();
-      default:
+      case MemberKind.parameterStub:
+        return const CapturedScope();
+      case MemberKind.closureField:
+      case MemberKind.generatorBody:
+      case MemberKind.recordGetter:
         throw failedAt(entity, "Unexpected member definition $definition");
     }
   }
@@ -276,6 +279,11 @@ class ClosureDataBuilder {
               if (rtiNeed.methodNeedsSignature(method)) {
                 return true;
               }
+              if (rtiNeed.methodNeedsTypeArguments(method)) {
+                // Stubs generated for this method might make use of this type
+                // parameter for default type arguments.
+                return true;
+              }
             }
             break;
           case VariableUseKind.localParameter:
@@ -285,6 +293,11 @@ class ClosureDataBuilder {
               return true;
             } else if (rtiNeed
                 .localFunctionNeedsSignature(usage.localFunction!)) {
+              return true;
+            } else if (rtiNeed
+                .localFunctionNeedsTypeArguments(usage.localFunction!)) {
+              // Stubs generated for this local function might make use of this
+              // type parameter for default type arguments.
               return true;
             }
             break;

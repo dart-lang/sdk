@@ -646,14 +646,14 @@ void Dwarf::WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer) {
     auto& comments = code.comments();
     for (intptr_t i = 0, len = comments.Length(); i < len;) {
       intptr_t current_pc_offset = comments.PCOffsetAt(i);
-      writer->EmitRow(comments_file_index, current_line,
-                      DwarfPosition::kNoColumn, label, current_pc_offset);
       while (i < len && current_pc_offset == comments.PCOffsetAt(i)) {
         comments_buffer.AddString(comments.CommentAt(i));
         comments_buffer.AddChar('\n');
         current_line++;
         i++;
       }
+      writer->EmitRow(comments_file_index, current_line - 1,
+                      DwarfPosition::kNoColumn, label, current_pc_offset);
     }
   }
 

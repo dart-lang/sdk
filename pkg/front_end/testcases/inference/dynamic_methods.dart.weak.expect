@@ -18,17 +18,17 @@ class Foo extends core::Object {
 }
 static method test() → dynamic {
   dynamic d = new self::Foo::•();
-  core::int get_hashCode = d.{core::Object::hashCode}{core::int};
+  core::int get_hashCode = d.{core::Object::hashCode}{<object>}.{core::int};
   dynamic call_hashCode = invalid-expression "pkg/front_end/testcases/inference/dynamic_methods.dart:16:46: Error: 'hashCode' isn't a function or method and can't be invoked.
       d. /*@target=Object.hashCode*/ hashCode();
-                                             ^^^^..." in d.{core::Object::hashCode}{core::int}{<unresolved>}.call();
-  core::String call_toString = d.{core::Object::toString}(){() → core::String};
+                                             ^^^^..." in d.{core::Object::hashCode}{<object>}.{core::int}{<unresolved>}.call();
+  core::String call_toString = d.{core::Object::toString}{<object>}.(){() → core::String};
   dynamic call_toStringArg = d{dynamic}.toString(color: "pink");
   dynamic call_foo0 = d{dynamic}.foo();
   dynamic call_foo1 = d{dynamic}.foo(1);
   dynamic call_foo2 = d{dynamic}.foo(1, 2);
   dynamic call_nsm0 = d{dynamic}.noSuchMethod();
-  dynamic call_nsm1 = d.{core::Object::noSuchMethod}(throw ""){(core::Invocation) → dynamic};
+  dynamic call_nsm1 = d.{core::Object::noSuchMethod}{<object>}.(throw ""){(core::Invocation) → dynamic};
   dynamic call_nsm2 = d{dynamic}.noSuchMethod(null, null);
   core::bool equals_self = d =={core::Object::==}{(core::Object) → core::bool} d;
   core::bool equals_null = d == null;

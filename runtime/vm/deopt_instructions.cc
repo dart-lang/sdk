@@ -886,6 +886,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   Zone* zone = thread->zone();
   Function& function = Function::Handle(zone);
   function ^= object_table.ObjectAt(ret_address_instr->object_table_index());
+  ASSERT(!function.ForceOptimize());
   ASSERT(code != nullptr);
   const Error& error =
       Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));
@@ -1112,6 +1113,9 @@ void DeoptInfoBuilder::AddCopy(Value* value,
         deopt_instr =
             new (zone()) DeoptWordInstr(ToCpuRegisterSource(source_loc));
         break;
+#if defined(TARGET_ARCH_IS_64_BIT)
+      case kUntagged:
+#endif
       case kUnboxedInt64: {
         if (source_loc.IsPairLocation()) {
           PairLocation* pair = source_loc.AsPairLocation();
@@ -1125,6 +1129,9 @@ void DeoptInfoBuilder::AddCopy(Value* value,
         }
         break;
       }
+#if defined(TARGET_ARCH_IS_32_BIT)
+      case kUntagged:
+#endif
       case kUnboxedInt32:
         deopt_instr =
             new (zone()) DeoptInt32Instr(ToCpuRegisterSource(source_loc));

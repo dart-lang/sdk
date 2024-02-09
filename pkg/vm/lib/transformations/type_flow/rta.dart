@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Rapid type analysis on kernel AST.
+library;
 
 import 'dart:core' hide Type;
 
@@ -18,6 +19,7 @@ import 'native_code.dart'
     show EntryPointsListener, NativeCodeOracle, PragmaEntryPointsVisitor;
 import 'protobuf_handler.dart' show ProtobufHandler;
 import 'types.dart' show TFClass, Type, ConcreteType, RecordShape;
+import 'utils.dart' show combineHashes;
 import '../pragma.dart' show ConstantPragmaAnnotationParser;
 
 class Selector {
@@ -27,7 +29,7 @@ class Selector {
   Selector(this.name, this.setter);
 
   @override
-  int get hashCode => name.hashCode ^ setter.hashCode;
+  int get hashCode => combineHashes(name.hashCode, setter.hashCode);
 
   @override
   bool operator ==(Object other) =>
@@ -38,7 +40,6 @@ class Selector {
 
 class ClassInfo extends TFClass {
   final ClassInfo? superclass;
-  final Set<ClassInfo> supertypes; // All super-types including this.
   final Set<ClassInfo> subclasses = Set<ClassInfo>();
   final Set<ClassInfo> subtypes = Set<ClassInfo>();
 
@@ -53,10 +54,9 @@ class ClassInfo extends TFClass {
   late final Map<Name, Member> _dispatchTargetsNonSetters =
       _initDispatchTargets(false);
 
-  ClassInfo(int id, Class classNode, this.superclass, this.supertypes,
+  ClassInfo(int id, Class classNode, this.superclass, Set<ClassInfo> supertypes,
       this.calledDynamicSelectors, this.calledVirtualSelectors)
-      : super(id, classNode, null) {
-    supertypes.add(this);
+      : super(id, classNode, supertypes, null) {
     for (var sup in supertypes) {
       sup.subtypes.add(this);
     }
@@ -114,7 +114,7 @@ class _ClassHierarchyCache {
     final dynSel = Set<Selector>();
     for (var sup in c.supers) {
       final supInfo = getClassInfo(sup.classNode);
-      supertypes.addAll(supInfo.supertypes);
+      supertypes.addAll(supInfo.supertypes as Set<ClassInfo>);
       dynSel.addAll(supInfo.calledDynamicSelectors);
     }
     Class? superclassNode = c.superclass;

@@ -2,44 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
 // Make sure these variables are not removed by the tree shaker.
-@pragma("vm:entry-point")
-var cleanBlock;
-@pragma("vm:entry-point")
-var copyingBlock;
-@pragma("vm:entry-point")
-var fullBlock;
-@pragma("vm:entry-point")
-var fullBlockWithChain;
+@pragma('vm:entry-point')
+late final Function cleanBlock;
+@pragma('vm:entry-point')
+late final Function copyingBlock;
+@pragma('vm:entry-point')
+late final Function fullBlock;
+@pragma('vm:entry-point')
+late final Function fullBlockWithChain;
 
 Function genCleanBlock() {
-  block(x) => x;
+  dynamic block(x) => x;
   return block;
 }
 
 Function genCopyingBlock() {
   final x = 'I could be copied into the block';
-  block() => x;
+  String block() => x;
   return block;
 }
 
 Function genFullBlock() {
   var x = 42; // I must captured in a context.
-  block() => x;
+  int block() => x;
   x++;
   return block;
 }
 
 Function genFullBlockWithChain() {
   var x = 420; // I must captured in a context.
-  outerBlock() {
+  int Function() outerBlock() {
     var y = 4200;
-    innerBlock() => x + y;
+    int innerBlock() => x + y;
     y++;
     return innerBlock;
   }

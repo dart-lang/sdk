@@ -8,7 +8,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -20,10 +19,12 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
+import 'package:language_server_protocol/json_parsing.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart' hide expect;
 import 'package:unified_analytics/unified_analytics.dart';
@@ -45,6 +46,8 @@ abstract class AbstractLspAnalysisServerTest
         ResourceProviderMixin,
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
+        LspEditHelpersMixin,
+        LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
         ConfigurationFilesMixin {
   late MockLspServerChannel channel;
@@ -292,9 +295,6 @@ abstract class AbstractLspAnalysisServerTest
 analyzer:
   enable-experiment:
     - inline-class
-    - records
-    - patterns
-    - sealed-class
 ''');
 
     analysisOptionsUri = pathContext.toUri(analysisOptionsPath);
@@ -807,15 +807,9 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
   }
 }
 
-mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
+mixin LspAnalysisServerTestMixin
+    on LspRequestHelpersMixin, LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
-  static const positionMarker = '^';
-  static const rangeMarkerStart = '[[';
-  static const rangeMarkerEnd = ']]';
-  static const allMarkers = [positionMarker, rangeMarkerStart, rangeMarkerEnd];
-  static final allMarkersPattern =
-      RegExp(allMarkers.map(RegExp.escape).join('|'));
-
   /// A progress token used in tests where the client-provides the token, which
   /// should not be validated as being created by the server first.
   final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
@@ -844,10 +838,21 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
   /// options explicitly.
   Map<String, Object?>? defaultInitializationOptions;
 
+  /// The current state of all diagnostics from the server.
+  ///
+  /// A file that has never had diagnostics will not be in the map. A file that
+  /// has ever had diagnostics will be in the map, even if the entry is an empty
+  /// list.
+  final diagnostics = <String, List<Diagnostic>>{};
+
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
   }
+
+  /// A [Future] that completes with the first analysis after initialization.
+  Future<void> get initialAnalysis =>
+      initialized ? Future.value() : waitForAnalysisComplete();
 
   bool get initialized => _clientCapabilities != null;
 
@@ -865,6 +870,15 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
           OpenUriParams.fromJson(message.params as Map<String, Object?>));
 
   path.Context get pathContext;
+
+  /// A stream of diagnostic notifications from the server.
+  Stream<PublishDiagnosticsParams> get publishedDiagnostics {
+    return notificationsFromServer
+        .where((notification) =>
+            notification.method == Method.textDocument_publishDiagnostics)
+        .map((notification) => PublishDiagnosticsParams.fromJson(
+            notification.params as Map<String, Object?>));
+  }
 
   /// A stream of [RequestMessage]s from the server.
   Stream<RequestMessage> get requestsFromServer {
@@ -1037,7 +1051,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
       // an error it will still be handled as such when the future is later
       // awaited.
 
-      // TODO: Fix this static error.
+      // TODO(srawlins): Fix this static error.
       // ignore: body_might_complete_normally_catch_error
       outboundRequest.catchError((_) {});
     });
@@ -1097,6 +1111,10 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
         await _handleProgress(notification);
       }
     });
+
+    // Track diagnostics from the server so tests can easily access the current
+    // state.
+    trackDiagnostics(diagnostics);
 
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
@@ -1205,14 +1223,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     );
   }
 
-  Future<WorkspaceEdit> onWillRename(List<FileRename> renames) {
-    final request = makeRequest(
-      Method.workspace_willRenameFiles,
-      RenameFilesParams(files: renames),
-    );
-    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
-  }
-
   Future<void> openFile(Uri uri, String content, {int version = 1}) async {
     var notification = makeNotification(
       Method.textDocument_didOpen,
@@ -1235,14 +1245,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     if (p1.character > p2.character) return 1;
 
     return 0;
-  }
-
-  Position positionFromMarker(String contents) =>
-      positionFromOffset(withoutRangeMarkers(contents).indexOf('^'), contents);
-
-  @override
-  Position positionFromOffset(int offset, String contents) {
-    return super.positionFromOffset(offset, withoutMarkers(contents));
   }
 
   /// Calls the supplied function and responds to any `workspace/configuration`
@@ -1274,8 +1276,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
         return configurationParams.items.map(
           (requestedConfig) {
             final uri = requestedConfig.scopeUri;
-            final path =
-                uri != null ? pathContext.fromUri(Uri.parse(uri)) : null;
+            final path = uri != null ? pathContext.fromUri(uri) : null;
             // Use the config the test provided for this path, or fall back to
             // global.
             return (folders != null ? folders[path] : null) ?? global;
@@ -1285,23 +1286,9 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     );
   }
 
-  /// Returns the range surrounded by `[[markers]]` in the provided string,
-  /// excluding the markers themselves (as well as position markers `^` from
-  /// the offsets).
-  Range rangeFromMarkers(String contents) {
-    final ranges = rangesFromMarkers(contents);
-    if (ranges.length == 1) {
-      return ranges.first;
-    } else if (ranges.isEmpty) {
-      throw 'Contents did not include a marked range';
-    } else {
-      throw 'Contents contained multiple ranges but only one was expected';
-    }
-  }
-
-  /// Returns the range of [pattern] in [content].
-  Range rangeOfPattern(String content, Pattern pattern) {
-    content = withoutMarkers(content);
+  /// Returns the range of [pattern] in [code].
+  Range rangeOfPattern(TestCode code, Pattern pattern) {
+    final content = code.code;
     final match = pattern.allMatches(content).first;
     return Range(
       start: positionFromOffset(match.start, content),
@@ -1309,9 +1296,9 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     );
   }
 
-  /// Returns the range of [searchText] in [content].
-  Range rangeOfString(String content, String searchText) =>
-      rangeOfPattern(content, searchText);
+  /// Returns the range of [searchText] in [code].
+  Range rangeOfString(TestCode code, String searchText) =>
+      rangeOfPattern(code, searchText);
 
   /// Returns a [Range] that covers the entire of [content].
   Range rangeOfWholeContent(String content) {
@@ -1321,47 +1308,9 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     );
   }
 
-  /// Returns all ranges surrounded by `[[markers]]` in the provided string,
-  /// excluding the markers themselves (as well as position markers `^` from
-  /// the offsets).
-  List<Range> rangesFromMarkers(String content) {
-    Iterable<Range> rangesFromMarkersImpl(String content) sync* {
-      content = content.replaceAll(positionMarker, '');
-      final contentsWithoutMarkers = withoutMarkers(content);
-      var searchStartIndex = 0;
-      var offsetForEarlierMarkers = 0;
-      while (true) {
-        final startMarker = content.indexOf(rangeMarkerStart, searchStartIndex);
-        if (startMarker == -1) {
-          return; // Exit if we didn't find any more.
-        }
-        final endMarker = content.indexOf(rangeMarkerEnd, startMarker);
-        if (endMarker == -1) {
-          throw 'Found unclosed range starting at offset $startMarker';
-        }
-        yield Range(
-          start: positionFromOffset(
-              startMarker + offsetForEarlierMarkers, contentsWithoutMarkers),
-          end: positionFromOffset(
-              endMarker + offsetForEarlierMarkers - rangeMarkerStart.length,
-              contentsWithoutMarkers),
-        );
-        // Start the next search after this one, but remember to offset the future
-        // results by the lengths of these markers since they shouldn't affect the
-        // offsets.
-        searchStartIndex = endMarker;
-        offsetForEarlierMarkers -=
-            rangeMarkerStart.length + rangeMarkerEnd.length;
-      }
-    }
-
-    return rangesFromMarkersImpl(content).toList();
-  }
-
   /// Gets the range in [content] that beings with the string [prefix] and
   /// has a length matching [text].
   Range rangeStartingAtString(String content, String prefix, String text) {
-    content = withoutMarkers(content);
     final offset = content.indexOf(prefix);
     final end = offset + text.length;
     return Range(
@@ -1369,18 +1318,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
       end: positionFromOffset(end, content),
     );
   }
-
-  /// Formats a path relative to the project root always using forward slashes.
-  ///
-  /// This is used in the text format for comparing edits.
-  String relativePath(String filePath) => pathContext
-      .relative(filePath, from: projectFolderPath)
-      .replaceAll(r'\', '/');
-
-  /// Formats a path relative to the project root always using forward slashes.
-  ///
-  /// This is used in the text format for comparing edits.
-  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
 
   Future<WorkspaceEdit?> rename(
     Uri uri,
@@ -1479,12 +1416,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
   /// diagnostics.
   StreamSubscription<PublishDiagnosticsParams> trackDiagnostics(
       Map<String, List<Diagnostic>> latestDiagnostics) {
-    return notificationsFromServer
-        .where((notification) =>
-            notification.method == Method.textDocument_publishDiagnostics)
-        .map((notification) => PublishDiagnosticsParams.fromJson(
-            notification.params as Map<String, Object?>))
-        .listen((diagnostics) {
+    return publishedDiagnostics.listen((diagnostics) {
       latestDiagnostics[pathContext.fromUri(diagnostics.uri)] =
           diagnostics.diagnostics;
     });
@@ -1561,18 +1493,10 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
   }
 
   Future<List<Diagnostic>?> waitForDiagnostics(Uri uri) async {
-    PublishDiagnosticsParams? diagnosticParams;
-    await notificationsFromServer
-        .map<NotificationMessage?>((message) => message)
-        .firstWhere((message) {
-      if (message?.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams = PublishDiagnosticsParams.fromJson(
-            message!.params as Map<String, Object?>);
-        return diagnosticParams!.uri == uri;
-      }
-      return false;
-    }, orElse: () => null);
-    return diagnosticParams?.diagnostics;
+    return publishedDiagnostics
+        .where((params) => params.uri == uri)
+        .map<List<Diagnostic>?>((params) => params.diagnostics)
+        .firstWhere((_) => true, orElse: () => null);
   }
 
   Future<FlutterOutline> waitForFlutterOutline(Uri uri) async {
@@ -1602,15 +1526,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     });
     return outlineParams.outline;
   }
-
-  /// Removes markers like `[[` and `]]` and `^` that are used for marking
-  /// positions/ranges in strings to avoid hard-coding positions in tests.
-  String withoutMarkers(String contents) =>
-      contents.replaceAll(allMarkersPattern, '');
-
-  /// Removes range markers from strings to give accurate position offsets.
-  String withoutRangeMarkers(String contents) =>
-      contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 
   Future<void> _handleProgress(NotificationMessage request) async {
     final params =

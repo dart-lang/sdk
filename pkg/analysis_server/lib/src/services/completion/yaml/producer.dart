@@ -132,7 +132,7 @@ class ListProducer extends Producer {
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
     for (var suggestion in element.suggestions(request)) {
-      // TODO(brianwilkerson) Consider prepending the suggestion with a hyphen
+      // TODO(brianwilkerson): Consider prepending the suggestion with a hyphen
       //  when the current node isn't already preceded by a hyphen. The
       //  cleanest way to do this is probably to access the [element] producer
       //  in the place where we're choosing a producer in that situation.

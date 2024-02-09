@@ -263,6 +263,24 @@ void f() {
 ''');
   }
 
+  Future<void> test_createQualified_fromExtensionType() async {
+    await resolveTestCode('''
+extension type A(String s) {
+}
+void f() {
+  A.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+extension type A(String s) {
+  static void myUndefinedMethod() {}
+}
+void f() {
+  A.myUndefinedMethod();
+}
+''');
+  }
+
   Future<void> test_createQualified_fromInstance() async {
     await resolveTestCode('''
 class A {
@@ -273,6 +291,24 @@ void f(A a) {
 ''');
     await assertHasFix('''
 class A {
+  void myUndefinedMethod() {}
+}
+void f(A a) {
+  a.myUndefinedMethod();
+}
+''');
+  }
+
+  Future<void> test_createQualified_instance_fromExtensionType() async {
+    await resolveTestCode('''
+extension type A(String s) {
+}
+void f(A a) {
+  a.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+extension type A(String s) {
   void myUndefinedMethod() {}
 }
 void f(A a) {

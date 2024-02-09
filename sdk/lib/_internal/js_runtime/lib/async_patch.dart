@@ -15,7 +15,7 @@ import 'dart:_js_helper'
         unwrapException;
 
 import 'dart:_foreign_helper'
-    show JS, JS_GET_FLAG, JS_RAW_EXCEPTION, RAW_DART_FUNCTION_REF;
+    show JS, JS_FALSE, JS_RAW_EXCEPTION, RAW_DART_FUNCTION_REF;
 
 import 'dart:_async_status_codes' as async_status_codes;
 
@@ -195,11 +195,7 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
       assert(!_future._isComplete);
       _future._chainFuture(value);
     } else {
-      // TODO(40014): Remove cast when type promotion works.
-      // This would normally be `as T` but we use `as dynamic` to make the
-      // unneeded check be implicit to match dart2js unsound optimizations in
-      // the user code.
-      _future._completeWithValue(value as dynamic);
+      _future._completeWithValue(value);
     }
   }
 
@@ -597,7 +593,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
   }
 
   bool moveNext() {
-    if (JS_GET_FLAG('FALSE')) _modelGeneratedCode();
+    if (JS_FALSE()) _modelGeneratedCode();
     Object? errorValue;
     int errorCode = async_status_codes.SUCCESS;
     while (true) {

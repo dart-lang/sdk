@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,8 +19,6 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
-    defineReflectiveTests(
-        ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest);
     defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineLocalVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineMethodRefactorCodeActionsTest);
@@ -904,20 +902,6 @@ void f() {}
       title: extractWidgetTitle,
     );
   }
-}
-
-@reflectiveTest
-class ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest
-    extends ExtractWidgetRefactorCodeActionsTest {
-  @override
-  String get expectedNewWidgetConstructorDeclaration => '''
-const NewWidget({
-    Key key,
-  }) : super(key: key);
-''';
-
-  @override
-  String get testPackageLanguageVersion => '2.9';
 }
 
 @reflectiveTest

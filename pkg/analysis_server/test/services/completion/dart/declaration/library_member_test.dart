@@ -8,8 +8,8 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LibraryMemberTest1);
-    defineReflectiveTests(LibraryMemberTest2);
+    defineReflectiveTests(LibraryMemberWithPrefixTest);
+    defineReflectiveTests(LibraryMemberWithoutPrefixTest);
   });
 }
 
@@ -387,46 +387,20 @@ foo() {
   print("f");
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   Future
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  Future
-    kind: constructorInvocation
-  Future.delayed
-    kind: constructorInvocation
-  Future.microtask
-    kind: constructorInvocation
-  Future.value
-    kind: constructorInvocation
-''');
-    }
   }
 }
 
 @reflectiveTest
-class LibraryMemberTest1 extends AbstractCompletionDriverTest
-    with
-        LibraryMemberImportedWithPrefixTestCases,
-        LibraryMemberImportedWithoutPrefixTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
+class LibraryMemberWithoutPrefixTest extends AbstractCompletionDriverTest
+    with LibraryMemberImportedWithoutPrefixTestCases {}
 
 @reflectiveTest
-class LibraryMemberTest2 extends AbstractCompletionDriverTest
-    with
-        LibraryMemberImportedWithPrefixTestCases,
-        LibraryMemberImportedWithoutPrefixTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class LibraryMemberWithPrefixTest extends AbstractCompletionDriverTest
+    with LibraryMemberImportedWithPrefixTestCases {}

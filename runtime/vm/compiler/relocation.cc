@@ -343,9 +343,6 @@ void CodeRelocator::ResolveCallToDestination(UnresolvedCall* unresolved_call,
   {
     auto const caller = unresolved_call->caller;
     uword addr = Code::PayloadStartOf(caller) + call_offset;
-    if (FLAG_write_protect_code) {
-      addr -= Page::Of(Code::InstructionsOf(caller))->AliasOffset();
-    }
     if (unresolved_call->is_tail_call) {
       PcRelativeTailCallPattern call(addr);
       ASSERT(call.IsValid());

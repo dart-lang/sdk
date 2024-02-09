@@ -54,7 +54,7 @@ dependencies:
 
 dev_dependencies:
   http: ^1.1.0
-  lints: ^2.1.0
+  lints: ^3.0.0
   test: ^1.24.0
 ''';
 
@@ -136,7 +136,8 @@ void main(List<String> args) async {
   final ip = InternetAddress.anyIPv4;
 
   // Configure a pipeline that logs requests.
-  final handler = Pipeline().addMiddleware(logRequests()).addHandler(_router);
+  final handler =
+      Pipeline().addMiddleware(logRequests()).addHandler(_router.call);
 
   // For running in containers, we respect the PORT environment variable.
   final port = int.parse(Platform.environment['PORT'] ?? '8080');

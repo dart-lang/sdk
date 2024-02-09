@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
-    show CommandParameter, SaveUriCommandParameter;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
@@ -19,6 +16,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
+import 'package:language_server_protocol/protocol_custom_generated.dart'
+    show CommandParameter, SaveUriCommandParameter;
+import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A refactoring that will move one or more top-level declarations to a
 /// different file. The destination file can either be a new file or an existing

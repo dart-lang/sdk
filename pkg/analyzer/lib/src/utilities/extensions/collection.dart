@@ -13,6 +13,14 @@ extension IterableExtension<E> on Iterable<E> {
     }
     return result;
   }
+
+  Iterable<E> whereNotType<U>() {
+    return whereNot((element) => element is U);
+  }
+}
+
+extension IterableMapEntryExtension<K, V> on Iterable<MapEntry<K, V>> {
+  Map<K, V> get mapFromEntries => Map.fromEntries(this);
 }
 
 extension ListExtension<E> on List<E> {
@@ -36,6 +44,21 @@ extension ListExtension<E> on List<E> {
     } else {
       return null;
     }
+  }
+
+  bool endsWith(List<E> expected) {
+    var thisIndex = length - expected.length;
+    if (thisIndex < 0) {
+      return false;
+    }
+
+    var expectedIndex = 0;
+    for (; expectedIndex < expected.length;) {
+      if (this[thisIndex++] != expected[expectedIndex++]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   E? nextOrNull(E element) {

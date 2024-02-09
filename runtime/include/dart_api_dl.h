@@ -20,6 +20,8 @@
  *
  * Link `dart_api_dl.c` file into your library and invoke
  * `Dart_InitializeApiDL` with `NativeApi.initializeApiDLData`.
+ *
+ * Returns 0 on success.
  */
 
 DART_EXPORT intptr_t Dart_InitializeApiDL(void* data);
@@ -98,7 +100,8 @@ typedef void (*Dart_NativeMessageHandler_DL)(Dart_Port_DL dest_port_id,
   F(Dart_EnterScope, void, (void))                                             \
   F(Dart_ExitScope, void, (void))                                              \
   /* Objects */                                                                \
-  F(Dart_IsNull, bool, (Dart_Handle))
+  F(Dart_IsNull, bool, (Dart_Handle))                                          \
+  F(Dart_Null, Dart_Handle, (void))
 
 // dart_api.h symbols that have been deprecated but are retained here
 // until we can make a breaking change bumping the major version number

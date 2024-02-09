@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Generates the repo's ".dart_tool/package_config.json" file.
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -22,11 +24,8 @@ void main(List<String> args) {
     ...listSubdirectories(platform('third_party/pkg')),
     if (fluteExists) ...listSubdirectories(platform('third_party/flute')),
     platform('pkg/vm_service/test/test_package'),
-    platform(
-        'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     platform('runtime/observatory'),
     platform('runtime/observatory/tests/service/observatory_test_package'),
-    platform('runtime/observatory_2'),
     platform('runtime/tools/heapsnapshot'),
     platform('sdk/lib/_internal/sdk_library_metadata'),
     platform('third_party/devtools/devtools_shared'),
@@ -58,13 +57,16 @@ void main(List<String> args) {
     platform('pkg/vm/testcases'),
   ];
 
+  var sampleDirs = listSubdirectories(platform('samples')).toList();
+
   // Validate that all the given directories exist.
   var hasMissingDirectories = false;
   for (var path in [
     ...packageDirs,
     ...cfePackageDirs,
     ...feAnalyzerSharedPackageDirs,
-    ...pkgVmPackageDirs
+    ...pkgVmPackageDirs,
+    ...sampleDirs,
   ]) {
     if (!Directory(join(repoRoot, path)).existsSync()) {
       stderr.writeln("Unable to locate directory: '$path'.");
@@ -82,6 +84,7 @@ void main(List<String> args) {
     ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs),
     ...makeFrontendServerPackageConfigs(frontendServerPackageDirs),
     ...makePkgVmPackageConfigs(pkgVmPackageDirs),
+    ...makePackageConfigs(sampleDirs),
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
 
@@ -141,12 +144,6 @@ void writeIfDifferent(File file, String contents) {
 Iterable<Package> makePackageConfigs(List<String> packageDirs) sync* {
   for (var packageDir in packageDirs) {
     var name = pubspecName(packageDir);
-    // TODO(https://github.com/dart-lang/webdev/issues/2201): Wait for webdev
-    // to roll in the fix for the pubspec and then remove this workaround.
-    if (posix(packageDir) ==
-        'third_party/pkg/webdev/fixtures/_webdevSoundSmoke') {
-      name = '_webdev_sound_smoke';
-    }
     var version = pubspecLanguageVersion(packageDir);
     var hasLibDirectory =
         Directory(join(repoRoot, packageDir, 'lib')).existsSync();

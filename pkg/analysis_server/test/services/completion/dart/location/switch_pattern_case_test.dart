@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SwitchPatternCaseTest1);
-    defineReflectiveTests(SwitchPatternCaseTest2);
+    defineReflectiveTests(SwitchPatternCaseTest);
   });
 }
 
 @reflectiveTest
-class SwitchPatternCaseTest1 extends AbstractCompletionDriverTest
-    with SwitchPatternCaseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class SwitchPatternCaseTest2 extends AbstractCompletionDriverTest
-    with SwitchPatternCaseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class SwitchPatternCaseTest extends AbstractCompletionDriverTest
+    with SwitchPatternCaseTestCases {}
 
 mixin SwitchPatternCaseTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterCase() async {
@@ -38,10 +27,14 @@ void f(Object o) {
 
 class A01 {}
 ''');
+    // TODO(brianwilkerson): Decide whether we should suggest a constructor
+    //  (with parens around it) or an object pattern, or both.
     assertResponse(r'''
 suggestions
   A01
     kind: class
+  A01
+    kind: constructorInvocation
   const
     kind: keyword
   false
@@ -49,6 +42,8 @@ suggestions
   final
     kind: keyword
   null
+    kind: keyword
+  switch
     kind: keyword
   true
     kind: keyword
@@ -65,33 +60,13 @@ void f(Object x) {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   true
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterColon() async {
@@ -114,11 +89,17 @@ suggestions
     kind: keyword
   break
     kind: keyword
+  case
+    kind: keyword
   const
+    kind: keyword
+  default:
     kind: keyword
   do
     kind: keyword
   dynamic
+    kind: keyword
+  false
     kind: keyword
   final
     kind: keyword
@@ -128,11 +109,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -164,6 +149,8 @@ suggestions
     kind: class
   B01
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -203,6 +190,8 @@ suggestions
     kind: class
   B01
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -227,6 +216,8 @@ suggestions
     kind: class
   B01
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 

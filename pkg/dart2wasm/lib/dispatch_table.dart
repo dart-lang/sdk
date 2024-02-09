@@ -41,6 +41,9 @@ class SelectorInfo {
   /// Is this an implicit or explicit setter?
   final bool isSetter;
 
+  /// Does this method have any tear-off uses?
+  bool hasTearOffUses = false;
+
   /// Maps class IDs to the selector's member in the class. The member can be
   /// abstract.
   final Map<int, Reference> targets = {};
@@ -113,28 +116,39 @@ class SelectorInfo {
           named = const {};
           returns = [function.computeFunctionType(Nullability.nonNullable)];
         } else {
+          DartType typeForParam(VariableDeclaration param, int index) {
+            if (param.isCovariantByClass) {
+              // The type argument of a static type is not required to conform
+              // to the bounds of the type variable. Thus, any object can be
+              // passed to a parameter that is covariant by class.
+              return translator.coreTypes.objectNullableRawType;
+            }
+            if (param.isCovariantByDeclaration) {
+              if (hasTearOffUses) {
+                // The type of a covariant parameter in the runtime function
+                // type of a tear-off is always `Object?`. Thus, if the method
+                // has any tear-off uses, any object could be passed into the
+                // parameter.
+                return translator.coreTypes.objectNullableRawType;
+              }
+              if (!translator.options.omitTypeChecks) {
+                // A runtime type check of the parameter will be generated.
+                // The value therefore must be boxed.
+                ensureBoxed[index] = true;
+              }
+            }
+            return param.type;
+          }
+
           positional = [
-            for (VariableDeclaration param in function.positionalParameters)
-              param.type
+            for (int i = 0; i < function.positionalParameters.length; i++)
+              typeForParam(function.positionalParameters[i], 1 + i)
           ];
           named = {
             for (VariableDeclaration param in function.namedParameters)
-              param.name!: param.type
+              param.name!: typeForParam(param, 1 + nameIndex[param.name!]!)
           };
           returns = target.isSetter ? const [] : [function.returnType];
-
-          // Box parameters that need covariance checks
-          if (!translator.options.omitTypeChecks) {
-            for (int i = 0; i < function.positionalParameters.length; i += 1) {
-              final param = function.positionalParameters[i];
-              ensureBoxed[1 + i] |=
-                  param.isCovariantByClass || param.isCovariantByDeclaration;
-            }
-            for (VariableDeclaration param in function.namedParameters) {
-              ensureBoxed[1 + nameIndex[param.name!]!] |=
-                  param.isCovariantByClass || param.isCovariantByDeclaration;
-            }
-          }
         }
       }
       assert(returns.length <= outputSets.length);
@@ -223,13 +237,13 @@ class DispatchTable {
   final Map<int, SelectorInfo> _selectorInfo = {};
 
   /// Maps member names to getter selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicGetters = {};
+  final Map<String, Set<SelectorInfo>> _dynamicGetters = {};
 
   /// Maps member names to setter selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicSetters = {};
+  final Map<String, Set<SelectorInfo>> _dynamicSetters = {};
 
   /// Maps member names to method selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicMethods = {};
+  final Map<String, Set<SelectorInfo>> _dynamicMethods = {};
 
   /// Contents of [wasmTable]. For a selector with ID S and a target class of
   /// the selector with ID C, `table[S + C]` gives the reference to the class
@@ -287,14 +301,15 @@ class DispatchTable {
             _selectorMetadata[selectorId].callCount, paramInfo,
             isSetter: isSetter));
     assert(selector.isSetter == isSetter);
+    selector.hasTearOffUses |= metadata.hasTearOffUses;
     selector.paramInfo.merge(paramInfo);
     if (calledDynamically) {
       if (isGetter) {
-        (_dynamicGetters[member.name.text] ??= []).add(selector);
+        (_dynamicGetters[member.name.text] ??= {}).add(selector);
       } else if (isSetter) {
-        (_dynamicSetters[member.name.text] ??= []).add(selector);
+        (_dynamicSetters[member.name.text] ??= {}).add(selector);
       } else {
-        (_dynamicMethods[member.name.text] ??= []).add(selector);
+        (_dynamicMethods[member.name.text] ??= {}).add(selector);
       }
     }
     return selector;

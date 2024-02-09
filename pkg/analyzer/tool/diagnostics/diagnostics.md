@@ -28,6 +28,7 @@ The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
 
+[bottom type]: https://dart.dev/null-safety/understanding-null-safety#top-and-bottom
 [ffi]: https://dart.dev/guides/libraries/c-interop
 [IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [irrefutable pattern]: https://dart.dev/resources/glossary#irrefutable-pattern
@@ -725,9 +726,9 @@ The analyzer produces this diagnostic when an invocation of either
 `Pointer.asFunction` or `DynamicLibrary.lookupFunction` has an `isLeaf`
 argument whose value isn't a constant expression.
 
-The analyzer also produces this diagnostic when the value of the
-`exceptionalReturn` argument of `Pointer.fromFunction` or
-`NativeCallable.isolateLocal`.
+The analyzer also produces this diagnostic when an invocation of either
+`Pointer.fromFunction` or `NativeCallable.isolateLocal` has an
+`exceptionalReturn` argument whose value isn't a constant expression.
 
 For more information about FFI, see [C interop using dart:ffi][ffi].
 
@@ -773,7 +774,7 @@ int Function(int) fromPointer(Pointer<NativeFunction<Int8 Function(Int8)>> p) {
 
 ### argument_type_not_assignable
 
-_The argument type '{0}' can't be assigned to the parameter type '{1}'._
+_The argument type '{0}' can't be assigned to the parameter type '{1}'. {2}_
 
 #### Description
 
@@ -989,18 +990,18 @@ file containing the asset.
 
 ### asset_field_not_list
 
-_The value of the 'asset' field is expected to be a list of relative file
+_The value of the 'assets' field is expected to be a list of relative file
 paths._
 
 #### Description
 
-The analyzer produces this diagnostic when the value of the `asset` key
+The analyzer produces this diagnostic when the value of the `assets` key
 isn't a list.
 
 #### Example
 
-The following code produces this diagnostic because the value of the assets
-key is a string when a list is expected:
+The following code produces this diagnostic because the value of the
+`assets` key is a string when a list is expected:
 
 {% prettify yaml tag=pre+code %}
 name: example
@@ -1019,19 +1020,55 @@ flutter:
     - assets/
 {% endprettify %}
 
+### asset_missing_path
+
+_Asset map entry must contain a 'path' field._
+
+#### Description
+
+The analyzer produces this diagnostic when an asset map is missing a
+`path` value.
+
+#### Example
+
+The following code produces this diagnostic because the asset map
+is missing a `path` value:
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - flavors:
+      - premium
+{% endprettify %}
+
+#### Common fixes
+
+Change the asset map so that it contains a `path` field with a string
+value (a valid POSIX-style file path):
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - path: assets/image.gif
+      flavors:
+      - premium
+{% endprettify %}
+
 ### asset_not_string
 
 _Assets are required to be file paths (strings)._
 
 #### Description
 
-The analyzer produces this diagnostic when an asset list contains a value
-that isn't a string.
+The analyzer produces this diagnostic when an `assets` list contains a
+value that isn't a string.
 
 #### Example
 
-The following code produces this diagnostic because the asset list contains
-a map:
+The following code produces this diagnostic because the `assets` list
+contains a map:
 
 {% prettify yaml tag=pre+code %}
 name: example
@@ -1042,14 +1079,96 @@ flutter:
 
 #### Common fixes
 
-Change the asset list so that it only contains valid POSIX-style file
+Change the `assets` list so that it only contains valid POSIX-style file
 paths:
 
 {% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
-    - image.gif
+    - assets/image.gif
+{% endprettify %}
+
+### asset_not_string_or_map
+
+_An asset value is required to be a file path (string) or map._
+
+#### Description
+
+The analyzer produces this diagnostic when an asset value isn't a string
+or a map.
+
+#### Example
+
+The following code produces this diagnostic because the asset value
+is a list:
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - [![one, two, three]!]
+{% endprettify %}
+
+#### Common fixes
+
+If you need to specify more than just the path to the asset, then replace
+the value with a map with a `path` key (a valid POSIX-style file path):
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - path: assets/image.gif
+      flavors:
+      - premium
+{% endprettify %}
+
+If you only need to specify the path, then replace the value with the path
+to the asset (a valid POSIX-style file path):
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - assets/image.gif
+{% endprettify %}
+
+### asset_path_not_string
+
+_Asset paths are required to be file paths (strings)._
+
+#### Description
+
+The analyzer produces this diagnostic when an asset map contains a
+`path` value that isn't a string.
+
+#### Example
+
+The following code produces this diagnostic because the asset map
+contains a `path` value which is a list:
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - path: [![one, two, three]!]
+      flavors:
+      - premium
+{% endprettify %}
+
+#### Common fixes
+
+Change the `asset` map so that it contains a `path` value which is a
+string (a valid POSIX-style file path):
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - path: image.gif
+      flavors:
+      - premium
 {% endprettify %}
 
 ### assignment_of_do_not_store
@@ -1473,6 +1592,55 @@ Future<int> f() async {
 }
 {% endprettify %}
 
+### await_of_extension_type_not_future
+
+_The 'await' expression can't be used for an expression with an extension type
+that is not a subtype of 'Future'._
+
+#### Description
+
+The analyzer produces this diagnostic when the type of the expression in
+an `await` expression is an extension type, and the extension type isn't a
+subclass of `Future`.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `E`
+isn't a subclass of `Future`:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {}
+
+void f(E e) async {
+  [!await!] e;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the extension type is correctly defined, then remove the `await`:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {}
+
+void f(E e) {
+  e;
+}
+{% endprettify %}
+
+If the extension type is intended to be awaitable, then add `Future` (or a
+subtype of `Future`) to the `implements` clause (adding an `implements`
+clause if there isn't one already), and make the representation type
+match:
+
+{% prettify dart tag=pre+code %}
+extension type E(Future<int> i) implements Future<int> {}
+
+void f(E e) async {
+  await e;
+}
+{% endprettify %}
+
 ### body_might_complete_normally
 
 _The body might complete normally, causing 'null' to be returned, but the return
@@ -1727,6 +1895,8 @@ _The built-in identifier '{0}' can't be used as a type parameter name._
 _The built-in identifier '{0}' can't be used as a typedef name._
 
 _The built-in identifier '{0}' can't be used as an extension name._
+
+_The built-in identifier '{0}' can't be used as an extension type name._
 
 #### Description
 
@@ -6137,6 +6307,476 @@ f() {
 If there are multiple cascaded accesses, you'll need to duplicate the
 extension override for each one.
 
+### extension_type_constructor_with_super_formal_parameter
+
+_Extension type constructors can't declare super formal parameters._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor in an extension
+type has a super parameter. Super parameters aren't valid because
+extension types don't have a superclass.
+
+#### Example
+
+The following code produces this diagnostic because the named constructor
+`n` contains a super parameter:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n(this.i, [!super!].foo);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need the parameter, replace the super parameter with a normal
+parameter:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n(this.i, String foo);
+}
+{% endprettify %}
+
+If you don't need the parameter, remove the super parameter:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n(this.i);
+}
+{% endprettify %}
+
+### extension_type_constructor_with_super_invocation
+
+_Extension type constructors can't include super initializers._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor in an extension
+type includes an invocation of a super constructor in the initializer
+list. Because extension types don't have a superclass, there's no
+constructor to invoke.
+
+#### Example
+
+The following code produces this diagnostic because the constructor `E.n`
+invokes a super constructor in its initializer list:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n() : i = 0, [!super!].n();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the invocation of the super constructor:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n() : i = 0;
+}
+{% endprettify %}
+
+### extension_type_declares_instance_field
+
+_Extension types can't declare instance fields._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a field declaration in
+the body of an extension type declaration.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `E`
+declares a field named `f`:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  final int [!f!] = 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need the field, then remove it or replace it with a getter
+and/or setter:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  int get f => 0;
+}
+{% endprettify %}
+
+If you need the field, then convert the extension type into a class:
+
+{% prettify dart tag=pre+code %}
+class E {
+  final int i;
+
+  final int f = 0;
+
+  E(this.i);
+}
+{% endprettify %}
+
+### extension_type_declares_member_of_object
+
+_Extension types can't declare members with the same name as a member declared
+by 'Object'._
+
+#### Description
+
+The analyzer produces this diagnostic when the body of an extension type
+declaration contains a member with the same name as one of the members
+declared by `Object`.
+
+#### Example
+
+The following code produces this diagnostic because the class `Object`
+already defines a member named `hashCode`:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  int get [!hashCode!] => 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need a member with the implemented semantics, then rename the
+member:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  int get myHashCode => 0;
+}
+{% endprettify %}
+
+If you don't need a member with the implemented semantics, then remove the
+member:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {}
+{% endprettify %}
+
+### extension_type_implements_disallowed_type
+
+_Extension types can't implement '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements a
+type that it isn't allowed to implement.
+
+#### Example
+
+The following code produces this diagnostic because extension types can't
+implement the type `dynamic`:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) implements [!dynamic!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the disallowed type from the implements clause:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) {}
+{% endprettify %}
+
+### extension_type_implements_itself
+
+_The extension type can't implement itself._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements
+itself, either directly or indirectly.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `A`
+directly implements itself:
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](int i) implements A {}
+{% endprettify %}
+
+The following code produces this diagnostic because the extension type `A`
+indirectly implements itself (through `B`):
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](int i) implements B {}
+
+extension type [!B!](int i) implements A {}
+{% endprettify %}
+
+#### Common fixes
+
+Break the cycle by removing a type from the implements clause of at least
+one of the types involved in the cycle:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) implements B {}
+
+extension type B(int i) {}
+{% endprettify %}
+
+### extension_type_implements_not_supertype
+
+_'{0}' is not a supertype of '{1}', the representation type._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements a
+type that isn't a supertype of the representation type.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `A`
+implements `String`, but `String` isn't a supertype of the representation
+type `int`:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) implements [!String!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the representation type is correct, then remove or replace the type in
+the implements clause:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) {}
+{% endprettify %}
+
+If the representation type isn't correct, then replace it with the correct
+type:
+
+{% prettify dart tag=pre+code %}
+extension type A(String s) implements String {}
+{% endprettify %}
+
+### extension_type_implements_representation_not_supertype
+
+_'{0}', the representation type of '{1}', is not a supertype of '{2}', the
+representation type of '{3}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements
+another extension type, and the representation type of the implemented
+extension type isn't a subtype of the representation type of the implementing
+extension type.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `B`
+implements `A`, but the representation type of `A` (`num`) isn't a
+subtype of the representation type of `B` (`String`):
+
+{% prettify dart tag=pre+code %}
+extension type A(num i) {}
+
+extension type B(String s) implements [!A!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Either change the representation types of the two extension types so that
+the representation type of the implemented type is a supertype of the
+representation type of the implementing type:
+
+{% prettify dart tag=pre+code %}
+extension type A(num i) {}
+
+extension type B(int n) implements A {}
+{% endprettify %}
+
+Or remove the implemented type from the implements clause:
+
+{% prettify dart tag=pre+code %}
+extension type A(num i) {}
+
+extension type B(String s) {}
+{% endprettify %}
+
+### extension_type_inherited_member_conflict
+
+_The extension type '{0}' has more than one distinct member named '{1}' from
+implemented types._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements
+two or more other types, and at least two of those types declare a member
+with the same name.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `C`
+implements both `A` and `B`, and both declare a member named `m`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
+}
+
+extension type B(A a) {
+  void m() {}
+}
+
+extension type [!C!](A a) implements A, B {}
+{% endprettify %}
+
+#### Common fixes
+
+If the extension type doesn't need to implement all of the listed types,
+then remove all but one of the types introducing the conflicting members:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
+}
+
+extension type B(A a) {
+  void m() {}
+}
+
+extension type C(A a) implements A {}
+{% endprettify %}
+
+If the extension type needs to implement all of the listed types but you
+can rename the members in those types, then give the conflicting members
+unique names:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
+}
+
+extension type B(A a) {
+  void n() {}
+}
+
+extension type C(A a) implements A, B {}
+{% endprettify %}
+
+### extension_type_representation_depends_on_itself
+
+_The extension type representation can't depend on itself._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type has a
+representation type that depends on the extension type itself, either
+directly or indirectly.
+
+#### Example
+
+The following code produces this diagnostic because the representation
+type of the extension type `A` depends on `A` directly:
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](A a) {}
+{% endprettify %}
+
+The following two code examples produce this diagnostic because the
+representation type of the extension type `A` depends on `A`
+indirectly through the extension type `B`:
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](B b) {}
+
+extension type [!B!](A a) {}
+{% endprettify %}
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](List<B> b) {}
+
+extension type [!B!](List<A> a) {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the dependency by choosing a different representation type for at
+least one of the types in the cycle:
+
+{% prettify dart tag=pre+code %}
+extension type A(String s) {}
+{% endprettify %}
+
+### extension_type_representation_type_bottom
+
+_The representation type can't be a bottom type._
+
+#### Description
+
+The analyzer produces this diagnostic when the representation type of an
+extension type is the [bottom type][] `Never`. The type `Never` can't be
+the representation type of an extension type because there are no values
+that can be extended.
+
+#### Example
+
+The following code produces this diagnostic because the representation
+type of the extension type `E` is `Never`:
+
+{% prettify dart tag=pre+code %}
+extension type E([!Never!] n) {}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the extension type with a different type:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {}
+{% endprettify %}
+
+### extension_type_with_abstract_member
+
+_'{0}' must have a method body because '{1}' is an extension type._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type declares an
+abstract member. Because extension type member references are resolved
+statically, an abstract member in an extension type could never be
+executed.
+
+#### Example
+
+The following code produces this diagnostic because the method `m` in the
+extension type `E` is abstract:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {
+  [!void m();!]
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the member is intended to be executable, then provide an implementation
+of the member:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {
+  void m() {}
+}
+{% endprettify %}
+
+If the member isn't intended to be executable, then remove it:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {}
+{% endprettify %}
+
 ### external_with_initializer
 
 _External fields can't have initializers._
@@ -7465,7 +8105,7 @@ has `Enum` in the `on` clause, declares an explicit operator named `==`:
 
 {% prettify dart tag=pre+code %}
 mixin M on Enum {
-  bool operator [!==!](Object? other) => false;
+  bool operator [!==!](Object other) => false;
 }
 {% endprettify %}
 
@@ -8864,46 +9504,40 @@ _Publishable packages can't have '{0}' dependencies._
 
 #### Description
 
-The analyzer produces this diagnostic when a package under either
-`dependencies` or `dev_dependencies` isn't a pub, `git`, or `path` based
-dependency.
+The analyzer produces this diagnostic when a publishable package
+includes a package in the `dependencies` list of its `pubspec.yaml` file
+that isn't a pub-hosted dependency.
 
-See [Package dependencies](https://dart.dev/tools/pub/dependencies) for
-more information about the kind of dependencies that are supported.
+To learn more about the different types of dependency sources,
+check out [Package dependencies](https://dart.dev/tools/pub/dependencies).
 
 #### Example
 
-The following code produces this diagnostic because the dependency on the
-package `transmogrify` isn't a pub, `git`, or `path` based dependency:
+The following code produces this diagnostic because the dependency on
+the package `transmogrify` isn't a pub-hosted dependency.
 
 {% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   transmogrify:
-    hosted:
-      name: transmogrify
-      url: http://your-package-server.com
-    version: ^1.4.0
+    [!path!]: ../transmogrify
 {% endprettify %}
 
 #### Common fixes
 
-If you want to publish your package to `pub.dev`, then change the
-dependencies to ones that are supported by `pub`.
+If you want to publish the package to `pub.dev`, then change
+the dependency to a hosted package that is published on `pub.dev`.
 
-If you don't want to publish your package to `pub.dev`, then add a
-`publish_to: none` entry to mark the package as one that isn't intended to
-be published:
+If the package isn't intended to be published on `pub.dev`, then
+add a `publish_to: none` entry to its `pubspec.yaml` file to
+mark it as not intended to be published:
 
 {% prettify yaml tag=pre+code %}
 name: example
 publish_to: none
 dependencies:
   transmogrify:
-    hosted:
-      name: transmogrify
-      url: http://your-package-server.com
-    version: ^1.4.0
+    path: ../transmogrify
 {% endprettify %}
 
 ### invalid_exception_value
@@ -10190,7 +10824,7 @@ platforms:
 #### Common fixes
 
 If you can rely on automatic platform detection, then omit the
-top-level `platforms` field. 
+top-level `platforms` field.
 
 {% prettify yaml tag=pre+code %}
 name: example
@@ -11304,7 +11938,7 @@ argument in an invocation of either `Pointer.asFunction` or
 returned would have a return type of `Handle`.
 
 The analyzer also produces this diagnostic when the value of the `isLeaf`
-argument in an `FfiNative` annotation is `true` and the type argument on
+argument in an `Native` annotation is `true` and the type argument on
 the annotation is a function type whose return type is `Handle`.
 
 In all of these cases, leaf calls are only supported for the types `bool`,
@@ -11834,6 +12468,39 @@ or make the parameter a required parameter:
 {% prettify dart tag=pre+code %}
 void f(int x) {}
 void g({required int x}) {}
+{% endprettify %}
+
+### missing_dependency
+
+_Missing a dependency on imported package '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a package that has been
+imported in the source but is not listed as a dependency of the
+importing package.
+
+#### Example
+
+The following code produces this diagnostic because the package `path` is
+not listed as a dependency, while there is an import statement
+with package `path` in the source code of package `example`:
+
+{% prettify yaml tag=pre+code %}
+name: example
+dependencies:
+  meta: ^1.0.2
+{% endprettify %}
+
+#### Common fixes
+
+Add the missing package `path` to the `dependencies` field:
+
+{% prettify yaml tag=pre+code %}
+name: example
+dependencies:
+  meta: ^1.0.2
+  path: any
 {% endprettify %}
 
 ### missing_enum_constant_in_switch
@@ -13308,6 +13975,172 @@ Replace the value with a string:
 name: example
 {% endprettify %}
 
+### native_field_invalid_type
+
+_'{0}' is an unsupported type for native fields. Native fields only support
+pointers, arrays or numeric and compound types._
+
+#### Description
+
+The analyzer produces this diagnostic when an `@Native`-annotated field
+has a type not supported for native fields.
+
+Native fields support pointers, arrays, numeric types and subtypes of
+`Compound` (i.e., structs or unions). Other subtypes of `NativeType`,
+such as `Handle` or `NativeFunction` are not allowed as native fields.
+
+Native functions should be used with external functions instead of
+external fields.
+
+Handles are unsupported because there is no way to transparently load and
+store Dart objects into pointers.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Example
+
+The following code produces this diagnostic because the field `free` uses
+an unsupported native type, `NativeFunction`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Native<NativeFunction<Void Function()>>()
+external void Function() [!free!];
+{% endprettify %}
+
+#### Common fixes
+
+If you meant to bind to an existing native function with a
+`NativeFunction` field, use `@Native` methods instead:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Native<Void Function(Pointer<Void>)>()
+external void free(Pointer<Void> ptr);
+{% endprettify %}
+
+To bind to a field storing a function pointer in C, use a pointer type
+for the Dart field:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Native()
+external Pointer<NativeFunction<Void Function(Pointer<Void>)>> free;
+{% endprettify %}
+
+### native_field_missing_type
+
+_The native type of this field could not be inferred and must be specified in
+the annotation._
+
+#### Description
+
+The analyzer produces this diagnostic when an `@Native`-annotated field
+requires a type hint on the annotation to infer the native type.
+
+Dart types like `int` and `double` have multiple possible native
+representations. Since the native type needs to be known at compile time
+to generate the correct load and stores when accessing the field, an
+explicit type must be given.
+
+#### Example
+
+The following code produces this diagnostic because the field `f` has
+the type `int` (for which multiple native representations exist), but no
+explicit type parameter on the `Native` annotation:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Native()
+external int [!f!];
+{% endprettify %}
+
+#### Common fixes
+
+To fix this diagnostic, find out the correct native representation from
+the native declaration of the field. Then, add the corresponding type to
+the annotation. For instance, if `f` was declared as an `uint8_t` in C,
+the Dart field should be declared as:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Native<Uint8>()
+external int f;
+{% endprettify %}
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+### native_field_not_static
+
+_Native fields must be static._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance field in a class
+has been annotated with `@Native`.
+Native fields refer to global variables in C, C++ or other native
+languages, whereas instance fields in Dart are specific to an instance of
+that class. Hence, native fields must be static.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Example
+
+The following code produces this diagnostic because the field `f` in the
+class `C` is `@Native`, but not `static`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C {
+  @Native<Int>()
+  external int [!f!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Either make the field static:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C {
+  @Native<Int>()
+  external static int f;
+}
+{% endprettify %}
+
+Or move it out of a class, in which case no explicit `static` modifier is
+required:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C {
+}
+
+@Native<Int>()
+external int f;
+{% endprettify %}
+
+If you meant to annotate an instance field that should be part of a
+struct, omit the `@Native` annotation:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+final class C extends Struct {
+  @Int()
+  external int f;
+}
+{% endprettify %}
+
 ### new_with_undefined_constructor_default
 
 _The class '{0}' doesn't have an unnamed constructor._
@@ -14188,6 +15021,35 @@ enum E {
 
   const E();
 }
+{% endprettify %}
+
+### non_covariant_type_parameter_position_in_representation_type
+
+_An extension type parameter can't be used in a non-covariant position of its
+representation type._
+
+#### Description
+
+The analyzer produces this diagnostic when a type parameter of an
+extension type is used in a non-covariant position in the representation
+type of that extension type.
+
+#### Example
+
+The following code produces this diagnostic because the type parameter `T`
+is used as a parameter type in the function type `void Function(T)`, and
+parameters are not covariant:
+
+{% prettify dart tag=pre+code %}
+extension type A<[!T!]>(void Function(T) f) {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the use of the type parameter:
+
+{% prettify dart tag=pre+code %}
+extension type A(void Function(String) f) {}
 {% endprettify %}
 
 ### non_exhaustive_switch_expression
@@ -16862,6 +17724,66 @@ class B implements A {}
 
 Change the type hierarchy so that there's no circularity.
 
+### redeclare_on_non_redeclaring_member
+
+_The {0} doesn't redeclare a {0} declared in a superinterface._
+
+#### Description
+
+The analyzer produces this diagnostic when a member of an extension type
+is annotated with `@redeclare`, but none of the implemented interfaces
+has a member with the same name.
+
+#### Example
+
+The following code produces this diagnostic because the member `n`
+declared by the extension type `E` is annotated with `@redeclare`, but `C`
+doesn't have a member named `n`:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class C {
+  void m() {}
+}
+
+extension type E(C c) implements C {
+  @redeclare
+  void [!n!]() {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the annotated member has the right name, then remove the annotation:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void m() {}
+}
+
+extension type E(C c) implements C {
+  void n() {}
+}
+{% endprettify %}
+
+If the annotated member is suppose to replace a member from the
+implemented interfaces, then change the name of the annotated member to
+match the member being replaced:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class C {
+  void m() {}
+}
+
+extension type E(C c) implements C {
+  @redeclare
+  void m() {}
+}
+{% endprettify %}
+
 ### redirect_generative_to_missing_constructor
 
 _The constructor '{0}' couldn't be found in '{1}'._
@@ -19318,6 +20240,41 @@ Remove the `super` keyword :
 {% prettify dart tag=pre+code %}
 extension E on Object {
   String get displayString => toString();
+}
+{% endprettify %}
+
+### super_in_extension_type
+
+_The 'super' keyword can't be used in an extension type because an extension
+type doesn't have a superclass._
+
+#### Description
+
+The analyzer produces this diagnostic when `super` is used in an instance
+member of an extension type. Extension types don't have superclasses, so
+there's no inherited member that could be invoked.
+
+#### Example
+
+The following code produces this diagnostic because :
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {
+  void m() {
+    [!super!].m();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace or remove the `super` invocation:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {
+  void m() {
+    s.toLowerCase();
+  }
 }
 {% endprettify %}
 

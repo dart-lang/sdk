@@ -1569,6 +1569,33 @@ void Assembler::LoadWordFromPoolIndex(Register rd,
   }
 }
 
+void Assembler::StoreWordToPoolIndex(Register value,
+                                     intptr_t index,
+                                     Register pp,
+                                     Condition cond) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(value != pp);
+  // PP is tagged on ARM.
+  const int32_t offset =
+      target::ObjectPool::element_offset(index) - kHeapObjectTag;
+  int32_t offset_mask = 0;
+  if (Address::CanHoldLoadOffset(kFourBytes, offset, &offset_mask)) {
+    str(value, Address(pp, offset), cond);
+  } else {
+    int32_t offset_hi = offset & ~offset_mask;  // signed
+    uint32_t offset_lo = offset & offset_mask;  // unsigned
+    // Inline a simplified version of AddImmediate(rd, pp, offset_hi).
+    Operand o;
+    if (Operand::CanHold(offset_hi, &o)) {
+      add(TMP, pp, o, cond);
+    } else {
+      LoadImmediate(TMP, offset_hi, cond);
+      add(TMP, pp, Operand(TMP), cond);
+    }
+    str(value, Address(TMP, offset_lo), cond);
+  }
+}
+
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
   if (!FLAG_check_code_pointer) {
@@ -1636,11 +1663,13 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   return true;
 }
 
-void Assembler::LoadObjectHelper(Register rd,
-                                 const Object& object,
-                                 Condition cond,
-                                 bool is_unique,
-                                 Register pp) {
+void Assembler::LoadObjectHelper(
+    Register rd,
+    const Object& object,
+    Condition cond,
+    bool is_unique,
+    Register pp,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(IsOriginalObject(object));
   // `is_unique == true` effectively means object has to be patchable.
   if (!is_unique) {
@@ -1660,11 +1689,13 @@ void Assembler::LoadObjectHelper(Register rd,
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   // Make sure that class CallPattern is able to decode this load from the
   // object pool.
-  const auto index = is_unique
-                         ? object_pool_builder().AddObject(
-                               object, ObjectPoolBuilderEntry::kPatchable)
-                         : object_pool_builder().FindObject(
-                               object, ObjectPoolBuilderEntry::kNotPatchable);
+  const auto index =
+      is_unique
+          ? object_pool_builder().AddObject(
+                object, ObjectPoolBuilderEntry::kPatchable, snapshot_behavior)
+          : object_pool_builder().FindObject(
+                object, ObjectPoolBuilderEntry::kNotPatchable,
+                snapshot_behavior);
   LoadWordFromPoolIndex(rd, index, pp, cond);
 }
 
@@ -1672,10 +1703,13 @@ void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   LoadObjectHelper(rd, object, cond, /* is_unique = */ false, PP);
 }
 
-void Assembler::LoadUniqueObject(Register rd,
-                                 const Object& object,
-                                 Condition cond) {
-  LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP);
+void Assembler::LoadUniqueObject(
+    Register rd,
+    const Object& object,
+    Condition cond,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP,
+                   snapshot_behavior);
 }
 
 void Assembler::LoadNativeEntry(Register rd,
@@ -2509,9 +2543,9 @@ void Assembler::PushNativeCalleeSavedRegisters() {
   PushList(kAbiPreservedCpuRegs);
 
   const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
-    ASSERT(2 * kAbiPreservedFpuRegCount < 16);
-    // Save FPU registers. 2 D registers per Q register.
-    vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  ASSERT(2 * kAbiPreservedFpuRegCount < 16);
+  // Save FPU registers. 2 D registers per Q register.
+  vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
 }
 
 void Assembler::PopNativeCalleeSavedRegisters() {
@@ -2681,36 +2715,44 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
   vmulqs(qd, qn, qd);
 }
 
-void Assembler::Branch(const Code& target,
-                       ObjectPoolBuilderEntry::Patchability patchable,
-                       Register pp,
-                       Condition cond) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index, pp, cond);
-  Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()), cond);
-}
-
 void Assembler::Branch(const Address& address, Condition cond) {
   ldr(PC, address, cond);
 }
 
-void Assembler::BranchLink(const Code& target,
-                           ObjectPoolBuilderEntry::Patchability patchable,
+void Assembler::BranchLink(intptr_t target_code_pool_index,
                            CodeEntryKind entry_kind) {
+  CLOBBERS_LR({
+    // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+    // We don't actually use CODE_REG in the callee and caller might
+    // be using CODE_REG for a live value (e.g. a value that is alive
+    // across invocation of a shared stub like the one we use for
+    // allocating Mint boxes).
+    const Register code_reg = FLAG_precompiled_mode ? LR : CODE_REG;
+    LoadWordFromPoolIndex(code_reg, target_code_pool_index, PP, AL);
+    Call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
+  });
+}
+
+void Assembler::BranchLink(
+    const Code& target,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  const intptr_t index = object_pool_builder().FindObject(
+      ToObject(target), patchable, snapshot_behavior);
+  BranchLink(index, entry_kind);
 }
 
-void Assembler::BranchLinkPatchable(const Code& target,
-                                    CodeEntryKind entry_kind) {
-  BranchLink(target, ObjectPoolBuilderEntry::kPatchable, entry_kind);
+void Assembler::BranchLinkPatchable(
+    const Code& target,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  BranchLink(target, ObjectPoolBuilderEntry::kPatchable, entry_kind,
+             snapshot_behavior);
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
@@ -2722,8 +2764,7 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::BranchLink(const ExternalLabel* label) {

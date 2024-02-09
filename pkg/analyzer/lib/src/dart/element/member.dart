@@ -7,13 +7,13 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -189,6 +189,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   bool get isAugmentation => declaration.isAugmentation;
+
+  @override
+  bool get isExtensionTypeMember => declaration.isExtensionTypeMember;
 
   @override
   bool get isExternal => declaration.isExternal;
@@ -561,6 +564,9 @@ abstract class Member implements Element {
   bool get hasFactory => _declaration.hasFactory;
 
   @override
+  bool get hasImmutable => _declaration.hasImmutable;
+
+  @override
   bool get hasInternal => _declaration.hasInternal;
 
   @override
@@ -677,7 +683,6 @@ abstract class Member implements Element {
     bool multiline = false,
   }) {
     var builder = ElementDisplayStringBuilder(
-      skipAllDynamicArguments: false,
       withNullability: withNullability,
       multiline: multiline,
     );
@@ -828,7 +833,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
 
   @override
   MethodElement? get augmentation {
-    // TODO(scheglov) implement
+    // TODO(scheglov): implement
     throw UnimplementedError();
   }
 
@@ -1040,7 +1045,7 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyAccessorElement? get augmentation {
-    // TODO(scheglov) implement
+    // TODO(scheglov): implement
     throw UnimplementedError();
   }
 
@@ -1090,7 +1095,7 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyInducingElement get variable {
-    // TODO
+    // TODO(scheglov): revisit
     PropertyInducingElement variable = declaration.variable;
     if (variable is FieldElement) {
       return FieldMember(_typeProvider, variable, _substitution, isLegacy);

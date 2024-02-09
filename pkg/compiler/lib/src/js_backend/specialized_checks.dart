@@ -10,7 +10,7 @@ import '../js_backend/interceptor_data.dart' show InterceptorData;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/class_hierarchy.dart' show ClassHierarchy;
 
-enum _Kind {
+enum IsTestSpecializationKind {
   isNull,
   isNotNull,
   isString,
@@ -22,27 +22,30 @@ enum _Kind {
 }
 
 class IsTestSpecialization {
-  static const isNull = IsTestSpecialization._(_Kind.isNull);
-  static const isNotNull = IsTestSpecialization._(_Kind.isNotNull);
-  static const isString = IsTestSpecialization._(_Kind.isString);
-  static const isBool = IsTestSpecialization._(_Kind.isBool);
-  static const isNum = IsTestSpecialization._(_Kind.isNum);
-  static const isInt = IsTestSpecialization._(_Kind.isInt);
-  static const isArrayTop = IsTestSpecialization._(_Kind.isArrayTop);
+  static const isNull = IsTestSpecialization._(IsTestSpecializationKind.isNull);
+  static const isNotNull =
+      IsTestSpecialization._(IsTestSpecializationKind.isNotNull);
+  static const isString =
+      IsTestSpecialization._(IsTestSpecializationKind.isString);
+  static const isBool = IsTestSpecialization._(IsTestSpecializationKind.isBool);
+  static const isNum = IsTestSpecialization._(IsTestSpecializationKind.isNum);
+  static const isInt = IsTestSpecialization._(IsTestSpecializationKind.isInt);
+  static const isArrayTop =
+      IsTestSpecialization._(IsTestSpecializationKind.isArrayTop);
 
-  final _Kind _kind;
+  final IsTestSpecializationKind kind;
   final InterfaceType? _type;
 
-  const IsTestSpecialization._(this._kind) : _type = null;
+  const IsTestSpecialization._(this.kind) : _type = null;
 
   const IsTestSpecialization._instanceof(InterfaceType type)
-      : _kind = _Kind.isInstanceof,
+      : kind = IsTestSpecializationKind.isInstanceof,
         _type = type;
 
-  bool get isInstanceof => _kind == _Kind.isInstanceof;
+  bool get isInstanceof => kind == IsTestSpecializationKind.isInstanceof;
 
   InterfaceType get interfaceType {
-    assert(_kind == _Kind.isInstanceof);
+    assert(kind == IsTestSpecializationKind.isInstanceof);
     return _type!;
   }
 }

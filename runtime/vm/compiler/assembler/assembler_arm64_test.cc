@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_ARM64)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
@@ -3862,7 +3863,8 @@ ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
       "ret\n");
 }
 
-static void EnterTestFrame(Assembler* assembler) {
+void EnterTestFrame(Assembler* assembler) {
+  __ SetupDartSP();
   __ EnterFrame(0);
   __ Push(CODE_REG);
   __ Push(THR);
@@ -3875,22 +3877,21 @@ static void EnterTestFrame(Assembler* assembler) {
   __ LoadPoolPointer(PP);
 }
 
-static void LeaveTestFrame(Assembler* assembler) {
+void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
   __ Pop(NULL_REG);
   __ Pop(HEAP_BITS);
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ LeaveFrame();
+  __ RestoreCSP();
 }
 
 // Loading immediate values with the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 42);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3899,11 +3900,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0xf1234123);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3912,11 +3911,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0x4321f1234124);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3925,11 +3922,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0x9287436598237465);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3940,11 +3935,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
 
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Object::null_object());
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3955,12 +3948,10 @@ ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
 
 // PushObject null.
 ASSEMBLER_TEST_GENERATE(PushObjectNull, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ PushObject(Object::null_object());
   __ Pop(R0);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3971,7 +3962,6 @@ ASSEMBLER_TEST_RUN(PushObjectNull, test) {
 
 // CompareObject null.
 ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Object::bool_true());
   __ LoadObject(R1, Object::bool_false());
@@ -3979,7 +3969,6 @@ ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
   __ CompareObject(R2, Object::null_object());
   __ csel(R0, R0, R1, EQ);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3989,11 +3978,9 @@ ASSEMBLER_TEST_RUN(CompareObjectNull, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Bool::True());
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -4003,11 +3990,9 @@ ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Bool::False());
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -7703,43 +7688,58 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   EXPECT_EQ(kMintCid, result);
 }
 
-#define LOAD_FROM_BOX_TEST(VALUE, SAME_REGISTER)                               \
-  ASSEMBLER_TEST_GENERATE(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER,          \
-                          assembler) {                                         \
-    const bool same_register = SAME_REGISTER;                                  \
-    const Register src = CallingConventions::ArgumentRegisters[0];             \
-    const Register dst =                                                       \
-        same_register ? src : CallingConventions::ArgumentRegisters[1];        \
-    const intptr_t value = VALUE;                                              \
-                                                                               \
-    __ SetupDartSP();                                                          \
-    EnterTestFrame(assembler);                                                 \
-                                                                               \
-    __ LoadObject(src, Integer::ZoneHandle(Integer::New(value, Heap::kOld)));  \
-    __ LoadWordFromBoxOrSmi(dst, src);                                         \
-    __ MoveRegister(CallingConventions::kReturnReg, dst);                      \
-                                                                               \
-    LeaveTestFrame(assembler);                                                 \
-    __ RestoreCSP();                                                           \
-    __ Ret();                                                                  \
-  }                                                                            \
-                                                                               \
-  ASSEMBLER_TEST_RUN(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER, test) {       \
-    const intptr_t res =                                                       \
-        test->InvokeWithCodeAndThread<intptr_t>(static_cast<intptr_t>(0x0));   \
-    EXPECT_EQ(static_cast<intptr_t>(VALUE), res);                              \
-  }
+// Tests that BranchLink only clobbers CODE_REG in JIT mode and does not
+// clobber any allocatable registers in AOT mode.
+ASSEMBLER_TEST_GENERATE(BranchLinkPreservesRegisters, assembler) {
+  const auto& do_nothing_just_return =
+      AssemblerTest::Generate("DoNothing", [](auto assembler) { __ Ret(); });
 
-LOAD_FROM_BOX_TEST(0, true)
-LOAD_FROM_BOX_TEST(0, false)
-LOAD_FROM_BOX_TEST(1, true)
-LOAD_FROM_BOX_TEST(1, false)
-LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, false)
-LOAD_FROM_BOX_TEST(0x8000000000000000, true)
-LOAD_FROM_BOX_TEST(0x8000000000000000, false)
-LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, false)
+  EnterTestFrame(assembler);
+  SPILLS_LR_TO_FRAME({ __ PushRegister(LR); });
+
+  const RegisterSet clobbered_regs(
+      kDartAvailableCpuRegs & ~(static_cast<RegList>(1) << R0),
+      /*fpu_register_mask=*/0);
+  __ PushRegisters(clobbered_regs);
+
+  Label done;
+
+  const auto check_all_allocatable_registers_are_preserved_by_call = [&]() {
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      __ LoadImmediate(reg, static_cast<int32_t>(reg));
+    }
+    __ BranchLink(do_nothing_just_return);
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      // We expect CODE_REG to be clobbered in JIT mode.
+      if (!FLAG_precompiled_mode && reg == CODE_REG) continue;
+
+      Label ok;
+      __ CompareImmediate(reg, static_cast<int32_t>(reg));
+      __ b(&ok, EQ);
+      __ LoadImmediate(R0, reg);
+      __ b(&done);
+      __ Bind(&ok);
+    }
+  };
+
+  check_all_allocatable_registers_are_preserved_by_call();
+
+  FLAG_precompiled_mode = true;
+  check_all_allocatable_registers_are_preserved_by_call();
+  FLAG_precompiled_mode = false;
+
+  __ LoadImmediate(R0, 42);  // 42 is SUCCESS.
+  __ Bind(&done);
+  __ PopRegisters(clobbered_regs);
+  RESTORES_LR_FROM_FRAME({ __ PopRegister(LR); });
+  LeaveTestFrame(assembler);
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(BranchLinkPreservesRegisters, test) {
+  const intptr_t result = test->InvokeWithCodeAndThread<int64_t>();
+  EXPECT_EQ(42, result);
+}
 
 }  // namespace compiler
 }  // namespace dart

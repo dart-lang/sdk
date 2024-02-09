@@ -5,6 +5,7 @@
 #ifndef RUNTIME_PLATFORM_UTILS_H_
 #define RUNTIME_PLATFORM_UTILS_H_
 
+#include <cstdlib>
 #include <limits>
 #include <memory>
 #include <type_traits>
@@ -299,14 +300,13 @@ class Utils {
     constexpr intptr_t value_size_in_bits = kBitsPerByte * sizeof(T);
     if constexpr (std::is_signed<T>::value) {
       if (N >= value_size_in_bits) return true;  // Trivially fits.
+      const T limit = static_cast<T>(1) << (N - 1);
+      return (-limit <= value) && (value < limit);
     } else {
       if (N > value_size_in_bits) return true;  // Trivially fits.
-      if (N == value_size_in_bits) {
-        return static_cast<typename std::make_signed<T>::type>(value) >= 0;
-      }
+      const T limit = static_cast<T>(1) << (N - 1);
+      return value < limit;
     }
-    const T limit = static_cast<T>(1) << (N - 1);
-    return (-limit <= value) && (value < limit);
   }
 
   template <typename T>
@@ -550,6 +550,58 @@ class Utils {
     ASSERT(position < sizeof(T) * kBitsPerByte);
     return ((mask >> position) & 1) != 0;
   }
+
+  template <typename T>
+  class BitsIterator {
+   public:
+    explicit BitsIterator(uint32_t bits) : bits_(bits), bit_(bits & -bits) {}
+
+    DART_FORCE_INLINE T operator*() const {
+      return static_cast<T>(BitPosition(bit_));
+    }
+
+    DART_FORCE_INLINE bool operator==(const BitsIterator& other) const {
+      return bits_ == other.bits_ && bit_ == other.bit_;
+    }
+
+    DART_FORCE_INLINE bool operator!=(const BitsIterator& other) const {
+      return !(*this == other);
+    }
+
+    DART_FORCE_INLINE BitsIterator& operator++() {
+      bits_ ^= bit_;
+      bit_ = bits_ & -bits_;
+      return *this;
+    }
+
+   private:
+    // Returns position of the given bit. Unlike CountTrailingZeroes assumes
+    // that bit is not zero without checking!
+    static DART_FORCE_INLINE intptr_t BitPosition(uint32_t bit) {
+#if defined(DART_HOST_OS_WINDOWS)
+      unsigned long position;  // NOLINT
+      BitScanForward(&position, bit);
+      return static_cast<int>(position);
+#else
+      return __builtin_ctz(bit);
+#endif
+    }
+
+    uint32_t bits_;
+    intptr_t bit_;
+  };
+
+  template <typename T>
+  class BitsRange {
+   public:
+    explicit BitsRange(uint32_t bits) : bits_(bits) {}
+
+    BitsIterator<T> begin() { return BitsIterator<T>(bits_); }
+    BitsIterator<T> end() { return BitsIterator<T>(0); }
+
+   public:
+    const uint32_t bits_;
+  };
 
   static char* StrError(int err, char* buffer, size_t bufsize);
 

@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(IfStatementTest1);
-    defineReflectiveTests(IfStatementTest2);
+    defineReflectiveTests(IfStatementTest);
   });
 }
 
 @reflectiveTest
-class IfStatementTest1 extends AbstractCompletionDriverTest
-    with IfStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class IfStatementTest2 extends AbstractCompletionDriverTest
-    with IfStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class IfStatementTest extends AbstractCompletionDriverTest
+    with IfStatementTestCases {}
 
 mixin IfStatementTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterCase() async {
@@ -44,10 +33,6 @@ final v01 = 0;
 
 int f01() => 0;
 ''');
-    // TODO(scheglov) This is wrong.
-    // We should not suggest `v01`.
-    // We could suggest `f01`, but not as an invocation.
-    // We suggest `A1`, but almost always we want `A1()`.
     assertResponse(r'''
 suggestions
   A1
@@ -94,9 +79,8 @@ int A04() => 0;
 int B04() => 0;
 ''');
 
-    if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
-      assertResponse(r'''
+    // TODO(scheglov): This is wrong.
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -111,45 +95,6 @@ suggestions
   A04
     kind: functionInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A01
-    kind: constructorInvocation
-  A02
-    kind: topLevelVariable
-  A03
-    kind: topLevelVariable
-  A04
-    kind: functionInvocation
-  B01
-    kind: class
-  B01
-    kind: constructorInvocation
-  B02
-    kind: topLevelVariable
-  B03
-    kind: topLevelVariable
-  B04
-    kind: functionInvocation
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterElse_beforeEnd() async {
@@ -166,6 +111,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -174,11 +121,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -214,31 +165,13 @@ suggestions
     await computeSuggestions('''
 foo() {if (n^) }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftParen_beforeRightParen_inMethod() async {
@@ -268,35 +201,13 @@ suggestions
     await computeSuggestions('''
 class A {foo() {if (n^) }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterPattern() async {
@@ -331,106 +242,26 @@ suggestions
     await computeSuggestions('''
 foo() {if (true) r^;}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   return
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterRightParen_beforeColon_inMethod_partial() async {
     await computeSuggestions('''
 class A {foo() {if (true) r^;}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   return
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterRightParen_beforeEnd_inClass() async {
@@ -447,6 +278,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -454,6 +287,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -464,6 +299,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -490,6 +327,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -498,11 +337,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -529,6 +372,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -536,6 +381,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -546,6 +393,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -573,6 +422,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -581,11 +432,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -612,6 +467,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -619,6 +476,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -629,6 +488,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -655,6 +516,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -663,11 +526,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -684,53 +551,13 @@ suggestions
     await computeSuggestions('''
 void f() { if (true) {} e^ }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   else
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  else
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterWhen() async {
@@ -760,31 +587,13 @@ void f(Object o) {
   if (o case var x when c^)
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   const
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_rightParen_withCondition_withoutCase() async {

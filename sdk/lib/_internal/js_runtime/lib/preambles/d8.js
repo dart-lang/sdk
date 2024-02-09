@@ -349,4 +349,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   // so pretend they don't exist.
   // TODO(30217): Try to use D8's worker.
   delete self.Worker;
+
+  // D8's performance.measure is API incompatible with the browser version.
+  delete performance.measure;
 })(self, arguments);

@@ -36,7 +36,6 @@ import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 enum Mode {
   regular,
-  stringref,
   jsCompatibility,
 }
 
@@ -102,6 +101,10 @@ class WasmTarget extends Target {
   Class? _wasmImmutableSet;
   Class? _oneByteString;
   Class? _twoByteString;
+  Class? _jsString;
+  Class? _closure;
+  Class? _boxedInt;
+  Class? _boxedDouble;
   Map<String, Class>? _nativeClasses;
 
   @override
@@ -118,8 +121,6 @@ class WasmTarget extends Target {
     switch (mode) {
       case Mode.regular:
         return 'wasm';
-      case Mode.stringref:
-        return 'wasm_stringref';
       case Mode.jsCompatibility:
         return 'wasm_js_compatibility';
     }
@@ -129,8 +130,6 @@ class WasmTarget extends Target {
     switch (mode) {
       case Mode.regular:
         return 'dart2wasm_platform.dill';
-      case Mode.stringref:
-        return 'dart2wasm_stringref_platform.dill';
       case Mode.jsCompatibility:
         return 'dart2wasm_js_compatibility_platform.dill';
     }
@@ -140,12 +139,11 @@ class WasmTarget extends Target {
   TargetFlags get flags => TargetFlags();
 
   @override
-  List<String> get extraRequiredLibraries => const <String>[
+  List<String> get extraRequiredLibraries => [
         'dart:_http',
         'dart:_internal',
         'dart:_js_helper',
         'dart:_js_types',
-        'dart:_string',
         'dart:_wasm',
         'dart:async',
         'dart:developer',
@@ -157,30 +155,24 @@ class WasmTarget extends Target {
         'dart:js_util',
         'dart:nativewrappers',
         'dart:typed_data',
+        if (mode != Mode.jsCompatibility) 'dart:_string',
       ];
 
   @override
-  List<String> get extraIndexedLibraries => const <String>[
+  List<String> get extraIndexedLibraries => [
         'dart:_js_helper',
         'dart:_js_types',
-        'dart:_string',
         'dart:_wasm',
         'dart:collection',
         'dart:js_interop',
         'dart:js_interop_unsafe',
         'dart:js_util',
         'dart:typed_data',
+        if (mode != Mode.jsCompatibility) 'dart:_string',
       ];
 
   @override
-  bool mayDefineRestrictedType(Uri uri) =>
-      uri.isScheme('dart') &&
-      (uri.path == 'core' ||
-          uri.path == '_string' ||
-          uri.path == 'typed_data' ||
-          uri.path == '_typed_data' ||
-          uri.path == '_js_types' ||
-          uri.path == '_typed_data_helper');
+  bool mayDefineRestrictedType(Uri uri) => uri.isScheme('dart');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
@@ -259,6 +251,8 @@ class WasmTarget extends Target {
           component, Uri.parse("dart:_js_annotations")),
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
           component, Uri.parse("dart:js_interop")),
+      ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+          component, Uri.parse("dart:convert")),
     };
     if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");
@@ -468,6 +462,11 @@ class WasmTarget extends Target {
 
   @override
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) {
+    // In JSCM all strings are JS strings.
+    if (mode == Mode.jsCompatibility) {
+      return _jsString ??=
+          coreTypes.index.getClass("dart:_js_types", "JSStringImpl");
+    }
     const int maxLatin1 = 0xff;
     for (int i = 0; i < value.length; ++i) {
       if (value.codeUnitAt(i) > maxLatin1) {
@@ -480,6 +479,11 @@ class WasmTarget extends Target {
   }
 
   @override
+  Class concreteClosureClass(CoreTypes coreTypes) {
+    return _closure ??= coreTypes.index.getClass('dart:core', '_Closure');
+  }
+
+  @override
   bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("wasm:");
 
   late final Map<RecordShape, Class> recordClasses;
@@ -488,6 +492,14 @@ class WasmTarget extends Target {
   Class getRecordImplementationClass(CoreTypes coreTypes,
           int numPositionalFields, List<String> namedFields) =>
       recordClasses[RecordShape(numPositionalFields, namedFields)]!;
+
+  @override
+  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) =>
+      _boxedInt ??= coreTypes.index.getClass("dart:core", "_BoxedInt");
+
+  @override
+  Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) =>
+      _boxedDouble ??= coreTypes.index.getClass("dart:core", "_BoxedDouble");
 }
 
 class WasmVerification extends Verification {

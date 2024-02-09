@@ -11,9 +11,9 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 // Line in core/print.dart
-const int LINE_A = 10;
+const int LINE_A = 19;
 
-testMain() {
+void testMain() {
   debugger();
   print('1');
   print('2');
@@ -46,7 +46,7 @@ final tests = <IsolateTest>[
   resumeIsolate,
 ];
 
-main(args) => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'break_on_dart_colon_test.dart',

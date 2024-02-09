@@ -7,19 +7,19 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-fib(n) {
+int fib(n) {
   if (n < 0) return 0;
   if (n == 0) return 1;
   return fib(n - 1) + fib(n - 2);
 }
 
-testeeDo() {
-  print("Testee doing something.");
-  fib(30);
-  print("Testee did something.");
+void testeeDo() {
+  print('Testee doing something.');
+  fib(44);
+  print('Testee did something.');
 }
 
-Future checkSamples(VmService service, IsolateRef isolate) async {
+Future<void> checkSamples(VmService service, IsolateRef isolate) async {
   // Grab all the samples.
   final isolateId = isolate.id!;
   final result = await service.getCpuSamples(isolateId, 0, ~0);
@@ -27,11 +27,14 @@ Future checkSamples(VmService service, IsolateRef isolate) async {
   final isString = TypeMatcher<String>();
   final isInt = TypeMatcher<int>();
   final isList = TypeMatcher<List>();
-  expect(result.functions!.length, greaterThan(10),
-      reason: "Should have many functions!");
+  expect(
+    result.functions!.length,
+    greaterThan(10),
+    reason: 'Should have many functions!',
+  );
 
   final samples = result.samples!;
-  expect(samples.length, greaterThan(10), reason: "Should have many samples");
+  expect(samples.length, greaterThan(0), reason: 'Should have samples');
   expect(samples.length, result.sampleCount);
 
   final sample = samples.first;
@@ -46,16 +49,18 @@ Future checkSamples(VmService service, IsolateRef isolate) async {
   expect(sample.stack, isList);
 }
 
-var tests = <IsolateTest>[
-  ((VmService service, IsolateRef i) => checkSamples(service, i)),
+final tests = <IsolateTest>[
+  checkSamples,
 ];
 
-var vmArgs = [
+const vmArgs = <String>[
   '--profiler=true',
+  // Crank up the sampling rate to make sure we get samples.
+  '--profile_period=100',
   '--profile-vm=false', // So this also works with KBC.
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'get_cpu_samples_rpc_test.dart',

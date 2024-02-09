@@ -40,7 +40,7 @@ FreshTypeParameters getFreshTypeParameters(
   var substitution = Substitution.fromMap(map);
 
   for (int i = 0; i < typeParameters.length; ++i) {
-    // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+    // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
     // variance is added to the interface.
     var typeParameter = typeParameters[i] as TypeParameterElementImpl;
     if (!typeParameter.isLegacyCovariant) {
@@ -160,8 +160,12 @@ abstract class Substitution {
 
   DartType? getSubstitute(TypeParameterElement parameter, bool upperBound);
 
+  InterfaceType mapInterfaceType(InterfaceType type) {
+    return substituteType(type) as InterfaceType;
+  }
+
   Iterable<InterfaceType> mapInterfaceTypes(Iterable<InterfaceType> types) {
-    return types.map(substituteType).whereType();
+    return types.map(mapInterfaceType);
   }
 
   DartType substituteType(DartType type, {bool contravariant = false}) {
@@ -265,7 +269,7 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
     }
 
     var freshElements = List.generate(elements.length, (index) {
-      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
       var element = elements[index] as TypeParameterElementImpl;
       var freshElement = TypeParameterElementImpl(element.name, -1);
@@ -584,7 +588,7 @@ abstract class _TypeSubstitutor
 
   @override
   DartType visitRecordTypeBuilder(RecordTypeBuilder type) {
-    // TODO: implement visitRecordTypeBuilder
+    // TODO(scheglov): implement visitRecordTypeBuilder
     throw UnimplementedError();
   }
 

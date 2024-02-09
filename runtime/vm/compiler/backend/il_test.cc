@@ -202,7 +202,8 @@ bool TestIntConverterCanonicalizationRule(Thread* thread,
                                           int64_t min_value,
                                           int64_t max_value,
                                           Representation initial,
-                                          Representation intermediate) {
+                                          Representation intermediate,
+                                          Representation final) {
   using compiler::BlockBuilder;
 
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
@@ -237,23 +238,37 @@ bool TestIntConverterCanonicalizationRule(Thread* thread,
 
 ISOLATE_UNIT_TEST_CASE(IL_IntConverterCanonicalization) {
   EXPECT(TestIntConverterCanonicalizationRule(thread, kMinInt16, kMaxInt16,
-                                              kUnboxedInt64, kUnboxedInt32));
+                                              kUnboxedInt64, kUnboxedInt32,
+                                              kUnboxedInt64));
   EXPECT(TestIntConverterCanonicalizationRule(thread, kMinInt32, kMaxInt32,
-                                              kUnboxedInt64, kUnboxedInt32));
+                                              kUnboxedInt64, kUnboxedInt32,
+                                              kUnboxedInt64));
   EXPECT(!TestIntConverterCanonicalizationRule(
       thread, kMinInt32, static_cast<int64_t>(kMaxInt32) + 1, kUnboxedInt64,
-      kUnboxedInt32));
-  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxInt16,
-                                              kUnboxedInt64, kUnboxedUint32));
-  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxInt32,
-                                              kUnboxedInt64, kUnboxedUint32));
-  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxUint32,
-                                              kUnboxedInt64, kUnboxedUint32));
+      kUnboxedInt32, kUnboxedInt64));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxInt16, kUnboxedInt64, kUnboxedUint32, kUnboxedInt64));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxInt32, kUnboxedInt64, kUnboxedUint32, kUnboxedInt64));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxUint32, kUnboxedInt64, kUnboxedUint32, kUnboxedInt64));
   EXPECT(!TestIntConverterCanonicalizationRule(
       thread, 0, static_cast<int64_t>(kMaxUint32) + 1, kUnboxedInt64,
-      kUnboxedUint32));
-  EXPECT(!TestIntConverterCanonicalizationRule(thread, -1, kMaxInt16,
-                                               kUnboxedInt64, kUnboxedUint32));
+      kUnboxedUint32, kUnboxedInt64));
+  EXPECT(!TestIntConverterCanonicalizationRule(
+      thread, -1, kMaxInt16, kUnboxedInt64, kUnboxedUint32, kUnboxedInt64));
+
+  // Regression test for https://dartbug.com/53613.
+  EXPECT(!TestIntConverterCanonicalizationRule(thread, kMinInt32, kMaxInt32,
+                                               kUnboxedInt32, kUnboxedUint32,
+                                               kUnboxedInt64));
+  EXPECT(!TestIntConverterCanonicalizationRule(thread, kMinInt32, kMaxInt32,
+                                               kUnboxedInt32, kUnboxedUint32,
+                                               kUnboxedInt32));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxInt32, kUnboxedInt32, kUnboxedUint32, kUnboxedInt64));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxInt32, kUnboxedInt32, kUnboxedUint32, kUnboxedInt32));
 }
 
 ISOLATE_UNIT_TEST_CASE(IL_PhiCanonicalization) {
@@ -725,14 +740,15 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawStoreField) {
     }));
   }
   auto pointer_value = Value(pointer);
-  auto* const load_untagged_instr = new (zone) LoadUntaggedInstr(
-      &pointer_value, compiler::target::PointerBase::data_offset());
-  flow_graph->InsertBefore(another_function_call, load_untagged_instr, nullptr,
+  auto* const load_field_instr = new (zone) LoadFieldInstr(
+      &pointer_value, Slot::PointerBase_data(),
+      InnerPointerAccess::kCannotBeInnerPointer, InstructionSource());
+  flow_graph->InsertBefore(another_function_call, load_field_instr, nullptr,
                            FlowGraph::kValue);
-  auto load_untagged_value = Value(load_untagged_instr);
+  auto load_field_value = Value(load_field_instr);
   auto pointer_value2 = Value(pointer);
   auto* const raw_store_field_instr =
-      new (zone) RawStoreFieldInstr(&load_untagged_value, &pointer_value2, 0);
+      new (zone) RawStoreFieldInstr(&load_field_value, &pointer_value2, 0);
   flow_graph->InsertBefore(another_function_call, raw_store_field_instr,
                            nullptr, FlowGraph::kEffect);
   another_function_call->RemoveFromGraph();
@@ -743,7 +759,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawStoreField) {
     EXPECT(cursor.TryMatch({
         kMoveGlob,
         kMatchAndMoveStaticCall,
-        kMatchAndMoveLoadUntagged,
+        kMatchAndMoveLoadField,
         kMatchAndMoveRawStoreField,
     }));
   }
@@ -820,18 +836,19 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawLoadField) {
     }));
   }
   auto pointer_value = Value(pointer);
-  auto* const load_untagged_instr = new (zone) LoadUntaggedInstr(
-      &pointer_value, compiler::target::PointerBase::data_offset());
-  flow_graph->InsertBefore(another_function_call, load_untagged_instr, nullptr,
+  auto* const load_field_instr = new (zone) LoadFieldInstr(
+      &pointer_value, Slot::PointerBase_data(),
+      InnerPointerAccess::kCannotBeInnerPointer, InstructionSource());
+  flow_graph->InsertBefore(another_function_call, load_field_instr, nullptr,
                            FlowGraph::kValue);
-  auto load_untagged_value = Value(load_untagged_instr);
+  auto load_field_value = Value(load_field_instr);
   auto* const constant_instr = new (zone) UnboxedConstantInstr(
       Integer::ZoneHandle(zone, Integer::New(0, Heap::kOld)), kUnboxedIntPtr);
   flow_graph->InsertBefore(another_function_call, constant_instr, nullptr,
                            FlowGraph::kValue);
   auto constant_value = Value(constant_instr);
   auto* const load_indexed_instr = new (zone)
-      LoadIndexedInstr(&load_untagged_value, &constant_value,
+      LoadIndexedInstr(&load_field_value, &constant_value,
                        /*index_unboxed=*/true, /*index_scale=*/1, kArrayCid,
                        kAlignedAccess, DeoptId::kNone, InstructionSource());
   flow_graph->InsertBefore(another_function_call, load_indexed_instr, nullptr,
@@ -846,7 +863,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawLoadField) {
     EXPECT(cursor.TryMatch({
         kMoveGlob,
         kMatchAndMoveStaticCall,
-        kMatchAndMoveLoadUntagged,
+        kMatchAndMoveLoadField,
         kMatchAndMoveUnboxedConstant,
         kMatchAndMoveLoadIndexed,
         kMatchAndMoveStaticCall,
@@ -948,6 +965,105 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
   intptr_t result_int = Integer::Cast(invoke_result).AsInt64Value();
   EXPECT_EQ(reinterpret_cast<intptr_t>(thread), result_int);
 }
+
+#if !defined(TARGET_ARCH_IA32)
+ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
+  // clang-format off
+  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+    int globalCounter = 0;
+
+    int increment() => ++globalCounter;
+
+    int cachedIncrement() {
+      // We will replace this call with a cacheable call,
+      // which will lead to the counter no longer being incremented.
+      // Make sure to return the value, so we can see that the boxing and
+      // unboxing works as expected.
+      return increment();
+    }
+
+    int multipleIncrement() {
+      int returnValue = 0;
+      for(int i = 0; i < 10; i++) {
+        // Save the last returned value.
+        returnValue = cachedIncrement();
+      }
+      return returnValue;
+    }
+  )"), std::free);
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& first_result =
+      Object::Handle(Invoke(root_library, "multipleIncrement"));
+  EXPECT(first_result.IsSmi());
+  if (first_result.IsSmi()) {
+    const intptr_t int_value = Smi::Cast(first_result).Value();
+    EXPECT_EQ(10, int_value);
+  }
+
+  const auto& cached_increment_function =
+      Function::Handle(GetFunction(root_library, "cachedIncrement"));
+
+  const auto& increment_function =
+      Function::ZoneHandle(GetFunction(root_library, "increment"));
+
+  TestPipeline pipeline(cached_increment_function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  StaticCallInstr* static_call = nullptr;
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        {kMatchAndMoveStaticCall, &static_call},
+        kMoveGlob,
+        kMatchReturn,
+    }));
+  }
+
+  InputsArray args;
+  CachableIdempotentCallInstr* call = new CachableIdempotentCallInstr(
+      InstructionSource(), increment_function, static_call->type_args_len(),
+      Array::empty_array(), std::move(args), DeoptId::kNone);
+  static_call->ReplaceWith(call, nullptr);
+
+  pipeline.RunForcedOptimizedAfterSSAPasses();
+
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveCachableIdempotentCall,
+        kMoveGlob,
+        // The cacheable call returns unboxed, so select representations
+        // adds boxing.
+        kMatchBox,
+        kMoveGlob,
+        kMatchReturn,
+    }));
+  }
+
+  {
+#if !defined(PRODUCT)
+    SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+#endif
+    pipeline.CompileGraphAndAttachFunction();
+  }
+
+  const auto& second_result =
+      Object::Handle(Invoke(root_library, "multipleIncrement"));
+  EXPECT(second_result.IsSmi());
+  if (second_result.IsSmi()) {
+    const intptr_t int_value = Smi::Cast(second_result).Value();
+    EXPECT_EQ(11, int_value);
+  }
+}
+#endif
 
 // Helper to set up an inlined FfiCall by replacing a StaticCall.
 FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
@@ -1093,8 +1209,12 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
   // Construct the FFICallInstr from the trampoline matching our native
   // function.
   const char* error = nullptr;
+  auto* const zone = thread->zone();
+  const auto& c_signature =
+      FunctionType::ZoneHandle(zone, ffi_trampoline.FfiCSignature());
   const auto marshaller_ptr = compiler::ffi::CallMarshaller::FromFunction(
-      thread->zone(), ffi_trampoline, &error);
+      zone, ffi_trampoline, /*function_params_start_at=*/1, c_signature,
+      &error);
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
@@ -1450,6 +1570,50 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_InstanceCallWithNoICDataInAOT) {
   EXPECT_PROPERTY(ret->value()->definition(), it.IsStaticCall());
   EXPECT_PROPERTY(ret->value()->definition()->AsStaticCall(),
                   it.function().ptr() == getter.ptr());
+}
+
+static void TestTestRangeCanonicalize(const AbstractType& type,
+                                      uword lower,
+                                      uword upper,
+                                      bool result) {
+  using compiler::BlockBuilder;
+  CompilerState S(Thread::Current(), /*is_aot=*/true, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H(/*num_parameters=*/1);
+  H.AddVariable("v0", type);
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+
+  ReturnInstr* ret;
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    Definition* param =
+        builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    Definition* load_cid =
+        builder.AddDefinition(new LoadClassIdInstr(new Value(param)));
+    Definition* test_range = builder.AddDefinition(new TestRangeInstr(
+        InstructionSource(), new Value(load_cid), lower, upper, kTagged));
+    ret = builder.AddReturn(new Value(test_range));
+  }
+  H.FinishGraph();
+  H.flow_graph()->Canonicalize();
+
+  EXPECT_PROPERTY(ret, it.value()->BindsToConstant());
+  EXPECT_PROPERTY(ret,
+                  it.value()->BoundConstant().ptr() == Bool::Get(result).ptr());
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_TestRange) {
+  HierarchyInfo hierarchy_info(thread);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::IntType()),
+                            kOneByteStringCid, kTwoByteStringCid, false);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::IntType()), kSmiCid,
+                            kMintCid, true);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::NullType()), kSmiCid,
+                            kMintCid, false);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::Double()), kSmiCid,
+                            kMintCid, false);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::ObjectType()), 1,
+                            kClassIdTagMax, true);
 }
 
 void TestStaticFieldForwarding(Thread* thread,

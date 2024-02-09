@@ -9,31 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferAssertsInInitializerListsTest);
-    defineReflectiveTests(PreferAssertsInInitializerListsSuperTest);
   });
-}
-
-@reflectiveTest
-class PreferAssertsInInitializerListsSuperTest extends LintRuleTest {
-  @override
-  String get lintRule => 'prefer_asserts_in_initializer_lists';
-
-  test_super() async {
-    await assertDiagnostics(r'''
-class A {
-  final int a;
-  A(this.a);
-}
-
-class B extends A {
-  B(super.a) {
-    assert(a != 0);
-  }
-}
-''', [
-      lint(80, 6),
-    ]);
-  }
 }
 
 @reflectiveTest
@@ -50,6 +26,26 @@ class A {
   }
 }
 
+''');
+  }
+
+  test_extensionType() async {
+    await assertDiagnostics(r'''
+extension type E(int? i) {
+  E.e(this.i) {
+    assert(i != null);
+  }
+}
+''', [
+      lint(47, 6),
+    ]);
+  }
+
+  test_extensionType_initializer() async {
+    await assertNoDiagnostics(r'''
+extension type E(int? i) {
+  E.e(this.i) : assert(i != null);
+}
 ''');
   }
 
@@ -90,6 +86,23 @@ class A {
 ''', [
       // No lint
       error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 40, 50),
+    ]);
+  }
+
+  test_super() async {
+    await assertDiagnostics(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+
+class B extends A {
+  B(super.a) {
+    assert(a != 0);
+  }
+}
+''', [
+      lint(80, 6),
     ]);
   }
 }

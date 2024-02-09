@@ -9,7 +9,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
@@ -19,6 +18,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+import 'package:language_server_protocol/json_parsing.dart';
 import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/utilities/cancellation.dart';
@@ -334,7 +334,10 @@ abstract class ServerStateMessageHandler {
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
   FutureOr<ErrorOr<Object?>> handleMessage(
-      IncomingMessage message, MessageInfo messageInfo) async {
+    IncomingMessage message,
+    MessageInfo messageInfo, {
+    CancellationToken? cancellationToken,
+  }) async {
     final handler = _messageHandlers[message.method];
     if (handler == null) {
       return handleUnknownMessage(message);
@@ -344,19 +347,21 @@ abstract class ServerStateMessageHandler {
       return handler.handleMessage(message, messageInfo, _notCancelableToken);
     }
 
-    // Create a cancellation token that will allow us to cancel this request if
-    // requested to save processing (the handler will need to specifically
-    // check the token after `await` points).
-    final token = _cancelHandler.createToken(message);
+    // If we weren't provided an existing cancellation token (eg. by the legacy
+    // server), create a new cancellation token that will allow us to cancel
+    // this request if requested. This saves some processing but the handler
+    // will need to specifically check the token after `await`s.
+    cancellationToken ??= _cancelHandler.createToken(message);
     try {
-      final result = await handler.handleMessage(message, messageInfo, token);
+      final result =
+          await handler.handleMessage(message, messageInfo, cancellationToken);
       // Do a final check before returning the result, because if the request was
       // cancelled we can save the overhead of serializing everything to JSON
       // and the client to deserializing the same in order to read the ID to see
       // that it was a request it didn't need (in the case of completions this
       // can be quite large).
       await Future.delayed(Duration.zero);
-      return token.isCancellationRequested ? cancelled() : result;
+      return cancellationToken.isCancellationRequested ? cancelled() : result;
     } finally {
       _cancelHandler.clearToken(message);
     }

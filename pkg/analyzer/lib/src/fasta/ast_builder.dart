@@ -100,7 +100,7 @@ class AstBuilder extends StackListener {
   ///
   /// This is being replaced by the @native(...) annotation.
   //
-  // TODO(danrubel) Move this flag to a better location
+  // TODO(danrubel): Move this flag to a better location
   // and should only be true if either:
   // * The current library is a platform library
   // * The current library has an import that uses the scheme "dart-ext".
@@ -739,9 +739,9 @@ class AstBuilder extends StackListener {
     }
   }
 
-  /// TODO(scheglov) We should not do this.
-  /// Ideally, we should not test parsing pieces of class, and instead parse
-  /// the whole unit, and extract pieces that we need to validate.
+  // TODO(scheglov): We should not do this.
+  // Ideally, we should not test parsing pieces of class, and instead parse
+  // the whole unit, and extract pieces that we need to validate.
   _ClassDeclarationBuilder createFakeClassDeclarationBuilder(String className) {
     return _classLikeBuilder = _ClassDeclarationBuilder(
       comment: null,
@@ -914,7 +914,6 @@ class AstBuilder extends StackListener {
             ),
           ),
         );
-        break;
       case Assert.Initializer:
         push(
           AssertInitializerImpl(
@@ -926,7 +925,6 @@ class AstBuilder extends StackListener {
             rightParenthesis: leftParenthesis.endGroup!,
           ),
         );
-        break;
       case Assert.Statement:
         push(
           AssertStatementImpl(
@@ -939,7 +937,6 @@ class AstBuilder extends StackListener {
             semicolon: semicolon,
           ),
         );
-        break;
     }
   }
 
@@ -1603,7 +1600,7 @@ class AstBuilder extends StackListener {
       Token beginToken,
       Token endToken) {
     if (staticToken == null) {
-      // TODO(danrubel) Decide how to handle instance field declarations
+      // TODO(danrubel): Decide how to handle instance field declarations
       // within extensions. They are invalid and the parser has already reported
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
@@ -1634,23 +1631,38 @@ class AstBuilder extends StackListener {
       Token typeKeyword, Token endToken) {
     final implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
-    final representation = pop(const NullValue<RepresentationDeclarationImpl>())
+    var representation = pop(const NullValue<RepresentationDeclarationImpl>())
         as RepresentationDeclarationImpl?;
     final constKeyword = pop() as Token?;
 
     if (enableInlineClass) {
       final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
-      if (representation != null) {
-        // TODO(scheglov): Handle missing primary constructor.
-        declarations.add(
-          builder.build(
-            typeKeyword: typeKeyword,
-            constKeyword: constKeyword,
-            representation: representation,
-            implementsClause: implementsClause,
-          ),
+      if (representation == null) {
+        var leftParenthesis = parser.rewriter.insertParens(builder.name, true);
+        var typeName = leftParenthesis.next!;
+        var rightParenthesis = leftParenthesis.endGroup!;
+        var fieldName = parser.rewriter.insertSyntheticIdentifier(typeName);
+        representation = RepresentationDeclarationImpl(
+          constructorName: null,
+          leftParenthesis: leftParenthesis,
+          fieldMetadata: [],
+          fieldType: NamedTypeImpl(
+              importPrefix: null,
+              name2: typeName,
+              question: null,
+              typeArguments: null),
+          fieldName: fieldName,
+          rightParenthesis: rightParenthesis,
         );
       }
+      declarations.add(
+        builder.build(
+          typeKeyword: typeKeyword,
+          constKeyword: constKeyword,
+          representation: representation,
+          implementsClause: implementsClause,
+        ),
+      );
     } else {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.inline_class,
@@ -1789,6 +1801,7 @@ class AstBuilder extends StackListener {
         startToken: requiredKeyword,
       );
     }
+
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
@@ -2773,7 +2786,12 @@ class AstBuilder extends StackListener {
   @override
   void endPrimaryConstructor(
       Token beginToken, Token? constKeyword, bool hasConstructorName) {
-    final formalParameterList = pop() as FormalParameterListImpl;
+    var formalParameterList = pop() as FormalParameterListImpl?;
+    if (formalParameterList == null) {
+      final extensionTypeName = beginToken.previous!;
+      formalParameterList = _syntheticFormalParameterList(extensionTypeName);
+    }
+
     final leftParenthesis = formalParameterList.leftParenthesis;
 
     RepresentationConstructorNameImpl? constructorName;
@@ -2808,22 +2826,30 @@ class AstBuilder extends StackListener {
             typeArguments: null,
             question: null,
           );
-          break;
       }
       if (firstFormalParameter.keyword case final keyword?) {
-        errorReporter.errorReporter?.reportErrorForToken(
-          ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
-          keyword,
-        );
+        if (keyword.keyword != Keyword.CONST) {
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
+            keyword,
+          );
+        }
       }
       fieldName = firstFormalParameter.name!;
       // Check for multiple fields.
       final maybeComma = firstFormalParameter.endToken.next;
-      if (maybeComma != null && maybeComma != formalParameterList.endToken) {
-        errorReporter.errorReporter?.reportErrorForToken(
-          ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
-          maybeComma,
-        );
+      if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
+        if (formalParameterList.parameters.length == 1) {
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA,
+            maybeComma,
+          );
+        } else {
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
+            maybeComma,
+          );
+        }
       }
     } else {
       errorReporter.errorReporter?.reportErrorForToken(
@@ -2998,7 +3024,7 @@ class AstBuilder extends StackListener {
     final expression = RethrowExpressionImpl(
       rethrowKeyword: rethrowToken,
     );
-    // TODO(scheglov) According to the specification, 'rethrow' is a statement.
+    // TODO(scheglov): According to the specification, 'rethrow' is a statement.
     push(
       ExpressionStatementImpl(
         expression: expression,
@@ -3445,7 +3471,7 @@ class AstBuilder extends StackListener {
         optional('extends', extendsOrSuper) ||
         optional('super', extendsOrSuper));
 
-    // TODO (kallentu): Implement variance behaviour for the analyzer.
+    // TODO(kallentu): Implement variance behaviour for the analyzer.
     assert(variance == null ||
         optional('in', variance) ||
         optional('out', variance) ||
@@ -3740,7 +3766,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       push(NullValues.ExtendsClause);
-      // TODO(brianwilkerson) Consider (a) extending `ExtendsClause` to accept
+      // TODO(brianwilkerson): Consider (a) extending `ExtendsClause` to accept
       //  any type annotation for recovery purposes, and (b) extending the
       //  parser to parse a generic function type at this location.
       if (supertype != null) {
@@ -3890,7 +3916,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("EmptyFunctionBody");
 
-    // TODO(scheglov) Change the parser to not produce these modifiers.
+    // TODO(scheglov): Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
     push(
@@ -4778,7 +4804,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("NativeFunctionBody");
 
-    // TODO(danrubel) Change the parser to not produce these modifiers.
+    // TODO(danrubel): Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
     push(
@@ -5078,7 +5104,7 @@ class AstBuilder extends StackListener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
+    // TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
     } else if (message.code == codeBuiltInIdentifierInDeclaration) {
@@ -5159,7 +5185,7 @@ class AstBuilder extends StackListener {
 
     final directive = directives.last as ImportDirectiveImpl;
 
-    // TODO(scheglov) This code would be easier if we used one object.
+    // TODO(scheglov): This code would be easier if we used one object.
     var mergedAsKeyword = directive.asKeyword;
     var mergedPrefix = directive.prefix;
     if (directive.asKeyword == null && asKeyword != null) {
@@ -5521,7 +5547,7 @@ class AstBuilder extends StackListener {
   }
 
   List<CollectionElementImpl> popCollectionElements(int count) {
-    // TODO(scheglov) Not efficient.
+    // TODO(scheglov): Not efficient.
     final elements = <CollectionElementImpl>[];
     for (int index = count - 1; index >= 0; --index) {
       var element = pop();
@@ -5544,7 +5570,7 @@ class AstBuilder extends StackListener {
     return tailList.whereNotNull().toList();
   }
 
-  /// TODO(scheglov) This is probably not optimal.
+  // TODO(scheglov): This is probably not optimal.
   List<T> popTypedList2<T>(int count) {
     var result = <T>[];
     for (var i = 0; i < count; i++) {
@@ -5634,6 +5660,18 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
           messageConstConstructorWithBody, bodyToken, bodyToken);
     }
+
+    if (modifiers?.externalKeyword != null) {
+      for (final formalParameter in parameters.parameters) {
+        if (formalParameter is FieldFormalParameterImpl) {
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
+            formalParameter.thisKeyword,
+          );
+        }
+      }
+    }
+
     var constructor = ConstructorDeclarationImpl(
       comment: comment,
       metadata: metadata,
@@ -5804,14 +5842,23 @@ class AstBuilder extends StackListener {
   }
 
   ArgumentListImpl _syntheticArgumentList(Token precedingToken) {
-    var syntheticOffset = precedingToken.end;
-    var left = SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset)
-      ..previous = precedingToken;
-    var right = SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset)
-      ..previous = left;
+    final left = parser.rewriter.insertParens(precedingToken, false);
+    final right = left.endGroup!;
     return ArgumentListImpl(
       leftParenthesis: left,
       arguments: [],
+      rightParenthesis: right,
+    );
+  }
+
+  FormalParameterListImpl _syntheticFormalParameterList(Token precedingToken) {
+    final left = parser.rewriter.insertParens(precedingToken, false);
+    final right = left.endGroup!;
+    return FormalParameterListImpl(
+      leftParenthesis: left,
+      parameters: [],
+      leftDelimiter: null,
+      rightDelimiter: null,
       rightParenthesis: right,
     );
   }

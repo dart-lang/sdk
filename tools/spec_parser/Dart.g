@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.38 Broaden `initializerExpression` to match implemented behavior.
+//
 // v0.37 Correct `libraryExport` to use `configurableUri`, not `uri`.
 //
 // v0.36 Update syntax from `inline class` to `extension type`, including
@@ -379,7 +381,7 @@ defaultFormalParameter
     ;
 
 defaultNamedParameter
-    :    REQUIRED? normalFormalParameter ('=' expression)?
+    :    metadata REQUIRED? normalFormalParameterNoMetadata ('=' expression)?
     ;
 
 typeWithParameters
@@ -460,7 +462,7 @@ extensionTypeMemberDeclaration
     ;
 
 extensionDeclaration
-    :    EXTENSION identifier? typeParameters? ON type
+    :    EXTENSION typeIdentifierNotType? typeParameters? ON type
          LBRACE (metadata extensionMemberDefinition)* RBRACE
     ;
 
@@ -570,7 +572,9 @@ fieldInitializer
     ;
 
 initializerExpression
-    :    conditionalExpression
+    :    throwExpression
+    |    assignableExpression assignmentOperator expression
+    |    conditionalExpression
     |    cascade
     ;
 
@@ -1046,11 +1050,16 @@ qualifiedName
     |    typeIdentifier '.' typeIdentifier '.' identifierOrNew
     ;
 
-typeIdentifier
+typeIdentifierNotType
     :    IDENTIFIER
     |    DYNAMIC // Built-in identifier that can be used as a type.
-    |    otherIdentifier // Occur in grammar rules, are not built-in.
+    |    otherIdentifierNotType // Occur in grammar rules, are not built-in.
     |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT|YIELD)
+    ;
+
+typeIdentifier
+    :    typeIdentifierNotType
+    |    TYPE
     ;
 
 typeTest
@@ -1180,7 +1189,7 @@ patternField
     ;
 
 objectPattern
-    :    typeName typeArguments? '(' patternFields? ')'
+    :    (typeName typeArguments? | typeNamedFunction) '(' patternFields? ')'
     ;
 
 patternVariableDeclaration
@@ -1434,9 +1443,13 @@ typeNotFunction
     |    VOID
     ;
 
+typeNamedFunction
+    :    (typeIdentifier '.')? FUNCTION
+    ;
+
 typeNotVoidNotFunction
     :    typeName typeArguments?
-    |    FUNCTION
+    |    typeNamedFunction
     ;
 
 typeName
@@ -1637,7 +1650,7 @@ builtInIdentifier
     |    TYPEDEF
     ;
 
-otherIdentifier
+otherIdentifierNotType
     :    ASYNC
     |    BASE
     |    HIDE
@@ -1646,8 +1659,12 @@ otherIdentifier
     |    SEALED
     |    SHOW
     |    SYNC
-    |    TYPE
     |    WHEN
+    ;
+
+otherIdentifier
+    :    otherIdentifierNotType
+    |    TYPE
     ;
 
 // ---------------------------------------- Lexer rules.

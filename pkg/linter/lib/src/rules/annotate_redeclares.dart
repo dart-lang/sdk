@@ -102,7 +102,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Return `true` if the [member] redeclares a member from a superinterface.
   bool _redeclaresMember(
       ExecutableElement member, InterfaceElement extensionType) {
-    // todo(pq): unify with similar logic in `redeclare_verifier` and move to inheritanceManager
+    // TODO(pq): unify with similar logic in `redeclare_verifier` and move to inheritanceManager
     var uri = member.library.source.uri;
     var interface = context.inheritanceManager.getInterface(extensionType);
     return interface.redeclared.containsKey(Name(uri, member.name));

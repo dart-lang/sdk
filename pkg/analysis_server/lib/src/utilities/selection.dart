@@ -98,7 +98,7 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    // TODO(brianwilkerson) Support selecting both directives and declarations.
+    // TODO(brianwilkerson): Support selecting both directives and declarations.
     _fromList(node.directives) || _fromList(node.declarations);
   }
 

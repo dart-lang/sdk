@@ -618,7 +618,7 @@ class AstRewriter {
       period: node.operator,
       name: constructorIdentifier,
     );
-    // TODO(scheglov) I think we should drop "typeArguments" below.
+    // TODO(scheglov): I think we should drop "typeArguments" below.
     var instanceCreationExpression = InstanceCreationExpressionImpl(
       keyword: null,
       constructorName: constructorName,

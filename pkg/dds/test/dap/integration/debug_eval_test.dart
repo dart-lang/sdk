@@ -216,6 +216,74 @@ void foo() {
       );
     });
 
+    test('returns truncated strings by default', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+
+      final expectedTruncatedString = 'a' * 128;
+      await client.expectEvalResult(
+        topFrameId,
+        '"a" * 200',
+        '"$expectedTruncatedString…"',
+      );
+    });
+
+    test('returns whole string without quotes when context is "clipboard"',
+        () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+
+      final expectedStringValue = 'a' * 200;
+      await client.expectEvalResult(
+        topFrameId,
+        '"a" * 200',
+        expectedStringValue,
+        context: 'clipboard',
+      );
+    });
+
+    test('returns whole string with quotes when context is "repl"', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+
+      final expectedStringValue = 'a' * 200;
+      await client.expectEvalResult(
+        topFrameId,
+        '"a" * 200',
+        '"$expectedStringValue"',
+        context: 'repl',
+      );
+    });
+
+    test('returns whole string with quotes when context is a script', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+
+      final expectedStringValue = 'a' * 200;
+      await client.expectEvalResult(
+        topFrameId,
+        '"a" * 200',
+        '"$expectedStringValue"',
+        context: Uri.file(testFile.path).toString(),
+      );
+    });
+
     group('global evaluation', () {
       test('can evaluate when not paused given a script URI', () async {
         final client = dap.client;
@@ -238,6 +306,10 @@ void foo() {
       });
 
       test('returns a suitable error with no context', () async {
+        const expectedErrorMessage = 'Evaluation is only supported when the '
+            'debugger is paused unless you have a Dart file active in the '
+            'editor';
+
         final client = dap.client;
         final testFile = dap.createTestFile(globalEvaluationProgram);
 
@@ -257,12 +329,16 @@ void foo() {
           allowFailure: true,
         );
         expect(response.success, isFalse);
-        expect(
-          response.message,
-          contains(
-            'Global evaluation not currently supported without a Dart script context',
-          ),
-        );
+        expect(response.message, expectedErrorMessage);
+
+        // Also verify the structured error body.
+        final body = response.body as Map<String, Object?>;
+        final error = body['error'] as Map<String, Object?>;
+        final variables = error['variables'] as Map<String, Object?>;
+        expect(error['format'], '{message}');
+        expect(error['showUser'], true);
+        expect(variables['message'], expectedErrorMessage);
+        expect(variables['stack'], isNotNull);
       });
 
       test('returns a suitable error with an unknown script context', () async {

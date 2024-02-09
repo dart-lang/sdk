@@ -93,6 +93,30 @@ class A {
 ''');
   }
 
+  test_parameter_constructor_field() async {
+    await assertNoDiagnostics(r'''
+class A {
+  final int x;
+
+  /// [x]
+  A(this.x);
+}
+''');
+  }
+
+  test_parameter_constructor_super() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x);
+}
+
+class B extends A {
+  /// [x]
+  B(super.x);
+}
+''');
+  }
+
   test_this() async {
     await assertDiagnostics(r'''
 /// [this]

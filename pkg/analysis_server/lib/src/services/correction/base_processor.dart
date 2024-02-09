@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -39,8 +38,6 @@ abstract class BaseProcessor {
         typeProvider = resolvedResult.typeProvider,
         selectionEnd = selectionOffset + selectionLength,
         utils = CorrectionUtils(resolvedResult);
-
-  Flutter get flutter => Flutter.instance;
 
   AstNode? findSelectedNode() {
     final locator = NodeLocator(selectionOffset, selectionEnd);

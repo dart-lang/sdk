@@ -91,7 +91,7 @@ class OpType {
 
   /// Indicates whether the completion location requires a constant expression
   /// without being a constant context.
-  // TODO(brianwilkerson) Consider using this value to control whether non-const
+  // TODO(brianwilkerson): Consider using this value to control whether non-const
   //  elements are suggested.
   bool mustBeConst = false;
 
@@ -313,7 +313,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.message)) {
       optype.completionLocation = 'AssertInitializer_message';
-      // TODO(brianwilkerson) Consider including return value suggestions and
+      // TODO(brianwilkerson): Consider including return value suggestions and
       //  type name suggestions here.
     }
   }
@@ -326,7 +326,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.message)) {
       optype.completionLocation = 'AssertStatement_message';
-      // TODO(brianwilkerson) Consider including return value suggestions and
+      // TODO(brianwilkerson): Consider including return value suggestions and
       //  type name suggestions here.
     }
   }
@@ -623,7 +623,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         type = parent.staticType;
         if (type is FunctionType) {
           if (type.returnType is VoidType) {
-            // TODO(brianwilkerson) Determine whether the return type can ever
+            // TODO(brianwilkerson): Determine whether the return type can ever
             //  be inferred as void and remove this case if it can't be.
             optype.includeVoidReturnSuggestions = true;
           } else {
@@ -684,6 +684,28 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         identical(entity, node.rightBracket)) {
       // Make suggestions in the body of the extension declaration
       optype.completionLocation = 'ExtensionDeclaration_member';
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    // Make suggestions in the body of the extension type declaration
+    final entity = this.entity;
+    final isMember = node.members.contains(entity);
+    final isClosingBrace = identical(entity, node.rightBracket);
+    final isAnnotation = isClosingBrace &&
+        entity is Token &&
+        _isPotentialAnnotation(entity.previous);
+
+    // Annotations being typed before a closing brace will not be parsed as
+    // annotations (and not be handled by `visitAnnotation`) so need special
+    // handling.
+    if (isAnnotation) {
+      optype.completionLocation = 'Annotation_name';
+      optype.includeAnnotationSuggestions = true;
+    } else if (isMember || isClosingBrace) {
+      optype.completionLocation = 'ExtensionTypeDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -1053,7 +1075,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         identical(entity, node.name) && node.returnType == null) {
       optype.completionLocation = 'MethodDeclaration_returnType';
     }
-    // TODO(brianwilkerson) In visitFunctionDeclaration, this is conditional. It
+    // TODO(brianwilkerson): In visitFunctionDeclaration, this is conditional. It
     //  seems like it should be the same in both places.
     optype.includeTypeNameSuggestions = true;
   }
@@ -1406,6 +1428,20 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    if (identical(entity, node.fieldType) ||
+        (identical(entity, node.fieldName) && node.fieldType.isSynthetic)) {
+      optype.completionLocation = 'RepresentationDeclaration_fieldType';
+      optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.fieldName) ||
+        (identical(entity, node.rightParenthesis) &&
+            node.fieldType.isSynthetic)) {
+      optype.completionLocation = 'RepresentationDeclaration_fieldName';
+      optype.includeVarNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitRestPatternElement(RestPatternElement node) {
     if (identical(entity, node.pattern)) {
       optype._forPattern('RestPatternElement_pattern');
@@ -1733,7 +1769,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       } else if (parent is FunctionExpressionInvocation) {
         return 'function';
       } else if (parent is InstanceCreationExpression) {
-        // TODO(brianwilkerson) Enable this case.
+        // TODO(brianwilkerson): Enable this case.
 //        if (flutter.isWidgetType(parent.staticType)) {
 //          return 'widgetConstructor';
 //        }

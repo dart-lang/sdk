@@ -7,9 +7,13 @@
 // "pkg/analysis_server/tool/spec/generate_files".
 
 /// Matchers for data types defined in the analysis server API.
+library;
+
 import 'package:test/test.dart';
 
 import 'integration_tests.dart';
+
+// ignore_for_file: flutter_style_todos
 
 /// AddContentOverlay
 ///

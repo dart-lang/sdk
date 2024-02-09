@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_ARM)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
@@ -3921,52 +3922,66 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   EXPECT_EQ(kMintCid, result);
 }
 
-static void EnterTestFrame(Assembler* assembler) {
+void EnterTestFrame(Assembler* assembler) {
   __ EnterFrame(1 << THR | 1 << PP | 1 << CODE_REG, 0);
   __ MoveRegister(CODE_REG, R0);
   __ MoveRegister(THR, R1);
   __ LoadPoolPointer(PP);
 }
 
-static void LeaveTestFrame(Assembler* assembler) {
+void LeaveTestFrame(Assembler* assembler) {
   __ LeaveFrame(1 << THR | 1 << PP | 1 << CODE_REG);
 }
 
-#define LOAD_FROM_BOX_TEST(VALUE, SAME_REGISTER)                               \
-  ASSEMBLER_TEST_GENERATE(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER,          \
-                          assembler) {                                         \
-    const bool same_register = SAME_REGISTER;                                  \
-    const Register src = CallingConventions::ArgumentRegisters[0];             \
-    const Register dst =                                                       \
-        same_register ? src : CallingConventions::ArgumentRegisters[1];        \
-    const intptr_t value = VALUE;                                              \
-                                                                               \
-    EnterTestFrame(assembler);                                                 \
-                                                                               \
-    __ LoadObject(src, Integer::ZoneHandle(Integer::New(value, Heap::kOld)));  \
-    __ LoadWordFromBoxOrSmi(dst, src);                                         \
-    __ MoveRegister(CallingConventions::kReturnReg, dst);                      \
-                                                                               \
-    LeaveTestFrame(assembler);                                                 \
-                                                                               \
-    __ Ret();                                                                  \
-  }                                                                            \
-                                                                               \
-  ASSEMBLER_TEST_RUN(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER, test) {       \
-    const int64_t res = test->InvokeWithCodeAndThread<int64_t>();              \
-    EXPECT_EQ(static_cast<intptr_t>(VALUE), static_cast<intptr_t>(res));       \
-  }
+// Tests that BranchLink only clobbers CODE_REG in JIT mode and does not
+// clobber any allocatable registers in AOT mode.
+ASSEMBLER_TEST_GENERATE(BranchLinkPreservesRegisters, assembler) {
+  const auto& do_nothing_just_return =
+      AssemblerTest::Generate("DoNothing", [](auto assembler) { __ Ret(); });
 
-LOAD_FROM_BOX_TEST(0, true)
-LOAD_FROM_BOX_TEST(0, false)
-LOAD_FROM_BOX_TEST(1, true)
-LOAD_FROM_BOX_TEST(1, false)
-LOAD_FROM_BOX_TEST(0x7FFFFFFF, true)
-LOAD_FROM_BOX_TEST(0x7FFFFFFF, false)
-LOAD_FROM_BOX_TEST(0x80000000, true)
-LOAD_FROM_BOX_TEST(0x80000000, false)
-LOAD_FROM_BOX_TEST(0xFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0xFFFFFFFF, false)
+  EnterTestFrame(assembler);
+  SPILLS_LR_TO_FRAME({ __ PushRegister(LR); });
+
+  const RegisterSet clobbered_regs(
+      kDartAvailableCpuRegs & ~(static_cast<RegList>(1) << R0),
+      /*fpu_register_mask=*/0);
+  __ PushRegisters(clobbered_regs);
+
+  Label done;
+
+  const auto check_all_allocatable_registers_are_preserved_by_call = [&]() {
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      __ LoadImmediate(reg, static_cast<int32_t>(reg));
+    }
+    __ BranchLink(do_nothing_just_return);
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      // We expect CODE_REG to be clobbered in JIT mode.
+      if (!FLAG_precompiled_mode && reg == CODE_REG) continue;
+
+      __ CompareImmediate(reg, static_cast<int32_t>(reg));
+      __ LoadImmediate(R0, reg, NE);
+      __ b(&done, NE);
+    }
+  };
+
+  check_all_allocatable_registers_are_preserved_by_call();
+
+  FLAG_precompiled_mode = true;
+  check_all_allocatable_registers_are_preserved_by_call();
+  FLAG_precompiled_mode = false;
+
+  __ LoadImmediate(R0, 42);  // 42 is SUCCESS.
+  __ Bind(&done);
+  __ PopRegisters(clobbered_regs);
+  RESTORES_LR_FROM_FRAME({ __ PopRegister(LR); });
+  LeaveTestFrame(assembler);
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(BranchLinkPreservesRegisters, test) {
+  const intptr_t result = test->InvokeWithCodeAndThread<int64_t>();
+  EXPECT_EQ(42, result);
+}
 
 }  // namespace compiler
 }  // namespace dart

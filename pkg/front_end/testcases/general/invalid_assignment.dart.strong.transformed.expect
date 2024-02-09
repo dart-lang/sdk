@@ -31,9 +31,9 @@ static method test(core::int? i, core::String s, self::A a) → dynamic {
   i = s;
       ^" in s as{TypeError} core::int?;
   i = null;
-  i == null ?{core::int} i = 1 : null;
+  i == null ?{core::int?} i = 1 : null;
   i = null;
-  i == null ?{core::Object} i = invalid-expression "pkg/front_end/testcases/general/invalid_assignment.dart:15:9: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
+  i == null ?{core::Object?} i = invalid-expression "pkg/front_end/testcases/general/invalid_assignment.dart:15:9: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
   i ??= s;
         ^" in s as{TypeError} core::int? : null;
   a = new self::A::•();

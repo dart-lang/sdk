@@ -7,6 +7,7 @@ library fasta.member_builder;
 import 'package:kernel/ast.dart';
 
 import '../kernel/hierarchy/class_member.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../modifier.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
@@ -22,6 +23,9 @@ abstract class MemberBuilder implements ModifierBuilder {
   void set parent(Builder? value);
 
   LibraryBuilder get libraryBuilder;
+
+  /// The declared name of this member;
+  Name get memberName;
 
   /// The [Member] built by this builder;
   Member get member;
@@ -79,6 +83,9 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// lowered late fields this can be synthesized setters.
   List<ClassMember> get localSetters;
 
+  /// The builder for the enclosing class or extension type declaration, if any.
+  DeclarationBuilder? get declarationBuilder;
+
   /// The builder for the enclosing class, if any.
   ClassBuilder? get classBuilder;
 
@@ -104,6 +111,10 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   MemberBuilderImpl(this.parent, int charOffset, [Uri? fileUri])
       : this.fileUri = (fileUri ?? parent?.fileUri)!,
         super(parent, charOffset);
+
+  @override
+  DeclarationBuilder? get declarationBuilder =>
+      parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
 
   @override
   ClassBuilder? get classBuilder =>
@@ -178,18 +189,22 @@ abstract class BuilderClassMember implements ClassMember {
   int get charOffset => memberBuilder.charOffset;
 
   @override
-  ClassBuilder get classBuilder => memberBuilder.classBuilder!;
+  DeclarationBuilder get declarationBuilder =>
+      memberBuilder.declarationBuilder!;
 
   @override
   Uri get fileUri => memberBuilder.fileUri;
 
   @override
-  Name get name => memberBuilder.member.name;
+  bool get isExtensionTypeMember => memberBuilder.isExtensionTypeMember;
+
+  @override
+  Name get name => memberBuilder.memberName;
 
   @override
   String get fullName {
     String suffix = isSetter ? "=" : "";
-    String className = classBuilder.fullNameForErrors;
+    String className = declarationBuilder.fullNameForErrors;
     return "${className}.${fullNameForErrors}$suffix";
   }
 
@@ -222,7 +237,7 @@ abstract class BuilderClassMember implements ClassMember {
 
   @override
   bool isObjectMember(ClassBuilder objectClass) {
-    return classBuilder == objectClass;
+    return declarationBuilder == objectClass;
   }
 
   @override
@@ -241,11 +256,39 @@ abstract class BuilderClassMember implements ClassMember {
   bool get hasDeclarations => false;
 
   @override
+  bool get forSetter => memberKind == ClassMemberKind.Setter;
+
+  @override
+  bool get isProperty => memberKind != ClassMemberKind.Method;
+
+  @override
   List<ClassMember> get declarations =>
       throw new UnsupportedError("$runtimeType.declarations");
 
   @override
   ClassMember get interfaceMember => this;
+
+  @override
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
+    if (isStatic) {
+      return new StaticMemberResult(getMember(membersBuilder), memberKind,
+          isDeclaredAsField: memberBuilder.isField,
+          fullName:
+              '${declarationBuilder.name}.${memberBuilder.memberName.text}');
+    } else if (memberBuilder.isExtensionTypeMember) {
+      ExtensionTypeDeclaration extensionTypeDeclaration =
+          (declarationBuilder as ExtensionTypeDeclarationBuilder)
+              .extensionTypeDeclaration;
+      Member member = getTearOff(membersBuilder) ?? getMember(membersBuilder);
+      return new ExtensionTypeMemberResult(
+          extensionTypeDeclaration, member, memberKind, name,
+          isDeclaredAsField: memberBuilder.isField);
+    } else {
+      return new TypeDeclarationInstanceMemberResult(
+          getMember(membersBuilder), memberKind,
+          isDeclaredAsField: memberBuilder.isField);
+    }
+  }
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';

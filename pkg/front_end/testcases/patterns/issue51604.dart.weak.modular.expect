@@ -183,8 +183,10 @@ static method test3(dynamic x) → dynamic {
     hoisted core::int i3;
     hoisted core::int i3#1;
     final synthesized dynamic #0#0 = x;
-    late final synthesized core::bool #0#6 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5;
-    late final synthesized dynamic #0#8 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    synthesized core::bool #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    synthesized dynamic #0#8;
+    synthesized core::bool #0#8#isSet = false;
     dynamic #t17;
     dynamic #t18;
     #L6:
@@ -198,7 +200,7 @@ static method test3(dynamic x) → dynamic {
         }
       }
       {
-        if(#0#0 is core::int && (let final dynamic #t19 = i3 = #0#0{core::int} in true) && (let final dynamic #t20 = #t17 = i3 in true) || #0#0 is core::List<dynamic> && #0#6 && (#0#8 is core::int && (let final dynamic #t21 = i3#1 = #0#8{core::int} in true)) && (let final dynamic #t22 = #t17 = i3#1 in true)) {
+        if(#0#0 is core::int && (let final dynamic #t19 = i3 = #0#0{core::int} in true) && (let final dynamic #t20 = #t17 = i3 in true) || #0#0 is core::List<dynamic> && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final dynamic #t21 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5) && ((#0#8#isSet ?{dynamic} #0#8{dynamic} : let final dynamic #t22 = #0#8#isSet = true in #0#8 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final dynamic #t23 = i3#1 = (#0#8#isSet ?{dynamic} #0#8{dynamic} : let final dynamic #t24 = #0#8#isSet = true in #0#8 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && (let final dynamic #t25 = #t17 = i3#1 in true)) {
           #t16 = 0;
           break #L6;
         }
@@ -206,7 +208,7 @@ static method test3(dynamic x) → dynamic {
       {
         lowered hoisted core::String s3#case#0;
         lowered hoisted core::String s3#case#1;
-        if(#0#0 is core::String && (let final dynamic #t23 = s3#case#0 = #0#0{core::String} in true) && (let final dynamic #t24 = #t18 = s3#case#0 in true) || #0#0 is core::List<dynamic> && #0#6 && (#0#8 is core::String && (let final dynamic #t25 = s3#case#1 = #0#8{core::String} in true)) && (let final dynamic #t26 = #t18 = s3#case#1 in true) || true) {
+        if(#0#0 is core::String && (let final dynamic #t26 = s3#case#0 = #0#0{core::String} in true) && (let final dynamic #t27 = #t18 = s3#case#0 in true) || #0#0 is core::List<dynamic> && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final dynamic #t28 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5) && ((#0#8#isSet ?{dynamic} #0#8{dynamic} : let final dynamic #t29 = #0#8#isSet = true in #0#8 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::String && (let final dynamic #t30 = s3#case#1 = (#0#8#isSet ?{dynamic} #0#8{dynamic} : let final dynamic #t31 = #0#8#isSet = true in #0#8 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::String in true)) && (let final dynamic #t32 = #t18 = s3#case#1 in true) || true) {
           core::String s3 = #t18{core::String};
           {
             return s3;
@@ -229,42 +231,44 @@ static method test3(dynamic x) → dynamic {
 static method test4(dynamic x) → dynamic {
   #L8:
   {
-    core::int #t27 = 1.{core::int::unary-}(){() → core::int};
+    core::int #t33 = 1.{core::int::unary-}(){() → core::int};
     hoisted core::int i4;
     hoisted core::double i4#1;
     final synthesized dynamic #0#0 = x;
-    late final synthesized core::bool #0#6 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5;
-    late final synthesized dynamic #0#8 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    dynamic #t28;
-    dynamic #t29;
+    synthesized core::bool #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    synthesized dynamic #0#8;
+    synthesized core::bool #0#8#isSet = false;
+    dynamic #t34;
+    dynamic #t35;
     #L9:
     {
       {
         if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
-            #t27 = 0;
+            #t33 = 0;
             break #L9;
           }
         }
       }
       {
-        if(#0#0 is core::int && (let final dynamic #t30 = i4 = #0#0{core::int} in true) && (let final dynamic #t31 = #t28 = i4 in true) || #0#0 is core::List<dynamic> && #0#6 && (#0#8 is core::double && (let final dynamic #t32 = i4#1 = #0#8{core::double} in true)) && (let final dynamic #t33 = #t28 = i4#1 in true)) {
-          #t27 = 0;
+        if(#0#0 is core::int && (let final dynamic #t36 = i4 = #0#0{core::int} in true) && (let final dynamic #t37 = #t34 = i4 in true) || #0#0 is core::List<dynamic> && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final dynamic #t38 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5) && ((#0#8#isSet ?{dynamic} #0#8{dynamic} : let final dynamic #t39 = #0#8#isSet = true in #0#8 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::double && (let final dynamic #t40 = i4#1 = (#0#8#isSet ?{dynamic} #0#8{dynamic} : let final dynamic #t41 = #0#8#isSet = true in #0#8 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::double in true)) && (let final dynamic #t42 = #t34 = i4#1 in true)) {
+          #t33 = 0;
           break #L9;
         }
       }
       {
         lowered hoisted core::String s4#case#0;
         lowered final hoisted core::String s4#case#1;
-        if(#0#0 is core::String && (let final dynamic #t34 = s4#case#0 = #0#0{core::String} in true) && (let final dynamic #t35 = #t29 = s4#case#0 in true) || #0#0 is core::List<dynamic> && #0#6 && (#0#8 is core::String && (let final dynamic #t36 = s4#case#1 = #0#8{core::String} in true)) && (let final dynamic #t37 = #t29 = s4#case#1 in true) || true) {
-          core::String s4 = #t29{core::String};
+        if(#0#0 is core::String && (let final dynamic #t43 = s4#case#0 = #0#0{core::String} in true) && (let final dynamic #t44 = #t35 = s4#case#0 in true) || #0#0 is core::List<dynamic> && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final dynamic #t45 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5) && ((#0#8#isSet ?{dynamic} #0#8{dynamic} : let final dynamic #t46 = #0#8#isSet = true in #0#8 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::String && (let final dynamic #t47 = s4#case#1 = (#0#8#isSet ?{dynamic} #0#8{dynamic} : let final dynamic #t48 = #0#8#isSet = true in #0#8 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::String in true)) && (let final dynamic #t49 = #t35 = s4#case#1 in true) || true) {
+          core::String s4 = #t35{core::String};
           {
             return s4;
           }
         }
       }
     }
-    switch(#t27) /* dynamic */ {
+    switch(#t33) /* dynamic */ {
       #L10:
       case #C1:
         {
@@ -281,7 +285,7 @@ static method test4(dynamic x) → dynamic {
 static method test5(dynamic x) → dynamic {
   #L11:
   {
-    core::int #t38 = 1.{core::int::unary-}(){() → core::int};
+    core::int #t50 = 1.{core::int::unary-}(){() → core::int};
     hoisted core::int i5;
     final synthesized dynamic #0#0 = x;
     #L12:
@@ -289,27 +293,27 @@ static method test5(dynamic x) → dynamic {
       {
         if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
-            #t38 = 0;
+            #t50 = 0;
             break #L12;
           }
         }
       }
       {
-        if(#0#0 is core::int && (let final dynamic #t39 = i5 = #0#0{core::int} in true) && i5 =={core::num::==}{(core::Object) → core::bool} 1) {
-          #t38 = 0;
+        if(#0#0 is core::int && (let final dynamic #t51 = i5 = #0#0{core::int} in true) && i5 =={core::num::==}{(core::Object) → core::bool} 1) {
+          #t50 = 0;
           break #L12;
         }
       }
       {
         hoisted core::String s5;
-        if(#0#0 is core::String && (let final dynamic #t40 = s5 = #0#0{core::String} in true) && s5 =={core::String::==}{(core::Object) → core::bool} "foo" || true) {
+        if(#0#0 is core::String && (let final dynamic #t52 = s5 = #0#0{core::String} in true) && s5 =={core::String::==}{(core::Object) → core::bool} "foo" || true) {
           {
             return null;
           }
         }
       }
     }
-    switch(#t38) /* dynamic */ {
+    switch(#t50) /* dynamic */ {
       #L13:
       case #C1:
         {
@@ -323,7 +327,7 @@ static method test5(dynamic x) → dynamic {
 static method test6(dynamic x, core::bool b) → dynamic {
   #L14:
   {
-    core::int #t41 = 1.{core::int::unary-}(){() → core::int};
+    core::int #t53 = 1.{core::int::unary-}(){() → core::int};
     hoisted core::int i6;
     final synthesized dynamic #0#0 = x;
     #L15:
@@ -331,20 +335,20 @@ static method test6(dynamic x, core::bool b) → dynamic {
       {
         if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
-            #t41 = 0;
+            #t53 = 0;
             break #L15;
           }
         }
       }
       {
-        if(#0#0 is core::int && (let final dynamic #t42 = i6 = #0#0{core::int} in true)) {
-          #t41 = 0;
+        if(#0#0 is core::int && (let final dynamic #t54 = i6 = #0#0{core::int} in true)) {
+          #t53 = 0;
           break #L15;
         }
       }
       {
         hoisted core::String s6;
-        if(#0#0 is core::String && (let final dynamic #t43 = s6 = #0#0{core::String} in true) || true) {
+        if(#0#0 is core::String && (let final dynamic #t55 = s6 = #0#0{core::String} in true) || true) {
           {
             if(b) {
               if(b) {
@@ -357,7 +361,7 @@ static method test6(dynamic x, core::bool b) → dynamic {
         }
       }
     }
-    switch(#t41) /* dynamic */ {
+    switch(#t53) /* dynamic */ {
       #L16:
       case #C1:
         {
@@ -376,7 +380,7 @@ static method test6(dynamic x, core::bool b) → dynamic {
 static method test7(dynamic x) → dynamic {
   #L17:
   {
-    core::int #t44 = 1.{core::int::unary-}(){() → core::int};
+    core::int #t56 = 1.{core::int::unary-}(){() → core::int};
     hoisted core::int i7;
     final synthesized dynamic #0#0 = x;
     #L18:
@@ -384,20 +388,20 @@ static method test7(dynamic x) → dynamic {
       {
         if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
-            #t44 = 0;
+            #t56 = 0;
             break #L18;
           }
         }
       }
       {
-        if(#0#0 is core::int && (let final dynamic #t45 = i7 = #0#0{core::int} in true) && i7 =={core::num::==}{(core::Object) → core::bool} 1) {
-          #t44 = 0;
+        if(#0#0 is core::int && (let final dynamic #t57 = i7 = #0#0{core::int} in true) && i7 =={core::num::==}{(core::Object) → core::bool} 1) {
+          #t56 = 0;
           break #L18;
         }
       }
       {
         hoisted core::String s7;
-        if(#0#0 is core::String && (let final dynamic #t46 = s7 = #0#0{core::String} in true) && s7 =={core::String::==}{(core::Object) → core::bool} "foo" || true) {
+        if(#0#0 is core::String && (let final dynamic #t58 = s7 = #0#0{core::String} in true) && s7 =={core::String::==}{(core::Object) → core::bool} "foo" || true) {
           {
             core::String s7 = "foo";
             return s7;
@@ -405,7 +409,7 @@ static method test7(dynamic x) → dynamic {
         }
       }
     }
-    switch(#t44) /* dynamic */ {
+    switch(#t56) /* dynamic */ {
       #L19:
       case #C1:
         {

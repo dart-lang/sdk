@@ -61,6 +61,7 @@ const Code<Null> codeAbstractExtensionField = messageAbstractExtensionField;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractExtensionField = const MessageCode(
     "AbstractExtensionField",
+    analyzerCodes: <String>["ABSTRACT_EXTENSION_FIELD"],
     problemMessage: r"""Extension fields can't be declared 'abstract'.""",
     correctionMessage: r"""Try removing the 'abstract' keyword.""");
 
@@ -96,6 +97,31 @@ const MessageCode messageAbstractFieldInitializer = const MessageCode(
     problemMessage: r"""Abstract fields cannot have initializers.""",
     correctionMessage:
         r"""Try removing the initializer or the 'abstract' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFinalBaseClass = messageAbstractFinalBaseClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFinalBaseClass = const MessageCode(
+    "AbstractFinalBaseClass",
+    index: 176,
+    problemMessage:
+        r"""An 'abstract' class can't be declared as both 'final' and 'base'.""",
+    correctionMessage:
+        r"""Try removing either the 'final' or 'base' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFinalInterfaceClass =
+    messageAbstractFinalInterfaceClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFinalInterfaceClass = const MessageCode(
+    "AbstractFinalInterfaceClass",
+    index: 177,
+    problemMessage:
+        r"""An 'abstract' class can't be declared as both 'final' and 'interface'.""",
+    correctionMessage:
+        r"""Try removing either the 'final' or 'interface' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractLateField = messageAbstractLateField;
@@ -339,6 +365,17 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
     analyzerCodes: <String>["AWAIT_IN_WRONG_CONTEXT"],
     problemMessage:
         r"""'await' can only be used in 'async' or 'async*' methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAwaitOfExtensionTypeNotFuture =
+    messageAwaitOfExtensionTypeNotFuture;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAwaitOfExtensionTypeNotFuture = const MessageCode(
+    "AwaitOfExtensionTypeNotFuture",
+    analyzerCodes: <String>["AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE"],
+    problemMessage:
+        r"""The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1127,6 +1164,18 @@ const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
     correctionMessage:
         r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeClassImplementsDeferredClass =
+    messageClassImplementsDeferredClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageClassImplementsDeferredClass = const MessageCode(
+    "ClassImplementsDeferredClass",
+    analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
+    problemMessage: r"""Classes and mixins can't implement deferred classes.""",
+    correctionMessage:
+        r"""Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeClassInClass = messageClassInClass;
@@ -2190,7 +2239,7 @@ const Template<Message Function(String name, String string)>
         problemMessageTemplate:
             r"""Type '#name' is a bound of itself via '#string'.""",
         correctionMessageTemplate:
-            r"""Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+            r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
         withArguments: _withArgumentsCycleInTypeVariables);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2209,7 +2258,7 @@ Message _withArgumentsCycleInTypeVariables(String name, String string) {
       problemMessage:
           """Type '${name}' is a bound of itself via '${string}'.""",
       correctionMessage:
-          """Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+          """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
       arguments: {'name': name, 'string': string});
 }
 
@@ -2330,6 +2379,16 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
     const MessageCode("DeclaredMemberConflictsWithInheritedMemberCause",
         severity: Severity.context,
         problemMessage: r"""This is the inherited member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDeclaredMemberConflictsWithInheritedMembersCause =
+    messageDeclaredMemberConflictsWithInheritedMembersCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDeclaredMemberConflictsWithInheritedMembersCause =
+    const MessageCode("DeclaredMemberConflictsWithInheritedMembersCause",
+        severity: Severity.context,
+        problemMessage: r"""This is one of the inherited members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDeclaredMemberConflictsWithOverriddenMembersCause =
@@ -2521,7 +2580,7 @@ const Template<
         Message Function(String name)>("DirectCycleInTypeVariables",
     problemMessageTemplate: r"""Type '#name' can't use itself as a bound.""",
     correctionMessageTemplate:
-        r"""Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+        r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
     withArguments: _withArgumentsDirectCycleInTypeVariables);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2536,7 +2595,7 @@ Message _withArgumentsDirectCycleInTypeVariables(String name) {
   return new Message(codeDirectCycleInTypeVariables,
       problemMessage: """Type '${name}' can't use itself as a bound.""",
       correctionMessage:
-          """Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+          """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
       arguments: {'name': name});
 }
 
@@ -2892,55 +2951,6 @@ Message _withArgumentsDuplicatedModifier(Token token) {
       correctionMessage:
           """Try removing all but one occurrence of the modifier.""",
       arguments: {'lexeme': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateDuplicatedNamePreviouslyUsed = const Template<
-        Message Function(String name)>("DuplicatedNamePreviouslyUsed",
-    problemMessageTemplate:
-        r"""Can't declare '#name' because it was already used in this scope.""",
-    withArguments: _withArgumentsDuplicatedNamePreviouslyUsed);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedNamePreviouslyUsed =
-    const Code<Message Function(String name)>("DuplicatedNamePreviouslyUsed",
-        analyzerCodes: <String>["REFERENCED_BEFORE_DECLARATION"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedNamePreviouslyUsed(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDuplicatedNamePreviouslyUsed,
-      problemMessage:
-          """Can't declare '${name}' because it was already used in this scope.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateDuplicatedNamePreviouslyUsedCause =
-    const Template<Message Function(String name)>(
-        "DuplicatedNamePreviouslyUsedCause",
-        problemMessageTemplate: r"""Previous use of '#name'.""",
-        withArguments: _withArgumentsDuplicatedNamePreviouslyUsedCause);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeDuplicatedNamePreviouslyUsedCause =
-    const Code<Message Function(String name)>(
-        "DuplicatedNamePreviouslyUsedCause",
-        severity: Severity.context);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedNamePreviouslyUsedCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDuplicatedNamePreviouslyUsedCause,
-      problemMessage: """Previous use of '${name}'.""",
-      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3823,6 +3833,26 @@ const MessageCode messageExpectedOpenParens = const MessageCode(
     problemMessage: r"""Expected '('.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedRepresentationField =
+    messageExpectedRepresentationField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedRepresentationField = const MessageCode(
+    "ExpectedRepresentationField",
+    analyzerCodes: <String>["EXPECTED_REPRESENTATION_FIELD"],
+    problemMessage: r"""Expected a representation field.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedRepresentationType =
+    messageExpectedRepresentationType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedRepresentationType = const MessageCode(
+    "ExpectedRepresentationType",
+    analyzerCodes: <String>["EXPECTED_REPRESENTATION_TYPE"],
+    problemMessage: r"""Expected a representation type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedStatement = messageExpectedStatement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4277,6 +4307,17 @@ Message _withArgumentsExtendingRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtendsDeferredClass = messageExtendsDeferredClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtendsDeferredClass = const MessageCode(
+    "ExtendsDeferredClass",
+    analyzerCodes: <String>["EXTENDS_DEFERRED_CLASS"],
+    problemMessage: r"""Classes can't extend deferred classes.""",
+    correctionMessage:
+        r"""Try specifying a different superclass, or removing the extends clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtendsFutureOr = messageExtendsFutureOr;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4385,6 +4426,52 @@ Message _withArgumentsExtensionMemberConflictsWithObjectMember(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateExtensionTypeCombinedMemberSignatureFailed =
+    const Template<Message Function(String name, String name2)>(
+        "ExtensionTypeCombinedMemberSignatureFailed",
+        problemMessageTemplate:
+            r"""Extension type '#name' inherits multiple members named '#name2' with incompatible signatures.""",
+        correctionMessageTemplate:
+            r"""Try adding a declaration of '#name2' to '#name'.""",
+        withArguments:
+            _withArgumentsExtensionTypeCombinedMemberSignatureFailed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeExtensionTypeCombinedMemberSignatureFailed =
+    const Code<Message Function(String name, String name2)>(
+        "ExtensionTypeCombinedMemberSignatureFailed",
+        analyzerCodes: <String>["INCONSISTENT_INHERITANCE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionTypeCombinedMemberSignatureFailed(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeExtensionTypeCombinedMemberSignatureFailed,
+      problemMessage:
+          """Extension type '${name}' inherits multiple members named '${name2}' with incompatible signatures.""",
+      correctionMessage: """Try adding a declaration of '${name2}' to '${name}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeConstructorWithSuperFormalParameter =
+    messageExtensionTypeConstructorWithSuperFormalParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeConstructorWithSuperFormalParameter =
+    const MessageCode("ExtensionTypeConstructorWithSuperFormalParameter",
+        analyzerCodes: <String>[
+      "EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER"
+    ],
+        problemMessage:
+            r"""Extension type constructors can't declare super formal parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeDeclarationCause =
     messageExtensionTypeDeclarationCause;
 
@@ -4394,6 +4481,30 @@ const MessageCode messageExtensionTypeDeclarationCause = const MessageCode(
     severity: Severity.context,
     problemMessage:
         r"""The issue arises via this extension type declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeDeclaresAbstractMember =
+    messageExtensionTypeDeclaresAbstractMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeDeclaresAbstractMember =
+    const MessageCode("ExtensionTypeDeclaresAbstractMember",
+        analyzerCodes: <String>["EXTENSION_TYPE_WITH_ABSTRACT_MEMBER"],
+        problemMessage: r"""Extension types can't declare abstract members.""",
+        correctionMessage:
+            r"""Try providing an implementation for the member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeDeclaresInstanceField =
+    messageExtensionTypeDeclaresInstanceField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeDeclaresInstanceField = const MessageCode(
+    "ExtensionTypeDeclaresInstanceField",
+    analyzerCodes: <String>["EXTENSION_TYPE_DECLARES_INSTANCE_FIELD"],
+    problemMessage: r"""Extension types can't declare instance fields""",
+    correctionMessage:
+        r"""Try removing the field declaration or making it a static field""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeExtends = messageExtensionTypeExtends;
@@ -4406,6 +4517,76 @@ const MessageCode messageExtensionTypeExtends = const MessageCode(
         r"""An extension type declaration can't have an 'extends' clause.""",
     correctionMessage:
         r"""Try removing the 'extends' clause or replacing the 'extends' with 'implements'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeImplementsDeferred =
+    messageExtensionTypeImplementsDeferred;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeImplementsDeferred = const MessageCode(
+    "ExtensionTypeImplementsDeferred",
+    analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
+    problemMessage: r"""Extension types can't implement deferred types.""",
+    correctionMessage:
+        r"""Try specifying a different type, removing the type from the list, or changing the import to not be deferred.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeMemberContext =
+    messageExtensionTypeMemberContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeMemberContext = const MessageCode(
+    "ExtensionTypeMemberContext",
+    severity: Severity.context,
+    problemMessage: r"""This is the inherited extension type member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeMemberOneOfContext =
+    messageExtensionTypeMemberOneOfContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeMemberOneOfContext = const MessageCode(
+    "ExtensionTypeMemberOneOfContext",
+    severity: Severity.context,
+    problemMessage:
+        r"""This is one of the inherited extension type members.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null>
+    codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax =
+    messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+    messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax =
+    const MessageCode(
+        "ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax",
+        problemMessage:
+            r"""Primary constructors in extension types can't use function formal parameter syntax.""",
+        correctionMessage:
+            r"""Try rewriting with an explicit function type, like `int Function() f`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypePrimaryConstructorWithInitializingFormal =
+    messageExtensionTypePrimaryConstructorWithInitializingFormal;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypePrimaryConstructorWithInitializingFormal =
+    const MessageCode("ExtensionTypePrimaryConstructorWithInitializingFormal",
+        problemMessage:
+            r"""Primary constructors in extension types can't use initializing formals.""",
+        correctionMessage:
+            r"""Try removing `this.` from the formal parameter.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeRepresentationTypeBottom =
+    messageExtensionTypeRepresentationTypeBottom;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeRepresentationTypeBottom =
+    const MessageCode("ExtensionTypeRepresentationTypeBottom",
+        analyzerCodes: <String>["EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM"],
+        problemMessage: r"""The representation type can't be a bottom type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeWith = messageExtensionTypeWith;
@@ -4447,7 +4628,7 @@ const Code<Null> codeExternalConstructorWithFieldInitializers =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalConstructorWithFieldInitializers =
     const MessageCode("ExternalConstructorWithFieldInitializers",
-        analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS"],
+        index: 178,
         problemMessage: r"""An external constructor can't initialize fields.""",
         correctionMessage:
             r"""Try removing the field initializers, or removing the keyword 'external'.""");
@@ -4598,6 +4779,60 @@ Message _withArgumentsExtraneousModifierInExtension(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateExtraneousModifierInExtensionType =
+    const Template<Message Function(Token token)>(
+        "ExtraneousModifierInExtensionType",
+        problemMessageTemplate:
+            r"""Can't have modifier '#lexeme' in an extension type.""",
+        correctionMessageTemplate: r"""Try removing '#lexeme'.""",
+        withArguments: _withArgumentsExtraneousModifierInExtensionType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)>
+    codeExtraneousModifierInExtensionType =
+    const Code<Message Function(Token token)>(
+        "ExtraneousModifierInExtensionType",
+        index: 174);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtraneousModifierInExtensionType(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExtraneousModifierInExtensionType,
+      problemMessage:
+          """Can't have modifier '${lexeme}' in an extension type.""",
+      correctionMessage: """Try removing '${lexeme}'.""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateExtraneousModifierInPrimaryConstructor =
+    const Template<Message Function(Token token)>(
+        "ExtraneousModifierInPrimaryConstructor",
+        problemMessageTemplate:
+            r"""Can't have modifier '#lexeme' in a primary constructor.""",
+        correctionMessageTemplate: r"""Try removing '#lexeme'.""",
+        withArguments: _withArgumentsExtraneousModifierInPrimaryConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)>
+    codeExtraneousModifierInPrimaryConstructor =
+    const Code<Message Function(Token token)>(
+        "ExtraneousModifierInPrimaryConstructor",
+        index: 175);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtraneousModifierInPrimaryConstructor(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExtraneousModifierInPrimaryConstructor,
+      problemMessage:
+          """Can't have modifier '${lexeme}' in a primary constructor.""",
+      correctionMessage: """Try removing '${lexeme}'.""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4674,7 +4909,7 @@ const MessageCode messageFastaUsageLong =
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts
@@ -4761,6 +4996,16 @@ const MessageCode messageFfiAbiSpecificIntegerMappingInvalid = const MessageCode
         r"""Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAddressOfMustBeNative = messageFfiAddressOfMustBeNative;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
+    "FfiAddressOfMustBeNative",
+    analyzerCodes: <String>["ARGUMENT_MUST_BE_NATIVE"],
+    problemMessage:
+        r"""Argument to 'Native.addressOf' must be annotated with @Native.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String name)>
     templateFfiCompoundImplementsFinalizable =
     const Template<Message Function(String string, String name)>(
@@ -4799,6 +5044,16 @@ const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
     "FfiCreateOfStructOrUnion",
     problemMessage:
         r"""Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDefaultAssetDuplicate = messageFfiDefaultAssetDuplicate;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDefaultAssetDuplicate = const MessageCode(
+    "FfiDefaultAssetDuplicate",
+    analyzerCodes: <String>["FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET"],
+    problemMessage:
+        r"""There may be at most one @DefaultAsset annotation on a library.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5041,12 +5296,55 @@ const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
     problemMessage: r"""FFI leaf call must not have Handle argument types.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeDuplicateAnnotations =
+    messageFfiNativeDuplicateAnnotations;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeDuplicateAnnotations = const MessageCode(
+    "FfiNativeDuplicateAnnotations",
+    analyzerCodes: <String>["FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS"],
+    problemMessage:
+        r"""Native functions and fields must not have more than @Native annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeFieldMissingType =
+    messageFfiNativeFieldMissingType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeFieldMissingType = const MessageCode(
+    "FfiNativeFieldMissingType",
+    analyzerCodes: <String>["NATIVE_FIELD_MISSING_TYPE"],
+    problemMessage:
+        r"""The native type of this field could not be inferred and must be specified in the annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeFieldMustBeStatic =
+    messageFfiNativeFieldMustBeStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeFieldMustBeStatic = const MessageCode(
+    "FfiNativeFieldMustBeStatic",
+    analyzerCodes: <String>["NATIVE_FIELD_NOT_STATIC"],
+    problemMessage: r"""Native fields must be static.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeFieldType = messageFfiNativeFieldType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeFieldType = const MessageCode(
+    "FfiNativeFieldType",
+    analyzerCodes: <String>["NATIVE_FIELD_INVALID_TYPE"],
+    problemMessage:
+        r"""Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiNativeMustBeExternal = const MessageCode(
     "FfiNativeMustBeExternal",
-    problemMessage: r"""FfiNative functions must be marked external.""");
+    problemMessage:
+        r"""Native functions and fields must be marked external.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
@@ -5064,7 +5362,7 @@ const Template<Message Function(int count, int count2)>
     const Template<Message Function(int count, int count2)>(
         "FfiNativeUnexpectedNumberOfParameters",
         problemMessageTemplate:
-            r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2.""",
+            r"""Unexpected number of Native annotation parameters. Expected #count but has #count2.""",
         withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5079,7 +5377,7 @@ Message _withArgumentsFfiNativeUnexpectedNumberOfParameters(
     int count, int count2) {
   return new Message(codeFfiNativeUnexpectedNumberOfParameters,
       problemMessage:
-          """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}.""",
+          """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}.""",
       arguments: {'count': count, 'count2': count2});
 }
 
@@ -5089,7 +5387,7 @@ const Template<Message Function(int count, int count2)>
     const Template<Message Function(int count, int count2)>(
         "FfiNativeUnexpectedNumberOfParametersWithReceiver",
         problemMessageTemplate:
-            r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2. FfiNative instance method annotation must have receiver as first argument.""",
+            r"""Unexpected number of Native annotation parameters. Expected #count but has #count2. Native instance method annotation must have receiver as first argument.""",
         withArguments:
             _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver);
 
@@ -5105,7 +5403,7 @@ Message _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver(
     int count, int count2) {
   return new Message(codeFfiNativeUnexpectedNumberOfParametersWithReceiver,
       problemMessage:
-          """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}. FfiNative instance method annotation must have receiver as first argument.""",
+          """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}. Native instance method annotation must have receiver as first argument.""",
       arguments: {'count': count, 'count2': count2});
 }
 
@@ -5456,7 +5754,7 @@ const Template<
         Message Function(String name, String string)>(
     "FieldNotPromotedBecauseNotEnabled",
     problemMessageTemplate:
-        r"""'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
+        r"""'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
     correctionMessageTemplate: r"""See #string""",
     withArguments: _withArgumentsFieldNotPromotedBecauseNotEnabled);
 
@@ -5475,7 +5773,7 @@ Message _withArgumentsFieldNotPromotedBecauseNotEnabled(
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeFieldNotPromotedBecauseNotEnabled,
       problemMessage:
-          """'${name}' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
+          """'${name}' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
       correctionMessage: """See ${string}""",
       arguments: {'name': name, 'string': string});
 }
@@ -5544,14 +5842,17 @@ Message _withArgumentsFieldNotPromotedBecauseNotFinal(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateFieldNotPromotedBecauseNotPrivate =
-    const Template<Message Function(String name, String string)>(
-        "FieldNotPromotedBecauseNotPrivate",
-        problemMessageTemplate:
-            r"""'#name' refers to a public field so it couldn't be promoted.""",
-        correctionMessageTemplate: r"""See #string""",
-        withArguments: _withArgumentsFieldNotPromotedBecauseNotPrivate);
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateFieldNotPromotedBecauseNotPrivate = const Template<
+        Message Function(String name, String string)>(
+    "FieldNotPromotedBecauseNotPrivate",
+    problemMessageTemplate:
+        r"""'#name' refers to a public property so it couldn't be promoted.""",
+    correctionMessageTemplate: r"""See #string""",
+    withArguments: _withArgumentsFieldNotPromotedBecauseNotPrivate);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, String string)>
@@ -5568,7 +5869,7 @@ Message _withArgumentsFieldNotPromotedBecauseNotPrivate(
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeFieldNotPromotedBecauseNotPrivate,
       problemMessage:
-          """'${name}' refers to a public field so it couldn't be promoted.""",
+          """'${name}' refers to a public property so it couldn't be promoted.""",
       correctionMessage: """See ${string}""",
       arguments: {'name': name, 'string': string});
 }
@@ -6188,6 +6489,74 @@ const MessageCode messageIllegalSyncGeneratorVoidReturnType = const MessageCode(
     "IllegalSyncGeneratorVoidReturnType",
     problemMessage:
         r"""Functions marked 'sync*' can't have return type 'void'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateImplementMultipleExtensionTypeMembers = const Template<
+        Message Function(String name, String name2)>(
+    "ImplementMultipleExtensionTypeMembers",
+    problemMessageTemplate:
+        r"""The extension type '#name' can't inherit the member '#name2' from more than one extension type.""",
+    correctionMessageTemplate:
+        r"""Try declaring a member '#name2' in '#name' to resolve the conflict.""",
+    withArguments: _withArgumentsImplementMultipleExtensionTypeMembers);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeImplementMultipleExtensionTypeMembers =
+    const Code<Message Function(String name, String name2)>(
+  "ImplementMultipleExtensionTypeMembers",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplementMultipleExtensionTypeMembers(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeImplementMultipleExtensionTypeMembers,
+      problemMessage:
+          """The extension type '${name}' can't inherit the member '${name2}' from more than one extension type.""",
+      correctionMessage: """Try declaring a member '${name2}' in '${name}' to resolve the conflict.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateImplementNonExtensionTypeAndExtensionTypeMember =
+    const Template<Message Function(String name, String name2)>(
+        "ImplementNonExtensionTypeAndExtensionTypeMember",
+        problemMessageTemplate:
+            r"""The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member.""",
+        correctionMessageTemplate:
+            r"""Try declaring a member '#name2' in '#name' to resolve the conflict.""",
+        withArguments:
+            _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeImplementNonExtensionTypeAndExtensionTypeMember =
+    const Code<Message Function(String name, String name2)>(
+  "ImplementNonExtensionTypeAndExtensionTypeMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeImplementNonExtensionTypeAndExtensionTypeMember,
+      problemMessage:
+          """The extension type '${name}' can't inherit the member '${name2}' as both an extension type member and a non-extension type member.""",
+      correctionMessage: """Try declaring a member '${name2}' in '${name}' to resolve the conflict.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImplementsBeforeExtends = messageImplementsBeforeExtends;
@@ -8168,6 +8537,38 @@ const MessageCode messageJsInteropDartJsInteropAnnotationForStaticInteropOnly =
             r"""Try making this class an extension type or marking it as '@staticInterop'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(String name)>
+    templateJsInteropDisallowedInteropLibraryInDart2Wasm =
+    const Template<Message Function(String name)>(
+        "JsInteropDisallowedInteropLibraryInDart2Wasm",
+        problemMessageTemplate:
+            r"""JS interop library '#name' can't be imported when compiling to Wasm.""",
+        correctionMessageTemplate:
+            r"""Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead.""",
+        withArguments:
+            _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropDisallowedInteropLibraryInDart2Wasm =
+    const Code<Message Function(String name)>(
+  "JsInteropDisallowedInteropLibraryInDart2Wasm",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropDisallowedInteropLibraryInDart2Wasm,
+      problemMessage:
+          """JS interop library '${name}' can't be imported when compiling to Wasm.""",
+      correctionMessage: """Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
     messageJsInteropEnclosingClassJSAnnotation;
 
@@ -8401,6 +8802,18 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropFunctionToJSTypeParameters =
+    messageJsInteropFunctionToJSTypeParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropFunctionToJSTypeParameters = const MessageCode(
+    "JsInteropFunctionToJSTypeParameters",
+    problemMessage:
+        r"""Functions converted via `toJS` cannot declare type parameters.""",
+    correctionMessage:
+        r"""Remove the declared type parameters from the function.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInvalidStaticClassMemberName =
     messageJsInteropInvalidStaticClassMemberName;
 
@@ -8601,23 +9014,9 @@ const Code<Null> codeJsInteropOperatorsNotSupported =
 const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     "JsInteropOperatorsNotSupported",
     problemMessage:
-        r"""JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.""",
-    correctionMessage: r"""Try replacing this with a normal method.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null>
-    codeJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
-    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
-    const MessageCode(
-        "JsInteropStaticInteropExternalMemberWithInvalidTypeParameters",
-        problemMessage:
-            r"""External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.""",
-        correctionMessage:
-            r"""Try adding a valid bound to the type parameters used in this member.""");
+        r"""JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.""",
+    correctionMessage:
+        r"""Try making this class a static interop type instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
@@ -8897,39 +9296,6 @@ Message _withArgumentsJsInteropStaticInteropWithInstanceMembers(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String name2)>
-    templateJsInteropStaticInteropWithInvalidJsTypesSupertype =
-    const Template<Message Function(String name, String name2)>(
-        "JsInteropStaticInteropWithInvalidJsTypesSupertype",
-        problemMessageTemplate:
-            r"""`@staticInterop` class '#name' cannot have '#name2' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes.""",
-        correctionMessageTemplate:
-            r"""Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '#name' to '#name2' when needed.""",
-        withArguments:
-            _withArgumentsJsInteropStaticInteropWithInvalidJsTypesSupertype);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeJsInteropStaticInteropWithInvalidJsTypesSupertype =
-    const Code<Message Function(String name, String name2)>(
-  "JsInteropStaticInteropWithInvalidJsTypesSupertype",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropWithInvalidJsTypesSupertype(
-    String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  return new Message(codeJsInteropStaticInteropWithInvalidJsTypesSupertype,
-      problemMessage:
-          """`@staticInterop` class '${name}' cannot have '${name2}' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes.""",
-      correctionMessage: """Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '${name}' to '${name2}' when needed.""",
-      arguments: {'name': name, 'name2': name2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
     templateJsInteropStaticInteropWithNonStaticSupertype =
     const Template<Message Function(String name, String name2)>(
         "JsInteropStaticInteropWithNonStaticSupertype",
@@ -8959,35 +9325,6 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
           """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which does not.""",
       correctionMessage: """Try marking the supertype as a static interop class using `@staticInterop`.""",
       arguments: {'name': name, 'name2': name2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateJsInteropStrictModeForbiddenLibrary =
-    const Template<Message Function(String name)>(
-        "JsInteropStrictModeForbiddenLibrary",
-        problemMessageTemplate:
-            r"""Library '#name' is forbidden when strict mode is enabled.""",
-        correctionMessageTemplate:
-            r"""Remove the import of a forbidden library.""",
-        withArguments: _withArgumentsJsInteropStrictModeForbiddenLibrary);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeJsInteropStrictModeForbiddenLibrary =
-    const Code<Message Function(String name)>(
-  "JsInteropStrictModeForbiddenLibrary",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStrictModeForbiddenLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeJsInteropStrictModeForbiddenLibrary,
-      problemMessage:
-          """Library '${name}' is forbidden when strict mode is enabled.""",
-      correctionMessage: """Remove the import of a forbidden library.""",
-      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9266,6 +9603,56 @@ const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     "LoadLibraryTakesNoArguments",
     analyzerCodes: <String>["LOAD_LIBRARY_TAKES_NO_ARGUMENTS"],
     problemMessage: r"""'loadLibrary' takes no arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateLocalVariableUsedBeforeDeclared = const Template<
+        Message Function(String name)>("LocalVariableUsedBeforeDeclared",
+    problemMessageTemplate:
+        r"""Local variable '#name' can't be referenced before it is declared.""",
+    withArguments: _withArgumentsLocalVariableUsedBeforeDeclared);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeLocalVariableUsedBeforeDeclared =
+    const Code<Message Function(String name)>("LocalVariableUsedBeforeDeclared",
+        analyzerCodes: <String>["REFERENCED_BEFORE_DECLARATION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLocalVariableUsedBeforeDeclared(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeLocalVariableUsedBeforeDeclared,
+      problemMessage:
+          """Local variable '${name}' can't be referenced before it is declared.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateLocalVariableUsedBeforeDeclaredContext =
+    const Template<Message Function(String name)>(
+        "LocalVariableUsedBeforeDeclaredContext",
+        problemMessageTemplate:
+            r"""This is the declaration of the variable '#name'.""",
+        withArguments: _withArgumentsLocalVariableUsedBeforeDeclaredContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeLocalVariableUsedBeforeDeclaredContext =
+    const Code<Message Function(String name)>(
+        "LocalVariableUsedBeforeDeclaredContext",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLocalVariableUsedBeforeDeclaredContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeLocalVariableUsedBeforeDeclaredContext,
+      problemMessage: """This is the declaration of the variable '${name}'.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9858,6 +10245,16 @@ const MessageCode messageMixinDeclaresConstructor = const MessageCode(
     problemMessage: r"""Mixins can't declare constructors.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinDeferredMixin = messageMixinDeferredMixin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinDeferredMixin = const MessageCode(
+    "MixinDeferredMixin",
+    analyzerCodes: <String>["MIXIN_DEFERRED_CLASS"],
+    problemMessage: r"""Classes can't mix in deferred mixins.""",
+    correctionMessage: r"""Try changing the import to not be deferred.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -9947,6 +10344,19 @@ Message _withArgumentsMixinSubtypeOfFinalIsNotBase(String name, String name2) {
       correctionMessage: """Try adding 'base' to the mixin.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinSuperClassConstraintDeferredClass =
+    messageMixinSuperClassConstraintDeferredClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinSuperClassConstraintDeferredClass =
+    const MessageCode(
+        "MixinSuperClassConstraintDeferredClass",
+        analyzerCodes: <String>["MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS"],
+        problemMessage:
+            r"""Deferred classes can't be used as superclass constraints.""",
+        correctionMessage: r"""Try changing the import to not be deferred.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMixinWithClause = messageMixinWithClause;
@@ -10075,6 +10485,17 @@ const MessageCode messageMultipleOnClauses = const MessageCode(
         r"""Try combining all of the on clauses into a single clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMultipleRepresentationFields =
+    messageMultipleRepresentationFields;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMultipleRepresentationFields = const MessageCode(
+    "MultipleRepresentationFields",
+    analyzerCodes: <String>["MULTIPLE_REPRESENTATION_FIELDS"],
+    problemMessage:
+        r"""Each extension type should have exactly one representation field.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleVarianceModifiers =
     messageMultipleVarianceModifiers;
 
@@ -10166,6 +10587,16 @@ Message _withArgumentsNamedMixinOverride(String name, String name2) {
           """The mixin application class '${name}' introduces an erroneous override of '${name2}'.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNamedParametersInExtensionTypeDeclaration =
+    messageNamedParametersInExtensionTypeDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNamedParametersInExtensionTypeDeclaration =
+    const MessageCode("NamedParametersInExtensionTypeDeclaration",
+        problemMessage:
+            r"""Extension type declarations can't have named parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNativeClauseShouldBeAnnotation =
@@ -10621,6 +11052,27 @@ const MessageCode messageNonCovariantTypeParameterInRepresentationType =
             r"""An extension type parameter can't be used non-covariantly in its representation type.""",
         correctionMessage:
             r"""Try removing the type parameters from function parameter types and type parameter bounds.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonExtensionTypeMemberContext =
+    messageNonExtensionTypeMemberContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonExtensionTypeMemberContext = const MessageCode(
+    "NonExtensionTypeMemberContext",
+    severity: Severity.context,
+    problemMessage: r"""This is the inherited non-extension type member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonExtensionTypeMemberOneOfContext =
+    messageNonExtensionTypeMemberOneOfContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonExtensionTypeMemberOneOfContext = const MessageCode(
+    "NonExtensionTypeMemberOneOfContext",
+    severity: Severity.context,
+    problemMessage:
+        r"""This is one of the inherited non-extension type members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11375,6 +11827,16 @@ const MessageCode messageOperatorWithTypeParameters = const MessageCode(
     correctionMessage: r"""Try removing the type parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeOptionalParametersInExtensionTypeDeclaration =
+    messageOptionalParametersInExtensionTypeDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageOptionalParametersInExtensionTypeDeclaration =
+    const MessageCode("OptionalParametersInExtensionTypeDeclaration",
+        problemMessage:
+            r"""Extension type declarations can't have optional parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,
@@ -12105,7 +12567,8 @@ const Code<Null> codePrivateNamedParameter = messagePrivateNamedParameter;
 const MessageCode messagePrivateNamedParameter = const MessageCode(
     "PrivateNamedParameter",
     analyzerCodes: <String>["PRIVATE_OPTIONAL_PARAMETER"],
-    problemMessage: r"""An optional named parameter can't start with '_'.""");
+    problemMessage:
+        r"""A named parameter can't start with an underscore ('_').""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRecordFieldsCantBePrivate =
@@ -12259,6 +12722,27 @@ const MessageCode messageRefutablePatternInIrrefutableContext = const MessageCod
         r"""Try using an if-case, a 'switch' statement, or a 'switch' expression instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRepresentationFieldModifier =
+    messageRepresentationFieldModifier;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRepresentationFieldModifier = const MessageCode(
+    "RepresentationFieldModifier",
+    analyzerCodes: <String>["REPRESENTATION_FIELD_MODIFIER"],
+    problemMessage: r"""Representation fields can't have modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRepresentationFieldTrailingComma =
+    messageRepresentationFieldTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRepresentationFieldTrailingComma = const MessageCode(
+    "RepresentationFieldTrailingComma",
+    analyzerCodes: <String>["REPRESENTATION_FIELD_TRAILING_COMMA"],
+    problemMessage:
+        r"""The representation field can't have a trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateRequiredNamedParameterHasDefaultValueError =
     const Template<Message Function(String name)>(
@@ -12296,6 +12780,26 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
     problemMessage: r"""Non-optional parameters can't have a default value.""",
     correctionMessage:
         r"""Try removing the default value or making the parameter optional.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeResourceIdentifiersMultiple =
+    messageResourceIdentifiersMultiple;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageResourceIdentifiersMultiple = const MessageCode(
+    "ResourceIdentifiersMultiple",
+    problemMessage:
+        r"""Only one resource identifier pragma can be used at a time.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeResourceIdentifiersNotStatic =
+    messageResourceIdentifiersNotStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageResourceIdentifiersNotStatic = const MessageCode(
+    "ResourceIdentifiersNotStatic",
+    problemMessage:
+        r"""Resource identifier pragma can be used on a static method only.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRestPatternInMapPattern = messageRestPatternInMapPattern;
@@ -14117,6 +14621,26 @@ Message _withArgumentsUnresolvedPrefixInTypeAnnotation(
           """'${name}.${name2}' can't be used as a type because '${name}' isn't defined.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnsoundSwitchExpressionError =
+    messageUnsoundSwitchExpressionError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnsoundSwitchExpressionError = const MessageCode(
+    "UnsoundSwitchExpressionError",
+    problemMessage:
+        r"""None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnsoundSwitchStatementError =
+    messageUnsoundSwitchStatementError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnsoundSwitchStatementError = const MessageCode(
+    "UnsoundSwitchStatementError",
+    problemMessage:
+        r"""None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateUnspecified =

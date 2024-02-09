@@ -136,7 +136,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     #t3.{core::String::length}{core::int};
   } =>#t3;
   let final core::String #t4 = s in #t4 == null ?{core::String} "foo" : #t4;
-  s == null ?{core::String} s = "foo" : null;
+  s == null ?{core::String?} s = "foo" : null;
   {
     final core::List<core::String> #t5 = core::_GrowableList::•<core::String>(0);
     final core::Iterable<core::String>? #t6 = l;

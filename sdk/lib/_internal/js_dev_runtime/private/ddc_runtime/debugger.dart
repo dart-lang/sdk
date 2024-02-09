@@ -37,12 +37,10 @@ class RuntimeObjectKind {
 /// descriptors for all classes in a library:
 ///
 /// ```
-/// {
-///   classes: [
-///     { 'className': <dart class name> },
+/// [
+///     <dart class name>,
 ///     ...
-///   ]
-/// }
+/// ]
 /// ```
 ///
 /// TODO(annagrin): remove when debugger consumes debug symbols.
@@ -52,11 +50,17 @@ List<String> getLibraryMetadata(@notNull String libraryUri) {
   var library = getLibrary('$libraryUri');
   if (library == null) throw 'cannot find library for $libraryUri';
 
-  var classes = <String>[];
+  final classes = <String>[];
   for (var name in getOwnPropertyNames(library)) {
-    var cls = _get<Object?>(library, name);
-    if (cls != null && _isDartClassObject(cls)) {
-      classes.add(_dartClassName(cls));
+    final field = name as String;
+    var descriptor = getOwnPropertyDescriptor(library, field);
+    // Filter out all getters prevent causing side-effects by calling them.
+    if (_get<Object?>(descriptor, 'value') != null &&
+        _get<Object?>(descriptor, 'get') == null) {
+      final cls = _get<Object?>(library, field);
+      if (cls != null && _isDartClassObject(cls)) {
+        classes.add(_dartClassName(cls));
+      }
     }
   }
   return classes;
@@ -64,7 +68,7 @@ List<String> getLibraryMetadata(@notNull String libraryUri) {
 
 /// Collect class metadata.
 ///
-/// Returns a JavaScript descriptor for the [className] class in [libraryUri].
+/// Returns a JavaScript descriptor for the class [name] class in [libraryUri].
 ///
 /// /// ```
 /// {
@@ -300,7 +304,7 @@ Object getObjectMetadata(@notNull Object object) {
   } else if (object is Function) {
     _set(result, 'runtimeKind', RuntimeObjectKind.function);
   } else if (object is RecordImpl) {
-    var shape = object.shape;
+    var shape = JS<Shape>('!', '#[#]', object, shapeProperty);
     var positionalCount = shape.positionals;
     var namedCount = shape.named?.length ?? 0;
     var length = positionalCount + namedCount;
@@ -312,8 +316,8 @@ Object getObjectMetadata(@notNull Object object) {
     if (_isRecordType(object)) {
       var elements = _recordTypeElementTypes(object);
       var length = _get(elements, 'length');
-      _set(result, 'libraryId', 'dart:_runtime');
-      _set(result, 'className', 'RecordType');
+      _set(result, 'libraryId', 'dart:core');
+      _set(result, 'className', 'Type');
       _set(result, 'runtimeKind', RuntimeObjectKind.recordType);
       _set(result, 'length', length);
     } else {
@@ -448,10 +452,10 @@ Object getTypeFields(@notNull Type type) {
 /// ```
 @notNull
 Object getRecordFields(@notNull RecordImpl record) {
-  var shape = record.shape;
+  var shape = JS<Shape>('!', '#[#]', record, shapeProperty);
   var positionalCount = shape.positionals;
   var named = shape.named?.toList();
-  var values = record.values;
+  var values = JS('!', '#[#]', record, valuesProperty);
 
   return _createJsObject({
     'positionalCount': positionalCount,

@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CaseClauseTest1);
-    defineReflectiveTests(CaseClauseTest2);
+    defineReflectiveTests(CaseClauseTest);
   });
 }
 
 @reflectiveTest
-class CaseClauseTest1 extends AbstractCompletionDriverTest
-    with CaseClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class CaseClauseTest2 extends AbstractCompletionDriverTest
-    with CaseClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class CaseClauseTest extends AbstractCompletionDriverTest
+    with CaseClauseTestCases {}
 
 mixin CaseClauseTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterCase_inIfElement() async {
@@ -142,6 +131,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -150,11 +141,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -171,53 +166,13 @@ suggestions
     await computeSuggestions('''
 foo() {switch(1) {case 1: b^}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   break
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  break
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void>
@@ -226,53 +181,13 @@ suggestions
 // @dart=2.19
 foo() {switch(1) {case 1: b^}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   break
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  break
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterColon_beforeRightBrace_inMethod() async {
@@ -295,6 +210,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -302,6 +219,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -312,6 +231,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -328,57 +249,13 @@ suggestions
     await computeSuggestions('''
 class A{foo() {switch(1) {case 1: b^}}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   break
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  break
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void>
@@ -387,57 +264,13 @@ suggestions
 // @dart=2.19
 class A{foo() {switch(1) {case 1: b^}}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   break
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  break
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterWhen_inIfElement() async {
@@ -464,25 +297,13 @@ suggestions
     await computeSuggestions('''
 var v = [ if (o c^) ];
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   case
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  case
-    kind: keyword
-  is
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_partialCase_inIfStatement() async {
@@ -491,24 +312,12 @@ void f(Object o) {
   if (o ca^) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   case
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  case
-    kind: keyword
-  is
-    kind: keyword
-''');
-    }
   }
 }

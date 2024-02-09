@@ -96,6 +96,36 @@ void f() {
 ''');
   }
 
+  Future<void> test_assigned_inAssignment2() async {
+    await resolveTestCode(r'''
+void f() {
+  var x = 1, y = 2;
+  print(x);
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  var x = 1;
+  print(x);
+}
+''');
+  }
+
+  Future<void> test_assigned_inDeclaration() async {
+    await resolveTestCode(r'''
+List<String> l = [];
+void f(str) {
+  final removed = l.remove(str);
+}
+''');
+    await assertHasFix(r'''
+List<String> l = [];
+void f(str) {
+  l.remove(str);
+}
+''');
+  }
+
   Future<void> test_notInFunctionBody() async {
     await resolveTestCode(r'''
 var a = [for (var v = 0;;) 0];

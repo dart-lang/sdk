@@ -118,6 +118,11 @@ final testCases = [
       "VariadicAt5Doublex5",
       Pointer.fromFunction<VariadicAt5Doublex5Type>(variadicAt5Doublex5, 0.0),
       variadicAt5Doublex5AfterCallback),
+  CallbackTest.withCheck(
+      "VariadicAt1Int64x7Struct12BytesHomogeneousInt32",
+      Pointer.fromFunction<VariadicAt1Int64x7Struct12BytesHomogeneousInt32Type>(
+          variadicAt1Int64x7Struct12BytesHomogeneousInt32, 0),
+      variadicAt1Int64x7Struct12BytesHomogeneousInt32AfterCallback),
 ];
 typedef VariadicAt1Int64x2Type = Int64 Function(Int64, VarArgs<(Int64,)>);
 
@@ -143,9 +148,7 @@ int variadicAt1Int64x2CalculateResult() {
 int variadicAt1Int64x2(int a0, int a1) {
   print("variadicAt1Int64x2(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Int64x2 throwing on purpose!");
@@ -193,9 +196,7 @@ double variadicAt1Doublex2CalculateResult() {
 double variadicAt1Doublex2(double a0, double a1) {
   print("variadicAt1Doublex2(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Doublex2 throwing on purpose!");
@@ -250,9 +251,7 @@ int variadicAt1Int64x5CalculateResult() {
 int variadicAt1Int64x5(int a0, int a1, int a2, int a3, int a4) {
   print("variadicAt1Int64x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Int64x5 throwing on purpose!");
@@ -311,9 +310,7 @@ double variadicAt1Doublex5(
     double a0, double a1, double a2, double a3, double a4) {
   print("variadicAt1Doublex5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Doublex5 throwing on purpose!");
@@ -444,9 +441,7 @@ int variadicAt1Int64x20(
   print(
       "variadicAt1Int64x20(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Int64x20 throwing on purpose!");
@@ -592,9 +587,7 @@ double variadicAt1Doublex20(
   print(
       "variadicAt1Doublex20(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Doublex20 throwing on purpose!");
@@ -669,9 +662,7 @@ int variadicAt1Int64x2Struct8BytesIntInt64(
     int a0, int a1, Struct8BytesInt a2, int a3) {
   print("variadicAt1Int64x2Struct8BytesIntInt64(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -734,9 +725,7 @@ double variadicAt1Doublex2Struct32BytesHomogeneousDoubleD(
   print(
       "variadicAt1Doublex2Struct32BytesHomogeneousDoubleD(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -798,9 +787,7 @@ double variadicAt1DoubleStruct12BytesHomogeneousFloatDoub(
   print(
       "variadicAt1DoubleStruct12BytesHomogeneousFloatDoub(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -863,9 +850,7 @@ int variadicAt1Int32Struct20BytesHomogeneousInt32Int32(
   print(
       "variadicAt1Int32Struct20BytesHomogeneousInt32Int32(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -928,9 +913,7 @@ double variadicAt1DoubleStruct20BytesHomogeneousFloatDoub(
   print(
       "variadicAt1DoubleStruct20BytesHomogeneousFloatDoub(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -986,9 +969,7 @@ int variadicAt2Int32Int64IntPtrCalculateResult() {
 int variadicAt2Int32Int64IntPtr(int a0, int a1, int a2) {
   print("variadicAt2Int32Int64IntPtr(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt2Int32Int64IntPtr throwing on purpose!");
@@ -1048,9 +1029,7 @@ double variadicAt1DoubleInt64Int32DoubleInt64Int32(
   print(
       "variadicAt1DoubleInt64Int32DoubleInt64Int32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -1112,9 +1091,7 @@ double variadicAt1Int64Int32Struct12BytesHomogeneousFloat(
   print(
       "variadicAt1Int64Int32Struct12BytesHomogeneousFloat(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -1223,9 +1200,7 @@ double variadicAt11Doublex8FloatStruct12BytesHomogeneousF(
   print(
       "variadicAt11Doublex8FloatStruct12BytesHomogeneousF(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -1334,9 +1309,7 @@ double variadicAt1DoubleInt64Int32Struct20BytesHomogeneou(
   print(
       "variadicAt1DoubleInt64Int32Struct20BytesHomogeneou(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -1402,9 +1375,7 @@ double variadicAt5Doublex5(
     double a0, double a1, double a2, double a3, double a4) {
   print("variadicAt5Doublex5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt5Doublex5 throwing on purpose!");
@@ -1429,4 +1400,90 @@ void variadicAt5Doublex5AfterCallback() {
   print("after callback result = $result");
 
   Expect.approxEquals(-3.0, result);
+}
+
+typedef VariadicAt1Int64x7Struct12BytesHomogeneousInt32Type = Int64 Function(
+    Int64,
+    VarArgs<
+        (
+          Int64,
+          Int64,
+          Int64,
+          Int64,
+          Int64,
+          Int64,
+          Struct12BytesHomogeneousInt32
+        )>);
+
+// Global variables to be able to test inputs after callback returned.
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a0 = 0;
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a1 = 0;
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a2 = 0;
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a3 = 0;
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a4 = 0;
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a5 = 0;
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a6 = 0;
+Struct12BytesHomogeneousInt32
+    variadicAt1Int64x7Struct12BytesHomogeneousInt32_a7 =
+    Pointer<Struct12BytesHomogeneousInt32>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32Result = 0;
+
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32CalculateResult() {
+  int result = 0;
+
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a0;
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a1;
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a2;
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a3;
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a4;
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a5;
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a6;
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a7.a0;
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a7.a1;
+  result += variadicAt1Int64x7Struct12BytesHomogeneousInt32_a7.a2;
+
+  variadicAt1Int64x7Struct12BytesHomogeneousInt32Result = result;
+
+  return result;
+}
+
+/// Struct stradles last argument register, variadic
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32(int a0, int a1, int a2,
+    int a3, int a4, int a5, int a6, Struct12BytesHomogeneousInt32 a7) {
+  print(
+      "variadicAt1Int64x7Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7})");
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "VariadicAt1Int64x7Struct12BytesHomogeneousInt32 throwing on purpose!");
+  }
+
+  variadicAt1Int64x7Struct12BytesHomogeneousInt32_a0 = a0;
+  variadicAt1Int64x7Struct12BytesHomogeneousInt32_a1 = a1;
+  variadicAt1Int64x7Struct12BytesHomogeneousInt32_a2 = a2;
+  variadicAt1Int64x7Struct12BytesHomogeneousInt32_a3 = a3;
+  variadicAt1Int64x7Struct12BytesHomogeneousInt32_a4 = a4;
+  variadicAt1Int64x7Struct12BytesHomogeneousInt32_a5 = a5;
+  variadicAt1Int64x7Struct12BytesHomogeneousInt32_a6 = a6;
+  variadicAt1Int64x7Struct12BytesHomogeneousInt32_a7 = a7;
+
+  final result =
+      variadicAt1Int64x7Struct12BytesHomogeneousInt32CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void variadicAt1Int64x7Struct12BytesHomogeneousInt32AfterCallback() {
+  final result =
+      variadicAt1Int64x7Struct12BytesHomogeneousInt32CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(5, result);
 }

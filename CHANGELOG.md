@@ -1,31 +1,195 @@
-## 3.2.6 - 2024-01-24
+## 3.3.0
 
-This is a patch release that:
+### Language
 
-- Fixes an issue that causes Flutter apps to freeze when breakpoints are added
-  to multiple isolates at the same time (issue [#54699][]).
-- Fixes an issue that causes Flutter apps to crash during hot reload
-  (issue [#54699][]).
+- **Breaking Change** [#54056][]: The rules for private field promotion have
+  been changed so that an abstract getter is considered promotable if there are
+  no conflicting declarations. There are no conflicting declarations if
+  there are no non-final fields, external fields, concrete getters, or
+  `noSuchMethod` forwarding getters with the same name in the same library.
+  This makes the implementation more consistent and allows
+  type promotion in a few rare scenarios where it wasn't previously allowed.
+  It is unlikely, but this change could cause a breakage by changing
+  an inferred type in a way that breaks later code. For example:
 
-[#54699]: https://github.com/dart-lang/sdk/issues/54699
+  ```dart
+  class A {
+    int? get _field;
+  }
+  class B extends A {
+    final int? _field;
+    B(this._field);
+  }
+  test(A a) {
+    if (a._field != null) {
+      var x = a._field; // Previously had type `int?`; now has type `int`
+      ...
+      x = null; // Previously allowed; now causes a compile-time error.
+    }
+  }
+  ```
 
-## 3.2.5 - 2024-01-17
+  Affected code can be fixed by adding an explicit type annotation.
+  For example, in the above snippet, `var x` can be changed to `int? x`.
 
-This is a patch release that:
+  It's also possible that some continuous integration configurations might fail
+  if they have been configured to treat warnings as errors, because the expanded
+  type promotion could lead to one of the following warnings:
 
-- Fixes a Dart2js issue with values updated in a loop (issue [#54494][]).
+  - `unnecessary_non_null_assertion`
+  - `unnecessary_cast`
+  - `invalid_null_aware_operator`
 
-[#54494]: https://github.com/dart-lang/sdk/issues/54494
+  These warnings can be addressed in the usual way, by removing the unnecessary
+  operation in the first two cases, or changing `?.` to `.` in the third case.
 
-## 3.2.4 - 2023-12-21
+  To learn more about other rules surrounding type promotion,
+  check out the guide on [Fixing type promotion failures][].
 
-This is a patch release that:
+[#54056]: https://github.com/dart-lang/sdk/issues/54056
+[Fixing type promotion failures]: https://dart.dev/tools/non-promotion-reasons
 
-- Upgrades Dart DevTools to version 2.28.5 (issue [#54427][]).
-- Fixes an issue with serving static DevTools assets. (issue [#54428][]).
+### Libraries
 
-[#54427]: https://github.com/dart-lang/sdk/issues/54427
-[#54428]: https://github.com/dart-lang/sdk/issues/54428
+#### `dart:core`
+
+- `String.fromCharCodes` now allow `start` and `end` to be after the end of
+  the `Iterable` argument, just like `skip` and `take` does on an `Iterable`.
+
+#### `dart:ffi`
+
+- In addition to functions, `@Native` can now be used on fields.
+- Allow taking the address of native functions and fields via
+  `Native.addressOf`.
+- The `elementAt` pointer arithmetic extension methods on
+  core `Pointer` types are now deprecated.
+  Migrate to the new `-` and `+` operators instead.
+- The experimental and deprecated `@FfiNative` annotation has been removed.
+  Usages should be updated to use the `@Native` annotation.
+
+#### `dart:js_interop`
+
+- **Breaking Change in the representation of JS types** [#52687][]: JS types
+  like `JSAny` were previously represented using a custom erasure of
+  `@staticInterop` types that were compiler-specific. They are now represented
+  as extension types where their representation types are compiler-specific.
+  This means that user-defined `@staticInterop` types that implemented `JSAny`
+  or `JSObject` can no longer do so and need to use
+  `JSObject.fromInteropObject`. Going forward, it's recommended to use extension
+  types to define interop APIs. Those extension types can still implement JS
+  types.
+- **JSArray and JSPromise generics**: `JSArray` and `JSPromise` are now generic
+  types whose type parameter is a subtype of `JSAny?`. Conversions to and from
+  these types are changed to account for the type parameters of the Dart or JS
+  type, respectively.
+- **Breaking Change in names of extensions**: Some `dart:js_interop` extension
+  members are moved to different extensions on the same type or a supertype to
+  better organize the API surface. See `JSAnyUtilityExtension` and
+  `JSAnyOperatorExtension` for the new extensions. This shouldn't make a
+  difference unless the extension names were explicitly used.
+- Add `importModule` to allow users to dynamically import modules using the JS
+  `import()` expression.
+
+[#52687]: https://github.com/dart-lang/sdk/issues/52687
+
+#### `dart:js_interop_unsafe`
+
+- Add `has` helper to make `hasProperty` calls more concise.
+
+#### `dart:typed_data`
+
+- **BREAKING CHANGE** (https://github.com/dart-lang/sdk/issues/53218) The
+  unmodifiable view classes for typed data are deprecated. Instead of using the
+  constructors for these classes to create an unmodifiable view, e.g.
+
+  ```dart
+  Uint8List data = ...
+  final readOnlyView = UnmodifiableUint8ListView(data);
+  ```
+
+  use the new `asUnmodifiableView()` methods:
+
+  ```dart
+  Uint8List data = ...
+  final readOnlyView = data.asUnmodifiableView();
+  ```
+
+  The reason for this change is to allow more flexibility in the implementation
+  of typed data so the native and web platforms can use different strategies
+  for ensuring typed data has good performance.
+
+  The deprecated types will be removed in a future Dart version.
+
+#### `dart:nativewrappers`
+
+- **Breaking Change** [#51896][]: The NativeWrapperClasses are marked `base` so
+  that none of their subtypes can be implemented. Implementing subtypes can lead
+  to crashes when passing such native wrapper to a native call, as it will try
+  to unwrap a native field that doesn't exist.
+
+[#51896]: https://github.com/dart-lang/sdk/issues/51896
+
+### Tools
+
+#### Dart command line
+
+- The `dart create` command now uses v3 of `package:lints`,
+  including multiple new recommended lints by default.
+  To learn more about the updated collection of lints,
+  check out the `package:lints` [3.0.0 changelog entry][lints-3-0].
+
+[lints-3-0]: https://pub.dev/packages/lints/changelog#300
+
+
+#### Wasm compiler (dart2wasm)
+
+- **Breaking Change** [#54004][]: `dart:js_util`, `package:js`, and `dart:js`
+  are now disallowed from being imported when compiling with `dart2wasm`. Prefer
+  using `dart:js_interop` and `dart:js_interop_unsafe`.
+
+[#54004]: https://github.com/dart-lang/sdk/issues/54004
+
+#### Development JavaScript compiler (DDC)
+
+- Type arguments of `package:js` interop types are now printed as `any` instead
+  of being omitted. This is simply a change to the textual representation of
+  package js types that have type arguments. These type arguments are still
+  completely ignored by the type system at runtime.
+
+- Removed "implements <...>" text from the Chrome custom formatter display for
+  Dart classes. This information provides little value and keeping it imposes an
+  unnecessary maintenance cost.
+
+#### Production JavaScript compiler (dart2js)
+
+- **Breaking Change** [#54201][]:
+  The `Invocation` that is passed to `noSuchMethod` will no longer have a
+  minified `memberName`, even when dart2js is invoked with `--minify`.
+  See [#54201][] for more details.
+
+[#54201]: https://github.com/dart-lang/sdk/issues/54201
+
+#### Analyzer
+
+- You can now suppress diagnostics in `pubspec.yaml` files by
+  adding an `# ignore: <diagnostic_id>` comment.
+- Invalid `dart doc` comment directives are now reported.
+- The [`flutter_style_todos`][] lint now has a quick fix.
+
+[`flutter_style_todos`]: https://dart.dev/lints/flutter_style_todos
+
+#### Linter
+
+- Removed the `iterable_contains_unrelated_type` and
+  `list_remove_unrelated_type` lints.
+  Consider migrating to the expanded
+  [`collection_methods_unrelated_type`][] lint.
+- Removed various lints that are no longer necessary with sound null safety:
+  - `always_require_non_null_named_parameters`
+  - `avoid_returning_null`,
+  - `avoid_returning_null_for_future`
+
+[`collection_methods_unrelated_type`]: https://dart.dev/lints/collection_methods_unrelated_type
 
 ## 3.2.3 - 2023-12-06
 
@@ -37,7 +201,7 @@ This is a patch release that:
 - Fixes new AOT snapshots in the SDK failing with SIGILL in ARM
   environments that don't support the integer division
   instructions or x86-64 environments that don't support
-  SSE4.1  (issue [#54215][]).
+  SSE4.1 (issue [#54215][]).
 
 [#54232]: https://github.com/dart-lang/sdk/issues/54232
 [#54213]: https://github.com/dart-lang/sdk/issues/54213
@@ -48,10 +212,10 @@ This is a patch release that:
 This is a patch release that:
 
 - Adjusts the nullablity computations in the implementation of the
-  upper bound algorithm in the CFE (issue [#53999][]).
+  upper bound algorithm in the compiler frontend (issue [#53999][]).
 
 - Fixes missing closure code completion entries for function parameters
-  (issue [#54112][]) for LSP-based editors like VS Code.
+  for LSP-based editors like VS Code (issue [#54112][]).
 
 [#53999]: https://github.com/dart-lang/sdk/issues/53999
 [#54112]: https://github.com/dart-lang/sdk/issues/54112
@@ -63,14 +227,15 @@ This is a patch release that:
 - Fixes the left/mobile sidebar being empty on non-class pages
   in documentation generated with `dart doc` (issue [#54073][]).
 
-- Fixes a JSON array parsing bug that causes seg fault when --coverage is used.
-  This bug has been reported by flutter customers here
-  https://github.com/flutter/flutter/issues/124145 (issue [#54059][])
+- Fixes a JSON array parsing bug that causes a segmentation fault when
+  `flutter test` is invoked with the `--coverage` flag
+  (SDK issue [#54059][], Flutter issue [#124145][]).
 
-- Upgrades Dart DevTools to version 2.28.3 (issue [#54085][])
+- Upgrades Dart DevTools to version 2.28.3 (issue [#54085][]).
 
 [#54073]: https://github.com/dart-lang/sdk/issues/54073
 [#54059]: https://github.com/dart-lang/sdk/issues/54059
+[#124145]: https://github.com/flutter/flutter/issues/124145
 [#54085]: https://github.com/dart-lang/sdk/issues/54085
 
 ## 3.2.0 - 2023-11-15
@@ -88,7 +253,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   ```dart
   class Example {
     final int? _privateField;
-    Example1(this._privateField);
+    Example(this._privateField);
 
     f() {
       if (_privateField != null) {
@@ -100,7 +265,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   }
 
   // Private field promotions also work from outside of the class:
-  f(Example1 x) {
+  f(Example x) {
     if (x._privateField != null) {
       int i = x._privateField; // OK
     }
@@ -146,6 +311,16 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 - Added `broadcast` parameter to `Stream.empty` constructor.
 
+#### `dart:cli`
+
+- **Breaking change** [#52121][]:
+  - `waitFor` is disabled by default and slated for removal in 3.4. Attempting
+  to call this function will now throw an exception. Users that still depend
+  on `waitFor` can enable it by passing `--enable_deprecated_wait_for` flag
+  to the VM.
+
+[#52121]: https://github.com/dart-lang/sdk/issues/52121
+
 #### `dart:convert`
 
 - **Breaking change** [#52801][]:
@@ -173,6 +348,8 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 - **Breaking change** [#53311][]: `NativeCallable.nativeFunction` now throws an
   error if is called after the `NativeCallable` has already been `close`d. Calls
   to `close` after the first are now ignored.
+
+[#53311]: https://github.com/dart-lang/sdk/issues/53311
 
 #### `dart:io`
 
@@ -219,7 +396,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   JavaScript's `globalThis` as the global context. This is relevant to things
   like external top-level members or external constructors, as this is the root
   context we expect those members to reside in. Historically, this was not the
-  case in Dart2JS and DDC. We used either `self` or DDC's `global` in non-static
+  case in dart2js and DDC. We used either `self` or DDC's `global` in non-static
   interop APIs with `package:js`. So, static interop APIs will now use one of
   those global contexts. Functionally, this should matter in only a very small
   number of cases, like when using older browser versions. `dart:js_interop`'s
@@ -227,7 +404,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   context used in the lowerings.
 - **Breaking Change on Types of `dart:js_interop` External APIs**:
   External JS interop APIs when using `dart:js_interop` are restricted to a set
-  of allowed types. Namely, this include the primitive types like `String`, JS
+  of allowed types. Namely, this includes the primitive types like `String`, JS
   types from `dart:js_interop`, and other static interop types (either through
   `@staticInterop` or extension types).
 - **Breaking Change on `dart:js_interop` `isNull` and `isUndefined`**:
@@ -307,7 +484,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 #### Pub
 
 - New option `dart pub upgrade --tighten` which will update dependencies' lower
-  bounds in pubspec.yaml to match the current version.
+  bounds in `pubspec.yaml` to match the current version.
 - The commands `dart pub get`/`add`/`upgrade` will now show if a dependency
   changed between direct, dev and transitive dependency.
 - The command `dart pub upgrade` no longer shows unchanged dependencies.
@@ -318,7 +495,7 @@ This is a patch release that:
 
 - Fixes an issue affecting Dart compiled to JavaScript running in Node.js 21. A
   change in Node.js 21 affected the Dart Web compiler runtime. This patch
-  release accomodates for those changes (issue #53810).
+  release accommodates for those changes (issue #53810).
 
 [#53810]: https://github.com/dart-lang/sdk/issues/53810
 
@@ -916,6 +1093,11 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 [`Metric`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metric-class.html
 [`Counter`]: https://api.dart.dev/stable/2.18.2/dart-developer/Counter-class.html
 [`Gauge`]: https://api.dart.dev/stable/2.18.2/dart-developer/Gauge-class.html
+
+#### `dart:ffi`
+
+- The experimental `@FfiNative` annotation is now deprecated.
+  Usages should be replaced with the new `@Native` annotation.
 
 #### `dart:html`
 

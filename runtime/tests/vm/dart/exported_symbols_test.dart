@@ -13,10 +13,14 @@ main() {
 
   var nm;
   for (var path in [
-    "buildtools/linux-arm64/clang/bin/llvm-nm",
-    "buildtools/linux-x64/clang/bin/llvm-nm",
-    "buildtools/mac-arm64/clang/bin/llvm-nm",
-    "buildtools/mac-x64/clang/bin/llvm-nm",
+    if (Platform.isLinux) ...[
+      "buildtools/linux-arm64/clang/bin/llvm-nm",
+      "buildtools/linux-x64/clang/bin/llvm-nm",
+    ],
+    if (Platform.isMacOS) ...[
+      "buildtools/mac-arm64/clang/bin/llvm-nm",
+      "buildtools/mac-x64/clang/bin/llvm-nm",
+    ],
   ]) {
     if (new File(path).existsSync()) {
       nm = path;
@@ -324,11 +328,13 @@ main() {
     "Dart_StopProfiling",
     "Dart_StringGetProperties",
     "Dart_StringLength",
+    "Dart_StringUTF8Length",
     "Dart_StringStorageSize",
     "Dart_StringToCString",
     "Dart_StringToLatin1",
     "Dart_StringToUTF16",
     "Dart_StringToUTF8",
+    "Dart_CopyUTF8EncodingOfString",
     "Dart_ThreadDisableProfiling",
     "Dart_ThreadEnableProfiling",
     "Dart_ThrowException",

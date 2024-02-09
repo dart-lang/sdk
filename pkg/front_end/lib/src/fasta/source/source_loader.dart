@@ -1287,7 +1287,7 @@ severity: $severity
           case ExtensionTypeDeclarationBuilder():
           // TODO(johnniwinther): Handle this case.
           case TypeAliasBuilder():
-          case TypeVariableBuilder():
+          case NominalVariableBuilder():
           case StructuralVariableBuilder():
           case InvalidTypeDeclarationBuilder():
           case BuiltinTypeDeclarationBuilder():
@@ -1503,8 +1503,6 @@ severity: $severity
   ///
   /// If no macros need precompilation, `null` is returned.
   NeededPrecompilations? computeMacroDeclarations() {
-    if (!enableMacros) return null;
-
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
     if (macroLibraryBuilder == null) return null;
 
@@ -1678,7 +1676,7 @@ severity: $severity
   Class? get macroClass => _macroClassBuilder?.cls;
 
   Future<MacroApplications?> computeMacroApplications() async {
-    if ((!enableMacros || _macroClassBuilder == null) && !forceEnableMacros) {
+    if (_macroClassBuilder == null) {
       return null;
     }
 
@@ -1853,8 +1851,8 @@ severity: $severity
 
   void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
       ClassBuilder object, TypeBuilder dynamicType) {
-    Map<TypeVariableBuilder, SourceLibraryBuilder> unboundTypeVariableBuilders =
-        {};
+    Map<NominalVariableBuilder, SourceLibraryBuilder>
+        unboundTypeVariableBuilders = {};
     Map<StructuralVariableBuilder, SourceLibraryBuilder>
         unboundFunctionTypeTypeVariableBuilders = {};
     for (SourceLibraryBuilder library in libraryBuilders) {
@@ -1864,19 +1862,24 @@ severity: $severity
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
-        sortedTypeVariables = sortAllTypeVariablesTopologically([
+    List<TypeVariableBuilderBase> sortedTypeVariables =
+        sortAllTypeVariablesTopologically([
       ...unboundFunctionTypeTypeVariableBuilders.keys,
       ...unboundTypeVariableBuilders.keys
     ]);
-    for (Object builder in sortedTypeVariables) {
-      if (builder is TypeVariableBuilder) {
-        builder.finish(
-            unboundTypeVariableBuilders[builder]!, object, dynamicType);
-      } else {
-        builder as StructuralVariableBuilder;
-        builder.finish(unboundFunctionTypeTypeVariableBuilders[builder]!,
-            object, dynamicType);
+
+    for (TypeVariableBuilderBase builder in sortedTypeVariables) {
+      switch (builder) {
+        case NominalVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundTypeVariableBuilders[builder]!;
+          libraryBuilder.checkTypeVariableDependencies([builder]);
+          builder.finish(libraryBuilder, object, dynamicType);
+        case StructuralVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundFunctionTypeTypeVariableBuilders[builder]!;
+          libraryBuilder.checkTypeVariableDependencies([builder]);
+          builder.finish(libraryBuilder, object, dynamicType);
       }
     }
 
@@ -2145,7 +2148,7 @@ severity: $severity
         if (builder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = builder;
           NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+          builder = aliasBuilder.unaliasDeclaration(namedBuilder.typeArguments,
               isUsedAsClass: true,
               usedAsClassCharOffset: namedBuilder.charOffset,
               usedAsClassFileUri: namedBuilder.fileUri);
@@ -2289,7 +2292,7 @@ severity: $severity
         final TypeAliasBuilder aliasBuilder = typeDeclarationBuilder;
         final NamedTypeBuilder namedBuilder = typeBuilder as NamedTypeBuilder;
         typeDeclarationBuilder = aliasBuilder.unaliasDeclaration(
-            namedBuilder.arguments,
+            namedBuilder.typeArguments,
             isUsedAsClass: true,
             usedAsClassCharOffset: namedBuilder.charOffset,
             usedAsClassFileUri: namedBuilder.fileUri);
@@ -2580,8 +2583,7 @@ severity: $severity
       Library target = library.buildOutlineNodes(coreLibrary);
       if (library.referencesFrom != null) {
         referenceFromIndex ??= new ReferenceFromIndex();
-        referenceFromIndex!
-            .addIndexedLibrary(target, library.referencesFromIndexed!);
+        referenceFromIndex!.addIndexedLibrary(target, library.indexedLibrary!);
       }
       libraries.add(target);
     }
@@ -2752,7 +2754,20 @@ severity: $severity
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
       delayedMemberChecks[i].getMember(membersBuilder);
-      changedClasses.add(delayedMemberChecks[i].classBuilder.cls);
+      DeclarationBuilder declarationBuilder =
+          delayedMemberChecks[i].declarationBuilder;
+      switch (declarationBuilder) {
+        case ClassBuilder():
+          // TODO(johnniwinther): Only invalidate class if a member was added.
+          changedClasses.add(declarationBuilder.cls);
+        case ExtensionTypeDeclarationBuilder():
+          // TODO(johnniwinther): Should the member be added to the extension
+          //  type declaration?
+          break;
+        case ExtensionBuilder():
+          throw new UnsupportedError(
+              "Unexpected declaration ${declarationBuilder}.");
+      }
     }
     ticker.logMs(
         "Computed ${delayedMemberChecks.length} combined member signatures");
@@ -2762,9 +2777,19 @@ severity: $severity
         .logMs("Updated ${changedClasses.length} classes in kernel hierarchy");
   }
 
-  void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
+  void checkRedirectingFactories(
+      List<SourceClassBuilder> sourceClasses,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sourceExtensionTypeDeclarationBuilders) {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
     for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
+        builder.checkRedirectingFactories(
+            typeInferenceEngine.typeSchemaEnvironment);
+      }
+    }
+    for (SourceExtensionTypeDeclarationBuilder builder
+        in sourceExtensionTypeDeclarationBuilders) {
       if (builder.libraryBuilder.loader == this && !builder.isPatch) {
         builder.checkRedirectingFactories(
             typeInferenceEngine.typeSchemaEnvironment);
@@ -2777,7 +2802,6 @@ severity: $severity
   /// libraries in which field promotion is enabled.
   void computeFieldPromotability() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      if (!library.isInferenceUpdate2Enabled) continue;
       // TODO(paulberry): what should we do for augmentation libraries?
       if (library.loader == this && !library.isPatch) {
         library.computeFieldPromotability();
@@ -2876,9 +2900,11 @@ severity: $severity
     ticker.logMs("Built class hierarchy");
   }
 
-  void buildClassHierarchyMembers(List<SourceClassBuilder> sourceClasses) {
+  void buildClassHierarchyMembers(List<SourceClassBuilder> sourceClasses,
+      List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes) {
     ClassMembersBuilder membersBuilder = _membersBuilder =
-        ClassMembersBuilder.build(hierarchyBuilder, sourceClasses);
+        ClassMembersBuilder.build(
+            hierarchyBuilder, sourceClasses, sourceExtensionTypes);
     typeInferenceEngine.membersBuilder = membersBuilder;
     ticker.logMs("Built class hierarchy members");
   }
@@ -3107,7 +3133,7 @@ severity: $severity
 
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
-    return type.accept(_typeBuilderComputer);
+    return _typeBuilderComputer.visit(type);
   }
 
   BodyBuilder createBodyBuilderForField(
@@ -3152,6 +3178,8 @@ class List<E> extends Iterable<E> {
   void add(E element) {}
   void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
+  int get length => 0;
+  List<E> sublist(int start, [int? end]) => this;
 }
 
 class _GrowableList<E> implements List<E> {
@@ -3254,6 +3282,8 @@ class int extends num {
 
 class num {
   num operator -() => this;
+  num operator -(num other) => this;
+  bool operator >=(num other) => false;
 }
 
 class Function {}

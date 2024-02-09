@@ -183,13 +183,13 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
                                               Register array_reg,
+                                              Representation array_rep,
                                               Location start_loc) {
-  intptr_t offset;
-  if (IsTypedDataBaseClassId(array_cid)) {
-    __ movl(array_reg,
-            compiler::FieldAddress(
-                array_reg, compiler::target::PointerBase::data_offset()));
-    offset = 0;
+  intptr_t offset = 0;
+  if (array_rep != kTagged) {
+    // Do nothing, array_reg already contains the payload address.
+  } else if (IsTypedDataBaseClassId(array_cid)) {
+    __ LoadFromSlot(array_reg, array_reg, Slot::PointerBase_data());
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
@@ -201,18 +201,12 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
             compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
       case kExternalOneByteStringCid:
-        __ movl(array_reg,
-                compiler::FieldAddress(array_reg,
-                                       compiler::target::ExternalOneByteString::
-                                           external_data_offset()));
-        offset = 0;
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalOneByteString_external_data());
         break;
       case kExternalTwoByteStringCid:
-        __ movl(array_reg,
-                compiler::FieldAddress(array_reg,
-                                       compiler::target::ExternalTwoByteString::
-                                           external_data_offset()));
-        offset = 0;
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalTwoByteString_external_data());
         break;
       default:
         UNREACHABLE();
@@ -513,7 +507,13 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ movl(LocationToStackSlotAddress(destination),
               compiler::Immediate(pair_index == 0 ? Utils::Low32Bits(v)
                                                   : Utils::High32Bits(v)));
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ movl(LocationToStackSlotAddress(destination),
+              compiler::Immediate(float_bits));
     } else {
+      ASSERT(representation() == kTagged);
       if (compiler::Assembler::IsSafeSmi(value_) || value_.IsNull()) {
         __ movl(LocationToStackSlotAddress(destination),
                 compiler::Immediate(static_cast<int32_t>(value_.ptr())));
@@ -1467,9 +1467,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label rest, rest_loop, rest_loop_in, done;
 
   // Address of input bytes.
-  __ movl(bytes_reg,
-          compiler::FieldAddress(bytes_reg,
-                                 compiler::target::PointerBase::data_offset()));
+  __ LoadFromSlot(bytes_reg, bytes_reg, Slot::PointerBase_data());
 
   // Pointers to start, end and end-16.
   __ leal(bytes_ptr_reg, compiler::Address(bytes_reg, start_reg, TIMES_1, 0));
@@ -1585,24 +1583,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const auto scan_flags_field_offset = scan_flags_field_.offset_in_bytes();
   __ orl(compiler::FieldAddress(decoder_reg, scan_flags_field_offset),
          flags_reg);
-}
-
-LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(zone, kNumInputs, Location::SameAsFirstInput(),
-                               LocationSummary::kNoCall);
-}
-
-void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register obj = locs()->in(0).reg();
-  Register result = locs()->out(0).reg();
-  if (object()->definition()->representation() == kUntagged) {
-    __ movl(result, compiler::Address(obj, offset()));
-  } else {
-    ASSERT(object()->definition()->representation() == kTagged);
-    __ movl(result, compiler::FieldAddress(obj, offset()));
-  }
 }
 
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
@@ -3573,12 +3553,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value == result);
-  compiler::Label done;
-  __ SmiUntag(value);  // Leaves CF after SmiUntag.
-  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movl(result, compiler::FieldAddress(value, Mint::value_offset()));
-  __ Bind(&done);
+  __ LoadInt32FromBoxOrSmi(result, value);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
@@ -4057,8 +4032,6 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   V(Int32x4BitXor, xorps)                                                      \
   V(Float32x4Equal, cmppseq)                                                   \
   V(Float32x4NotEqual, cmppsneq)                                               \
-  V(Float32x4GreaterThan, cmppsnle)                                            \
-  V(Float32x4GreaterThanOrEqual, cmppsnlt)                                     \
   V(Float32x4LessThan, cmppslt)                                                \
   V(Float32x4LessThanOrEqual, cmppsle)
 
@@ -4428,6 +4401,8 @@ LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 #undef CASE
 #undef EMIT
 #undef SIMPLE
+    case SimdOpInstr::kFloat32x4GreaterThan:
+    case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
     case kIllegalSimdOp:
       UNREACHABLE();
       break;
@@ -4447,6 +4422,8 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #undef CASE
 #undef EMIT
 #undef SIMPLE
+    case SimdOpInstr::kFloat32x4GreaterThan:
+    case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
     case kIllegalSimdOp:
       UNREACHABLE();
       break;

@@ -27,6 +27,7 @@ class NamedTypeResolver with ScopeHelpers {
   final LibraryElementImpl _libraryElement;
   final TypeSystemImpl typeSystem;
   final bool isNonNullableByDefault;
+  final bool strictInference;
 
   @override
   final ErrorReporter errorReporter;
@@ -59,7 +60,8 @@ class NamedTypeResolver with ScopeHelpers {
   bool hasErrorReported = false;
 
   NamedTypeResolver(
-      this._libraryElement, this.isNonNullableByDefault, this.errorReporter)
+      this._libraryElement, this.isNonNullableByDefault, this.errorReporter,
+      {required this.strictInference})
       : typeSystem = _libraryElement.typeSystem;
 
   bool get _genericMetadataIsEnabled =>
@@ -179,6 +181,7 @@ class NamedTypeResolver with ScopeHelpers {
           declaredReturnType: element.thisType,
           contextReturnType: enclosingClass!.thisType,
           genericMetadataIsEnabled: _genericMetadataIsEnabled,
+          strictInference: strictInference,
         );
         var typeArguments = inferrer.chooseFinalTypes();
         return element.instantiate(

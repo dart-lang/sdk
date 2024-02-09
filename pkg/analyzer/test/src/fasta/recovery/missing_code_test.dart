@@ -456,7 +456,7 @@ f() {
   @failingTest
   void test_stringInterpolation_unclosed() {
     // https://github.com/dart-lang/sdk/issues/946
-    // TODO(brianwilkerson) Try to recover better. Ideally there would be a
+    // TODO(brianwilkerson): Try to recover better. Ideally there would be a
     // single error about an unterminated interpolation block.
 
     // https://github.com/dart-lang/sdk/issues/36101
@@ -720,7 +720,7 @@ f([a = _s_, b]) {}
   }
 
   void test_multipleGroups_mixed() {
-    // TODO(brianwilkerson) Figure out the best way to recover from this.
+    // TODO(brianwilkerson): Figure out the best way to recover from this.
     testRecovery('''
 f([a = 0], {b: 1}) {}
 ''', [ParserErrorCode.EXPECTED_TOKEN], '''
@@ -730,7 +730,7 @@ f([a = 0]) {}
 
   @failingTest
   void test_multipleGroups_mixedAndMultiple() {
-    // TODO(brianwilkerson) Figure out the best way to recover from this.
+    // TODO(brianwilkerson): Figure out the best way to recover from this.
     testRecovery('''
 f([a = 0], {b: 1}, [c = 2]) {}
 ''', [ParserErrorCode.MIXED_PARAMETER_GROUPS], '''

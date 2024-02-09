@@ -4,9 +4,6 @@
 //
 // SharedObjects=ffi_test_functions
 
-// NOTE: There is no `test/ffi_2/...` version of this test since annotations
-// with type arguments isn't supported in that version of Dart.
-
 import 'dart:ffi';
 import 'dart:nativewrappers';
 
@@ -23,26 +20,26 @@ final setFfiNativeResolverForTest =
     nativeLib.lookupFunction<Void Function(Handle), void Function(Object)>(
         'SetFfiNativeResolverForTest');
 
-@FfiNative<Handle Function(Handle, IntPtr, IntPtr)>(
-    'Dart_SetNativeInstanceField')
+@Native<Handle Function(Handle, IntPtr, IntPtr)>(
+    symbol: 'Dart_SetNativeInstanceField')
 external Object setNativeInstanceField(Object obj, int index, int ptr);
 
-// Basic FfiNative test functions.
+// Basic Native test functions.
 
-@FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr')
+@Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr')
 external int returnIntPtr(int x);
 
-@FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr', isLeaf: true)
+@Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr', isLeaf: true)
 external int returnIntPtrLeaf(int x);
 
-@FfiNative<IntPtr Function()>('IsThreadInGenerated')
+@Native<IntPtr Function()>(symbol: 'IsThreadInGenerated')
 external int isThreadInGenerated();
 
-@FfiNative<IntPtr Function()>('IsThreadInGenerated', isLeaf: true)
+@Native<IntPtr Function()>(symbol: 'IsThreadInGenerated', isLeaf: true)
 external int isThreadInGeneratedLeaf();
 
 class Classy {
-  @FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr')
+  @Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr')
   external static int returnIntPtrStatic(int x);
 }
 
@@ -56,46 +53,49 @@ base class ClassWithNativeField extends NativeFieldWrapperClass1 {
   // Instance methods implicitly pass a 'self' reference as the first argument.
   // Passed as Pointer if the native function takes that (and the class can be
   // converted).
-  @FfiNative<IntPtr Function(Pointer<Void>, IntPtr)>('AddPtrAndInt')
+  @Native<IntPtr Function(Pointer<Void>, IntPtr)>(symbol: 'AddPtrAndInt')
   external int addSelfPtrAndIntMethod(int x);
 
   // Instance methods implicitly pass a 'self' reference as the first argument.
   // Passed as Handle if the native function takes that.
-  @FfiNative<IntPtr Function(Handle, IntPtr)>('AddHandleFieldAndInt')
+  @Native<IntPtr Function(Handle, IntPtr)>(symbol: 'AddHandleFieldAndInt')
   external int addSelfHandleFieldAndIntMethod(int x);
 
-  @FfiNative<IntPtr Function(Pointer<Void>, Pointer<Void>)>('AddPtrAndPtr')
+  @Native<IntPtr Function(Pointer<Void>, Pointer<Void>)>(symbol: 'AddPtrAndPtr')
   external int addSelfPtrAndPtrMethod(ClassWithNativeField other);
 
-  @FfiNative<IntPtr Function(Handle, Pointer<Void>)>('AddHandleFieldAndPtr')
+  @Native<IntPtr Function(Handle, Pointer<Void>)>(
+      symbol: 'AddHandleFieldAndPtr')
   external int addSelfHandleFieldAndPtrMethod(ClassWithNativeField other);
 
-  @FfiNative<IntPtr Function(Handle, Handle)>('AddHandleFieldAndHandleField')
+  @Native<IntPtr Function(Handle, Handle)>(
+      symbol: 'AddHandleFieldAndHandleField')
   external int addSelfHandleFieldAndHandleFieldMethod(
       ClassWithNativeField other);
 
-  @FfiNative<IntPtr Function(Pointer<Void>, Handle)>('AddPtrAndHandleField')
+  @Native<IntPtr Function(Pointer<Void>, Handle)>(
+      symbol: 'AddPtrAndHandleField')
   external int addselfPtrAndHandleFieldMethod(ClassWithNativeField other);
 }
 
 class ClassWithoutNativeField {
   // Instance methods implicitly pass their handle as the first arg.
-  @FfiNative<IntPtr Function(Handle, IntPtr)>('ReturnIntPtrMethod')
+  @Native<IntPtr Function(Handle, IntPtr)>(symbol: 'ReturnIntPtrMethod')
   external int returnIntPtrMethod(int x);
 }
 
 // Native function takes a Handle, so a Handle is passed as-is.
-@FfiNative<IntPtr Function(Handle)>('PassAsHandle')
+@Native<IntPtr Function(Handle)>(symbol: 'PassAsHandle')
 external int passAsHandle(NativeFieldWrapperClass1 obj);
 // FFI signature takes Pointer, Dart signature takes NativeFieldWrapperClass1.
 // This implies automatic conversion.
-@FfiNative<IntPtr Function(Pointer<Void>)>('PassAsPointer')
+@Native<IntPtr Function(Pointer<Void>)>(symbol: 'PassAsPointer')
 external int passAsPointer(NativeFieldWrapperClass1 obj);
 // Pass Pointer automatically, and return value.
-@FfiNative<IntPtr Function(Pointer<Void>, IntPtr)>('PassAsPointerAndValue')
+@Native<IntPtr Function(Pointer<Void>, IntPtr)>(symbol: 'PassAsPointerAndValue')
 external int passAsPointerAndValue(NativeFieldWrapperClass1 obj, int value);
 // Pass Pointer automatically, and return value.
-@FfiNative<IntPtr Function(IntPtr, Pointer<Void>)>('PassAsValueAndPointer')
+@Native<IntPtr Function(IntPtr, Pointer<Void>)>(symbol: 'PassAsValueAndPointer')
 external int passAsValueAndPointer(int value, NativeFieldWrapperClass1 obj);
 
 // Helpers for testing argument evaluation order is preserved.
@@ -116,19 +116,19 @@ void main() {
   // Register test resolver for top-level functions above.
   setFfiNativeResolverForTest(getRootLibraryUrl());
 
-  // Test we can call FfiNative functions.
+  // Test we can call Native functions.
   Expect.equals(123, returnIntPtr(123));
   Expect.equals(123, returnIntPtrLeaf(123));
   Expect.equals(123, Classy.returnIntPtrStatic(123));
 
-  // Test FfiNative leaf calls remain in generated code.
+  // Test Native leaf calls remain in generated code.
   // Regular calls should transition generated -> native.
   Expect.equals(0, isThreadInGenerated());
   // Leaf calls should remain in generated state.
   Expect.equals(1, isThreadInGeneratedLeaf());
 
   // Test that objects extending NativeFieldWrapperClass1 can be passed to
-  // FfiNative functions that take Pointer.
+  // Native functions that take Pointer.
   // Such objects should automatically be converted and pass as Pointer.
   {
     final cwnf = ClassWithNativeField(123456);

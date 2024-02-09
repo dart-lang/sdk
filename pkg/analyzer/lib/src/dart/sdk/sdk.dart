@@ -96,7 +96,7 @@ abstract class AbstractDartSdk implements DartSdk {
   SdkLibrary? getSdkLibrary(String dartUri) => libraryMap.getLibrary(dartUri);
 
   Source? internalMapDartUri(String dartUri) {
-    // TODO(brianwilkerson) Figure out how to unify the implementations in the
+    // TODO(brianwilkerson): Figure out how to unify the implementations in the
     // two subclasses.
     String libraryName;
     String relativePath;
@@ -162,9 +162,9 @@ abstract class AbstractDartSdk implements DartSdk {
     }
   }
 
-  /// TODO(scheglov) This name is misleading, returns `dart:foo/bar.dart`.
+  // TODO(scheglov): This name is misleading, returns `dart:foo/bar.dart`.
   String? _getPath(File file) {
-    // TODO(scheglov) Ideally, all `SdkLibrary` should have `File`, with
+    // TODO(scheglov): Ideally, all `SdkLibrary` should have `File`, with
     // an absolute path, not a relative `path`. For now, we do this only
     // for building SDK summary with `dart:ui`, included from outside
     // of the SDK root.
@@ -208,7 +208,7 @@ class EmbedderSdk extends AbstractDartSdk {
 
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
-  /// TODO(scheglov) Make [languageVersion] required.
+  // TODO(scheglov): Make [languageVersion] required.
   /// https://github.com/dart-lang/sdk/issues/42890
   EmbedderSdk(
     ResourceProvider resourceProvider,
@@ -241,7 +241,7 @@ class EmbedderSdk extends AbstractDartSdk {
   Version get languageVersion => _languageVersion;
 
   @override
-  // TODO(danrubel) Determine SDK version
+  // TODO(danrubel): Determine SDK version
   String get sdkVersion => '0';
 
   /// The URL mappings for this SDK.

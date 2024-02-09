@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'add_dependency_test.dart' as add_dependency_test;
 import 'missing_name_test.dart' as missing_name_test;
 
 void main() {
   defineReflectiveSuite(() {
+    add_dependency_test.main();
     missing_name_test.main();
   });
 }

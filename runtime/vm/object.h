@@ -2949,8 +2949,7 @@ struct NameFormattingParams {
   }
 };
 
-enum class FfiFunctionKind : uint8_t {
-  kCall,
+enum class FfiCallbackKind : uint8_t {
   kIsolateLocalStaticCallback,
   kIsolateLocalClosureCallback,
   kAsyncCallback,
@@ -2979,45 +2978,38 @@ class Function : public Object {
   // Can only be used on FFI trampolines.
   void SetFfiCSignature(const FunctionType& sig) const;
 
-  // Retrieves the "C signature" for an FFI trampoline.
-  // Can only be used on FFI trampolines.
+  // Retrieves the "C signature" for an FFI trampoline or FFI native.
   FunctionTypePtr FfiCSignature() const;
 
   bool FfiCSignatureContainsHandles() const;
   bool FfiCSignatureReturnsStruct() const;
 
   // Can only be called on FFI trampolines.
-  // -1 for Dart -> native calls.
   int32_t FfiCallbackId() const;
 
   // Should be called when ffi trampoline function object is created.
   void AssignFfiCallbackId(int32_t callback_id) const;
 
-  // Can only be called on FFI trampolines.
+  // Can only be called on FFI natives and FFI call closures.
   bool FfiIsLeaf() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiIsLeaf(bool is_leaf) const;
-
-  // Can only be called on FFI trampolines.
-  // Null for Dart -> native calls.
   FunctionPtr FfiCallbackTarget() const;
 
   // Can only be called on FFI trampolines.
   void SetFfiCallbackTarget(const Function& target) const;
 
   // Can only be called on FFI trampolines.
-  // Null for Dart -> native calls.
   InstancePtr FfiCallbackExceptionalReturn() const;
 
   // Can only be called on FFI trampolines.
   void SetFfiCallbackExceptionalReturn(const Instance& value) const;
 
   // Can only be called on FFI trampolines.
-  FfiFunctionKind GetFfiFunctionKind() const;
+  FfiCallbackKind GetFfiCallbackKind() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiFunctionKind(FfiFunctionKind value) const;
+  void SetFfiCallbackKind(FfiCallbackKind value) const;
 
   // Return the signature of this function.
   PRECOMPILER_WSR_FIELD_DECLARATION(FunctionType, signature);
@@ -3072,6 +3064,10 @@ class Function : public Object {
 
   StringPtr native_name() const;
   void set_native_name(const String& name) const;
+
+  InstancePtr GetNativeAnnotation() const;
+  bool is_ffi_native() const;
+  bool is_old_native() const;
 
   AbstractTypePtr result_type() const {
     return signature()->untag()->result_type();
@@ -3577,6 +3573,8 @@ class Function : public Object {
   // and retry it again.
   bool IsIdempotent() const;
 
+  bool IsCachableIdempotent() const;
+
   // Whether this function's |recognized_kind| requires optimization.
   bool RecognizedKindForceOptimize() const;
 
@@ -3897,14 +3895,21 @@ class Function : public Object {
   }
 
   // Returns true if this function represents an ffi trampoline.
-  bool IsFfiTrampoline() const {
+  bool IsFfiCallbackTrampoline() const {
     return kind() == UntaggedFunction::kFfiTrampoline;
   }
-  static bool IsFfiTrampoline(FunctionPtr function) {
+  static bool IsFfiCallbackTrampoline(FunctionPtr function) {
     NoSafepointScope no_safepoint;
     return function->untag()->kind_tag_.Read<KindBits>() ==
            UntaggedFunction::kFfiTrampoline;
   }
+
+  // Returns true if this function is a closure function
+  // used to represent ffi call.
+  bool IsFfiCallClosure() const;
+
+  // Returns value of vm:ffi:call-closure pragma.
+  InstancePtr GetFfiCallClosurePragmaValue() const;
 
   // Returns true for functions which execution can be suspended
   // using Suspend/Resume stubs. Such functions have an artificial
@@ -3928,23 +3933,8 @@ class Function : public Object {
     return modifier() == UntaggedFunction::kAsyncGen;
   }
 
-  bool IsTypedDataViewFactory() const {
-    if (is_native() && kind() == UntaggedFunction::kConstructor) {
-      // This is a native factory constructor.
-      const Class& klass = Class::Handle(Owner());
-      return IsTypedDataViewClassId(klass.id());
-    }
-    return false;
-  }
-
-  bool IsUnmodifiableTypedDataViewFactory() const {
-    if (is_native() && kind() == UntaggedFunction::kConstructor) {
-      // This is a native factory constructor.
-      const Class& klass = Class::Handle(Owner());
-      return IsUnmodifiableTypedDataViewClassId(klass.id());
-    }
-    return false;
-  }
+  bool IsTypedDataViewFactory() const;
+  bool IsUnmodifiableTypedDataViewFactory() const;
 
   DART_WARN_UNUSED_RESULT
   ErrorPtr VerifyCallEntryPoint() const;
@@ -4136,6 +4126,7 @@ class Function : public Object {
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)                                    \
+  V(IsExtensionTypeMember, is_extension_type_member)                           \
   V(IsRedirectingFactory, is_redirecting_factory)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
@@ -4356,16 +4347,13 @@ class FfiTrampolineData : public Object {
   }
   void set_callback_exceptional_return(const Instance& value) const;
 
-  FfiFunctionKind ffi_function_kind() const {
-    return static_cast<FfiFunctionKind>(untag()->ffi_function_kind_);
+  FfiCallbackKind ffi_function_kind() const {
+    return static_cast<FfiCallbackKind>(untag()->ffi_function_kind_);
   }
-  void set_ffi_function_kind(FfiFunctionKind kind) const;
+  void set_ffi_function_kind(FfiCallbackKind kind) const;
 
   int32_t callback_id() const { return untag()->callback_id_; }
   void set_callback_id(int32_t value) const;
-
-  bool is_leaf() const { return untag()->is_leaf_; }
-  void set_is_leaf(bool value) const;
 
   static FfiTrampolineDataPtr New();
 
@@ -4414,6 +4402,9 @@ class Field : public Object {
   bool is_late() const { return IsLateBit::decode(kind_bits()); }
   bool is_extension_member() const {
     return IsExtensionMemberBit::decode(kind_bits());
+  }
+  bool is_extension_type_member() const {
+    return IsExtensionTypeMemberBit::decode(kind_bits());
   }
   bool needs_load_guard() const {
     return NeedsLoadGuardBit::decode(kind_bits());
@@ -4700,6 +4691,10 @@ class Field : public Object {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(IsExtensionMemberBit::update(value, untag()->kind_bits_));
   }
+  void set_is_extension_type_member(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
+    set_kind_bits(IsExtensionTypeMemberBit::update(value, untag()->kind_bits_));
+  }
   void set_needs_load_guard(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(NeedsLoadGuardBit::update(value, untag()->kind_bits_));
@@ -4818,6 +4813,7 @@ class Field : public Object {
     kGenericCovariantImplBit,
     kIsLateBit,
     kIsExtensionMemberBit,
+    kIsExtensionTypeMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
   };
@@ -4840,6 +4836,8 @@ class Field : public Object {
   class IsLateBit : public BitField<uint16_t, bool, kIsLateBit, 1> {};
   class IsExtensionMemberBit
       : public BitField<uint16_t, bool, kIsExtensionMemberBit, 1> {};
+  class IsExtensionTypeMemberBit
+      : public BitField<uint16_t, bool, kIsExtensionTypeMemberBit, 1> {};
   class NeedsLoadGuardBit
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit
@@ -5134,6 +5132,11 @@ class Library : public Object {
 
   void AddMetadata(const Object& declaration, intptr_t kernel_offset) const;
   ObjectPtr GetMetadata(const Object& declaration) const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void EvaluatePragmas();
+  void CopyPragmas(const Library& old_lib);
+#endif
 
   // Tries to finds a @pragma annotation on [object].
   //
@@ -5521,8 +5524,11 @@ class ObjectPool : public Object {
  public:
   using EntryType = compiler::ObjectPoolBuilderEntry::EntryType;
   using Patchability = compiler::ObjectPoolBuilderEntry::Patchability;
+  using SnapshotBehavior = compiler::ObjectPoolBuilderEntry::SnapshotBehavior;
   using TypeBits = compiler::ObjectPoolBuilderEntry::TypeBits;
   using PatchableBit = compiler::ObjectPoolBuilderEntry::PatchableBit;
+  using SnapshotBehaviorBits =
+      compiler::ObjectPoolBuilderEntry::SnapshotBehaviorBits;
 
   struct Entry {
     Entry() : raw_value_(), type_() {}
@@ -5570,13 +5576,24 @@ class ObjectPool : public Object {
     return PatchableBit::decode(untag()->entry_bits()[index]);
   }
 
-  static uint8_t EncodeBits(EntryType type, Patchability patchable) {
-    return PatchableBit::encode(patchable) | TypeBits::encode(type);
+  SnapshotBehavior SnapshotBehaviorAt(intptr_t index) const {
+    ASSERT((index >= 0) && (index <= Length()));
+    return SnapshotBehaviorBits::decode(untag()->entry_bits()[index]);
   }
 
-  void SetTypeAt(intptr_t index, EntryType type, Patchability patchable) const {
+  static uint8_t EncodeBits(EntryType type,
+                            Patchability patchable,
+                            SnapshotBehavior snapshot_behavior) {
+    return PatchableBit::encode(patchable) | TypeBits::encode(type) |
+           SnapshotBehaviorBits::encode(snapshot_behavior);
+  }
+
+  void SetTypeAt(intptr_t index,
+                 EntryType type,
+                 Patchability patchable,
+                 SnapshotBehavior snapshot_behavior) const {
     ASSERT(index >= 0 && index <= Length());
-    const uint8_t bits = EncodeBits(type, patchable);
+    const uint8_t bits = EncodeBits(type, patchable, snapshot_behavior);
     StoreNonPointer(&untag()->entry_bits()[index], bits);
   }
 
@@ -6129,8 +6146,12 @@ class PcDescriptors : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
+    return memcmp(untag()->data(), other.untag()->data(), Length()) == 0;
   }
+
+  // Writes the contents of the PcDescriptors object to the given buffer.
+  // The base argument is added to the PC offset for each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
  private:
   static const char* KindAsStr(UntaggedPcDescriptors::Kind kind);
@@ -6175,7 +6196,7 @@ class CodeSourceMap : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
+    return memcmp(untag()->data(), other.untag()->data(), Length()) == 0;
   }
 
   uint32_t Hash() const {
@@ -6211,7 +6232,7 @@ class CompressedStackMaps : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(payload_size())) == 0;
+    return memcmp(data(), other.data(), payload_size()) == 0;
   }
   uword Hash() const;
 
@@ -6481,7 +6502,12 @@ class CompressedStackMaps : public Object {
 
   Iterator<CompressedStackMaps> iterator(Thread* thread) const;
 
-  void WriteToBuffer(BaseTextBuffer* buffer, const char* separator) const;
+  // Writes the contents of the CompressedStackMaps object to the given buffer.
+  // The base argument is added to the PC offset for each entry, and the
+  // separator string is inserted between each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer,
+                     uword base,
+                     const char* separator) const;
 
  private:
   static CompressedStackMapsPtr New(const void* payload,
@@ -6542,6 +6568,10 @@ class ExceptionHandlers : public Object {
 
   // We would have a VisitPointers function here to traverse the
   // exception handler table to visit objects if any in the table.
+
+  // Writes the contents of the ExceptionHandlers object to the given buffer.
+  // The base argument is added to the PC offset for each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
  private:
   // Pick somewhat arbitrary maximum number of exception handlers
@@ -7315,6 +7345,7 @@ class Code : public Object {
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
   friend class InstanceCall;       // for StorePointerUnaligned
   friend class StaticCall;         // for StorePointerUnaligned
+  friend void DumpStackFrame(intptr_t frame_index, uword pc, uword fp);
 };
 
 class Context : public Object {
@@ -9661,6 +9692,8 @@ class FunctionType : public AbstractType {
                              Heap::Space space = Heap::kOld);
 
   static FunctionTypePtr Clone(const FunctionType& orig, Heap::Space space);
+
+  bool ContainsHandles() const;
 
  private:
   static FunctionTypePtr New(Heap::Space space);

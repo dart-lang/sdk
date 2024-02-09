@@ -8,78 +8,43 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TryStatementTest1);
-    defineReflectiveTests(TryStatementTest2);
+    defineReflectiveTests(TryStatementTest);
   });
 }
 
 @reflectiveTest
-class TryStatementTest1 extends AbstractCompletionDriverTest
-    with TryStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class TryStatementTest2 extends AbstractCompletionDriverTest
-    with TryStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class TryStatementTest extends AbstractCompletionDriverTest
+    with TryStatementTestCases {}
 
 mixin TryStatementTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterCatchClause_beforeEnd_partial() async {
     await computeSuggestions('''
 void f() {try {} catch (e) {} c^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   catch
     kind: keyword
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  catch
-    kind: keyword
-  finally
-    kind: keyword
-  on
+  const
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_afterCatchClause_beforeEnd_partial2() async {
     await computeSuggestions('''
 void f() {try {} on SomeException {} c^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   catch
     kind: keyword
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  catch
-    kind: keyword
-  finally
-    kind: keyword
-  on
+  const
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_afterCatchClause_beforeEnd_withOn() async {
@@ -98,6 +63,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -108,6 +75,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -115,6 +84,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -143,6 +114,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -153,6 +126,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -160,6 +135,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -188,6 +165,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -198,6 +177,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -205,6 +186,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -233,6 +216,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -243,6 +228,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -250,6 +237,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -278,6 +267,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -288,6 +279,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -295,6 +288,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -324,6 +319,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -334,6 +331,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -341,6 +340,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -357,27 +358,13 @@ suggestions
     await computeSuggestions('''
 void f() {try {} c^ catch (e) {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   catch
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  catch
-    kind: keyword
-  finally
-    kind: keyword
-  on
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterTryBlock_beforeCatchClause_withOn() async {
@@ -425,54 +412,26 @@ suggestions
     await computeSuggestions('''
 void f() {try {} c^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   catch
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  catch
-    kind: keyword
-  finally
-    kind: keyword
-  on
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterTryBlock_beforeFinally_partial() async {
     await computeSuggestions('''
 void f() {try {} c^ finally {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   catch
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  catch
-    kind: keyword
-  finally
-    kind: keyword
-  on
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterTryBlock_beforeFinallyClause() async {
@@ -489,64 +448,21 @@ suggestions
   }
 
   Future<void> test_afterTryBlock_beforeOn_partial() async {
-    // This is an odd test because the `catch` belongs after the `on` clause,
-    // which makes it hard to know what the user might be trying to type.
+    // What the user is likely trying to do is add a new clause before the `on`,
+    // in which case we shouldn't be suggesting `finally`, but the parser
+    // produces a try statement with no clauses, followed by a variable
+    // declaration statement (`c on;`), so we can't see that there's already a
+    // `catch` clause.
     await computeSuggestions('''
 void f() {try {} c^ on SomeException {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   catch
     kind: keyword
-  const
-    kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  catch
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  finally
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  on
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterTryBlock_beforeSemicolon() async {

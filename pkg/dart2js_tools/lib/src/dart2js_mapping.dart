@@ -4,6 +4,7 @@
 
 /// Representation of a source-map file with dart2js-specific extensions, and
 /// helper functions to parse them.
+library;
 
 import 'dart:convert';
 import 'dart:io';

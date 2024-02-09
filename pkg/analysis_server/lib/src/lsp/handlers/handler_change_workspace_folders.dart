@@ -43,9 +43,12 @@ class ChangeWorkspaceFoldersHandler
   }
 
   /// Return the result of converting the list of workspace [folders] to file
-  /// paths.
+  /// paths, removing any that are not file URIs.
   List<String> _convertWorkspaceFolders(List<WorkspaceFolder> folders) {
-    return folders.map((wf) => pathContext.fromUri(wf.uri)).toList();
+    return folders
+        .where((wf) => wf.uri.isScheme('file'))
+        .map((wf) => pathContext.fromUri(wf.uri))
+        .toList();
   }
 }
 

@@ -9,42 +9,52 @@ import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BlockTest1);
-    defineReflectiveTests(BlockTest2);
+    defineReflectiveTests(BlockInCatchClauseTest);
+    defineReflectiveTests(BlockInDoStatementTest);
+    defineReflectiveTests(BlockInForStatementTest);
+    defineReflectiveTests(BlockInFunctionBodyTest);
+    defineReflectiveTests(BlockInFunctionExpressionBodyTest);
+    defineReflectiveTests(BlockInLocalFunctionBodyTest);
+    defineReflectiveTests(BlockInMethodBodyTest);
+    defineReflectiveTests(BlockInWhileStatementTest);
+    defineReflectiveTests(BlockTest);
   });
 }
 
 @reflectiveTest
-class BlockTest1 extends AbstractCompletionDriverTest
-    with
-        BlockTestCases,
-        CatchClauseTestCases,
-        FunctionBodyTestCases,
-        DoStatementTestCases,
-        ForStatementTestCases,
-        MethodBodyTestCases,
-        FunctionExpressionBodyTestCases,
-        LocalFunctionBodyTestCases,
-        WhileStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
+class BlockInCatchClauseTest extends AbstractCompletionDriverTest
+    with CatchClauseTestCases {}
 
 @reflectiveTest
-class BlockTest2 extends AbstractCompletionDriverTest
-    with
-        BlockTestCases,
-        CatchClauseTestCases,
-        FunctionBodyTestCases,
-        DoStatementTestCases,
-        ForStatementTestCases,
-        MethodBodyTestCases,
-        FunctionExpressionBodyTestCases,
-        LocalFunctionBodyTestCases,
-        WhileStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class BlockInDoStatementTest extends AbstractCompletionDriverTest
+    with DoStatementTestCases {}
+
+@reflectiveTest
+class BlockInForStatementTest extends AbstractCompletionDriverTest
+    with ForStatementTestCases {}
+
+@reflectiveTest
+class BlockInFunctionBodyTest extends AbstractCompletionDriverTest
+    with FunctionBodyTestCases {}
+
+@reflectiveTest
+class BlockInFunctionExpressionBodyTest extends AbstractCompletionDriverTest
+    with FunctionExpressionBodyTestCases {}
+
+@reflectiveTest
+class BlockInLocalFunctionBodyTest extends AbstractCompletionDriverTest
+    with LocalFunctionBodyTestCases {}
+
+@reflectiveTest
+class BlockInMethodBodyTest extends AbstractCompletionDriverTest
+    with MethodBodyTestCases {}
+
+@reflectiveTest
+class BlockInWhileStatementTest extends AbstractCompletionDriverTest
+    with WhileStatementTestCases {}
+
+@reflectiveTest
+class BlockTest extends AbstractCompletionDriverTest with BlockTestCases {}
 
 mixin BlockTestCases on AbstractCompletionDriverTest {
   static final spaces_4 = ' ' * 4;
@@ -137,6 +147,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -144,6 +156,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   rethrow
     kind: keyword
@@ -153,6 +167,8 @@ suggestions
     kind: keyword
   throw
     kind: keyword
+  true
+    kind: keyword
   try
     kind: keyword
   var
@@ -160,6 +176,22 @@ suggestions
   void
     kind: keyword
   while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_inCatchClause_partial() async {
+    await computeSuggestions('''
+void f() {try {} catch (e) {r^}}}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  rethrow
+    kind: keyword
+  return
     kind: keyword
 ''');
   }
@@ -184,6 +216,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -192,11 +226,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -227,6 +265,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -234,6 +274,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -244,6 +286,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -276,6 +320,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -284,11 +330,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -319,6 +369,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -326,6 +378,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -336,6 +390,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -364,6 +420,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -372,11 +430,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -405,6 +467,8 @@ suggestions
     kind: keyword
   else
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -413,11 +477,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -446,6 +514,8 @@ suggestions
     kind: keyword
   else
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -454,11 +524,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -476,55 +550,13 @@ suggestions
     await computeSuggestions('''
 void f() async* {n^ foo}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  await
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  yield
-    kind: keyword
-  yield*
+  null
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_afterLeftBrace_beforeRightBrace() async {
@@ -541,6 +573,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -549,11 +583,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -582,6 +620,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -590,11 +630,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -612,55 +656,13 @@ suggestions
     await computeSuggestions('''
 void f() async* {n^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  await
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  yield
-    kind: keyword
-  yield*
+  null
     kind: keyword
 ''');
-    }
   }
 
   Future<void>
@@ -668,55 +670,13 @@ suggestions
     await computeSuggestions('''
 void f() sync* {n^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
-''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  await
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  yield
-    kind: keyword
-  yield*
+  null
     kind: keyword
 ''');
-    }
   }
 }
 
@@ -737,6 +697,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -745,11 +707,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -780,6 +746,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -788,11 +756,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -825,6 +797,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -833,11 +807,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -870,6 +848,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -878,11 +858,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -919,6 +903,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -926,6 +912,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -936,6 +924,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -970,6 +960,8 @@ suggestions
     kind: keyword
   f2
     kind: functionInvocation
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -977,6 +969,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -987,6 +981,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -1023,6 +1019,8 @@ suggestions
     kind: keyword
   f2
     kind: functionInvocation
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -1030,6 +1028,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -1040,6 +1040,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -1077,6 +1079,8 @@ suggestions
     kind: keyword
   f2
     kind: functionInvocation
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -1084,6 +1088,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -1094,6 +1100,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -1160,6 +1168,8 @@ suggestions
     kind: field
   f2
     kind: methodInvocation
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -1176,6 +1186,8 @@ suggestions
     kind: field
   m2
     kind: methodInvocation
+  null
+    kind: keyword
   return
     kind: keyword
   super
@@ -1185,6 +1197,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -1213,6 +1227,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -1220,6 +1236,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -1230,6 +1248,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -1258,6 +1278,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -1265,6 +1287,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -1275,6 +1299,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -1311,6 +1337,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -1319,11 +1347,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -1354,6 +1386,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -1361,6 +1395,8 @@ suggestions
   if
     kind: keyword
   late
+    kind: keyword
+  null
     kind: keyword
   return
     kind: keyword
@@ -1371,6 +1407,8 @@ suggestions
   this
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword

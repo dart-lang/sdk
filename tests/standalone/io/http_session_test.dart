@@ -119,7 +119,6 @@ void testSessionsData() {
         Expect.isTrue(session.containsKey("data"));
         Expect.equals("some data", session["data"]);
       }
-      ;
       request.response.close();
     });
 

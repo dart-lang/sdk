@@ -1044,7 +1044,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
       // Local closure function.
       const auto& target = Function::Cast(entry);
       AddFunction(target, RetainReasons::kLocalClosure);
-      if (target.IsFfiTrampoline()) {
+      if (target.IsFfiCallbackTrampoline()) {
         const auto& callback_target =
             Function::Handle(Z, target.FfiCallbackTarget());
         if (!callback_target.IsNull()) {
@@ -1117,7 +1117,7 @@ void Precompiler::AddTypesOf(const Function& function) {
   const Class& owner = Class::Handle(Z, function.Owner());
   AddTypesOf(owner);
 
-  if (function.IsFfiTrampoline()) {
+  if (function.IsFfiCallbackTrampoline()) {
     AddType(FunctionType::Handle(Z, function.FfiCSignature()));
   }
 
@@ -1377,7 +1377,7 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
   // * Selector matches a symbol used in Resolver::ResolveDynamic calls
   //   in dart_entry.cc or dart_api_impl.cc.
   // * _Closure.call (used in async stack handling)
-  if (function.is_native()) {
+  if (function.is_old_native()) {
     return "native function";
   }
 
@@ -1409,6 +1409,7 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
 
 void Precompiler::AddFunction(const Function& function,
                               const char* retain_reason) {
+  ASSERT(!function.is_abstract());
   if (is_tracing()) {
     tracer_->WriteFunctionRef(function);
   }
@@ -1587,8 +1588,10 @@ void Precompiler::AddAnnotatedRoots() {
           if (type == EntryPointPragma::kAlways ||
               type == EntryPointPragma::kCallOnly) {
             functions_with_entry_point_pragmas_.Insert(function);
-            AddFunction(function, RetainReasons::kEntryPointPragma);
             AddApiUse(function);
+            if (!function.is_abstract()) {
+              AddFunction(function, RetainReasons::kEntryPointPragma);
+            }
           }
 
           if ((type == EntryPointPragma::kAlways ||
@@ -1597,7 +1600,9 @@ void Precompiler::AddAnnotatedRoots() {
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
             functions_with_entry_point_pragmas_.Insert(function2);
-            AddFunction(function2, RetainReasons::kEntryPointPragma);
+            if (!function.is_abstract()) {
+              AddFunction(function2, RetainReasons::kEntryPointPragma);
+            }
 
             // Not `function2`: Dart_GetField will lookup the regular function
             // and get the implicit closure function from that.
@@ -1643,7 +1648,7 @@ void Precompiler::AddAnnotatedRoots() {
             }
           }
         }
-        if (function.is_native()) {
+        if (function.is_old_native()) {
           // The embedder will need to lookup this library to provide the native
           // resolver, even if there are no embedder calls into the library.
           AddApiUse(lib);
@@ -2025,7 +2030,7 @@ void Precompiler::TraceForRetainedFunctions() {
     // Ffi trampoline functions are not reachable from program structure,
     // they are referenced only from code (object pool).
     if (!functions_to_retain_.ContainsKey(function) &&
-        !function.IsFfiTrampoline()) {
+        !function.IsFfiCallbackTrampoline()) {
       FATAL("Function %s was not traced in TraceForRetainedFunctions\n",
             function.ToFullyQualifiedCString());
     }
@@ -2184,11 +2189,11 @@ void Precompiler::DropFunctions() {
       // which need the signature.
       return AddRetainReason(sig, RetainReasons::kClosureSignature);
     }
-    if (function.IsFfiTrampoline()) {
+    if (function.IsFfiCallbackTrampoline()) {
       // FFI trampolines may be dynamically called.
       return AddRetainReason(sig, RetainReasons::kFfiTrampolineSignature);
     }
-    if (function.is_native()) {
+    if (function.is_old_native()) {
       return AddRetainReason(sig, RetainReasons::kNativeSignature);
     }
     if (function.HasRequiredNamedParameters()) {
@@ -2978,7 +2983,7 @@ void Precompiler::DiscardCodeObjects() {
       if (functions_to_retain_.ContainsKey(function_)) {
         // Retain Code objects corresponding to native functions
         // (to find native implementation).
-        if (function_.is_native()) {
+        if (function_.is_old_native()) {
           ++codes_with_native_function_;
           return;
         }
@@ -3010,7 +3015,7 @@ void Precompiler::DiscardCodeObjects() {
       }
 
       // Retain Code objects corresponding to FFI trampolines.
-      if (function_.IsFfiTrampoline()) {
+      if (function_.IsFfiCallbackTrampoline()) {
         ++codes_with_ffi_trampoline_function_;
         return;
       }
@@ -3450,8 +3455,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
     function.AttachCode(code);
   }
 
-  if (function.IsFfiTrampoline() &&
-      function.GetFfiFunctionKind() != FfiFunctionKind::kCall) {
+  if (function.IsFfiCallbackTrampoline()) {
     compiler::ffi::SetFfiCallbackCode(thread(), function, code);
   }
 }

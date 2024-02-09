@@ -92,7 +92,8 @@ class SplitAndCondition extends ResolvedCorrectionProducer {
         builder.addSimpleReplacement(
             linesRange,
             utils.replaceSourceRangeIndent(
-                linesRange, thenIndentOld, thenIndentNew));
+                linesRange, thenIndentOld, thenIndentNew,
+                includeLeading: true, ensureTrailingNewline: true));
       }
     });
   }

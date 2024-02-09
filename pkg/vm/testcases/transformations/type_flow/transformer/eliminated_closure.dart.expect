@@ -1,0 +1,36 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+}
+abstract class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  abstract get foo() → self::A;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3] [@vm.closure-id=0]  method toString() → core::String
+    return block {
+      [@vm.direct-call.metadata=#lib::E.foo] [@vm.inferred-type.metadata=!] this.{self::C::foo}{self::A};
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method baz([@vm.inferred-arg-type.metadata=dart.core::_Closure] (dynamic) → void callback) → core::String {
+    core::print(callback);
+    return "hey";
+  }
+}
+class E extends self::C {
+  synthetic constructor •() → self::E
+    : super self::C::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get foo() → self::A
+    return throw "Not today";
+}
+static method main() → void {
+  core::print(new self::D::•());
+  core::print(new self::E::•());
+}

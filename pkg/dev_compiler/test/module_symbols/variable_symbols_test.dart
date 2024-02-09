@@ -19,8 +19,6 @@ void main() async {
         late final TestDriver driver;
         late final VariableSymbol variableSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {}
           var globalVariable = A();
           ''';
@@ -74,8 +72,6 @@ void main() async {
         late final TestDriver driver;
         late final VariableSymbol variableSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {}
           final localVariable = A();
           ''';
@@ -95,8 +91,6 @@ void main() async {
         late final TestDriver driver;
         late final VariableSymbol variableSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             const A();
           }

@@ -34,7 +34,7 @@ class ExecutionGetSuggestionsHandler extends LegacyHandler {
 //    var result = new ExecutionGetSuggestionsResult(
 //        suggestions: completionResult.suggestions,
 //        expressions: completionResult.expressions);
-    // TODO(brianwilkerson) Re-enable this functionality after implementing a
+    // TODO(brianwilkerson): Re-enable this functionality after implementing a
     // way of computing suggestions that is compatible with AnalysisSession.
     var result = ExecutionGetSuggestionsResult(
         suggestions: <CompletionSuggestion>[],

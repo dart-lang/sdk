@@ -724,6 +724,12 @@ class AssemblerBase : public StackResource {
                             Register temp,
                             Label* equals) = 0;
 
+  void UnrolledMemCopy(Register dst_base,
+                       intptr_t dst_offset,
+                       Register src_base,
+                       intptr_t src_offset,
+                       intptr_t size,
+                       Register temp);
   enum CanBeSmi {
     kValueCanBeSmi,
     kValueIsNotSmi,
@@ -833,6 +839,22 @@ class AssemblerBase : public StackResource {
                             Register address,
                             int32_t offset = 0) = 0;
 
+  // Truncates upper bits.
+  virtual void LoadInt32FromBoxOrSmi(Register result, Register value) = 0;
+
+#if !defined(TARGET_ARCH_IS_32_BIT)
+  virtual void LoadInt64FromBoxOrSmi(Register result, Register value) = 0;
+#endif
+
+  // Truncates upper bits on 32 bit archs.
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+    LoadInt32FromBoxOrSmi(result, value);
+#else
+    LoadInt64FromBoxOrSmi(result, value);
+#endif
+  }
+
   // Loads nullability from an AbstractType [type] to [dst].
   void LoadAbstractTypeNullability(Register dst, Register type);
   // Loads nullability from an AbstractType [type] and compares it
@@ -840,6 +862,8 @@ class AssemblerBase : public StackResource {
   void CompareAbstractTypeNullabilityWith(Register type,
                                           /*Nullability*/ int8_t value,
                                           Register scratch);
+
+  virtual void LoadImmediate(Register dst, target::word imm) = 0;
 
   virtual void CompareImmediate(Register reg,
                                 target::word imm,
@@ -897,6 +921,9 @@ class AssemblerBase : public StackResource {
                                        bool can_be_null = false) = 0;
 
   intptr_t InsertAlignedRelocation(BSS::Relocation reloc);
+
+  void MsanUnpoison(Register base, intptr_t length_in_bytes);
+  void MsanUnpoison(Register base, Register length_in_bytes);
 
   void Unimplemented(const char* message);
   void Untested(const char* message);

@@ -43,6 +43,41 @@ abstract class DillExtensionTypeMemberBuilder extends DillMemberBuilder {
     }
     return null;
   }
+
+  @override
+  bool get isConstructor {
+    switch (_descriptor.kind) {
+      case ExtensionTypeMemberKind.Method:
+      case ExtensionTypeMemberKind.Getter:
+      case ExtensionTypeMemberKind.Operator:
+      case ExtensionTypeMemberKind.Setter:
+      case ExtensionTypeMemberKind.Field:
+      case ExtensionTypeMemberKind.Factory:
+      case ExtensionTypeMemberKind.RedirectingFactory:
+        return false;
+      case ExtensionTypeMemberKind.Constructor:
+        return true;
+    }
+  }
+
+  @override
+  bool get isFactory {
+    switch (_descriptor.kind) {
+      case ExtensionTypeMemberKind.Method:
+      case ExtensionTypeMemberKind.Getter:
+      case ExtensionTypeMemberKind.Operator:
+      case ExtensionTypeMemberKind.Setter:
+      case ExtensionTypeMemberKind.Field:
+      case ExtensionTypeMemberKind.Constructor:
+        return false;
+      case ExtensionTypeMemberKind.Factory:
+      case ExtensionTypeMemberKind.RedirectingFactory:
+        return true;
+    }
+  }
+
+  @override
+  Name get memberName => new Name(name, member.enclosingLibrary);
 }
 
 class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder {

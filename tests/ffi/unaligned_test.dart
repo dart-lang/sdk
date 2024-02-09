@@ -12,14 +12,36 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
+final bool isUnalignedFloatingPointAccessSupported = switch (Abi.current()) {
+  // ARMv7-A in [Unaligned Access][1] specifies that VSTR and VLDR will trigger
+  // alignment trap if address is not word aligned irrespective of SCTLR.A
+  // state. Some operating systems (e.g. Linux via [`/proc/cpu/alignment`][2])
+  // can be configured to catch alignment trap, perform unaligned read in
+  // kernel and resume the execution. Android on the other hand configures
+  // `/proc/cpu/alignment` to always forward alignment trap to the application
+  // as a SIGBUS. Finally, different version of QEMU implement different
+  // behavior for unaligned accesses: older versions ignored ARMv7-A
+  // requirements while newer versions will correctly trigger alignment trap.
+  //
+  // We have decided in https://dartbug.com/45009 that we are not going to
+  // support unaligned accesses in FFI in a special way (e.g. it is on user
+  // to be aware of potential problems with unaligned accesses). Consequently
+  // we simply ignore double and float unaligned tests in configurations
+  // where they cause alignment traps (irrespective of whether OS will fixup
+  // and hide the trap from the user or not).
+  //
+  // [1]: https://developer.arm.com/documentation/ddi0406/c/Application-Level-Architecture/Application-Level-Memory-Model/Alignment-support/Unaligned-data-access?lang=en
+  // [2]: https://docs.kernel.org/arch/arm/mem_alignment.html
+  Abi.androidArm || Abi.linuxArm || Abi.iosArm  => false,
+  _ => true,
+};
+
 void main() {
   print("hello");
   testUnalignedInt16(); //# 01: ok
   testUnalignedInt32(); //# 02: ok
   testUnalignedInt64(); //# 03: ok
-  if (!Platform.isAndroid || sizeOf<Pointer>() == 8) {
-    // TODO(http://dartbug.com/45009): Support unaligned reads/writes on
-    // Android arm32.
+  if (isUnalignedFloatingPointAccessSupported) {
     testUnalignedFloat(); //# 04: ok
     testUnalignedDouble(); //# 05: ok
   }

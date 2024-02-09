@@ -10,6 +10,9 @@ final Version dart2_12 = Version(2, 12, 0);
 /// A version describing Dart language version 3.0.0.
 final Version dart3 = Version(3, 0, 0);
 
+/// A version describing Dart language version 3.3.0.
+final Version dart3_3 = Version(3, 3, 0);
+
 /// A state that marks a lint as deprecated.
 class DeprecatedState extends State {
   /// An optional lint name that replaces the rule with this state.
@@ -24,6 +27,12 @@ class DeprecatedState extends State {
 class ExperimentalState extends State {
   /// Initialize a newly created experimental state with given values.
   const ExperimentalState({super.since}) : super(label: 'experimental');
+}
+
+/// A state that marks a lint as for internal (Dart SDK) use only.
+class InternalState extends State {
+  /// Initialize a newly created internal state with given values.
+  const InternalState({super.since}) : super(label: 'internal');
 }
 
 /// A state that identifies a lint as having been removed.
@@ -46,6 +55,7 @@ abstract class State {
   static const _undatedStable = StableState();
   static const _undatedDeprecated = DeprecatedState();
   static const _undatedExperimental = ExperimentalState();
+  static const _undatedInternal = InternalState();
 
   /// An Optional Dart language version that identifies the start of this state.
   final Version? since;
@@ -67,6 +77,10 @@ abstract class State {
   factory State.experimental({Version? since}) =>
       since == null ? _undatedExperimental : ExperimentalState(since: since);
 
+  /// Initialize a newly created internal state with given values.
+  factory State.internal({Version? since}) =>
+      since == null ? _undatedInternal : InternalState(since: since);
+
   /// Initialize a newly created removed state with given values.
   factory State.removed({Version? since, String? replacedBy}) =>
       RemovedState(since: since, replacedBy: replacedBy);
@@ -83,6 +97,7 @@ abstract class State {
 extension StateExtension on State {
   bool get isDeprecated => this is DeprecatedState;
   bool get isExperimental => this is ExperimentalState;
+  bool get isInternal => this is InternalState;
   bool get isRemoved => this is RemovedState;
   bool get isStable => this is StableState;
 }

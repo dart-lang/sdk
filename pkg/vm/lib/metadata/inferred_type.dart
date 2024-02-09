@@ -11,6 +11,8 @@ import 'package:kernel/src/printer.dart';
 class InferredType {
   final Reference? _concreteClassReference;
   final Constant? _constantValue;
+  final Reference? _closureMemberReference;
+  final int _closureId;
   final int _flags;
 
   static const int flagNullable = 1 << 0;
@@ -19,9 +21,13 @@ class InferredType {
   // For invocations: whether to use the unchecked entry-point.
   static const int flagSkipCheck = 1 << 2;
 
+  // Contains inferred constant value.
   static const int flagConstant = 1 << 3;
 
   static const int flagReceiverNotInt = 1 << 4;
+
+  // Contains inferred closure value.
+  static const int flagClosure = 1 << 5;
 
   // Entire list may be null if no type arguments were inferred.
   // Will always be null if `concreteClass` is null.
@@ -33,30 +39,43 @@ class InferredType {
   // argument (in the runtime type) is always exactly a particular `DartType`.
   final List<DartType?>? exactTypeArguments;
 
-  InferredType(
-      Class? concreteClass, bool nullable, bool isInt, Constant? constantValue,
+  InferredType(Class? concreteClass, bool nullable, bool isInt,
+      Constant? constantValue, Member? closureMember, int closureId,
       {List<DartType?>? exactTypeArguments,
       bool skipCheck = false,
       bool receiverNotInt = false})
       : this._byReference(
             concreteClass?.reference,
             constantValue,
+            closureMember?.reference,
+            closureId,
             (nullable ? flagNullable : 0) |
                 (isInt ? flagInt : 0) |
                 (skipCheck ? flagSkipCheck : 0) |
                 (constantValue != null ? flagConstant : 0) |
-                (receiverNotInt ? flagReceiverNotInt : 0),
+                (receiverNotInt ? flagReceiverNotInt : 0) |
+                (closureMember != null ? flagClosure : 0),
             exactTypeArguments);
 
-  InferredType._byReference(this._concreteClassReference, this._constantValue,
-      this._flags, this.exactTypeArguments) {
+  InferredType._byReference(
+      this._concreteClassReference,
+      this._constantValue,
+      this._closureMemberReference,
+      this._closureId,
+      this._flags,
+      this.exactTypeArguments) {
     assert(exactTypeArguments == null || _concreteClassReference != null);
     assert(_constantValue == null || _concreteClassReference != null);
+    assert(_closureMemberReference == null || _concreteClassReference != null);
+    assert(_closureId >= 0);
   }
 
   Class? get concreteClass => _concreteClassReference?.asClass;
 
   Constant? get constantValue => _constantValue;
+
+  Member? get closureMember => _closureMemberReference?.asMember;
+  int get closureId => _closureId;
 
   bool get nullable => (_flags & flagNullable) != 0;
   bool get isInt => (_flags & flagInt) != 0;
@@ -96,6 +115,10 @@ class InferredType {
     if (receiverNotInt) {
       buf.write(' (receiver not int)');
     }
+    if (closureMember != null) {
+      buf.write(
+          ' (closure ${closureId} in ${closureMember!.toText(astTextStrategyForTesting)})');
+    }
     return buf.toString();
   }
 }
@@ -116,9 +139,15 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
     // them for optimizations.
     sink.writeNullAllowedCanonicalNameReference(
         metadata.concreteClass?.reference);
+    final flags = metadata._flags;
     sink.writeByte(metadata._flags);
-    if (metadata.constantValue != null) {
+    if ((flags & InferredType.flagConstant) != 0) {
       sink.writeConstantReference(metadata.constantValue!);
+    }
+    if ((flags & InferredType.flagClosure) != 0) {
+      sink.writeNullAllowedCanonicalNameReference(
+          metadata.closureMember!.reference);
+      sink.writeUInt30(metadata.closureId);
     }
   }
 
@@ -132,8 +161,13 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
     final constantValue = (flags & InferredType.flagConstant) != 0
         ? source.readConstantReference()
         : null;
-    return new InferredType._byReference(
-        concreteClassReference, constantValue, flags, null);
+    final closureMemberReference = (flags & InferredType.flagClosure) != 0
+        ? source.readNullableCanonicalNameReference()!.reference
+        : null;
+    final closureId =
+        (flags & InferredType.flagClosure) != 0 ? source.readUInt30() : 0;
+    return new InferredType._byReference(concreteClassReference, constantValue,
+        closureMemberReference, closureId, flags, null);
   }
 }
 

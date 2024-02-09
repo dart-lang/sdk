@@ -282,7 +282,7 @@ EnumConstantDeclaration
         IntegerLiteral
           literal: 42
           parameter: <null>
-          staticType: null
+          staticType: int
       rightParenthesis: )
   constructorElement: <null>
   declaredElement: self::@enum::E::@field::v
@@ -310,7 +310,7 @@ EnumConstantDeclaration
         IntegerLiteral
           literal: 42
           parameter: <null>
-          staticType: null
+          staticType: int
       rightParenthesis: )
   constructorElement: <null>
   declaredElement: self::@enum::E::@field::v
@@ -435,6 +435,13 @@ MethodDeclaration
     element: dart:core::@class::int
     type: int
   name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: U
+        declaredElement: U@27
+    rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter

@@ -4,7 +4,7 @@ description: Helper package for analyzing the syntax of Dart programs.
 publish_to: none
 
 environment:
-  sdk: ^2.13.0
+  sdk: ^3.1.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -14,4 +14,4 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  lints: any
+  dart_flutter_team_lints: any

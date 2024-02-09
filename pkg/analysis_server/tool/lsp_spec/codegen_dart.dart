@@ -4,6 +4,9 @@
 
 import 'dart:collection';
 
+import 'package:analysis_server/src/services/correction/sort_members.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
@@ -41,28 +44,12 @@ bool enumClassAllowsAnyValue(String name) {
       name != 'TraceValues';
 }
 
+/// Generates the ultimate Dart code for [types], sorted and formatted.
 String generateDartForTypes(List<LspEntity> types) {
-  _canParseFunctions.clear();
-  _unionFunctions.clear();
-  final buffer = IndentableStringBuffer();
-  final sortedTypes = _getSortedUnique(types);
-  // Bump typedefs to the top.
-  final fileSortedTypes = [
-    ...sortedTypes.whereType<TypeAlias>(),
-    ...sortedTypes.where((type) => type is! TypeAlias),
-  ];
-  for (var type in fileSortedTypes) {
-    _writeType(buffer, type);
-  }
-  for (var function in _canParseFunctions.values) {
-    buffer.writeln(function);
-  }
-  for (var function in _unionFunctions.values) {
-    buffer.writeln(function);
-  }
+  var content = _sortContent(_buildContent(types));
 
   final stopwatch = Stopwatch()..start();
-  final formattedCode = _formatCode(buffer.toString());
+  final formattedCode = _formatCode(content);
   stopwatch.stop();
   if (stopwatch.elapsed.inSeconds > 3) {
     print('WARN: Formatting took ${stopwatch.elapsed} (${types.length} types)');
@@ -123,6 +110,23 @@ TypeBase resolveTypeAlias(TypeBase type,
     }
   }
   return type;
+}
+
+/// Builds the Dart code for [types].
+String _buildContent(List<LspEntity> types) {
+  _canParseFunctions.clear();
+  _unionFunctions.clear();
+  final buffer = IndentableStringBuffer();
+  for (var type in types) {
+    _writeType(buffer, type);
+  }
+  for (var function in _canParseFunctions.values) {
+    buffer.writeln(function);
+  }
+  for (var function in _unionFunctions.values) {
+    buffer.writeln(function);
+  }
+  return buffer.toString();
 }
 
 String _determineVariableName(
@@ -296,6 +300,14 @@ String _rewriteCommentReference(String comment) {
   });
 }
 
+/// Sorts [content] as a Dart library.
+String _sortContent(String content) {
+  var parseResult = parseString(content: content);
+  var sorter = MemberSorter(content, parseResult.unit, parseResult.lineInfo);
+  var edits = sorter.sort();
+  return SourceEdit.applySequence(content, edits);
+}
+
 /// Sorts subtypes into a consistent order.
 ///
 /// Subtypes will be sorted such that types with the most required fields appear
@@ -348,15 +360,22 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
         yield line;
         break;
       } else {
+        // First try to wrap at the last space before the max length, and fall
+        // back to wrapping at the first space if there were none before the
+        // max length.
         var lastSpace = line.lastIndexOf(' ', maxLength);
-        // If there was no valid place to wrap, yield the whole string.
+        if (lastSpace == -1) {
+          lastSpace = line.indexOf(' ');
+        }
+
+        // If we still don't have one, the whole line has no spaces to split on.
         if (lastSpace == -1) {
           yield line;
           break;
-        } else {
-          yield line.substring(0, lastSpace);
-          line = line.substring(lastSpace + 1);
         }
+
+        yield line.substring(0, lastSpace);
+        line = line.substring(lastSpace + 1);
       }
     }
   }
@@ -627,34 +646,20 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
   for (var field in _getAllFields(interface)) {
     buffer.write(' && ');
     final type = resolveTypeAlias(field.type);
-    _writeEqualsExpression(buffer, type, field.name, 'other.${field.name}');
+    final thisName = field.name;
+    final otherName = 'other.${field.name}';
+    if (type is ArrayType || type is MapType) {
+      buffer.write(
+          'const DeepCollectionEquality().equals($thisName, $otherName)');
+    } else {
+      buffer.write('$thisName == $otherName');
+    }
   }
   buffer
     ..writeln(';')
     ..outdent()
     ..outdent()
     ..writeIndentedln('}');
-}
-
-void _writeEqualsExpression(IndentableStringBuffer buffer, TypeBase type,
-    String thisName, String otherName) {
-  if (type is ArrayType) {
-    final elementType = type.elementType;
-    final elementDartType = elementType.dartTypeWithTypeArgs;
-    buffer.write(
-        'listEqual($thisName, $otherName, ($elementDartType a, $elementDartType b) => ');
-    _writeEqualsExpression(buffer, elementType, 'a', 'b');
-    buffer.write(')');
-  } else if (type is MapType) {
-    final valueType = type.valueType;
-    final valueDartType = valueType.dartTypeWithTypeArgs;
-    buffer.write(
-        'mapEqual($thisName, $otherName, ($valueDartType a, $valueDartType b) => ');
-    _writeEqualsExpression(buffer, valueType, 'a', 'b');
-    buffer.write(')');
-  } else {
-    buffer.write('$thisName == $otherName');
-  }
 }
 
 void _writeField(
@@ -933,9 +938,12 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
     ..indent();
   if (!isPrivate) {
     _writeJsonHandler(buffer, interface);
+    buffer.writeln();
   }
   _writeConstructor(buffer, interface);
+  buffer.writeln();
   _writeFromJsonConstructor(buffer, interface);
+  buffer.writeln();
   // Handle Consts and Fields separately, since we need to include superclass
   // Fields.
   final consts = interface.members.whereType<Constant>().toList();
@@ -948,9 +956,13 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   _writeMembers(buffer, interface, fields);
   buffer.writeln();
   _writeToJsonMethod(buffer, interface);
+  buffer.writeln();
   _writeCanParseMethod(buffer, interface);
+  buffer.writeln();
   _writeEquals(buffer, interface);
+  buffer.writeln();
   _writeHashCode(buffer, interface);
+  buffer.writeln();
   _writeToString(buffer, interface);
   buffer
     ..outdent()

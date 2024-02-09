@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FunctionExpressionTest1);
-    defineReflectiveTests(FunctionExpressionTest2);
+    defineReflectiveTests(FunctionExpressionTest);
   });
 }
 
 @reflectiveTest
-class FunctionExpressionTest1 extends AbstractCompletionDriverTest
-    with FunctionExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class FunctionExpressionTest2 extends AbstractCompletionDriverTest
-    with FunctionExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class FunctionExpressionTest extends AbstractCompletionDriverTest
+    with FunctionExpressionTestCases {}
 
 mixin FunctionExpressionTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterAsync_beforeLeftBrace() async {
@@ -144,7 +133,7 @@ suggestions
   }
 
   Future<void> test_afterRightParen_beforeRightBrace() async {
-    // TODO(brianwilkerson) Not clear that this is testing what the author
+    // TODO(brianwilkerson): Not clear that this is testing what the author
     //  thought it would test. Note the '}' where ')' is expected.
     await computeSuggestions('''
 void f() {foo(() ^}}

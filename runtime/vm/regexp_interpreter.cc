@@ -20,6 +20,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trace_regexp_bytecodes, false, "trace_regexp_bytecodes");
+DEFINE_FLAG(int,
+            regexp_backtrack_stack_size_kb,
+            256,
+            "Size of backtracking stack");
 
 typedef unibrow::Mapping<unibrow::Ecma262Canonicalize> Canonicalize;
 
@@ -145,9 +149,10 @@ class BacktrackStack {
     if (memory_ == nullptr) {
       const bool executable = false;
       const bool compressed = false;
+      const intptr_t size_in_bytes = Utils::RoundUp(
+          FLAG_regexp_backtrack_stack_size_kb * KB, VirtualMemory::PageSize());
       memory_ = std::unique_ptr<VirtualMemory>(VirtualMemory::Allocate(
-          sizeof(intptr_t) * kBacktrackStackSize, executable, compressed,
-          "regexp-backtrack-stack"));
+          size_in_bytes, executable, compressed, "regexp-backtrack-stack"));
     }
   }
 
@@ -159,15 +164,13 @@ class BacktrackStack {
 
   bool out_of_memory() const { return memory_ == nullptr; }
 
-  intptr_t* data() const {
-    return reinterpret_cast<intptr_t*>(memory_->address());
+  int32_t* data() const {
+    return reinterpret_cast<int32_t*>(memory_->address());
   }
 
-  intptr_t max_size() const { return kBacktrackStackSize; }
+  intptr_t max_size() const { return memory_->size() / sizeof(int32_t); }
 
  private:
-  static constexpr intptr_t kBacktrackStackSize = 1 << 16;
-
   std::unique_ptr<VirtualMemory> memory_;
 
   DISALLOW_COPY_AND_ASSIGN(BacktrackStack);
@@ -179,7 +182,7 @@ template <typename Char>
 static ObjectPtr RawMatch(const TypedData& bytecode,
                           const String& subject,
                           int32_t* registers,
-                          intptr_t current,
+                          int32_t current,
                           uint32_t current_char) {
   // BacktrackStack ensures that the memory allocated for the backtracking stack
   // is returned to the system or cached if there is no stack being cached at
@@ -189,8 +192,8 @@ static ObjectPtr RawMatch(const TypedData& bytecode,
     Exceptions::ThrowOOM();
     UNREACHABLE();
   }
-  intptr_t* backtrack_stack_base = backtrack_stack.data();
-  intptr_t* backtrack_sp = backtrack_stack_base;
+  int32_t* backtrack_stack_base = backtrack_stack.data();
+  int32_t* backtrack_sp = backtrack_stack_base;
   intptr_t backtrack_stack_space = backtrack_stack.max_size();
 
   // TODO(zerny): Optimize as single instance. V8 has this as an
@@ -689,7 +692,7 @@ static ObjectPtr RawMatch(const TypedData& bytecode,
 ObjectPtr IrregexpInterpreter::Match(const TypedData& bytecode,
                                      const String& subject,
                                      int32_t* registers,
-                                     intptr_t start_position) {
+                                     int32_t start_position) {
   uint16_t previous_char = '\n';
   if (start_position != 0) {
     previous_char = subject.CharAt(start_position - 1);

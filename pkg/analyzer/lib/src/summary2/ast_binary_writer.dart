@@ -238,7 +238,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _sink.writeElement(node.element);
     _sink.writeType(node.extendedType);
 
-    // TODO(scheglov) typeArgumentTypes?
+    // TODO(scheglov): typeArgumentTypes?
   }
 
   @override
@@ -431,7 +431,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       }
     }
 
-    // TODO(scheglov) Don't write type, AKA separate true `int` and `double`?
+    // TODO(scheglov): Don't write type, AKA separate true `int` and `double`?
     _storeExpression(node);
   }
 
@@ -579,7 +579,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeNode(node.prefix);
     _writeNode(node.identifier);
 
-    // TODO(scheglov) In actual prefixed identifier, the type of the identifier.
+    // TODO(scheglov): In actual prefixed identifier, the type of the identifier.
     _storeExpression(node);
   }
 
@@ -622,7 +622,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _writeOptionalNode(node.target);
     _writeNode(node.propertyName);
-    // TODO(scheglov) Get from the property?
+    // TODO(scheglov): Get from the property?
     _storeExpression(node);
   }
 

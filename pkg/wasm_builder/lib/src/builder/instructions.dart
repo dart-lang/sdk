@@ -637,14 +637,14 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void table_get(ir.Table table) {
     assert(_verifyTypes(const [ir.NumType.i32], [table.type],
         trace: ['table.get', table.name]));
-    _add(ir.TableSet(table));
+    _add(ir.TableGet(table));
   }
 
   /// Emit a `table.set` instruction.
   void table_set(ir.Table table) {
     assert(_verifyTypes([ir.NumType.i32, table.type], const [],
         trace: ['table.set', table.name]));
-    _add(ir.TableGet(table));
+    _add(ir.TableSet(table));
   }
 
   /// Emit a `table.size` instruction.

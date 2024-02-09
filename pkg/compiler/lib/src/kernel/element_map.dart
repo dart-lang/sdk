@@ -28,6 +28,7 @@ bool memberIsIgnorable(ir.Member node, {ir.Class? cls}) {
     case ir.ProcedureStubKind.MemberSignature:
     case ir.ProcedureStubKind.AbstractMixinStub:
     case ir.ProcedureStubKind.ConcreteMixinStub:
+    case ir.ProcedureStubKind.RepresentationField:
       return true;
   }
 }

@@ -18,12 +18,14 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -70,8 +72,10 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
       .toList();
   uriList.sort((a, b) => a.compareTo(b));
 
-  var quote = session.analysisContext.analysisOptions.codeStyleOptions
-      .preferredQuoteForUris(directives);
+  var analysisOptions =
+      session.analysisContext.getAnalysisOptionsForFile(resolveResult.file);
+  var quote =
+      analysisOptions.codeStyleOptions.preferredQuoteForUris(directives);
 
   // Insert imports: between existing imports.
   if (importDirectives.isNotEmpty) {
@@ -174,9 +178,8 @@ List<SimpleIdentifier> findPrefixElementReferences(
   return collector.references;
 }
 
-/// TODO(scheglov) replace with nodes once there will be
-/// [CompilationUnit.getComments].
-///
+// TODO(scheglov): replace with nodes once there will be
+// [CompilationUnit.getComments].
 /// Returns [SourceRange]s of all comments in [unit].
 List<SourceRange> getCommentRanges(CompilationUnit unit) {
   var ranges = <SourceRange>[];
@@ -1099,9 +1102,13 @@ class CorrectionUtils {
     } else if (node is IsExpression) {
       final expressionCode = getNodeText(node.expression);
       final typeCode = getNodeText(node.type);
+      final patternCode = switch (node.type.typeOrThrow) {
+        InterfaceType() => '$typeCode()',
+        _ => '$typeCode _',
+      };
       return ExpressionCasePattern(
         expressionCode: expressionCode,
-        patternCode: '$typeCode()',
+        patternCode: patternCode,
       );
     }
     return null;
@@ -1171,9 +1178,11 @@ class CorrectionUtils {
   }
 
   InsertionLocation? prepareNewConstructorLocation(
-      AnalysisSession session, ClassDeclaration classDeclaration) {
-    final sortConstructorsFirst = session
-        .analysisContext.analysisOptions.codeStyleOptions.sortConstructorsFirst;
+      AnalysisSession session, ClassDeclaration classDeclaration, File file) {
+    final sortConstructorsFirst = session.analysisContext
+        .getAnalysisOptionsForFile(file)
+        .codeStyleOptions
+        .sortConstructorsFirst;
     // If sort_constructors_first is enabled, don't skip over the fields.
     final shouldSkip = sortConstructorsFirst
         ? (member) => member is ConstructorDeclaration
@@ -1236,15 +1245,18 @@ class CorrectionUtils {
   /// Returns the source with indentation changed from [oldIndent] to
   /// [newIndent], keeping indentation of lines relative to each other.
   ///
-  /// If [includeLeading] is `false`, indentation on the first line will not be
-  /// altered. This should be used if the provided string is a substring of code
-  /// that does not begin and end at line boundaries and [oldIndent] may be
-  /// an empty string.
+  /// Indentation on the first line will only be updated if [includeLeading] is
+  /// `true`.
   ///
-  /// Unless [includeTrailingNewline] is `false`, a newline will be added to
-  /// the end of the returned code.
+  /// If [ensureTrailingNewline] is `true`, a newline will be added to
+  /// the end of the returned code if it does not already have one.
+  ///
+  /// Usually [includeLeading] and [ensureTrailingNewline] will both be set
+  /// together when indenting a set of statements to go inside a block (as
+  /// opposed to just wrapping a nested expression that might span multiple
+  /// lines).
   String replaceSourceIndent(String source, String oldIndent, String newIndent,
-      {bool includeLeading = true, bool includeTrailingNewline = true}) {
+      {bool includeLeading = false, bool ensureTrailingNewline = false}) {
     // prepare STRING token ranges
     var lineRanges = <SourceRange>[];
     {
@@ -1262,12 +1274,17 @@ class CorrectionUtils {
     var lineOffset = 0;
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
-      var doReplaceWhitespace = i != 0 || includeLeading;
-      var doAppendEol = i != lines.length - 1 || includeTrailingNewline;
-      // last line, stop if empty
+      // Exit early if this is the last line and it's already empty, to avoid
+      // inserting any whitespace or appending an additional newline if
+      // [ensureTrailingNewline].
       if (i == lines.length - 1 && isEmpty(line)) {
         break;
       }
+      // Don't replace whitespace on first line unless [includeLeading].
+      var doReplaceWhitespace = i != 0 || includeLeading;
+      // Don't add eol to last line unless [ensureTrailingNewline].
+      var doAppendEol = i != lines.length - 1 || ensureTrailingNewline;
+
       // check if "offset" is in one of the String ranges
       var inString = false;
       for (var lineRange in lineRanges) {
@@ -1295,10 +1312,24 @@ class CorrectionUtils {
   /// Returns the source of the given [SourceRange] with indentation changed
   /// from [oldIndent] to [newIndent], keeping indentation of lines relative
   /// to each other.
+  ///
+  /// Indentation on the first line will only be updated if [includeLeading] is
+  /// `true`.
+  ///
+  /// If [ensureTrailingNewline] is `true`, a newline will be added to
+  /// the end of the returned code if it does not already have one.
+  ///
+  /// Usually [includeLeading] and [ensureTrailingNewline] will both be set
+  /// together when indenting a set of statements to go inside a block (as
+  /// opposed to just wrapping a nested expression that might span multiple
+  /// lines).
   String replaceSourceRangeIndent(
-      SourceRange range, String oldIndent, String newIndent) {
+      SourceRange range, String oldIndent, String newIndent,
+      {bool includeLeading = false, bool ensureTrailingNewline = false}) {
     var oldSource = getRangeText(range);
-    return replaceSourceIndent(oldSource, oldIndent, newIndent);
+    return replaceSourceIndent(oldSource, oldIndent, newIndent,
+        includeLeading: includeLeading,
+        ensureTrailingNewline: ensureTrailingNewline);
   }
 
   /// Return `true` if [selection] covers [node] and there are any
@@ -1351,6 +1382,8 @@ class CorrectionUtils {
       return declaration.leftBracket;
     } else if (declaration is MixinDeclaration) {
       return declaration.leftBracket;
+    } else if (declaration is ExtensionTypeDeclaration) {
+      return declaration.leftBracket;
     }
     return null;
   }
@@ -1362,6 +1395,8 @@ class CorrectionUtils {
       return declaration.members;
     } else if (declaration is MixinDeclaration) {
       return declaration.members;
+    } else if (declaration is ExtensionTypeDeclaration) {
+      return declaration.members;
     }
     return null;
   }
@@ -1372,6 +1407,8 @@ class CorrectionUtils {
     } else if (declaration is ExtensionDeclaration) {
       return declaration.rightBracket;
     } else if (declaration is MixinDeclaration) {
+      return declaration.rightBracket;
+    } else if (declaration is ExtensionTypeDeclaration) {
       return declaration.rightBracket;
     }
     return null;
@@ -1657,7 +1694,7 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!_isPrefixed(node)) {
+    if (!_isPrefixed(node) && !_isLabelName(node)) {
       names.add(node.name);
     }
   }
@@ -1666,6 +1703,10 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
   visitVariableDeclaration(VariableDeclaration node) {
     names.add(node.name.lexeme);
     return super.visitVariableDeclaration(node);
+  }
+
+  static bool _isLabelName(SimpleIdentifier node) {
+    return node.parent is Label;
   }
 
   static bool _isPrefixed(SimpleIdentifier node) {
@@ -1740,7 +1781,7 @@ class _InvertedCondition {
 
   static _InvertedCondition _binary2(
       _InvertedCondition left, String operation, _InvertedCondition right) {
-    // TODO(scheglov) consider merging with "_binary()" after testing
+    // TODO(scheglov): consider merging with "_binary()" after testing
     return _InvertedCondition(
         1 << 20, '${left._source}$operation${right._source}');
   }

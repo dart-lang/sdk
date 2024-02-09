@@ -171,9 +171,12 @@ class StaticTypeAnalyzer {
   /// </blockquote>
   void visitIntegerLiteral(IntegerLiteralImpl node,
       {required DartType? contextType}) {
+    var strictCasts = _resolver.analysisOptions.strictCasts;
     if (contextType == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, contextType) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, contextType)) {
+        _typeSystem.isAssignableTo(_typeProvider.intType, contextType,
+            strictCasts: strictCasts) ||
+        !_typeSystem.isAssignableTo(_typeProvider.doubleType, contextType,
+            strictCasts: strictCasts)) {
       _inferenceHelper.recordStaticType(node, _typeProvider.intType,
           contextType: contextType);
     } else {
@@ -249,7 +252,7 @@ class StaticTypeAnalyzer {
         ?.thisOrSuper(node, thisType ?? _dynamicType, isSuper: true);
     if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
-      // TODO(brianwilkerson) Report this error if it hasn't already been
+      // TODO(brianwilkerson): Report this error if it hasn't already been
       // reported.
       _inferenceHelper.recordStaticType(node, InvalidTypeImpl.instance,
           contextType: contextType);
@@ -273,7 +276,7 @@ class StaticTypeAnalyzer {
     _resolver.flowAnalysis.flow
         ?.thisOrSuper(node, thisType ?? _dynamicType, isSuper: false);
     if (thisType == null) {
-      // TODO(brianwilkerson) Report this error if it hasn't already been
+      // TODO(brianwilkerson): Report this error if it hasn't already been
       // reported.
       _inferenceHelper.recordStaticType(node, _dynamicType,
           contextType: contextType);
@@ -320,7 +323,7 @@ class StaticTypeAnalyzer {
   DartType _getType(TypeAnnotation annotation) {
     var type = annotation.type;
     if (type == null) {
-      //TODO(brianwilkerson) Determine the conditions for which the type is
+      // TODO(brianwilkerson): Determine the conditions for which the type is
       // null.
       return _dynamicType;
     }

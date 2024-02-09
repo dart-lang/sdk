@@ -7,6 +7,7 @@ library transition_event_test;
 import 'dart:html';
 import 'dart:async';
 
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/minitest.dart';
 
 Future testTransitionEnd() async {
@@ -18,24 +19,19 @@ Future testTransitionEnd() async {
   element.style.height = '100px';
   element.style.background = 'red';
   element.style.transition = 'opacity .1s';
-
-  final done = new Completer();
-
-  new Timer(const Duration(milliseconds: 100), () {
-    element.onTransitionEnd.first.then((e) {
-      expect(e is TransitionEvent, isTrue);
-      expect(e.propertyName, 'opacity');
-    }).then(done.complete, onError: done.completeError);
-
-    element.style.opacity = '1';
-  });
-
-  await done.future;
+  final eventFuture = element.onTransitionEnd.first;
+  await Future.delayed(const Duration(milliseconds: 100));
+  element.style.opacity = '1';
+  final e = await eventFuture;
+  expect(e is TransitionEvent, isTrue);
+  expect(e.propertyName, 'opacity');
 }
 
-main() async {
-  expect(CssStyleDeclaration.supportsTransitions, isTrue);
-  if (CssStyleDeclaration.supportsTransitions) {
-    await testTransitionEnd();
-  }
+main() {
+  asyncTest(() async {
+    expect(CssStyleDeclaration.supportsTransitions, isTrue);
+    if (CssStyleDeclaration.supportsTransitions) {
+      await testTransitionEnd();
+    }
+  });
 }

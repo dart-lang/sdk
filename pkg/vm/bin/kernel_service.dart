@@ -18,6 +18,7 @@
 ///         dart pkg/vm/bin/kernel_service.dart --train <source-file>
 ///
 ///
+library;
 
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;
@@ -33,18 +34,19 @@ import 'package:front_end/src/api_prototype/front_end.dart' as fe
     show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:front_end/src/isolate_macro_serializer.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart'
     show Component, Library, Procedure, NonNullableByDefaultCompiledMode;
-import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/targets.dart' show Target, TargetFlags;
+import 'package:vm/http_filesystem.dart';
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart'
     show createLoadedLibrariesSet, ErrorDetector;
-import 'package:vm/http_filesystem.dart';
 import 'package:vm/native_assets/diagnostic_message.dart';
 import 'package:vm/native_assets/synthesizer.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
@@ -83,7 +85,7 @@ CompilerOptions setupCompilerOptions(
     Uri? platformKernelPath,
     bool enableAsserts,
     bool embedSources,
-    bool nullSafety,
+    bool soundNullSafety,
     List<String>? experimentalFlags,
     Uri? packagesUri,
     List<String> errorsPlain,
@@ -99,10 +101,13 @@ CompilerOptions setupCompilerOptions(
   }
 
   Verbosity verbosity = Verbosity.parseArgument(verbosityLevel);
+  Target target = new VmTarget(new TargetFlags(
+      soundNullSafety: soundNullSafety, supportMirrors: enableMirrors));
   return new CompilerOptions()
     ..fileSystem = fileSystem
-    ..target = new VmTarget(new TargetFlags(
-        soundNullSafety: nullSafety, supportMirrors: enableMirrors))
+    ..target = target
+    ..macroTarget = target
+    ..macroSerializer = new IsolateMacroSerializer()
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
     ..embedSourceText = embedSources
@@ -116,7 +121,7 @@ CompilerOptions setupCompilerOptions(
       errorsColorized.add(msg);
     })
     ..environmentDefines = new EnvironmentMap()
-    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
+    ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage message) {
       bool printToStdErr = false;
       bool printToStdOut = false;
@@ -159,7 +164,7 @@ abstract class Compiler {
   final Uri? platformKernelPath;
   final bool enableAsserts;
   final bool embedSources;
-  final bool nullSafety;
+  final bool soundNullSafety;
   final List<String>? experimentalFlags;
   final String? packageConfig;
   final String invocationModes;
@@ -179,7 +184,7 @@ abstract class Compiler {
   Compiler(this.isolateGroupId, this.fileSystem, this.platformKernelPath,
       {this.enableAsserts = false,
       this.embedSources = true,
-      this.nullSafety = true,
+      this.soundNullSafety = true,
       this.experimentalFlags = null,
       this.supportCodeCoverage = false,
       this.supportHotReload = false,
@@ -205,7 +210,7 @@ abstract class Compiler {
         platformKernelPath,
         enableAsserts,
         embedSources,
-        nullSafety,
+        soundNullSafety,
         experimentalFlags,
         packagesUri,
         errorsPlain,
@@ -295,7 +300,7 @@ class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompilerWrapper(
       int isolateGroupId, FileSystem fileSystem, Uri? platformKernelPath,
       {bool enableAsserts = false,
-      bool nullSafety = true,
+      bool soundNullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes = '',
@@ -303,7 +308,7 @@ class IncrementalCompilerWrapper extends Compiler {
       required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
-            nullSafety: nullSafety,
+            soundNullSafety: soundNullSafety,
             experimentalFlags: experimentalFlags,
             supportHotReload: true,
             supportCodeCoverage: true,
@@ -355,7 +360,7 @@ class IncrementalCompilerWrapper extends Compiler {
     IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
         isolateGroupId, fileSystem, platformKernelPath,
         enableAsserts: enableAsserts,
-        nullSafety: nullSafety,
+        soundNullSafety: soundNullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         invocationModes: invocationModes,
@@ -391,7 +396,7 @@ class SingleShotCompilerWrapper extends Compiler {
       {this.requireMain = false,
       bool enableAsserts = false,
       bool embedSources = true,
-      bool nullSafety = true,
+      bool soundNullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes = '',
@@ -400,7 +405,7 @@ class SingleShotCompilerWrapper extends Compiler {
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
             embedSources: embedSources,
-            nullSafety: nullSafety,
+            soundNullSafety: soundNullSafety,
             experimentalFlags: experimentalFlags,
             packageConfig: packageConfig,
             invocationModes: invocationModes,
@@ -436,7 +441,7 @@ IncrementalCompilerWrapper? lookupIncrementalCompiler(int isolateGroupId) {
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
     List sourceFiles, Uri platformKernelPath, List<int>? platformKernel,
     {bool enableAsserts = false,
-    bool nullSafety = true,
+    bool soundNullSafety = true,
     List<String>? experimentalFlags,
     String? packageConfig,
     String? multirootFilepaths,
@@ -468,7 +473,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
       compiler = new IncrementalCompilerWrapper(
           isolateGroupId, fileSystem, platformKernelPath,
           enableAsserts: enableAsserts,
-          nullSafety: nullSafety,
+          soundNullSafety: soundNullSafety,
           experimentalFlags: experimentalFlags,
           packageConfig: packageConfig,
           invocationModes: invocationModes,
@@ -524,12 +529,14 @@ Future _processExpressionCompilationRequest(request) async {
   final String? klass = request[11];
   final String? method = request[12];
   final bool isStatic = request[13];
-  final List<List<int>> dillData = request[14].cast<List<int>>();
-  final int blobLoadCount = request[15];
-  final bool enableAsserts = request[16];
+  final int offset = request[14];
+  final String? scriptUri = request[15];
+  final List<List<int>> dillData = request[16].cast<List<int>>();
+  final int blobLoadCount = request[17];
+  final bool enableAsserts = request[18];
   final List<String>? experimentalFlags =
-      request[17] != null ? request[17].cast<String>() : null;
-  final bool enableMirrors = request[18];
+      request[17] != null ? request[19].cast<String>() : null;
+  final bool enableMirrors = request[20];
 
   IncrementalCompilerWrapper? compiler = isolateCompilers[isolateGroupId];
 
@@ -651,6 +658,8 @@ Future _processExpressionCompilationRequest(request) async {
         libraryUri,
         klass,
         method,
+        offset,
+        scriptUri,
         isStatic);
 
     if (procedure == null) {
@@ -784,7 +793,7 @@ Future _processLoadRequest(request) async {
   final bool incremental = request[4];
   final bool forSnapshot = request[5];
   final bool embedSources = request[6];
-  final bool nullSafety = request[7];
+  final bool soundNullSafety = request[7];
   final List sourceFiles = request[9];
   final bool enableAsserts = request[10];
   final List<String>? experimentalFlags =
@@ -863,7 +872,7 @@ Future _processLoadRequest(request) async {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateGroupId, sourceFiles, platformKernelPath, platformKernel,
         enableAsserts: enableAsserts,
-        nullSafety: nullSafety,
+        soundNullSafety: soundNullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         multirootFilepaths: multirootFilepaths,
@@ -880,7 +889,7 @@ Future _processLoadRequest(request) async {
         requireMain: false,
         embedSources: embedSources,
         enableAsserts: enableAsserts,
-        nullSafety: nullSafety,
+        soundNullSafety: soundNullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         invocationModes: invocationModes,
@@ -913,7 +922,7 @@ Future _processLoadRequest(request) async {
           await NativeAssetsSynthesizer.synthesizeLibraryFromYamlString(
         nativeAssets,
         errorDetector,
-        nonNullableByDefaultCompiledMode: nullSafety
+        nonNullableByDefaultCompiledMode: soundNullSafety
             ? NonNullableByDefaultCompiledMode.Strong
             : NonNullableByDefaultCompiledMode.Weak,
         pragmaClass: compilerResult.coreTypes?.pragmaClass,
@@ -1185,8 +1194,6 @@ abstract class CompilationResult {
 
   factory CompilationResult.ok(Uint8List? bytes) = _CompilationOk;
 
-  factory CompilationResult.nullSafety(bool val) = _CompilationNullSafety;
-
   factory CompilationResult.errors(List<String> errors, Uint8List? bytes) =
       _CompilationError;
 
@@ -1219,20 +1226,6 @@ class _CompilationOk extends CompilationResult {
   get payload => bytes;
 
   String toString() => "_CompilationOk(${bytes?.length ?? 0} bytes)";
-}
-
-class _CompilationNullSafety extends CompilationResult {
-  final bool _nullSafety;
-
-  _CompilationNullSafety(this._nullSafety) : super._() {}
-
-  @override
-  Status get status => Status.ok;
-
-  @override
-  get payload => _nullSafety;
-
-  String toString() => "_CompilationNullSafety($_nullSafety)";
 }
 
 abstract class _CompilationFail extends CompilationResult {

@@ -15,7 +15,8 @@ main() {
 
 @reflectiveTest
 class InvalidFieldTypeInStructTest extends PubPackageResolutionTest {
-  // TODO(https://dartbug.com/44677): Remove Pointer notEmpty field.
+  // TODO(dacoharkes): Remove Pointer notEmpty field.
+  // https://dartbug.com/44677
   test_instance_invalid() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -29,7 +30,8 @@ final class C extends Struct {
     ]);
   }
 
-  // TODO(https://dartbug.com/44677): Remove Pointer notEmpty field.
+  // TODO(dacoharkes): Remove Pointer notEmpty field.
+  // https://dartbug.com/44677
   test_instance_invalid2() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

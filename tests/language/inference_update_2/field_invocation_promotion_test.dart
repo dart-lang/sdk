@@ -12,6 +12,8 @@
 
 // SharedOptions=--enable-experiment=inference-update-2
 
+import '../static_type_helper.dart';
+
 class C {
   final void Function()? _nullablePrivateFunction;
   final int? Function() _privateFunctionWithNullableReturnType;
@@ -27,9 +29,7 @@ class C {
 
   void testPrivateFunctionWithNullableReturnTypeThisAccess() {
     if (_privateFunctionWithNullableReturnType is int Function()) {
-      var x = _privateFunctionWithNullableReturnType();
-      // `x` has type `int` so this is ok
-      acceptsInt(x);
+      _privateFunctionWithNullableReturnType().expectStaticType<Exactly<int>>();
     }
   }
 }
@@ -48,14 +48,12 @@ class D extends C {
 
   void testPrivateFunctionWithNullableReturnTypeSuperAccess() {
     if (super._privateFunctionWithNullableReturnType is int Function()) {
-      var x = super._privateFunctionWithNullableReturnType();
-      // `x` has type `int` so this is ok
-      acceptsInt(x);
+      super
+          ._privateFunctionWithNullableReturnType()
+          .expectStaticType<Exactly<int>>();
     }
   }
 }
-
-void acceptsInt(int x) {}
 
 void testNullablePrivateFunction(C c) {
   if (c._nullablePrivateFunction != null) {
@@ -66,9 +64,7 @@ void testNullablePrivateFunction(C c) {
 
 void testPrivateFunctionWithNullableReturnType(C c) {
   if (c._privateFunctionWithNullableReturnType is int Function()) {
-    var x = c._privateFunctionWithNullableReturnType();
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._privateFunctionWithNullableReturnType().expectStaticType<Exactly<int>>();
   }
 }
 
@@ -86,9 +82,9 @@ void testPrivateFunctionWithNullableReturnTypeGeneralPropertyAccess(C c) {
   // The analyzer uses a special data structure for `IDENTIFIER.IDENTIFIER`, so
   // we need to test the general case of property accesses as well.
   if ((c)._privateFunctionWithNullableReturnType is int Function()) {
-    var x = (c)._privateFunctionWithNullableReturnType();
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    (c)
+        ._privateFunctionWithNullableReturnType()
+        .expectStaticType<Exactly<int>>();
   }
 }
 

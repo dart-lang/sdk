@@ -16,41 +16,41 @@ import 'dart:js_util';
 class JSClass {
   external factory JSClass(List<int> baz);
   //               ^
-  // [web] Type 'List<int>' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] Type 'List<int>' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
   external factory JSClass.other(Object blu);
   //               ^
-  // [web] Type 'Object' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] Type 'Object' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
   external static dynamic foo();
   //                      ^
-  // [web] Type 'dynamic' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] Type 'dynamic' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
   external static Function get fooGet;
   //                           ^
-  // [web] Type 'Function' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] Type 'Function' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
   external static set fooSet(void Function() bar);
   //                  ^
-  // [web] Type 'void Function()' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] Type 'void Function()' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 }
 
 extension JSClassExtension on JSClass {
   external dynamic extFoo();
   //               ^
-  // [web] Type 'dynamic' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] Type 'dynamic' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
   external JSClass extFoo2(List<Object?> bar);
   //               ^
-  // [web] Type 'List<Object?>' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] Type 'List<Object?>' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
   external Function get extFooGet;
   //                    ^
-  // [web] Type 'Function' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] Type 'Function' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
   external set extFooSet(void Function() bar);
   //           ^
-  // [web] Type 'void Function()' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] Type 'void Function()' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 }
 
 @JS()
@@ -65,20 +65,48 @@ external void useStaticInteropClass(JSClass foo);
 @JS()
 external void useStaticInteropExtensionType(ExtensionType foo);
 
+void declareTypeParameter<T extends JSAny?>() {}
+
+T declareAndUseTypeParameter<T extends JSAny?>(T t) => t;
+
+T declareAndUseInvalidTypeParameter<T>(T t) => t;
+
 void main() {
-  jsFunctionTest(((double foo) => 4.0.toJS).toJS);
+  ((double foo) => 4.0.toJS).toJS;
 
-  jsFunctionTest(((JSNumber foo) => 4.0).toJS);
+  ((JSNumber foo) => 4.0).toJS;
 
-  jsFunctionTest(((List foo) => 4.0).toJS);
-  //                                 ^
-  // [web] Type 'List<dynamic>' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  ((List foo) => 4.0).toJS;
+  //                  ^
+  // [web] Type 'List<dynamic>' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
-  jsFunctionTest(((JSNumber foo) => () {}).toJS);
-  //                                       ^
-  // [web] Type 'Null Function()' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  ((JSNumber foo) => () {}).toJS;
+  //                        ^
+  // [web] Type 'Null Function()' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
 
-  jsFunctionTest(((((JSNumber foo) => 4.0) as dynamic) as Function).toJS);
-  //                                                                ^
-  // [web] `Function.toJS` requires a statically known function type, but Type 'Function' is not a function type, e.g., `void Function()`.
+  ((((JSNumber foo) => 4.0) as dynamic) as Function).toJS;
+  //                                                 ^
+  // [web] `Function.toJS` requires a statically known function type, but Type 'Function' is not a precise function type, e.g., `void Function()`.
+
+  void typeParametersTest<T extends JSAny, U extends ExtensionType,
+      V extends JSClass, W, Y>() {
+    ((T t) => t).toJS;
+    ((U u) => u).toJS;
+    ((V v) => v).toJS;
+    ((W w) => w as Y).toJS;
+    //                ^
+    // [web] Type 'W' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
+    // [web] Type 'Y' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
+
+    declareTypeParameter.toJS;
+    //                   ^
+    // [web] Functions converted via `toJS` cannot declare type parameters.
+    declareAndUseTypeParameter.toJS;
+    //                         ^
+    // [web] Functions converted via `toJS` cannot declare type parameters.
+    declareAndUseInvalidTypeParameter.toJS;
+    //                                ^
+    // [web] Functions converted via `toJS` cannot declare type parameters.
+    // [web] Type 'T' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.
+  }
 }

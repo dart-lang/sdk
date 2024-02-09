@@ -8,7 +8,12 @@ import 'package:yaml/yaml.dart';
 
 /// Validate the value of the required `name` field.
 void nameValidator(PubspecValidationContext ctx) {
-  var nameField = ctx.contents[PubspecField.NAME_FIELD];
+  final contents = ctx.contents;
+  if (contents is! YamlMap) {
+    ctx.reporter.reportErrorForOffset(PubspecWarningCode.MISSING_NAME, 0, 0);
+    return;
+  }
+  var nameField = contents.nodes[PubspecField.NAME_FIELD];
   if (nameField == null) {
     ctx.reporter.reportErrorForOffset(PubspecWarningCode.MISSING_NAME, 0, 0);
   } else if (nameField is! YamlScalar || nameField.value is! String) {

@@ -1,0 +1,5 @@
+library;
+import self as self;
+
+static method foo(dynamic x, dynamic y) → dynamic
+  ;

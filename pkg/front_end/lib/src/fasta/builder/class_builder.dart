@@ -34,7 +34,7 @@ abstract class ClassMemberAccess {
 
 abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// The type variables declared on a class, extension or mixin declaration.
-  List<TypeVariableBuilder>? get typeVariables;
+  List<NominalVariableBuilder>? get typeVariables;
 
   /// The type in the `extends` clause of a class declaration.
   ///

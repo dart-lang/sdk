@@ -53,7 +53,8 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
     }
     final declaration = node;
     if (declaration is ClassDeclaration && declaration.name == token) {
-      var description = _EnumDescription.fromClass(declaration);
+      var description = _EnumDescription.fromClass(declaration,
+          strictCasts: analysisOptions.strictCasts);
       if (description != null) {
         await builder.addDartFileEdit(file, (builder) {
           description.applyChanges(builder, utils);
@@ -194,8 +195,19 @@ class _EnumDescription {
         .sort((first, second) => first.indexValue.compareTo(second.indexValue));
     for (var field in fieldsToConvert) {
       // Compute the declaration of the corresponding enum constant.
+      var documentationComment = field.fieldDeclaration.documentationComment;
       if (constantsBuffer.isNotEmpty) {
-        constantsBuffer.write(',$eol$indent');
+        constantsBuffer.write(',$eol');
+        if (documentationComment != null) {
+          // If the current field has a documentation comment and
+          // it's not the first field, add an extra new line.
+          constantsBuffer.write(eol);
+        }
+        constantsBuffer.write(indent);
+      }
+      if (documentationComment != null) {
+        constantsBuffer.write(utils.getNodeText(documentationComment));
+        constantsBuffer.write('$eol$indent');
       }
       constantsBuffer.write(field.name);
       var invocation = field.instanceCreation;
@@ -345,7 +357,8 @@ class _EnumDescription {
 
   /// If the given [node] can be converted into an enum, then return a
   /// description of the conversion work to be done. Otherwise, return `null`.
-  static _EnumDescription? fromClass(ClassDeclaration node) {
+  static _EnumDescription? fromClass(ClassDeclaration node,
+      {required bool strictCasts}) {
     // The class must be a concrete class.
     var classElement = node.declaredElement;
     if (classElement == null || classElement.isAbstract) {
@@ -374,7 +387,7 @@ class _EnumDescription {
     // enum constant.
     //
     // The instance fields must all be final.
-    var fields = _validateFields(node, classElement);
+    var fields = _validateFields(node, classElement, strictCasts: strictCasts);
     if (fields == null || fields.fieldsToConvert.isEmpty) {
       return null;
     }
@@ -540,7 +553,8 @@ class _EnumDescription {
   ///
   /// The [classElement] must be the element declared by the [classDeclaration].
   static _Fields? _validateFields(
-      ClassDeclaration classDeclaration, ClassElement classElement) {
+      ClassDeclaration classDeclaration, ClassElement classElement,
+      {required bool strictCasts}) {
     var potentialFieldsToConvert = <DartObject, List<_ConstantField>>{};
     _Field? indexField;
 
@@ -614,7 +628,7 @@ class _EnumDescription {
       if (list.length == 1) {
         fieldsToConvert.add(list[0]);
       } else {
-        // TODO(brianwilkerson) We could potentially handle the case where
+        // TODO(brianwilkerson): We could potentially handle the case where
         //  there's only one non-deprecated field in the list. We'd need to
         //  change the return type for this method so that we could return two
         //  lists: the list of fields to convert and the list of fields whose

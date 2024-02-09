@@ -153,10 +153,12 @@ enum DocDirectiveType {
   /// This directive has three required arguments: the width, the height, and
   /// the URL. A named 'id' argument can also be given. For example:
   ///
-  /// `{@animation 600 400 https://www.example.com/example.mp4 id=video1}`
+  /// ```none
+  /// {@animation 600 400 https://www.example.com/example.mp4 id=video1}
+  /// ```
   ///
   /// See documentation at
-  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#animations.
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#animation---animations>.
   animation(
     'animation',
     positionalParameters: [
@@ -177,10 +179,12 @@ enum DocDirectiveType {
   /// element. When that heuristic needs to be overridden, a user can use this
   /// directive. Example:
   ///
-  /// `{@canonicalFor some_library.SomeClass}`
+  /// ```none
+  /// {@canonicalFor some_library.SomeClass}
+  /// ```
   ///
   /// See documentation at
-  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#canonicalization.
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#canonicalfor---canonicalization>.
   canonicalFor(
     // TODO(srawlins): We have mostly used 'kebab-case' in directive names. This
     // directive name is a rare departure from that style. Migrate users to use
@@ -201,7 +205,7 @@ enum DocDirectiveType {
   // require that a category name with spaces be wrapped in quotes.
   ///
   /// See documentation at
-  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#categories.
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#category-and-subcategory---categories>.
   category(
     'category',
     restParametersAllowed: true,
@@ -233,10 +237,13 @@ enum DocDirectiveType {
   /// This directive has one required argument: the path. A named 'region'
   /// argument, and a named 'lang' argument can also be given. For example:
   ///
-  /// `{@example abc/def/xyz_component.dart region=template lang=html}`
+  /// ```none
+  /// {@example abc/def/xyz_component.dart region=template lang=html}
+  /// ```
   ///
   /// See documentation at
-  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#examples.
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#example---examples-deprecated>.
+  @Deprecated('Recognition of this directive is deprecated in dartdoc')
   example(
     'example',
     positionalParameters: [
@@ -250,20 +257,23 @@ enum DocDirectiveType {
 
   /// A [DocDirective] indicating that constants should not have their own
   /// pages or implementations displayed.
+  @Deprecated('Recognition of this directive is removed in dartdoc')
   hideConstantImplementations('hideConstantImplementations'),
 
   /// A [DocDirective] declaring a block of HTML content which is to be inserted
   /// after all other processing, including Markdown parsing.
   ///
   /// See documentation at
-  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#injected-html.
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#inject-html---injected-html>.
   injectHtml.block('inject-html', 'end-inject-html'),
 
   /// A [DocDirective] declaring amacro application.
   ///
   /// This directive has one required argument: the name. For example:
   ///
-  /// `{@macro some-macro}`
+  /// ```none
+  /// {@macro some-macro}
+  /// ```
   macro(
     'macro',
     positionalParameters: [
@@ -277,7 +287,7 @@ enum DocDirectiveType {
   /// sub-category name is allowed to contain whitespace.
   ///
   /// See documentation at
-  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#categories.
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#category-and-subcategory---categories>.
   subCategory(
     // TODO(srawlins): We have mostly used 'kebab-case' in directive names. This
     // directive name is the sole departure from that style. Migrate users to
@@ -294,7 +304,7 @@ enum DocDirectiveType {
   /// simple doc directives.
   ///
   /// See documentation at
-  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#templates-and-macros.
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#template-and-macro---templates-and-macros>.
   // TODO(srawlins): Migrate users to use 'end-template'.
   template.block(
     'template',
@@ -311,7 +321,7 @@ enum DocDirectiveType {
   /// output of the tool.
   ///
   /// See documentation at
-  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#external-tools.
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#tool---external-tools>.
   tool.block(
     'tool',
     'end-tool',
@@ -326,10 +336,12 @@ enum DocDirectiveType {
   /// This directive has three required arguments: the width, the height, and
   /// the URL. For example:
   ///
-  /// `{@youtube 600 400 https://www.youtube.com/watch?v=abc123}`
+  /// ```
+  /// {@youtube 600 400 https://www.youtube.com/watch?v=abc123}
+  /// ```
   ///
   /// See documentation at
-  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#youtube-videos.
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#youtube---youtube-videos>.
   youtube(
     'youtube',
     positionalParameters: [

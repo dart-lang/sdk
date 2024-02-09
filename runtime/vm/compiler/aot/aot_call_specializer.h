@@ -75,10 +75,10 @@ class AotCallSpecializer : public CallSpecializer {
   bool TryExpandCallThroughGetter(const Class& receiver_class,
                                   InstanceCallInstr* call);
 
-  Definition* TryOptimizeMod(TemplateDartCall<0>* instr,
-                             Token::Kind op_kind,
-                             Value* left_value,
-                             Value* right_value);
+  Definition* TryOptimizeDivisionOperation(TemplateDartCall<0>* instr,
+                                           Token::Kind op_kind,
+                                           Value* left_value,
+                                           Value* right_value);
 
   virtual void ReplaceInstanceCallsWithDispatchTableCalls();
 

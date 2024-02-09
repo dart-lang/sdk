@@ -5,12 +5,6 @@
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
-import 'package:front_end/src/api_unstable/dart2js.dart' as ir
-    show LocatedMessage;
-
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart';
-import '../diagnostics/source_span.dart';
 import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
@@ -18,7 +12,6 @@ import '../kernel/element_map.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'annotations.dart';
-import 'constants.dart';
 import 'impact.dart';
 import 'scope.dart';
 
@@ -101,28 +94,9 @@ ModularMemberData computeModularMemberData(
   return ModularMemberData(scopeModel, impactBuilderData);
 }
 
-void reportLocatedMessage(DiagnosticReporter reporter,
-    ir.LocatedMessage message, List<ir.LocatedMessage> context) {
-  DiagnosticMessage diagnosticMessage =
-      _createDiagnosticMessage(reporter, message);
-  var infos = <DiagnosticMessage>[];
-  for (ir.LocatedMessage message in context) {
-    infos.add(_createDiagnosticMessage(reporter, message));
-  }
-  reporter.reportError(diagnosticMessage, infos);
-}
-
-DiagnosticMessage _createDiagnosticMessage(
-    DiagnosticReporter reporter, ir.LocatedMessage message) {
-  var sourceSpan = SourceSpan(
-      message.uri!, message.charOffset, message.charOffset + message.length);
-  return reporter.createMessage(
-      sourceSpan, MessageKind.GENERIC, {'text': message.problemMessage});
-}
-
 class ModularCore {
   final ir.Component component;
-  final Dart2jsConstantEvaluator constantEvaluator;
+  final ir.TypeEnvironment typeEnvironment;
 
-  ModularCore(this.component, this.constantEvaluator);
+  ModularCore(this.component, this.typeEnvironment);
 }

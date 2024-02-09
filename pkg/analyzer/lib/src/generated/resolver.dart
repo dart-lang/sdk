@@ -4,16 +4,16 @@
 
 import 'dart:collection';
 
-import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordType;
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -27,6 +27,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -81,9 +82,6 @@ import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
-import 'package:analyzer/src/generated/migration.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -180,6 +178,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   final ErrorReporter errorReporter;
 
+  /// The analysis options used by this resolver.
+  final AnalysisOptionsImpl analysisOptions;
+
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
   InterfaceElement? enclosingClass;
@@ -197,10 +198,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The feature set that is enabled for the current unit.
   final FeatureSet _featureSet;
-
-  final MigratableAstInfoProvider _migratableAstInfoProvider;
-
-  final MigrationResolutionHooks? migrationResolutionHooks;
 
   /// Helper for checking that subtypes of a base or final type must be base,
   /// final, or sealed.
@@ -322,15 +319,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// error listener that will be informed of any errors that are found during
   /// resolution.
   ///
-  /// TODO(paulberry): make [featureSet] a required parameter (this will be a
-  /// breaking change).
+  // TODO(paulberry): make [featureSet] a required parameter (this will be a
+  // breaking change).
   ResolverVisitor(
       InheritanceManager3 inheritanceManager,
       LibraryElementImpl definingLibrary,
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      {FeatureSet? featureSet,
+      {required FeatureSet featureSet,
+      required AnalysisOptionsImpl analysisOptions,
       required FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritanceManager,
@@ -339,11 +337,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             definingLibrary.typeSystem,
             typeProvider as TypeProviderImpl,
             errorListener,
-            featureSet ??
-                definingLibrary.context.analysisOptions.contextFeatures,
-            flowAnalysisHelper,
-            const MigratableAstInfoProvider(),
-            null);
+            featureSet,
+            analysisOptions,
+            flowAnalysisHelper);
 
   ResolverVisitor._(
       this.inheritance,
@@ -353,9 +349,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       this.typeProvider,
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
-      this.flowAnalysis,
-      this._migratableAstInfoProvider,
-      this.migrationResolutionHooks)
+      this.analysisOptions,
+      this.flowAnalysis)
       : errorReporter = ErrorReporter(
           errorListener,
           source,
@@ -368,9 +363,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             nullSafetyEnabled: definingLibrary.isNonNullableByDefault,
             patternsEnabled:
                 definingLibrary.featureSet.isEnabled(Feature.patterns)) {
-    var analysisOptions =
-        definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
-
     nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -384,15 +376,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
     _typedLiteralResolver = TypedLiteralResolver(
-        this, _featureSet, typeSystem, typeProvider,
-        migratableAstInfoProvider: _migratableAstInfoProvider);
+        this, _featureSet, typeSystem, typeProvider, analysisOptions);
     extensionResolver = ExtensionMemberResolver(this);
     typePropertyResolver = TypePropertyResolver(this);
     inferenceHelper = InvocationInferenceHelper(
       resolver: this,
       errorReporter: errorReporter,
       typeSystem: typeSystem,
-      migrationResolutionHooks: migrationResolutionHooks,
     );
     _assignmentExpressionResolver = AssignmentExpressionResolver(
       resolver: this,
@@ -404,10 +394,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         FunctionExpressionInvocationResolver(
       resolver: this,
     );
-    _functionExpressionResolver = FunctionExpressionResolver(
-      resolver: this,
-      migrationResolutionHooks: migrationResolutionHooks,
-    );
+    _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
     _forResolver = ForResolver(
       resolver: this,
     );
@@ -430,22 +417,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorReporter,
       flowAnalysis,
     );
-    elementResolver = ElementResolver(this,
-        migratableAstInfoProvider: _migratableAstInfoProvider);
+    elementResolver = ElementResolver(this);
     inferenceContext = InferenceContext._(this);
     typeAnalyzer = StaticTypeAnalyzer(this);
     _functionReferenceResolver =
         FunctionReferenceResolver(this, _isNonNullableByDefault);
   }
-
-  @override
-  DartType get boolType => typeProvider.boolType;
-
-  @override
-  DartType get doubleType => throw UnimplementedError('TODO(paulberry)');
-
-  @override
-  DartType get dynamicType => typeProvider.dynamicType;
 
   /// Return the element representing the function containing the current node,
   /// or `null` if the current node is not contained in a function.
@@ -454,14 +431,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
-  DartType get errorType => InvalidTypeImpl.instance;
-
-  @override
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       get flow => flowAnalysis.flow!;
-
-  @override
-  DartType get intType => throw UnimplementedError('TODO(paulberry)');
 
   bool get isConstructorTearoffsEnabled =>
       _featureSet.isEnabled(Feature.constructor_tearoffs);
@@ -474,9 +445,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return flowAnalysis.localVariableTypeProvider;
   }
 
-  @override
-  DartType get neverType => typeProvider.neverType;
-
   NullabilitySuffix get noneOrStarSuffix {
     return _isNonNullableByDefault
         ? NullabilitySuffix.none
@@ -484,15 +452,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType get objectQuestionType => typeSystem.objectQuestion;
-
-  @override
-  Operations<PromotableElement, DartType> get operations =>
+  shared.TypeAnalyzerOperations<PromotableElement, DartType> get operations =>
       flowAnalysis.typeOperations;
 
   /// Gets the current depth of the [_rewriteStack].  This may be used in
   /// assertions to verify that pushes and pops are properly balanced.
   int get rewriteStackDepth => _rewriteStack.length;
+
+  @override
+  bool get strictCasts => analysisOptions.strictCasts;
 
   /// If a class, or mixin, is being resolved, the type of the class.
   ///
@@ -504,25 +472,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return _thisType;
   }
 
-  @override
-  DartType get unknownType => UnknownInferredType.instance;
-
   /// Return `true` if NNBD is enabled for this compilation unit.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
-
-  @override
-  shared.RecordType<DartType>? asRecordType(DartType type) {
-    if (type is RecordType) {
-      return shared.RecordType(
-        positional: type.positionalFields.map((e) => e.type).toList(),
-        named: type.namedFields
-            .map((e) => shared.NamedType(e.name, e.type))
-            .toList(),
-      );
-    }
-    return null;
-  }
 
   List<SharedPatternField> buildSharedPatternFields(
     List<PatternFieldImpl> fields, {
@@ -584,7 +536,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return;
     }
 
-    // TODO(scheglov) encapsulate
+    // TODO(scheglov): encapsulate
     var bodyContext = BodyInferenceContext.of(body);
     if (bodyContext == null) {
       return;
@@ -762,8 +714,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
             source, errorEntity, flowAnalysis.dataForTesting);
         if (typeSystem.isPotentiallyNullable(entry.key)) continue;
-        var message = entry.value.accept(whyNotPromotedVisitor);
-        if (message != null) {
+        messages = entry.value.accept(whyNotPromotedVisitor);
+        // `messages` will be passed to the ErrorReporter, which might add
+        // additional entries. So make sure that it's not a `const []`.
+        assert(_isModifiableList(messages));
+        if (messages.isNotEmpty) {
           if (flowAnalysis.dataForTesting != null) {
             var nonPromotionReasonText = entry.value.shortName;
             var args = <String>[];
@@ -785,7 +740,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             flowAnalysis.dataForTesting!.nonPromotionReasons[errorEntity] =
                 nonPromotionReasonText;
           }
-          messages = [message];
         }
         break;
       }
@@ -799,7 +753,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant CollectionLiteralContext? context,
   ) {
     if (element is ExpressionImpl) {
-      dispatchExpression(element, context?.elementType ?? unknownType);
+      dispatchExpression(
+          element, context?.elementType ?? operations.unknownType);
     } else {
       element.resolveElement(this, context);
     }
@@ -841,7 +796,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           '(${replacementExpression.runtimeType}) $replacementExpression',
         );
       }
-      staticType = unknownType;
+      staticType = operations.unknownType;
     }
     return SimpleTypeAnalysisResult<DartType>(type: staticType);
   }
@@ -1066,11 +1021,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType getVariableType(PromotableElement element) {
-    return element.type;
-  }
-
-  @override
   void handle_ifElement_conditionEnd(covariant IfElementImpl node) {
     // Stack: (Expression condition)
     var condition = popRewrite()!;
@@ -1258,6 +1208,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // If the constructor-tearoffs feature is enabled, then so is
       // generic-metadata.
       genericMetadataIsEnabled: true,
+      strictInference: analysisOptions.strictInference,
     );
     if (typeArgumentTypes.isNotEmpty) {
       staticType = staticType.instantiate(typeArgumentTypes);
@@ -1277,11 +1228,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  bool isAlwaysExhaustiveType(DartType type) {
-    return typeSystem.isAlwaysExhaustive(type);
-  }
-
-  @override
   bool isLegacySwitchExhaustive(AstNode node, DartType expressionType) =>
       legacySwitchExhaustiveness!.isExhaustive;
 
@@ -1291,30 +1237,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  bool isVariableFinal(PromotableElement element) {
-    return element.isFinal;
-  }
-
-  @override
   bool isVariablePattern(AstNode pattern) => pattern is DeclaredVariablePattern;
-
-  @override
-  DartType iterableType(DartType elementType) {
-    return typeProvider.iterableType(elementType);
-  }
-
-  @override
-  DartType listType(DartType elementType) {
-    return typeProvider.listType(elementType);
-  }
-
-  @override
-  DartType mapType({
-    required DartType keyType,
-    required DartType valueType,
-  }) {
-    return typeProvider.mapType(keyType, valueType);
-  }
 
   /// If we reached a null-shorting termination, and the [node] has null
   /// shorting, make the type of the [node] nullable.
@@ -1344,7 +1267,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// @param allowPrecisionLoss see @{code overrideVariable} docs
   void overrideExpression(Expression expression, DartType potentialType,
       bool allowPrecisionLoss, bool setExpressionType) {
-    // TODO(brianwilkerson) Remove this method.
+    // TODO(brianwilkerson): Remove this method.
   }
 
   /// Examines the top entry of [_rewriteStack] but does not pop it.
@@ -1414,24 +1337,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       assert(_debugPrint('PUSH ${expression.runtimeType} $expression'));
     }
     _rewriteStack.add(expression);
-  }
-
-  @override
-  DartType recordType(
-      {required List<DartType> positional,
-      required List<shared.NamedType<DartType>> named}) {
-    return RecordTypeImpl(
-      positionalFields: positional.map((type) {
-        return RecordTypePositionalFieldImpl(type: type);
-      }).toList(),
-      namedFields: named.map((namedType) {
-        return RecordTypeNamedFieldImpl(
-          name: namedType.name,
-          type: namedType.type,
-        );
-      }).toList(),
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
   }
 
   /// Replaces the expression [oldNode] with [newNode], updating the node's
@@ -1524,7 +1429,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       final prefix = node.prefix;
       prefix.accept(this);
 
-      // TODO(scheglov) It would be nice to rewrite all such cases.
+      // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefix.staticType is RecordType) {
         final propertyAccess = PropertyAccessImpl(
           target: prefix,
@@ -1808,7 +1713,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void startNullAwareIndexExpression(IndexExpression node) {
-    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node)) {
+    if (node.isNullAware) {
       var flow = flowAnalysis.flow;
       if (flow != null) {
         flow.nullAwareAccess_rightBegin(node.target,
@@ -1819,7 +1724,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void startNullAwarePropertyAccess(PropertyAccess node) {
-    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node)) {
+    if (node.isNullAware) {
       var flow = flowAnalysis.flow;
       if (flow != null) {
         var target = node.target;
@@ -1833,11 +1738,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
     }
-  }
-
-  @override
-  DartType streamType(DartType elementType) {
-    return typeProvider.streamType(elementType);
   }
 
   /// Returns the result of an implicit `this.` lookup for the identifier string
@@ -2009,10 +1909,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitBinaryExpression(BinaryExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
-    var migrationResolutionHooks = this.migrationResolutionHooks;
-    if (migrationResolutionHooks != null) {
-      migrationResolutionHooks.reportBinaryExpressionContext(node, contextType);
-    }
     _binaryExpressionResolver.resolve(node as BinaryExpressionImpl,
         contextType: contextType);
     _insertImplicitCallReference(
@@ -2386,11 +2282,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorElement = constructorName.staticElement;
       if (constructorElement != null) {
         node.constructorElement = constructorElement;
-        if (!constructorElement.isConst && constructorElement.isFactory) {
-          final errorTarget =
-              node.arguments?.constructorSelector?.name ?? node.name;
+        if (constructorElement.isFactory) {
+          final constructorName = node.arguments?.constructorSelector?.name;
+          final errorTarget = constructorName ?? node.name;
           errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR,
+            CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
             errorTarget.offset,
             errorTarget.length,
           );
@@ -2422,16 +2318,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             parameters: constructorElement.parameters,
             errorReporter: errorReporter,
           );
-          for (var argument in argumentList.arguments) {
-            analyzeExpression(argument, argument.staticParameterElement?.type);
-            popRewrite();
-          }
-          arguments.typeArguments?.accept(this);
-
-          var whyNotPromotedList =
-              <Map<DartType, NonPromotionReason> Function()>[];
-          checkForArgumentTypesNotAssignableInList(
-              argumentList, whyNotPromotedList);
         } else if (definingLibrary.featureSet
             .isEnabled(Feature.enhanced_enums)) {
           var requiredParameterCount = constructorElement.parameters
@@ -2447,6 +2333,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           }
         }
       }
+    }
+
+    var arguments = node.arguments;
+    if (arguments != null) {
+      var argumentList = arguments.argumentList;
+      for (var argument in argumentList.arguments) {
+        analyzeExpression(argument, argument.staticParameterElement?.type);
+        popRewrite();
+      }
+      arguments.typeArguments?.accept(this);
+
+      var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
+      checkForArgumentTypesNotAssignableInList(
+          argumentList, whyNotPromotedList);
     }
 
     elementResolver.visitEnumConstantDeclaration(node);
@@ -3020,7 +2920,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     target?.accept(this);
     target = node.target;
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node)) {
+    if (node.isNullAware) {
       var flow = flowAnalysis.flow;
       if (flow != null) {
         if (target is SimpleIdentifierImpl &&
@@ -3663,7 +3563,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.body.accept(this);
     flowAnalysis.flow?.whileStatement_end();
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
-    // TODO(brianwilkerson) If the loop can only be exited because the condition
+    // TODO(brianwilkerson): If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);
   }
 
@@ -3768,6 +3668,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       typeParameters,
       errorNode: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
+      strictInference: analysisOptions.strictInference,
     );
     inferrer.constrainReturnType(declaredType, contextType);
     return inferrer.chooseFinalTypes();
@@ -3811,6 +3712,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
         genericMetadataIsEnabled: true,
+        strictInference: analysisOptions.strictInference,
       );
       if (typeArgumentTypes.isNotEmpty) {
         callMethodType = callMethodType.instantiate(typeArgumentTypes);
@@ -3844,7 +3746,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var function = node.function;
 
     if (function is PropertyAccess &&
-        _migratableAstInfoProvider.isPropertyAccessNullAware(function) &&
+        function.isNullAware &&
         _isNonNullableByDefault) {
       var target = function.target;
       if (target is SimpleIdentifier &&
@@ -4031,6 +3933,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return resolvedParameters;
   }
 
+  /// Debug-only: verifies that [list] is a modifiable list by setting its
+  /// length to itself.
+  ///
+  /// For a normal list this is a no-op; for an unmodifiable (i.e. const) list,
+  /// this will cause an exception to be thrown.
+  static bool _isModifiableList(List<Object?> list) {
+    try {
+      list.length = list.length;
+    } catch (_) {
+      return false;
+    }
+    return true;
+  }
+
   /// Report [CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS] or one of
   /// its derivatives at the specified [token], considering the name of the
   /// [nameNode].
@@ -4109,89 +4025,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 }
 
-/// Override of [ResolverVisitorForMigration] that invokes methods of
-/// [MigrationResolutionHooks] when appropriate.
-class ResolverVisitorForMigration extends ResolverVisitor {
-  final MigrationResolutionHooks _migrationResolutionHooks;
-
-  ResolverVisitorForMigration(
-      InheritanceManager3 inheritanceManager,
-      LibraryElementImpl definingLibrary,
-      Source source,
-      TypeProvider typeProvider,
-      AnalysisErrorListener errorListener,
-      TypeSystemImpl typeSystem,
-      FeatureSet featureSet,
-      MigrationResolutionHooks migrationResolutionHooks)
-      : _migrationResolutionHooks = migrationResolutionHooks,
-        super._(
-            inheritanceManager,
-            definingLibrary,
-            source,
-            typeSystem,
-            typeProvider as TypeProviderImpl,
-            errorListener,
-            featureSet,
-            FlowAnalysisHelperForMigration(
-                typeSystem, migrationResolutionHooks, featureSet),
-            migrationResolutionHooks,
-            migrationResolutionHooks);
-
-  @override
-  void visitConditionalExpression(covariant ConditionalExpressionImpl node,
-      {DartType? contextType}) {
-    var conditionalKnownValue =
-        _migrationResolutionHooks.getConditionalKnownValue(node);
-    if (conditionalKnownValue == null) {
-      super.visitConditionalExpression(node, contextType: contextType);
-      return;
-    } else {
-      var subexpressionToKeep =
-          conditionalKnownValue ? node.thenExpression : node.elseExpression;
-      subexpressionToKeep.accept(this);
-      inferenceHelper.recordStaticType(node, subexpressionToKeep.typeOrThrow,
-          contextType: contextType);
-    }
-  }
-
-  @override
-  void visitIfElement(
-    covariant IfElementImpl node, {
-    CollectionLiteralContext? context,
-  }) {
-    var conditionalKnownValue =
-        _migrationResolutionHooks.getConditionalKnownValue(node);
-    if (conditionalKnownValue == null) {
-      super.visitIfElement(node, context: context);
-      return;
-    } else {
-      var element = conditionalKnownValue ? node.thenElement : node.elseElement;
-      if (element != null) {
-        element.resolveElement(this, context);
-        popRewrite();
-      }
-    }
-  }
-
-  @override
-  void visitIfStatement(covariant IfStatementImpl node) {
-    var conditionalKnownValue =
-        _migrationResolutionHooks.getConditionalKnownValue(node);
-    if (conditionalKnownValue == null) {
-      super.visitIfStatement(node);
-      return;
-    } else {
-      (conditionalKnownValue ? node.thenStatement : node.elseStatement)
-          ?.accept(this);
-    }
-  }
-}
-
 /// Instances of the class `ScopeResolverVisitor` are used to resolve
 /// [SimpleIdentifier]s to declarations using scoping rules.
 ///
-/// TODO(paulberry): migrate the responsibility for all scope resolution into
-/// this visitor.
+// TODO(paulberry): migrate the responsibility for all scope resolution into
+// this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   static const _nameScopeProperty = 'nameScope';
 
@@ -4389,6 +4227,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           element,
         );
         node.initializers.accept(this);
+        node.documentationComment?.accept(this);
       } finally {
         nameScope = outerScope;
       }
@@ -4399,15 +4238,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.parameters,
       );
-      visitConstructorDeclarationInScope(node);
+      node.body.accept(this);
     } finally {
       nameScope = outerScope;
     }
-  }
-
-  void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
-    node.documentationComment?.accept(this);
-    node.body.accept(this);
   }
 
   @override
@@ -4576,7 +4410,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// the normal call to the inherited visit method so that ResolverVisitor can
   /// intervene when type propagation is enabled.
   void visitForElementInScope(ForElement node) {
-    // TODO(brianwilkerson) Investigate the possibility of removing the
+    // TODO(brianwilkerson): Investigate the possibility of removing the
     //  visit...InScope methods now that type propagation is no longer done.
     node.forLoopParts.accept(this);
     node.body.accept(this);
@@ -4629,7 +4463,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// the normal call to the inherited visit method so that ResolverVisitor can
   /// intervene when type propagation is enabled.
   void visitForStatementInScope(ForStatement node) {
-    // TODO(brianwilkerson) Investigate the possibility of removing the
+    // TODO(brianwilkerson): Investigate the possibility of removing the
     //  visit...InScope methods now that type propagation is no longer done.
     node.forLoopParts.accept(this);
     visitStatementInScope(node.body);
@@ -5319,7 +5153,7 @@ class SwitchExhaustiveness {
 
 class _WhyNotPromotedVisitor
     implements
-        NonPromotionReasonVisitor<DiagnosticMessage?, AstNode,
+        NonPromotionReasonVisitor<List<DiagnosticMessage>, AstNode,
             PromotableElement, DartType> {
   final Source source;
 
@@ -5334,7 +5168,7 @@ class _WhyNotPromotedVisitor
   _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
 
   @override
-  DiagnosticMessage visitDemoteViaExplicitWrite(
+  List<DiagnosticMessage> visitDemoteViaExplicitWrite(
       DemoteViaExplicitWrite<PromotableElement> reason) {
     var node = reason.node as AstNode;
     if (node is ForEachPartsWithIdentifier) {
@@ -5344,87 +5178,129 @@ class _WhyNotPromotedVisitor
       _dataForTesting!.nonPromotionReasonTargets[node] = reason.shortName;
     }
     var variableName = reason.variable.name;
-    return _contextMessageForWrite(variableName, node, reason);
+    return [_contextMessageForWrite(variableName, node, reason)];
   }
 
   @override
-  DiagnosticMessage? visitPropertyNotPromotedDueToConflict(
-      PropertyNotPromotedDueToConflict<DartType> reason) {
-    var receiverElement = reason.propertyMember;
-    if (receiverElement is PropertyAccessorElement) {
-      var property = propertyReference = receiverElement;
-      propertyType = reason.staticType;
-      var propertyName = reason.propertyName;
-      // TODO(paulberry): plumb the necessary data through the element model so
-      // that the analyzer can find the conflicting declaration(s).
-      String message =
-          "'$propertyName' couldn't be promoted because there is a conflicting "
-          "declaration elsewhere in the library.";
-      return DiagnosticMessageImpl(
-          filePath: property.source.fullName,
-          message: message,
-          offset: property.nonSynthetic.nameOffset,
-          length: property.nameLength,
-          url: null);
-    } else {
-      assert(receiverElement == null,
-          'Unrecognized property element: ${receiverElement.runtimeType}');
-      return null;
-    }
-  }
-
-  @override
-  DiagnosticMessage? visitPropertyNotPromotedForInherentReason(
+  List<DiagnosticMessage> visitPropertyNotPromotedForInherentReason(
       PropertyNotPromotedForInherentReason<DartType> reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
       propertyType = reason.staticType;
       var propertyName = reason.propertyName;
-      String message;
-      switch (reason.whyNotPromotable) {
-        case PropertyNonPromotabilityReason.isNotEnabled:
-          message =
-              "'$propertyName' refers to a field. It couldn't be promoted "
-              "because field promotion is only available in Dart 3.2 and "
-              "above.";
-        case PropertyNonPromotabilityReason.isNotField:
-          message =
-              "'$propertyName' refers to a getter so it couldn't be promoted.";
-        case PropertyNonPromotabilityReason.isNotPrivate:
-          message =
-              "'$propertyName' refers to a public field so it couldn't be "
-              "promoted.";
-        case PropertyNonPromotabilityReason.isExternal:
-          message =
-              "'$propertyName' refers to an external field so it couldn't be "
-              "promoted.";
-        case PropertyNonPromotabilityReason.isNotFinal:
-          message =
-              "'$propertyName' refers to a non-final field so it couldn't be "
-              "promoted.";
-      }
-      return DiagnosticMessageImpl(
-          filePath: property.source.fullName,
-          message: message,
-          offset: property.nonSynthetic.nameOffset,
-          length: property.nameLength,
-          url: reason.documentationLink.url);
+      String message = switch (reason.whyNotPromotable) {
+        shared.PropertyNonPromotabilityReason.isNotField =>
+          "'$propertyName' refers to a getter so it couldn't be promoted.",
+        shared.PropertyNonPromotabilityReason.isNotPrivate =>
+          "'$propertyName' refers to a public property so it couldn't be "
+              "promoted.",
+        shared.PropertyNonPromotabilityReason.isExternal =>
+          "'$propertyName' refers to an external field so it couldn't be "
+              "promoted.",
+        shared.PropertyNonPromotabilityReason.isNotFinal =>
+          "'$propertyName' refers to a non-final field so it couldn't be "
+              "promoted."
+      };
+      return [
+        DiagnosticMessageImpl(
+            filePath: property.source.fullName,
+            message: message,
+            offset: property.nonSynthetic.nameOffset,
+            length: property.nameLength,
+            url: reason.documentationLink.url),
+        if (!reason.fieldPromotionEnabled)
+          _fieldPromotionUnavailableMessage(property, propertyName)
+      ];
     } else {
       assert(receiverElement == null,
           'Unrecognized property element: ${receiverElement.runtimeType}');
-      return null;
+      return [];
     }
   }
 
   @override
-  DiagnosticMessage? visitThisNotPromoted(ThisNotPromoted reason) {
-    return DiagnosticMessageImpl(
-        filePath: source.fullName,
-        message: "'this' can't be promoted",
-        offset: _errorEntity.offset,
-        length: _errorEntity.length,
-        url: reason.documentationLink.url);
+  List<DiagnosticMessage> visitPropertyNotPromotedForNonInherentReason(
+      PropertyNotPromotedForNonInherentReason<DartType> reason) {
+    var receiverElement = reason.propertyMember;
+    if (receiverElement is PropertyAccessorElement) {
+      var property = propertyReference = receiverElement;
+      propertyType = reason.staticType;
+      var propertyName = reason.propertyName;
+      var library = receiverElement.library as LibraryElementImpl;
+      var fieldNonPromotabilityInfo = library.fieldNameNonPromotabilityInfo;
+      var fieldNameInfo = fieldNonPromotabilityInfo[reason.propertyName];
+      var messages = <DiagnosticMessage>[];
+      void addConflictMessage(
+          {required Element conflictingElement,
+          required String kind,
+          required Element enclosingElement,
+          required NonPromotionDocumentationLink link}) {
+        var enclosingKindName = enclosingElement.kind.displayName;
+        var enclosingName = enclosingElement.name;
+        var message = "'$propertyName' couldn't be promoted because there is a "
+            "conflicting $kind in $enclosingKindName '$enclosingName'";
+        var nonSyntheticElement = conflictingElement.nonSynthetic;
+        messages.add(DiagnosticMessageImpl(
+            filePath: nonSyntheticElement.source!.fullName,
+            message: message,
+            offset: nonSyntheticElement.nameOffset,
+            length: nonSyntheticElement.nameLength,
+            url: link.url));
+      }
+
+      if (fieldNameInfo != null) {
+        for (var field in fieldNameInfo.conflictingFields) {
+          addConflictMessage(
+              conflictingElement: field,
+              kind: 'non-promotable field',
+              enclosingElement: field.enclosingElement,
+              link:
+                  NonPromotionDocumentationLink.conflictingNonPromotableField);
+        }
+        for (var getter in fieldNameInfo.conflictingGetters) {
+          addConflictMessage(
+              conflictingElement: getter,
+              kind: 'getter',
+              enclosingElement: getter.enclosingElement,
+              link: NonPromotionDocumentationLink.conflictingGetter);
+        }
+        for (var nsmClass in fieldNameInfo.conflictingNsmClasses) {
+          addConflictMessage(
+              conflictingElement: nsmClass,
+              kind: 'noSuchMethod forwarder',
+              enclosingElement: nsmClass,
+              link: NonPromotionDocumentationLink
+                  .conflictingNoSuchMethodForwarder);
+        }
+      }
+      if (reason.fieldPromotionEnabled) {
+        // The only possible non-inherent reasons for field promotion to fail
+        // are because of conflicts and because field promotion is disabled. So
+        // if field promotion is enabled, the loops above should have found a
+        // conflict.
+        assert(messages.isNotEmpty);
+      } else {
+        messages.add(_fieldPromotionUnavailableMessage(property, propertyName));
+      }
+      return messages;
+    } else {
+      assert(receiverElement == null,
+          'Unrecognized property element: ${receiverElement.runtimeType}');
+      return [];
+    }
+  }
+
+  @override
+  List<DiagnosticMessage> visitThisNotPromoted(ThisNotPromoted reason) {
+    return [
+      DiagnosticMessageImpl(
+          filePath: source.fullName,
+          message: "'this' can't be promoted",
+          offset: _errorEntity.offset,
+          length: _errorEntity.length,
+          url: reason.documentationLink.url)
+    ];
   }
 
   DiagnosticMessageImpl _contextMessageForWrite(String variableName,
@@ -5436,5 +5312,17 @@ class _WhyNotPromotedVisitor
         offset: node.offset,
         length: node.length,
         url: reason.documentationLink.url);
+  }
+
+  DiagnosticMessageImpl _fieldPromotionUnavailableMessage(
+      PropertyAccessorElement property, String propertyName) {
+    return DiagnosticMessageImpl(
+        filePath: property.source.fullName,
+        message: "'$propertyName' couldn't be promoted "
+            "because field promotion is only available in Dart 3.2 and "
+            "above.",
+        offset: property.nonSynthetic.nameOffset,
+        length: property.nameLength,
+        url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url);
   }
 }
