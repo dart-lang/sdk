@@ -16966,8 +16966,8 @@ class Geolocation extends JavaScriptObject {
         new StreamController<Geoposition>(
             sync: true,
             onCancel: () {
-              assert(watchId != null);
-              _clearWatch(watchId!);
+              final id = watchId;
+              if (id != null) _clearWatch(id);
             });
     controller.onListen = () {
       assert(watchId == null);

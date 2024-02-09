@@ -207,7 +207,7 @@ void main() {
               "enable-asserts": true,
               "checked": true,
               "csp": true,
-              "host-checked": true,
+              "host-asserts": true,
               "minified": true,
               "hot-reload": true,
               "hot-reload-rollback": true,
@@ -223,7 +223,7 @@ void main() {
                 enableAsserts: true,
                 isChecked: true,
                 isCsp: true,
-                isHostChecked: true,
+                enableHostAsserts: true,
                 isMinified: true,
                 useHotReload: true,
                 useHotReloadRollback: true,
@@ -379,7 +379,7 @@ void main() {
         enableAsserts: true,
         isChecked: true,
         isCsp: true,
-        isHostChecked: true,
+        enableHostAsserts: true,
         isMinified: true,
         useAnalyzerCfe: true,
         useAnalyzerFastaParser: true,
@@ -409,11 +409,10 @@ architecture: ia32 x64
    enable-asserts: false true
    checked: false true
    csp: false true
-   host-checked: false true
+   host-asserts: false true
    minified: false true
    use-cfe: false true
    analyzer-use-fasta-parser: false true
-   host-checked: false true
    hot-reload: false true
    hot-reload-rollback: false true
    use-sdk: false true

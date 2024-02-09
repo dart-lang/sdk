@@ -119,7 +119,7 @@ class TestConfiguration {
   bool get hotReload => configuration.useHotReload;
   bool get hotReloadRollback => configuration.useHotReloadRollback;
   bool get isChecked => configuration.isChecked;
-  bool get isHostChecked => configuration.isHostChecked;
+  bool get enableHostAsserts => configuration.enableHostAsserts;
   bool get isCsp => configuration.isCsp;
   bool get isMinified => configuration.isMinified;
   bool get isSimulator => architecture.isSimulator;

@@ -52,8 +52,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     StreamController<Geoposition> controller =
       new StreamController<Geoposition>(sync: true,
         onCancel: () {
-          assert(watchId != null);
-          _clearWatch(watchId$NULLASSERT);
+          final id = watchId;
+          if (id != null) _clearWatch(id);
         }
       );
     controller.onListen = () {

@@ -426,20 +426,20 @@
         "dart2js-options": [
           "--canary"
         ],
-        "host-checked": true,
+        "host-asserts": true,
         "timeout": 240
       }
     },
     "dart2js-hostasserts-linux-d8": {
       "options": {
-        "host-checked": true,
+        "host-asserts": true,
         "timeout": 240
       }
     },
     "dart2js-hostasserts-linux-(d8|chrome)-unsound": {
       "options": {
         "builder-tag": "dart2js-weak",
-        "host-checked": true,
+        "host-asserts": true,
         "nnbd": "weak",
         "timeout": 240
       }
@@ -450,13 +450,13 @@
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ],
-        "host-checked": true,
+        "host-asserts": true,
         "timeout": 240
       }
     },
     "dart2wasm-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
       "options": {
-        "host-checked": true,
+        "host-asserts": true,
         "dart2wasm-options": [
           "-O0"
         ],
@@ -468,7 +468,7 @@
         "dart2wasm-options": [
           "-O1"
         ],
-        "host-checked": false,
+        "host-asserts": false,
         "timeout": 240
       }
     },
@@ -478,7 +478,7 @@
           "-O0",
           "--js-compatibility"
         ],
-        "host-checked": true,
+        "host-asserts": true,
         "timeout": 240
       }
     },

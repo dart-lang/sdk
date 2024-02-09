@@ -72,7 +72,7 @@ String f() {
     await waitForTasksFinished();
     await _getNavigation(search: examplePath, length: 1);
     expect(regions, hasLength(1));
-    assertHasRegion(examplePath, examplePath.length);
+    assertHasRegion(examplePath, length: examplePath.length);
   }
 
   Future<void> test_comment_toolSeeCodeComment_multiple() async {
@@ -94,7 +94,7 @@ String f() {
     // Ensure we only get the expected region when there are multiple.
     await _getNavigation(search: example2Path, length: 1);
     expect(regions, hasLength(1));
-    assertHasRegion(example2Path, example2Path.length);
+    assertHasRegion(example2Path, length: example2Path.length);
   }
 
   Future<void> test_constructorInvocation() async {

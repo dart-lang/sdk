@@ -9,8 +9,6 @@ import 'configuration.dart';
 typedef _LookUpFunction = String Function(TestConfiguration configuration);
 typedef _BoolLookUpFunction = bool Function(TestConfiguration configuration);
 
-// TODO(29756): Instead of synthesized negated variables like "unchecked",
-// consider adding support for "!" to status expressions.
 final _variables = {
   "analyzer": _Variable.bool((c) => c.compiler == Compiler.dart2analyzer),
   "analyzer_use_fasta_parser": _Variable.bool((c) => c.useAnalyzerFastaParser),
@@ -22,8 +20,7 @@ final _variables = {
   "csp": _Variable.bool((c) => c.isCsp),
   "enable_asserts": _Variable.bool((c) => c.enableAsserts),
   "fasta": _Variable.bool((c) => c.usesFasta),
-  "host_checked": _Variable.bool((c) => c.isHostChecked),
-  "host_unchecked": _Variable.bool((c) => !c.isHostChecked),
+  "host_asserts": _Variable.bool((c) => c.enableHostAsserts),
   "hot_reload": _Variable.bool((c) => c.hotReload),
   "hot_reload_rollback": _Variable.bool((c) => c.hotReloadRollback),
   "ie": _Variable.bool((c) => c.runtime.isIE),
