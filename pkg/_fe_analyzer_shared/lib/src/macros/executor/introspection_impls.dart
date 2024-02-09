@@ -179,35 +179,34 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
     FunctionTypeAnnotationCode underlyingType = new FunctionTypeAnnotationCode(
       returnType: returnType.code,
       typeParameters: [
-        for (TypeParameterDeclaration typeParam in typeParameters)
-          typeParam.code,
+        for (TypeParameter typeParam in typeParameters) typeParam.code,
       ],
       positionalParameters: [
-        for (FunctionTypeParameter positional in positionalParameters)
+        for (FormalParameter positional in positionalParameters)
           if (positional.isRequired) positional.code,
       ],
       optionalPositionalParameters: [
-        for (FunctionTypeParameter positional in positionalParameters)
+        for (FormalParameter positional in positionalParameters)
           if (!positional.isRequired) positional.code,
       ],
       namedParameters: [
-        for (FunctionTypeParameter named in namedParameters) named.code,
+        for (FormalParameter named in namedParameters) named.code,
       ],
     );
     return isNullable ? underlyingType.asNullable : underlyingType;
   }
 
   @override
-  final List<FunctionTypeParameterImpl> namedParameters;
+  final List<FormalParameterImpl> namedParameters;
 
   @override
-  final List<FunctionTypeParameterImpl> positionalParameters;
+  final List<FormalParameterImpl> positionalParameters;
 
   @override
   final TypeAnnotationImpl returnType;
 
   @override
-  final List<TypeParameterDeclarationImpl> typeParameters;
+  final List<TypeParameterImpl> typeParameters;
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.functionTypeAnnotation;
@@ -228,19 +227,19 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
     returnType.serialize(serializer);
 
     serializer.startList();
-    for (FunctionTypeParameterImpl param in positionalParameters) {
+    for (FormalParameterImpl param in positionalParameters) {
       param.serialize(serializer);
     }
     serializer.endList();
 
     serializer.startList();
-    for (FunctionTypeParameterImpl param in namedParameters) {
+    for (FormalParameterImpl param in namedParameters) {
       param.serialize(serializer);
     }
     serializer.endList();
 
     serializer.startList();
-    for (TypeParameterDeclarationImpl typeParam in typeParameters) {
+    for (TypeParameterImpl typeParam in typeParameters) {
       typeParam.serialize(serializer);
     }
     serializer.endList();
@@ -360,8 +359,8 @@ abstract class DeclarationImpl extends RemoteInstance implements Declaration {
   }
 }
 
-class ParameterDeclarationImpl extends DeclarationImpl
-    implements ParameterDeclaration {
+class FormalParameterDeclarationImpl extends DeclarationImpl
+    implements FormalParameterDeclaration {
   @override
   final bool isNamed;
 
@@ -372,9 +371,12 @@ class ParameterDeclarationImpl extends DeclarationImpl
   final TypeAnnotationImpl type;
 
   @override
-  RemoteInstanceKind get kind => RemoteInstanceKind.parameterDeclaration;
+  RemoteInstanceKind get kind => RemoteInstanceKind.formalParameterDeclaration;
 
-  ParameterDeclarationImpl({
+  @override
+  String get name => identifier.name;
+
+  FormalParameterDeclarationImpl({
     required super.id,
     required super.identifier,
     required super.library,
@@ -400,8 +402,7 @@ class ParameterDeclarationImpl extends DeclarationImpl
       ]);
 }
 
-class FunctionTypeParameterImpl extends RemoteInstance
-    implements FunctionTypeParameter {
+class FormalParameterImpl extends RemoteInstance implements FormalParameter {
   @override
   final bool isNamed;
 
@@ -418,9 +419,9 @@ class FunctionTypeParameterImpl extends RemoteInstance
   final TypeAnnotationImpl type;
 
   @override
-  RemoteInstanceKind get kind => RemoteInstanceKind.functionTypeParameter;
+  RemoteInstanceKind get kind => RemoteInstanceKind.formalParameter;
 
-  FunctionTypeParameterImpl({
+  FormalParameterImpl({
     required int id,
     required this.isNamed,
     required this.isRequired,
@@ -452,6 +453,44 @@ class FunctionTypeParameterImpl extends RemoteInstance
       ]);
 }
 
+class TypeParameterImpl extends RemoteInstance implements TypeParameter {
+  @override
+  final TypeAnnotationImpl? bound;
+
+  @override
+  final List<MetadataAnnotationImpl> metadata;
+
+  @override
+  final String name;
+
+  @override
+  TypeParameterCode get code =>
+      new TypeParameterCode(name: name, bound: bound?.code);
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.typeParameter;
+
+  TypeParameterImpl({
+    required int id,
+    required this.bound,
+    required this.metadata,
+    required this.name,
+  }) : super(id);
+
+  @override
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
+
+    bound.serializeNullable(serializer);
+    serializer.startList();
+    for (MetadataAnnotationImpl annotation in metadata) {
+      annotation.serialize(serializer);
+    }
+    serializer.endList();
+    serializer.addString(name);
+  }
+}
+
 class TypeParameterDeclarationImpl extends DeclarationImpl
     implements TypeParameterDeclaration {
   @override
@@ -459,6 +498,9 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.typeParameterDeclaration;
+
+  @override
+  String get name => identifier.name;
 
   TypeParameterDeclarationImpl({
     required super.id,
@@ -472,12 +514,7 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
   void serializeUncached(Serializer serializer) {
     super.serializeUncached(serializer);
 
-    TypeAnnotationImpl? bound = this.bound;
-    if (bound == null) {
-      serializer.addNull();
-    } else {
-      bound.serialize(serializer);
-    }
+    bound.serializeNullable(serializer);
   }
 
   @override
@@ -503,10 +540,10 @@ class FunctionDeclarationImpl extends DeclarationImpl
   final bool isSetter;
 
   @override
-  final List<ParameterDeclarationImpl> namedParameters;
+  final List<FormalParameterDeclarationImpl> namedParameters;
 
   @override
-  final List<ParameterDeclarationImpl> positionalParameters;
+  final List<FormalParameterDeclarationImpl> positionalParameters;
 
   @override
   final TypeAnnotationImpl returnType;
@@ -547,13 +584,13 @@ class FunctionDeclarationImpl extends DeclarationImpl
         ..addBool(isSetter);
     }
     serializer.startList();
-    for (ParameterDeclarationImpl named in namedParameters) {
+    for (FormalParameterDeclarationImpl named in namedParameters) {
       named.serialize(serializer);
     }
     serializer
       ..endList()
       ..startList();
-    for (ParameterDeclarationImpl positional in positionalParameters) {
+    for (FormalParameterDeclarationImpl positional in positionalParameters) {
       positional.serialize(serializer);
     }
     serializer.endList();

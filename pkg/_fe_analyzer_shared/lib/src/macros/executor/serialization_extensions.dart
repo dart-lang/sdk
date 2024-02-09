@@ -47,8 +47,8 @@ extension DeserializerExtensions on Deserializer {
         (this..moveNext())._expectFunctionDeclaration(id),
       RemoteInstanceKind.functionTypeAnnotation =>
         (this..moveNext())._expectFunctionTypeAnnotation(id),
-      RemoteInstanceKind.functionTypeParameter =>
-        (this..moveNext())._expectFunctionTypeParameter(id),
+      RemoteInstanceKind.formalParameter =>
+        (this..moveNext())._expectFormalParameter(id),
       RemoteInstanceKind.identifier => (this..moveNext())._expectIdentifier(id),
       RemoteInstanceKind.identifierMetadataAnnotation =>
         (this..moveNext())._expectIdentifierMetadataAnnotation(id),
@@ -59,14 +59,16 @@ extension DeserializerExtensions on Deserializer {
         (this..moveNext())._expectNamedTypeAnnotation(id),
       RemoteInstanceKind.omittedTypeAnnotation =>
         (this..moveNext())._expectOmittedTypeAnnotation(id),
-      RemoteInstanceKind.parameterDeclaration =>
-        (this..moveNext())._expectParameterDeclaration(id),
+      RemoteInstanceKind.formalParameterDeclaration =>
+        (this..moveNext())._expectFormalParameterDeclaration(id),
       RemoteInstanceKind.recordFieldDeclaration =>
         (this..moveNext())._expectRecordFieldDeclaration(id),
       RemoteInstanceKind.recordTypeAnnotation =>
         (this..moveNext())._expectRecordTypeAnnotation(id),
       RemoteInstanceKind.typeAliasDeclaration =>
         (this..moveNext())._expectTypeAliasDeclaration(id),
+      RemoteInstanceKind.typeParameter =>
+        (this..moveNext())._expectTypeParameter(id),
       RemoteInstanceKind.typeParameterDeclaration =>
         (this..moveNext())._expectTypeParameterDeclaration(id),
       RemoteInstanceKind.variableDeclaration =>
@@ -136,8 +138,7 @@ extension DeserializerExtensions on Deserializer {
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
       );
 
-  FunctionTypeParameterImpl _expectFunctionTypeParameter(int id) =>
-      new FunctionTypeParameterImpl(
+  FormalParameterImpl _expectFormalParameter(int id) => new FormalParameterImpl(
         id: id,
         isNamed: expectBool(),
         isRequired: (this..moveNext()).expectBool(),
@@ -151,8 +152,8 @@ extension DeserializerExtensions on Deserializer {
         name: expectString(),
       );
 
-  ParameterDeclarationImpl _expectParameterDeclaration(int id) =>
-      new ParameterDeclarationImpl(
+  FormalParameterDeclarationImpl _expectFormalParameterDeclaration(int id) =>
+      new FormalParameterDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
@@ -177,6 +178,13 @@ extension DeserializerExtensions on Deserializer {
         isNullable: expectBool(),
         namedFields: (this..moveNext())._expectRemoteInstanceList(),
         positionalFields: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  TypeParameterImpl _expectTypeParameter(int id) => new TypeParameterImpl(
+        id: id,
+        bound: checkNull() ? null : expectRemoteInstance(),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
+        name: (this..moveNext()).expectString(),
       );
 
   TypeParameterDeclarationImpl _expectTypeParameterDeclaration(int id) =>

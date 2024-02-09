@@ -545,7 +545,10 @@ class DeclarationBuilderFromElement {
       Map.identity();
 
   final Map<TypeParameterElement, macro.TypeParameterDeclarationImpl>
-      _typeParameterMap = Map.identity();
+      _typeParameterDeclarationMap = Map.identity();
+
+  final Map<TypeParameterElement, macro.TypeParameterImpl> _typeParameterMap =
+      Map.identity();
 
   final Map<TopLevelVariableElement, VariableDeclarationImpl> _variableMap =
       Map.identity();
@@ -689,10 +692,17 @@ class DeclarationBuilderFromElement {
     }
   }
 
-  macro.TypeParameterDeclarationImpl typeParameter(
+  macro.TypeParameterImpl typeParameter(
     TypeParameterElement element,
   ) {
     return _typeParameterMap[element] ??= _typeParameter(element);
+  }
+
+  macro.TypeParameterDeclarationImpl typeParameterDeclaration(
+    TypeParameterElement element,
+  ) {
+    return _typeParameterDeclarationMap[element] ??=
+        _typeParameterDeclaration(element);
   }
 
   List<macro.MetadataAnnotationImpl> _buildMetadata(Element element) {
@@ -707,7 +717,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(element.typeParameters),
+      typeParameters: _typeParameterDeclarations(element.typeParameters),
       interfaces: element.interfaces.map(_interfaceType).toList(),
       hasAbstract: element.isAbstract,
       hasBase: element.isBase,
@@ -738,7 +748,7 @@ class DeclarationBuilderFromElement {
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
-      typeParameters: _typeParameters(element.typeParameters),
+      typeParameters: _typeParameterDeclarations(element.typeParameters),
       definingType: identifier(enclosing),
     );
   }
@@ -813,7 +823,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(element.typeParameters),
+      typeParameters: _typeParameterDeclarations(element.typeParameters),
       interfaces: element.interfaces.map(_interfaceType).toList(),
       mixins: element.mixins.map(_interfaceType).toList(),
       element: element,
@@ -828,7 +838,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(element.typeParameters),
+      typeParameters: _typeParameterDeclarations(element.typeParameters),
       onType: _dartType(element.extendedType),
       element: element,
     );
@@ -842,7 +852,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(element.typeParameters),
+      typeParameters: _typeParameterDeclarations(element.typeParameters),
       representationType: _dartType(element.representation.type),
       element: element,
     );
@@ -866,8 +876,9 @@ class DeclarationBuilderFromElement {
     );
   }
 
-  macro.ParameterDeclarationImpl _formalParameter(ParameterElement element) {
-    return macro.ParameterDeclarationImpl(
+  macro.FormalParameterDeclarationImpl _formalParameter(
+      ParameterElement element) {
+    return macro.FormalParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
       isNamed: element.isNamed,
@@ -893,14 +904,14 @@ class DeclarationBuilderFromElement {
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
-      typeParameters: _typeParameters(element.typeParameters),
+      typeParameters: _typeParameterDeclarations(element.typeParameters),
     );
   }
 
-  macro.FunctionTypeParameterImpl _functionTypeFormalParameter(
+  macro.FormalParameterImpl _functionTypeFormalParameter(
     ParameterElement element,
   ) {
-    return macro.FunctionTypeParameterImpl(
+    return macro.FormalParameterImpl(
       id: macro.RemoteInstance.uniqueId,
       isNamed: element.isNamed,
       isRequired: element.isRequired,
@@ -936,7 +947,7 @@ class DeclarationBuilderFromElement {
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
-      typeParameters: _typeParameters(element.typeParameters),
+      typeParameters: _typeParameterDeclarations(element.typeParameters),
       definingType: identifier(enclosing),
     );
   }
@@ -949,7 +960,7 @@ class DeclarationBuilderFromElement {
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(element.typeParameters),
+      typeParameters: _typeParameterDeclarations(element.typeParameters),
       hasBase: element.isBase,
       interfaces: element.interfaces.map(_interfaceType).toList(),
       superclassConstraints:
@@ -958,7 +969,7 @@ class DeclarationBuilderFromElement {
     );
   }
 
-  List<macro.ParameterDeclarationImpl> _namedFormalParameters(
+  List<macro.FormalParameterDeclarationImpl> _namedFormalParameters(
     List<ParameterElement> elements,
   ) {
     return elements
@@ -967,7 +978,7 @@ class DeclarationBuilderFromElement {
         .toList();
   }
 
-  List<macro.ParameterDeclarationImpl> _positionalFormalParameters(
+  List<macro.FormalParameterDeclarationImpl> _positionalFormalParameters(
     List<ParameterElement> elements,
   ) {
     return elements
@@ -992,7 +1003,18 @@ class DeclarationBuilderFromElement {
     );
   }
 
-  macro.TypeParameterDeclarationImpl _typeParameter(
+  macro.TypeParameterImpl _typeParameter(
+    TypeParameterElement element,
+  ) {
+    return macro.TypeParameterImpl(
+      id: macro.RemoteInstance.uniqueId,
+      name: identifier(element).name,
+      metadata: _buildMetadata(element),
+      bound: element.bound.mapOrNull(_dartType),
+    );
+  }
+
+  macro.TypeParameterDeclarationImpl _typeParameterDeclaration(
     TypeParameterElement element,
   ) {
     return macro.TypeParameterDeclarationImpl(
@@ -1004,7 +1026,13 @@ class DeclarationBuilderFromElement {
     );
   }
 
-  List<macro.TypeParameterDeclarationImpl> _typeParameters(
+  List<macro.TypeParameterDeclarationImpl> _typeParameterDeclarations(
+    List<TypeParameterElement> elements,
+  ) {
+    return elements.map(typeParameterDeclaration).toList();
+  }
+
+  List<macro.TypeParameterImpl> _typeParameters(
     List<TypeParameterElement> elements,
   ) {
     return elements.map(typeParameter).toList();
@@ -1043,7 +1071,7 @@ class DeclarationBuilderFromNode {
       identifier: _declaredIdentifier(node.name, element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
       interfaces: _namedTypes(
         interfaceNodes,
         ImplementsClauseTypeLocation(classTypeLocation),
@@ -1090,7 +1118,7 @@ class DeclarationBuilderFromNode {
       identifier: _declaredIdentifier(node.name, element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
       interfaces: _namedTypes(
         interfaceNodes,
         ImplementsClauseTypeLocation(classTypeLocation),
@@ -1196,7 +1224,7 @@ class DeclarationBuilderFromNode {
       identifier: _declaredIdentifier(node.name, element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
       interfaces: _namedTypes(
         interfaceNodes,
         ImplementsClauseTypeLocation(enumTypeLocation),
@@ -1219,7 +1247,7 @@ class DeclarationBuilderFromNode {
       identifier: _declaredIdentifier2(node.name?.lexeme ?? '', element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
       onType: _typeAnnotation(
         node.extendedType,
         ExtensionElementOnTypeLocation(element),
@@ -1238,7 +1266,7 @@ class DeclarationBuilderFromNode {
       identifier: _declaredIdentifier2(node.name.lexeme, element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
       representationType: _typeAnnotation(
         node.representation.fieldType,
         ExtensionTypeElementRepresentationTypeLocation(element),
@@ -1270,7 +1298,7 @@ class DeclarationBuilderFromNode {
       namedParameters: namedParameters,
       positionalParameters: positionalParameters,
       returnType: _typeAnnotationFunctionReturnType(node),
-      typeParameters: _typeParameters(function.typeParameters),
+      typeParameters: _typeParameterDeclarations(function.typeParameters),
     );
   }
 
@@ -1332,7 +1360,7 @@ class DeclarationBuilderFromNode {
       identifier: _declaredIdentifier(node.name, element),
       library: library(element),
       metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
       hasBase: node.baseKeyword != null,
       interfaces: _namedTypes(
         interfaceNodes,
@@ -1513,13 +1541,15 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  (List<macro.ParameterDeclarationImpl>, List<macro.ParameterDeclarationImpl>)
-      _executableFormalParameters(
+  (
+    List<macro.FormalParameterDeclarationImpl>,
+    List<macro.FormalParameterDeclarationImpl>
+  ) _executableFormalParameters(
     ExecutableElement element,
     ast.FormalParameterList? node,
   ) {
-    var named = <macro.ParameterDeclarationImpl>[];
-    var positional = <macro.ParameterDeclarationImpl>[];
+    var named = <macro.FormalParameterDeclarationImpl>[];
+    var positional = <macro.FormalParameterDeclarationImpl>[];
     if (node != null) {
       var elementLocation = ElementTypeLocation(element);
       for (var (index, node) in node.parameters.indexed) {
@@ -1537,7 +1567,7 @@ class DeclarationBuilderFromNode {
     return (named, positional);
   }
 
-  macro.ParameterDeclarationImpl _formalParameter(
+  macro.FormalParameterDeclarationImpl _formalParameter(
     ast.FormalParameter node,
     TypeAnnotationLocation location,
   ) {
@@ -1557,7 +1587,7 @@ class DeclarationBuilderFromNode {
         throw UnimplementedError('(${node.runtimeType}) $node');
     }
 
-    return macro.ParameterDeclarationImpl(
+    return macro.FormalParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier(node.name!, element),
       isNamed: node.isNamed,
@@ -1568,7 +1598,7 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  macro.FunctionTypeParameterImpl _functionTypeFormalParameter(
+  macro.FormalParameterImpl _functionTypeFormalParameter(
     ast.FormalParameter node,
     TypeAnnotationLocation location,
   ) {
@@ -1585,7 +1615,7 @@ class DeclarationBuilderFromNode {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
 
-    return macro.FunctionTypeParameterImpl(
+    return macro.FormalParameterImpl(
       id: macro.RemoteInstance.uniqueId,
       isNamed: node.isNamed,
       isRequired: node.isRequired,
@@ -1620,7 +1650,7 @@ class DeclarationBuilderFromNode {
       namedParameters: namedParameters,
       positionalParameters: positionalParameters,
       returnType: _typeAnnotationMethodReturnType(node),
-      typeParameters: _typeParameters(node.typeParameters),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
     );
   }
 
@@ -1675,8 +1705,8 @@ class DeclarationBuilderFromNode {
     node as ast.TypeAnnotationImpl;
     switch (node) {
       case ast.GenericFunctionTypeImpl():
-        var namedParameters = <macro.FunctionTypeParameterImpl>[];
-        var positionalParameters = <macro.FunctionTypeParameterImpl>[];
+        var namedParameters = <macro.FormalParameterImpl>[];
+        var positionalParameters = <macro.FormalParameterImpl>[];
         var formalParameters = node.parameters.parameters;
         for (var (index, node) in formalParameters.indexed) {
           var formalParameter = _functionTypeFormalParameter(
@@ -1827,7 +1857,24 @@ class DeclarationBuilderFromNode {
     return _typeAnnotation(type, location);
   }
 
-  macro.TypeParameterDeclarationImpl _typeParameter(
+  macro.TypeParameterImpl _typeParameter(
+    ast.TypeParameter node,
+  ) {
+    final element = node.declaredElement!;
+    return macro.TypeParameterImpl(
+      id: macro.RemoteInstance.uniqueId,
+      name: node.name.lexeme,
+      metadata: _buildMetadata(element),
+      bound: node.bound.mapOrNull((type) {
+        return _typeAnnotation(
+          type,
+          TypeParameterBoundLocation(),
+        );
+      }),
+    );
+  }
+
+  macro.TypeParameterDeclarationImpl _typeParameterDeclaration(
     ast.TypeParameter node,
   ) {
     final element = node.declaredElement!;
@@ -1845,7 +1892,19 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  List<macro.TypeParameterDeclarationImpl> _typeParameters(
+  List<macro.TypeParameterDeclarationImpl> _typeParameterDeclarations(
+    ast.TypeParameterList? typeParameterList,
+  ) {
+    if (typeParameterList != null) {
+      return typeParameterList.typeParameters
+          .map(_typeParameterDeclaration)
+          .toList();
+    } else {
+      return const [];
+    }
+  }
+
+  List<macro.TypeParameterImpl> _typeParameters(
     ast.TypeParameterList? typeParameterList,
   ) {
     if (typeParameterList != null) {
