@@ -671,6 +671,7 @@ class JsUtilOptimizer extends Transformer {
   /// Returns whether the given DartType is guaranteed to be not a function
   /// and therefore allowed to interop with JS.
   bool _allowedInteropType(DartType type) {
+    type = type.extensionTypeErasure;
     if (type is InterfaceType) {
       return type.classNode != _coreTypes.functionClass &&
           type.classNode != _coreTypes.objectClass;

@@ -113,6 +113,7 @@ builddir
 bulkcompile
 busy
 busywait
+bx
 bye
 c's
 ca
