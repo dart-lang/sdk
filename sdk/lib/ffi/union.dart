@@ -51,7 +51,7 @@ part of dart.ffi;
 /// by native memory, use [UnionPointer.ref]. To create an instance backed by
 /// Dart memory, use [Union.create].
 @Since('2.14')
-abstract base class Union extends _Compound {
+abstract base class Union extends _Compound implements SizedNativeType {
   /// Construct a reference to the [nullptr].
   ///
   /// Use [UnionPointer]'s `.ref` to gain references to native memory backed

@@ -314,10 +314,7 @@ final class _NativeCallableListener<T extends Function>
 
 @patch
 @pragma("vm:entry-point")
-final class Array<T extends NativeType> {
-  @pragma("vm:entry-point")
-  final Object _typedDataBase;
-
+final class Array<T extends NativeType> extends _Compound {
   @pragma("vm:entry-point")
   final int _size;
 
@@ -329,7 +326,8 @@ final class Array<T extends NativeType> {
   List<int>? _nestedDimensionsRestCache;
 
   @pragma("vm:entry-point")
-  Array._(this._typedDataBase, this._size, this._nestedDimensions);
+  Array._(super._typedDataBase, this._size, this._nestedDimensions)
+      : super._fromTypedDataBase();
 
   int get _nestedDimensionsFlattened =>
       _nestedDimensionsFlattenedCache ??= _nestedDimensions.fold<int>(

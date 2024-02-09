@@ -87,7 +87,7 @@ final class Pointer<T extends NativeType> implements SizedNativeType {
 
 /// A fixed-sized array of [T]s.
 @Since('2.13')
-final class Array<T extends NativeType> implements NativeType {
+final class Array<T extends NativeType> extends _Compound {
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
   /// ```dart

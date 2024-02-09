@@ -138,7 +138,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         _compoundFieldMembers(node, includeSetters: false);
     for (final Member f in membersWithAnnotations) {
       final type = _compoundMemberType(f);
-      if (isCompoundSubtype(type)) {
+      if (isStructOrUnionSubtype(type)) {
         final clazz = (type as InterfaceType).classNode;
         dependencies.add(clazz);
       } else if (isArrayType(type)) {
@@ -146,7 +146,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (sizeAnnotations.length == 1) {
           final singleElementType = arraySingleElementType(type);
           if (singleElementType is InterfaceType &&
-              isCompoundSubtype(singleElementType)) {
+              isStructOrUnionSubtype(singleElementType)) {
             final clazz = singleElementType.classNode;
             dependencies.add(clazz);
           }
@@ -242,7 +242,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     if (!hierarchy.isSubclassOf(node, compoundClass) ||
         node == compoundClass ||
         node == structClass ||
-        node == unionClass) {
+        node == unionClass ||
+        node == arrayClass) {
       return false;
     }
     return true;
@@ -462,7 +463,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             InterfaceType(nativeTypeAnnos.first, Nullability.legacy);
         final DartType? shouldBeDartType = convertNativeTypeToDartType(
             nativeType,
-            allowCompounds: true,
+            allowStructAndUnion: true,
             allowHandle: false);
         if (shouldBeDartType == null ||
             !env.isSubtypeOf(type, shouldBeDartType,
@@ -629,7 +630,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             type = InvalidNativeTypeCfe("Invalid array dimensions.");
           }
         }
-      } else if (isPointerType(dartType) || isCompoundSubtype(dartType)) {
+      } else if (isPointerType(dartType) || isStructOrUnionSubtype(dartType)) {
         type = NativeTypeCfe(this, dartType, compoundCache: compoundCache);
       } else {
         // The C type is in the annotation, not the field type itself.
@@ -693,10 +694,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   /// Returns the total size of the compound (for all ABIs).
   void _replaceFields(
       Class node, IndexedClass? indexedClass, CompoundData compoundData) {
-    final compoundType = compoundData.compoundType as CompoundNativeTypeCfe;
+    final compoundType =
+        compoundData.compoundType as StructOrUnionNativeTypeCfe;
     final compoundLayout = compoundType.layout;
 
-    _annoteCompoundWithFields(node, compoundType.members, compoundData.packing);
+    _annoteStructOrUnionWithFields(
+        node, compoundType.members, compoundData.packing);
     if (compoundType.members.isEmpty) {
       diagnosticReporter.report(
           templateFfiEmptyStruct.withArguments(
@@ -773,7 +776,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     for (final fieldType in fieldTypes.entries) {
       if (fieldType is TypeLiteralConstant) {
         final type = fieldType.type;
-        if (isCompoundSubtype(type)) {
+        if (isStructOrUnionSubtype(type)) {
           final clazz = (type as InterfaceType).classNode;
           result.add(clazz);
         }
@@ -783,7 +786,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   /// Must only be called if all the dependencies are already in the cache.
-  CompoundNativeTypeCfe _compoundAnnotatedNativeTypeCfe(Class compoundClass) {
+  StructOrUnionNativeTypeCfe _compoundAnnotatedNativeTypeCfe(
+      Class compoundClass) {
     final layoutConstant = _compoundAnnotatedFields(compoundClass)!;
     final fieldTypes = layoutConstant
         .fieldValues[ffiStructLayoutTypesField.fieldReference] as ListConstant;
@@ -819,7 +823,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return UnionNativeTypeCfe(compoundClass, members);
   }
 
-  void _annoteCompoundWithFields(
+  void _annoteStructOrUnionWithFields(
       Class node, List<NativeTypeCfe> types, int? packing) {
     List<Constant> constants =
         types.map((t) => t.generateConstant(this)).toList();

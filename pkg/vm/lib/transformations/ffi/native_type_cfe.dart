@@ -23,7 +23,7 @@ sealed class NativeTypeCfe {
     DartType dartType, {
     List<int>? arrayDimensions,
   }) {
-    if (transformer.isCompoundSubtype(dartType)) {
+    if (transformer.isStructOrUnionSubtype(dartType)) {
       return ReferencedCompoundSubtypeCfe(
           (dartType as InterfaceType).classNode);
     } else {
@@ -44,7 +44,7 @@ sealed class NativeTypeCfe {
     if (transformer.isPointerType(dartType)) {
       return PointerNativeTypeCfe();
     }
-    if (transformer.isCompoundSubtype(dartType)) {
+    if (transformer.isStructOrUnionSubtype(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
       if (compoundCache.containsKey(clazz)) {
         return compoundCache[clazz]!;
@@ -535,7 +535,7 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
   }
 }
 
-abstract class CompoundNativeTypeCfe extends NativeTypeCfe
+abstract class StructOrUnionNativeTypeCfe extends NativeTypeCfe
     with _CompoundLoadAndStoreMixin {
   @override
   final Class clazz;
@@ -547,7 +547,8 @@ abstract class CompoundNativeTypeCfe extends NativeTypeCfe
   @override
   bool get knowsLayout => true;
 
-  CompoundNativeTypeCfe._(this.clazz, this.members, this.layout) : super._();
+  StructOrUnionNativeTypeCfe._(this.clazz, this.members, this.layout)
+      : super._();
 
   @override
   Map<Abi, int?> get size =>
@@ -568,7 +569,7 @@ abstract class CompoundNativeTypeCfe extends NativeTypeCfe
       TypeLiteralConstant(InterfaceType(clazz, Nullability.nonNullable));
 }
 
-class StructNativeTypeCfe extends CompoundNativeTypeCfe {
+class StructNativeTypeCfe extends StructOrUnionNativeTypeCfe {
   // Nullable int.
   final int? packing;
 
@@ -609,7 +610,7 @@ class StructNativeTypeCfe extends CompoundNativeTypeCfe {
   }
 }
 
-class UnionNativeTypeCfe extends CompoundNativeTypeCfe {
+class UnionNativeTypeCfe extends StructOrUnionNativeTypeCfe {
   factory UnionNativeTypeCfe(Class clazz, List<NativeTypeCfe> members) {
     final layout = {
       for (var abi in Abi.values) abi: _calculateLayout(members, abi)
@@ -638,7 +639,7 @@ class UnionNativeTypeCfe extends CompoundNativeTypeCfe {
 }
 
 /// A compound type only being referenced (instead of being fully resolved like
-/// in [CompoundNativeTypeCfe]).
+/// in [StructOrUnionNativeTypeCfe]).
 ///
 /// This type can't report the underlying size, alignment or inner fields of
 /// the struct or union.
@@ -793,7 +794,7 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
         Arguments([
           typedDataBase,
           offsetInBytes,
-          transformer.getArrayTypedDataBaseField(value, fileOffset),
+          transformer.getCompoundTypedDataBaseField(value, fileOffset),
           ConstantExpression(IntConstant(0)),
           transformer.runtimeBranchOnLayout(size),
         ]))

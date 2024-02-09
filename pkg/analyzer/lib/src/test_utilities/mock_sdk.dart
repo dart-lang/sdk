@@ -821,13 +821,13 @@ extension NativeFunctionPointer<NF extends Function>
   external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
-final class _Compound implements SizedNativeType {}
+abstract final class _Compound implements NativeType {}
 
 @Since('2.12')
-abstract base class Struct extends _Compound {}
+abstract base class Struct extends _Compound implements SizedNativeType {}
 
 @Since('2.14')
-abstract base class Union extends _Compound {}
+abstract base class Union extends _Compound implements SizedNativeType {}
 
 @Since('2.13')
 final class Packed {
@@ -854,7 +854,7 @@ final class DartRepresentationOf {
 }
 
 @Since('2.13')
-final class Array<T extends NativeType> implements NativeType {
+final class Array<T extends NativeType> extends _Compound {
   const factory Array(int dimension1,
       [int dimension2,
       int dimension3,
