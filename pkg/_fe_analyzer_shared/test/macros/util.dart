@@ -433,7 +433,7 @@ class Fixtures {
       isSetter: true,
       namedParameters: [],
       positionalParameters: [
-        ParameterDeclarationImpl(
+        FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'value'),
@@ -510,7 +510,7 @@ class Fixtures {
       hasExternal: false,
       namedParameters: [],
       positionalParameters: [
-        ParameterDeclarationImpl(
+        FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
@@ -620,7 +620,7 @@ class Fixtures {
       hasExternal: false,
       namedParameters: [],
       positionalParameters: [
-        ParameterDeclarationImpl(
+        FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),

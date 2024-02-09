@@ -155,7 +155,7 @@ void main() {
               fooType, mode, RemoteInstance.deserialize);
         });
 
-        final fooNamedParam = ParameterDeclarationImpl(
+        final fooNamedParam = FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
             isNamed: true,
             isRequired: true,
@@ -164,7 +164,7 @@ void main() {
             library: Fixtures.library,
             metadata: [],
             type: fooType);
-        final fooNamedFunctionTypeParam = FunctionTypeParameterImpl(
+        final fooNamedFunctionTypeParam = FormalParameterImpl(
             id: RemoteInstance.uniqueId,
             isNamed: true,
             isRequired: true,
@@ -172,7 +172,7 @@ void main() {
             name: 'foo',
             type: fooType);
 
-        final barPositionalParam = ParameterDeclarationImpl(
+        final barPositionalParam = FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
             isNamed: false,
             isRequired: false,
@@ -181,7 +181,7 @@ void main() {
             library: Fixtures.library,
             metadata: [],
             type: barType);
-        final barPositionalFunctionTypeParam = FunctionTypeParameterImpl(
+        final barPositionalFunctionTypeParam = FormalParameterImpl(
             id: RemoteInstance.uniqueId,
             isNamed: true,
             isRequired: true,
@@ -189,7 +189,7 @@ void main() {
             name: 'bar',
             type: fooType);
 
-        final unnamedFunctionTypeParam = FunctionTypeParameterImpl(
+        final unnamedFunctionTypeParam = FormalParameterImpl(
             id: RemoteInstance.uniqueId,
             isNamed: true,
             isRequired: true,
@@ -217,7 +217,13 @@ void main() {
             ],
             positionalParameters: [barPositionalFunctionTypeParam],
             returnType: fooType,
-            typeParameters: [zapTypeParam],
+            typeParameters: [
+              TypeParameterImpl(
+                  id: RemoteInstance.uniqueId,
+                  metadata: [],
+                  name: 'Zip',
+                  bound: barType)
+            ],
           );
           expectSerializationEquality<TypeAnnotationImpl>(
               functionType, mode, RemoteInstance.deserialize);

@@ -246,10 +246,10 @@ class MacroIntrospection {
     return declaration;
   }
 
-  List<List<macro.ParameterDeclarationImpl>> _createParameters(
+  List<List<macro.FormalParameterDeclarationImpl>> _createParameters(
       MemberBuilder builder, List<FormalParameterBuilder>? formals) {
-    List<macro.ParameterDeclarationImpl>? positionalParameters;
-    List<macro.ParameterDeclarationImpl>? namedParameters;
+    List<macro.FormalParameterDeclarationImpl>? positionalParameters;
+    List<macro.FormalParameterDeclarationImpl>? namedParameters;
     if (formals == null) {
       positionalParameters = namedParameters = const [];
     } else {
@@ -265,7 +265,7 @@ class MacroIntrospection {
             parameterBuilder: formal,
             libraryBuilder: builder.libraryBuilder);
         if (formal.isNamed) {
-          namedParameters.add(new macro.ParameterDeclarationImpl(
+          namedParameters.add(new macro.FormalParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
@@ -276,7 +276,7 @@ class MacroIntrospection {
             type: type,
           ));
         } else {
-          positionalParameters.add(new macro.ParameterDeclarationImpl(
+          positionalParameters.add(new macro.FormalParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
@@ -299,7 +299,7 @@ class MacroIntrospection {
     if (builder is DeclaredSourceConstructorBuilder) {
       formals = builder.formals;
     }
-    List<List<macro.ParameterDeclarationImpl>> parameters =
+    List<List<macro.FormalParameterDeclarationImpl>> parameters =
         _createParameters(builder, formals);
     macro.ParameterizedTypeDeclaration definingClass =
         getClassDeclaration(builder.classBuilder!);
@@ -328,7 +328,7 @@ class MacroIntrospection {
 
   macro.ConstructorDeclaration _createFactoryDeclaration(
       SourceFactoryBuilder builder) {
-    List<List<macro.ParameterDeclarationImpl>> parameters =
+    List<List<macro.FormalParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
     macro.ParameterizedTypeDeclaration definingClass =
         // TODO(johnniwinther): Support extension type factories.
@@ -359,7 +359,7 @@ class MacroIntrospection {
 
   macro.FunctionDeclaration _createFunctionDeclaration(
       SourceProcedureBuilder builder) {
-    List<List<macro.ParameterDeclarationImpl>> parameters =
+    List<List<macro.FormalParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
 
     macro.ParameterizedTypeDeclaration? definingClass = null;

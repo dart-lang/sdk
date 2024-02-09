@@ -601,7 +601,7 @@ DeclarationCode _buildFunctionAugmentation(
         '>',
       ],
       '(',
-      for (ParameterDeclaration positionalRequired in declaration
+      for (FormalParameterDeclaration positionalRequired in declaration
           .positionalParameters
           .takeWhile((p) => p.isRequired)) ...[
         positionalRequired.code,
@@ -609,7 +609,7 @@ DeclarationCode _buildFunctionAugmentation(
       ],
       if (declaration.positionalParameters.any((p) => !p.isRequired)) ...[
         '[',
-        for (ParameterDeclaration positionalOptional in declaration
+        for (FormalParameterDeclaration positionalOptional in declaration
             .positionalParameters
             .where((p) => !p.isRequired)) ...[
           positionalOptional.code,
@@ -619,7 +619,8 @@ DeclarationCode _buildFunctionAugmentation(
       ],
       if (declaration.namedParameters.isNotEmpty) ...[
         '{',
-        for (ParameterDeclaration named in declaration.namedParameters) ...[
+        for (FormalParameterDeclaration named
+            in declaration.namedParameters) ...[
           named.code,
           ', ',
         ],
