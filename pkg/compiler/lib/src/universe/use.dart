@@ -16,6 +16,8 @@
 /// program.
 library dart2js.universe.use;
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/types.dart';
@@ -26,6 +28,7 @@ import '../js_model/closure.dart' show JContextField;
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
+import 'world_impact.dart';
 
 enum DynamicUseKind {
   INVOKE,
@@ -1040,4 +1043,17 @@ class ConstantUse {
 
   @override
   String toString() => 'ConstantUse(${value.toStructuredText(null)})';
+}
+
+/// Conditional impact and Kernel nodes for replacement if it isn't applied.
+///
+/// If one of source or replacement is provided, the other must also be
+/// provided.
+class ConditionalUse {
+  final ir.TreeNode? source;
+  final ir.TreeNode? replacement;
+  final WorldImpact impact;
+
+  ConditionalUse({this.source, this.replacement, required this.impact})
+      : assert((source == null) == (replacement == null));
 }

@@ -15,7 +15,7 @@ import '../js_model/elements.dart' show JClass;
 import '../native/enqueue.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/use.dart' show ConditionalUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'field_analysis.dart';
@@ -45,6 +45,11 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
   final KFieldAnalysis _fieldAnalysis;
+
+  /// Contains conditional uses for members that have not been marked as live
+  /// yet. Any entries remaining in here after the queue is finished are
+  /// considered unreachable.
+  final Map<MemberEntity, List<ConditionalUse>> _pendingConditionalUses = {};
 
   ResolutionEnqueuerListener(
       this._options,
@@ -184,7 +189,18 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void onQueueClosed() {}
+  void onQueueClosed() {
+    // Update the Kernel for any unused conditional impacts.
+    _pendingConditionalUses.forEach((_, uses) {
+      for (final use in uses) {
+        final source = use.source;
+        if (source?.parent != null) {
+          // Make sure the source node is still in the AST.
+          source?.replaceWith(use.replacement!);
+        }
+      }
+    });
+  }
 
   /// Adds the impact of [constant] to [impactBuilder].
   void _computeImpactForCompileTimeConstant(
@@ -244,6 +260,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   WorldImpact registerUsedElement(MemberEntity member) {
     WorldImpactBuilderImpl worldImpact = WorldImpactBuilderImpl();
     _customElementsAnalysis.registerStaticUse(member);
+    final conditionalUses = _pendingConditionalUses.remove(member);
+    if (conditionalUses != null) {
+      for (final conditionalUse in conditionalUses) {
+        worldImpact.addImpact(conditionalUse.impact);
+      }
+    }
 
     if (member.isFunction) {
       FunctionEntity function = member as FunctionEntity;
@@ -469,5 +491,11 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   @override
   void logSummary(void log(String message)) {
     _nativeEnqueuer.logSummary(log);
+  }
+
+  @override
+  void registerPendingConditionalUses(
+      MemberEntity member, List<ConditionalUse> uses) {
+    (_pendingConditionalUses[member] ??= []).addAll(uses);
   }
 }

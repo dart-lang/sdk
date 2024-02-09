@@ -348,7 +348,7 @@ class ModelEmitter {
     });
 
     if (_closedWorld.backendUsage.requiresPreamble &&
-        !_closedWorld.backendUsage.isHtmlLoaded) {
+        _options.compileForServer) {
       _reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 

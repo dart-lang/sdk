@@ -502,6 +502,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption(Flags.omitImplicitChecks, passThrough),
     _OneOption(Flags.omitAsCasts, passThrough),
     _OneOption(Flags.laxRuntimeTypeToString, passThrough),
+    _OneOption(Flags.enableProtoShaking, passThrough),
     _OneOption(Flags.benchmarkingProduction, passThrough),
     _OneOption(Flags.benchmarkingExperiment, passThrough),
     _OneOption(Flags.soundNullSafety, setNullSafetyMode),
@@ -831,11 +832,17 @@ Future<api.CompilationResult> compile(List<String> argv,
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
+        final producesDill = compilerOptions.producesModifiedDill;
         String dataOutput = fe.relativizeUri(
             Uri.base,
             compilerOptions.dataOutputUriForStage(compilerOptions.stage),
             Platform.isWindows);
-        summary += 'serialized to data: ${dataOutput}.';
+        String summaryLine = dataOutput;
+        if (producesDill) {
+          summaryLine += ' and ';
+          summaryLine += fe.relativizeUri(Uri.base, out!, Platform.isWindows);
+        }
+        summary += 'serialized to data: $summaryLine.';
         break;
       case Dart2JSStage.deferredLoadIds:
         processName = 'Serialized';

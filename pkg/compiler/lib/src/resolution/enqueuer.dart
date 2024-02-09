@@ -16,6 +16,7 @@ import '../universe/member_usage.dart';
 import '../universe/resolution_world_builder.dart' show ResolutionWorldBuilder;
 import '../universe/use.dart'
     show
+        ConditionalUse,
         ConstantUse,
         DynamicUse,
         StaticUse,
@@ -98,9 +99,9 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   /// Callback for applying the use of a [member].
-  void _applyMemberUse(Entity member, EnumSet<MemberUse> useSet) {
+  void _applyMemberUse(MemberEntity member, EnumSet<MemberUse> useSet) {
     if (useSet.contains(MemberUse.NORMAL)) {
-      _addToWorkList(member as MemberEntity);
+      _addToWorkList(member);
     }
     if (useSet.contains(MemberUse.CLOSURIZE_INSTANCE)) {
       _registerClosurizedMember(member as FunctionEntity);
@@ -332,5 +333,23 @@ class ResolutionEnqueuer extends Enqueuer {
   /// still empty) and [recentClasses] will be a superset of the current value.
   bool _onQueueEmpty(Iterable<ClassEntity> recentClasses) {
     return listener.onQueueEmpty(this, recentClasses);
+  }
+
+  @override
+  void processConditionalUses(
+      Map<MemberEntity, List<ConditionalUse>> conditionalUses) {
+    conditionalUses.forEach((condition, uses) {
+      // Only register a conditional use as pending if the condition member is
+      // not live. If it is already live apply the attached impacts immediately.
+      // [worldBuilder.isInstanceMemberLive] checks against the set of members
+      // that have been registered as used by the enqueuer.
+      if (worldBuilder.isInstanceMemberLive(condition)) {
+        for (final use in uses) {
+          applyImpact(use.impact);
+        }
+      } else {
+        listener.registerPendingConditionalUses(condition, uses);
+      }
+    });
   }
 }

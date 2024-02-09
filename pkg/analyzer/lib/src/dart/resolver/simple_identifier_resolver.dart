@@ -175,16 +175,14 @@ class SimpleIdentifierResolver with ScopeHelpers {
     if (callFunctionType != null) {
       final staticType = _resolver.inferenceHelper
           .inferTearOff(node, node, callFunctionType, contextType: contextType);
-      _inferenceHelper.recordStaticType(node, staticType,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, staticType);
       _currentAlreadyResolved = true;
       return null;
     }
 
     final recordField = result.recordField;
     if (recordField != null) {
-      _inferenceHelper.recordStaticType(node, recordField.type,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, recordField.type);
       _currentAlreadyResolved = true;
       return null;
     }
@@ -290,8 +288,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       staticType = _resolver.inferenceHelper
           .inferTearOff(node, node, staticType, contextType: contextType);
     }
-    _inferenceHelper.recordStaticType(node, staticType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, staticType);
   }
 
   // TODO(scheglov): this is duplicate

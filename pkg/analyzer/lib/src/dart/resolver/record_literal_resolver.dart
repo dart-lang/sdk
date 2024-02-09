@@ -28,13 +28,13 @@ class RecordLiteralResolver {
     required DartType? contextType,
   }) {
     _resolveFields(node, contextType);
-    _buildType(node, contextType);
+    _buildType(node);
 
     _reportDuplicateFieldDefinitions(node);
     _reportInvalidFieldNames(node);
   }
 
-  void _buildType(RecordLiteralImpl node, DartType? contextType) {
+  void _buildType(RecordLiteralImpl node) {
     final positionalFields = <RecordTypePositionalFieldImpl>[];
     final namedFields = <RecordTypeNamedFieldImpl>[];
     for (final field in node.fields) {
@@ -62,7 +62,6 @@ class RecordLiteralResolver {
         namedFields: namedFields,
         nullabilitySuffix: NullabilitySuffix.none,
       ),
-      contextType: contextType,
     );
   }
 

@@ -78,13 +78,8 @@ ModularMemberData computeModularMemberData(
     ir.Member node,
     ScopeModel scopeModel,
     EnumSet<PragmaAnnotation> annotations) {
-  var impactBuilderData = ImpactBuilder(
-          elementMap,
-          ir.StaticTypeContext(node, elementMap.typeEnvironment),
-          elementMap.classHierarchy,
-          elementMap.typeEnvironment)
-      .computeImpact(node);
-  return ModularMemberData(scopeModel, impactBuilderData);
+  return ModularMemberData(
+      scopeModel, ImpactBuilder(elementMap, node).computeImpact());
 }
 
 class ModularCore {

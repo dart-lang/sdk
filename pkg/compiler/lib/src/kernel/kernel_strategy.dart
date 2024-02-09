@@ -8,7 +8,6 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/elements.dart';
-import '../common/names.dart' show Uris;
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../compiler.dart';
@@ -230,9 +229,6 @@ class KernelFrontendStrategy {
         _annotationProcessor.extractNativeAnnotations(library);
       }
       _annotationProcessor.extractJsInteropAnnotations(library);
-      if (uri == Uris.dart_html) {
-        _backendUsageBuilder.registerHtmlIsLoaded();
-      }
     }
   }
 

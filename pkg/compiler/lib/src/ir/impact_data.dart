@@ -21,40 +21,84 @@ import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'constants.dart';
 import 'impact.dart';
+import 'protobuf_impacts.dart';
 import 'runtime_type_analysis.dart';
 import 'util.dart';
 
+/// Checks [node] against available [ConditionalImpactHandler] to see if any
+/// are applicable to it. Returns null if there is no matching handler.
+ConditionalImpactHandler? _getConditionalImpactHandler(
+    KernelToElementMap elementMap, ir.Member node) {
+  return ProtobufImpactHandler.createIfApplicable(elementMap, node);
+}
+
+abstract class ConditionalImpactHandler {
+  /// Invoked before children of [node] are analyzed. Returns a temporary
+  /// [ImpactData] if one should be used for the scope of [node] or null
+  /// otherwise.
+  ImpactData? beforeInstanceInvocation(ir.InstanceInvocation node);
+
+  /// Invoked after children of [node] are analyzed. Takes [currentData] which
+  /// should be the [ImpactData] prior to visiting [node].
+  void afterInstanceInvocation(
+      ir.InstanceInvocation node, ImpactData currentData);
+}
+
+class _ConditionalImpactBuilder extends ImpactBuilder {
+  final ConditionalImpactHandler _conditionalHandler;
+
+  _ConditionalImpactBuilder._(
+      super.elementMap, super.node, this._conditionalHandler)
+      : super._();
+
+  @override
+  void visitInstanceInvocation(ir.InstanceInvocation node) {
+    final oldData = _data;
+    _data = _conditionalHandler.beforeInstanceInvocation(node) ?? _data;
+
+    super.visitInstanceInvocation(node);
+
+    _conditionalHandler.afterInstanceInvocation(node, oldData);
+    _data = oldData;
+  }
+}
+
 /// Visitor that builds an [ImpactData] object for the world impact.
 class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
-  final ImpactData _data = ImpactData();
+  ImpactData _data = ImpactData();
+  final ir.Member node;
   final KernelToElementMap _elementMap;
-  final ir.ClassHierarchy classHierarchy;
-
   final ir.StaticTypeContext staticTypeContext;
-  final ir.TypeEnvironment typeEnvironment;
 
-  ImpactBuilder(this._elementMap, this.staticTypeContext, this.classHierarchy,
-      this.typeEnvironment);
+  factory ImpactBuilder(KernelToElementMap elementMap, ir.Member node) {
+    final conditionalHandler = _getConditionalImpactHandler(elementMap, node);
+
+    return conditionalHandler != null
+        ? _ConditionalImpactBuilder._(elementMap, node, conditionalHandler)
+        : ImpactBuilder._(elementMap, node);
+  }
+
+  ImpactBuilder._(this._elementMap, this.node)
+      : staticTypeContext =
+            ir.StaticTypeContext(node, _elementMap.typeEnvironment);
 
   CommonElements get _commonElements => _elementMap.commonElements;
-
   DiagnosticReporter get _reporter => _elementMap.reporter;
+  ir.ClassHierarchy get classHierarchy => _elementMap.classHierarchy;
+  ir.TypeEnvironment get typeEnvironment => _elementMap.typeEnvironment;
+  CompilerOptions get _options => _elementMap.options;
 
   String _typeToString(DartType type) =>
       type.toStructuredText(_elementMap.types, _elementMap.options);
-
-  CompilerOptions get _options => _elementMap.options;
 
   /// Return the named arguments names as a list of strings.
   List<String> _getNamedArguments(ir.Arguments arguments) =>
       arguments.named.map((n) => n.name).toList();
 
-  ImpactBuilderData computeImpact(ir.Member node) {
+  ImpactBuilderData computeImpact() {
     node.accept(this);
-    return ImpactBuilderData(node, impactData);
+    return ImpactBuilderData(node, _data);
   }
-
-  ImpactData get impactData => _data;
 
   @override
   void visitBlock(ir.Block node) {
@@ -1109,6 +1153,13 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   void registerConstSymbolConstructorInvocationNode() {
     _data._hasConstSymbolConstructorInvocation = true;
   }
+
+  @override
+  void registerConditionalImpacts(
+      ir.Member condition, Iterable<ImpactData> impactData) {
+    // Ensure conditional impact is registered on parent impact, `_data`.
+    ((_data.conditionalImpacts ??= {})[condition] ??= []).addAll(impactData);
+  }
 }
 
 /// Data object that contains the world impact data derived purely from kernel.
@@ -1151,6 +1202,9 @@ class ImpactData {
   List<_RecordLiteral>? _recordLiterals;
   List<_RuntimeTypeUse>? _runtimeTypeUses;
   List<_ForInData>? _forInData;
+  Map<ir.Member, List<ImpactData>>? conditionalImpacts;
+  ir.TreeNode? conditionalSource;
+  ir.TreeNode? conditionalReplacement;
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
   List<ir.Constructor>? _externalConstructorNodes;
@@ -1594,6 +1648,8 @@ class ImpactData {
         }
       }
     }
+
+    conditionalImpacts?.forEach(registry.registerConditionalImpacts);
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
     if (_externalConstructorNodes != null) {

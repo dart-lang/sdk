@@ -150,8 +150,7 @@ class FunctionExpressionInvocationResolver {
       contextType: contextType,
     ).resolveInvocation(rawType: rawType);
 
-    _inferenceHelper.recordStaticType(node, returnType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, returnType);
   }
 
   void _resolveReceiverExtensionOverride(FunctionExpressionInvocationImpl node,

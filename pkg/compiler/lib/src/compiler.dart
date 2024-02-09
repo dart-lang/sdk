@@ -532,6 +532,10 @@ class Compiler {
       closedWorld = computeClosedWorld(component, rootLibraryUri, libraries);
       if (stage == Dart2JSStage.closedWorld && closedWorld != null) {
         serializationTask.serializeClosedWorld(closedWorld, indices);
+        if (options.producesModifiedDill) {
+          serializationTask.serializeComponent(component,
+              includeSourceBytes: false);
+        }
       } else if (options.testMode && closedWorld != null) {
         closedWorld = closedWorldTestMode(closedWorld);
         backendStrategy.registerJClosedWorld(closedWorld);

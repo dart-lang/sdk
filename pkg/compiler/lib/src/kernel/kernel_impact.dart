@@ -818,4 +818,31 @@ class KernelImpactConverter implements ImpactRegistry {
     impactData.apply(this);
     return impactBuilder;
   }
+
+  @override
+  void registerConditionalImpacts(
+      ir.Member condition, Iterable<ImpactData> impacts) {
+    final conditionalUses = impacts.map((impactData) => ConditionalUse(
+        source: impactData.conditionalSource,
+        replacement: impactData.conditionalReplacement,
+        // TODO(natebiggs): Make KernelImpactConverter stateless so that we
+        // don't need one per impact.
+        impact: KernelImpactConverter(
+                elementMap,
+                currentMember,
+                reporter,
+                _options,
+                _constantValuefier,
+                staticTypeContext,
+                _impacts,
+                _nativeResolutionEnqueuer,
+                _backendUsageBuilder,
+                _customElementsResolutionAnalysis,
+                _rtiNeedBuilder,
+                _annotationsData)
+            .convert(impactData)));
+
+    impactBuilder.registerConditionalUses(
+        elementMap.getMember(condition), conditionalUses);
+  }
 }
