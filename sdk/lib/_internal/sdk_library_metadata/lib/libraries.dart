@@ -224,6 +224,13 @@ const Map<String, LibraryInfo> libraries = const {
     documented: false,
     platforms: DART2JS_PLATFORM,
   ),
+  '_dart2js_only': const LibraryInfo(
+    '_internal/js_runtime/lib/dart2js_only.dart',
+    categories: '',
+    implementation: true,
+    documented: false,
+    platforms: DART2JS_PLATFORM,
+  ),
   '_dart2js_runtime_metrics': const LibraryInfo(
     '_internal/js_runtime/lib/dart2js_runtime_metrics.dart',
     categories: '',
