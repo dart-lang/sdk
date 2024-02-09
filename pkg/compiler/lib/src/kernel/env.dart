@@ -6,6 +6,7 @@ library dart2js.kernel.env;
 
 import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/library_index.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
@@ -31,6 +32,8 @@ class KProgramEnv {
       for (final library in component.libraries)
         library.importUri: KLibraryEnv(library),
   };
+
+  late final ir.LibraryIndex libraryIndex = ir.LibraryIndex.all(mainComponent);
 
   /// TODO(johnniwinther): Handle arbitrary load order if needed.
   ir.Member? get mainMethod => mainComponent.mainMethod;

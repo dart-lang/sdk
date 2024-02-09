@@ -178,6 +178,8 @@ abstract class ImpactRegistry {
   void registerExternalProcedureNode(ir.Procedure node);
   void registerForeignStaticInvocationNode(ir.StaticInvocation node);
   void registerConstSymbolConstructorInvocationNode();
+  void registerConditionalImpacts(
+      ir.Member condition, Iterable<ImpactData> impactData);
 }
 
 class ImpactBuilderData {

@@ -881,6 +881,12 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     }
   }
 
+  bool isInstanceMemberLive(MemberEntity element) {
+    return element.isAbstract
+        ? _liveAbstractInstanceMembers.contains(element)
+        : _liveInstanceMembers.contains(element);
+  }
+
   Map<ClassEntity, Set<ClassEntity>> populateHierarchyNodes() {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses = {};
 

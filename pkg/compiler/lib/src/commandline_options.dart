@@ -77,6 +77,8 @@ class Flags {
   static const String omitAsCasts = '--omit-as-casts';
   static const String laxRuntimeTypeToString = '--lax-runtime-type-to-string';
 
+  static const String enableProtoShaking = '--enable-proto-shaking';
+
   static const String platformBinaries = '--platform-binaries=.+';
 
   static const String minify = '--minify';

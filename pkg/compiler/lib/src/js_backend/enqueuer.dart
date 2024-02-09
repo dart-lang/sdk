@@ -18,6 +18,7 @@ import '../universe/codegen_world_builder.dart';
 import '../universe/member_usage.dart';
 import '../universe/use.dart'
     show
+        ConditionalUse,
         ConstantUse,
         DynamicUse,
         StaticUse,
@@ -308,4 +309,8 @@ class CodegenEnqueuer extends Enqueuer {
   @override
   Iterable<MemberEntity> get processedEntities =>
       worldBuilder.processedEntities;
+
+  @override
+  void processConditionalUses(
+      Map<MemberEntity, List<ConditionalUse>> conditionalUses) {}
 }
