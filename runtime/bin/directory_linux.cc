@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 
 #include "bin/directory.h"
 
@@ -75,7 +75,7 @@ void PathBuffer::Reset(intptr_t new_length) {
 // A linked list of symbolic links, with their unique file system identifiers.
 // These are scanned to detect loops while doing a recursive directory listing.
 struct LinkList {
-  dev_t dev;
+  decltype(stat64::st_dev) dev;
   ino64_t ino;
   LinkList* next;
 };
@@ -414,13 +414,21 @@ bool Directory::Create(Namespace* namespc, const char* dir_name) {
 }
 
 const char* Directory::SystemTemp(Namespace* namespc) {
+  if (Directory::system_temp_path_override_ != nullptr) {
+    return DartUtils::ScopedCopyCString(Directory::system_temp_path_override_);
+  }
+
   PathBuffer path;
   const char* temp_dir = getenv("TMPDIR");
   if (temp_dir == nullptr) {
     temp_dir = getenv("TMP");
   }
   if (temp_dir == nullptr) {
+#if defined(DART_HOST_OS_ANDROID)
+    temp_dir = "/data/local/tmp";
+#else
     temp_dir = "/tmp";
+#endif
   }
   NamespaceScope ns(namespc, temp_dir);
   if (!path.Add(ns.path())) {
@@ -507,4 +515,4 @@ bool Directory::Rename(Namespace* namespc,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)

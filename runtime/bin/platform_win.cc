@@ -164,18 +164,7 @@ static const char* VersionNumber() {
   if (!GetCurrentVersionDWord(L"CurrentMinorVersionNumber", &minor)) {
     return nullptr;
   }
-  const char* kFormat = "%d.%d";
-  int len = snprintf(nullptr, 0, kFormat, major, minor);
-  if (len < 0) {
-    return nullptr;
-  }
-  char* result = DartUtils::ScopedCString(len + 1);
-  ASSERT(result != nullptr);
-  len = snprintf(result, len + 1, kFormat, major, minor);
-  if (len < 0) {
-    return nullptr;
-  }
-  return result;
+  return DartUtils::ScopedCStringFormatted("%d.%d", major, minor);
 }
 
 const char* Platform::OperatingSystemVersion() {

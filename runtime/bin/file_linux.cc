@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 
 #include "bin/file.h"
 
@@ -103,6 +103,7 @@ MappedMemory* File::Map(MapType type,
   }
   void* addr = mmap(hint, length, prot, flags, handle_->fd(), position);
 
+#if defined(DART_HOST_OS_LINUX)
   // On WSL 1 trying to allocate memory close to the binary by supplying a hint
   // fails with ENOMEM for unclear reason. Some reports suggest that this might
   // be related to the alignment of the hint but aligning it by 64Kb does not
@@ -112,6 +113,7 @@ MappedMemory* File::Map(MapType type,
       Utils::IsWindowsSubsystemForLinux()) {
     addr = mmap(nullptr, length, prot, flags, handle_->fd(), position);
   }
+#endif
 
   if (addr == MAP_FAILED) {
     return nullptr;
@@ -795,4 +797,4 @@ File::Identical File::AreIdentical(Namespace* namespc_1,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
