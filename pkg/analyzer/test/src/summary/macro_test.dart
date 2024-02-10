@@ -6621,13 +6621,19 @@ foo
 ''');
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/language/issues/3559')
   test_functionType_typeParameters() async {
     newFile('$testPackageLibPath/a.dart', r'''
 void foo(void Function<T, U extends num>() t) {}
 ''');
 
     await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function<T, U extends num>()
+  returnType: void
 ''');
   }
 
@@ -8892,6 +8898,17 @@ extension type A
     it
       flags: hasFinal
       type: int
+''');
+  }
+
+  test_functionType_typeParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+class A extends B<void Function<T, U extends num>()> {}
+''', r'''
+class A
+  superclass: B<void Function<T, U extends num>()>
+    noDeclaration
 ''');
   }
 

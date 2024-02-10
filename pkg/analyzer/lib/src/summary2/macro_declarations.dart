@@ -768,11 +768,11 @@ class DeclarationBuilderFromElement {
           isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
           namedParameters: type.parameters
               .where((e) => e.isNamed)
-              .map(_functionTypeFormalParameter)
+              .map(_formalParameter)
               .toList(),
           positionalParameters: type.parameters
               .where((e) => e.isPositional)
-              .map(_functionTypeFormalParameter)
+              .map(_formalParameter)
               .toList(),
           returnType: _dartType(type.returnType),
           typeParameters: _typeParameters(type.typeFormals),
@@ -876,7 +876,20 @@ class DeclarationBuilderFromElement {
     );
   }
 
-  macro.FormalParameterDeclarationImpl _formalParameter(
+  macro.FormalParameterImpl _formalParameter(
+    ParameterElement element,
+  ) {
+    return macro.FormalParameterImpl(
+      id: macro.RemoteInstance.uniqueId,
+      isNamed: element.isNamed,
+      isRequired: element.isRequired,
+      metadata: _buildMetadata(element),
+      name: element.name,
+      type: _dartType(element.type),
+    );
+  }
+
+  macro.FormalParameterDeclarationImpl _formalParameterDeclaration(
       ParameterElement element) {
     return macro.FormalParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -905,19 +918,6 @@ class DeclarationBuilderFromElement {
       positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
       typeParameters: _typeParameterDeclarations(element.typeParameters),
-    );
-  }
-
-  macro.FormalParameterImpl _functionTypeFormalParameter(
-    ParameterElement element,
-  ) {
-    return macro.FormalParameterImpl(
-      id: macro.RemoteInstance.uniqueId,
-      isNamed: element.isNamed,
-      isRequired: element.isRequired,
-      metadata: _buildMetadata(element),
-      name: element.name,
-      type: _dartType(element.type),
     );
   }
 
@@ -974,7 +974,7 @@ class DeclarationBuilderFromElement {
   ) {
     return elements
         .where((element) => element.isNamed)
-        .map(_formalParameter)
+        .map(_formalParameterDeclaration)
         .toList();
   }
 
@@ -983,7 +983,7 @@ class DeclarationBuilderFromElement {
   ) {
     return elements
         .where((element) => element.isPositional)
-        .map(_formalParameter)
+        .map(_formalParameterDeclaration)
         .toList();
   }
 
@@ -1543,7 +1543,7 @@ class DeclarationBuilderFromNode {
 
   (
     List<macro.FormalParameterDeclarationImpl>,
-    List<macro.FormalParameterDeclarationImpl>
+    List<macro.FormalParameterDeclarationImpl>,
   ) _executableFormalParameters(
     ExecutableElement element,
     ast.FormalParameterList? node,
@@ -1553,7 +1553,7 @@ class DeclarationBuilderFromNode {
     if (node != null) {
       var elementLocation = ElementTypeLocation(element);
       for (var (index, node) in node.parameters.indexed) {
-        var formalParameter = _formalParameter(
+        var formalParameter = _formalParameterDeclaration(
           node,
           FormalParameterTypeLocation(elementLocation, index),
         );
@@ -1567,7 +1567,34 @@ class DeclarationBuilderFromNode {
     return (named, positional);
   }
 
-  macro.FormalParameterDeclarationImpl _formalParameter(
+  macro.FormalParameterImpl _formalParameter(
+    ast.FormalParameter node,
+    TypeAnnotationLocation location,
+  ) {
+    if (node is ast.DefaultFormalParameter) {
+      node = node.parameter;
+    }
+
+    final element = node.declaredElement!;
+
+    final macro.TypeAnnotationImpl typeAnnotation;
+    if (node is ast.SimpleFormalParameter) {
+      typeAnnotation = _typeAnnotationOrDynamic(node.type, location);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+
+    return macro.FormalParameterImpl(
+      id: macro.RemoteInstance.uniqueId,
+      isNamed: node.isNamed,
+      isRequired: node.isRequired,
+      metadata: _buildMetadata(element),
+      name: node.name?.lexeme,
+      type: typeAnnotation,
+    );
+  }
+
+  macro.FormalParameterDeclarationImpl _formalParameterDeclaration(
     ast.FormalParameter node,
     TypeAnnotationLocation location,
   ) {
@@ -1598,30 +1625,36 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  macro.FormalParameterImpl _functionTypeFormalParameter(
-    ast.FormalParameter node,
+  _FunctionTypeAnnotation _functionType(
+    ast.GenericFunctionTypeImpl node,
     TypeAnnotationLocation location,
   ) {
-    if (node is ast.DefaultFormalParameter) {
-      node = node.parameter;
+    var namedParameters = <macro.FormalParameterImpl>[];
+    var positionalParameters = <macro.FormalParameterImpl>[];
+    var formalParameters = node.parameters.parameters;
+    for (var (index, node) in formalParameters.indexed) {
+      var formalParameter = _formalParameter(
+        node,
+        FormalParameterTypeLocation(location, index),
+      );
+      if (node.isNamed) {
+        namedParameters.add(formalParameter);
+      } else {
+        positionalParameters.add(formalParameter);
+      }
     }
 
-    final element = node.declaredElement!;
-
-    final macro.TypeAnnotationImpl typeAnnotation;
-    if (node is ast.SimpleFormalParameter) {
-      typeAnnotation = _typeAnnotationOrDynamic(node.type, location);
-    } else {
-      throw UnimplementedError('(${node.runtimeType}) $node');
-    }
-
-    return macro.FormalParameterImpl(
+    return _FunctionTypeAnnotation(
       id: macro.RemoteInstance.uniqueId,
-      isNamed: node.isNamed,
-      isRequired: node.isRequired,
-      metadata: _buildMetadata(element),
-      name: node.name?.lexeme,
-      type: typeAnnotation,
+      isNullable: node.question != null,
+      namedParameters: namedParameters,
+      positionalParameters: positionalParameters,
+      returnType: _typeAnnotationOrDynamic(
+        node.returnType,
+        ReturnTypeLocation(location),
+      ),
+      typeParameters: _typeParameters(node.typeParameters),
+      location: location,
     );
   }
 
@@ -1705,33 +1738,7 @@ class DeclarationBuilderFromNode {
     node as ast.TypeAnnotationImpl;
     switch (node) {
       case ast.GenericFunctionTypeImpl():
-        var namedParameters = <macro.FormalParameterImpl>[];
-        var positionalParameters = <macro.FormalParameterImpl>[];
-        var formalParameters = node.parameters.parameters;
-        for (var (index, node) in formalParameters.indexed) {
-          var formalParameter = _functionTypeFormalParameter(
-            node,
-            FormalParameterTypeLocation(location, index),
-          );
-          if (node.isNamed) {
-            namedParameters.add(formalParameter);
-          } else {
-            positionalParameters.add(formalParameter);
-          }
-        }
-
-        return _FunctionTypeAnnotation(
-          id: macro.RemoteInstance.uniqueId,
-          isNullable: node.question != null,
-          namedParameters: namedParameters,
-          positionalParameters: positionalParameters,
-          returnType: _typeAnnotationOrDynamic(
-            node.returnType,
-            ReturnTypeLocation(location),
-          ),
-          typeParameters: _typeParameters(node.typeParameters),
-          location: location,
-        );
+        return _functionType(node, location);
       case ast.NamedTypeImpl():
         return _namedType(node, location);
       case ast.RecordTypeAnnotationImpl():
