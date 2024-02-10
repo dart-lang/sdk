@@ -7,7 +7,6 @@
 // The only architecture on which this is known to fail is arm32 on Android.
 
 import 'dart:ffi';
-import 'dart:io';
 
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
@@ -32,7 +31,7 @@ final bool isUnalignedFloatingPointAccessSupported = switch (Abi.current()) {
   //
   // [1]: https://developer.arm.com/documentation/ddi0406/c/Application-Level-Architecture/Application-Level-Memory-Model/Alignment-support/Unaligned-data-access?lang=en
   // [2]: https://docs.kernel.org/arch/arm/mem_alignment.html
-  Abi.androidArm || Abi.linuxArm || Abi.iosArm  => false,
+  Abi.androidArm || Abi.linuxArm || Abi.iosArm => false,
   _ => true,
 };
 

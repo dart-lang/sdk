@@ -253,9 +253,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try marking the function body with either 'async' or 'async*'.",
   );
 
-  static const CompileTimeErrorCode AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE =
+  static const CompileTimeErrorCode AWAIT_OF_INCOMPATIBLE_TYPE =
       CompileTimeErrorCode(
-    'AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE',
+    'AWAIT_OF_INCOMPATIBLE_TYPE',
     "The 'await' expression can't be used for an expression with an extension "
         "type that is not a subtype of 'Future'.",
     correctionMessage:
@@ -2805,6 +2805,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try using a generic function type (returnType 'Function(' parameters "
         "')').",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the list of target kind names
+  static const CompileTimeErrorCode INVALID_MACRO_APPLICATION_TARGET =
+      CompileTimeErrorCode(
+    'INVALID_MACRO_APPLICATION_TARGET',
+    "The macro can be applied only to a {0}.",
   );
 
   ///  Parameters:

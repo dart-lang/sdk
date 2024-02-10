@@ -166,9 +166,9 @@ abstract class DartLibrarySupport {
   /// libraries specification.
   ///
   /// This is used to allow AOT to consider `dart:mirrors` as unsupported
-  /// despite it being supported in the platform dill, and dart2js to consider
-  /// `dart:_dart2js_runtime_metrics` to be supported despite it being an
-  /// internal library.
+  /// despite it being supported in the platform dill, and for dart2js and DDC
+  /// to consider `dart:_dart2js_only` and `dart:_ddc_only`, respectively, to be
+  /// supported despite them being internal libraries.
   bool computeDartLibrarySupport(String libraryName,
       {required bool isSupportedBySpec});
 

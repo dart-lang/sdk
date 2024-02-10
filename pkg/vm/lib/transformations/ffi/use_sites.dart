@@ -138,6 +138,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
     final target = node.target;
     if (hierarchy.isSubclassOf(target.enclosingClass, compoundClass) &&
+        target.enclosingClass != arrayClass &&
         target.name != Name("#fromTypedDataBase") &&
         target.name != Name("#fromTypedData")) {
       diagnosticReporter.report(messageFfiCreateOfStructOrUnion,
@@ -236,7 +237,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final pointerType =
             pointer.getStaticType(staticTypeContext!) as InterfaceType;
         ensureNativeTypeValid(pointerType, pointer,
-            allowCompounds: true, allowInlineArray: true);
+            allowStructAndUnion: true, allowInlineArray: true);
 
         final typeArg = pointerType.typeArguments.single;
         final nativeTypeCfe =
@@ -268,7 +269,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           ]),
           abiSpecificLoadOrStoreExpression(
             nativeTypeCfe,
-            typedDataBase: getArrayTypedDataBaseField(VariableGet(arrayVar)),
+            typedDataBase: getCompoundTypedDataBaseField(
+                VariableGet(arrayVar), node.fileOffset),
             index: VariableGet(indexVar),
             value: target == abiSpecificIntegerArraySetElemAt
                 ? node.arguments.positional.last
@@ -285,7 +287,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final pointerType =
             pointer.getStaticType(staticTypeContext!) as InterfaceType;
         ensureNativeTypeValid(pointerType, pointer,
-            allowCompounds: true, allowInlineArray: true);
+            allowStructAndUnion: true, allowInlineArray: true);
 
         final typeArg = pointerType.typeArguments.single;
         final nativeTypeCfe =
@@ -311,7 +313,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           target == unionPointerGetElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
 
         return _replaceGetRef(node);
       } else if (target == structPointerSetRef ||
@@ -320,7 +322,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           target == unionPointerSetElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
 
         return _replaceSetRef(node);
       } else if (target == abiSpecificIntegerPointerElementAt ||
@@ -348,10 +350,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final pointerType =
             pointer.getStaticType(staticTypeContext!) as InterfaceType;
         ensureNativeTypeValid(pointerType, pointer,
-            allowCompounds: true, allowInlineArray: true);
+            allowStructAndUnion: true, allowInlineArray: true);
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
 
         Expression? inlineSizeOf =
             this.inlineSizeOf(nativeType as InterfaceType);
@@ -366,28 +368,28 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       } else if (target == structArrayElemAt || target == unionArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
 
         return _replaceRefArray(node);
       } else if (target == arrayArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(nativeType, node,
-            allowInlineArray: true, allowCompounds: true);
+            allowInlineArray: true, allowStructAndUnion: true);
 
         return _replaceArrayArrayElemAt(node);
       } else if (target == arrayArrayAssignAt) {
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(nativeType, node,
-            allowInlineArray: true, allowCompounds: true);
+            allowInlineArray: true, allowStructAndUnion: true);
 
         return _replaceArrayArrayElemAt(node, setter: true);
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(nativeType, node,
-            allowCompounds: true, allowVoid: true);
+            allowStructAndUnion: true, allowVoid: true);
 
         if (nativeType is InterfaceType) {
           Expression? inlineSizeOf = this.inlineSizeOf(nativeType);
@@ -491,7 +493,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(nativeType, node,
-            allowCompounds: true, allowVoid: true);
+            allowStructAndUnion: true, allowVoid: true);
 
         // Inline the body to get rid of a generic invocation of sizeOf.
         // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
@@ -513,7 +515,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         }
       } else if (target == structCreate || target == unionCreate) {
         final nativeType = node.arguments.types.first;
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
         return _transformCompoundCreate(node);
       } else if (target == nativeAddressOf) {
         return _replaceNativeAddressOf(node);
@@ -1040,7 +1042,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         constructor,
         Arguments([
           typedDataBaseOffset(
-            getArrayTypedDataBaseField(VariableGet(arrayVar)),
+            getCompoundTypedDataBaseField(
+                VariableGet(arrayVar), node.fileOffset),
             multiply(VariableGet(indexVar), inlineSizeOf(dartType)!),
             inlineSizeOf(dartType)!,
             dartType,
@@ -1154,7 +1157,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               arrayConstructor,
               Arguments([
                 typedDataBaseOffset(
-                    getArrayTypedDataBaseField(VariableGet(arrayVar)),
+                    getCompoundTypedDataBaseField(
+                        VariableGet(arrayVar), node.fileOffset),
                     VariableGet(offsetVar),
                     VariableGet(elementSizeVar),
                     dartType,
@@ -1178,10 +1182,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         StaticInvocation(
             memCopy,
             Arguments([
-              getArrayTypedDataBaseField(
+              getCompoundTypedDataBaseField(
                   VariableGet(arrayVar), node.fileOffset),
               VariableGet(offsetVar),
-              getArrayTypedDataBaseField(
+              getCompoundTypedDataBaseField(
                   node.arguments.positional[2], node.fileOffset),
               ConstantExpression(IntConstant(0)),
               VariableGet(elementSizeVar),
@@ -1313,7 +1317,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     ensureNativeTypeValid(nativeType, node,
-        allowCompounds: true, allowInlineArray: true);
+        allowStructAndUnion: true, allowInlineArray: true);
     ensureNativeTypeMatch(FfiTypeCheckDirection.nativeToDart, nativeType,
         arg.getStaticType(staticTypeContext!), node,
         allowArray: true);

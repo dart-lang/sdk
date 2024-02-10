@@ -397,6 +397,9 @@ _dart2js_common:
       uri: "internal/internal.dart"
       patches: "_internal/js_runtime/lib/internal_patch.dart"
 
+    _dart2js_only:
+      uri: "_internal/js_runtime/lib/dart2js_only.dart"
+
     _dart2js_runtime_metrics:
       uri: "_internal/js_runtime/lib/dart2js_runtime_metrics.dart"
 
@@ -486,8 +489,8 @@ dartdevc:
     _native_typed_data:
       uri: "_internal/js_dev_runtime/private/native_typed_data.dart"
 
-    _dart2js_runtime_metrics:
-      uri: "_internal/js_dev_runtime/private/runtime_metrics.dart"
+    _ddc_only:
+      uri: "_internal/js_dev_runtime/private/ddc_only.dart"
 
     _rti:
       uri: "_internal/js_shared/lib/rti.dart"

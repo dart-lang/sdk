@@ -6,9 +6,7 @@
 
 import 'dart:ffi';
 
-import 'dylib_utils.dart';
-
-final DynamicLibrary testLibrary = dlopenPlatformSpecific("ffi_test_functions");
+final testLibrary = DynamicLibrary.process();
 
 // Correct type of exceptionalReturn argument to Pointer.fromFunction.
 double testExceptionalReturn() {

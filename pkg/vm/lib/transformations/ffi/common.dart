@@ -249,7 +249,6 @@ class FfiTransformer extends Transformer {
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
   final Field compoundTypedDataBaseField;
-  final Field arrayTypedDataBaseField;
   final Field arraySizeField;
   final Field arrayNestedDimensionsField;
   final Procedure arrayCheckIndex;
@@ -411,8 +410,6 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'Pointer', 'get:address'),
         compoundTypedDataBaseField =
             index.getField('dart:ffi', '_Compound', '_typedDataBase'),
-        arrayTypedDataBaseField =
-            index.getField('dart:ffi', 'Array', '_typedDataBase'),
         arraySizeField = index.getField('dart:ffi', 'Array', '_size'),
         arrayNestedDimensionsField =
             index.getField('dart:ffi', 'Array', '_nestedDimensions'),
@@ -636,13 +633,14 @@ class FfiTransformer extends Transformer {
   /// [Bool]                               -> [bool]
   /// [Void]                               -> [void]
   /// [Pointer]<T>                         -> [Pointer]<T>
-  /// T extends [Compound]                 -> T
+  /// T extends [Struct]                   -> T
+  /// T extends [Union]                    -> T
   /// [Handle]                             -> [Object]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
   DartType? convertNativeTypeToDartType(
     DartType nativeType, {
-    bool allowCompounds = false,
+    bool allowStructAndUnion = false,
     bool allowHandle = false,
     bool allowInlineArray = false,
     bool allowVoid = false,
@@ -661,7 +659,7 @@ class FfiTransformer extends Transformer {
       final nested = convertNativeTypeToDartType(
         nativeType.typeArguments.single,
         allowInlineArray: true,
-        allowCompounds: true,
+        allowStructAndUnion: true,
       );
       if (nested == null) {
         return null;
@@ -678,7 +676,7 @@ class FfiTransformer extends Transformer {
       if (nativeClass == structClass || nativeClass == unionClass) {
         return null;
       }
-      return allowCompounds ? nativeType : null;
+      return allowStructAndUnion ? nativeType : null;
     }
     if (nativeType_ == null) {
       return null;
@@ -718,7 +716,7 @@ class FfiTransformer extends Transformer {
 
     final DartType? returnType = convertNativeTypeToDartType(
       fun.returnType,
-      allowCompounds: true,
+      allowStructAndUnion: true,
       allowHandle: true,
       allowVoid: true,
     );
@@ -728,7 +726,7 @@ class FfiTransformer extends Transformer {
       argumentTypes.add(
         convertNativeTypeToDartType(
               paramDartType,
-              allowCompounds: true,
+              allowStructAndUnion: true,
               allowHandle: true,
             ) ??
             dummyDartType,
@@ -749,7 +747,7 @@ class FfiTransformer extends Transformer {
   /// [convertNativeTypeToDartType].
   DartType? convertDartTypeToNativeType(DartType dartType) {
     if (isPointerType(dartType) ||
-        isCompoundSubtype(dartType) ||
+        isStructOrUnionSubtype(dartType) ||
         isArrayType(dartType)) {
       return dartType;
     } else {
@@ -1150,7 +1148,7 @@ class FfiTransformer extends Transformer {
         SubtypeCheckMode.ignoringNullabilities);
   }
 
-  bool isCompoundSubtype(DartType type) {
+  bool isStructOrUnionSubtype(DartType type) {
     if (type is InvalidType) {
       return false;
     }
@@ -1158,7 +1156,9 @@ class FfiTransformer extends Transformer {
       return false;
     }
     if (type is InterfaceType) {
-      if (type.classNode == structClass || type.classNode == unionClass) {
+      if (type.classNode == structClass ||
+          type.classNode == unionClass ||
+          type.classNode == arrayClass) {
         return false;
       }
     }
@@ -1174,15 +1174,6 @@ class FfiTransformer extends Transformer {
         InstanceAccessKind.Instance, receiver, compoundTypedDataBaseField.name,
         interfaceTarget: compoundTypedDataBaseField,
         resultType: compoundTypedDataBaseField.type)
-      ..fileOffset = fileOffset;
-  }
-
-  Expression getArrayTypedDataBaseField(Expression receiver,
-      [int fileOffset = TreeNode.noOffset]) {
-    return InstanceGet(
-        InstanceAccessKind.Instance, receiver, arrayTypedDataBaseField.name,
-        interfaceTarget: arrayTypedDataBaseField,
-        resultType: arrayTypedDataBaseField.type)
       ..fileOffset = fileOffset;
   }
 
@@ -1415,7 +1406,7 @@ class FfiTransformer extends Transformer {
   }) {
     final DartType correspondingDartType = convertNativeTypeToDartType(
       nativeType,
-      allowCompounds: true,
+      allowStructAndUnion: true,
       allowHandle: allowHandle,
       allowInlineArray: allowArray,
       allowVoid: allowVoid,
@@ -1459,12 +1450,12 @@ class FfiTransformer extends Transformer {
     DartType nativeType,
     TreeNode reportErrorOn, {
     bool allowHandle = false,
-    bool allowCompounds = false,
+    bool allowStructAndUnion = false,
     bool allowInlineArray = false,
     bool allowVoid = false,
   }) {
     if (!_nativeTypeValid(nativeType,
-        allowCompounds: allowCompounds,
+        allowStructAndUnion: allowStructAndUnion,
         allowHandle: allowHandle,
         allowInlineArray: allowInlineArray,
         allowVoid: allowVoid)) {
@@ -1482,13 +1473,13 @@ class FfiTransformer extends Transformer {
   /// parameter types are only NativeTypes, so we need to check this.
   bool _nativeTypeValid(
     DartType nativeType, {
-    bool allowCompounds = false,
+    bool allowStructAndUnion = false,
     bool allowHandle = false,
     bool allowInlineArray = false,
     bool allowVoid = false,
   }) {
     return convertNativeTypeToDartType(nativeType,
-            allowCompounds: allowCompounds,
+            allowStructAndUnion: allowStructAndUnion,
             allowHandle: allowHandle,
             allowInlineArray: allowInlineArray,
             allowVoid: allowVoid) !=

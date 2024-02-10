@@ -260,6 +260,7 @@ const implicitlyUsedLibraries = <String>[
 const requiredLibraries = <String, List<String>>{
   'dart2js': [
     'dart:_async_status_codes',
+    'dart:_dart2js_only',
     'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_http',
@@ -301,6 +302,7 @@ const requiredLibraries = <String, List<String>>{
   ],
   'dart2js_server': [
     'dart:_async_status_codes',
+    'dart:_dart2js_only',
     'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_http',
@@ -360,6 +362,8 @@ class Dart2jsConstantsBackend extends ConstantsBackend {
 }
 
 class Dart2jsDartLibrarySupport extends CustomizedDartLibrarySupport {
-  const Dart2jsDartLibrarySupport()
-      : super(supported: const {'_dart2js_runtime_metrics'});
+  // This is required so that `dart.library._dart2js_only` can be used as an
+  // import condition. Libraries with leading underscores are otherwise
+  // considered unsupported regardless of the library specification.
+  const Dart2jsDartLibrarySupport() : super(supported: const {'_dart2js_only'});
 }

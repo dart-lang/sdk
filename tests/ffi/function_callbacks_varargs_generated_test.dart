@@ -14,7 +14,6 @@
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
-import "package:ffi/ffi.dart";
 
 import 'callback_tests_utils.dart';
 

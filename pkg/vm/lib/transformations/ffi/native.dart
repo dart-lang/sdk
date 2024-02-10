@@ -760,7 +760,7 @@ class FfiNativeTransformer extends FfiTransformer {
     ensureNativeTypeValid(
       ffiType,
       node,
-      allowCompounds: true,
+      allowStructAndUnion: true,
       // Handles are not currently supported, but checking them separately and
       // allowing them here yields a more specific error message.
       allowHandle: true,
@@ -781,7 +781,8 @@ class FfiNativeTransformer extends FfiTransformer {
 
     // Apart from arrays, compound subtypes, pointers and numeric types are
     // supported for fields.
-    if (!isCompoundSubtype(ffiType) && !isAbiSpecificIntegerSubtype(ffiType)) {
+    if (!isStructOrUnionSubtype(ffiType) &&
+        !isAbiSpecificIntegerSubtype(ffiType)) {
       final type = switch (ffiType) {
         InterfaceType(:var classNode) => getType(classNode),
         _ => null,
@@ -844,7 +845,7 @@ class FfiNativeTransformer extends FfiTransformer {
         final nativeFunctionType = InterfaceType(
             nativeFunctionClass, Nullability.nonNullable, [nativeType]);
         ensureNativeTypeValid(nativeFunctionType, ffiNativeAnnotation,
-            allowCompounds: true, allowHandle: true);
+            allowStructAndUnion: true, allowHandle: true);
       } on FfiStaticTypeError {
         // We've already reported an error.
         return node;

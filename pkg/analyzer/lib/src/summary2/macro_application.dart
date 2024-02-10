@@ -486,6 +486,7 @@ class LibraryMacroApplier {
       if (!instance.supportsDeclarationKind(targetDeclarationKind)) {
         macroTarget.element.addMacroDiagnostic(
           InvalidMacroTargetDiagnostic(
+            annotationIndex: annotationIndex,
             supportedKinds: macro.DeclarationKind.values
                 .where(instance.supportsDeclarationKind)
                 .map((e) => e.name)

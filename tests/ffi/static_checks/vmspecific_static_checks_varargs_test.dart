@@ -4,22 +4,12 @@
 
 // SharedObjects=ffi_test_functions
 
-
-import 'dylib_utils.dart';
-
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
 void main() {
-  final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
-
-  // Try to lookup a symbol that exists, but don't use it.
-  // With both valid and invalid C signatures.
-
-  print(ffiTestFunctions.lookupFunction<
-    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>),
-    void Function(Pointer<Utf8>, int, int)>('PassObjectToC'));
+  final ffiTestFunctions = DynamicLibrary.process();
 
   // Error: a named record field.
   print(ffiTestFunctions.lookupFunction< //# 1: compile-time error

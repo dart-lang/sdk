@@ -997,6 +997,44 @@ class TypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  /// We say that a type `T` is _incompatible with await_ if at least
+  /// one of the following criteria holds:
+  bool isIncompatibleWithAwait(DartType T) {
+    T as TypeImpl;
+
+    // `T` is `S?`, and `S` is incompatible with await.
+    if (T.nullabilitySuffix == NullabilitySuffix.question) {
+      var T_none = T.withNullability(NullabilitySuffix.none);
+      return isIncompatibleWithAwait(T_none);
+    }
+
+    // `T` is an extension type that does not implement `Future`.
+    if (T.element is ExtensionTypeElement) {
+      var anyFuture = typeProvider.futureType(objectQuestion);
+      if (!isSubtypeOf(T, anyFuture)) {
+        return true;
+      }
+    }
+
+    if (T is TypeParameterTypeImpl) {
+      // `T` is `X & B`, and `B` is incompatible with await.
+      if (T.promotedBound case var B?) {
+        if (isIncompatibleWithAwait(B)) {
+          return true;
+        }
+      }
+      // `T` is a type variable with bound `S`, and `S` is incompatible
+      // with await.
+      if (T.element.bound case var S?) {
+        if (isIncompatibleWithAwait(S)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   /// Either [InvalidType] itself, or an intersection with it.
   bool isInvalidBounded(DartType type) {
     if (identical(type, InvalidTypeImpl.instance)) {

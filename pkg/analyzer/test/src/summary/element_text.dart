@@ -904,6 +904,9 @@ class _ElementWriter {
             case InvalidMacroTargetDiagnostic():
               _sink.writelnWithIndent('InvalidMacroTargetDiagnostic');
               _sink.withIndent(() {
+                _sink.writelnWithIndent(
+                  'annotationIndex: ${diagnostic.annotationIndex}',
+                );
                 _sink.writeElements(
                   'supportedKinds',
                   diagnostic.supportedKinds,

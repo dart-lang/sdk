@@ -367,7 +367,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     checkForUseOfVoidResult(node.expression);
     _checkForAwaitInLateLocalVariableInitializer(node);
-    _checkForAwaitOfExtensionTypeNotFuture(node);
+    _checkForAwaitOfIncompatibleType(node);
     super.visitAwaitExpression(node);
   }
 
@@ -1836,19 +1836,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForAwaitOfExtensionTypeNotFuture(AwaitExpression node) {
+  void _checkForAwaitOfIncompatibleType(AwaitExpression node) {
     final expression = node.expression;
     final expressionType = expression.typeOrThrow;
-    if (expressionType.element is ExtensionTypeElement) {
-      final anyFuture = typeSystem.typeProvider.futureType(
-        typeSystem.objectQuestion,
+    if (typeSystem.isIncompatibleWithAwait(expressionType)) {
+      errorReporter.atToken(
+        node.awaitKeyword,
+        CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE,
       );
-      if (!typeSystem.isSubtypeOf(expressionType, anyFuture)) {
-        errorReporter.atToken(
-          node.awaitKeyword,
-          CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE,
-        );
-      }
     }
   }
 
@@ -6143,6 +6138,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               diagnostic.stackTrace,
             ],
           );
+        case InvalidMacroTargetDiagnostic():
+          errorReporter.atNode(
+            metadata[diagnostic.annotationIndex],
+            CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET,
+            arguments: [
+              diagnostic.supportedKinds.commaSeparatedWithOr,
+            ],
+          );
         case MacroDiagnostic():
           final errorCode = switch (diagnostic.severity) {
             macro.Severity.info => HintCode.MACRO_INFO,
@@ -6191,9 +6194,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               // TODO(scheglov): Handle this case.
               throw UnimplementedError();
           }
-        case InvalidMacroTargetDiagnostic():
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError();
       }
     }
   }

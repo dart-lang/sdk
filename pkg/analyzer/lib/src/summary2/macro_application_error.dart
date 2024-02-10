@@ -87,9 +87,11 @@ final class ExceptionMacroDiagnostic extends AnalyzerMacroDiagnostic {
 }
 
 final class InvalidMacroTargetDiagnostic extends AnalyzerMacroDiagnostic {
+  final int annotationIndex;
   final List<String> supportedKinds;
 
   InvalidMacroTargetDiagnostic({
+    required this.annotationIndex,
     required this.supportedKinds,
   });
 }

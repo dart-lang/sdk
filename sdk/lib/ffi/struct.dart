@@ -4,12 +4,12 @@
 
 part of dart.ffi;
 
-/// Shared supertype of the FFI compound [Struct] and [Union] types.
+/// Shared supertype of the FFI compound [Struct], [Union], and [Array] types.
 ///
 /// FFI struct and union types should extend [Struct] and [Union]. For more
 /// information see the documentation on those classes.
 @pragma("wasm:entry-point")
-abstract final class _Compound implements SizedNativeType {
+abstract final class _Compound implements NativeType {
   /// The underlying [TypedData] or [Pointer] that a subtype uses.
   @pragma("vm:entry-point")
   final Object _typedDataBase;
@@ -86,7 +86,7 @@ abstract final class _Compound implements SizedNativeType {
 /// by native memory, use [StructPointer.ref]. To create an instance backed by
 /// Dart memory, use [Struct.create].
 @Since('2.12')
-abstract base class Struct extends _Compound {
+abstract base class Struct extends _Compound implements SizedNativeType {
   /// Construct a reference to the [nullptr].
   ///
   /// Use [StructPointer]'s `.ref` to gain references to native memory backed
