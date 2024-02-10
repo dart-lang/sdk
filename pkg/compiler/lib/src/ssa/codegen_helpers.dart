@@ -983,6 +983,64 @@ class SsaInstructionMerger extends HBaseVisitor<void> implements CodegenPhase {
     assert(false);
   }
 
+  @override
+  void visitReadModifyWrite(HReadModifyWrite instruction) {
+    if (instruction.isPreOp || instruction.isPostOp) {
+      analyzeInputs(instruction, 0);
+      return;
+    }
+    assert(instruction.isAssignOp);
+    // Generate-at-use is valid for the value operand (t1) if the expression
+    // tree for t1 does not change the order of effects or exceptions with
+    // respect to reading the field of the receiver (t2).
+    //
+    //     t1 = foo();
+    //     t2 = ...
+    //     t2.field += t1;
+    //
+    // 1. If the read of `t2.field` can throw, we can't move `t1` into the
+    //    use-site if some part of the expression tree for `t1` can throw.
+    //
+    // 2. If the expression for `t1` potentially modifies `t2.field`, we can't
+    //    move `t1` past the load `t2.field`.
+    //
+    // TODO(48243): If instruction merging was smarter about effects and was
+    // able to change the order of instructions that read non-aliased fields
+    // this analysis could probably be folded into the normal algorithm by
+    // having HReadModifyWrite have two SideEffects to model the read
+    // indepentently of the write.
+
+    bool throwCheck = instruction.canThrow(_abstractValueDomain);
+
+    bool isSafeSubexpression(HInstruction expression) {
+      // If an expression value is used in more than one place it will be
+      // assigned to a JavaScript variable.
+      if (expression.usedBy.length > 1) return true;
+
+      // Expressions that are generated as JavaScript statements have their
+      // value stored in a variable.
+      if (expression.isJsStatement()) return true;
+
+      // Condition 1.
+      if (throwCheck && expression.canThrow(_abstractValueDomain)) return false;
+
+      // Condition 2.
+      if (expression.sideEffects.changesInstanceProperty()) return false;
+
+      // Many phis end up as JavaScript variables, which would be just fine as
+      // part of the value expression. Since SsaConditionMerger is a separate
+      // pass we can't tell if this phi will become a generate-at-use expression
+      // that is invalid as a subexpression of the value expression.
+      if (expression is HPhi) return false;
+
+      return expression.inputs.every(isSafeSubexpression);
+    }
+
+    if (isSafeSubexpression(instruction.value)) {
+      analyzeInputs(instruction, 0);
+    }
+  }
+
   void tryGenerateAtUseSite(HInstruction instruction) {
     if (instruction.isControlFlow()) return;
     markAsGenerateAtUseSite(instruction);
@@ -1185,6 +1243,12 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
     // A [HCheck] instruction with control flow uses its input
     // multiple times, so we avoid generating it at use site.
     if (user is HCheck && user.isControlFlow()) return false;
+
+    // A read-modify-write like `o.field += value` reads the field before
+    // evaluating the value, so if we generate [input] at the value, the order
+    // of field reads may be changed.
+    if (user is HReadModifyWrite && input == user.inputs.last) return false;
+
     // Avoid code motion into a loop.
     return user.hasSameLoopHeaderAs(input);
   }
