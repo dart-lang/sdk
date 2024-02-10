@@ -540,6 +540,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       );
     }
 
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.entryPoint = reader.readElement() as FunctionElement?;
 
     element.fieldNameNonPromotabilityInfo =

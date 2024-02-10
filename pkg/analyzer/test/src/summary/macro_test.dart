@@ -796,6 +796,34 @@ class A1 {}
 ''');
   }
 
+  test_types_libraryDirective_last() async {
+    var library = await buildLibrary(r'''
+@AddClass('A1')
+library;
+
+import 'order.dart';
+
+@AddClass('A2')
+class X {}
+''');
+
+    configuration.forOrder();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/order.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class A2 {}
+class A1 {}
+---
+''');
+  }
+
   test_types_mixin_method_rightToLeft() async {
     var library = await buildLibrary(r'''
 import 'order.dart';
@@ -3564,6 +3592,36 @@ library
             supportedKinds
               classType
               mixinType
+''');
+  }
+
+  test_macroDiagnostics_invalidTarget_wantsClassOrMixin_hasLibrary() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+@TargetClassOrMixinMacro()
+library;
+
+import 'diagnostic.dart';
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+  macroDiagnostics
+    InvalidMacroTargetDiagnostic
+      annotationIndex: 0
+      supportedKinds
+        classType
+        mixinType
 ''');
   }
 

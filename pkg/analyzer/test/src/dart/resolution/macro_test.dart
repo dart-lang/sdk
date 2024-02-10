@@ -290,6 +290,17 @@ void f() {}
     ]);
   }
 
+  test_diagnostic_invalidTarget_wantsClassOrMixin_hasLibrary() async {
+    await assertErrorsInCode('''
+@TargetClassOrMixinMacro()
+library;
+
+import 'diagnostic.dart';
+''', [
+      error(CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET, 0, 26),
+    ]);
+  }
+
   test_diagnostic_notSupportedArgument() async {
     await assertErrorsInCode('''
 import 'diagnostic.dart';
