@@ -1027,6 +1027,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitLibraryDirective(LibraryDirective node) {
+    var element = node.element as LibraryElementImpl;
+    _reportMacroDiagnostics(element, node.metadata);
+
+    super.visitLibraryDirective(node);
+  }
+
+  @override
   void visitListLiteral(ListLiteral node) {
     _typeArgumentsVerifier.checkListLiteral(node);
     _checkForListElementTypeNotAssignable(node);

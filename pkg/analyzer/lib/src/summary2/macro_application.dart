@@ -114,6 +114,22 @@ class LibraryMacroApplier {
     required LibraryOrAugmentationElementImpl container,
     required ast.CompilationUnitImpl unit,
   }) async {
+    for (final directive in unit.directives.reversed) {
+      switch (directive) {
+        case ast.LibraryDirectiveImpl():
+          await _addAnnotations(
+            libraryElement: libraryElement,
+            container: container,
+            targetNode: directive,
+            targetNodeElement: libraryElement,
+            targetDeclarationKind: macro.DeclarationKind.library,
+            annotations: directive.metadata,
+          );
+        default:
+          break;
+      }
+    }
+
     for (final declaration in unit.declarations.reversed) {
       switch (declaration) {
         case ast.ClassDeclarationImpl():
@@ -225,22 +241,6 @@ class LibraryMacroApplier {
               annotations: declaration.metadata,
             );
           }
-      }
-    }
-
-    for (final directive in unit.directives.reversed) {
-      switch (directive) {
-        case ast.LibraryDirectiveImpl():
-          await _addAnnotations(
-            libraryElement: libraryElement,
-            container: container,
-            targetNode: directive,
-            targetNodeElement: libraryElement,
-            targetDeclarationKind: macro.DeclarationKind.library,
-            annotations: directive.metadata,
-          );
-        default:
-          break;
       }
     }
   }
@@ -580,6 +580,7 @@ class LibraryMacroApplier {
           message: convertMessage(diagnostic.message),
           contextMessages:
               diagnostic.contextMessages.map(convertMessage).toList(),
+          correctionMessage: diagnostic.correctionMessage,
         ),
       );
     }

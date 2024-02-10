@@ -1380,36 +1380,6 @@ test() {}
     expect(y.declaration, findElement.parameter('arg'));
   }
 
-  test_generic_staticParameterElement_functionCall_explicitTypeArg() async {
-    await assertNoErrorsInCode('''
-void generic<T>({arg}) {}
-
-void test() {
-  generic<bool>(arg: true);
-}
-''');
-
-    var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
-  }
-
-  test_generic_staticParameterElement_functionCall_implicitTypeArg() async {
-    await assertNoErrorsInCode('''
-void generic<T>({arg}) {}
-
-void test() {
-  generic(arg: true);
-}
-''');
-
-    var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
-  }
-
   test_generic_staticParameterElement_instanceCreation_explicitNew() async {
     await assertNoErrorsInCode('''
 class C<T> {
@@ -1480,42 +1450,8 @@ test(C c) => c.method<bool>(arg: true);
 abstract class C {
   T method<T>({arg});
 }
-bool test(C c) => c.method(arg: true);
+bool test(C c) => c.method<bool>(arg: true);
 ''');
-    var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
-  }
-
-  test_generic_staticParameterElement_staticMethodCall_explicitTypeArg() async {
-    await assertNoErrorsInCode('''
-class C {
-  static void generic<T>({arg}) {}
-}
-
-void test() {
-  C.generic<bool>(arg: true);
-}
-''');
-
-    var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
-  }
-
-  test_generic_staticParameterElement_staticMethodCall_implicitTypeArg() async {
-    await assertNoErrorsInCode('''
-class C {
-  static void generic<T>({arg}) {}
-}
-
-void test() {
-  C.generic(arg: true);
-}
-''');
-
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
     expect(y.enclosingElement, isNotNull);

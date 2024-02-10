@@ -9,6 +9,7 @@
 */*/*/packages/*/*: Skip
 */*/packages/*/*: Skip
 */packages/*/*: Skip
+analyzer/test/src/summary/macro_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer/test/verify_diagnostics_test.dart: Slow, Pass
 analyzer/test/verify_docs_test.dart: Slow, Pass

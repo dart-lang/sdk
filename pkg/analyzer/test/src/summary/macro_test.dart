@@ -796,6 +796,34 @@ class A1 {}
 ''');
   }
 
+  test_types_libraryDirective_last() async {
+    var library = await buildLibrary(r'''
+@AddClass('A1')
+library;
+
+import 'order.dart';
+
+@AddClass('A2')
+class X {}
+''');
+
+    configuration.forOrder();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/order.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class A2 {}
+class A1 {}
+---
+''');
+  }
+
   test_types_mixin_method_rightToLeft() async {
     var library = await buildLibrary(r'''
 import 'order.dart';
@@ -3567,6 +3595,36 @@ library
 ''');
   }
 
+  test_macroDiagnostics_invalidTarget_wantsClassOrMixin_hasLibrary() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+@TargetClassOrMixinMacro()
+library;
+
+import 'diagnostic.dart';
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+  macroDiagnostics
+    InvalidMacroTargetDiagnostic
+      annotationIndex: 0
+      supportedKinds
+        classType
+        mixinType
+''');
+  }
+
   test_macroDiagnostics_report_atDeclaration_class() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',
@@ -3597,6 +3655,7 @@ library
               target: ElementMacroDiagnosticTarget
                 element: self::@class::A
             severity: warning
+            correctionMessage: Correction message
 ''');
   }
 
@@ -3632,6 +3691,7 @@ library
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@constructor::new
                 severity: warning
+                correctionMessage: Correction message
 ''');
   }
 
@@ -3671,6 +3731,7 @@ library
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@field::foo
                 severity: warning
+                correctionMessage: Correction message
         accessors
           synthetic get foo @-1
             returnType: int
@@ -3712,6 +3773,7 @@ library
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@method::foo
                 severity: warning
+                correctionMessage: Correction message
 ''');
   }
 
@@ -3745,6 +3807,7 @@ library
               target: ElementMacroDiagnosticTarget
                 element: self::@mixin::A
             severity: warning
+            correctionMessage: Correction message
         superclassConstraints
           Object
 ''');
@@ -6558,13 +6621,19 @@ foo
 ''');
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/language/issues/3559')
   test_functionType_typeParameters() async {
     newFile('$testPackageLibPath/a.dart', r'''
 void foo(void Function<T, U extends num>() t) {}
 ''');
 
     await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    t
+      flags: isRequired
+      type: void Function<T, U extends num>()
+  returnType: void
 ''');
   }
 
@@ -8829,6 +8898,17 @@ extension type A
     it
       flags: hasFinal
       type: int
+''');
+  }
+
+  test_functionType_typeParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+class A extends B<void Function<T, U extends num>()> {}
+''', r'''
+class A
+  superclass: B<void Function<T, U extends num>()>
+    noDeclaration
 ''');
   }
 

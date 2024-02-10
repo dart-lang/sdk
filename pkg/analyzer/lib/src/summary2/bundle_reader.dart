@@ -540,6 +540,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       );
     }
 
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.entryPoint = reader.readElement() as FunctionElement?;
 
     element.fieldNameNonPromotabilityInfo =
@@ -2366,6 +2367,7 @@ class ResolutionReader {
           severity: readEnum(macro.Severity.values),
           message: _readMacroDiagnosticMessage(),
           contextMessages: readTypedList(_readMacroDiagnosticMessage),
+          correctionMessage: _reader.readOptionalStringUtf8(),
         );
     }
   }
