@@ -8,8 +8,9 @@
 #include <memory>
 #include <utility>
 
+#include "lib/async/default.h"
+#include "lib/inspect/component/cpp/component.h"
 #include "lib/sys/cpp/component_context.h"
-#include "lib/sys/inspect/cpp/component.h"
 #include "platform/utils.h"
 #include "platform/utils_fuchsia.h"
 
@@ -68,10 +69,11 @@ std::unique_ptr<inspect::Node> TakeDartVmNode() {
   // TODO(fxbug.dev/69558) Remove the creation of the node_ from this call
   // after the runners have been migrated to injecting this object.
   if (vm_node == nullptr) {
-    static std::unique_ptr<sys::ComponentInspector> component_inspector =
-        std::make_unique<sys::ComponentInspector>(dart::ComponentContext());
-    inspect::Node& root = component_inspector->inspector()->GetRoot();
-    vm_node = std::make_unique<inspect::Node>(root.CreateChild("vm"));
+    static std::unique_ptr<inspect::ComponentInspector> component_inspector =
+        std::make_unique<inspect::ComponentInspector>(
+            async_get_default_dispatcher(), inspect::PublishOptions{});
+    vm_node = std::make_unique<inspect::Node>(
+        component_inspector->root().CreateChild("vm"));
   }
   return std::move(vm_node);
 }
