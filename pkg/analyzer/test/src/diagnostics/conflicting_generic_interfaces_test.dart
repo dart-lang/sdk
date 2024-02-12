@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -15,6 +16,28 @@ main() {
 
 @reflectiveTest
 class ConflictingGenericInterfacesTest extends PubPackageResolutionTest {
+  test_class_extends_augmentation_implements() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class B implements I<String> {}
+''');
+
+    newFile(testFile.path, '''
+import augment 'a.dart';
+
+class I<T> {}
+class A implements I<int> {}
+class B extends A {}
+''');
+
+    await assertErrorsInFile2(a.posixPath, []);
+
+    await assertErrorsInFile2(testFile.posixPath, [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 1),
+    ]);
+  }
+
   test_class_extends_implements() async {
     await assertErrorsInCode('''
 class I<T> {}

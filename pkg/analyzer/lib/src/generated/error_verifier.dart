@@ -2253,6 +2253,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
     var element = node.declaredElement as InterfaceElement;
 
+    // Report only on the declaration.
+    if (element.isAugmentation) {
+      return;
+    }
+
     var analysisSession = _currentLibrary.session;
     var errors = analysisSession.classHierarchy.errors(element);
 
