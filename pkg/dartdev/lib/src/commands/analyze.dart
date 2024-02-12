@@ -163,8 +163,9 @@ class AnalyzeCommand extends DartdevCommand {
 
     final targetsNames =
         targets.map((entity) => path.basename(entity.path)).join(', ');
-    final progress =
-        machineFormat ? null : log.progress('Analyzing $targetsNames');
+    final progress = machineFormat || jsonFormat
+        ? null
+        : log.progress('Analyzing $targetsNames');
 
     final AnalysisServer server = AnalysisServer(
       _packagesFile(),
@@ -215,7 +216,7 @@ class AnalyzeCommand extends DartdevCommand {
     progress?.finish(showTiming: true);
 
     if (errors.isEmpty) {
-      if (printMemory && usageInfo != null) {
+      if (jsonFormat) {
         emitJsonFormat(log, errors, usageInfo);
       } else if (!machineFormat) {
         log.stdout('No issues found!');
