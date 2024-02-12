@@ -176,7 +176,7 @@ mixin KernelNodes {
   late final Procedure jsStringEquals =
       index.getProcedure("dart:_js_types", "JSStringImpl", "==");
   late final Procedure jsStringInterpolate =
-      index.getProcedure("dart:_js_types", "JSStringImpl", "interpolate");
+      index.getProcedure("dart:_js_types", "JSStringImpl", "_interpolate");
 
   // dart:collection procedures
   late final Procedure mapFactory =

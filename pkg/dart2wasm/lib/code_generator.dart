@@ -2854,10 +2854,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return visitStringLiteral(expr, expectedType);
     }
 
-    makeListFromExpressions(
-        node.expressions,
-        InterfaceType(
-            translator.coreTypes.stringClass, Nullability.nonNullable));
+    makeArrayFromExpressions(node.expressions,
+        translator.coreTypes.objectRawType(Nullability.nullable));
     return translator.outputOrVoid(call(translator.options.jsCompatibility
         ? translator.jsStringInterpolate.reference
         : translator.stringInterpolate.reference));

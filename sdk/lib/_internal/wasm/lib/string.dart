@@ -13,7 +13,7 @@ import "dart:_internal"
         unsafeCast,
         WasmStringBase;
 
-import 'dart:_js_helper' show JS;
+import 'dart:_js_helper' show JS, jsStringToDartString;
 import 'dart:_js_types' show JSStringImpl;
 import 'dart:_object_helper';
 import 'dart:_string_helper';
@@ -299,7 +299,9 @@ abstract final class StringBase extends WasmStringBase {
 
   bool get isNotEmpty => !isEmpty;
 
-  String operator +(String other) => _interpolate([this, other]);
+  String operator +(String other) {
+    return _interpolate(WasmArray<Object?>.literal([this, other]));
+  }
 
   String toString() {
     return this;
@@ -891,34 +893,30 @@ abstract final class StringBase extends WasmStringBase {
     return buffer.toString();
   }
 
-  /**
-   * Convert all objects in [values] to strings and concat them
-   * into a result string.
-   * Modifies the input list if it contains non-`String` values.
-   */
+  // Used in string interpolation expressions where ownership of array is passed
+  // to this function.
+  //
+  // It special cases all [OneByteString]s. We could also special case all
+  // [TwoByteString] & all [JSStringImpl] cases.
   @pragma("wasm:entry-point", "call")
-  static String _interpolate(final List<Object?> values) {
-    final numValues = values.length;
+  static String _interpolate(final WasmArray<Object?> values) {
     int totalLength = 0;
-    int i = 0;
-    while (i < numValues) {
-      final e = values[i];
-      final s = e.toString();
-      values[i] = s;
-      if (s is OneByteString) {
-        totalLength += s.length;
-        i++;
-      } else {
-        // Handle remaining elements without checking for one-byte-ness.
-        while (++i < numValues) {
-          final e = values[i];
-          values[i] = e.toString();
-        }
-        return _concatRangeNative(values, 0, numValues);
+    bool isOneByteString = true;
+    final numValues = values.length;
+    for (int i = 0; i < numValues; ++i) {
+      final value = values[i];
+      var stringValue = value is String ? value : value.toString();
+      if (stringValue is JSStringImpl) {
+        stringValue = jsStringToDartString(stringValue.toExternRef);
       }
+      values[i] = stringValue;
+      isOneByteString = isOneByteString && stringValue is OneByteString;
+      totalLength += stringValue.length;
     }
-    // All strings were one-byte strings.
-    return OneByteString._concatAll(values, totalLength);
+    if (isOneByteString) {
+      return OneByteString._concatAll(values, totalLength);
+    }
+    return StringBase._concatAllFallback(values, totalLength);
   }
 
   static ArgumentError _interpolationError(Object? o, Object? result) {
@@ -992,40 +990,52 @@ abstract final class StringBase extends WasmStringBase {
 
   String toLowerCase() => _toLowerCase(this);
 
+  // To be called if not all of the given [StringBase] strings are
+  // [OneByteString]s.
+  static String _concatAllFallback(
+      WasmArray<Object?> strings, int totalLength) {
+    final result = TwoByteString.withLength(totalLength);
+    int offset = 0;
+    for (int i = 0; i < strings.length; i++) {
+      final s = unsafeCast<StringBase>(strings[i]);
+      offset = s._copyIntoTwoByteString(result, offset);
+    }
+    return result;
+  }
+
   // Concatenate ['start', 'end'[ elements of 'strings'.
-  static String concatRange(List<String> strings, int start, int end) {
+  //
+  // It special cases all [OneByteString]s. We could also special case all
+  // [TwoByteString] & all [JSStringImpl] cases.
+  static String concatRange(WasmArray<String> strings, int start, int end) {
     if ((end - start) == 1) {
       return strings[start];
     }
-    return _concatRangeNative(strings, start, end);
+    int totalLength = 0;
+    bool isOneByteString = true;
+    for (int i = start; i < end; i++) {
+      String stringValue = strings[i];
+      if (stringValue is JSStringImpl) {
+        stringValue = jsStringToDartString(stringValue.toExternRef);
+        strings[i] = stringValue;
+      }
+      isOneByteString = isOneByteString && stringValue is OneByteString;
+      totalLength += stringValue.length;
+    }
+    if (isOneByteString) {
+      return OneByteString._concatRange(strings, start, end, totalLength);
+    }
+    return _concatRangeFallback(strings, start, end, totalLength);
   }
 
-  // Call this method if all elements of [strings] are known to be strings
-  // but not all are known to be OneByteString(s).
-  static String _concatRangeNative(List<Object?> strings, int start, int end) {
-    int totalLength = 0;
-    for (int i = start; i < end; i++) {
-      final str = strings[i];
-      if (str is JSStringImpl) {
-        totalLength += str.length;
-      } else {
-        totalLength += unsafeCast<StringBase>(str).length;
-      }
-    }
-    TwoByteString result = TwoByteString.withLength(totalLength);
+  // To be called if not all strings are [OneByteString]s.
+  static String _concatRangeFallback(
+      WasmArray<String> strings, int start, int end, int totalLength) {
+    final result = TwoByteString.withLength(totalLength);
     int offset = 0;
     for (int i = start; i < end; i++) {
-      final str = strings[i];
-      if (str is JSStringImpl) {
-        final length = str.length;
-        final to = result._array;
-        for (int j = 0; j < length; j++) {
-          to.write(offset++, str.codeUnitAt(j));
-        }
-      } else {
-        StringBase s = unsafeCast<StringBase>(strings[i]);
-        offset = s._copyIntoTwoByteString(result, offset);
-      }
+      final s = unsafeCast<StringBase>(strings[i]);
+      offset = s._copyIntoTwoByteString(result, offset);
     }
     return result;
   }
@@ -1036,7 +1046,7 @@ abstract final class StringBase extends WasmStringBase {
 @pragma("wasm:entry-point")
 final class OneByteString extends StringBase {
   @pragma("wasm:entry-point")
-  WasmArray<WasmI8> _array;
+  final WasmArray<WasmI8> _array;
 
   OneByteString.withLength(int length) : _array = WasmArray<WasmI8>(length);
 
@@ -1101,16 +1111,28 @@ final class OneByteString extends StringBase {
   }
 
   // All element of 'strings' must be OneByteStrings.
-  static _concatAll(List strings, int totalLength) {
+  static OneByteString _concatAll(WasmArray<Object?> strings, int totalLength) {
     final result = OneByteString.withLength(totalLength);
-    final to = result._array;
-    final stringsLength = strings.length;
+    final resultBytes = result._array;
     int resultOffset = 0;
-    for (int s = 0; s < stringsLength; s++) {
-      final OneByteString e = unsafeCast<OneByteString>(strings[s]);
-      final length = e._array.length;
-      to.copy(resultOffset, e._array, 0, length);
-      resultOffset += length;
+    for (int i = 0; i < strings.length; i++) {
+      final bytes = unsafeCast<OneByteString>(strings[i])._array;
+      resultBytes.copy(resultOffset, bytes, 0, bytes.length);
+      resultOffset += bytes.length;
+    }
+    return result;
+  }
+
+  // All element of 'strings' must be OneByteStrings.
+  static OneByteString _concatRange(
+      WasmArray<String> strings, int start, int end, int totalLength) {
+    final result = OneByteString.withLength(totalLength);
+    final resultBytes = result._array;
+    int resultOffset = 0;
+    for (int i = start; i < end; i++) {
+      final bytes = unsafeCast<OneByteString>(strings[i])._array;
+      resultBytes.copy(resultOffset, bytes, 0, bytes.length);
+      resultOffset += bytes.length;
     }
     return result;
   }
@@ -1360,7 +1382,7 @@ final class OneByteString extends StringBase {
 @pragma("wasm:entry-point")
 final class TwoByteString extends StringBase {
   @pragma("wasm:entry-point")
-  WasmArray<WasmI16> _array;
+  final WasmArray<WasmI16> _array;
 
   TwoByteString.withLength(int length) : _array = WasmArray<WasmI16>(length);
 
