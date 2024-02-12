@@ -1158,7 +1158,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Only emit the type test if the guard is not [Object].
       if (emitGuard) {
         b.local_get(thrownException);
-        types.emitTypeCheck(
+        types.emitIsTest(
             this, guard, translator.coreTypes.objectNonNullableRawType, catch_);
         b.i32_eqz();
         b.br_if(catchBlock);
@@ -3025,8 +3025,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitIsExpression(IsExpression node, w.ValueType expectedType) {
-    wrap(node.operand, translator.topInfo.nullableType);
-    types.emitTypeCheck(this, node.type, dartTypeOf(node.operand), node);
+    final operandType = dartTypeOf(node.operand);
+    final boxedOperandType = operandType.isPotentiallyNullable
+        ? translator.topInfo.nullableType
+        : translator.topInfo.nonNullableType;
+    wrap(node.operand, boxedOperandType);
+    types.emitIsTest(this, node.type, operandType, node);
     return w.NumType.i32;
   }
 
@@ -3036,23 +3040,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return wrap(node.operand, expectedType);
     }
 
-    w.Label asCheckBlock = b.block();
-    wrap(node.operand, translator.topInfo.nullableType);
-    w.Local operand = addLocal(translator.topInfo.nullableType);
-    b.local_tee(operand);
-
-    // We lower an `as` expression to a type test, throwing a [TypeError] if
-    // the type test fails.
-    types.emitTypeCheck(this, node.type, dartTypeOf(node.operand), node);
-    b.br_if(asCheckBlock);
-    b.local_get(operand);
-    types.makeType(this, node.type);
-    call(translator.stackTraceCurrent.reference);
-    call(translator.throwAsCheckError.reference);
-    b.unreachable();
-    b.end();
-    b.local_get(operand);
-    return operand.type;
+    final operandType = dartTypeOf(node.operand);
+    final boxedOperandType = operandType.isPotentiallyNullable
+        ? translator.topInfo.nullableType
+        : translator.topInfo.nonNullableType;
+    wrap(node.operand, boxedOperandType);
+    return types.emitAsCheck(
+        this, node.type, operandType, boxedOperandType, node);
   }
 
   @override
@@ -3793,7 +3787,7 @@ enum _VirtualCallKind {
 extension MacroAssembler on w.InstructionsBuilder {
   // Expects there to be a i32 on the stack, will consume it and leave
   // true/false on the stack.
-  void emitClassIdRangeCheck(CodeGenerator codeGen, List<Range> ranges) {
+  void emitClassIdRangeCheck(List<Range> ranges) {
     if (ranges.isEmpty) {
       drop();
       i32_const(0);
@@ -3809,7 +3803,7 @@ extension MacroAssembler on w.InstructionsBuilder {
         i32_lt_u();
       }
     } else {
-      w.Local idLocal = codeGen.addLocal(w.NumType.i32);
+      w.Local idLocal = addLocal(w.NumType.i32, isParameter: false);
       local_set(idLocal);
       w.Label done = block(const [], const [w.NumType.i32]);
       i32_const(1);

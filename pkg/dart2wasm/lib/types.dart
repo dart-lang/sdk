@@ -567,17 +567,19 @@ class Types {
   /// Emit code for testing a value against a Dart type. Expects the value on
   /// the stack as a (ref null #Top) and leaves the result on the stack as an
   /// i32.
-  void emitTypeCheck(CodeGenerator codeGen, DartType type, DartType operandType,
+  void emitIsTest(CodeGenerator codeGen, DartType type, DartType operandType,
       [TreeNode? node]) {
     final b = codeGen.b;
     b.comment("Type check against $type");
     w.Local? operandTemp;
     if (translator.options.verifyTypeChecks) {
-      operandTemp = codeGen.addLocal(translator.topInfo.nullableType);
+      operandTemp =
+          b.addLocal(translator.topInfo.nullableType, isParameter: false);
       b.local_tee(operandTemp);
     }
-    if (!_emitOptimizedTypeCheck(codeGen, type, operandType)) {
-      // General fallback path
+    if (_canUseIsCheckHelper(codeGen, type, operandType)) {
+      b.call(_generateIsChecker(type as InterfaceType, operandType));
+    } else {
       makeType(codeGen, type);
       codeGen.call(translator.isSubtype.reference);
     }
@@ -597,15 +599,36 @@ class Types {
     }
   }
 
-  /// Emit optimized code for testing a value against a Dart type. If the type
-  /// to be tested against is of a shape where we can generate more efficient
-  /// code than the general fallback path, generate such code and return `true`.
-  /// Otherwise, return `false` to indicate that the general path should be
-  /// taken.
-  bool _emitOptimizedTypeCheck(
-      CodeGenerator codeGen, DartType type, DartType operandType) {
-    if (type is! InterfaceType) return false;
+  w.ValueType emitAsCheck(CodeGenerator codeGen, DartType type,
+      DartType operandType, w.RefType boxedOperandType,
+      [TreeNode? node]) {
+    final b = codeGen.b;
 
+    if (_canUseAsCheckHelper(codeGen, type, operandType)) {
+      b.call(_generateAsChecker(type as InterfaceType, operandType));
+      return translator.translateType(type);
+    }
+
+    w.Local operand = b.addLocal(boxedOperandType, isParameter: false);
+    b.local_tee(operand);
+    w.Label asCheckBlock = b.block();
+    b.local_get(operand);
+    emitIsTest(codeGen, type, operandType, node);
+    b.br_if(asCheckBlock);
+    b.local_get(operand);
+    makeType(codeGen, type);
+    codeGen.call(translator.stackTraceCurrent.reference);
+    codeGen.call(translator.throwAsCheckError.reference);
+    b.unreachable();
+    b.end();
+    return operand.type;
+  }
+
+  bool _canUseIsCheckHelper(
+      CodeGenerator codeGen, DartType type, DartType operandType) {
+    if (_canUseAsCheckHelper(codeGen, type, operandType)) return true;
+
+    if (type is! InterfaceType) return false;
     if (type.typeArguments.any((t) => t is! DynamicType)) {
       // Type has at least one type argument that is not `dynamic`.
       //
@@ -627,43 +650,124 @@ class Types {
         return false;
       }
     }
+    return true;
+  }
 
-    final b = codeGen.b;
-    bool isPotentiallyNullable = operandType.isPotentiallyNullable;
-    w.Label? resultLabel;
-    if (isPotentiallyNullable) {
-      // Store operand in a temporary variable, since Binaryen does not support
-      // block inputs.
-      w.Local operand = codeGen.addLocal(translator.topInfo.nullableType);
-      b.local_set(operand);
-      resultLabel = b.block(const [], const [w.NumType.i32]);
-      w.Label nullLabel = b.block(const [], const []);
-      b.local_get(operand);
-      b.br_on_null(nullLabel);
-    }
+  bool _canUseAsCheckHelper(
+      CodeGenerator codeGen, DartType type, DartType operandType) {
+    if (type is! InterfaceType) return false;
+    // TODO: Should be rather defaults to bounds instead of `dynamic`.
+    // (assuming omitting bound will make it dynamic rather than void/Object?)
+    return type.typeArguments.every((t) => t is DynamicType);
+  }
 
+  final Map<DartType, w.BaseFunction> _nullableIsCheckers = {};
+  final Map<DartType, w.BaseFunction> _isCheckers = {};
+
+  w.BaseFunction _generateIsChecker(InterfaceType type, DartType operandType) {
+    final operandIsNullable = operandType.isPotentiallyNullable;
     final interfaceClass = type.classNode;
 
-    if (interfaceClass == coreTypes.objectClass) {
-      b.drop();
-      b.i32_const(1);
-    } else if (interfaceClass == coreTypes.functionClass) {
-      b.ref_test(translator.closureInfo.nonNullableType);
-    } else {
-      final ranges =
-          translator.classIdNumbering.getConcreteClassIdRanges(interfaceClass);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.emitClassIdRangeCheck(codeGen, ranges);
-    }
+    final cachedIsCheckers =
+        operandIsNullable ? _nullableIsCheckers : _isCheckers;
 
-    if (isPotentiallyNullable) {
-      b.br(resultLabel!);
-      b.end(); // nullLabel
-      b.i32_const(encodedNullability(type));
-      b.end(); // resultLabel
-    }
+    return cachedIsCheckers.putIfAbsent(type, () {
+      final argumentType = operandIsNullable
+          ? translator.topInfo.nullableType
+          : translator.topInfo.nonNullableType;
+      final function = translator.m.functions.define(
+          translator.m.types.defineFunction(
+            [argumentType],
+            [w.NumType.i32],
+          ),
+          '<obj> is <$type>');
 
-    return true;
+      final b = function.body;
+      b.local_get(b.locals[0]);
+
+      w.Label? resultLabel;
+      if (operandIsNullable) {
+        // Store operand in a temporary variable, since Binaryen does not support
+        // block inputs.
+        w.Local operand = function.addLocal(translator.topInfo.nullableType);
+        b.local_set(operand);
+        resultLabel = b.block(const [], const [w.NumType.i32]);
+        w.Label nullLabel = b.block(const [], const []);
+        b.local_get(operand);
+        b.br_on_null(nullLabel);
+      }
+
+      if (interfaceClass == coreTypes.objectClass) {
+        b.drop();
+        b.i32_const(1);
+      } else if (interfaceClass == coreTypes.functionClass) {
+        b.ref_test(translator.closureInfo.nonNullableType);
+      } else {
+        final ranges = translator.classIdNumbering
+            .getConcreteClassIdRanges(interfaceClass);
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.emitClassIdRangeCheck(ranges);
+      }
+
+      if (operandIsNullable) {
+        b.br(resultLabel!);
+        b.end(); // nullLabel
+        b.i32_const(encodedNullability(type));
+        b.end(); // resultLabel
+      }
+
+      b.return_();
+      b.end();
+
+      return function;
+    });
+  }
+
+  final Map<DartType, w.BaseFunction> _nullableAsCheckers = {};
+  final Map<DartType, w.BaseFunction> _asCheckers = {};
+
+  w.BaseFunction _generateAsChecker(InterfaceType type, DartType operandType) {
+    final operandIsNullable = operandType.isPotentiallyNullable;
+    final cachedAsCheckers =
+        operandIsNullable ? _nullableAsCheckers : _asCheckers;
+
+    final returnType = translator.translateType(type);
+
+    return cachedAsCheckers.putIfAbsent(type, () {
+      final argumentType = operandIsNullable
+          ? translator.topInfo.nullableType
+          : translator.topInfo.nonNullableType;
+      final function = translator.m.functions.define(
+          translator.m.types.defineFunction(
+            [argumentType],
+            [returnType],
+          ),
+          '<obj> as <$type>');
+
+      final b = function.body;
+      w.Label asCheckBlock = b.block();
+      b.local_get(b.locals[0]);
+      b.call(_generateIsChecker(type, operandType));
+      b.br_if(asCheckBlock);
+
+      b.local_get(b.locals[0]);
+      translator.constants.instantiateConstant(
+          function, b, TypeLiteralConstant(type), nonNullableTypeType);
+      b.call(translator.functions
+          .getFunction(translator.stackTraceCurrent.reference));
+      b.call(translator.functions
+          .getFunction(translator.throwAsCheckError.reference));
+      b.unreachable();
+
+      b.end();
+
+      b.local_get(b.locals[0]);
+      translator.convertType(function, argumentType, returnType);
+      b.return_();
+      b.end();
+
+      return function;
+    });
   }
 
   int encodedNullability(DartType type) =>
