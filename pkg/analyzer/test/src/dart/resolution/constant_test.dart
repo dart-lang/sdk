@@ -188,7 +188,7 @@ import 'a.dart';
   }
 
   test_imported_super_defaultFieldFormalParameter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'test.dart';
 
 class A {
@@ -209,7 +209,7 @@ class B extends A {
 }
 ''');
 
-    result = await resolveFile(convertPath('$testPackageLibPath/a.dart'));
+    result = await resolveFile(a);
     assertErrorsInResolvedUnit(result, []);
 
     var bElement = FindElement(result.unit).field('b') as ConstVariableElement;

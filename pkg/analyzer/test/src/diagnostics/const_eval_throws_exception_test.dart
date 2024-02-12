@@ -268,7 +268,7 @@ const C = 5 + D;
 
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
     // See dartbug.com/35993
-    newFile('$testPackageLibPath/other.dart', '''
+    var other = newFile('$testPackageLibPath/other.dart', '''
 class Foo {
   final double value;
 
@@ -291,14 +291,13 @@ void main() {
   print("$foo, $bar");
 }
 ''');
-    var otherFileResult =
-        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
+    var otherFileResult = await resolveFile(other);
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_CastError_intToDouble_constructor_importAnalyzedBefore() async {
     // See dartbug.com/35993
-    newFile('$testPackageLibPath/other.dart', '''
+    var other = newFile('$testPackageLibPath/other.dart', '''
 class Foo {
   final double value;
 
@@ -321,13 +320,12 @@ void main() {
   print("$foo, $bar");
 }
 ''');
-    var otherFileResult =
-        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
+    var otherFileResult = await resolveFile(other);
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_default_constructor_arg_empty_map_import() async {
-    newFile('$testPackageLibPath/other.dart', '''
+    var other = newFile('$testPackageLibPath/other.dart', '''
 class C {
   final Map<String, int> m;
   const C({this.m = const <String, int>{}})
@@ -343,8 +341,7 @@ main() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
     ]);
-    var otherFileResult =
-        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
+    var otherFileResult = await resolveFile(other);
     assertErrorsInList(otherFileResult.errors, [
       error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 97, 7),
     ]);

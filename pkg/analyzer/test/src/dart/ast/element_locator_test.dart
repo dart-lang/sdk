@@ -356,7 +356,7 @@ part 'test.dart';
 part of my.lib;
 ''');
 
-    await resolveFile(libFile.path);
+    await resolveFile(libFile);
 
     await resolveFile2(partFile);
     var node = findNode.partOf('part of');
