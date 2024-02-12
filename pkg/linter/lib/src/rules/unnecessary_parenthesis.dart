@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -92,6 +93,26 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parent = node.parent;
     // case const (a + b):
     if (parent is ConstantPattern) return;
+
+    // Don't over-report on records missing trailing commas.
+    // (int,) r = (3);
+    if (parent is VariableDeclaration &&
+        parent.declaredElement?.type is RecordType) {
+      if (node.expression is! RecordLiteral) return;
+    }
+    // g((3)); => g((int,) i) { }
+    if (parent is ArgumentList) {
+      var element = node.staticParameterElement;
+      if (element?.type is RecordType && node.expression is! RecordLiteral) {
+        return;
+      }
+    }
+    // g(i: (3)); => g({required (int,) i}) { }
+    if (parent is NamedExpression &&
+        parent.staticParameterElement?.type is RecordType) {
+      if (node.expression is! RecordLiteral) return;
+    }
+
     var expression = node.expression;
     if (expression is SimpleIdentifier ||
         expression.containsNullAwareInvocationInChain()) {
