@@ -5,7 +5,7 @@
 import 'dart:math';
 
 import 'package:test/test.dart';
-import 'package:vm_service/src/stream_helpers.dart';
+import 'package:vm_service/src/_stream_helpers.dart';
 
 void main() {
   test('byte', () {
