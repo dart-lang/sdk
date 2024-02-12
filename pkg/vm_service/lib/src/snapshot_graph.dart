@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import '../vm_service.dart';
-import 'stream_helpers.dart';
+import '_stream_helpers.dart';
+import 'vm_service.dart';
 
 /// A representation of a field captured in a memory snapshot.
 class HeapSnapshotField {

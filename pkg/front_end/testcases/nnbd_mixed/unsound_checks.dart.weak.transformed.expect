@@ -486,11 +486,11 @@ static method ifNullSuperIndexSetOptInForEffect(core::int i) → dynamic {
   new uns::OptInClass4::•().{uns::OptInClass4::methodForEffect}(i){(core::int) → dynamic};
 }
 static method nullAwareIfNullSetOptIn(core::int i) → dynamic {
-  uns::OptInClass5? o = new uns::OptInClass5::•(i);
+  uns::OptInClass5? o = new uns::OptInClass5::•(i) as{Unchecked} uns::OptInClass5?;
   return let final uns::OptInClass5? #t66 = o in #t66 == null ?{core::int?} null : let final core::int #t67 = #t66.{uns::OptInClass5::field}{core::int} in #t67 == null ?{core::int} #t66.{uns::OptInClass5::field} = 42 : #t67;
 }
 static method nullAwareIfNullSetOptInForEffect(core::int i) → dynamic {
-  uns::OptInClass5? o = new uns::OptInClass5::•(i);
+  uns::OptInClass5? o = new uns::OptInClass5::•(i) as{Unchecked} uns::OptInClass5?;
   let final uns::OptInClass5? #t68 = o in #t68 == null ?{core::int?} null : #t68.{uns::OptInClass5::field}{core::int} == null ?{core::int} #t68.{uns::OptInClass5::field} = 42 : null;
 }
 static method isTestOptIn(core::int i) → dynamic
@@ -638,7 +638,7 @@ Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 -> IntConstant(42)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
-Extra constant evaluation: evaluated: 720, effectively constant: 18
+Extra constant evaluation: evaluated: 722, effectively constant: 18
 
 
 Constructor coverage from constants:

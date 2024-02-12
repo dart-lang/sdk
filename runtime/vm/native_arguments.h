@@ -102,16 +102,6 @@ class NativeArguments {
 
   ObjectPtr NativeArg0() const {
     int function_bits = FunctionBits::decode(argc_tag_);
-    if ((function_bits & (kClosureFunctionBit | kInstanceFunctionBit)) ==
-        (kClosureFunctionBit | kInstanceFunctionBit)) {
-      // Retrieve the receiver from the context.
-      const int closure_index =
-          (function_bits & kGenericFunctionBit) != 0 ? 1 : 0;
-      const Object& closure = Object::Handle(ArgAt(closure_index));
-      const Context& context =
-          Context::Handle(Closure::Cast(closure).context());
-      return context.At(0);
-    }
     return ArgAt(NumHiddenArgs(function_bits));
   }
 
@@ -177,28 +167,16 @@ class NativeArguments {
   static intptr_t ParameterCountForResolution(const Function& function) {
     ASSERT(function.is_old_native());
     ASSERT(!function.IsGenerativeConstructor());  // Not supported.
-    intptr_t count = function.NumParameters();
-    if (function.is_static() && function.IsClosureFunction()) {
-      // The closure object is hidden and not accessible from native code.
-      // However, if the function is an instance closure function, the captured
-      // receiver located in the context is made accessible in native code at
-      // index 0, thereby hiding the closure object at index 0.
-      count--;
-    }
-    return count;
+    ASSERT(!function.IsClosureFunction());        // Not supported.
+    return function.NumParameters();
   }
 
   static int ComputeArgcTag(const Function& function) {
     ASSERT(function.is_old_native());
     ASSERT(!function.IsGenerativeConstructor());  // Not supported.
+    ASSERT(!function.IsClosureFunction());        // Not supported.
     int argc = function.NumParameters();
     int function_bits = 0;
-    if (!function.is_static()) {
-      function_bits |= kInstanceFunctionBit;
-    }
-    if (function.IsClosureFunction()) {
-      function_bits |= kClosureFunctionBit;
-    }
     if (function.IsGeneric()) {
       function_bits |= kGenericFunctionBit;
       argc++;
@@ -210,15 +188,13 @@ class NativeArguments {
 
  private:
   enum {
-    kInstanceFunctionBit = 1,
-    kClosureFunctionBit = 2,
-    kGenericFunctionBit = 4,
+    kGenericFunctionBit = 1,
   };
   enum ArgcTagBits {
     kArgcBit = 0,
     kArgcSize = 24,
     kFunctionBit = kArgcBit + kArgcSize,
-    kFunctionSize = 3,
+    kFunctionSize = 1,
   };
   class ArgcBits : public BitField<intptr_t, int32_t, kArgcBit, kArgcSize> {};
   class FunctionBits
@@ -236,16 +212,6 @@ class NativeArguments {
     *retval_ = value;
   }
 
-  // Returns true if the arguments are those of an instance function call.
-  bool ToInstanceFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kInstanceFunctionBit) != 0;
-  }
-
-  // Returns true if the arguments are those of a closure function call.
-  bool ToClosureFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kClosureFunctionBit) != 0;
-  }
-
   // Returns true if the arguments are those of a generic function call.
   bool ToGenericFunction() const {
     return (FunctionBits::decode(argc_tag_) & kGenericFunctionBit) != 0;
@@ -253,13 +219,6 @@ class NativeArguments {
 
   int NumHiddenArgs(int function_bits) const {
     int num_hidden_args = 0;
-    // For static closure functions, the closure at index 0 is hidden.
-    // In the instance closure function case, the receiver is accessed from
-    // the context and the closure at index 0 is hidden, so the apparent
-    // argument count remains unchanged.
-    if ((function_bits & kClosureFunctionBit) == kClosureFunctionBit) {
-      num_hidden_args++;
-    }
     if ((function_bits & kGenericFunctionBit) == kGenericFunctionBit) {
       num_hidden_args++;
     }

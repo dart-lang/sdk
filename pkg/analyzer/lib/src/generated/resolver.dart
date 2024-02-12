@@ -2386,8 +2386,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitExtensionOverride(covariant ExtensionOverrideImpl node,
-      {DartType? contextType}) {
+  void visitExtensionOverride(covariant ExtensionOverrideImpl node) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.typeArguments?.accept(this);
 
@@ -2570,7 +2569,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitFunctionReference(FunctionReference node, {DartType? contextType}) {
+  void visitFunctionReference(FunctionReference node) {
     _functionReferenceResolver.resolve(node as FunctionReferenceImpl);
   }
 
@@ -2672,8 +2671,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitImplicitCallReference(ImplicitCallReference node,
-      {DartType? contextType}) {
+  void visitImplicitCallReference(ImplicitCallReference node) {
     checkUnreachableNode(node);
     analyzeExpression(node.expression, null);
     popRewrite();
@@ -2807,8 +2805,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node,
-      {DartType? contextType}) {}
+  void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
   void visitListLiteral(covariant ListLiteralImpl node,
@@ -3435,7 +3432,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitTypeLiteral(TypeLiteral node, {DartType? contextType}) {
+  void visitTypeLiteral(TypeLiteral node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
   }

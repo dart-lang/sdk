@@ -8,6 +8,7 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide Timeline;
 import 'package:vm_service_protos/vm_service_protos.dart';
 
+import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 int fib(n) {
@@ -63,6 +64,7 @@ Iterable<PerfSample> extractPerfSamplesFromTracePackets(
 }
 
 final tests = <IsolateTest>[
+  hasStoppedAtExit,
   (VmService service, IsolateRef isolateRef) async {
     final result = await service.getPerfettoCpuSamples(isolateRef.id!);
     expect(result.type, 'PerfettoCpuSamples');
@@ -115,6 +117,7 @@ void main([args = const <String>[]]) => runIsolateTests(
       tests,
       'get_perfetto_cpu_samples_rpc_test.dart',
       testeeBefore: testeeDo,
+      pauseOnExit: true,
       extraArgs: [
         '--profiler=true',
         // Crank up the sampling rate to make sure we get samples.

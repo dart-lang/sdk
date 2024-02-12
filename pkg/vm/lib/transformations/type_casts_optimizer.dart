@@ -24,7 +24,8 @@ TreeNode transformAsExpression(AsExpression node,
   final env = staticTypeContext.typeEnvironment;
 
   if (isRedundantTypeCast(node, operandType, env, soundNullSafety)) {
-    return node.operand;
+    node.isUnchecked = true;
+    return node;
   }
 
   if (canBeReducedToNullCheckAndCast(node, operandType, env, soundNullSafety)) {

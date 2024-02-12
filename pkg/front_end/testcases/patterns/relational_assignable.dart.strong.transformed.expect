@@ -29,7 +29,7 @@ static method method1(core::int i) → dynamic {
         }
       }
       {
-        if(#0#0.{core::num::>}(invalid-expression "Expected constant '\"\"' to be of type 'num', but was of type 'String'."){(core::num) → core::bool}) {
+        if(#0#0.{core::num::>}(invalid-expression "Expected constant '\"\"' to be of type 'num', but was of type 'String'." as{Unchecked} core::num){(core::num) → core::bool}) {
           #t1 = 1;
           break #L1;
         }
@@ -80,4 +80,4 @@ Extra constant evaluation status:
 Evaluated: AsExpression @ org-dartlang-testcase:///relational_assignable.dart:9:5 -> IntConstant(0)
 Evaluated: AsExpression @ org-dartlang-testcase:///relational_assignable.dart:19:5 -> IntConstant(0)
 Evaluated: AsExpression @ org-dartlang-testcase:///relational_assignable.dart:20:5 -> DoubleConstant(3.14)
-Extra constant evaluation: evaluated: 23, effectively constant: 3
+Extra constant evaluation: evaluated: 24, effectively constant: 3

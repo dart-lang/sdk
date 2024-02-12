@@ -6,9 +6,9 @@ static final field core::bool isLegacySubtyping1a = #C1 is core::List<core::int>
 static const field core::bool isLegacySubtyping1b = #C2;
 static final field core::bool isLegacySubtyping2a = #C3 is core::List<core::int>;
 static const field core::bool isLegacySubtyping2b = #C2;
-static final field core::List<core::int> assertLegacySubtyping1a = #C1;
+static final field core::List<core::int> assertLegacySubtyping1a = #C1 as{Unchecked} core::List<core::int>;
 static const field core::List<core::int> assertLegacySubtyping1b = #C1;
-static final field core::List<core::int> assertLegacySubtyping2a = #C3;
+static final field core::List<core::int> assertLegacySubtyping2a = #C3 as{Unchecked} core::List<core::int>;
 static const field core::List<core::int> assertLegacySubtyping2b = #C3;
 static method main() → void {
   self::expect(self::isLegacySubtyping1a, #C2);
@@ -30,4 +30,6 @@ constants  {
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///issue41657.dart:5:44 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///issue41657.dart:7:44 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 18, effectively constant: 2
+Evaluated: AsExpression @ org-dartlang-testcase:///issue41657.dart:9:48 -> ListConstant(const <Null>[])
+Evaluated: AsExpression @ org-dartlang-testcase:///issue41657.dart:11:48 -> ListConstant(const <int?>[])
+Extra constant evaluation: evaluated: 20, effectively constant: 4

@@ -109,8 +109,6 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
   // Registers R0, R1, R2, and R3 are used.
 
   ASSERT(thread_offset == 0 * target::kWordSize);
-  // There are no runtime calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   ASSERT(argc_tag_offset == 1 * target::kWordSize);
   ASSERT(argv_offset == 2 * target::kWordSize);
   __ slli(T2, T4, target::kWordSizeLog2);
@@ -744,8 +742,6 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 
   // Initialize target::NativeArguments structure and call native function.
   ASSERT(thread_offset == 0 * target::kWordSize);
-  // There are no native calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   ASSERT(argc_tag_offset == 1 * target::kWordSize);
   // Set argc in target::NativeArguments: R1 already contains argc.
   ASSERT(argv_offset == 2 * target::kWordSize);

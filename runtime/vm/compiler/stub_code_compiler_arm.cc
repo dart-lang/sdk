@@ -109,8 +109,6 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
   // Set thread in NativeArgs.
   __ mov(R0, Operand(THR));
 
-  // There are no runtime calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   ASSERT(argc_tag_offset == 1 * target::kWordSize);
   __ mov(R1, Operand(R4));  // Set argc in target::NativeArguments.
 
@@ -658,8 +656,6 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Set thread in NativeArgs.
   __ mov(R0, Operand(THR));
 
-  // There are no native calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   ASSERT(argc_tag_offset == 1 * target::kWordSize);
   // Set argc in target::NativeArguments: R1 already contains argc.
 

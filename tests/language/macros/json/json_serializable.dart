@@ -15,16 +15,29 @@ macro class JsonSerializable implements ClassDeclarationsMacro {
   @override
   Future<void> buildDeclarationsForClass(
       ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
+    // Error if there is an existing `fromJson` constructor.
     var constructors = await builder.constructorsOf(clazz);
-    var existing =
+    var fromJson =
         constructors.firstWhereOrNull((c) => c.identifier.name == 'fromJson');
-    if (existing != null) {
-      builder.report(Diagnostic(
+    if (fromJson != null) {
+      throw new DiagnosticException(Diagnostic(
           DiagnosticMessage(
               'Cannot generate a fromJson constructor due to this existing one.',
-              target: existing.asDiagnosticTarget),
+              target: fromJson.asDiagnosticTarget),
           Severity.error));
-      return;
+    }
+
+
+    // Error if there is an existing `toJson` method.
+    var methods = await builder.methodsOf(clazz);
+    var toJson =
+        methods.firstWhereOrNull((m) => m.identifier.name == 'toJson');
+    if (toJson != null) {
+      throw new DiagnosticException(Diagnostic(
+          DiagnosticMessage(
+              'Cannot generate a toJson method due to this existing one.',
+              target: toJson.asDiagnosticTarget),
+          Severity.error));
     }
 
     var map = await builder.resolveIdentifier(_dartCore, 'Map');
@@ -67,9 +80,7 @@ macro class FromJson implements ConstructorDefinitionMacro {
   Future<void> buildDefinitionForConstructor(ConstructorDeclaration constructor,
       ConstructorDefinitionBuilder builder) async {
     var fromJsonData = await _FromJsonData.build(builder);
-    if (!(await _checkValidFromJson(constructor, fromJsonData, builder))) {
-      return;
-    }
+    await _checkValidFromJson(constructor, fromJsonData, builder);
 
     var clazz = (await builder.typeDeclarationOf(constructor.definingType))
         as ClassDeclaration;
@@ -85,23 +96,19 @@ macro class FromJson implements ConstructorDefinitionMacro {
           await builder.constructorsOf(superclassDeclaration);
       for (var superConstructor in superclassConstructors) {
         if (superConstructor.identifier.name == 'fromJson') {
-          if (!(await _checkValidFromJson(
-              superConstructor, fromJsonData, builder))) {
-            return;
-          }
+          await _checkValidFromJson(superConstructor, fromJsonData, builder);
           superclassHasFromJson = true;
           break;
         }
       }
       if (!superclassHasFromJson) {
-        builder.report(Diagnostic(
+        throw new DiagnosticException(Diagnostic(
             DiagnosticMessage(
                 'Serialization of classes that extend other classes is only '
                 'supported if those classes have a valid '
                 '`fromJson(Map<String, Object?> json)` constructor.',
-                target: superclassDeclaration.asDiagnosticTarget),
+                target: superclass.asDiagnosticTarget),
             Severity.error));
-        return;
       }
     }
 
@@ -132,21 +139,19 @@ macro class FromJson implements ConstructorDefinitionMacro {
     ]);
   }
 
-  Future<bool> _checkValidFromJson(ConstructorDeclaration constructor,
+  Future<void> _checkValidFromJson(ConstructorDeclaration constructor,
       _FromJsonData fromJsonData, DefinitionBuilder builder) async {
     if (constructor.namedParameters.isNotEmpty ||
         constructor.positionalParameters.length != 1 ||
         !(await (await builder
                 .resolve(constructor.positionalParameters.single.type.code))
             .isExactly(fromJsonData.jsonMapType))) {
-      builder.report(Diagnostic(
+      throw new DiagnosticException(Diagnostic(
           DiagnosticMessage(
               'Expected exactly one parameter, with the type Map<String, Object?>',
               target: constructor.asDiagnosticTarget),
           Severity.error));
-      return false;
     }
-    return true;
   }
 
   Future<Code> _convertTypeFromJson(TypeAnnotation type, Code jsonReference,
@@ -154,7 +159,7 @@ macro class FromJson implements ConstructorDefinitionMacro {
     if (type is! NamedTypeAnnotation) {
       builder.report(Diagnostic(
           DiagnosticMessage(
-              'Only named types are allowed on serializable classes',
+              'Only fields with named types are allowed on serializable classes',
               target: type.asDiagnosticTarget),
           Severity.error));
       return RawCode.fromString(
@@ -263,7 +268,7 @@ extension _ on FieldDeclaration {
       if (declaration.library.uri != jsonKeyUri) continue;
 
       if (jsonKey != null) {
-        builder.report(Diagnostic(
+        throw DiagnosticException(Diagnostic(
             DiagnosticMessage(
                 'Only one JsonKey annotation is allowed.',
                 target: annotation.asDiagnosticTarget),
@@ -379,7 +384,7 @@ macro class ToJson implements MethodDefinitionMacro {
                 'Serialization of classes that extend other classes is only '
                 'supported if those classes have a valid '
                 '`Map<String, Object?> toJson()` method.',
-                target: superclassDeclaration.asDiagnosticTarget),
+                target: superclass.asDiagnosticTarget),
             Severity.error));
         return;
       }

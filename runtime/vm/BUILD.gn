@@ -180,9 +180,8 @@ library_for_all_configs("libdart_vm") {
         "$fuchsia_sdk_root/pkg/async-loop",
         "$fuchsia_sdk_root/pkg/async-loop-default",
         "$fuchsia_sdk_root/pkg/inspect",
-        "$fuchsia_sdk_root/pkg/inspect_service_cpp",
+        "$fuchsia_sdk_root/pkg/inspect_component_cpp",
         "$fuchsia_sdk_root/pkg/sys_cpp",
-        "$fuchsia_sdk_root/pkg/sys_inspect_cpp",
         "$fuchsia_sdk_root/pkg/trace-engine",
       ]
     } else if (using_fuchsia_sdk) {
@@ -191,17 +190,17 @@ library_for_all_configs("libdart_vm") {
         "$fuchsia_sdk_root/pkg:async-loop",
         "$fuchsia_sdk_root/pkg:async-loop-default",
         "$fuchsia_sdk_root/pkg:inspect",
-        "$fuchsia_sdk_root/pkg:inspect_service_cpp",
+        "$fuchsia_sdk_root/pkg:inspect_component_cpp",
         "$fuchsia_sdk_root/pkg:sys_cpp",
-        "$fuchsia_sdk_root/pkg:sys_inspect_cpp",
         "$fuchsia_sdk_root/pkg:trace-engine",
       ]
     } else {
       extra_deps += [
         "//sdk/fidl/fuchsia.intl",
+        "//sdk/lib/inspect/component/cpp",
         "//sdk/lib/sys/cpp",
-        "//sdk/lib/sys/inspect/cpp",
         "//zircon/public/lib/fbl",
+        "//zircon/system/ulib/inspect",
         "//zircon/system/ulib/trace-engine",
       ]
     }

@@ -5,7 +5,7 @@
 import 'package:meta/meta_meta.dart';
 
 /// An annotation used to specify how a field is serialized.
-@Target({TargetKind.field, TargetKind.getter})
+@Target({TargetKind.field})
 class JsonKey {
   /// The key in a JSON map to use when reading and writing values corresponding
   /// to the annotated fields.

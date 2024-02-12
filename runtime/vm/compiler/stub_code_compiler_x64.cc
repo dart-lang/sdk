@@ -205,8 +205,6 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
 
     // Pass target::NativeArguments structure by value and call runtime.
     __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
-    // There are no runtime calls to closures, so we do not need to set the tag
-    // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
     __ movq(Address(RSP, argc_tag_offset),
             R10);  // Set argc in target::NativeArguments.
     // Compute argv.

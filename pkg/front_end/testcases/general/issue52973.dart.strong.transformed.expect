@@ -18,7 +18,7 @@ class C<T extends core::Object> extends core::Object {
       return;
     }
     self::CheckType|expect<self::C::T, (self::C::T) → self::C::T>(argumentValue{self::C::T & self::Foo<core::String> /* '!' & '!' = '!' */});
-    self::Foo<core::String> fooValue = argumentValue{self::C::T & self::Foo<core::String> /* '!' & '!' = '!' */};
+    self::Foo<core::String> fooValue = argumentValue{self::C::T & self::Foo<core::String> /* '!' & '!' = '!' */} as{Unchecked} self::Foo<core::String>;
     self::CheckType|expect<self::Foo<core::String>, (self::Foo<core::String>) → self::Foo<core::String>>(fooValue);
     self::CheckTypeArgumentOfFoo|expect<core::String, (core::String) → core::String>(fooValue);
   }
