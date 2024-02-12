@@ -75,7 +75,7 @@
   as extension types where their representation types are compiler-specific.
   This means that user-defined `@staticInterop` types that implemented `JSAny`
   or `JSObject` can no longer do so and need to use
-  `JSObject.fromInteropObject`. Going forward, it's recommended to use extension
+  `JSObject.fromInteropObject`. Going forward, it is recommended to use extension
   types to define interop APIs. Those extension types can still implement JS
   types.
 - **JSArray and JSPromise generics**: `JSArray` and `JSPromise` are now generic
