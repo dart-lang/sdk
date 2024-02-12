@@ -863,6 +863,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
                                               LocalVariable* first_parameter) {
   ASSERT(function.is_old_native());
   ASSERT(!IsRecognizedMethodForFlowGraph(function));
+  RELEASE_ASSERT(!function.IsClosureFunction());  // Not supported.
 
   Fragment body;
   String& name = String::ZoneHandle(Z, function.native_name());
