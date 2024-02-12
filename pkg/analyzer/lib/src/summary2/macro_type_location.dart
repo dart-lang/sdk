@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/dart/element/element.dart';
 
 final class ElementTypeLocation extends TypeAnnotationLocation {
@@ -75,6 +76,9 @@ final class ReturnTypeLocation extends TypeAnnotationLocation {
   ReturnTypeLocation(this.parent);
 }
 
+/// Description of a [macro.TypeAnnotation] location, in a way that can be
+/// stored into summaries. Specifically, it cannot use offsets, but can use
+/// references to [Element]s.
 sealed class TypeAnnotationLocation {}
 
 final class TypeParameterBoundLocation extends TypeAnnotationLocation {}
