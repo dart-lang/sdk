@@ -208,7 +208,7 @@ vars = {
   "download_chrome": False,
   "chrome_tag": "119.0.6045.9", # Beta version with WasmGC final encodings.
   "download_firefox": False,
-  "firefox_tag": "121.0.1",
+  "firefox_tag": "122.0.1",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
