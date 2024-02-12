@@ -11,4 +11,6 @@
 !/pkg/native_assets_builder.status
 !/pkg/native_assets_cli.status
 !/pkg/native_toolchain_c.status
+!/pkg/dap/
+!/pkg/language_server_protocol/
 !fallback_root_certificates

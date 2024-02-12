@@ -71,7 +71,7 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:12.1.131",
+  "d8_tag": "version:12.3.150",
   "jsshell_tag": "version:122.0",
   "jsc_tag": "version:274355",
 
@@ -238,9 +238,37 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-  Var("dart_root") + "/third_party/d8": {
+  Var("dart_root") + "/third_party/d8/linux/x64": {
       "packages": [{
-          "package": "dart/d8",
+          "package": "dart/third_party/d8/linux-amd64",
+          "version": Var("d8_tag"),
+      }],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/d8/linux/arm64": {
+      "packages": [{
+          "package": "dart/third_party/d8/linux-arm64",
+          "version": Var("d8_tag"),
+      }],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/d8/macos/x64": {
+      "packages": [{
+          "package": "dart/third_party/d8/mac-amd64",
+          "version": Var("d8_tag"),
+      }],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/d8/macos/arm64": {
+      "packages": [{
+          "package": "dart/third_party/d8/mac-arm64",
+          "version": Var("d8_tag"),
+      }],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/d8/windows/x64": {
+      "packages": [{
+          "package": "dart/third_party/d8/windows-amd64",
           "version": Var("d8_tag"),
       }],
       "dep_type": "cipd",
