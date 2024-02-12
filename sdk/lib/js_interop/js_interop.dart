@@ -29,22 +29,22 @@ export 'dart:js_util' show NullRejectionException;
 /// The annotation for JS interop members.
 ///
 /// This is meant to signify that a given library, top-level external member, or
-/// inline class is a JS interop declaration.
+/// extension type is a JS interop declaration.
 ///
 /// Specifying [name] customizes the JavaScript name to use. This can be used in
 /// the following scenarios:
 ///
 /// - Namespacing all the external top-level members, static members, and
-/// constructors of a library by annotating the library with a custom name.
-/// - Namespacing all the external static members and constructors of an inline
-/// class by annotating the inline class with a custom name.
+///   constructors of a library by annotating the library with a custom name.
+/// - Namespacing all the external static members and constructors of an
+///   extension type by annotating the extension type with a custom name.
 /// - Renaming external members by annotating the member with a custom name.
 ///
-/// In the case where [name] is not specified, we default to the Dart name for
-/// inline classes and external members.
+/// In the case where [name] is not specified, we default to the Dart name of
+/// the extension type and external members.
 ///
 /// Note: `package:js` exports an `@JS` annotation as well. Unlike that
-/// annotation, this is meant for inline classes, and will result in more
+/// annotation, this is meant for extension types, and will result in more
 /// type-checking for external top-level members.
 class JS {
   final String? name;
@@ -96,7 +96,7 @@ extension type JSExportedDartFunction._(
 /// Because [JSArray] is an extension type, [T] is only a static guarantee and
 /// the array does not necessarily only contain [T] elements. For example:
 ///
-/// ```
+/// ```dart
 /// @JS()
 /// external JSArray<JSNumber> get array;
 /// ```
@@ -139,12 +139,12 @@ extension type JSPromise<T extends JSAny?>._(JSPromiseRepType _jsPromise)
 extension type JSBoxedDartObject._(JSBoxedDartObjectRepType _jsBoxedDartObject)
     implements JSObject {}
 
-/// The Javascript `ArrayBuffer`.
+/// The JavaScript `ArrayBuffer`.
 @JS('ArrayBuffer')
 extension type JSArrayBuffer._(JSArrayBufferRepType _jsArrayBuffer)
     implements JSObject {}
 
-/// The Javascript `DataView`.
+/// The JavaScript `DataView`.
 @JS('DataView')
 extension type JSDataView._(JSDataViewRepType _jsDataView)
     implements JSObject {}
@@ -153,12 +153,12 @@ extension type JSDataView._(JSDataViewRepType _jsDataView)
 extension type JSTypedArray._(JSTypedArrayRepType _jsTypedArray)
     implements JSObject {}
 
-/// The Javascript `Int8Array`.
+/// The JavaScript `Int8Array`.
 @JS('Int8Array')
 extension type JSInt8Array._(JSInt8ArrayRepType _jsInt8Array)
     implements JSTypedArray {}
 
-/// The Javascript `Uint8Array`.
+/// The JavaScript `Uint8Array`.
 @JS('Uint8Array')
 extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
     implements JSTypedArray {}
@@ -168,7 +168,7 @@ extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
 extension type JSUint8ClampedArray._(
     JSUint8ClampedArrayRepType _jsUint8ClampedArray) implements JSTypedArray {}
 
-/// The Javascript `Int16Array`.
+/// The JavaScript `Int16Array`.
 @JS('Int16Array')
 extension type JSInt16Array._(JSInt16ArrayRepType _jsInt16Array)
     implements JSTypedArray {}
@@ -178,7 +178,7 @@ extension type JSInt16Array._(JSInt16ArrayRepType _jsInt16Array)
 extension type JSUint16Array._(JSUint16ArrayRepType _jsUint16Array)
     implements JSTypedArray {}
 
-/// The Javascript `Int32Array`.
+/// The JavaScript `Int32Array`.
 @JS('Int32Array')
 extension type JSInt32Array._(JSInt32ArrayRepType _jsInt32Array)
     implements JSTypedArray {}
@@ -188,7 +188,7 @@ extension type JSInt32Array._(JSInt32ArrayRepType _jsInt32Array)
 extension type JSUint32Array._(JSUint32ArrayRepType _jsUint32Array)
     implements JSTypedArray {}
 
-/// The Javascript `Float32Array`.
+/// The JavaScript `Float32Array`.
 @JS('Float32Array')
 extension type JSFloat32Array._(JSFloat32ArrayRepType _jsFloat32Array)
     implements JSTypedArray {}
@@ -202,19 +202,19 @@ extension type JSFloat64Array._(JSFloat64ArrayRepType _jsFloat64Array)
 // none of these are subtypes of [JSObject], but rather they are logically
 // subtypes of [JSAny].
 
-/// The Javascript numbers.
+/// The JavaScript numbers.
 extension type JSNumber._(JSNumberRepType _jsNumber) implements JSAny {}
 
 /// The Javascript booleans.
 extension type JSBoolean._(JSBooleanRepType _jsBoolean) implements JSAny {}
 
-/// The Javascript strings.
+/// The JavaScript strings.
 extension type JSString._(JSStringRepType _jsString) implements JSAny {}
 
-/// The Javascript `Symbol`s.
+/// The JavaScript `Symbol`s.
 extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {}
 
-/// The Javascript `BigInt`.
+/// The JavaScript `BigInt`.
 extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
 
 /// A getter to retrieve the global context that is used in static interop
@@ -303,7 +303,7 @@ extension JSAnyUtilityExtension on JSAny? {
   /// `instanceOfString('JSClass')` check and not an `instanceOfString('Array')`
   /// check.
   ///
-  /// There are two expeptions to this rule. The first exception is
+  /// There are two exceptions to this rule. The first exception is
   /// `JSTypedArray`. As `TypedArray` does not exist as a property in JS, this
   /// does some prototype checking to make `isA<JSTypedArray>` do the right
   /// thing. The other exception is `JSAny`. If you do a `isA<JSAny>` check, it
@@ -317,7 +317,7 @@ extension JSAnyUtilityExtension on JSAny? {
   @Since('3.4')
   external bool isA<T extends JSAny?>();
 
-  /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object,
+  /// Effectively the inverse of [jsify], [dartify] takes a JavaScript object,
   /// and converts it to a Dart based object. Only JS primitives, arrays, or
   /// 'map' like JS objects are supported.
   external Object? dartify();
@@ -346,6 +346,7 @@ extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   external Function get toDart;
 }
 
+/// Conversion from [Function] to [JSExportedDartFunction].
 extension FunctionToJSExportedDartFunction on Function {
   external JSExportedDartFunction get toJS;
 }
@@ -373,7 +374,7 @@ extension ObjectToJSBoxedDartObject on Object {
   external JSBoxedDartObject get toJSBox;
 }
 
-/// [JSPromise] -> [Future].
+/// Conversion from [JSPromise] to [Future].
 extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   external Future<T> get toDart;
 }
@@ -403,6 +404,7 @@ extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
   }
 }
 
+/// Conversion from [Future] to [JSPromise].
 extension FutureOfVoidToJSPromise on Future<void> {
   JSPromise get toJS {
     return JSPromise((JSFunction resolve, JSFunction reject) {
@@ -441,6 +443,7 @@ extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   external ByteBuffer get toDart;
 }
 
+/// Conversion from [ByteBuffer] to [JSArrayBuffer].
 extension ByteBufferToJSArrayBuffer on ByteBuffer {
   external JSArrayBuffer get toJS;
 }
@@ -450,6 +453,7 @@ extension JSDataViewToByteData on JSDataView {
   external ByteData get toDart;
 }
 
+/// Conversion from [ByteData] to [JSDataView].
 extension ByteDataToJSDataView on ByteData {
   external JSDataView get toJS;
 }
@@ -459,6 +463,7 @@ extension JSInt8ArrayToInt8List on JSInt8Array {
   external Int8List get toDart;
 }
 
+/// Conversion from [Int8List] to [JSInt8Array].
 extension Int8ListToJSInt8Array on Int8List {
   external JSInt8Array get toJS;
 }
@@ -468,6 +473,7 @@ extension JSUint8ArrayToUint8List on JSUint8Array {
   external Uint8List get toDart;
 }
 
+/// Conversion from [Uint8List] to [JSUint8Array].
 extension Uint8ListToJSUint8Array on Uint8List {
   external JSUint8Array get toJS;
 }
@@ -477,6 +483,7 @@ extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   external Uint8ClampedList get toDart;
 }
 
+/// Conversion from [Uint8ClampedList] to [JSUint8ClampedArray].
 extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
   external JSUint8ClampedArray get toJS;
 }
@@ -486,6 +493,7 @@ extension JSInt16ArrayToInt16List on JSInt16Array {
   external Int16List get toDart;
 }
 
+/// Conversion from [Int16List] to [JSInt16Array].
 extension Int16ListToJSInt16Array on Int16List {
   external JSInt16Array get toJS;
 }
@@ -495,6 +503,7 @@ extension JSUint16ArrayToInt16List on JSUint16Array {
   external Uint16List get toDart;
 }
 
+/// Conversion from [Uint16List] to [JSUint16Array].
 extension Uint16ListToJSInt16Array on Uint16List {
   external JSUint16Array get toJS;
 }
@@ -504,6 +513,7 @@ extension JSInt32ArrayToInt32List on JSInt32Array {
   external Int32List get toDart;
 }
 
+/// Conversion from [Int32List] to [JSInt32Array].
 extension Int32ListToJSInt32Array on Int32List {
   external JSInt32Array get toJS;
 }
@@ -513,6 +523,7 @@ extension JSUint32ArrayToUint32List on JSUint32Array {
   external Uint32List get toDart;
 }
 
+/// Conversion from [Uint32List] to [JSUint32Array].
 extension Uint32ListToJSUint32Array on Uint32List {
   external JSUint32Array get toJS;
 }
@@ -522,6 +533,7 @@ extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   external Float32List get toDart;
 }
 
+/// Conversion from [Float32List] to [JSFloat32Array].
 extension Float32ListToJSFloat32Array on Float32List {
   external JSFloat32Array get toJS;
 }
@@ -531,6 +543,7 @@ extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   external Float64List get toDart;
 }
 
+/// Conversion from [Float64List] to [JSFloat64Array].
 extension Float64ListToJSFloat64Array on Float64List {
   external JSFloat64Array get toJS;
 }
@@ -543,6 +556,7 @@ extension JSArrayToList<T extends JSAny?> on JSArray<T> {
   external List<T> get toDart;
 }
 
+/// Conversion from [List] to [JSArray].
 extension ListToJSArray<T extends JSAny?> on List<T> {
   /// Compiler-specific conversion from list to JS array.
   ///
@@ -562,7 +576,7 @@ extension ListToJSArray<T extends JSAny?> on List<T> {
   external JSArray<T> get toJSProxyOrRef;
 }
 
-/// [JSNumber] -> [double] or [int].
+/// Conversion from [JSNumber] to [double] or [int].
 extension JSNumberToNumber on JSNumber {
   /// Returns a Dart [double] for the given [JSNumber].
   external double get toDartDouble;
@@ -573,12 +587,12 @@ extension JSNumberToNumber on JSNumber {
   external int get toDartInt;
 }
 
-/// [double] -> [JSNumber].
+/// Conversion from [double] to [JSNumber].
 extension DoubleToJSNumber on double {
   external JSNumber get toJS;
 }
 
-/// [num] -> [JSNumber].
+/// Conversion from [num] to [JSNumber].
 extension NumToJSExtension on num {
   JSNumber get toJS => DoubleToJSNumber(toDouble()).toJS;
 }
@@ -588,6 +602,7 @@ extension JSBooleanToBool on JSBoolean {
   external bool get toDart;
 }
 
+/// Conversion from [bool] to [JSBoolean].
 extension BoolToJSBoolean on bool {
   external JSBoolean get toJS;
 }
@@ -597,6 +612,7 @@ extension JSStringToString on JSString {
   external String get toDart;
 }
 
+/// Conversion from [String] to [JSString].
 extension StringToJSString on String {
   external JSString get toJS;
 }
@@ -608,7 +624,7 @@ extension StringToJSString on String {
 // TODO(srujzs): Add more as needed. For now, we just expose the ones needed to
 // migrate from `dart:js_util`.
 extension JSAnyOperatorExtension on JSAny? {
-  // Artithmetic operators.
+  // Arithmetic operators.
 
   /// Returns the result of '[this] + [any]' in JS.
   external JSAny add(JSAny? any);
@@ -684,7 +700,7 @@ extension JSAnyOperatorExtension on JSAny? {
 ///
 /// For example:
 ///
-/// ```
+/// ```dart
 /// import 'dart:js_interop';
 ///
 /// import 'package:expect/expect.dart';

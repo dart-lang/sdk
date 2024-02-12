@@ -5,14 +5,14 @@
 /// Utility methods to manipulate JavaScript objects dynamically.
 ///
 /// This library is typically meant to be used when the names of properties or
-/// methods are not known statically. This library is similar to 'dart:js_util',
+/// methods are not known statically. This library is similar to `dart:js_util`,
 /// except the methods here are extension methods that use JS types. This
 /// allows code using these functions to also be compiled to WebAssembly.
 ///
 /// In general, prefer to write JS interop interfaces and
-/// external static interop members using 'dart:js_interop'. This library is
+/// external static interop members using `dart:js_interop`. This library is
 /// meant to work around issues and help with migration from older JS interop
-/// libraries like 'dart:js'.
+/// libraries like `dart:js`.
 ///
 /// As the name suggests, usage of this library *can* be unsafe. This means that
 /// safe usage of these methods cannot necessarily be verified statically.
