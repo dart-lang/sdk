@@ -29,7 +29,7 @@ final class JSStringImpl implements String {
   bool get isNotEmpty => !isEmpty;
 
   @pragma("wasm:entry-point")
-  static String interpolate(List<Object?> values) {
+  static String _interpolate(WasmArray<Object?> values) {
     final valuesLength = values.length;
     final array = JSArrayImpl.fromLength(valuesLength);
     for (int i = 0; i < valuesLength; i++) {

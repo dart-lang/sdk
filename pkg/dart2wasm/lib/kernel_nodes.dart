@@ -176,7 +176,7 @@ mixin KernelNodes {
   late final Procedure jsStringEquals =
       index.getProcedure("dart:_js_types", "JSStringImpl", "==");
   late final Procedure jsStringInterpolate =
-      index.getProcedure("dart:_js_types", "JSStringImpl", "interpolate");
+      index.getProcedure("dart:_js_types", "JSStringImpl", "_interpolate");
 
   // dart:collection procedures
   late final Procedure mapFactory =
@@ -210,7 +210,7 @@ mixin KernelNodes {
   late final Procedure nullNoSuchMethod =
       index.getProcedure("dart:core", "Object", "_nullNoSuchMethod");
   late final Procedure stringEquals =
-      index.getProcedure("dart:_string", "StringBase", "==");
+      index.getProcedure("dart:_string", "StringBase", "_equals");
   late final Procedure stringInterpolate =
       index.getProcedure("dart:_string", "StringBase", "_interpolate");
   late final Procedure truncDiv =

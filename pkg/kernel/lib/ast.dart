@@ -574,7 +574,7 @@ class Library extends NamedNode
     for (int i = 0; i < extensionTypeDeclarations.length; ++i) {
       ExtensionTypeDeclaration extensionTypeDeclaration =
           extensionTypeDeclarations[i];
-      extensionTypeDeclaration._relinkNode();
+      extensionTypeDeclaration.relink();
     }
   }
 
@@ -1907,6 +1907,21 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
   /// Used for adding procedures when reading the dill file.
   void set proceduresInternal(List<Procedure> procedures) {
     _procedures = procedures;
+  }
+
+  /// This is an advanced feature. Use of this method should be coordinated
+  /// with the kernel team.
+  ///
+  /// See [Component.relink] for a comprehensive description.
+  ///
+  /// Makes sure all references in named nodes in this extension type
+  /// declaration points to said named node.
+  void relink() {
+    this.reference.node = this;
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
+      member._relinkNode();
+    }
   }
 
   @override

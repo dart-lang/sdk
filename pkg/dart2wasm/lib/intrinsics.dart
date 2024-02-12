@@ -649,8 +649,7 @@ class Intrinsifier {
 
           codeGen.wrap(classId, w.NumType.i64);
           b.i32_wrap_i64();
-          b.emitClassIdRangeCheck(
-              codeGen, [Range(objectClassId, objectClassId)]);
+          b.emitClassIdRangeCheck([Range(objectClassId, objectClassId)]);
           return w.NumType.i32;
         case "_isClosureClassId":
           final classId = node.arguments.positional.single;
@@ -661,7 +660,7 @@ class Intrinsifier {
 
           codeGen.wrap(classId, w.NumType.i64);
           b.i32_wrap_i64();
-          b.emitClassIdRangeCheck(codeGen, ranges);
+          b.emitClassIdRangeCheck(ranges);
           return w.NumType.i32;
         case "_isRecordClassId":
           final classId = node.arguments.positional.single;
@@ -672,7 +671,7 @@ class Intrinsifier {
 
           codeGen.wrap(classId, w.NumType.i64);
           b.i32_wrap_i64();
-          b.emitClassIdRangeCheck(codeGen, ranges);
+          b.emitClassIdRangeCheck(ranges);
           return w.NumType.i32;
       }
     }
