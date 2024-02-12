@@ -307,22 +307,6 @@ abstract final class StringBase extends WasmStringBase {
     return this;
   }
 
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    if (other is String && this.length == other.length) {
-      final len = this.length;
-      for (int i = 0; i < len; i++) {
-        if (this.codeUnitAt(i) != other.codeUnitAt(i)) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
-
   int compareTo(String other) {
     int thisLength = this.length;
     int otherLength = other.length;
@@ -919,6 +903,11 @@ abstract final class StringBase extends WasmStringBase {
     return StringBase._concatAllFallback(values, totalLength);
   }
 
+  @pragma('wasm:entry-point')
+  static bool _equals(String left, String? right) {
+    return left == right;
+  }
+
   static ArgumentError _interpolationError(Object? o, Object? result) {
     // Since Dart 2.0, [result] can only be null.
     return ArgumentError.value(o, "object", "toString method returned 'null'");
@@ -1040,6 +1029,15 @@ abstract final class StringBase extends WasmStringBase {
     return result;
   }
 
+  static bool _operatorEqualsFallback(String a, String b) {
+    final length = a.length;
+    if (length != b.length) return false;
+    for (int i = 0; i < length; ++i) {
+      if (a.codeUnitAt(i) != b.codeUnitAt(i)) return false;
+    }
+    return true;
+  }
+
   int _copyIntoTwoByteString(TwoByteString result, int offset);
 }
 
@@ -1060,6 +1058,24 @@ final class OneByteString extends StringBase {
       hash = stringCombineHashes(hash, array.readUnsigned(i));
     }
     return stringFinalizeHash(hash);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! String) return false;
+
+    if (other is OneByteString) {
+      final thisBytes = _array;
+      final otherBytes = other._array;
+      if (thisBytes.length != otherBytes.length) return false;
+      for (int i = 0; i < thisBytes.length; ++i) {
+        if (thisBytes[i] != otherBytes[i]) return false;
+      }
+      return true;
+    }
+
+    return StringBase._operatorEqualsFallback(this, other);
   }
 
   @pragma('wasm:prefer-inline')
@@ -1396,6 +1412,24 @@ final class TwoByteString extends StringBase {
       hash = stringCombineHashes(hash, array.readUnsigned(i));
     }
     return stringFinalizeHash(hash);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! String) return false;
+
+    if (other is TwoByteString) {
+      final thisBytes = _array;
+      final otherBytes = other._array;
+      if (thisBytes.length != otherBytes.length) return false;
+      for (int i = 0; i < thisBytes.length; ++i) {
+        if (thisBytes[i] != otherBytes[i]) return false;
+      }
+      return true;
+    }
+
+    return StringBase._operatorEqualsFallback(this, other);
   }
 
   static String allocateFromTwoByteList(List<int> list, int start, int end) {

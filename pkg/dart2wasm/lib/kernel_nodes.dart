@@ -210,7 +210,7 @@ mixin KernelNodes {
   late final Procedure nullNoSuchMethod =
       index.getProcedure("dart:core", "Object", "_nullNoSuchMethod");
   late final Procedure stringEquals =
-      index.getProcedure("dart:_string", "StringBase", "==");
+      index.getProcedure("dart:_string", "StringBase", "_equals");
   late final Procedure stringInterpolate =
       index.getProcedure("dart:_string", "StringBase", "_interpolate");
   late final Procedure truncDiv =
