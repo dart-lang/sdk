@@ -88,5 +88,5 @@ static method main() → dynamic {
   self::C2 /* = core::int */ c = self::C2|constructor#(0);
   self::C2|set#property(c, c as{Unchecked} core::int);
   self::D2 /* = self::D1 */ d = self::D2|constructor#(new self::D1::•());
-  d.{self::D1::property} = d;
+  d.{self::D1::property} = d as{Unchecked} self::D1;
 }

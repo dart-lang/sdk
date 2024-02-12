@@ -70,7 +70,7 @@ static method test3<T extends core::Object? = dynamic>(self::test3::T% t3) → d
  - 'SubClass' is from 'pkg/front_end/testcases/nnbd/extension_type_variable_bound.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method2'.
     SubClass subClass = t3.method2();
-                           ^^^^^^^" in t3{self::test3::T% & self::SubClass /* '%' & '!' = '!' */}{<unresolved>}.method2();
+                           ^^^^^^^" in t3{self::test3::T% & self::SubClass /* '%' & '!' = '!' */}{<unresolved>}.method2() as{TypeError,ForDynamic,Unchecked} self::SubClass;
   }
 }
 static method main() → dynamic {}

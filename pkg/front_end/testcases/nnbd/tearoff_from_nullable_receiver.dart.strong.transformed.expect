@@ -49,10 +49,10 @@ static method nullableFunctionContext(() →? core::int f) → dynamic {}
 static method foo<T extends self::C?>(self::C? c, self::foo::T% t, self::foo::T? nt) → dynamic {
   self::functionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:14:24: Error: Can't tear off method 'call' from a potentially null value.
   functionContext(null as C?); // Error.
-                       ^" in let Null #t1 = null in #t1 == null ?{() → core::int} #t1 as{TypeError,ForLegacy} () → core::int : #t1{() → core::int});
+                       ^" in (null as{Unchecked} self::C?) as{TypeError,ForLegacy} () → core::int);
   self::nullableFunctionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:15:32: Error: Can't tear off method 'call' from a potentially null value.
   nullableFunctionContext(null as C?); // Error.
-                               ^" in null);
+                               ^" in (null as{Unchecked} self::C?) as{TypeError,ForLegacy} () →? core::int);
   self::functionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:16:19: Error: Can't tear off method 'call' from a potentially null value.
   functionContext(c); // Error.
                   ^" in c as{TypeError,ForLegacy} () → core::int);
@@ -73,9 +73,9 @@ static method foo<T extends self::C?>(self::C? c, self::foo::T% t, self::foo::T?
                           ^" in nt as{TypeError,ForLegacy} () →? core::int);
 }
 static method bar<T extends self::C>(self::C c, self::bar::T t) → dynamic {
-  self::functionContext(let final self::C #t2 = c in #t2 == null ?{() → core::int} null : #t2.{self::C::call}{() → core::int});
-  self::nullableFunctionContext(let final self::C #t3 = c in #t3 == null ?{() → core::int} null : #t3.{self::C::call}{() → core::int});
-  self::functionContext(let final self::bar::T #t4 = t in #t4 == null ?{() → core::int} null : #t4.{self::C::call}{() → core::int});
-  self::nullableFunctionContext(let final self::bar::T #t5 = t in #t5 == null ?{() → core::int} null : #t5.{self::C::call}{() → core::int});
+  self::functionContext(let final self::C #t1 = c in #t1 == null ?{() → core::int} null : #t1.{self::C::call}{() → core::int});
+  self::nullableFunctionContext(let final self::C #t2 = c in #t2 == null ?{() → core::int} null : #t2.{self::C::call}{() → core::int});
+  self::functionContext(let final self::bar::T #t3 = t in #t3 == null ?{() → core::int} null : #t3.{self::C::call}{() → core::int});
+  self::nullableFunctionContext(let final self::bar::T #t4 = t in #t4 == null ?{() → core::int} null : #t4.{self::C::call}{() → core::int});
 }
 static method main() → dynamic {}

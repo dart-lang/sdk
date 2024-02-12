@@ -33,7 +33,7 @@ class C extends core::Object {
   @#C3
   method promote() → void {
     if(!(this.{self::C::_x}{core::int?} == null))
-      core::print(this.{self::C::_x}{core::int?});
+      core::print(this.{self::C::_x}{core::int?} as{Unchecked} core::int);
     else
       core::print("null");
   }

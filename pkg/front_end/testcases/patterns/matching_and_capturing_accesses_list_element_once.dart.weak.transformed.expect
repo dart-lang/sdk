@@ -322,7 +322,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     }
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(core::int start, core::int end, [covariant-by-class core::int? fill = #C2]) → void {
-    core::int value = let core::int? #t6 = fill in #t6 == null ?{core::int} #t6 : #t6{core::int};
+    core::int value = let core::int? #t6 = fill in #t6 == null ?{core::int} #t6 as{Unchecked} core::int : #t6{core::int};
     core::RangeError::checkValidRange(start, end, this.{core::List::length}{core::int});
     for (core::int i = start; i.{core::num::<}(end){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       this.{core::List::[]=}(i, value){(core::int, core::int) → void};
@@ -570,4 +570,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1101, effectively constant: 4
+Extra constant evaluation: evaluated: 1102, effectively constant: 4

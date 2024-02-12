@@ -36,7 +36,7 @@ static method testDynamic() → dynamic
 static method testObjectNegative() → dynamic
   return let dynamic #t1 = #C2 in #t1 as core::Object;
 static method testNullableObject() → dynamic
-  return #C2;
+  return _in::unsafeCast<core::Object?>(#C2);
 static method testAOfNum1([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int>] dynamic x) → dynamic
   return _in::unsafeCast<self::A<core::num>>(x);
 static method testAOfNum2negative([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic

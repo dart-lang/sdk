@@ -22,7 +22,7 @@ static method foo<X extends core::Object? = dynamic>(core::bool test, self::foo:
       self::foo::X% v1 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
       core::int v2 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
       self::Ext|get#st<self::foo::X%>(c{self::foo::X% & core::int /* '%' & '!' = '!' */})<(self::foo::X%) → self::foo::X%>;
-      c = a{self::foo::X% & core::int /* '%' & '!' = '!' */};
+      c = a{self::foo::X% & core::int /* '%' & '!' = '!' */} as{Unchecked} self::foo::X%;
     }
   }
   if(!(b is core::int))
@@ -36,7 +36,7 @@ static method foo<X extends core::Object? = dynamic>(core::bool test, self::foo:
       self::foo::X% v1 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
       core::int v2 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
       self::Ext|get#st<self::foo::X%>(c{self::foo::X% & core::int /* '%' & '!' = '!' */})<(self::foo::X%) → self::foo::X%>;
-      c = a{self::foo::X% & core::int /* '%' & '!' = '!' */};
+      c = a{self::foo::X% & core::int /* '%' & '!' = '!' */} as{Unchecked} self::foo::X%;
     }
   }
 }

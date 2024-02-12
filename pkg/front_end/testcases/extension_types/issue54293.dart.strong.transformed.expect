@@ -22,7 +22,7 @@ static extension-type-member method Int|constructor#(core::int i) → self::Int 
 static extension-type-member method Int|constructor#_#new#tearOff(core::int i) → self::Int /* = core::int */
   return self::Int|constructor#(i);
 static extension-type-member method Int|+(lowered final self::Int /* = core::int */ #this, core::int other) → self::Int /* = core::int */ {
-  return self::Int|constructor#(#this.{core::num::+}(other){(core::num) → core::int});
+  return self::Int|constructor#((#this as{Unchecked} core::int).{core::num::+}(other){(core::num) → core::int});
 }
 static method test() → void {
   core::int a = 2;
