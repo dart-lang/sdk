@@ -323,6 +323,7 @@ List<String> _getChangedFiles() {
   for (String line in result.stdout.toString().split("\n")) {
     List<String> split = line.split("\t");
     if (split.length != 2) continue;
+    if (split[0] == 'D') continue; // Don't check deleted files.
     String path = split[1].trim().replaceAll("\\", "/");
     paths.add(path);
   }
