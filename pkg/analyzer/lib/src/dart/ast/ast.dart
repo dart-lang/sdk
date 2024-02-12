@@ -6721,7 +6721,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitExtensionOverride(this, contextType: contextType);
+    resolver.visitExtensionOverride(this);
   }
 
   @override
@@ -8720,7 +8720,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitFunctionReference(this, contextType: contextType);
+    resolver.visitFunctionReference(this);
   }
 
   @override
@@ -9863,7 +9863,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitImplicitCallReference(this, contextType: contextType);
+    resolver.visitImplicitCallReference(this);
   }
 
   @override
@@ -11307,7 +11307,7 @@ final class LibraryIdentifierImpl extends IdentifierImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitLibraryIdentifier(this, contextType: contextType);
+    resolver.visitLibraryIdentifier(this);
   }
 
   @override
@@ -18389,7 +18389,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitTypeLiteral(this, contextType: contextType);
+    resolver.visitTypeLiteral(this);
   }
 
   @override
