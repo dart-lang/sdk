@@ -42,7 +42,7 @@ main() {
     });
 
     test('unknown type', () {
-      var t = Type('?');
+      var t = Type('_');
       expect(t, TypeMatcher<UnknownType>());
     });
 
@@ -376,8 +376,8 @@ main() {
     });
 
     test('UnknownType:', () {
-      expect(Type('?').recursivelyDemote(covariant: true), isNull);
-      expect(Type('?').recursivelyDemote(covariant: false), isNull);
+      expect(Type('_').recursivelyDemote(covariant: true), isNull);
+      expect(Type('_').recursivelyDemote(covariant: false), isNull);
     });
   });
 }
