@@ -2015,12 +2015,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (method.isStatic) {
         void reportStaticConflict(ExecutableElement inherited) {
-          errorReporter.reportErrorForElement(
-              CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, method, [
-            enclosingClass.displayName,
-            name,
-            inherited.enclosingElement.displayName,
-          ]);
+          errorReporter.atElement(
+            method,
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            arguments: [
+              enclosingClass.displayName,
+              name,
+              inherited.enclosingElement.displayName,
+            ],
+          );
         }
 
         if (getter != null) {
@@ -2040,12 +2043,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       void reportFieldConflict(PropertyAccessorElement inherited) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
-          enclosingClass.displayName,
-          name,
-          inherited.enclosingElement.displayName
-        ]);
+        errorReporter.atElement(
+          method,
+          CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
+          arguments: [
+            enclosingClass.displayName,
+            name,
+            inherited.enclosingElement.displayName
+          ],
+        );
       }
 
       if (getter is PropertyAccessorElement) {
@@ -2070,24 +2076,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           enclosingClass, Name(libraryUri, '$name='));
 
       if (accessor.isStatic && inherited != null) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, accessor, [
-          enclosingClass.displayName,
-          name,
-          inherited.enclosingElement.displayName,
-        ]);
+        errorReporter.atElement(
+          accessor,
+          CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+          arguments: [
+            enclosingClass.displayName,
+            name,
+            inherited.enclosingElement.displayName,
+          ],
+        );
         conflictingDeclaredNames.add(name);
       } else if (inherited is MethodElement) {
         // Extension type accessors preclude inherited accessors/methods.
         if (enclosingClass is ExtensionTypeElement) {
           continue;
         }
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, accessor, [
-          enclosingClass.displayName,
-          name,
-          inherited.enclosingElement.displayName
-        ]);
+        errorReporter.atElement(
+          accessor,
+          CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
+          arguments: [
+            enclosingClass.displayName,
+            name,
+            inherited.enclosingElement.displayName
+          ],
+        );
         conflictingDeclaredNames.add(name);
       }
     }
@@ -2104,15 +2116,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         final setterName = methodName.forSetter;
         final setter = inherited[setterName];
         if (setter is PropertyAccessorElement) {
-          errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          errorReporter.atElement(
             enclosingClass,
-            [
+            CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+            arguments: [
               enclosingClass.kind.displayName,
               enclosingClass.displayName,
               methodName.name,
             ],
-            [
+            contextMessages: [
               DiagnosticMessageImpl(
                 filePath: method.source.fullName,
                 message: formatList(
@@ -2156,7 +2168,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var code = enclosingClass is MixinElement
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS;
-        errorReporter.reportErrorForElement(code, typeParameter, [name]);
+        errorReporter.atElement(
+          typeParameter,
+          code,
+          arguments: [name],
+        );
       }
       // check members
       if (enclosingClass.getNamedConstructor(name) != null ||
@@ -2166,7 +2182,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var code = enclosingClass is MixinElement
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
-        errorReporter.reportErrorForElement(code, typeParameter, [name]);
+        errorReporter.atElement(
+          typeParameter,
+          code,
+          arguments: [name],
+        );
       }
     }
   }
@@ -2178,20 +2198,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var name = typeParameter.name;
       // name is same as the name of the enclosing enum
       if (element.name == name) {
-        errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM,
+        errorReporter.atElement(
           typeParameter,
-          [name],
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM,
+          arguments: [name],
         );
       }
       // check members
       if (element.getMethod(name) != null ||
           element.getGetter(name) != null ||
           element.getSetter(name) != null) {
-        errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
+        errorReporter.atElement(
           typeParameter,
-          [name],
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
+          arguments: [name],
         );
       }
     }
@@ -2204,21 +2224,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (element.name == name) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
-            typeParameter,
-            [name]);
+        errorReporter.atElement(
+          typeParameter,
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
+          arguments: [name],
+        );
       }
       // check members
       if (element.getNamedConstructor(name) != null ||
           element.getMethod(name) != null ||
           element.getGetter(name) != null ||
           element.getSetter(name) != null) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode
-                .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
-            typeParameter,
-            [name]);
+        errorReporter.atElement(
+          typeParameter,
+          CompileTimeErrorCode
+              .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
+          arguments: [name],
+        );
       }
     }
   }
@@ -2233,19 +2255,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (_enclosingExtension!.name == name) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
-            typeParameter,
-            [name]);
+        errorReporter.atElement(
+          typeParameter,
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
+          arguments: [name],
+        );
       }
       // check members
       if (_enclosingExtension!.getMethod(name) != null ||
           _enclosingExtension!.getGetter(name) != null ||
           _enclosingExtension!.getSetter(name) != null) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
-            typeParameter,
-            [name]);
+        errorReporter.atElement(
+          typeParameter,
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
+          arguments: [name],
+        );
       }
     }
   }
@@ -4239,10 +4263,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superUnnamedConstructor = superElement.unnamedConstructor;
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
-        errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
+        errorReporter.atElement(
           element,
-          [superElement.name, element.name, superUnnamedConstructor],
+          CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
+          arguments: [
+            superElement.name,
+            element.name,
+            superUnnamedConstructor,
+          ],
         );
         return;
       }
@@ -4254,10 +4282,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_typeProvider.isNonSubtypableClass(superType.element)) {
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
-      errorReporter.reportErrorForElement(
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+      errorReporter.atElement(
         element,
-        [superType, element.displayName],
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+        arguments: [superType, element.displayName],
       );
     }
   }
@@ -5518,23 +5546,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (!superVariance
               .greaterThanOrEqual(typeParameterElementImpl.variance)) {
             if (!typeParameterElementImpl.isLegacyCovariant) {
-              errorReporter.reportErrorForElement(
+              errorReporter.atElement(
+                typeParameter,
                 CompileTimeErrorCode
                     .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-                typeParameter,
-                [
+                arguments: [
                   typeParameter.name,
                   typeParameterElementImpl.variance.toKeywordString(),
                   superVariance.toKeywordString(),
-                  superInterface
+                  superInterface,
                 ],
               );
             } else {
-              errorReporter.reportErrorForElement(
+              errorReporter.atElement(
+                typeParameter,
                 CompileTimeErrorCode
                     .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-                typeParameter,
-                [typeParameter.name, superInterface],
+                arguments: [typeParameter.name, superInterface],
               );
             }
           }
@@ -6191,11 +6219,11 @@ class _MacroDiagnosticsReporter {
           contextMessages: _convertMessages(diagnostic),
         );
       case ElementMacroDiagnosticTarget():
-        errorReporter.reportErrorForElement(
-          errorCode,
+        errorReporter.atElement(
           target.element,
-          [diagnostic.message.message],
-          _convertMessages(diagnostic),
+          errorCode,
+          arguments: [diagnostic.message.message],
+          contextMessages: _convertMessages(diagnostic),
         );
       case TypeAnnotationMacroDiagnosticTarget():
         var nodeLocation = _MacroTypeAnnotationLocationConverter(

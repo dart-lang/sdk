@@ -22,27 +22,21 @@ main() {
 class ErrorReporterTest extends PubPackageResolutionTest {
   var listener = GatheringErrorListener();
 
-  test_creation() async {
-    var source = TestSource();
-    var reporter = ErrorReporter(listener, source);
-    expect(reporter, isNotNull);
-  }
-
-  test_reportErrorForElement_named() async {
+  test_atElement_named() async {
     await resolveTestCode('class A {}');
     var element = findElement.class_('A');
     var reporter = ErrorReporter(listener, element.source);
-    reporter.reportErrorForElement(
-      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+    reporter.atElement(
       element,
-      ['A'],
+      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+      arguments: ['A'],
     );
 
     var error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
 
-  test_reportErrorForElement_unnamed() async {
+  test_atElement_unnamed() async {
     await resolveTestCode(r'''
 import 'dart:async';
 import 'dart:math';
@@ -50,17 +44,17 @@ import 'dart:math';
     var element = findElement.import('dart:math');
 
     var reporter = ErrorReporter(listener, element.source);
-    reporter.reportErrorForElement(
-      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+    reporter.atElement(
       element,
-      ['A'],
+      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+      arguments: ['A'],
     );
 
     var error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
 
-  test_reportErrorForNode_types_differentNames() async {
+  test_atNode_types_differentNames() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
     newFile('$testPackageLibPath/b.dart', 'class B {}');
     await resolveTestCode(r'''
@@ -95,7 +89,7 @@ main() {
     expect(error.message, isNot(contains('(')));
   }
 
-  test_reportErrorForNode_types_sameName() async {
+  test_atNode_types_sameName() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
     newFile('$testPackageLibPath/b.dart', 'class A {}');
     await resolveTestCode(r'''
@@ -129,7 +123,7 @@ main() {
     expect(error.message, contains('('));
   }
 
-  test_reportErrorForNode_types_sameName_functionType() async {
+  test_atNode_types_sameName_functionType() async {
     newFile('$testPackageLibPath/a.dart', 'class A{}');
     newFile('$testPackageLibPath/b.dart', 'class A{}');
     await resolveTestCode(r'''
@@ -159,7 +153,7 @@ main() {
     expect(error.message, contains('b.dart'));
   }
 
-  test_reportErrorForNode_types_sameName_nested() async {
+  test_atNode_types_sameName_nested() async {
     newFile('$testPackageLibPath/a.dart', 'class A{}');
     newFile('$testPackageLibPath/b.dart', 'class A{}');
     await resolveTestCode(r'''
@@ -188,6 +182,12 @@ main() {
     var error = listener.errors[0];
     expect(error.message, contains('a.dart'));
     expect(error.message, contains('b.dart'));
+  }
+
+  test_creation() async {
+    var source = TestSource();
+    var reporter = ErrorReporter(listener, source);
+    expect(reporter, isNotNull);
   }
 
   test_reportErrorForSpan() async {

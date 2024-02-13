@@ -241,22 +241,30 @@ class BaseOrFinalTypeVerifier {
               ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
               : CompileTimeErrorCode
                   .SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED;
-          _errorReporter.reportErrorForElement(
-              errorCode,
-              element,
-              [element.displayName, baseOrFinalSuperElement.displayName],
-              superElement.isSealed ? contextMessages : null);
+          _errorReporter.atElement(
+            element,
+            errorCode,
+            arguments: [
+              element.displayName,
+              baseOrFinalSuperElement.displayName,
+            ],
+            contextMessages: superElement.isSealed ? contextMessages : null,
+          );
           return true;
         } else if (baseOrFinalSuperElement.isBase) {
           final errorCode = element is MixinElement
               ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
               : CompileTimeErrorCode
                   .SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED;
-          _errorReporter.reportErrorForElement(
-              errorCode,
-              element,
-              [element.displayName, baseOrFinalSuperElement.displayName],
-              superElement.isSealed ? contextMessages : null);
+          _errorReporter.atElement(
+            element,
+            errorCode,
+            arguments: [
+              element.displayName,
+              baseOrFinalSuperElement.displayName,
+            ],
+            contextMessages: superElement.isSealed ? contextMessages : null,
+          );
           return true;
         }
       }
