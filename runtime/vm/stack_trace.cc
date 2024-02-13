@@ -353,10 +353,10 @@ void AsyncAwareStackUnwinder::UnwindAwaiterFrame() {
 
   while (!awaiter_frame_.closure.IsNull()) {
     function_ = awaiter_frame_.closure.function();
-    context_ = awaiter_frame_.closure.context();
 
     const auto awaiter_link = function_.awaiter_link();
     if (awaiter_link.depth != ClosureData::kNoAwaiterLinkDepth) {
+      context_ = awaiter_frame_.closure.GetContext();
       intptr_t depth = awaiter_link.depth;
       while (depth-- > 0) {
         context_ = context_.parent();
@@ -448,11 +448,8 @@ void AsyncAwareStackUnwinder::UnwindFrameToStreamListener() {
   }
 
   // All implicit closure functions (tear-offs) have the "this" receiver
-  // captured.
-  context_ = closure_.context();
-  ASSERT(context_.num_variables() == 1);
-  stream_iterator_ = context_.At(0);
-  ASSERT(stream_iterator_.IsInstance());
+  // captured in the context.
+  stream_iterator_ = closure_.GetImplicitClosureReceiver();
 
   if (stream_iterator_.GetClassId() != _StreamIterator().id()) {
     UNREACHABLE();
@@ -519,7 +516,7 @@ bool StackTraceUtils::GetSuspendState(const Closure& closure,
   const Function& function = Function::Handle(closure.function());
   const auto awaiter_link = function.awaiter_link();
   if (awaiter_link.depth != ClosureData::kNoAwaiterLinkDepth) {
-    Context& context = Context::Handle(closure.context());
+    Context& context = Context::Handle(closure.GetContext());
     intptr_t depth = awaiter_link.depth;
     while (depth-- > 0) {
       context = context.parent();

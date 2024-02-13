@@ -548,49 +548,14 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ LoadCompressed(T3, Address(TMP, 0));
   __ Bind(&no_type_args);
 
-  // Push type arguments & extracted method.
-  __ PushRegistersInOrder({T3, T1});
+  // Push type arguments.
+  __ PushRegister(T3);
 
-  // Allocate context.
-  {
-    Label done, slow_path;
-    if (!FLAG_use_slow_path && FLAG_inline_alloc) {
-      __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
-                          &slow_path,
-                          A0,  // instance
-                          T1,  // end address
-                          T2, T3);
-      __ StoreCompressedIntoObjectNoBarrier(
-          A0, FieldAddress(A0, target::Context::parent_offset()), NULL_REG);
-      __ LoadImmediate(T1, 1);
-      __ sw(T1, FieldAddress(A0, target::Context::num_variables_offset()));
-      __ j(&done, compiler::Assembler::kNearJump);
-    }
-
-    __ Bind(&slow_path);
-
-    __ LoadImmediate(/*num_vars=*/T1, 1);
-    __ LoadObject(CODE_REG, context_allocation_stub);
-    __ lx(RA, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-    __ jalr(RA);
-
-    __ Bind(&done);
-  }
-
-  // Put context in right register for AllocateClosure call.
-  __ MoveRegister(AllocateClosureABI::kContextReg, A0);
-
-  // Store receiver in context
-  __ lx(AllocateClosureABI::kScratchReg,
+  // Put function and context (receiver) in right registers for
+  // AllocateClosure stub.
+  __ MoveRegister(AllocateClosureABI::kFunctionReg, T1);
+  __ lx(AllocateClosureABI::kContextReg,
         Address(FP, target::kWordSize * kReceiverOffset));
-  __ StoreCompressedIntoObject(
-      AllocateClosureABI::kContextReg,
-      FieldAddress(AllocateClosureABI::kContextReg,
-                   target::Context::variable_offset(0)),
-      AllocateClosureABI::kScratchReg);
-
-  // Pop function before pushing context.
-  __ PopRegister(AllocateClosureABI::kFunctionReg);
 
   // Allocate closure. After this point, we only use the registers in
   // AllocateClosureABI.

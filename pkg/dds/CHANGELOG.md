@@ -1,5 +1,7 @@
-# 3.1.3-unreleased
+# 3.2.0
 - [DAP] Fixed "Unable to find library" errors when using global evaluation when the context file resolves to a `package:` URI.
+- Updated `devtools_shared` to ^6.0.4.
+- Added `--dtd-uri=<uri>` flag to DevTools server.
 
 # 3.1.2
 - Improved error handling for serving static DevTools assets.

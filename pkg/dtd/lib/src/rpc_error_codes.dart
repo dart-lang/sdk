@@ -1,4 +1,4 @@
-// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -30,6 +30,11 @@ abstract class RpcErrorCodes {
 
   static const kServiceMethodAlreadyRegistered = 132;
 
+  static const kDirectoryDoesNotExist = 140;
+  static const kFileDoesNotExist = 141;
+  static const kPermissionDenied = 142;
+  static const kExpectsUriParamWithFileScheme = 143;
+
   // Experimental (used in private rpcs).
   // static const kFileSystemAlreadyExists = 1001;
   // static const kFileSystemDoesNotExist = 1002;
@@ -42,5 +47,9 @@ abstract class RpcErrorCodes {
     kServiceDisappeared: 'Service has disappeared',
     kServiceMethodAlreadyRegistered:
         'The service method has already been registered',
+    kDirectoryDoesNotExist: 'The directory does not exist',
+    kFileDoesNotExist: 'The file does not exist',
+    kPermissionDenied: 'Permission denied',
+    kExpectsUriParamWithFileScheme: 'File scheme expected on uri',
   };
 }

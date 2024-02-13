@@ -76,6 +76,17 @@ class CollectingReporter extends ErrorReporter {
   CollectingReporter(super.listener, super.source);
 
   @override
+  void atElement(
+    Element element,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    Object? data,
+  }) {
+    code = errorCode;
+  }
+
+  @override
   void atNode(
     AstNode node,
     ErrorCode errorCode, {
@@ -94,12 +105,6 @@ class CollectingReporter extends ErrorReporter {
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    code = errorCode;
-  }
-
-  @override
-  void reportErrorForElement(ErrorCode errorCode, Element element,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     code = errorCode;
   }
 

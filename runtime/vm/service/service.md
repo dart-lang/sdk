@@ -1,4 +1,4 @@
-# Dart VM Service Protocol 4.14
+# Dart VM Service Protocol 4.15
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
@@ -2967,6 +2967,12 @@ class @Instance extends @Object {
   //   Closure
   @Context closureContext [optional];
 
+  // The receiver captured by tear-off Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Instance closureReceiver [optional];
+
   // The port ID for a ReceivePort.
   //
   // Provided for instance kinds:
@@ -3199,6 +3205,12 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   Closure
   @Context closureContext [optional];
+
+  // The receiver captured by tear-off Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Instance closureReceiver [optional];
 
   // Whether this regular expression is case sensitive.
   //
@@ -4787,5 +4799,6 @@ version | comments
 4.12 | Added `@TypeParameters` and changed `TypeParameters` to extend `Object`.
 4.13 | Added `librariesAlreadyCompiled` to `getSourceReport`.
 4.14 | Added `Finalizer`, `NativeFinalizer`, and `FinalizerEntry`.
+4.15 | Added `closureReceiver` property to `@Instance` and `Instance`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

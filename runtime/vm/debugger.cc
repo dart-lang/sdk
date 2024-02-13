@@ -717,7 +717,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         ASSERT(function().name() == Symbols::call().ptr());
         ASSERT(function().IsInvokeFieldDispatcher());
         // Closure.call frames.
-        ctx_ = Closure::Cast(obj).context();
+        ctx_ = Closure::Cast(obj).GetContext();
       } else if (obj.IsContext()) {
         ctx_ = Context::Cast(obj).ptr();
       } else {

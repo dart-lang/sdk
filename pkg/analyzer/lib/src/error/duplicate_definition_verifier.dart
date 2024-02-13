@@ -137,19 +137,19 @@ class DuplicateDefinitionVerifier {
       if (accessor.isStatic) {
         var instance = _getInterfaceMember(enumElement, baseName);
         if (instance != null && baseName != 'values') {
-          _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+          _errorReporter.atElement(
             accessor,
-            [enumName, baseName, enumName],
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            arguments: [enumName, baseName, enumName],
           );
         }
       } else {
         var inherited = _getInheritedMember(enumElement, baseName);
         if (inherited is MethodElement) {
-          _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
+          _errorReporter.atElement(
             accessor,
-            [
+            CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
+            arguments: [
               enumElement.displayName,
               baseName,
               inherited.enclosingElement.displayName,
@@ -164,19 +164,19 @@ class DuplicateDefinitionVerifier {
       if (method.isStatic) {
         var instance = _getInterfaceMember(enumElement, baseName);
         if (instance != null) {
-          _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+          _errorReporter.atElement(
             method,
-            [enumName, baseName, enumName],
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            arguments: [enumName, baseName, enumName],
           );
         }
       } else {
         var inherited = _getInheritedMember(enumElement, baseName);
         if (inherited is PropertyAccessorElement) {
-          _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
+          _errorReporter.atElement(
             method,
-            [
+            CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
+            arguments: [
               enumElement.displayName,
               baseName,
               inherited.enclosingElement.displayName,
@@ -514,12 +514,16 @@ class DuplicateDefinitionVerifier {
           errorCode =
               CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
         }
-        _errorReporter.reportErrorForElement(errorCode, constructor, [name]);
-      } else if (staticMember is MethodElement) {
-        _errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+        _errorReporter.atElement(
           constructor,
-          [name],
+          errorCode,
+          arguments: [name],
+        );
+      } else if (staticMember is MethodElement) {
+        _errorReporter.atElement(
+          constructor,
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+          arguments: [name],
         );
       }
     }

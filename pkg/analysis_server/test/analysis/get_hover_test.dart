@@ -844,8 +844,7 @@ C f() => C.named(); //
 
   Future<void>
       test_constructorInvocation_referenceFromAugmentation_default() async {
-    var filePath = '$testPackageLibPath/a.dart';
-    newFile(filePath, '''
+    var file = newFile('$testPackageLibPath/a.dart', '''
 library augment 'test.dart';
 
 augment class C {
@@ -862,7 +861,7 @@ class C {
   C();
 }
 ''');
-    var hover = await prepareHover('C();', inFile: filePath);
+    var hover = await prepareHover('C();', inFile: file.path);
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'C');
@@ -874,8 +873,7 @@ class C {
 
   Future<void>
       test_constructorInvocation_referenceFromAugmentation_named() async {
-    var filePath = '$testPackageLibPath/a.dart';
-    newFile(filePath, '''
+    var file = newFile('$testPackageLibPath/a.dart', '''
 library augment 'test.dart';
 
 augment class C {
@@ -892,7 +890,7 @@ class C {
   C.named();
 }
 ''');
-    var hover = await prepareHover('C.named();', inFile: filePath);
+    var hover = await prepareHover('C.named();', inFile: file.path);
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'C');
@@ -1416,8 +1414,7 @@ void f(C c) {
   }
 
   Future<void> test_methodInvocation_referenceFromAugmentation() async {
-    var filePath = '$testPackageLibPath/a.dart';
-    newFile(filePath, '''
+    var file = newFile('$testPackageLibPath/a.dart', '''
 library augment 'test.dart';
 
 augment class C {
@@ -1434,7 +1431,7 @@ class C {
   void n() {}
 }
 ''');
-    var hover = await prepareHover('n();', inFile: filePath);
+    var hover = await prepareHover('n();', inFile: file.path);
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'C');

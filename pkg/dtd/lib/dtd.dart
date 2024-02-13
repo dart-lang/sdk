@@ -7,3 +7,5 @@ library;
 
 export 'src/dart_tooling_daemon.dart';
 export 'src/dtd_connection.dart';
+export 'src/file_system/types.dart';
+export 'src/rpc_error_codes.dart';

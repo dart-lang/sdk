@@ -529,18 +529,22 @@ class _ClassVerifier {
           buffer.write(separator);
         }
         buffer.write(element.displayName);
-        reporter.reportErrorForElement(
-            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-            classElement,
-            [className, buffer.toString()]);
+        reporter.atElement(
+          classElement,
+          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+          arguments: [className, buffer.toString()],
+        );
         return true;
       } else {
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
         // RECURSIVE_INTERFACE_INHERITANCE_ON or
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
-        reporter.reportErrorForElement(
-            _getRecursiveErrorCode(element), classElement, [className]);
+        reporter.atElement(
+          classElement,
+          _getRecursiveErrorCode(element),
+          arguments: [className],
+        );
         return true;
       }
     }

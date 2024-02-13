@@ -109,10 +109,10 @@ class SharedTypeAnalyzerErrors
     required PromotableElement variable,
     required PromotableElement component,
   }) {
-    _errorReporter.reportErrorForElement(
-      CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
+    _errorReporter.atElement(
       component,
-      [variable.name],
+      CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
+      arguments: [variable.name],
     );
   }
 

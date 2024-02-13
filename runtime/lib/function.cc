@@ -72,35 +72,41 @@ static bool ClosureEqualsHelper(Zone* zone,
       return false;
     }
   }
-  if (func_a.IsImplicitClosureFunction() &&
-      func_b.IsImplicitClosureFunction()) {
+  if (func_a.IsImplicitClosureFunction()) {
+    ASSERT(func_b.IsImplicitClosureFunction());
     if (!func_a.is_static()) {
+      ASSERT(!func_b.is_static());
       // Check that the both receiver instances are the same.
-      const Context& context_a = Context::Handle(zone, receiver.context());
-      const Context& context_b = Context::Handle(zone, other_closure.context());
-      return context_a.At(0) == context_b.At(0);
-    }
-  } else if (func_a.IsGeneric()) {
-    // Additional constraints for closures of generic functions:
-    // (1) Different instantiations of the same generic closure
-    //     with the same type arguments should be equal.
-    //     This means that instantiated generic closures are not unique
-    //     and equality of instantiated generic closures should not be
-    //     based on identity.
-    // (2) Instantiations of non-equal generic closures should be non-equal.
-    //     This means that equality of non-instantiated generic closures
-    //     should not be based on identity too as it won't match equality
-    //     after instantiation.
-    if ((receiver.context() != other_closure.context()) ||
-        (receiver.instantiator_type_arguments() !=
-         other_closure.instantiator_type_arguments()) ||
-        (receiver.function_type_arguments() !=
-         other_closure.function_type_arguments())) {
-      return false;
+      const Instance& receiver_a =
+          Instance::Handle(zone, receiver.GetImplicitClosureReceiver());
+      const Instance& receiver_b =
+          Instance::Handle(zone, other_closure.GetImplicitClosureReceiver());
+      return receiver_a.ptr() == receiver_b.ptr();
     }
   } else {
-    // Closures of non-generic functions are unique.
-    return false;
+    ASSERT(!func_b.IsImplicitClosureFunction());
+    if (func_a.IsGeneric()) {
+      // Additional constraints for closures of generic functions:
+      // (1) Different instantiations of the same generic closure
+      //     with the same type arguments should be equal.
+      //     This means that instantiated generic closures are not unique
+      //     and equality of instantiated generic closures should not be
+      //     based on identity.
+      // (2) Instantiations of non-equal generic closures should be non-equal.
+      //     This means that equality of non-instantiated generic closures
+      //     should not be based on identity too as it won't match equality
+      //     after instantiation.
+      if ((receiver.GetContext() != other_closure.GetContext()) ||
+          (receiver.instantiator_type_arguments() !=
+           other_closure.instantiator_type_arguments()) ||
+          (receiver.function_type_arguments() !=
+           other_closure.function_type_arguments())) {
+        return false;
+      }
+    } else {
+      // Closures of non-generic functions are unique.
+      return false;
+    }
   }
   return true;
 }

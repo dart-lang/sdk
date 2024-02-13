@@ -66,6 +66,26 @@ class ErrorReporter {
   Source get source => _source;
 
   /// Report an error with the given [errorCode] and [arguments].
+  /// The [element] is used to compute the location of the error.
+  void atElement(
+    Element element,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    Object? data,
+  }) {
+    var nonSynthetic = element.nonSynthetic;
+    atOffset(
+      errorCode: errorCode,
+      offset: nonSynthetic.nameOffset,
+      length: nonSynthetic.nameLength,
+      arguments: arguments,
+      contextMessages: contextMessages,
+      data: data,
+    );
+  }
+
+  /// Report an error with the given [errorCode] and [arguments].
   /// The [node] is used to compute the location of the error.
   void atNode(
     AstNode node,
@@ -140,11 +160,15 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments]. The [element]
   /// is used to compute the location of the error.
+  @Deprecated('Use atElement() instead')
   void reportErrorForElement(ErrorCode errorCode, Element element,
       [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
-    var nonSynthetic = element.nonSynthetic;
-    reportErrorForOffset(errorCode, nonSynthetic.nameOffset,
-        nonSynthetic.nameLength, arguments, messages);
+    atElement(
+      element,
+      errorCode,
+      arguments: arguments,
+      contextMessages: messages,
+    );
   }
 
   /// Report a diagnostic with the given [code] and [arguments]. The

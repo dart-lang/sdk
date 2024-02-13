@@ -64,7 +64,6 @@ void main(List<String> args) async {
     },
   );
   final response = await client.barExtension();
-  final bar = Bar.fromDTDResponse(response);
 
-  print('Got a bar response: $bar');
+  print('Got a bar response: $response');
 }

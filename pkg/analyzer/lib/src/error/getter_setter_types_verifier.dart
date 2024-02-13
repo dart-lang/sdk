@@ -74,10 +74,10 @@ class GetterSetterTypesVerifier {
               setterName = '$setterClassName.$setterName';
             }
 
-            _errorReporter.reportErrorForElement(
-              CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
+            _errorReporter.atElement(
               errorElement,
-              [getterName, getterType, setterType, setterName],
+              CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
+              arguments: [getterName, getterType, setterType, setterName],
             );
           }
         }
@@ -102,10 +102,10 @@ class GetterSetterTypesVerifier {
       if (setterType != null) {
         if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
           var name = getter.name;
-          _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
+          _errorReporter.atElement(
             getter,
-            [name, getterType, setterType, name],
+            CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
+            arguments: [name, getterType, setterType, name],
           );
         }
       }

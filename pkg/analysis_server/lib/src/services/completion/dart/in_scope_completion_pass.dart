@@ -2519,7 +2519,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of a redirecting constructor invocation.
   void _forRedirectingConstructorInvocation(
       ConstructorDeclaration constructor) {
-    var constructorName = constructor.name?.lexeme;
     var container = constructor.parent;
     var thisType = switch (container) {
       ClassDeclaration() => container.declaredElement?.thisType,
@@ -2528,6 +2527,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _ => null,
     };
     if (thisType != null) {
+      var constructorName = constructor.name?.lexeme;
       declarationHelper(mustBeConstant: constructor.constKeyword != null)
           .addConstructorNamesForType(type: thisType, exclude: constructorName);
     }

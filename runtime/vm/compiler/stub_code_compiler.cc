@@ -1182,6 +1182,7 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 // Called for inline allocation of closure.
 // Input (preserved):
 //   AllocateClosureABI::kFunctionReg: closure function.
+//   AllocateClosureABI::kContextReg: closure context.
 // Output:
 //   AllocateClosureABI::kResultReg: new allocated Closure object.
 // Clobbered:
@@ -1191,9 +1192,6 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
       target::RoundedAllocationSize(target::Closure::InstanceSize());
   __ EnsureHasClassIdInDEBUG(kFunctionCid, AllocateClosureABI::kFunctionReg,
                              AllocateClosureABI::kScratchReg);
-  __ EnsureHasClassIdInDEBUG(kContextCid, AllocateClosureABI::kContextReg,
-                             AllocateClosureABI::kScratchReg,
-                             /*can_be_null=*/true);
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     __ Comment("Inline allocation of uninitialized closure");
