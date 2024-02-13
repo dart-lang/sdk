@@ -411,14 +411,6 @@ class VmTarget extends Target {
       importer.path.contains('test-lib') ||
       importer.path.contains('tests/ffi');
 
-  // TODO(sigmund,ahe): limit this to `dart-ext` libraries only (see
-  // https://github.com/dart-lang/sdk/issues/29763).
-  @override
-  bool enableNative(Uri uri) => true;
-
-  @override
-  bool get nativeExtensionExpectsString => true;
-
   @override
   Component configureComponent(Component component) {
     callSiteAnnotator.addRepositoryTo(component);

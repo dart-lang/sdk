@@ -139,8 +139,6 @@ class BodyBuilder extends StackListenerImpl
 
   final bool enableNative;
 
-  final bool stringExpectedAfterNative;
-
   // TODO(ahe): Consider renaming [uri] to 'partUri'.
   @override
   final Uri uri;
@@ -347,8 +345,6 @@ class BodyBuilder extends StackListenerImpl
         forest = const Forest(),
         enableNative = libraryBuilder.loader.target.backendTarget
             .enableNative(libraryBuilder.importUri),
-        stringExpectedAfterNative = libraryBuilder
-            .loader.target.backendTarget.nativeExtensionExpectsString,
         needsImplicitSuperInitializer =
             context.needsImplicitSuperInitializer(coreTypes),
         benchmarker = libraryBuilder.loader.target.benchmarker,
