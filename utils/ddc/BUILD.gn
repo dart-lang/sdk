@@ -13,6 +13,7 @@ sdk_outline_unsound_dill = "$root_out_dir/ddc_outline_unsound.dill"
 sdk_full_unsound_dill = "$root_out_dir/ddc_platform_unsound.dill"
 
 sdk_root = "../../sdk"
+pkg_root = "../../pkg"
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
@@ -135,6 +136,7 @@ group("ddc_stable_test_pkg") {
   deps = [
     ":async_helper_stable_js",
     ":async_helper_stable_unsound_js",
+    ":ddc_test_pkg_outline",
     ":expect_stable_js",
     ":expect_stable_unsound_js",
     ":js_stable_js",
@@ -149,12 +151,26 @@ group("ddc_canary_test_pkg") {
   deps = [
     ":async_helper_canary_js",
     ":async_helper_canary_unsound_js",
+    ":ddc_test_pkg_outline",
     ":expect_canary_js",
     ":expect_canary_unsound_js",
     ":js_canary_js",
     ":js_canary_unsound_js",
     ":meta_canary_js",
     ":meta_canary_unsound_js",
+  ]
+}
+
+group("ddc_test_pkg_outline") {
+  deps = [
+    ":async_helper_outline",
+    ":async_helper_outline_unsound",
+    ":expect_outline",
+    ":expect_outline_unsound",
+    ":js_outline",
+    ":js_outline_unsound",
+    ":meta_outline",
+    ":meta_outline_unsound",
   ]
 }
 
@@ -201,6 +217,7 @@ template("ddc_compile") {
     module = invoker.package
     out_dir = rebase_path("$js_gen_dir")
     sdk_path = rebase_path(sdk_outline)
+    pkg_root = rebase_path("$root_build_dir/../../pkg")
 
     deps = [
       ":ddc_files_stamp",
@@ -213,15 +230,22 @@ template("ddc_compile") {
     ]
 
     outputs = [
-      "$js_gen_dir/$module.dill",
-      "$js_gen_dir/$module.js",
+      "$js_gen_dir/amd/$module.js",
+      "$js_gen_dir/amd/$module.js.map",
+      "$js_gen_dir/ddc/$module.js",
+      "$js_gen_dir/ddc/$module.js.map",
     ]
 
     vm_args = [ "-Dsdk_hash=$sdk_hash" ]
 
     args = [
+      "--no-summarize",
+      "--multi-root-output-path=$pkg_root",
       "--dart-sdk-summary=$sdk_path",
-      "-o$out_dir/$module.js",
+      "--modules=amd",
+      "-o$out_dir/amd/$module.js",
+      "--modules=ddc",
+      "-o$out_dir/ddc/$module.js",
       "package:$module/$module.dart",
     ]
 
@@ -254,6 +278,74 @@ template("ddc_compile") {
   }
 }
 
+# Compiles a package to outline .dill file with the "dartdevc" target option.
+template("package_kernel_outline") {
+  assert(defined(invoker.package),
+         "Need 'package' in $target_name (the name of the package)")
+  assert(defined(invoker.sound_null_safety),
+         "Need 'sound_null_safety' in $target_name.")
+
+  module = invoker.package
+  output = "$target_gen_dir/${module}_outline"
+
+  if (invoker.sound_null_safety) {
+    platform_dep = ":ddc_platform"
+    sdk_outline = rebase_path(sdk_outline_dill)
+    output = "$output.dill"
+  } else {
+    platform_dep = ":ddc_platform_unsound"
+    sdk_outline = rebase_path(sdk_outline_unsound_dill)
+    output = "${output}_unsound.dill"
+  }
+
+  package_config =
+      rebase_path("$root_out_dir/../../.dart_tool/package_config.json")
+
+  prebuilt_dart_action(target_name) {
+    deps = [
+      "../bazel:kernel_worker_files_stamp",
+      platform_dep,
+    ]
+    script = "../bazel/kernel_worker.dart"
+    outputs = [ output ]
+    args = [
+      "--packages-file",
+      "file:///$package_config",
+      "--summary-only",
+      "--target",
+      "ddc",
+      "--dart-sdk-summary",
+      "file:///$sdk_outline",
+      "--source",
+      "package:$module/$module.dart",
+      "--output",
+      rebase_path(output),
+    ]
+    if (invoker.sound_null_safety) {
+      args += [ "--sound-null-safety" ]
+    } else {
+      args += [ "--no-sound-null-safety" ]
+    }
+    if (defined(invoker.extra_libraries)) {
+      foreach(lib, invoker.extra_libraries) {
+        args += [
+          "--source",
+          "package:$module/$lib.dart",
+        ]
+      }
+    }
+  }
+}
+
+package_kernel_outline("async_helper_outline") {
+  package = "async_helper"
+  sound_null_safety = true
+}
+package_kernel_outline("async_helper_outline_unsound") {
+  package = "async_helper"
+  sound_null_safety = false
+}
+
 ddc_compile("async_helper_stable_js") {
   package = "async_helper"
   canary = false
@@ -275,6 +367,18 @@ ddc_compile("async_helper_stable_unsound_js") {
 ddc_compile("async_helper_canary_unsound_js") {
   package = "async_helper"
   canary = true
+  sound_null_safety = false
+}
+
+package_kernel_outline("expect_outline") {
+  package = "expect"
+  extra_libraries = [ "minitest" ]
+  sound_null_safety = true
+}
+
+package_kernel_outline("expect_outline_unsound") {
+  package = "expect"
+  extra_libraries = [ "minitest" ]
   sound_null_safety = false
 }
 
@@ -306,6 +410,18 @@ ddc_compile("expect_canary_unsound_js") {
   sound_null_safety = false
 }
 
+package_kernel_outline("js_outline") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  sound_null_safety = true
+}
+
+package_kernel_outline("js_outline_unsound") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  sound_null_safety = false
+}
+
 ddc_compile("js_stable_js") {
   package = "js"
   extra_libraries = [ "js_util" ]
@@ -330,6 +446,16 @@ ddc_compile("js_canary_unsound_js") {
   package = "js"
   extra_libraries = [ "js_util" ]
   canary = true
+  sound_null_safety = false
+}
+
+package_kernel_outline("meta_outline") {
+  package = "meta"
+  sound_null_safety = true
+}
+
+package_kernel_outline("meta_outline_unsound") {
+  package = "meta"
   sound_null_safety = false
 }
 
