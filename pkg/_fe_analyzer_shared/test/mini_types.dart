@@ -884,7 +884,7 @@ class _TypeParser {
     // We currently accept the following grammar for types:
     //   type := unsuffixedType nullability suffix*
     //   unsuffixedType := identifier typeArgs?
-    //                   | `?`
+    //                   | `_`
     //                   | `(` type `)`
     //                   | `(` recordTypeFields `,` recordTypeNamedFields `)`
     //                   | `(` recordTypeFields `,`? `)`
@@ -910,7 +910,7 @@ class _TypeParser {
   }
 
   Type _parseUnsuffixedType() {
-    if (_currentToken == '?') {
+    if (_currentToken == '_') {
       _next();
       return const UnknownType();
     }
@@ -932,7 +932,7 @@ class _TypeParser {
     }
     var typeName = _currentToken;
     if (_identifierRegexp.matchAsPrefix(typeName) == null) {
-      _parseFailure('Expected an identifier, `?`, or `(`');
+      _parseFailure('Expected an identifier, `_`, or `(`');
     }
     _next();
     List<Type> typeArgs;

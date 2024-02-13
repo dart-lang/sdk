@@ -96,15 +96,30 @@ final tests = <IsolateTest>[
     // Calculate the time window of events.
     final timeOriginNanos = computeTimeOriginNanos(packets);
     final timeExtentNanos = computeTimeExtentNanos(packets, timeOriginNanos);
+    print(
+      'Requesting CPU samples within the filter window of '
+      'timeOriginNanos=$timeOriginNanos and timeExtentNanos=$timeExtentNanos',
+    );
     // Query for the samples within the time window.
     final filteredResult = await service.getPerfettoCpuSamples(
       isolateRef.id!,
       timeOriginMicros: timeOriginNanos ~/ 1000,
       timeExtentMicros: timeExtentNanos ~/ 1000,
     );
-    // Verify that we have the same number of [PerfSample]s.
     final filteredTrace =
         Trace.fromBuffer(base64Decode(filteredResult.samples!));
+    final filteredTraceTimeOriginNanos =
+        computeTimeOriginNanos(filteredTrace.packet);
+    final filteredTraceTimeExtentNanos = computeTimeExtentNanos(
+      filteredTrace.packet,
+      filteredTraceTimeOriginNanos,
+    );
+    print(
+      'The returned CPU samples span a time window of '
+      'timeOriginNanos=$filteredTraceTimeOriginNanos and '
+      'timeExtentNanos=$filteredTraceTimeExtentNanos',
+    );
+    // Verify that we have the same number of [PerfSample]s.
     expect(
       extractPerfSamplesFromTracePackets(filteredTrace.packet).length,
       extractPerfSamplesFromTracePackets(packets).length,

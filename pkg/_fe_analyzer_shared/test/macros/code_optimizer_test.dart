@@ -7,31 +7,125 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('Class |', () {
-    group('Method |', () {
-      group('Return type |', () {
-        group('Not shadowed |', () {
-          test('Last import, dart:core', () {
-            assertEdits(code: r'''
+  group('Function |', () {
+    test('From dart:core', () {
+      assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+void foo() {
+  prefix0.print(42);
+}
+''', expected: r'''
+RemoveImportPrefixDeclarationEdit
+  18 +11 | as prefix0|
+RemoveImportPrefixReferenceEdit
+  47 +8 |prefix0.|
+----------------
+import 'dart:core';
+
+void foo() {
+  print(42);
+}
+''');
+    });
+
+    test('Shadowed by local variable', () {
+      assertEditsNoChanges(code: r'''
+import 'dart:core' as prefix0;
+
+void foo() {
+  prefix0.print(42);
+  int print;
+}
+''');
+    });
+
+    test('Shadowed by unqualified identifier', () {
+      assertEditsNoChanges(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  void foo() {
+    prefix0.print(42);
+    print(); // could be from super
+  }
+}
+''');
+    });
+  });
+
+  group('Variable |', () {
+    test('From dart:math', () {
+      assertEdits(code: r'''
+import 'dart:math' as prefix0;
+
+void foo() {
+  prefix0.pi;
+}
+''', expected: r'''
+RemoveImportPrefixDeclarationEdit
+  18 +11 | as prefix0|
+RemoveImportPrefixReferenceEdit
+  47 +8 |prefix0.|
+----------------
+import 'dart:math';
+
+void foo() {
+  pi;
+}
+''');
+    });
+
+    test('Shadowed by local variable', () {
+      assertEditsNoChanges(code: r'''
+import 'dart:math' as prefix0;
+
+void foo() {
+  prefix0.pi;
+  int pi;
+}
+''');
+    });
+
+    test('Shadowed by unqualified identifier', () {
+      assertEditsNoChanges(code: r'''
+import 'dart:math' as prefix0;
+
+class A {
+  void foo() {
+    prefix0.pi;
+    pi; // could be from super
+  }
+}
+''');
+    });
+  });
+
+  group('NamedType |', () {
+    group('Not shadowed |', () {
+      test('Last import, dart:core', () {
+        assertEdits(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
   prefix0.String foo() {}
 }
 ''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
+RemoveImportPrefixDeclarationEdit
+  18 +11 | as prefix0|
 RemoveImportPrefixReferenceEdit
   44 +8 |prefix0.|
 ----------------
+import 'dart:core';
+
 class A {
   String foo() {}
 }
 ''');
-          });
+      });
 
-          test('Last import, dart:math', () {
-            assertEdits(code: r'''
+      test('Last import, dart:math', () {
+        assertEdits(code: r'''
 import 'dart:math' as prefix0;
 
 class A {
@@ -49,249 +143,49 @@ class A {
   Random foo() {}
 }
 ''');
-          });
+      });
 
-          test('First import, dart:math', () {
-            assertEdits(code: r'''
+      test('First import, dart:math', () {
+        assertEdits(code: r'''
 import 'dart:core' as prefix0;
 import 'dart:math' as prefix1;
 
 class A {
-  prefix0.int foo() {}
+  prefix0.int foo(prefix1.Random a) {}
 }
 ''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +31 |import 'dart:core' as prefix0;\n|
+RemoveImportPrefixDeclarationEdit
+  18 +11 | as prefix0|
+RemoveImportPrefixDeclarationEdit
+  49 +11 | as prefix1|
 RemoveImportPrefixReferenceEdit
   75 +8 |prefix0.|
-----------------
-import 'dart:math' as prefix1;
-
-class A {
-  int foo() {}
-}
-''');
-          });
-
-          test('Other class type parameter', () {
-            assertEdits(code: r'''
-import 'dart:core' as prefix0;
-
-class A {
-  prefix0.String foo() {}
-}
-
-class B<String> {}
-''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
 RemoveImportPrefixReferenceEdit
-  44 +8 |prefix0.|
+  91 +8 |prefix1.|
 ----------------
-class A {
-  String foo() {}
-}
-
-class B<String> {}
-''');
-          });
-
-          test('Other class method type parameter', () {
-            assertEdits(code: r'''
-import 'dart:core' as prefix0;
+import 'dart:core';
+import 'dart:math';
 
 class A {
-  prefix0.String foo() {}
-}
-
-class B {
-  void bar<String>() {}
-}
-''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
-RemoveImportPrefixReferenceEdit
-  44 +8 |prefix0.|
-----------------
-class A {
-  String foo() {}
-}
-
-class B {
-  void bar<String>() {}
+  int foo(Random a) {}
 }
 ''');
-          });
+      });
+    });
 
-          test('Other method formal parameter', () {
-            assertEdits(code: r'''
-import 'dart:core' as prefix0;
-
-class A {
-  prefix0.String foo() {}
-  void bar(String) {}
-}
-''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
-RemoveImportPrefixReferenceEdit
-  44 +8 |prefix0.|
-----------------
-class A {
-  String foo() {}
-  void bar(String) {}
-}
-''');
-          });
-
-          test('Other method type parameter', () {
-            assertEdits(code: r'''
-import 'dart:core' as prefix0;
-
-class A {
-  prefix0.String foo() {}
-  void bar<String>() {}
-}
-''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
-RemoveImportPrefixReferenceEdit
-  44 +8 |prefix0.|
-----------------
-class A {
-  String foo() {}
-  void bar<String>() {}
-}
-''');
-          });
-
-          test('Sibling constructor', () {
-            assertEdits(code: r'''
-import 'dart:core' as prefix0;
-
-class A {
-  A.String();
-  prefix0.String foo() {}
-}
-''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
-RemoveImportPrefixReferenceEdit
-  58 +8 |prefix0.|
-----------------
-class A {
-  A.String();
-  String foo() {}
-}
-''');
-          });
-
-          test('Enum, type parameter', () {
-            assertEdits(code: r'''
-import 'dart:core' as prefix0;
-
-class A {
-  prefix0.String foo() {}
-}
-
-enum X<String> { v }
-''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
-RemoveImportPrefixReferenceEdit
-  44 +8 |prefix0.|
-----------------
-class A {
-  String foo() {}
-}
-
-enum X<String> { v }
-''');
-          });
-
-          test('Extension, type parameter', () {
-            assertEdits(code: r'''
-import 'dart:core' as prefix0;
-
-class A {
-  prefix0.String foo() {}
-}
-
-extension X<String> on A {}
-''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
-RemoveImportPrefixReferenceEdit
-  44 +8 |prefix0.|
-----------------
-class A {
-  String foo() {}
-}
-
-extension X<String> on A {}
-''');
-          });
-
-          test('Extension type, type parameter', () {
-            assertEdits(code: r'''
-import 'dart:core' as prefix0;
-
-class A {
-  prefix0.String foo() {}
-}
-
-extension type X<String>(A it) {}
-''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
-RemoveImportPrefixReferenceEdit
-  44 +8 |prefix0.|
-----------------
-class A {
-  String foo() {}
-}
-
-extension type X<String>(A it) {}
-''');
-          });
-
-          test('Typedef, type parameter', () {
-            assertEdits(code: r'''
-import 'dart:core' as prefix0;
-
-class A {
-  prefix0.String foo() {}
-}
-
-typedef F<String> = void Function();
-''', expected: r'''
-RemoveDartCoreImportEdit
-  0 +32 |import 'dart:core' as prefix0;\n\n|
-RemoveImportPrefixReferenceEdit
-  44 +8 |prefix0.|
-----------------
-class A {
-  String foo() {}
-}
-
-typedef F<String> = void Function();
-''');
-          });
-        });
-
-        group('Shadowed | ', () {
-          test('By library declaration name', () {
-            assertEditsNoChanges(code: r'''
+    group('Shadowed | ', () {
+      test('By library declaration name', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
   prefix0.String foo() {}
 }
 ''', libraryDeclarationNames: {'String'});
-          });
+      });
 
-          test('By local class, before', () {
-            assertEditsNoChanges(code: r'''
+      test('By local class, before', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class String {}
@@ -300,10 +194,10 @@ class A {
   prefix0.String foo() {}
 }
 ''');
-          });
+      });
 
-          test('By local class, after', () {
-            assertEditsNoChanges(code: r'''
+      test('By local class, after', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -312,10 +206,10 @@ class A {
 
 class String {}
 ''');
-          });
+      });
 
-          test('By local enum', () {
-            assertEditsNoChanges(code: r'''
+      test('By local enum', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -324,10 +218,10 @@ class A {
 
 enum String { v }
 ''');
-          });
+      });
 
-          test('By local extension', () {
-            assertEditsNoChanges(code: r'''
+      test('By local extension', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -336,10 +230,10 @@ class A {
 
 extension String on A {}
 ''');
-          });
+      });
 
-          test('By local extension type', () {
-            assertEditsNoChanges(code: r'''
+      test('By local extension type', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -348,10 +242,10 @@ class A {
 
 extension type String(A it) {}
 ''');
-          });
+      });
 
-          test('By local function', () {
-            assertEditsNoChanges(code: r'''
+      test('By local function', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -360,10 +254,10 @@ class A {
 
 void String() {}
 ''');
-          });
+      });
 
-          test('By local mixin', () {
-            assertEditsNoChanges(code: r'''
+      test('By local mixin', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -372,10 +266,10 @@ class A {
 
 mixin String {}
 ''');
-          });
+      });
 
-          test('By local top-level variable, no initializer', () {
-            assertEditsNoChanges(code: r'''
+      test('By local top-level variable, no initializer', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -384,10 +278,10 @@ class A {
 
 int? String;
 ''');
-          });
+      });
 
-          test('By local top-level variable, with initializer', () {
-            assertEditsNoChanges(code: r'''
+      test('By local top-level variable, with initializer', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -396,10 +290,10 @@ class A {
 
 int String = 0;
 ''');
-          });
+      });
 
-          test('By local typedef', () {
-            assertEditsNoChanges(code: r'''
+      test('By local typedef', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -408,40 +302,40 @@ class A {
 
 typedef String = void Function();
 ''');
-          });
+      });
 
-          test('By class type parameter', () {
-            assertEditsNoChanges(code: r'''
+      test('By class type parameter', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A<String> {
   prefix0.String foo() {}
 }
 ''');
-          });
+      });
 
-          test('By method formal parameter', () {
-            assertEditsNoChanges(code: r'''
+      test('By method formal parameter', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
   prefix0.String foo<String>(String) {}
 }
 ''');
-          });
+      });
 
-          test('By method type parameter', () {
-            assertEditsNoChanges(code: r'''
+      test('By method type parameter', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
   prefix0.String foo<String>() {}
 }
 ''');
-          });
+      });
 
-          test('By sibling getter', () {
-            assertEditsNoChanges(code: r'''
+      test('By sibling getter', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -449,10 +343,10 @@ class A {
   int get String {}
 }
 ''');
-          });
+      });
 
-          test('By sibling setter', () {
-            assertEditsNoChanges(code: r'''
+      test('By sibling setter', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -460,10 +354,10 @@ class A {
   set String(_) {}
 }
 ''');
-          });
+      });
 
-          test('By sibling method', () {
-            assertEditsNoChanges(code: r'''
+      test('By sibling method', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -471,15 +365,15 @@ class A {
   void String() {}
 }
 ''');
-          });
+      });
 
-          test('Other class method', () {
-            // This rarely causes actual shadowing, but still might, if
-            // we invoke `String()` from a subclass `C` of `B`. If we import
-            // `dart:core` without an import prefix, inside `C` the meaning
-            // of `String()` will change to invoking the `dart:core@String`
-            // constructor.
-            assertEditsNoChanges(code: r'''
+      test('Other class method', () {
+        // This rarely causes actual shadowing, but still might, if
+        // we invoke `String()` from a subclass `C` of `B`. If we import
+        // `dart:core` without an import prefix, inside `C` the meaning
+        // of `String()` will change to invoking the `dart:core@String`
+        // constructor.
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -490,10 +384,10 @@ class B {
   void String() {}
 }
 ''');
-          });
+      });
 
-          test('By sibling field, no initializer', () {
-            assertEditsNoChanges(code: r'''
+      test('By sibling field, no initializer', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -501,10 +395,10 @@ class A {
   int String;
 }
 ''');
-          });
+      });
 
-          test('By sibling field, with initializer', () {
-            assertEditsNoChanges(code: r'''
+      test('By sibling field, with initializer', () {
+        assertEditsNoChanges(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -512,10 +406,10 @@ class A {
   int String = 0;
 }
 ''');
-          });
+      });
 
-          test('Partial 1/3', () {
-            assertEdits(code: r'''
+      test('Partial 1/3', () {
+        assertEdits(code: r'''
 import 'dart:core' as prefix0;
 
 class A {
@@ -544,10 +438,276 @@ class A {
 
 class String {}
 ''');
-          });
-        });
+      });
+
+      test('Other class type parameter', () {
+        assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+class B<String> {}
+''', expected: r'''
+----------------
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+class B<String> {}
+''');
+      });
+
+      test('Other class method type parameter', () {
+        assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+class B {
+  void bar<String>() {}
+}
+''', expected: r'''
+----------------
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+class B {
+  void bar<String>() {}
+}
+''');
+      });
+
+      test('Other method formal parameter', () {
+        assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+  void bar(String) {}
+}
+''', expected: r'''
+----------------
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+  void bar(String) {}
+}
+''');
+      });
+
+      test('Other method type parameter', () {
+        assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+  void bar<String>() {}
+}
+''', expected: r'''
+----------------
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+  void bar<String>() {}
+}
+''');
+      });
+
+      test('Sibling constructor', () {
+        assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  A.String();
+  prefix0.String foo() {}
+}
+''', expected: r'''
+----------------
+import 'dart:core' as prefix0;
+
+class A {
+  A.String();
+  prefix0.String foo() {}
+}
+''');
+      });
+
+      test('Enum, type parameter', () {
+        assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+enum X<String> { v }
+''', expected: r'''
+----------------
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+enum X<String> { v }
+''');
+      });
+
+      test('Extension, type parameter', () {
+        assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+extension X<String> on A {}
+''', expected: r'''
+----------------
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+extension X<String> on A {}
+''');
+      });
+
+      test('Extension type, type parameter', () {
+        assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+extension type X<String>(A it) {}
+''', expected: r'''
+----------------
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+extension type X<String>(A it) {}
+''');
+      });
+
+      test('Typedef, type parameter', () {
+        assertEdits(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+typedef F<String> = void Function();
+''', expected: r'''
+----------------
+import 'dart:core' as prefix0;
+
+class A {
+  prefix0.String foo() {}
+}
+
+typedef F<String> = void Function();
+''');
+      });
+
+      test('By class field', () {
+        assertEditsNoChanges(code: r'''
+import 'dart:core' as prefix0;
+
+class A {
+  int String;
+  prefix0.String foo() {}
+}
+''');
+      });
+
+      test('By local variable', () {
+        assertEditsNoChanges(code: r'''
+import 'dart:core' as prefix0;
+
+prefix0.String foo() {
+  int String;
+}
+''');
+      });
+
+      test('By formal parameter', () {
+        assertEditsNoChanges(code: r'''
+import 'dart:core' as prefix0;
+
+prefix0.String foo(int String) {
+}
+''');
       });
     });
+  });
+
+  test('JsonSerializable', () {
+    assertEdits(
+        importedNames: {
+          'package:json_serializable/json_serializable.dart': {
+            'FromJson',
+            'ToJson'
+          },
+        },
+        withEdits: false,
+        code: r'''
+library augment 'test.dart';
+
+import 'package:json_serializable/json_serializable.dart' as prefix0;
+import 'dart:core' as prefix1;
+
+augment class User {
+  @prefix0.FromJson()
+  external User.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json);
+  @prefix0.ToJson()
+  external prefix1.Map<prefix1.String, prefix1.Object?> toJson();
+  augment User.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json, )  :
+    this.age = json["age"] as prefix1.int,
+    this.name = json["name"] as prefix1.String{}
+  augment prefix1.Map<prefix1.String, prefix1.Object?> toJson()  => {
+    'age': this.age,
+    'name': this.name,
+  };
+}
+''',
+        expected: r'''
+library augment 'test.dart';
+
+import 'package:json_serializable/json_serializable.dart';
+import 'dart:core';
+
+augment class User {
+  @FromJson()
+  external User.fromJson(Map<String, Object?> json);
+  @ToJson()
+  external Map<String, Object?> toJson();
+  augment User.fromJson(Map<String, Object?> json, )  :
+    this.age = json["age"] as int,
+    this.name = json["name"] as String{}
+  augment Map<String, Object?> toJson()  => {
+    'age': this.age,
+    'name': this.name,
+  };
+}
+''');
   });
 
   test('Update expectations', () {
@@ -557,8 +717,8 @@ class String {}
 }
 
 const _dartImports = {
-  'dart:core': {'bool', 'double', 'int', 'String'},
-  'dart:math': {'Random'},
+  'dart:core': {'bool', 'double', 'int', 'Map', 'Object', 'String', 'print'},
+  'dart:math': {'Random', 'pi'},
 };
 
 void assertEdits({
@@ -566,6 +726,7 @@ void assertEdits({
   Set<String> libraryDeclarationNames = const {},
   required String code,
   required String expected,
+  bool withEdits = true,
   bool throwIfHasErrors = true,
 }) {
   var optimizer = _CodeOptimizer(
@@ -588,34 +749,36 @@ void assertEdits({
 
   var buffer = StringBuffer();
 
-  void writeRemoveEdit(RemoveEdit edit) {
-    buffer.write('  ${edit.offset} +${edit.length}');
-    var removed = code.substring(edit.offset, edit.offset + edit.length);
-    buffer.writeln(' |${escape(removed)}|');
-  }
-
-  for (var edit in edits) {
-    switch (edit) {
-      case RemoveDartCoreImportEdit():
-        buffer.writeln('RemoveDartCoreImportEdit');
-        writeRemoveEdit(edit);
-      case RemoveImportPrefixDeclarationEdit():
-        buffer.writeln('RemoveImportPrefixDeclarationEdit');
-        writeRemoveEdit(edit);
-      case RemoveImportPrefixReferenceEdit():
-        buffer.writeln('RemoveImportPrefixReferenceEdit');
-        writeRemoveEdit(edit);
-      case ImportWithoutPrefixEdit():
-        buffer.writeln('ImportWithoutPrefixEdit');
-        buffer.write('  ${edit.offset}');
-        buffer.writeln(' |${escape(edit.replacement)}|');
+  if (withEdits) {
+    void writeRemoveEdit(RemoveEdit edit) {
+      buffer.write('  ${edit.offset} +${edit.length}');
+      var removed = code.substring(edit.offset, edit.offset + edit.length);
+      buffer.writeln(' |${escape(removed)}|');
     }
+
+    for (var edit in edits) {
+      switch (edit) {
+        case RemoveDartCoreImportEdit():
+          buffer.writeln('RemoveDartCoreImportEdit');
+          writeRemoveEdit(edit);
+        case RemoveImportPrefixDeclarationEdit():
+          buffer.writeln('RemoveImportPrefixDeclarationEdit');
+          writeRemoveEdit(edit);
+        case RemoveImportPrefixReferenceEdit():
+          buffer.writeln('RemoveImportPrefixReferenceEdit');
+          writeRemoveEdit(edit);
+        case ImportWithoutPrefixEdit():
+          buffer.writeln('ImportWithoutPrefixEdit');
+          buffer.write('  ${edit.offset}');
+          buffer.writeln(' |${escape(edit.replacement)}|');
+      }
+    }
+    buffer.writeln('-' * 16);
   }
 
   // Apply in reverse order.
   edits = edits.reversed.toList();
   var optimized = Edit.applyList(edits, code);
-  buffer.writeln('-' * 16);
   buffer.write(optimized);
 
   var actual = buffer.toString();

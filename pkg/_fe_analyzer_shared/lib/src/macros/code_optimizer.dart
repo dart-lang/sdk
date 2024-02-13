@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 
 abstract class CodeOptimizer {
   /// Returns names exported from the library [uriStr].
@@ -37,14 +38,16 @@ abstract class CodeOptimizer {
     _Listener listener = new _Listener(
       getImportedNames: getImportedNames,
     );
-    listener.libraryScope.globalNames.addAll(libraryDeclarationNames);
 
-    Parser parser = new Parser(
-      listener,
-      allowPatterns: true,
-    );
-    parser.parseUnit(result.tokens);
-    listener.verifyEmptyStack();
+    try {
+      new Parser(
+        listener,
+        allowPatterns: true,
+      ).parseUnit(result.tokens);
+    } on _StateError {
+      // Recover by doing nothing.
+      return [];
+    }
 
     if (listener.hasErrors) {
       if (throwIfHasErrors) {
@@ -53,78 +56,56 @@ abstract class CodeOptimizer {
       return [];
     }
 
-    void walkScopes(_Scope scope) {
-      for (_PrefixedName prefixedName in scope.prefixedNames) {
-        String prefix = prefixedName.prefix.token.lexeme;
-        String name = prefixedName.name.token.lexeme;
-        _NameStatus resolution = scope.resolve(name);
-        if (resolution is _NameStatusImported) {
-          if (resolution.imports.length == 1) {
-            int prefixOffset = prefixedName.prefix.token.offset;
-            edits.add(
-              new RemoveImportPrefixReferenceEdit(
-                offset: prefixOffset,
-                length: prefixedName.name.token.offset - prefixOffset,
-              ),
-            );
-            resolution.imports.single.namesWithoutPrefix.add(name);
-          } else {
-            for (_Import import in resolution.imports) {
-              import.namesWithPrefix.add(name);
-            }
-          }
-        } else {
-          for (_Import import in listener.importScope.imports) {
-            if (import.prefix == prefix) {
-              import.namesWithPrefix.add(name);
-            }
-          }
-        }
-      }
-      for (_Scope child in scope.children) {
-        walkScopes(child);
-      }
-    }
-
-    walkScopes(listener.importScope);
-
-    Token? firstDeclarationToken = listener.libraryScope.firstDeclarationToken;
-    if (firstDeclarationToken == null) {
-      return [];
-    }
-
     List<_Import> imports = listener.importScope.imports;
-    for (int i = 0; i < imports.length; i++) {
-      _Import import = imports[i];
+    for (_Import import in imports) {
+      for (_PrefixedName prefixedName in import.prefixedNames) {
+        String name = prefixedName.name.lexeme;
 
-      // This should not happen in production.
-      // We use such "unused" import for tests.
-      if (import.namesWithoutPrefix.isEmpty) {
-        continue;
-      }
-
-      if (import.namesWithPrefix.isEmpty) {
-        // If no names require the prefix, remove it from the directive.
-        Token? toToken = i < imports.length - 1
-            ? imports[i + 1].importKeyword
-            : firstDeclarationToken;
-        if (import.uriStr == 'dart:core') {
-          int fromOffset = import.importKeyword.offset;
-          edits.add(
-            new RemoveDartCoreImportEdit(
-              offset: fromOffset,
-              length: toToken.offset - fromOffset,
-            ),
-          );
-        } else {
-          int fromOffset = import.uriToken.end;
-          edits.add(
-            new RemoveImportPrefixDeclarationEdit(
-              offset: import.uriToken.end,
-              length: import.semicolon.offset - fromOffset,
-            ),
-          );
+        // If there is more than one import that exports the name.
+        if (!listener.importScope.hasUniqueImport(name)) {
+          import.namesWithPrefix.add(name);
+          continue;
         }
+
+        // Might be shadowed by a library declaration.
+        if (libraryDeclarationNames.contains(name)) {
+          import.namesWithPrefix.add(name);
+          continue;
+        }
+
+        // Might be shadowed by a local declaration.
+        if (listener.declaredNames.contains(name)) {
+          import.namesWithPrefix.add(name);
+          continue;
+        }
+
+        // Might shadow super declaration.
+        if (listener.unqualifiedNames.contains(name)) {
+          import.namesWithPrefix.add(name);
+          continue;
+        }
+
+        import.namesWithoutPrefix.add(name);
+
+        int prefixOffset = prefixedName.prefix.offset;
+        edits.add(
+          new RemoveImportPrefixReferenceEdit(
+            offset: prefixOffset,
+            length: prefixedName.name.offset - prefixOffset,
+          ),
+        );
+      }
+    }
+
+    for (_Import import in imports) {
+      if (import.namesWithPrefix.isEmpty) {
+        int uriEnd = import.uriToken.end;
+        edits.add(
+          new RemoveImportPrefixDeclarationEdit(
+            offset: uriEnd,
+            length: import.semicolon.offset - uriEnd,
+          ),
+        );
       } else if (import.namesWithoutPrefix.isNotEmpty) {
         // If some names require the prefix, and some not, add a new import
         // without a prefix, but hide those which require prefix.
@@ -208,28 +189,15 @@ final class RemoveImportPrefixReferenceEdit extends RemoveEdit {
   });
 }
 
-class _ExtensionNoName {
-  const _ExtensionNoName();
-}
-
-class _Identifier {
-  final Token token;
-
-  _Identifier(this.token);
-
-  @override
-  String toString() {
-    return token.lexeme;
-  }
-}
-
 class _Import {
   final Token importKeyword;
   final Token uriToken;
   final String uriStr;
-  final String prefix;
+  final _ImportPrefix prefix;
   final Set<String> names;
   final Token semicolon;
+
+  final List<_PrefixedName> prefixedNames = [];
 
   /// Names that are used with [prefix], but can be used without it.
   final Set<String> namesWithoutPrefix = {};
@@ -248,57 +216,34 @@ class _Import {
 }
 
 class _ImportPrefix {
-  final _Identifier name;
+  final Token name;
 
   _ImportPrefix({
     required this.name,
   });
 }
 
-class _ImportScope extends _Scope {
+class _ImportScope {
   final List<_Import> imports = [];
 
   _ImportScope();
 
-  @override
-  _NameStatus resolve(String name) {
-    return new _NameStatusImported(
-      imports: imports.where((import) {
-        return import.names.contains(name);
-      }).toList(),
-    );
-  }
-}
-
-class _InterpolationString {
-  final List<Object?> components;
-
-  _InterpolationString({
-    required this.components,
-  });
-
-  @override
-  String toString() {
-    return components.join('');
-  }
-}
-
-class _LibraryScope extends _NestedScope {
-  final Set<String> globalNames = {};
-
-  Token? firstDeclarationToken;
-
-  _LibraryScope({
-    required super.parent,
-  });
-
-  @override
-  _NameStatus resolve(String name) {
-    if (globalNames.contains(name)) {
-      return const _NameStatusShadowed();
+  void addPrefixedName(_PrefixedName prefixed) {
+    for (_Import import in imports) {
+      if (import.prefix.name.lexeme == prefixed.prefix.lexeme) {
+        import.prefixedNames.add(prefixed);
+      }
     }
+  }
 
-    return super.resolve(name);
+  bool hasUniqueImport(String name) {
+    int importCount = 0;
+    for (_Import import in imports) {
+      if (import.names.contains(name)) {
+        importCount++;
+      }
+    }
+    return importCount == 1;
   }
 }
 
@@ -308,8 +253,13 @@ class _Listener extends Listener {
   bool hasErrors = false;
 
   _ImportScope importScope = new _ImportScope();
-  late _LibraryScope libraryScope = new _LibraryScope(parent: importScope);
-  late _NestedScope scope = libraryScope;
+
+  /// The names of local declarations.
+  final Set<String> declaredNames = {};
+
+  /// The names that are referenced without a preceding `<something>.`.
+  /// These can be references to super declarations.
+  final Set<String> unqualifiedNames = {};
 
   final List<Object?> stack = [];
 
@@ -318,168 +268,51 @@ class _Listener extends Listener {
   });
 
   @override
-  void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
-    // TODO(scheglov): Not quite, ignores metadata and comments.
-    libraryScope.firstDeclarationToken ??= token;
-    _scopeEnter();
-  }
-
-  @override
-  void beginEnum(Token enumKeyword) {
-    _scopeEnter();
-  }
-
-  @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
     if (name != null) {
-      stack.add(
-        new _Identifier(name),
-      );
-    } else {
-      stack.add(
-        const _ExtensionNoName(),
-      );
+      declaredNames.add(name.lexeme);
     }
   }
 
   @override
-  void beginExtensionDeclarationPrelude(Token extensionKeyword) {
-    _scopeEnter();
-  }
-
-  @override
   void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
-    stack.add(
-      new _Identifier(name),
-    );
+    declaredNames.add(name.lexeme);
   }
 
   @override
-  void beginLiteralString(Token token) {
-    push(
-      new _StringLiteral(
-        token: token,
+  void endBinaryExpression(Token token) {
+    Token? prefixToken = token.previous;
+    if (prefixToken == null || prefixToken.type != TokenType.IDENTIFIER) {
+      return;
+    }
+
+    Token? nameToken = token.next;
+    if (nameToken == null || nameToken.type != TokenType.IDENTIFIER) {
+      return;
+    }
+
+    importScope.addPrefixedName(
+      new _PrefixedName(
+        prefix: prefixToken,
+        name: nameToken,
       ),
     );
   }
 
   @override
-  void beginMethod(
-    DeclarationKind declarationKind,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? varFinalOrConst,
-    Token? getOrSet,
-    Token name,
-  ) {
-    _scopeEnter();
-  }
-
-  @override
-  void beginTypedef(Token token) {
-    _scopeEnter();
-  }
-
-  @override
-  void endArguments(int count, Token beginToken, Token endToken) {
-    _popList(count);
-  }
-
-  @override
-  void endClassConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    pop(); // name
-  }
-
-  @override
-  void endClassDeclaration(Token beginToken, Token endToken) {
-    _popNameGlobal();
-    _scopeExit();
-  }
-
-  @override
-  void endClassMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _popNameGlobal();
-    _scopeExit();
-  }
-
-  @override
-  void endEnum(
-    Token beginToken,
-    Token enumKeyword,
-    Token leftBrace,
-    int memberCount,
-    Token endToken,
-  ) {
-    _popNameGlobal();
-    _scopeExit();
-  }
-
-  @override
-  void endExtensionDeclaration(
-    Token beginToken,
-    Token extensionKeyword,
-    Token onKeyword,
-    Token endToken,
-  ) {
-    _popNameGlobal();
-    _scopeExit();
-  }
-
-  @override
-  void endExtensionTypeDeclaration(
-    Token beginToken,
-    Token extensionKeyword,
-    Token typeKeyword,
-    Token endToken,
-  ) {
-    _popNameGlobal();
-    _scopeExit();
-  }
-
-  @override
-  void endFieldInitializer(Token assignment, Token token) {
-    _popNameGlobal();
-  }
-
-  @override
-  void endFormalParameter(
-    Token? thisKeyword,
-    Token? superKeyword,
-    Token? periodAfterThisOrSuper,
-    Token nameToken,
-    Token? initializerStart,
-    Token? initializerEnd,
-    FormalParameterKind kind,
-    MemberKind memberKind,
-  ) {
-    _popNameLocal();
-  }
-
-  @override
   void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
-    _ImportPrefix prefix = pop() as _ImportPrefix;
-    _StringLiteral uri = pop() as _StringLiteral;
+    _ImportPrefix prefix = popOrThrow();
 
-    Token uriToken = uri.token;
+    Token? uriToken = importKeyword.next;
+    if (uriToken == null) {
+      throw new _StateError();
+    }
+
     String uriStr = uriToken.lexeme;
     if (uriStr.startsWith('\'') && uriStr.endsWith('\'')) {
       uriStr = uriStr.substring(1, uriStr.length - 1);
     } else {
-      throw new UnimplementedError();
+      throw new _StateError();
     }
 
     importScope.imports.add(
@@ -487,7 +320,7 @@ class _Listener extends Listener {
         importKeyword: importKeyword,
         uriToken: uriToken,
         uriStr: uriStr,
-        prefix: prefix.name.token.lexeme,
+        prefix: prefix,
         semicolon: semicolon!,
         names: getImportedNames(uriStr),
       ),
@@ -495,83 +328,47 @@ class _Listener extends Listener {
   }
 
   @override
-  void endLiteralString(int interpolationCount, Token endToken) {
-    if (interpolationCount == 0) {
+  void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
+    if (beginToken.type != TokenType.AT) {
+      throw new _StateError();
+    }
+
+    Token? prefixToken = beginToken.next;
+    if (prefixToken == null || prefixToken.type != TokenType.IDENTIFIER) {
+      throw new _StateError();
+    }
+
+    Token? periodToken = prefixToken.next;
+    if (periodToken == null || periodToken.type != TokenType.PERIOD) {
       return;
     }
 
-    push(
-      new _InterpolationString(
-        components: _popList(1 + interpolationCount + 1),
+    Token? nameToken = periodToken.next;
+    if (nameToken == null || nameToken.type != TokenType.IDENTIFIER) {
+      throw new _StateError();
+    }
+
+    importScope.addPrefixedName(
+      new _PrefixedName(
+        prefix: prefixToken,
+        name: nameToken,
       ),
     );
-  }
-
-  @override
-  void endMixinDeclaration(Token beginToken, Token endToken) {
-    _popNameGlobal();
-    _scopeExit();
-  }
-
-  @override
-  void endTopLevelMethod(Token beginToken, Token? getOrSet, Token endToken) {
-    _popNameGlobal();
-  }
-
-  @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
-    _popNameGlobal();
-    _scopeExit();
-  }
-
-  @override
-  void endTypeVariable(
-      Token token, int index, Token? extendsOrSuper, Token? variance) {
-    _popNameLocal();
-  }
-
-  @override
-  void handleEnumElements(Token elementsEndToken, int elementsCount) {
-    _popList(elementsCount);
   }
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
-    push(
-      new _Identifier(token),
-    );
-  }
-
-  @override
-  void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
-    if (asKeyword == null) {
-      throw new StateError('All macro imports must be prefixed');
+    if (context.inDeclaration) {
+      declaredNames.add(token.lexeme);
     }
 
-    _Identifier name = pop() as _Identifier;
-
-    push(
-      new _ImportPrefix(
-        name: name,
-      ),
-    );
-  }
-
-  @override
-  void handleNoFieldInitializer(Token token) {
-    _popNameGlobal();
-  }
-
-  @override
-  void handleQualified(Token period) {
-    _Identifier name = pop() as _Identifier;
-    _Identifier prefix = pop() as _Identifier;
-    push(
-      new _PrefixedName(
-        prefix: prefix,
-        name: name,
-      ),
-    );
+    if (context == IdentifierContext.importPrefixDeclaration) {
+      push(
+        new _ImportPrefix(
+          name: token,
+        ),
+      );
+    }
   }
 
   @override
@@ -584,126 +381,62 @@ class _Listener extends Listener {
   }
 
   @override
-  void handleStringPart(Token token) {
-    push(
-      new _StringLiteral(
-        token: token,
-      ),
-    );
+  void handleSend(Token beginToken, Token endToken) {
+    if (beginToken.type != TokenType.IDENTIFIER) {
+      return;
+    }
+
+    // If not qualified with another identifier, or expression, then it could
+    // be an invocation of a method from a superclass. So, we cannot remove
+    // the prefix from the import that provides this name, imported names
+    // shadow super names.
+    Token? period = beginToken.previous;
+    if (period == null || period.type != TokenType.PERIOD) {
+      unqualifiedNames.add(beginToken.lexeme);
+    }
   }
 
   @override
   void handleType(Token beginToken, Token? questionMark) {
-    Object? prefixedName = pop();
-    if (prefixedName is _PrefixedName) {
-      scope.prefixedNames.add(prefixedName);
+    Token prefixToken = beginToken;
+    if (prefixToken.type != TokenType.IDENTIFIER) {
+      throw new _StateError();
     }
+
+    Token? periodToken = prefixToken.next;
+    if (periodToken == null || periodToken.type != TokenType.PERIOD) {
+      return;
+    }
+
+    Token? nameToken = periodToken.next;
+    if (nameToken == null || nameToken.type != TokenType.IDENTIFIER) {
+      throw new _StateError();
+    }
+
+    importScope.addPrefixedName(
+      new _PrefixedName(
+        prefix: prefixToken,
+        name: nameToken,
+      ),
+    );
   }
 
-  Object? pop() {
-    return stack.removeLast();
+  T popOrThrow<T>() {
+    if (stack.lastOrNull case T last) {
+      stack.removeLast();
+      return last;
+    }
+    throw new _StateError();
   }
 
   void push(Object? value) {
     stack.add(value);
   }
-
-  void verifyEmptyStack() {
-    if (stack.isNotEmpty) {
-      throw new StateError('Expected empty stack:\n${stack.join('\n')}');
-    }
-  }
-
-  List<Object?> _popList(int count) {
-    List<Object?> result = <Object?>[];
-    for (int i = 0; i < count; i++) {
-      Object? element = pop();
-      result.add(element);
-    }
-    return result.reversed.toList();
-  }
-
-  /// Pop [_Identifier], add the name to [libraryScope].
-  void _popNameGlobal() {
-    Object? name = pop();
-    switch (name) {
-      case _ExtensionNoName():
-        break; // ignore
-      case _Identifier():
-        libraryScope.globalNames.add(name.token.lexeme);
-      default:
-        throw new StateError('${name.runtimeType}');
-    }
-  }
-
-  /// Pop [_Identifier], add the name to [scope].
-  void _popNameLocal() {
-    _Identifier name = pop() as _Identifier;
-    scope.names.add(name.token.lexeme);
-  }
-
-  /// Enter the nested scope.
-  void _scopeEnter() {
-    scope = scope.nested();
-  }
-
-  /// Exit the nested scope.
-  void _scopeExit() {
-    scope = scope.parent as _NestedScope;
-  }
-}
-
-sealed class _NameStatus {
-  const _NameStatus();
-}
-
-class _NameStatusImported extends _NameStatus {
-  /// The imports that would provide this name if used without a prefix.
-  final List<_Import> imports;
-
-  _NameStatusImported({
-    required this.imports,
-  });
-}
-
-/// The name is shadowed by a local declaration.
-///
-/// A top-level declaration anywhere in the library.
-///
-/// A local declaration in the same scope - local variable, method name,
-/// type parameters name, formal parameter name, etc.
-class _NameStatusShadowed extends _NameStatus {
-  const _NameStatusShadowed();
-}
-
-class _NestedScope extends _Scope {
-  final _Scope parent;
-  final Set<String> names = {};
-
-  _NestedScope({
-    required this.parent,
-  }) {
-    parent.children.add(this);
-  }
-
-  _NestedScope nested() {
-    return new _NestedScope(
-      parent: this,
-    );
-  }
-
-  @override
-  _NameStatus resolve(String name) {
-    if (names.contains(name)) {
-      return const _NameStatusShadowed();
-    }
-    return parent.resolve(name);
-  }
 }
 
 class _PrefixedName {
-  final _Identifier prefix;
-  final _Identifier name;
+  final Token prefix;
+  final Token name;
 
   _PrefixedName({
     required this.prefix,
@@ -716,22 +449,5 @@ class _PrefixedName {
   }
 }
 
-sealed class _Scope {
-  final List<_PrefixedName> prefixedNames = [];
-  final List<_Scope> children = [];
-
-  _NameStatus resolve(String name);
-}
-
-class _StringLiteral {
-  final Token token;
-
-  _StringLiteral({
-    required this.token,
-  });
-
-  @override
-  String toString() {
-    return token.lexeme;
-  }
-}
+/// The exception that is thrown if an unexpected syntax found.
+class _StateError {}

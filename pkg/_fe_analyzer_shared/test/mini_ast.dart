@@ -2632,7 +2632,7 @@ class MiniAstOperations
     'Null, int': Type('int?'),
     'Null, Object': Type('Object?'),
     '?, int': Type('int'),
-    '?, List<?>': Type('List<?>'),
+    '?, List<_>': Type('List<_>'),
     '?, Null': Type('Null'),
   };
 
@@ -2678,7 +2678,7 @@ class MiniAstOperations
   late final Type objectQuestionType = Type('Object?');
 
   @override
-  late final TypeSchema unknownType = TypeSchema('?');
+  late final TypeSchema unknownType = TypeSchema('_');
 
   @override
   late final Type intType = Type('int');

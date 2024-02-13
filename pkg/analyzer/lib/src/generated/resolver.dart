@@ -730,12 +730,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant CollectionElementImpl element,
     covariant CollectionLiteralContext? context,
   ) {
-    if (element is ExpressionImpl) {
-      dispatchExpression(
-          element, context?.elementType ?? operations.unknownType);
-    } else {
-      element.resolveElement(this, context);
-    }
+    element.resolveElement(this, context);
     popRewrite();
   }
 

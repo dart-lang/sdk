@@ -37,7 +37,7 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Returns the type `Object?`.
   Type get objectQuestionType;
 
-  /// Returns the unknown type schema (`?`) used in type inference.
+  /// Returns the unknown type schema (`_`) used in type inference.
   TypeSchema get unknownType;
 
   /// Returns `true` if [type1] and [type2] are structurally equal.
@@ -64,7 +64,7 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   bool isTypeSchemaSatisfied(
       {required TypeSchema typeSchema, required Type type});
 
-  /// Returns `true` if [type] is the unknown type context (`?`).
+  /// Returns `true` if [type] is the unknown type context (`_`).
   bool isUnknownType(Type type);
 
   /// Returns whether [node] is final.

@@ -325,7 +325,7 @@ main() {
           intLiteral(1, expectConversionToDouble: false)
               .checkType('int')
               .checkIR('1')
-              .inTypeSchema('?'),
+              .inTypeSchema('_'),
         ]);
       });
 
