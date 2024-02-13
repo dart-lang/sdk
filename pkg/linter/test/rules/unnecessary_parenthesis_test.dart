@@ -51,6 +51,84 @@ void g(List<int>? list) {
 ''');
   }
 
+  test_record_assignment() async {
+    await assertDiagnostics(r'''
+void f() {
+  (int,) r = ((3,));
+}
+''', [
+      lint(24, 6),
+    ]);
+  }
+
+  test_record_namedParam() async {
+    await assertDiagnostics(r'''
+void f() {
+  g(i: ((3,)));
+}
+g({required (int,) i}) { }
+
+''', [
+      lint(18, 6),
+    ]);
+  }
+
+  test_record_param() async {
+    await assertDiagnostics(r'''
+void f() {
+  g(((3,)));
+}
+g((int,) i) { }
+
+''', [
+      lint(15, 6),
+    ]);
+  }
+
+  test_singleElementRecordWithNoTrailingComma_assignment() async {
+    await assertDiagnostics(r'''
+void f() {
+  (int,) r = (3);
+}
+''', [
+      error(
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          24,
+          3),
+    ]);
+  }
+
+  test_singleElementRecordWithNoTrailingComma_namedParam() async {
+    await assertDiagnostics(r'''
+f() {
+  g(i: (3));
+}
+
+g({required (int,) i}) { }
+''', [
+      error(
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          13,
+          3),
+    ]);
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4876
+  test_singleElementRecordWithNoTrailingComma_param() async {
+    await assertDiagnostics(r'''
+f() {    
+  g((3));
+}
+
+g((int,) i) { }
+''', [
+      error(
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          14,
+          3),
+    ]);
+  }
+
   test_switchExpression_expressionStatement() async {
     await assertNoDiagnostics(r'''
 void f(Object? x) {

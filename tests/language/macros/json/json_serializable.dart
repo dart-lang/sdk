@@ -114,29 +114,45 @@ macro class FromJson implements ConstructorDefinitionMacro {
 
     var fields = await builder.fieldsOf(clazz);
     var jsonParam = constructor.positionalParameters.single.identifier;
-    builder.augment(initializers: [
-      for (var field in fields)
-        RawCode.fromParts([
-          field.identifier,
-          ' = ',
-          await _convertTypeFromJson(
-              field.type,
-              RawCode.fromParts([
-                jsonParam,
-                '[',
-                await field._jsonKeyName(builder),
-                ']',
-              ]),
-              builder,
-              fromJsonData),
-        ]),
-      if (superclassHasFromJson)
-        RawCode.fromParts([
-          'super.fromJson(',
+    var initializers = <Code>[];
+    for (var field in fields) {
+      var config = await field.readConfig(builder);
+      var defaultValue = config.defaultValue;
+      initializers.add(RawCode.fromParts([
+        field.identifier,
+        ' = ',
+        if (defaultValue != null) ...[
           jsonParam,
-          ')',
-        ]),
-    ]);
+          '.containsKey(',
+          config.key,
+          ') ? ',
+        ],
+        await _convertTypeFromJson(
+            field.type,
+            RawCode.fromParts([
+              jsonParam,
+              '[',
+              config.key,
+              ']',
+            ]),
+            builder,
+            fromJsonData),
+        if (defaultValue != null) ...[
+          ' : ',
+          defaultValue,
+        ],
+      ]));
+    }
+
+    if (superclassHasFromJson) {
+      initializers.add(RawCode.fromParts([
+        'super.fromJson(',
+        jsonParam,
+        ')',
+      ]));
+    }
+
+    builder.augment(initializers: initializers);
   }
 
   Future<void> _checkValidFromJson(ConstructorDeclaration constructor,
@@ -257,9 +273,10 @@ macro class FromJson implements ConstructorDefinitionMacro {
   }
 }
 
-extension _ on FieldDeclaration {
-  // TODO: Support `IdentifierMetadataAnnotation`s once we can do constant eval.
-  Future<Code> _jsonKeyName(DefinitionBuilder builder) async {
+extension on FieldDeclaration {
+  /// Returns the configuration data for this field, reading it from the
+  /// `JsonKey` annotation if present, and otherwise using defaults.
+  Future<_FieldConfig> readConfig(DefinitionBuilder builder) async {
     ConstructorMetadataAnnotation? jsonKey;
     for (var annotation in metadata) {
       if (annotation is! ConstructorMetadataAnnotation) continue;
@@ -277,8 +294,55 @@ extension _ on FieldDeclaration {
         jsonKey = annotation;
       }
     }
-    return jsonKey?.namedArguments['name'] ??
-        RawCode.fromString('\'${identifier.name}\'');
+    return _FieldConfig(this, jsonKey);
+  }
+}
+
+final class _FieldConfig {
+  final Code? defaultValue;
+
+  final Code key;
+
+  final bool includeIfNull;
+
+  _FieldConfig._({
+    required this.defaultValue,
+    required this.includeIfNull,
+    required this.key,
+  });
+
+  factory _FieldConfig(
+      FieldDeclaration field, ConstructorMetadataAnnotation? jsonKey) {
+    bool? includeIfNull;
+    var includeIfNullArg = jsonKey?.namedArguments['includeIfNull'];
+    if (includeIfNullArg != null) {
+      if (!field.type.isNullable) {
+        throw DiagnosticException(Diagnostic(
+            DiagnosticMessage(
+                '`includeIfNull` cannot be used for non-nullable fields',
+                target: jsonKey!.asDiagnosticTarget),
+            Severity.error));
+      }
+      // TODO: Use constant eval to do this better.
+      var argString = includeIfNullArg.debugString;
+      includeIfNull = switch (argString) {
+        'false' => false,
+        'true' => true,
+        _ => throw DiagnosticException(Diagnostic(
+            DiagnosticMessage(
+                'Only `true` or `false` literals are allowed for '
+                '`includeIfNull` arguments.',
+                target: jsonKey!.asDiagnosticTarget),
+            Severity.error)),
+      };
+    }
+
+    return _FieldConfig._(
+      defaultValue: jsonKey?.namedArguments['defaultValue'],
+      includeIfNull: includeIfNull ?? false,
+      key: jsonKey?.namedArguments['name'] ??
+          RawCode.fromString('\'${field.identifier.name}\''),
+    );
   }
 }
 
@@ -391,21 +455,47 @@ macro class ToJson implements MethodDefinitionMacro {
     }
 
     var fields = await builder.fieldsOf(clazz);
-    builder.augment(FunctionBodyCode.fromParts([
-      ' => {',
-      // TODO: Avoid the extra copying here.
-      if (superclassHasToJson) '\n    ...super.toJson(),',
-      for (var field in fields)
-        RawCode.fromParts([
-          '\n    ',
-          await field._jsonKeyName(builder),
-          ': ',
-          await _convertTypeToJson(field.type,
-              RawCode.fromParts([field.identifier]), builder, toJsonData),
-          ',',
-        ]),
-      '\n  };',
-    ]));
+    var parts = <Object>[
+      '{\n    var json = ',
+      if (superclassHasToJson)
+        'super.toJson()'
+      else ...[
+        '<',
+        toJsonData.stringCode,
+        ', ',
+        toJsonData.objectCode.asNullable,
+        '>{}',
+      ],
+      ';\n    '
+    ];
+    for (var field in fields) {
+      var config = await field.readConfig(builder);
+      var doNullCheck = !config.includeIfNull && field.type.isNullable;
+      if (doNullCheck) {
+        // TODO: Compare == `null` instead, once we can resolve `null`.
+        parts.addAll([
+          'if (',
+          field.identifier,
+          ' is! ',
+          toJsonData.nullIdentifier,
+          ') {\n      ',
+        ]);
+      }
+      parts.addAll([
+        'json[',
+        config.key,
+        '] = ',
+        await _convertTypeToJson(field.type,
+            RawCode.fromParts([field.identifier]), builder, toJsonData),
+        ';\n',
+      ]);
+      if (doNullCheck) {
+        parts.add('    }\n');
+      }
+    }
+    parts.add('    return json;\n  }');
+
+    builder.augment(FunctionBodyCode.fromParts(parts));
   }
 
   Future<bool> _checkValidToJson(MethodDeclaration method,
@@ -509,33 +599,39 @@ final class _ToJsonData {
   final StaticType jsonMapType;
   final StaticType listType;
   final StaticType mapType;
+  final Identifier nullIdentifier;
   final NamedTypeAnnotationCode objectCode;
   final StaticType objectType;
   final StaticType setType;
+  final NamedTypeAnnotationCode stringCode;
 
   _ToJsonData({
     required this.jsonMapType,
     required this.listType,
     required this.mapType,
+    required this.nullIdentifier,
     required this.objectCode,
     required this.objectType,
     required this.setType,
+    required this.stringCode,
   });
 
   static Future<_ToJsonData> build(FunctionDefinitionBuilder builder) async {
-    var [list, map, object, set, string] = await Future.wait([
+    var [list, map, nullIdentifier, object, set, string] = await Future.wait([
       builder.resolveIdentifier(_dartCore, 'List'),
       builder.resolveIdentifier(_dartCore, 'Map'),
+      builder.resolveIdentifier(_dartCore, 'Null'),
       builder.resolveIdentifier(_dartCore, 'Object'),
       builder.resolveIdentifier(_dartCore, 'Set'),
       builder.resolveIdentifier(_dartCore, 'String'),
     ]);
     var objectCode = NamedTypeAnnotationCode(name: object);
+    var stringCode = NamedTypeAnnotationCode(name: string);
     var nullableObjectCode = objectCode.asNullable;
     var [jsonMapType, listType, mapType, objectType, setType] =
         await Future.wait([
       builder.resolve(NamedTypeAnnotationCode(name: map, typeArguments: [
-        NamedTypeAnnotationCode(name: string),
+        stringCode,
         nullableObjectCode,
       ])),
       builder.resolve(NamedTypeAnnotationCode(
@@ -551,9 +647,11 @@ final class _ToJsonData {
       jsonMapType: jsonMapType,
       listType: listType,
       mapType: mapType,
+      nullIdentifier: nullIdentifier,
       objectCode: objectCode,
       objectType: objectType,
       setType: setType,
+      stringCode: stringCode,
     );
   }
 }

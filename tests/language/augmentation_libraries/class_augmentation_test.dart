@@ -84,7 +84,7 @@ base class B {
 }
 
 mixin M {
-  String get mixin => 'a';
+  String get mixinX => 'a';
 }
 
 abstract interface class I {

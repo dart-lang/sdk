@@ -2175,22 +2175,21 @@ mixin A {}
   }
 
   test_part_library() async {
-    var libPath = convertPath('$testPackageLibPath/lib.dart');
-    var aPath = convertPath('$testPackageLibPath/a.dart');
-    newFile(libPath, '''
+    var lib = newFile('$testPackageLibPath/lib.dart', '''
 part 'a.dart';
 
 class A {}
 ''');
-    newFile(aPath, '''
+
+    var a = newFile('$testPackageLibPath/a.dart', '''
 part of 'lib.dart';
 
 class A {}
 ''');
 
-    await resolveFile(libPath);
+    await resolveFile(lib);
 
-    var aResult = await resolveFile(aPath);
+    var aResult = await resolveFile(a);
     GatheringErrorListener()
       ..addAll(aResult.errors)
       ..assertErrors([
@@ -2200,32 +2199,31 @@ class A {}
   }
 
   test_part_part() async {
-    var libPath = convertPath('$testPackageLibPath/lib.dart');
-    var aPath = convertPath('$testPackageLibPath/a.dart');
-    var bPath = convertPath('$testPackageLibPath/b.dart');
-    newFile(libPath, '''
+    var lib = newFile('$testPackageLibPath/lib.dart', '''
 part 'a.dart';
 part 'b.dart';
 ''');
-    newFile(aPath, '''
+
+    var a = newFile('$testPackageLibPath/a.dart', '''
 part of 'lib.dart';
 
 class A {}
 ''');
-    newFile(bPath, '''
+
+    var b = newFile('$testPackageLibPath/b.dart', '''
 part of 'lib.dart';
 
 class A {}
 ''');
 
-    await resolveFile(libPath);
+    await resolveFile(lib);
 
-    var aResult = await resolveFile(aPath);
+    var aResult = await resolveFile(a);
     GatheringErrorListener()
       ..addAll(aResult.errors)
       ..assertNoErrors();
 
-    var bResult = await resolveFile(bPath);
+    var bResult = await resolveFile(b);
     GatheringErrorListener()
       ..addAll(bResult.errors)
       ..assertErrors([

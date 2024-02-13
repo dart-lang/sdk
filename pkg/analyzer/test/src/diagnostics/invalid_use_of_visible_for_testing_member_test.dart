@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -26,7 +25,7 @@ class InvalidUseOfVisibleForTestingMemberTest extends PubPackageResolutionTest {
   }
 
   test_export_hide() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @visibleForTesting
@@ -35,16 +34,16 @@ class A {}
 class B {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart' hide A;
 ''');
 
-    await _resolveFile('$testPackageLibPath/a.dart');
-    await _resolveFile('$testPackageLibPath/b.dart');
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
   }
 
   test_export_show() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @visibleForTesting
@@ -53,160 +52,160 @@ class A {}
 class B {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart' show A;
 ''');
 
-    await _resolveFile('$testPackageLibPath/a.dart');
-    await _resolveFile('$testPackageLibPath/b.dart');
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
   }
 
   test_fromIntegrationTestDirectory() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile('$testPackageRootPath/integration_test/test.dart', r'''
+    var test = newFile('$testPackageRootPath/integration_test/test.dart', r'''
 import '../lib1.dart';
 class B {
   void b() => new A().a();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/integration_test/test.dart');
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(test, []);
   }
 
   test_fromTestDirectory() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile('$testPackageRootPath/test/test.dart', r'''
+    var test = newFile('$testPackageRootPath/test/test.dart', r'''
 import '../lib1.dart';
 class B {
   void b() => new A().a();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/test/test.dart');
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(test, []);
   }
 
   test_fromTestDriverDirectory() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile('$testPackageRootPath/test_driver/test.dart', r'''
+    var test = newFile('$testPackageRootPath/test_driver/test.dart', r'''
 import '../lib1.dart';
 class B {
   void b() => new A().a();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/test_driver/test.dart');
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(test, []);
   }
 
   test_fromTestingDirectory() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile('$testPackageRootPath/testing/lib1.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/testing/lib2.dart', r'''
 import '../lib1.dart';
 class C {
   void b() => new A().a();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/testing/lib1.dart');
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, []);
   }
 
   test_functionInExtension() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 extension E on List {
   @visibleForTesting
   int m() => 1;
 }
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   E([]).m();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 42, 1),
     ]);
   }
 
   test_functionInExtension_fromTestDirectory() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 extension E on List {
   @visibleForTesting
   int m() => 1;
 }
 ''');
-    newFile('$testPackageRootPath/test/test.dart', r'''
+    var test = newFile('$testPackageRootPath/test/test.dart', r'''
 import '../lib1.dart';
 void main() {
   E([]).m();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/test/test.dart');
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(test, []);
   }
 
   test_getter() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   int get a => 7;
 }
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   new A().a;
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 44, 1),
     ]);
   }
 
   test_getter_inObjectPattern() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   int get g => 7;
 }
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void f(Object o) {
   switch (o) {
@@ -215,14 +214,14 @@ void f(Object o) {
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 65, 1),
     ]);
   }
 
   test_import_hide() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @visibleForTesting
@@ -231,18 +230,18 @@ class A {}
 class B {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart' hide A;
 
 void f(B _) {}
 ''');
 
-    await _resolveFile('$testPackageLibPath/a.dart');
-    await _resolveFile('$testPackageLibPath/b.dart');
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
   }
 
   test_import_show() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @visibleForTesting
@@ -251,82 +250,82 @@ class A {}
 class B {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart' show A;
 
 void f(A _) {}
 ''');
 
-    await _resolveFile('$testPackageLibPath/a.dart');
-    await _resolveFile('$testPackageLibPath/b.dart', [
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 21, 1),
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 32, 1),
     ]);
   }
 
   test_method() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 class B {
   void b() => new A().a();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 52, 1),
     ]);
   }
 
   test_methodInExtensionType() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 extension type E(int i) {
   @visibleForTesting
   int m() => 1;
 }
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   E(1).m();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 41, 1),
     ]);
   }
 
   test_methodInExtensionType_fromTestDirectory() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 extension type E(int i) {
   @visibleForTesting
   int m() => 1;
 }
 ''');
-    newFile('$testPackageRootPath/test/test.dart', r'''
-import 'lib1.dart';
+    var test = newFile('$testPackageRootPath/test/test.dart', r'''
+import '../lib1.dart';
 void main() {
   E(1).m();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart');
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(test, []);
   }
 
   test_mixin() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 mixin M {
   @visibleForTesting
@@ -334,21 +333,21 @@ mixin M {
 }
 class C with M {}
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   C().m();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 1),
     ]);
   }
 
   test_namedConstructor() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   int _x;
@@ -357,24 +356,24 @@ class A {
   A.forTesting(this._x);
 }
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   new A.forTesting(0);
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart', [
+    await assertErrorsInFile2(lib1, [
       error(WarningCode.UNUSED_FIELD, 49, 2),
     ]);
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 12,
           messageContains: ['A.forTesting']),
     ]);
   }
 
   test_protectedAndForTesting_usedAsProtected() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -382,19 +381,19 @@ class A {
   void a(){ }
 }
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 class B extends A {
   void b() => new A().a();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart');
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, []);
   }
 
   test_protectedAndForTesting_usedAsTesting() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -402,78 +401,78 @@ class A {
   void a(){ }
 }
 ''');
-    newFile('$testPackageRootPath/test/test1.dart', r'''
+    var test1 = newFile('$testPackageRootPath/test/test1.dart', r'''
 import '../lib1.dart';
 void main() {
   new A().a();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/test/test1.dart');
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(test1, []);
   }
 
   test_setter() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   set b(_) => 7;
 }
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   new A().b = 6;
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 44, 1),
     ]);
   }
 
   test_topLevelFunction() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 @visibleForTesting
 int fn0() => 1;
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   fn0();
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 36, 3),
     ]);
   }
 
   test_topLevelVariable() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 @visibleForTesting
 int a = 7;
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   a;
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 36, 1),
     ]);
   }
 
   test_unnamedConstructor() async {
-    newFile('$testPackageRootPath/lib1.dart', r'''
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   int _x;
@@ -482,29 +481,18 @@ class A {
   A(this._x);
 }
 ''');
-    newFile('$testPackageRootPath/lib2.dart', r'''
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   new A(0);
 }
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart', [
+    await assertErrorsInFile2(lib1, [
       error(WarningCode.UNUSED_FIELD, 49, 2),
     ]);
-    await _resolveFile('$testPackageRootPath/lib2.dart', [
+    await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 1),
     ]);
-  }
-
-  /// Resolve the file with the given [path].
-  ///
-  /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
-  Future<void> _resolveFile(
-    String path, [
-    List<ExpectedError> expectedErrors = const [],
-  ]) async {
-    result = await resolveFile(convertPath(path));
-    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 }

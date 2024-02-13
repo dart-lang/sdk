@@ -208,22 +208,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
     String content,
     List<ExpectedError> expectedErrors,
   ) async {
-    path = convertPath(path);
-    newFile(path, content);
-
-    var result = await resolveFile(path);
+    var file = newFile(path, content);
+    var result = await resolveFile(file);
     assertErrorsInResolvedUnit(result, expectedErrors);
 
     return result;
   }
 
   Future<void> assertErrorsInFile2(
-    String path,
+    File file,
     List<ExpectedError> expectedErrors,
   ) async {
-    path = convertPath(path);
-
-    var result = await resolveFile(path);
+    var result = await resolveFile(file);
     assertErrorsInResolvedUnit(result, expectedErrors);
   }
 
@@ -473,11 +469,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return _MultiplyDefinedElementMatcher(elements);
   }
 
-  Future<ResolvedUnitResult> resolveFile(String path);
+  Future<ResolvedUnitResult> resolveFile(File file);
 
   /// Resolve [file] into [result].
   Future<void> resolveFile2(File file) async {
-    result = await resolveFile(file.path);
+    result = await resolveFile(file);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);

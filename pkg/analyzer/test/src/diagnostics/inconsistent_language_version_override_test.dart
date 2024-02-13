@@ -81,13 +81,8 @@ part of 'a.dart';
     required String partContent,
     required List<ExpectedError> libraryErrors,
   }) async {
-    var libraryPath = convertPath('$testPackageLibPath/a.dart');
-    var partPath = convertPath('$testPackageLibPath/b.dart');
-
-    newFile(libraryPath, libraryContent);
-
-    newFile(partPath, partContent);
-
-    await assertErrorsInFile2(libraryPath, libraryErrors);
+    var a = newFile('$testPackageLibPath/a.dart', libraryContent);
+    newFile('$testPackageLibPath/b.dart', partContent);
+    await assertErrorsInFile2(a, libraryErrors);
   }
 }

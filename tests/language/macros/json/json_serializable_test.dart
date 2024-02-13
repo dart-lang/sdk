@@ -15,9 +15,7 @@ void main() {
     'name': 'Roger',
     'friends': [
       {
-        'age': 7,
         'name': 'Felix',
-        'friends': [],
       }
     ],
   };
@@ -26,9 +24,12 @@ void main() {
   Expect.equals(roger.name, 'Roger');
   Expect.equals(roger.friends.length, 1);
   var felix = roger.friends.single;
-  Expect.equals(felix.age, 7);
+  Expect.equals(felix.age, null);
   Expect.equals(felix.name, 'Felix');
   Expect.equals(felix.friends.isEmpty, true);
+
+  // When serializing back, we expect the default value
+  (rogerJson['friends'] as dynamic)[0]['friends'] = [];
   Expect.deepEquals(roger.toJson(), rogerJson);
 
   var rogerAccountJson = {
@@ -52,8 +53,12 @@ void main() {
 
 @JsonSerializable()
 class User {
-  final int age;
+  @JsonKey(includeIfNull: false)
+  final int? age;
+
   final String name;
+
+  @JsonKey(defaultValue: <User>[])
   final List<User> friends;
 }
 
