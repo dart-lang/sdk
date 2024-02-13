@@ -426,9 +426,6 @@ class WasmTarget extends Target {
   bool get useStaticFieldLowering => false;
 
   @override
-  bool enableNative(Uri uri) => true;
-
-  @override
   Class concreteListLiteralClass(CoreTypes coreTypes) {
     return _growableList ??=
         coreTypes.index.getClass('dart:core', '_GrowableList');

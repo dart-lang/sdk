@@ -67,8 +67,6 @@ class DietListener extends StackListenerImpl {
 
   final bool enableNative;
 
-  final bool stringExpectedAfterNative;
-
   final TypeInferenceEngine typeInferenceEngine;
 
   int importExportDirectiveIndex = 0;
@@ -96,8 +94,6 @@ class DietListener extends StackListenerImpl {
         memberScope = library.scope,
         enableNative =
             library.loader.target.backendTarget.enableNative(library.importUri),
-        stringExpectedAfterNative =
-            library.loader.target.backendTarget.nativeExtensionExpectsString,
         _benchmarker = library.loader.target.benchmarker;
 
   DeclarationBuilder? get currentDeclaration => _currentDeclaration;

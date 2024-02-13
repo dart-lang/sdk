@@ -130,9 +130,6 @@ class Dart2jsTarget extends Target {
   bool enableNative(Uri uri) => maybeEnableNative(uri);
 
   @override
-  bool get nativeExtensionExpectsString => false;
-
-  @override
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override

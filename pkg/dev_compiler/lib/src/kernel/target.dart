@@ -160,9 +160,6 @@ class DevCompilerTarget extends Target {
               importer.path == 'js/js.dart'));
 
   @override
-  bool get nativeExtensionExpectsString => false;
-
-  @override
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override

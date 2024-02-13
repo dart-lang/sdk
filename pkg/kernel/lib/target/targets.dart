@@ -367,17 +367,8 @@ abstract class Target {
   /// with the given import [uri].
   ///
   /// The `native` language extension is not part of the language specification,
-  /// it means something else to each target, and it is enabled under different
-  /// circumstances for each target implementation. For example, the VM target
-  /// enables it everywhere because of existing support for "dart-ext:" native
-  /// extensions, but targets like dart2js only enable it on the core libraries.
+  /// it is an extension that is used by dart2js/ddc.
   bool enableNative(Uri uri) => false;
-
-  /// There are two variants of the `native` language extension. The VM expects
-  /// the native token to be followed by string, whereas dart2js and DDC do not.
-  // TODO(sigmund, ahe): ideally we should remove the `native` syntax, if not,
-  // we should at least unify the VM and non-VM variants.
-  bool get nativeExtensionExpectsString => false;
 
   /// Whether integer literals that cannot be represented exactly on the web
   /// (i.e. in JavaScript) should cause an error to be issued.
@@ -950,9 +941,6 @@ class TargetWrapper extends Target {
 
   @override
   String get name => _target.name;
-
-  @override
-  bool get nativeExtensionExpectsString => _target.nativeExtensionExpectsString;
 
   @override
   void performModularTransformationsOnLibraries(

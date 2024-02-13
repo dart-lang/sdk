@@ -508,7 +508,6 @@ class OutlineBuilder extends StackListenerImpl {
   final SourceLibraryBuilder libraryBuilder;
 
   final bool enableNative;
-  final bool stringExpectedAfterNative;
   bool inAbstractOrSealedClass = false;
   bool inConstructor = false;
   bool inConstructorName = false;
@@ -545,9 +544,7 @@ class OutlineBuilder extends StackListenerImpl {
   OutlineBuilder(SourceLibraryBuilder library)
       : libraryBuilder = library,
         enableNative =
-            library.loader.target.backendTarget.enableNative(library.importUri),
-        stringExpectedAfterNative =
-            library.loader.target.backendTarget.nativeExtensionExpectsString;
+            library.loader.target.backendTarget.enableNative(library.importUri);
 
   DeclarationContext get declarationContext => _declarationContext.head;
 
