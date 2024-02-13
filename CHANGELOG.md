@@ -7,7 +7,15 @@
   type), to align with the specification. This change is not expected
   to make any difference in practice.
 
+- **Breaking Change** [#54828][]: The type schema used by the compiler front end
+  to perform type inference on the operand of a null-aware spread operator
+  (`...?`) in map and set literals has been made nullable, to match what
+  currently happens in list literals. This makes the compiler front end behavior
+  consistent with that of the analyzer. This change is expected to be very low
+  impact.
+
 [#54640]: https://github.com/dart-lang/sdk/issues/54640
+[#54828]: https://github.com/dart-lang/sdk/issues/54828
 
 ### Tools
 
