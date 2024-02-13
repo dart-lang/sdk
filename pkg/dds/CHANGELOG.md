@@ -2,6 +2,7 @@
 - [DAP] Fixed "Unable to find library" errors when using global evaluation when the context file resolves to a `package:` URI.
 - Updated `devtools_shared` to ^6.0.4.
 - Added `--dtd-uri=<uri>` flag to DevTools server.
+- Updated `vm_service` constraint to ^14.0.0.
 
 # 3.1.2
 - Improved error handling for serving static DevTools assets.
@@ -10,6 +11,7 @@
 - [DAP] Error messages shown on the client no longer contain verbose stack traces (although they are still included in the JSON payloads).
 - [DAP] `stackTraceRequest` now returns an empty stack instead of throwing if called for a thread that has exited.
 - [DAP] Fixed an issue that could cause a crash during shutdown if an isolate was being resumed.
+- Updated `vm_service` constraint to ^13.0.0.
 
 # 3.1.1
 - Updated `vm_service` constraint to ^14.0.0.
