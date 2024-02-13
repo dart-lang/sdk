@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:matcher/expect.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -168,6 +169,37 @@ class Foo {
           otherFile,
           containerName: 'Foo',
           nameRange: rangeAtSearch('Foo(', otherCode, 'Foo'),
+          codeRange: otherCode.range.sourceRange,
+        ));
+  }
+
+  Future<void> test_constructorCall_to_augmentation() async {
+    final code = TestCode.parse('''
+import augment 'other.dart';
+
+class Foo {}
+
+void f() {
+  Foo.na^med();
+}
+''');
+
+    final otherCode = TestCode.parse('''
+library augment 'test.dart';
+augment class Foo {
+  [!Foo.named(){}!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+        code,
+        _isItem(
+          CallHierarchyKind.constructor,
+          'Foo.named',
+          otherFile,
+          containerName: 'Foo',
+          nameRange: rangeAtSearch('named', otherCode),
           codeRange: otherCode.range.sourceRange,
         ));
   }
@@ -438,6 +470,38 @@ void f() {
 
     final otherCode = TestCode.parse('''
 class Foo {
+  [!void myMethod() {}!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+        code,
+        _isItem(
+          CallHierarchyKind.method,
+          'myMethod',
+          otherFile,
+          containerName: 'Foo',
+          nameRange: rangeAtSearch('myMethod', otherCode),
+          codeRange: otherCode.range.sourceRange,
+        ));
+  }
+
+  Future<void> test_methodCall_to_augmentation() async {
+    final code = TestCode.parse('''
+import augment 'other.dart';
+
+class Foo {}
+
+void f() {
+  Foo().myMet^hod();
+}
+''');
+
+    final otherCode = TestCode.parse('''
+library augment 'test.dart';
+
+augment class Foo {
   [!void myMethod() {}!]
 }
 ''');
@@ -1015,6 +1079,39 @@ import 'test.dart';
     );
   }
 
+  Future<void> test_method_from_augmentation() async {
+    final code = TestCode.parse('''
+import augment 'other.dart';
+
+class Foo {
+  void myMet^hod() {}
+}
+''');
+
+    final otherCode = TestCode.parse('''
+library augment 'test.dart';
+
+augment class Foo {
+  [!void f() {
+    myMethod();
+  }!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
+    expect(calls, [
+      _isResult(
+        CallHierarchyKind.method,
+        'f',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    ]);
+  }
+
   Future<void> test_mixin_method() async {
     final code = TestCode.parse('''
 mixin Bar {
@@ -1207,6 +1304,40 @@ class A {
             ]),
       ]),
     );
+  }
+
+  Future<void> test_constructor_from_augmentation() async {
+    final code = TestCode.parse('''
+import augment 'other.dart';
+
+class Foo {}
+
+void ba^r() {
+  Foo.named();
+}
+''');
+
+    final otherCode = TestCode.parse('''
+library augment 'test.dart';
+
+augment class Foo {
+  [!Foo.named() {
+  }!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
+    expect(calls, [
+      _isResult(
+        CallHierarchyKind.constructor,
+        'Foo.named',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('named() {', otherCode, 'named'),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    ]);
   }
 
   Future<void> test_extension_method() async {
@@ -1425,6 +1556,43 @@ class Foo {
               rangeAfterPrefix('tearoff = a.', code, 'bar'),
             ]),
       ]),
+    );
+  }
+
+  Future<void> test_method_from_augmentation() async {
+    final code = TestCode.parse('''
+import augment 'other.dart';
+
+class Foo {}
+
+void ba^r() {
+  Foo().myMethod();
+}
+''');
+
+    final otherCode = TestCode.parse('''
+library augment 'test.dart';
+
+augment class Foo {
+  [!void myMethod() {
+  }!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      contains(
+        _isResult(
+          CallHierarchyKind.method,
+          'myMethod',
+          otherFile,
+          containerName: 'Foo',
+          nameRange: rangeAtSearch('myMethod() {', otherCode, 'myMethod'),
+          codeRange: otherCode.range.sourceRange,
+        ),
+      ),
     );
   }
 
