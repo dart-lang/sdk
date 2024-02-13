@@ -1716,6 +1716,7 @@ successive
 suffixed
 suffixing
 sugared
+suggest
 suggests
 suite
 sum
