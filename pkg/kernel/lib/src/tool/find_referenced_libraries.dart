@@ -4,8 +4,10 @@
 
 import 'package:kernel/ast.dart';
 
-Set<Library> findAllReferencedLibraries(List<Library> from) {
-  _LibraryCollector collector = new _LibraryCollector();
+Set<Library> findAllReferencedLibraries(List<Library> from,
+    {bool collectViaReferencesToo = false}) {
+  _LibraryCollector collector =
+      new _LibraryCollector(collectViaReferencesToo: collectViaReferencesToo);
   for (Library library in from) {
     collector.visitLibrary(library);
   }
@@ -21,13 +23,23 @@ bool duplicateLibrariesReachable(List<Library> from) {
 }
 
 class _LibraryCollector extends RecursiveVisitor {
+  final bool collectViaReferencesToo;
   Set<Library> allSeenLibraries = {};
+
+  _LibraryCollector({required this.collectViaReferencesToo});
 
   @override
   void defaultNode(Node node) {
     if (node is NamedNode) {
       // Named nodes can be linked to.
       seen(node);
+      if (collectViaReferencesToo) {
+        TreeNode? refNode = node.reference.node;
+        if (refNode != null && !identical(refNode, node)) {
+          // This is generally pretty bad.
+          seen(refNode);
+        }
+      }
     } else if (node is Name) {
       if (node.library != null) {
         seen(node.library!);
