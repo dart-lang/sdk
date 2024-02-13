@@ -376,7 +376,8 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
         params->vm_snapshot_instructions, nullptr, -1, api_flags));
     // ObjectStore should be created later, after null objects are initialized.
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr,
-                                  /*object_store=*/nullptr, api_flags);
+                                  /*object_store=*/nullptr, api_flags,
+                                  /*is_vm_isolate*/ true);
     group->CreateHeap(/*is_vm_isolate=*/true,
                       /*is_service_or_kernel_isolate=*/false);
     IsolateGroup::RegisterIsolateGroup(group);
@@ -1170,11 +1171,6 @@ void Dart::RunShutdownCallback() {
 
 void Dart::ShutdownIsolate(Thread* T) {
   T->isolate()->Shutdown();
-}
-
-bool Dart::VmIsolateNameEquals(const char* name) {
-  ASSERT(name != nullptr);
-  return (strcmp(name, kVmIsolateName) == 0);
 }
 
 int64_t Dart::UptimeMicros() {

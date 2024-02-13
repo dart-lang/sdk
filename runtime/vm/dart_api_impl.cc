@@ -1311,20 +1311,6 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   return static_cast<Dart_Isolate>(nullptr);
 }
 
-static bool IsServiceOrKernelIsolateName(const char* name) {
-  if (ServiceIsolate::NameEquals(name)) {
-    ASSERT(!ServiceIsolate::Exists());
-    return true;
-  }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (KernelIsolate::NameEquals(name)) {
-    ASSERT(!KernelIsolate::Exists());
-    return true;
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  return false;
-}
-
 Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                           const char* name,
                                           char** error) {
@@ -1369,9 +1355,11 @@ Dart_CreateIsolateGroup(const char* script_uri,
   std::unique_ptr<IsolateGroupSource> source(
       new IsolateGroupSource(script_uri, non_null_name, snapshot_data,
                              snapshot_instructions, nullptr, -1, *flags));
-  auto group = new IsolateGroup(std::move(source), isolate_group_data, *flags);
+  auto group = new IsolateGroup(std::move(source), isolate_group_data, *flags,
+                                /*is_vm_isolate=*/false);
   group->CreateHeap(
-      /*is_vm_isolate=*/false, IsServiceOrKernelIsolateName(non_null_name));
+      /*is_vm_isolate=*/false,
+      flags->is_service_isolate || flags->is_kernel_isolate);
   IsolateGroup::RegisterIsolateGroup(group);
   Dart_Isolate isolate = CreateIsolate(group, /*is_new_group=*/true,
                                        non_null_name, isolate_data, error);
@@ -1402,10 +1390,12 @@ Dart_CreateIsolateGroupFromKernel(const char* script_uri,
   std::shared_ptr<IsolateGroupSource> source(
       new IsolateGroupSource(script_uri, non_null_name, nullptr, nullptr,
                              kernel_buffer, kernel_buffer_size, *flags));
-  auto group = new IsolateGroup(source, isolate_group_data, *flags);
+  auto group = new IsolateGroup(source, isolate_group_data, *flags,
+                                /*is_vm_isolate=*/false);
   IsolateGroup::RegisterIsolateGroup(group);
   group->CreateHeap(
-      /*is_vm_isolate=*/false, IsServiceOrKernelIsolateName(non_null_name));
+      /*is_vm_isolate=*/false,
+      flags->is_service_isolate || flags->is_kernel_isolate);
   Dart_Isolate isolate = CreateIsolate(group, /*is_new_group=*/true,
                                        non_null_name, isolate_data, error);
   if (isolate != nullptr) {
@@ -6170,7 +6160,7 @@ DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
   return false;
 #else
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  return KernelIsolate::IsKernelIsolate(iso);
+  return iso->is_kernel_isolate();
 #endif
 }
 
@@ -6283,7 +6273,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
 
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  return ServiceIsolate::IsServiceIsolate(iso);
+  return iso->is_service_isolate();
 }
 
 DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(

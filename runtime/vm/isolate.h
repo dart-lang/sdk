@@ -156,7 +156,10 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 
 #define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
   V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code, false)        \
-  V(PRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate, false)
+  V(NONPRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate, false)  \
+  V(NONPRODUCT, is_service_isolate, IsServiceIsolate, is_service_isolate,      \
+    false)                                                                     \
+  V(NONPRODUCT, is_kernel_isolate, IsKernelIsolate, is_kernel_isolate, false)
 
 // List of Isolate flags with custom getters named #name().
 //
@@ -280,10 +283,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                void* embedder_data,
                ObjectStore* object_store,
-               Dart_IsolateFlags api_flags);
+               Dart_IsolateFlags api_flags,
+               bool is_vm_isolate);
   IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                void* embedder_data,
-               Dart_IsolateFlags api_flags);
+               Dart_IsolateFlags api_flags,
+               bool is_vm_isolate);
   ~IsolateGroup();
 
   void RehashConstants(Become* become);
@@ -295,6 +300,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::shared_ptr<IsolateGroupSource> shareable_source() const {
     return source_;
   }
+  bool is_vm_isolate() const { return is_vm_isolate_; }
   void* embedder_data() const { return embedder_data_; }
 
   bool initial_spawn_successful() { return initial_spawn_successful_; }
@@ -819,7 +825,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   const char** obfuscation_map_ = nullptr;
 
-  bool is_vm_isolate_heap_ = false;
+  bool is_vm_isolate_ = false;
   void* embedder_data_ = nullptr;
 
   IdleTimeHandler idle_time_handler_;
@@ -1363,18 +1369,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void PauseEventHandler();
 #endif
 
-  bool is_service_isolate() const {
-    return LoadIsolateFlagsBit<IsServiceIsolateBit>();
-  }
-  void set_is_service_isolate(bool value) {
-    UpdateIsolateFlagsBit<IsServiceIsolateBit>(value);
-  }
-
-  bool is_kernel_isolate() const {
-    return LoadIsolateFlagsBit<IsKernelIsolateBit>();
-  }
-  void set_is_kernel_isolate(bool value) {
-    UpdateIsolateFlagsBit<IsKernelIsolateBit>(value);
+  bool is_vm_isolate() const { return LoadIsolateFlagsBit<IsVMIsolateBit>(); }
+  void set_is_vm_isolate(bool value) {
+    UpdateIsolateFlagsBit<IsVMIsolateBit>(value);
   }
 
   bool is_service_registered() const {
@@ -1564,6 +1561,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #define ISOLATE_FLAG_BITS(V)                                                   \
   V(ErrorsFatal)                                                               \
   V(IsRunnable)                                                                \
+  V(IsVMIsolate)                                                               \
   V(IsServiceIsolate)                                                          \
   V(IsKernelIsolate)                                                           \
   V(ResumeRequest)                                                             \

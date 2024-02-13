@@ -49,10 +49,8 @@ class KernelIsolate : public AllStatic {
   static bool Start();
   static void Shutdown();
 
-  static bool NameEquals(const char* name);
   static bool Exists();
   static bool IsRunning();
-  static bool IsKernelIsolate(const Isolate* isolate);
   static Dart_Port WaitForKernelPort();
   static Dart_Port KernelPort() { return kernel_port_; }
 
@@ -135,7 +133,6 @@ class KernelIsolate : public AllStatic {
  public:
   static bool IsRunning() { return false; }
   static void Shutdown() {}
-  static bool IsKernelIsolate(const Isolate* isolate) { return false; }
   static void NotifyAboutIsolateGroupShutdown(
       const IsolateGroup* isolate_group) {}
   static bool GetExperimentalFlag(const char* value) { return false; }

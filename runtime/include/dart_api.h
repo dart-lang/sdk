@@ -580,7 +580,7 @@ DART_EXPORT const char* Dart_VersionString(void);
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000c)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000d)
 
 typedef struct {
   int32_t version;
@@ -592,6 +592,8 @@ typedef struct {
   bool copy_parent_code;
   bool null_safety;
   bool is_system_isolate;
+  bool is_service_isolate;
+  bool is_kernel_isolate;
   bool snapshot_is_dontneed_safe;
   bool branch_coverage;
 } Dart_IsolateFlags;
