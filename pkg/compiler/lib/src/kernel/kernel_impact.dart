@@ -37,7 +37,6 @@ import 'element_map.dart';
 /// [ImpactRegistry] that converts kernel based impact data to world impact
 /// object based on the K model.
 class KernelImpactConverter implements ImpactRegistry {
-  final WorldImpactBuilder impactBuilder;
   final KernelToElementMap elementMap;
   final DiagnosticReporter reporter;
   final CompilerOptions _options;
@@ -50,6 +49,8 @@ class KernelImpactConverter implements ImpactRegistry {
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   final AnnotationsData _annotationsData;
+  WorldImpactBuilder? _impactBuilder;
+  WorldImpactBuilder get impactBuilder => _impactBuilder!;
 
   KernelImpactConverter(
       this.elementMap,
@@ -63,8 +64,7 @@ class KernelImpactConverter implements ImpactRegistry {
       this._backendUsageBuilder,
       this._customElementsResolutionAnalysis,
       this._rtiNeedBuilder,
-      this._annotationsData)
-      : this.impactBuilder = WorldImpactBuilderImpl(currentMember);
+      this._annotationsData);
 
   ir.TypeEnvironment get typeEnvironment => elementMap.typeEnvironment;
 
@@ -815,33 +815,20 @@ class KernelImpactConverter implements ImpactRegistry {
   /// Converts a [ImpactData] object based on kernel to the corresponding
   /// [WorldImpact] based on the K model.
   WorldImpact convert(ImpactData impactData) {
+    final oldBuilder = _impactBuilder;
+    final newBuilder = _impactBuilder = WorldImpactBuilderImpl(currentMember);
     impactData.apply(this);
-    return impactBuilder;
+    _impactBuilder = oldBuilder;
+    return newBuilder;
   }
 
   @override
   void registerConditionalImpact(ConditionalImpactData impact) {
     final conditionalUse = ConditionalUse(
-        // TODO(natebiggs): Make KernelImpactConverter stateless so that we
-        // don't need one per impact.
-        impact: KernelImpactConverter(
-                elementMap,
-                currentMember,
-                reporter,
-                _options,
-                _constantValuefier,
-                staticTypeContext,
-                _impacts,
-                _nativeResolutionEnqueuer,
-                _backendUsageBuilder,
-                _customElementsResolutionAnalysis,
-                _rtiNeedBuilder,
-                _annotationsData)
-            .convert(impact.impactData),
+        impact: convert(impact.impactData),
         conditions: impact.conditions.map(elementMap.getMember).toList(),
         source: impact.source,
         replacement: impact.replacement);
-
     impactBuilder.registerConditionalUse(conditionalUse);
   }
 }
