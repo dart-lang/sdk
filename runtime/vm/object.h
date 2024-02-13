@@ -3324,8 +3324,9 @@ class Function : public Object {
   FunctionPtr ForwardingTarget() const;
   void SetForwardingTarget(const Function& target) const;
 
-  UntaggedFunction::Kind kind() const {
-    return untag()->kind_tag_.Read<KindBits>();
+  UntaggedFunction::Kind kind() const { return KindOf(ptr()); }
+  static UntaggedFunction::Kind KindOf(FunctionPtr func) {
+    return func->untag()->kind_tag_.Read<KindBits>();
   }
 
   UntaggedFunction::AsyncModifier modifier() const {
@@ -3877,6 +3878,9 @@ class Function : public Object {
   bool IsImplicitClosureFunction() const {
     return kind() == UntaggedFunction::kImplicitClosureFunction;
   }
+  static bool IsImplicitClosureFunction(FunctionPtr func) {
+    return KindOf(func) == UntaggedFunction::kImplicitClosureFunction;
+  }
 
   // Returns true if this function represents a non implicit closure function.
   bool IsNonImplicitClosureFunction() const {
@@ -3895,6 +3899,7 @@ class Function : public Object {
   bool IsImplicitInstanceClosureFunction() const {
     return IsImplicitClosureFunction() && !is_static();
   }
+  static bool IsImplicitInstanceClosureFunction(FunctionPtr func);
 
   // Returns true if this function has a parent function.
   bool HasParent() const { return parent_function() != Function::null(); }
@@ -12477,12 +12482,20 @@ class Closure : public Instance {
     return closure.untag()->function();
   }
 
-  ContextPtr context() const { return untag()->context(); }
+  ObjectPtr RawContext() const { return untag()->context(); }
+
+  ContextPtr GetContext() const {
+    ASSERT(!Function::IsImplicitClosureFunction(function()));
+    return Context::RawCast(RawContext());
+  }
+
+  InstancePtr GetImplicitClosureReceiver() const {
+    ASSERT(Function::IsImplicitInstanceClosureFunction(function()));
+    return Instance::RawCast(RawContext());
+  }
+
   static intptr_t context_offset() {
     return OFFSET_OF(UntaggedClosure, context_);
-  }
-  static ContextPtr ContextOf(ClosurePtr closure) {
-    return closure.untag()->context();
   }
 
   // Returns whether the closure is generic, that is, it has a generic closure
@@ -12508,14 +12521,14 @@ class Closure : public Instance {
   static ClosurePtr New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const Function& function,
-                        const Context& context,
+                        const Object& context,
                         Heap::Space space = Heap::kNew);
 
   static ClosurePtr New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const TypeArguments& delayed_type_arguments,
                         const Function& function,
-                        const Context& context,
+                        const Object& context,
                         Heap::Space space = Heap::kNew);
 
   FunctionTypePtr GetInstantiatedSignature(Zone* zone) const;

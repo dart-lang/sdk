@@ -2153,49 +2153,15 @@ Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
   return instructions;
 }
 
-static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
-  ASSERT(!klass.IsNull());
-  // Note that if klass is _Closure, DeclarationType will be _Closure,
-  // and not the signature type.
-  Type& klass_type = Type::ZoneHandle(Z, klass.DeclarationType());
-
-  LocalVariable* receiver_variable =
-      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                            Symbols::This(), klass_type);
-
-  receiver_variable->set_is_captured();
-  //  receiver_variable->set_is_final();
-  LocalScope* scope = new (Z) LocalScope(nullptr, 0, 0);
-  scope->set_context_level(0);
-  scope->AddVariable(receiver_variable);
-  scope->AddContextVariable(receiver_variable);
-  return scope;
-}
-
 Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     const Function& target) {
   // The function cannot be local and have parent generic functions.
   ASSERT(!target.HasGenericParent());
+  ASSERT(target.IsImplicitInstanceClosureFunction());
 
   Fragment fragment;
   fragment += Constant(target);
-
-  // Allocate a context that closes over `this`.
-  // Note: this must be kept in sync with ScopeBuilder::BuildScopes.
-  const LocalScope* implicit_closure_scope =
-      MakeImplicitClosureScope(Z, Class::Handle(Z, target.Owner()));
-  fragment += AllocateContext(implicit_closure_scope->context_slots());
-  LocalVariable* context = MakeTemporary();
-
-  // Store `this`.  The context doesn't need a parent pointer because it doesn't
-  // close over anything else.
-  fragment += LoadLocal(context);
   fragment += LoadLocal(parsed_function_->receiver_var());
-  fragment += StoreNativeField(
-      Slot::GetContextVariableSlotFor(
-          thread_, *implicit_closure_scope->context_variables()[0]),
-      StoreFieldInstr::Kind::kInitializing);
-
   fragment += AllocateClosure();
   LocalVariable* closure = MakeTemporary();
 
@@ -3757,8 +3723,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += IntConstant(function.NumParameters());
     }
     body += LoadLocal(parsed_function_->current_context_var());
-    body += LoadNativeField(Slot::GetContextVariableSlotFor(
-        thread_, *parsed_function_->receiver_var()));
     body += StoreFpRelativeSlot(
         kWordSize * compiler::target::frame_layout.param_end_from_fp);
   }
@@ -3896,8 +3860,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += Constant(type);
     } else {
       body += LoadLocal(parsed_function_->current_context_var());
-      body += LoadNativeField(Slot::GetContextVariableSlotFor(
-          thread_, *parsed_function_->receiver_var()));
     }
   } else {
     body += LoadLocal(parsed_function_->ParameterVariable(0));
@@ -4222,12 +4184,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     LocalVariable* receiver = MakeTemporary();
     closure += LoadLocal(receiver);
   } else if (!target.is_static()) {
-    // The context has a fixed shape: a single variable which is the
-    // closed-over receiver.
+    // The closure context is the receiver.
     closure += LoadLocal(parsed_function_->ParameterVariable(0));
     closure += LoadNativeField(Slot::Closure_context());
-    closure += LoadNativeField(Slot::GetContextVariableSlotFor(
-        thread_, *parsed_function_->receiver_var()));
   }
 
   closure += PushExplicitParameters(function);

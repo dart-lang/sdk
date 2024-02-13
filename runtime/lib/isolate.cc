@@ -238,7 +238,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       case kClosureCid:
         closure ^= raw;
         // Only context has to be checked.
-        working_set->Add(closure.context());
+        working_set->Add(closure.RawContext());
         continue;
 
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \

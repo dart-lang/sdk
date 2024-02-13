@@ -566,7 +566,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       // closures. Though inner closures cannot be constants. We should
       // therefore see `null here.
       ASSERT(closure.function_type_arguments() == TypeArguments::null());
-      Context& context = Context::Handle(Z, closure.context());
+      Object& context = Object::Handle(Z, closure.RawContext());
       instance = Closure::New(type_arguments2, Object::null_type_arguments(),
                               type_arguments, function, context, Heap::kOld);
       break;

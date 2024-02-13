@@ -102,7 +102,7 @@ class ParsedFunction;
 #define NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                 \
   V(Array, UntaggedArray, length, Smi, FINAL)                                  \
   V(Closure, UntaggedClosure, function, Function, FINAL)                       \
-  V(Closure, UntaggedClosure, context, Context, FINAL)                         \
+  V(Closure, UntaggedClosure, context, Dynamic, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
   V(Finalizer, UntaggedFinalizer, callback, Closure, FINAL)                    \
   V(NativeFinalizer, UntaggedFinalizer, callback, Pointer, FINAL)              \

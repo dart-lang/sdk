@@ -2700,7 +2700,7 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   EXPECT_EQ(closure_class.id(), kClosureCid);
   const Function& closure_function = Function::Handle(closure.function());
   EXPECT_EQ(closure_function.ptr(), function.ptr());
-  const Context& closure_context = Context::Handle(closure.context());
+  const Context& closure_context = Context::Handle(closure.GetContext());
   EXPECT_EQ(closure_context.ptr(), context.ptr());
 }
 

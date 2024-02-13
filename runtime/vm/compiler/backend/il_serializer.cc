@@ -1581,7 +1581,7 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       break;
     case kClosureCid: {
       const auto& closure = Closure::Cast(x);
-      if (closure.context() != Object::null()) {
+      if (closure.RawContext() != Object::null()) {
         UNIMPLEMENTED();
       }
       ASSERT(closure.IsCanonical());
@@ -1870,9 +1870,9 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       const auto& delayed_type_arguments = Read<const TypeArguments&>();
       const auto& function = Read<const Function&>();
       auto& closure = Closure::ZoneHandle(
-          Z,
-          Closure::New(instantiator_type_arguments, function_type_arguments,
-                       delayed_type_arguments, function, Context::Handle(Z)));
+          Z, Closure::New(instantiator_type_arguments, function_type_arguments,
+                          delayed_type_arguments, function,
+                          Object::null_object()));
       closure ^= closure.Canonicalize(thread());
       return closure;
     }

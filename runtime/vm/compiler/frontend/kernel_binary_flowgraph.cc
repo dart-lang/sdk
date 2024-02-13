@@ -2564,7 +2564,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
         Function& target =
             Function::ZoneHandle(Z, function.ImplicitClosureFunction());
         ASSERT(!target.IsNull());
-        // Generate inline code for allocation closure object with context
+        // Generate inline code for allocation closure object
         // which captures `this`.
         return BuildImplicitClosureCreation(target);
       }

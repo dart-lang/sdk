@@ -2901,7 +2901,9 @@ class UntaggedClosure : public UntaggedInstance {
   // determine whether a given closure value is generic.
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
   COMPRESSED_POINTER_FIELD(FunctionPtr, function)
-  COMPRESSED_POINTER_FIELD(ContextPtr, context)
+  // For tear-offs - captured receiver.
+  // For ordinary closures - Context object with captured variables.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, context)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
 

@@ -693,7 +693,7 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
 // Return value: newly allocated closure.
 DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
   const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  const auto& context = Context::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& context = Object::Handle(zone, arguments.ArgAt(1));
   const Closure& closure = Closure::Handle(
       zone,
       Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),

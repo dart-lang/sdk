@@ -4726,6 +4726,13 @@ class InstanceRef extends ObjRef {
   @optional
   ContextRef? closureContext;
 
+  /// The receiver captured by tear-off Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - Closure
+  @optional
+  InstanceRef? closureReceiver;
+
   /// The port ID for a ReceivePort.
   ///
   /// Provided for instance kinds:
@@ -4771,6 +4778,7 @@ class InstanceRef extends ObjRef {
     this.pattern,
     this.closureFunction,
     this.closureContext,
+    this.closureReceiver,
     this.portId,
     this.allocationLocation,
     this.debugName,
@@ -4813,6 +4821,9 @@ class InstanceRef extends ObjRef {
     closureContext =
         createServiceObject(json['closureContext'], const ['ContextRef'])
             as ContextRef?;
+    closureReceiver =
+        createServiceObject(json['closureReceiver'], const ['InstanceRef'])
+            as InstanceRef?;
     portId = json['portId'];
     allocationLocation =
         createServiceObject(json['allocationLocation'], const ['InstanceRef'])
@@ -4847,6 +4858,7 @@ class InstanceRef extends ObjRef {
     _setIfNotNull(json, 'pattern', pattern?.toJson());
     _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
     _setIfNotNull(json, 'closureContext', closureContext?.toJson());
+    _setIfNotNull(json, 'closureReceiver', closureReceiver?.toJson());
     _setIfNotNull(json, 'portId', portId);
     _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
     _setIfNotNull(json, 'debugName', debugName);
@@ -5109,6 +5121,14 @@ class Instance extends Obj implements InstanceRef {
   @override
   ContextRef? closureContext;
 
+  /// The receiver captured by tear-off Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - Closure
+  @optional
+  @override
+  InstanceRef? closureReceiver;
+
   /// Whether this regular expression is case sensitive.
   ///
   /// Provided for instance kinds:
@@ -5280,6 +5300,7 @@ class Instance extends Obj implements InstanceRef {
     this.pattern,
     this.closureFunction,
     this.closureContext,
+    this.closureReceiver,
     this.isCaseSensitive,
     this.isMultiLine,
     this.propertyKey,
@@ -5356,6 +5377,9 @@ class Instance extends Obj implements InstanceRef {
     closureContext =
         createServiceObject(json['closureContext'], const ['ContextRef'])
             as ContextRef?;
+    closureReceiver =
+        createServiceObject(json['closureReceiver'], const ['InstanceRef'])
+            as InstanceRef?;
     isCaseSensitive = json['isCaseSensitive'];
     isMultiLine = json['isMultiLine'];
     propertyKey =
@@ -5426,6 +5450,7 @@ class Instance extends Obj implements InstanceRef {
     _setIfNotNull(json, 'pattern', pattern?.toJson());
     _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
     _setIfNotNull(json, 'closureContext', closureContext?.toJson());
+    _setIfNotNull(json, 'closureReceiver', closureReceiver?.toJson());
     _setIfNotNull(json, 'isCaseSensitive', isCaseSensitive);
     _setIfNotNull(json, 'isMultiLine', isMultiLine);
     _setIfNotNull(json, 'propertyKey', propertyKey?.toJson());
