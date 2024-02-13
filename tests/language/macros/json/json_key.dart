@@ -13,5 +13,14 @@ class JsonKey {
   /// If `null`, the field name is used.
   final String? name;
 
-  const JsonKey({this.name});
+  /// The value to use if the source JSON does not contain this key.
+  ///
+  /// If the value is explicitly null in the JSON, it will still be retained.
+  final Object? defaultValue;
+
+  /// Whether or not to include this field in the serialized form, even if it
+  /// is `null`.
+  final bool includeIfNull;
+
+  const JsonKey({this.name, this.defaultValue, this.includeIfNull = false});
 }
