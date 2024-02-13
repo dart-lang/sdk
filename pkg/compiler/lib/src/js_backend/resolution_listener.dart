@@ -49,7 +49,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   /// Contains conditional uses for members that have not been marked as live
   /// yet. Any entries remaining in here after the queue is finished are
   /// considered unreachable.
-  final Map<MemberEntity, List<ConditionalUse>> _pendingConditionalUses = {};
+  final Map<MemberEntity, Set<ConditionalUse>> _pendingConditionalUses = {};
 
   ResolutionEnqueuerListener(
       this._options,
@@ -262,8 +262,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     _customElementsAnalysis.registerStaticUse(member);
     final conditionalUses = _pendingConditionalUses.remove(member);
     if (conditionalUses != null) {
+      // Apply any newly satisfied conditional impacts and remove the condition
+      // from the pending list of other members.
       for (final conditionalUse in conditionalUses) {
         worldImpact.addImpact(conditionalUse.impact);
+        for (final condition in conditionalUse.conditions) {
+          _pendingConditionalUses[condition]?.remove(conditionalUse);
+        }
       }
     }
 
@@ -494,8 +499,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void registerPendingConditionalUses(
-      MemberEntity member, List<ConditionalUse> uses) {
-    (_pendingConditionalUses[member] ??= []).addAll(uses);
+  void registerPendingConditionalUse(ConditionalUse use) {
+    for (final condition in use.conditions) {
+      (_pendingConditionalUses[condition] ??= {}).add(use);
+    }
   }
 }

@@ -39,7 +39,7 @@ class WorldImpact {
 
   Iterable<ConstantUse> get constantUses => const [];
 
-  Map<MemberEntity, List<ConditionalUse>> get conditionalUses => const {};
+  Iterable<ConditionalUse> get conditionalUses => const [];
 
   void _forEach<U>(
           Iterable<U> uses, void Function(MemberEntity?, U) visitUse) =>
@@ -53,6 +53,9 @@ class WorldImpact {
       _forEach(typeUses, visitUse);
   void forEachConstantUse(void Function(MemberEntity?, ConstantUse) visitUse) =>
       _forEach(constantUses, visitUse);
+  void forEachConditionalUse(
+          void Function(MemberEntity?, ConditionalUse) visitUse) =>
+      _forEach(conditionalUses, visitUse);
 
   bool get isEmpty => true;
 
@@ -87,8 +90,7 @@ abstract class WorldImpactBuilder extends WorldImpact {
   void registerTypeUse(TypeUse typeUse);
   void registerStaticUse(StaticUse staticUse);
   void registerConstantUse(ConstantUse constantUse);
-  void registerConditionalUses(
-      MemberEntity condition, Iterable<ConditionalUse> conditionalUses);
+  void registerConditionalUse(ConditionalUse conditionalUse);
 }
 
 class WorldImpactBuilderImpl extends WorldImpactBuilder {
@@ -102,7 +104,7 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
   Set<StaticUse>? _staticUses;
   Set<TypeUse>? _typeUses;
   Set<ConstantUse>? _constantUses;
-  Map<MemberEntity, List<ConditionalUse>>? _conditionalUses;
+  List<ConditionalUse>? _conditionalUses;
 
   WorldImpactBuilderImpl([this.member]);
 
@@ -125,7 +127,7 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
     impact.staticUses.forEach(registerStaticUse);
     impact.typeUses.forEach(registerTypeUse);
     impact.constantUses.forEach(registerConstantUse);
-    impact.conditionalUses.forEach(registerConditionalUses);
+    impact.conditionalUses.forEach(registerConditionalUse);
   }
 
   @override
@@ -169,14 +171,13 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
   }
 
   @override
-  void registerConditionalUses(
-      MemberEntity condition, Iterable<ConditionalUse> impacts) {
-    ((_conditionalUses ??= {})[condition] ??= []).addAll(impacts);
+  void registerConditionalUse(ConditionalUse conditionalUse) {
+    (_conditionalUses ??= []).add(conditionalUse);
   }
 
   @override
-  Map<MemberEntity, List<ConditionalUse>> get conditionalUses {
-    return _conditionalUses ?? const {};
+  Iterable<ConditionalUse> get conditionalUses {
+    return _conditionalUses ?? const [];
   }
 }
 
@@ -249,11 +250,10 @@ class TransformedWorldImpact extends WorldImpactBuilder {
   }
 
   @override
-  void registerConditionalUses(
-      MemberEntity condition, Iterable<ConditionalUse> conditionalUses) {}
+  void registerConditionalUse(ConditionalUse conditionalUse) {}
 
   @override
-  Map<MemberEntity, List<ConditionalUse>> get conditionalUses => const {};
+  Iterable<ConditionalUse> get conditionalUses => const [];
 
   @override
   String toString() {

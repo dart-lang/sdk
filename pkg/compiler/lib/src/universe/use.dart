@@ -1053,7 +1053,13 @@ class ConditionalUse {
   final ir.TreeNode? source;
   final ir.TreeNode? replacement;
   final WorldImpact impact;
+  final List<MemberEntity> conditions;
 
-  ConditionalUse({this.source, this.replacement, required this.impact})
-      : assert((source == null) == (replacement == null));
+  ConditionalUse(
+      {this.source,
+      this.replacement,
+      required this.impact,
+      required this.conditions})
+      : assert((source == null) == (replacement == null)),
+        assert(conditions.isNotEmpty);
 }

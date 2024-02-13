@@ -114,7 +114,7 @@ class EntityDataInfoBuilder {
     if (!closedWorld.isMemberUsed(element)) {
       return;
     }
-    _addDependenciesFromImpact(element);
+    _addDependenciesFromEntityImpact(element);
     ConstantCollector.collect(elementMap, element, this);
   }
 
@@ -235,16 +235,26 @@ class EntityDataInfoBuilder {
     }
   }
 
-  /// Extract any dependencies that are known from the impact of [element].
-  void _addDependenciesFromImpact(MemberEntity element) {
-    WorldImpact worldImpact = impactCache[element]!;
+  void _addFromConditionalUse(ConditionalUse conditionalUse) {
+    if (conditionalUse.conditions.any(closedWorld.isMemberUsed)) {
+      _addDependenciesFromImpact(conditionalUse.impact);
+    }
+  }
+
+  void _addDependenciesFromImpact(WorldImpact worldImpact) {
     worldImpact.forEachStaticUse(_addFromStaticUse);
     worldImpact.forEachTypeUse(_addFromTypeUse);
+    worldImpact.forEachConditionalUse((_, use) => _addFromConditionalUse(use));
 
     // TODO(johnniwinther): Use rti need data to skip unneeded type
     // arguments.
     worldImpact.forEachDynamicUse(
         (_, use) => addTypeListDependencies(use.typeArguments));
+  }
+
+  /// Extract any dependencies that are known from the impact of [element].
+  void _addDependenciesFromEntityImpact(MemberEntity element) {
+    _addDependenciesFromImpact(impactCache[element]!);
   }
 }
 

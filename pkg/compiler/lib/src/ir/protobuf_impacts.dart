@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 
 import '../kernel/element_map.dart';
+import 'impact.dart';
 import 'impact_data.dart';
 
 /// Handles conditional impact creation for protobuf metadata.
@@ -165,15 +166,13 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
     // conditional on the associated field being reachable.
     return _impactData = interfaceTarget.enclosingClass == _builderInfoClass &&
             metadataInitializers.contains(node.name.text)
-        ? (ImpactData()
-          ..conditionalSource = node
-          ..conditionalReplacement = _buildProtobufMetadataPlaceholder(node))
+        ? ImpactData()
         : null;
   }
 
   @override
   void afterInstanceInvocation(
-      ir.InstanceInvocation node, ImpactData currentData) {
+      ir.InstanceInvocation node, ImpactRegistry registry) {
     // This instance invocation is not a metadata initializer.
     if (_impactData == null) return;
 
@@ -186,6 +185,7 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
     // Iterate through all the accessors and find ones which are annotated
     // with a matching tag number. These are the accessors that the current
     // metadata initializer is conditional on.
+    final accessors = <ir.Member>[];
     for (final procedure in _messageClass.procedures) {
       for (final annotation in procedure.annotations) {
         final constant = (annotation as ir.ConstantExpression).constant;
@@ -197,11 +197,13 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
                   .value
                   .toInt();
           if (tagNumber == procedureTagNumber) {
-            ((currentData.conditionalImpacts ??= {})[procedure] ??= [])
-                .add(_impactData!);
+            accessors.add(procedure);
           }
         }
       }
     }
+    registry.registerConditionalImpact(ConditionalImpactData(
+        accessors, _impactData!,
+        source: node, replacement: _buildProtobufMetadataPlaceholder(node)));
   }
 }

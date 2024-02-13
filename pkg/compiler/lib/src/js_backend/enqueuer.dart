@@ -311,6 +311,5 @@ class CodegenEnqueuer extends Enqueuer {
       worldBuilder.processedEntities;
 
   @override
-  void processConditionalUses(
-      Map<MemberEntity, List<ConditionalUse>> conditionalUses) {}
+  void processConditionalUse(ConditionalUse conditionalUse) {}
 }

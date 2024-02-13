@@ -40,12 +40,10 @@ abstract class EnqueuerListener {
   /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerUsedElement(MemberEntity member);
 
-  /// Called to register that [uses] are conditionally applied if [member] is
-  /// used. [member] should only ever be a pending entity (i.e. it is not known
-  /// to be live yet). Entities that are already known to be live should have
-  /// their impacts applied immediately.
-  void registerPendingConditionalUses(
-      MemberEntity member, List<ConditionalUse> uses);
+  /// Called to register that [use] is a pending condition.
+  /// [ConditionalUse.conditions] must only contain members that are not known
+  /// to be live yet.
+  void registerPendingConditionalUse(ConditionalUse use);
 
   /// Called to register that [value] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
@@ -102,7 +100,7 @@ abstract class Enqueuer {
     worldImpact.forEachDynamicUse((_, use) => processDynamicUse(use));
     worldImpact.forEachTypeUse(processTypeUse);
     worldImpact.forEachConstantUse((_, use) => processConstantUse(use));
-    processConditionalUses(worldImpact.conditionalUses);
+    worldImpact.forEachConditionalUse((_, use) => processConditionalUse(use));
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods(
@@ -122,8 +120,7 @@ abstract class Enqueuer {
   void processTypeUse(MemberEntity? member, TypeUse typeUse);
   void processDynamicUse(DynamicUse dynamicUse);
   void processConstantUse(ConstantUse constantUse);
-  void processConditionalUses(
-      Map<MemberEntity, List<ConditionalUse>> conditionalUses);
+  void processConditionalUse(ConditionalUse conditionalUse);
   EnqueuerListener get listener;
 
   void open(FunctionEntity? mainMethod, Iterable<Uri> libraries) {
