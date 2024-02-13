@@ -90,10 +90,10 @@ class A {}
         18,
         10,
         messageContains: [
-          'Macro application failed due to a bug in the macro.',
-        ],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 18, 10),
+          'Unhandled error',
+          'package:test/a.dart',
+          'unresolved',
+          'MyMacro',
         ],
       ),
     ]);
@@ -899,10 +899,10 @@ class A {}
         18,
         10,
         messageContains: [
-          'Macro application failed due to a bug in the macro.'
-        ],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 18, 10),
+          'Unhandled error',
+          'package:test/a.dart',
+          '12345',
+          'MyMacro',
         ],
       ),
     ]);

@@ -66,7 +66,9 @@ Future<MacroExecutionResult> executeTypesMacro(
       builder.failWithException(e);
     } else {
       // Convert exceptions thrown by macro implementations into diagnostics.
-      builder.report(_unexpectedExceptionDiagnostic(e, s));
+      builder.report(new Diagnostic(
+          new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
+          Severity.error));
     }
   }
   return builder.result;
@@ -144,7 +146,9 @@ Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
       builder.failWithException(e);
     } else {
       // Convert exceptions thrown by macro implementations into diagnostics.
-      builder.report(_unexpectedExceptionDiagnostic(e, s));
+      builder.report(new Diagnostic(
+          new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
+          Severity.error));
     }
   }
   return builder.result;
@@ -219,21 +223,10 @@ Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
       builder.failWithException(e);
     } else {
       // Convert exceptions thrown by macro implementations into diagnostics.
-      builder.report(_unexpectedExceptionDiagnostic(e, s));
+      builder.report(new Diagnostic(
+          new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
+          Severity.error));
     }
   }
   return builder.result;
 }
-
-// It's a bug in the macro but we need to show something to the user; put the
-// debug detail in a context message and suggest reporting to the author.
-Diagnostic _unexpectedExceptionDiagnostic(
-        Object thrown, StackTrace stackTrace) =>
-    new Diagnostic(
-        new DiagnosticMessage(
-            'Macro application failed due to a bug in the macro.'),
-        Severity.error,
-        contextMessages: [
-          new DiagnosticMessage('$thrown\n$stackTrace'),
-        ],
-        correctionMessage: 'Try reporting the failure to the macro author.');
