@@ -9,10 +9,10 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:dtd/dtd.dart' show RpcErrorCodes;
 
 import 'constants.dart';
 import '../dart_tooling_daemon.dart';
-import 'rpc_error_codes.dart';
 
 /// Represents a client that is connected to a DTD service.
 class DTDClient extends Client {
@@ -210,5 +210,15 @@ class DTDClient extends Client {
       method: serviceMethod,
       parameters: parameters,
     );
+  }
+
+  /// Registers a [callback] to the client using the name "[service].[method]".
+  void registerServiceMethod(
+    String service,
+    String method,
+    void Function(json_rpc.Parameters parameters) callback,
+  ) {
+    final combinedName = '$service.$method';
+    _clientPeer.registerMethod(combinedName, callback);
   }
 }

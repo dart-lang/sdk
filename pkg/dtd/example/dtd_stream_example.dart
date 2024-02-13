@@ -1,3 +1,6 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 import 'package:dtd/dtd.dart';
 
 void main(List<String> args) async {
@@ -15,9 +18,9 @@ void main(List<String> args) async {
   await clientA.streamListen('Foo');
   await clientB.streamListen('Foo');
 
-  clientA.postEvent('Foo', 'kind1', {'event': 1});
+  await clientA.postEvent('Foo', 'kind1', {'event': 1});
 
-  clientB.postEvent('Foo', 'kind2', {'event': 2});
+  await clientB.postEvent('Foo', 'kind2', {'event': 2});
 
   // delayed so the Daemon connection is still up by the time the events come
   // back.

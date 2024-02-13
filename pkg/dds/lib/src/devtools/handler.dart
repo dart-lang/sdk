@@ -36,6 +36,7 @@ FutureOr<Handler> defaultHandler({
   required String buildDir,
   ClientManager? clientManager,
   Handler? notFoundHandler,
+  String? dtdUri,
 }) {
   // When served through DDS, the app root is /devtools.
   // This variable is used in base href and must start and end with `/`
@@ -138,6 +139,7 @@ FutureOr<Handler> defaultHandler({
       request,
       extensionsManager: ExtensionsManager(buildDir: buildDir),
       deeplinkManager: DeeplinkManager(),
+      dtdUri: dtdUri,
     );
   }
 
