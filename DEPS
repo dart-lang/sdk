@@ -129,7 +129,7 @@ vars = {
   "clock_rev": "daf0fadabc5b3dc8e6e71bf3fb27ef9c3b79df5c",
   "collection_rev": "fc616ff8fd7b732c07b2b19e31b6601e59900ccf",
   "convert_rev": "d4d6368cffb8f4f25522875ef8e1d5f7d158bbad",
-  "crypto_rev": "c9540156d875e3645b030e2eb9c40a322818aaf5",
+  "crypto_rev": "f059196bae4718187c9f421565f9cd1f8fb43898",
   "csslib_rev": "62ae85e84590f61169fddbca650e91a57544834b",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -142,8 +142,8 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "633b01cba68f4b42ddc2985c3d521c22149d5ce3", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "457c34ec5adf39edfdabb3d2bb509e60f1e41fc7",
-  "ecosystem_rev": "7d8ec478f166ff2b9e63232e2fbac3887de252a0",
+  "dartdoc_rev": "f152c0138bff8e4265a3459a6b08e4a83fe860b7",
+  "ecosystem_rev": "3e4f2866d49c2448e44f51112956a689a2e50cd6",
   "file_rev": "3aa06490bf34bddf04c7ea964a50c177a4ca0de7",
   "fixnum_rev": "570b28adcfbfdd5b8a7230ea1d6ec0f9587493f1",
   "flute_rev": "f42b09f77132210499ec8ed819a60c260af03db6",
@@ -155,14 +155,14 @@ vars = {
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "639857be892050159f5164c749d7947694976a4a",
   "leak_tracker_rev": "4a5b077739886f61bd6dc11c78865ef487c917c2",
-  "lints_rev": "90a61e474e7b69cdb5ac9b8761722430ed146e9e",
+  "lints_rev": "ead770872e272e25a64315c120950ea8ad5b2509",
   "logging_rev": "cbaf4ee2e59c318d7519edb5381f5fe2a7f69587",
   "markdown_rev": "c2b842937787bc0dce1763d56e7551b9045deb42",
   "matcher_rev": "d954c8d979579b4b46427b0ea1d9c721117c191e",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "9a168712d6db610c3822617c132daea72d4fd2b5",
   "mockito_rev": "7d6632fd679f0f6aae32ee74038ba8cb6b64a607",
-  "native_rev": "876f9a1948c1642a57640ef9b1526746042a17eb",
+  "native_rev": "cb9bd7ef604f71f2c51d0acbb3214cfe06e952be",
   "package_config_rev": "4a7042bb286cf0b41b26e87972bc28bda535f8b9",
   "path_rev": "a7b696071bd83d3ee0a0f1b57ac94d6b1f05cac4",
   "pool_rev": "782da82fedca4e5776e43ba321543ed2b20373b2",
@@ -173,7 +173,7 @@ vars = {
   "source_map_stack_trace_rev": "c75649651d01826236e3ab7093d277a70756905a",
   "source_maps_rev": "55e92a4b0a8560d5b2b3bb7255249afdb8186ea6",
   "source_span_rev": "21a403a75b6887fbd811fb53b74b08c2cef67ab6",
-  "sse_rev": "e483b1413bdaae14a102a80d559b3cfcbd0adcce",
+  "sse_rev": "af7d8d0881d3309fe9ffc3f0778b33ae745fddd1",
   "stack_trace_rev": "155f12c51226d6372f6722f5e55c38ef39625006",
   "stream_channel_rev": "851336fada8759aa3a2e9ce344844d48dee67495",
   "string_scanner_rev": "a2bcdb575f6bb30b944b4f632ea95d8dc4f914bd",
