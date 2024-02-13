@@ -193,13 +193,13 @@ KernelLoader::KernelLoader(Program* program,
       thread_(Thread::Current()),
       zone_(thread_->zone()),
       no_active_isolate_scope_(),
-      patch_classes_(Array::ZoneHandle(zone_)),
+      patch_classes_(Array::Handle(zone_)),
       active_class_(),
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
       correction_offset_(-1),      // Set to the correct value in LoadLibrary
       loading_native_wrappers_library_(false),
-      library_kernel_data_(TypedDataView::ZoneHandle(zone_)),
-      kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
+      library_kernel_data_(TypedDataView::Handle(zone_)),
+      kernel_program_info_(KernelProgramInfo::Handle(zone_)),
       translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_,
               &translation_helper_,
@@ -457,13 +457,13 @@ KernelLoader::KernelLoader(const KernelProgramInfo& kernel_program_info,
       thread_(Thread::Current()),
       zone_(thread_->zone()),
       no_active_isolate_scope_(),
-      patch_classes_(Array::ZoneHandle(zone_)),
+      patch_classes_(Array::Handle(zone_)),
       library_kernel_offset_(data_program_offset),
       correction_offset_(0),
       loading_native_wrappers_library_(false),
-      library_kernel_data_(TypedDataView::ZoneHandle(zone_)),
+      library_kernel_data_(TypedDataView::Handle(zone_)),
       kernel_program_info_(
-          KernelProgramInfo::ZoneHandle(zone_, kernel_program_info.ptr())),
+          KernelProgramInfo::Handle(zone_, kernel_program_info.ptr())),
       translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_, &translation_helper_, kernel_data, 0),
       constant_reader_(&helper_, &active_class_),
@@ -1901,7 +1901,7 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
     }
 
     // Use cache for patch classes. This works best for in-order usages.
-    PatchClass& patch_class = PatchClass::ZoneHandle(Z);
+    PatchClass& patch_class = PatchClass::Handle(Z);
     patch_class ^= patch_classes_.At(source_uri_index);
     if (patch_class.IsNull() || patch_class.wrapped_class() != klass.ptr()) {
       const auto& lib = Library::Handle(klass.library());
