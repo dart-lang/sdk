@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,9 +30,9 @@ class A implements I<int> {}
 class B extends A {}
 ''');
 
-    await assertErrorsInFile2(a.posixPath, []);
+    await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(testFile.posixPath, [
+    await assertErrorsInFile2(testFile, [
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 1),
     ]);
   }
