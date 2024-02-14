@@ -26099,7 +26099,7 @@ PointerPtr Pointer::New(uword native_address, Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  TypeArguments& type_args = TypeArguments::Handle(
+  const auto& type_args = TypeArguments::Handle(
       zone, IsolateGroup::Current()->object_store()->type_argument_never());
 
   const Class& cls =
