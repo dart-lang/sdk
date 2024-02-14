@@ -281,42 +281,46 @@ Future<void> testKeyOrder() async {
   Expect.equals("1:a,2:a", set.join(","));
 }
 
-Future<void> testRuntimeErrors() async {
-  // TODO(54798): split these and move them closer to each expectation.
-  if (!v.checkedParameters || !v.checkedImplicitDowncasts) {
-    return;
+asyncExpectThrowsTypeErrorOrNSM(Future<void> result) {
+  if (v.checkedParameters) {
+    return asyncExpectThrows<TypeError>(result);
+  } else {
+    return asyncExpectThrows<NoSuchMethodError>(result);
   }
+}
 
+Future<void> testRuntimeErrors() async {
   // Cast variable.
   dynamic nonStream = 3;
-  asyncExpectThrows<TypeError>(() async {
+  asyncExpectThrowsTypeErrorOrNSM(() async {
     <int>[await for (int i in nonStream) 1];
   }());
-  asyncExpectThrows<TypeError>(() async {
+  asyncExpectThrowsTypeErrorOrNSM(() async {
     <int, int>{await for (int i in nonStream) 1: 1};
   }());
-  asyncExpectThrows<TypeError>(() async {
+  asyncExpectThrowsTypeErrorOrNSM(() async {
     <int>{await for (int i in nonStream) 1};
   }());
 
   // Wrong element type.
   dynamic nonInt = "string";
-  asyncExpectThrows<TypeError>(() async {
+  asyncExpectThrowsWhen(v.checkedImplicitDowncasts, () async {
     <int>[
       await for (var i in stream([1])) nonInt
     ];
   }());
-  asyncExpectThrows<TypeError>(() async {
+  asyncExpectThrowsWhen(v.checkedImplicitDowncasts, () async {
     <int, int>{
       await for (var i in stream([1])) nonInt: 1
     };
   }());
-  asyncExpectThrows<TypeError>(() async {
+  asyncExpectThrowsWhen(v.checkedImplicitDowncasts, () async {
     <int, int>{
       await for (var i in stream([1])) 1: nonInt
     };
   }());
-  asyncExpectThrows<TypeError>(() async {
+
+  asyncExpectThrowsWhen(v.checkedImplicitDowncasts, () async {
     <int>{
       await for (var i in stream([1])) nonInt
     };
