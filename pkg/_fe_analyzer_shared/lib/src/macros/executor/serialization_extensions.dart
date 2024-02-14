@@ -501,9 +501,11 @@ extension DeserializerExtensions on Deserializer {
         new DiagnosticMessage(message, target: target.asDiagnosticTarget),
       TypeAnnotationImpl() =>
         new DiagnosticMessage(message, target: target.asDiagnosticTarget),
+      MetadataAnnotationImpl() =>
+        new DiagnosticMessage(message, target: target.asDiagnosticTarget),
       _ => throw new UnsupportedError(
-          'Unsupported target type ${target.runtimeType}, only Declarations '
-          'and TypeAnnotations are allowed.'),
+          'Unsupported target type ${target.runtimeType}, only Declarations, '
+          'TypeAnnotations, and Metadata are allowed.'),
     };
   }
 }
