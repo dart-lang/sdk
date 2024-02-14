@@ -71,7 +71,6 @@ class Dart : public AllStatic {
     return vm_isolate_->group();
   }
   static ThreadPool* thread_pool() { return thread_pool_; }
-  static bool VmIsolateNameEquals(const char* name);
 
   static int64_t UptimeMicros();
   static int64_t UptimeMillis() {

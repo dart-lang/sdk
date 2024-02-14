@@ -22,7 +22,6 @@ class ServiceIsolate : public AllStatic {
 
  public:
   static const char* kName;
-  static bool NameEquals(const char* name);
 
   static bool Exists();
   static bool IsRunning();
@@ -104,7 +103,6 @@ class ServiceIsolate : public AllStatic {
 #else
 
  public:
-  static bool NameEquals(const char* name) { return false; }
   static bool Exists() { return false; }
   static bool IsRunning() { return false; }
   static bool IsServiceIsolate(const Isolate* isolate) { return false; }

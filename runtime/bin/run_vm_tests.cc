@@ -129,6 +129,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   RELEASE_ASSERT(kernel_buffer != nullptr);
 
   flags->load_vmservice_library = true;
+  flags->is_service_isolate = true;
   isolate_group_data->SetKernelBufferUnowned(
       const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size);
   isolate = Dart_CreateIsolateGroupFromKernel(

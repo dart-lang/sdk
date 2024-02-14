@@ -94,14 +94,6 @@ def ProcessOptions(options):
     if not options.isolate_output_bin:
         sys.stderr.write('--isolate_output_bin not specified\n')
         return False
-    if (options.snapshot_kind == 'core-jit' and
-            not options.vm_instructions_output_bin):
-        sys.stderr.write('--vm_instructions_output_bin not specified\n')
-        return False
-    if (options.snapshot_kind == 'core-jit' and
-            not options.isolate_instructions_output_bin):
-        sys.stderr.write('--isolate_instructions_output_bin not specified\n')
-        return False
     return True
 
 

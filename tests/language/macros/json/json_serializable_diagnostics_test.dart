@@ -85,7 +85,7 @@ class EnumField {
 }
 
 @JsonSerializable()
-class EnumField {
+class DuplicateJsonKey {
   @JsonKey()
   @JsonKey()
 //^^^^^^^^^^

@@ -332,7 +332,7 @@ void runSharedTests(
           });
     });
 
-    test('getObjectMetadata (List) (new types)', () async {
+    test('getObjectMetadata (List)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression: 'dart.getObjectMetadata(list)',

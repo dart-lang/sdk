@@ -617,13 +617,14 @@ void f() {
           expect(result.exitCode, 3);
           expect(result.stderr, isEmpty);
 
+          final escapedSeparator = path.separator.replaceAll('\\', '\\\\');
           final stdout = result.stdout.trim();
           expect(
               stdout,
               startsWith(
                   '{"version":1,"diagnostics":[{"code":"return_of_invalid_type",'));
           expect(stdout, endsWith('}'));
-          expect(stdout, contains('lib${path.separator}main.dart'));
+          expect(stdout, contains('lib${escapedSeparator}main.dart'));
           expect(stdout, contains('"line":1,"column":16'));
           expect(stdout, contains('"problemMessage":"A value of type '));
         });
@@ -704,9 +705,10 @@ void f() {
           expect(result.exitCode, 3);
           expect(result.stderr, isEmpty);
 
+          final escapedSeparator = path.separator.replaceAll('\\', '\\\\');
           final stdout = result.stdout.trim();
           expect(stdout, contains('|A value of type '));
-          expect(stdout, contains('lib${path.separator}main.dart|1|16|'));
+          expect(stdout, contains('lib${escapedSeparator}main.dart|1|16|'));
         });
       });
       test('short', () {
