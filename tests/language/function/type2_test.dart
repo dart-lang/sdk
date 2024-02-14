@@ -16,9 +16,5 @@ class B<T> extends A<T> {
 }
 
 main() {
-  if (v.checkedParameters) {
-    Expect.throwsTypeError(() => new B<String>());
-  } else {
-    new B<String>();
-  }
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => new B<String>());
 }

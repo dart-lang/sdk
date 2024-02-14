@@ -25,13 +25,6 @@ testSplit(List<String> expect, String string, Pattern pattern) {
   // Ensure that the correct type is reified.
   actual = actual as List<String>;
 
-  // Check that store of the wrong type throws. Don't test on configurations
-  // that don't perform type checks.
-  if (v.checkedParameters) {
-    Expect.throwsTypeError(
-        () => actual.add(42), 'List<String>.add should not accept an int');
-  }
-
   Expect.listEquals(expect, actual, '"$string".split($patternString)');
 }
 

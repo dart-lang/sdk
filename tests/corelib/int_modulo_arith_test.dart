@@ -125,11 +125,7 @@ testGcd() {
   // Test that gcd of value and other (non-negative) throws.
   testThrows(value, other) {
     callCombos(value, other, (a, b) {
-      if (v.checkedParameters || a is! int) {
-        Expect.throws(() => a.gcd(b));
-      } else {
-        a.gcd(b);
-      }
+      Expect.throwsWhen(v.checkedParameters || a is! int, () => a.gcd(b));
     });
   }
 

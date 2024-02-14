@@ -73,11 +73,8 @@ main() {
 
   // Test that apply works on callable objects when it is passed to a method
   // that expects Function (and not dynamic).
-  if (v.checkedImplicitDowncasts) {
-    Expect.throws(() => testList(42, new Callable(), [13, 29]));
-  } else {
-    testList(42, new Callable(), [13, 29]);
-  }
+  Expect.throwsWhen(
+      v.checkedImplicitDowncasts, () => testList(42, new Callable(), [13, 29]));
 
   testListTyped(42, new Callable(), [13, 29]);
 }

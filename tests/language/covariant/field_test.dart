@@ -38,25 +38,22 @@ class C extends B<A> {
 }
 
 main() {
-  // TODO(sigmund): replace with a Requirement comment when available.
-  if (!v.checkedParameters) return;
-
   // Dynamic method calls should always have their arguments type checked.
   dynamic d = new C();
-  Expect.throwsTypeError(() => d.s1 = new Object());
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => d.s1 = new Object());
 
   // Interface calls should have any arguments marked "genericCovariantImpl"
   // type checked provided that the corresponding argument on the interface
   // target is marked "genericCovariantInterface".
   B<Object> b = new C();
-  Expect.throwsTypeError(() => b.s2 = new Object());
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => b.s2 = new Object());
 
   // Interface calls should have any arguments marked "covariant" type checked,
   // regardless of whether the corresponding argument on the interface target is
   // marked "genericCovariantInterface".
-  Expect.throwsTypeError(() => b.s3 = new Object());
-  Expect.throwsTypeError(() => b.s4 = new Object());
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => b.s3 = new Object());
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => b.s4 = new Object());
 
   // This calls should have any arguments marked "covariant" type checked.
-  Expect.throwsTypeError(() => b.s5 = new Object());
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => b.s5 = new Object());
 }
