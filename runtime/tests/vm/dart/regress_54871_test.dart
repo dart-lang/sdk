@@ -4,13 +4,20 @@
 
 // Regression test for https://dartbug.com/54871.
 
-import 'dart:ffi';
 import 'dart:_internal';
+import 'dart:ffi';
+import 'dart:io';
 
 const address = 0xaabbccdd;
 bool deoptimize = false;
 
+final bool isAOT = Platform.executable.contains('dart_precompiled_runtime');
+
 main() {
+  // This test will cause deoptimizations (via helper in `dart:_internal`) and
+  // does therefore not run in AOT.
+  if (isAOT) return;
+
   for (int i = 0; i < 100000; ++i) {
     foo();
   }
