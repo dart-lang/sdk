@@ -180,6 +180,7 @@ class PolyBenchmark extends Benchmark {
 /// This function is the inner loop of the benchmark.
 @pragma('dart2js:noInline')
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 void sinkAll(Iterable iterable) {
   for (final value in iterable) {
     sink = value;
