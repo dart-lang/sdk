@@ -60,7 +60,6 @@ Snapshot testProfile(String profilePath) {
 }
 
 Future<void> testJIT(String dillPath, String snapshotKind) async {
-  final includesCode = snapshotKind == 'core-jit';
   final description = snapshotKind;
   Expect.isTrue(_seenDescriptions.add(description),
       "test configuration $description would be run multiple times");
@@ -75,10 +74,6 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
 
     await run(genSnapshot, <String>[
       '--snapshot-kind=$snapshotKind',
-      if (includesCode) ...<String>[
-        '--vm_snapshot_instructions=$vmTextPath',
-        '--isolate_snapshot_instructions=$isolateTextPath',
-      ],
       '--vm_snapshot_data=$vmDataPath',
       '--isolate_snapshot_data=$isolateDataPath',
       "--write-v8-snapshot-profile-to=$profilePath",
@@ -94,10 +89,6 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
     // This ensures that all bytes are accounted for in some way.
     int actualSize =
         await File(vmDataPath).length() + await File(isolateDataPath).length();
-    if (includesCode) {
-      actualSize += await File(vmTextPath).length() +
-          await File(isolateTextPath).length();
-    }
     final expectedSize =
         profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
 
@@ -423,8 +414,6 @@ main() async {
 
     // Test profile generation with a core snapshot (no code).
     await testJIT(jitDillPath, 'core');
-    // Test profile generation with a core JIT snapshot (with code).
-    await testJIT(jitDillPath, 'core-jit');
 
     // Test unstripped ELF generation directly.
     await testAOT(aotDillPath);

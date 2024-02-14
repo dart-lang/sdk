@@ -74,7 +74,6 @@ const uint8_t* isolate_snapshot_instructions = nullptr;
 // match kSnapshotKindNames below.
 enum SnapshotKind {
   kCore,
-  kCoreJIT,
   kApp,
   kAppJIT,
   kAppAOTAssembly,
@@ -87,7 +86,6 @@ static SnapshotKind snapshot_kind = kCore;
 static const char* const kSnapshotKindNames[] = {
     // clang-format off
     "core",
-    "core-jit",
     "app",
     "app-jit",
     "app-aot-assembly",
@@ -246,19 +244,6 @@ static int ParseArguments(int argc,
       }
       break;
     }
-    case kCoreJIT: {
-      if ((vm_snapshot_data_filename == nullptr) ||
-          (vm_snapshot_instructions_filename == nullptr) ||
-          (isolate_snapshot_data_filename == nullptr) ||
-          (isolate_snapshot_instructions_filename == nullptr)) {
-        Syslog::PrintErr(
-            "Building a core JIT snapshot requires specifying output "
-            "files for --vm_snapshot_data, --vm_snapshot_instructions, "
-            "--isolate_snapshot_data and --isolate_snapshot_instructions.\n\n");
-        return -1;
-      }
-      break;
-    }
     case kApp:
     case kAppJIT: {
       if ((load_vm_snapshot_data_filename == nullptr) ||
@@ -385,8 +370,7 @@ static void MaybeLoadExtraInputs(const CommandLineOptions& inputs) {
 }
 
 static void MaybeLoadCode() {
-  if (compile_all &&
-      ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
+  if (compile_all && (snapshot_kind == kAppJIT)) {
     Dart_Handle result = Dart_CompileAll();
     CHECK_RESULT(result);
   }
@@ -415,15 +399,13 @@ static void CreateAndWriteCoreSnapshot() {
   WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
             vm_snapshot_data_size);
   if (vm_snapshot_instructions_filename != nullptr) {
-    // Create empty file for the convenience of build systems. Makes things
-    // polymorphic with generating core-jit snapshots.
+    // Create empty file for the convenience of build systems.
     WriteFile(vm_snapshot_instructions_filename, nullptr, 0);
   }
   WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
             isolate_snapshot_data_size);
   if (isolate_snapshot_instructions_filename != nullptr) {
-    // Create empty file for the convenience of build systems. Makes things
-    // polymorphic with generating core-jit snapshots.
+    // Create empty file for the convenience of build systems.
     WriteFile(isolate_snapshot_instructions_filename, nullptr, 0);
   }
 }
@@ -452,45 +434,6 @@ static std::unique_ptr<MappedMemory> MapFile(const char* filename,
   return std::unique_ptr<MappedMemory>(mapping);
 }
 
-static void CreateAndWriteCoreJITSnapshot() {
-  ASSERT(snapshot_kind == kCoreJIT);
-  ASSERT(vm_snapshot_data_filename != nullptr);
-  ASSERT(vm_snapshot_instructions_filename != nullptr);
-  ASSERT(isolate_snapshot_data_filename != nullptr);
-  ASSERT(isolate_snapshot_instructions_filename != nullptr);
-
-  Dart_Handle result;
-  uint8_t* vm_snapshot_data_buffer = nullptr;
-  intptr_t vm_snapshot_data_size = 0;
-  uint8_t* vm_snapshot_instructions_buffer = nullptr;
-  intptr_t vm_snapshot_instructions_size = 0;
-  uint8_t* isolate_snapshot_data_buffer = nullptr;
-  intptr_t isolate_snapshot_data_size = 0;
-  uint8_t* isolate_snapshot_instructions_buffer = nullptr;
-  intptr_t isolate_snapshot_instructions_size = 0;
-
-  // First create a snapshot.
-  result = Dart_CreateCoreJITSnapshotAsBlobs(
-      &vm_snapshot_data_buffer, &vm_snapshot_data_size,
-      &vm_snapshot_instructions_buffer, &vm_snapshot_instructions_size,
-      &isolate_snapshot_data_buffer, &isolate_snapshot_data_size,
-      &isolate_snapshot_instructions_buffer,
-      &isolate_snapshot_instructions_size);
-  CHECK_RESULT(result);
-
-  // Now write the vm isolate and isolate snapshots out to the
-  // specified file and exit.
-  WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
-            vm_snapshot_data_size);
-  WriteFile(vm_snapshot_instructions_filename, vm_snapshot_instructions_buffer,
-            vm_snapshot_instructions_size);
-  WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
-            isolate_snapshot_data_size);
-  WriteFile(isolate_snapshot_instructions_filename,
-            isolate_snapshot_instructions_buffer,
-            isolate_snapshot_instructions_size);
-}
-
 static void CreateAndWriteAppSnapshot() {
   ASSERT(snapshot_kind == kApp);
   ASSERT(isolate_snapshot_data_filename != nullptr);
@@ -506,8 +449,7 @@ static void CreateAndWriteAppSnapshot() {
   WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
             isolate_snapshot_data_size);
   if (isolate_snapshot_instructions_filename != nullptr) {
-    // Create empty file for the convenience of build systems. Makes things
-    // polymorphic with generating core-jit snapshots.
+    // Create empty file for the convenience of build systems.
     WriteFile(isolate_snapshot_instructions_filename, nullptr, 0);
   }
 }
@@ -813,9 +755,6 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
     case kCore:
       CreateAndWriteCoreSnapshot();
       break;
-    case kCoreJIT:
-      CreateAndWriteCoreJITSnapshot();
-      break;
     case kApp:
       CreateAndWriteAppSnapshot();
       break;
@@ -889,8 +828,8 @@ int main(int argc, char** argv) {
     // so generated code should not depend on the CPU features
     // of the system where snapshot was generated.
     vm_options.AddArgument("--target_unknown_cpu");
-  } else if ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT)) {
-    // Core-jit and app-jit snapshot can be deployed to another machine,
+  } else if (snapshot_kind == kAppJIT) {
+    // App-jit snapshot can be deployed to another machine,
     // so generated code should not depend on the CPU features
     // of the system where snapshot was generated.
     vm_options.AddArgument("--target_unknown_cpu");
