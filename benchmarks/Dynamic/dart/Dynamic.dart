@@ -50,40 +50,58 @@ void main() {
 }
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 void f1(String s) {}
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 Function(String) c1 = (String s) => {};
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 void f2(String s, [String t = 'default']) {}
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 Function(String, [String]) c2 = (String s, [String t = 'default']) => {};
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 void f3(String s, {String t = 'default'}) {}
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 Function(String, {String t}) c3 = (String s, {String t = 'default'}) => {};
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic df1 = f1 as dynamic;
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic dc1 = c1 as dynamic;
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic df2 = f2 as dynamic;
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic dc2 = c2 as dynamic;
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic df3 = f3 as dynamic;
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic dc3 = c3 as dynamic;
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic df1NonCast(dynamic s) {}
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 Function dc1NonCast = (dynamic s) => {};
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic df2NonCast(dynamic s, [dynamic t = 'default']) {}
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 Function dc2NonCast = (dynamic s, [dynamic t = 'default']) => {};
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic df3NonCast(dynamic s, {dynamic t = 'default'}) {}
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 Function dc3NonCast = (dynamic s, {dynamic t = 'default'}) => {};
 
 class A {
@@ -95,6 +113,7 @@ class B extends A {
 }
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic k = (A a) {};
 
 class C {
@@ -106,6 +125,7 @@ class D extends C {
 }
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 dynamic j = (C c) {};
 
 class NonDynamicFunction extends BenchmarkBase {

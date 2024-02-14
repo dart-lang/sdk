@@ -545,12 +545,12 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --closed-world
       --traps-never-happen
       --type-unfinalizing
-      -O3
+      -Os
       --type-ssa
       --gufa
-      -O3
+      -Os
       --type-merging
-      -O1
+      -Os
       --type-finalizing
     '''); // end of binaryenFlags
 

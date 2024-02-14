@@ -15,7 +15,7 @@ Future<void> main(List<String> args) async {
   // Expect something like /full/path/to/sdk/pkg/some_dir/whatever/else
   if (args.length != 1) throw "Need exactly one argument.";
 
-  final List<String> changedFiles = _getChangedFiles();
+  final List<String> changedFiles = getChangedFiles();
   String callerPath = args[0].replaceAll("\\", "/");
   if (!_shouldRun(changedFiles, callerPath)) {
     return;
@@ -290,7 +290,7 @@ Future<void> _executePendingWorkItems(List<Work> workItems) async {
 /// Queries git about changes against upstream, or origin/main if no upstream is
 /// set. This is similar (but different), I believe, to what
 /// `git cl presubmit` does.
-List<String> _getChangedFiles() {
+List<String> getChangedFiles() {
   ProcessResult result = Process.runSync(
       "git",
       [

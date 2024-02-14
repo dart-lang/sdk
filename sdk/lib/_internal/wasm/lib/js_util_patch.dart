@@ -7,6 +7,12 @@ library dart.js_util;
 import "dart:_internal";
 import "dart:_js_helper";
 import "dart:_js_types";
+import "dart:js_interop"
+    show
+        JSAnyUtilityExtension,
+        FunctionToJSExportedDartFunction,
+        dartify,
+        JSAny;
 import "dart:_wasm";
 import "dart:async" show Completer, FutureOr;
 import "dart:collection";
@@ -151,23 +157,25 @@ typedef _PromiseFailureFunc = void Function(Object? error);
 Future<T> promiseToFuture<T>(Object jsPromise) {
   Completer<T> completer = Completer<T>();
 
-  final success = allowInterop<_PromiseSuccessFunc>((r) {
+  final success = ((JSAny? jsValue) {
+    final r = dartifyRaw(jsValue.toExternRef);
     return completer.complete(r as FutureOr<T>?);
-  });
-  final error = allowInterop<_PromiseFailureFunc>((e) {
+  }).toJS;
+  final error = ((JSAny? jsError) {
     // Note that `completeError` expects a non-nullable error regardless of
     // whether null-safety is enabled, so a `NullRejectionException` is always
     // provided if the error is `null` or `undefined`.
     // TODO(joshualitt): At this point `undefined` has been replaced with `null`
     // so we cannot tell them apart. In the future we should reify `undefined`
     // in Dart.
+    final e = dartifyRaw(jsError.toExternRef);
     if (e == null) {
       return completer.completeError(NullRejectionException(false));
     }
     return completer.completeError(e);
-  });
+  }).toJS;
 
-  promiseThen(jsifyRaw(jsPromise), jsifyRaw(success), jsifyRaw(error));
+  promiseThen(jsifyRaw(jsPromise), success.toExternRef, error.toExternRef);
   return completer.future;
 }
 

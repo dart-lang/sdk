@@ -1192,11 +1192,13 @@ class Instantiate1000 extends BenchmarkBase {
 }
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
 void blackhole<T>() => null;
 
 class D<T> {
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   static void instantiate<S>() => blackhole<D<S>>();
 }

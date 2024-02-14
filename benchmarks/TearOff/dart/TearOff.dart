@@ -13,12 +13,14 @@ class BenchTearOffInlined extends BenchmarkBase {
   int sum = 0;
 
   @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
   @pragma('dart2js:prefer-inline')
   void foo(int arg) {
     sum += arg;
   }
 
   @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
   @pragma('dart2js:prefer-inline')
   void callIt(void Function(int) func, int arg) {
     func(arg);
@@ -26,6 +28,7 @@ class BenchTearOffInlined extends BenchmarkBase {
 
   @override
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   void run() {
     sum = 0;
@@ -54,12 +57,14 @@ class BenchTearOffInlinedInTry extends BenchmarkBase {
   int sum = 0;
 
   @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
   @pragma('dart2js:prefer-inline')
   void foo(int arg) {
     sum += arg;
   }
 
   @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
   @pragma('dart2js:prefer-inline')
   void callIt(void Function(int) func, int arg) {
     func(arg);
@@ -67,6 +72,7 @@ class BenchTearOffInlinedInTry extends BenchmarkBase {
 
   @override
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   void run() {
     sum = 0;
@@ -97,12 +103,14 @@ class BenchTearOffNotInlined extends BenchmarkBase {
   int sum = 0;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   void foo(int arg) {
     sum += arg;
   }
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   void callIt(void Function(int) func, int arg) {
     func(arg);
@@ -110,6 +118,7 @@ class BenchTearOffNotInlined extends BenchmarkBase {
 
   @override
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   void run() {
     sum = 0;
@@ -138,12 +147,14 @@ class BenchTearOffNotInlinedInTry extends BenchmarkBase {
   int sum = 0;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   void foo(int arg) {
     sum += arg;
   }
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   void callIt(void Function(int) func, int arg) {
     func(arg);
@@ -151,6 +162,7 @@ class BenchTearOffNotInlinedInTry extends BenchmarkBase {
 
   @override
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   void run() {
     sum = 0;

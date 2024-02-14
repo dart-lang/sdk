@@ -13604,8 +13604,8 @@ Message _withArgumentsNullSafetyOptOutImplicit(String string) {
 const Template<Message Function(String name)> templateNullableInterfaceError =
     const Template<Message Function(String name)>(
   "NullableInterfaceError",
-  problemMessageTemplate:
-      r"""Can't implement '#name' because it's marked with '?'.""",
+  problemMessageTemplate: r"""Can't implement '#name' because it's nullable.""",
+  correctionMessageTemplate: r"""Try removing the question mark.""",
   withArguments: _withArgumentsNullableInterfaceError,
 );
 
@@ -13621,8 +13621,8 @@ Message _withArgumentsNullableInterfaceError(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(
     codeNullableInterfaceError,
-    problemMessage:
-        """Can't implement '${name}' because it's marked with '?'.""",
+    problemMessage: """Can't implement '${name}' because it's nullable.""",
+    correctionMessage: """Try removing the question mark.""",
     arguments: {
       'name': name,
     },
@@ -13633,8 +13633,8 @@ Message _withArgumentsNullableInterfaceError(String name) {
 const Template<Message Function(String name)> templateNullableMixinError =
     const Template<Message Function(String name)>(
   "NullableMixinError",
-  problemMessageTemplate:
-      r"""Can't mix '#name' in because it's marked with '?'.""",
+  problemMessageTemplate: r"""Can't mix '#name' in because it's nullable.""",
+  correctionMessageTemplate: r"""Try removing the question mark.""",
   withArguments: _withArgumentsNullableMixinError,
 );
 
@@ -13650,7 +13650,8 @@ Message _withArgumentsNullableMixinError(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(
     codeNullableMixinError,
-    problemMessage: """Can't mix '${name}' in because it's marked with '?'.""",
+    problemMessage: """Can't mix '${name}' in because it's nullable.""",
+    correctionMessage: """Try removing the question mark.""",
     arguments: {
       'name': name,
     },
@@ -13671,8 +13672,8 @@ const MessageCode messageNullableSpreadError = const MessageCode(
 const Template<Message Function(String name)> templateNullableSuperclassError =
     const Template<Message Function(String name)>(
   "NullableSuperclassError",
-  problemMessageTemplate:
-      r"""Can't extend '#name' because it's marked with '?'.""",
+  problemMessageTemplate: r"""Can't extend '#name' because it's nullable.""",
+  correctionMessageTemplate: r"""Try removing the question mark.""",
   withArguments: _withArgumentsNullableSuperclassError,
 );
 
@@ -13688,7 +13689,8 @@ Message _withArgumentsNullableSuperclassError(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(
     codeNullableSuperclassError,
-    problemMessage: """Can't extend '${name}' because it's marked with '?'.""",
+    problemMessage: """Can't extend '${name}' because it's nullable.""",
+    correctionMessage: """Try removing the question mark.""",
     arguments: {
       'name': name,
     },
