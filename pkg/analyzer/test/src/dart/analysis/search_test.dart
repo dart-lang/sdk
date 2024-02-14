@@ -817,6 +817,41 @@ self::@class::C::@method::main
 ''');
   }
 
+  test_searchReferences_class_constructor_declaredInAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  A.named();
+}
+''');
+
+    await resolveTestCode('''
+import augment 'a.dart';
+
+class A {
+  void foo() {
+    A.named();
+  }
+}
+
+void f() {
+  A.named();
+}
+''');
+
+    final A = findElement.class_('A');
+    final element = A.augmented!.constructors.single;
+    expect(element.name, 'named');
+
+    await assertElementReferencesText(element, r'''
+self::@class::A::@method::foo
+  56 5:6 |.named| INVOCATION qualified
+self::@function::f
+  87 10:4 |.named| INVOCATION qualified
+''');
+  }
+
   test_searchReferences_class_getter_in_objectPattern() async {
     await resolveTestCode('''
 void f(Object? x) {
