@@ -11,6 +11,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 
 namespace dart {
 
@@ -348,6 +349,29 @@ void DeferredObject::Fill() {
                          offset.Value(), value.ToCString());
           }
         }
+      }
+    } break;
+    case kPointerCid: {
+      auto* const zone = Thread::Current()->zone();
+      const int kDataIndex = 0;
+      const int kTypeArgIndex = 1;
+      ASSERT(field_count_ == 2);
+      ASSERT(Smi::Cast(Object::Handle(zone, GetFieldOffset(kDataIndex)))
+                 .AsInt64Value() == PointerBase::data_offset());
+      ASSERT(Smi::Cast(Object::Handle(zone, GetFieldOffset(kTypeArgIndex)))
+                 .AsInt64Value() == Pointer::type_arguments_offset());
+
+      const auto& pointer = Pointer::Cast(*object_);
+      const size_t address =
+          Integer::Cast(Object::Handle(zone, GetValue(kDataIndex)))
+              .AsInt64Value();
+      pointer.SetNativeAddress(address);
+      const auto& type_args = TypeArguments::Handle(
+          zone, IsolateGroup::Current()->object_store()->type_argument_never());
+      pointer.SetTypeArguments(type_args);
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr("    pointer@data <- 0x%" Px "\n", address);
+        OS::PrintErr("    pointer@type_args <- %s\n", type_args.ToCString());
       }
     } break;
     case kRecordCid: {

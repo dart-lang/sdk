@@ -16,6 +16,9 @@ part of dart.math;
 /// The rectangle is the set of points with representable coordinates greater
 /// than or equal to left/top, and with distance to left/top no greater than
 /// width/height (to the limit of the precision of the coordinates).
+///
+/// **Legacy:** New usages of [_RectangleBase] are discouraged.
+/// To learn more, check out the [Rectangle] class API docs.
 abstract class _RectangleBase<T extends num> {
   const _RectangleBase();
 
@@ -117,6 +120,27 @@ abstract class _RectangleBase<T extends num> {
 
 /// A class for representing two-dimensional rectangles whose properties are
 /// immutable.
+///
+/// **Legacy:** New usages of [Rectangle] are discouraged.
+///
+/// - If you are using the `Rectangle` class with `dart:html`,
+///   we recommend migrating to `package:web`.
+///   To learn how and why to migrate,
+///   check out the [migration guide](https://dart.dev/go/package-web).
+/// - If you want to store the boundaries of a rectangle
+///   in some coordinate system,
+///   consider using a [record](https://dart.dev/language/records).
+///   Depending on how you will use it, this could look
+///   like `var boundaries = (mixX: x1, maxX: x2, minY: y1, maxY: y2)`.
+/// - If you need to perform intersection calculations or containment checks,
+///   consider using a dedicated library, such as
+///   [`package:vector_math`](https://pub.dev/packages/vector_math).
+/// - If you are developing a Flutter application or package,
+///   consider using the
+///   [`Rect`](https://api.flutter.dev/flutter/dart-ui/Rect-class.html)
+///   type from `dart:ui`.
+// TODO: @Deprecated(
+//     'Use records or a dedicated library like package:vector_math instead.')
 class Rectangle<T extends num> extends _RectangleBase<T> {
   final T left;
   final T top;
@@ -144,6 +168,9 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   /// print(rectangle.right); // 320
   /// print(rectangle.bottom); // 650
   /// ```
+  ///
+  /// **Legacy:** New usages of [Rectangle] are discouraged.
+  /// To learn more, check out the [Rectangle] class API docs.
   const Rectangle(this.left, this.top, T width, T height)
       : width = (width < 0)
             ? (width == double.negativeInfinity ? 0.0 : (-width * 0)) as dynamic
@@ -187,6 +214,27 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
 
 /// A class for representing two-dimensional axis-aligned rectangles with
 /// mutable properties.
+///
+/// **Legacy:** New usages of [MutableRectangle] are discouraged.
+///
+/// - If you are using the `MutableRectangle` class with `dart:html`,
+///   we recommend migrating to `package:web`.
+///   To learn how and why to migrate,
+///   check out the [migration guide](https://dart.dev/go/package-web).
+/// - If you want to store the boundaries of a rectangle
+///   in some coordinate system,
+///   consider using a [record](https://dart.dev/language/records).
+///   Depending on how you will use it, this could look
+///   like `var boundaries = (mixX: x1, maxX: x2, minY: y1, maxY: y2)`.
+/// - If you need to perform intersection calculations or containment checks,
+///   consider using a dedicated library, such as
+///   [`package:vector_math`](https://pub.dev/packages/vector_math).
+/// - If you are developing a Flutter application or package,
+///   consider using the
+///   [`Rect`](https://api.flutter.dev/flutter/dart-ui/Rect-class.html)
+///   type from `dart:ui`.
+// TODO: @Deprecated(
+//     'Use records or a dedicated library like package:vector_math instead.')
 class MutableRectangle<T extends num> extends _RectangleBase<T>
     implements Rectangle<T> {
   /// The x-coordinate of the left edge.
@@ -233,6 +281,9 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
   /// print(rectangle.right); // 220
   /// print(rectangle.bottom); // 150
   /// ```
+  ///
+  /// **Legacy:** New usages of [MutableRectangle] are discouraged.
+  /// To learn more, check out the [MutableRectangle] class API docs.
   MutableRectangle(this.left, this.top, T width, T height)
       : this._width =
             (width < 0) ? _clampToZero<T>(width) : (width + 0 as dynamic),
