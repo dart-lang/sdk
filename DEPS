@@ -162,7 +162,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "9a168712d6db610c3822617c132daea72d4fd2b5",
   "mockito_rev": "7d6632fd679f0f6aae32ee74038ba8cb6b64a607",
-  "native_rev": "cb9bd7ef604f71f2c51d0acbb3214cfe06e952be",
+  "native_rev": "b1a0c2a211c2c85d9392b74abacef5eca7a62364", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "4a7042bb286cf0b41b26e87972bc28bda535f8b9",
   "path_rev": "a7b696071bd83d3ee0a0f1b57ac94d6b1f05cac4",
   "pool_rev": "782da82fedca4e5776e43ba321543ed2b20373b2",
