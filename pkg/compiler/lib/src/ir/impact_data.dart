@@ -38,10 +38,11 @@ abstract class ConditionalImpactHandler {
   /// otherwise.
   ImpactData? beforeInstanceInvocation(ir.InstanceInvocation node);
 
-  /// Invoked after children of [node] are analyzed. Takes [currentData] which
-  /// should be the [ImpactData] prior to visiting [node].
+  /// Invoked after children of [node] are analyzed. [registry] allows any extra
+  /// impacts to be registered. This is typically used to register conditional
+  /// impacts in the registry.
   void afterInstanceInvocation(
-      ir.InstanceInvocation node, ImpactData currentData);
+      ir.InstanceInvocation node, ImpactRegistry registry);
 }
 
 class _ConditionalImpactBuilder extends ImpactBuilder {
@@ -58,8 +59,8 @@ class _ConditionalImpactBuilder extends ImpactBuilder {
 
     super.visitInstanceInvocation(node);
 
-    _conditionalHandler.afterInstanceInvocation(node, oldData);
     _data = oldData;
+    _conditionalHandler.afterInstanceInvocation(node, this);
   }
 }
 
@@ -1155,11 +1156,20 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerConditionalImpacts(
-      ir.Member condition, Iterable<ImpactData> impactData) {
+  void registerConditionalImpact(ConditionalImpactData impact) {
     // Ensure conditional impact is registered on parent impact, `_data`.
-    ((_data.conditionalImpacts ??= {})[condition] ??= []).addAll(impactData);
+    (_data._conditionalImpacts ??= []).add(impact);
   }
+}
+
+class ConditionalImpactData {
+  final ir.TreeNode? source;
+  final ir.TreeNode? replacement;
+  final List<ir.Member> conditions;
+  final ImpactData impactData;
+
+  ConditionalImpactData(this.conditions, this.impactData,
+      {this.source, this.replacement});
 }
 
 /// Data object that contains the world impact data derived purely from kernel.
@@ -1202,9 +1212,7 @@ class ImpactData {
   List<_RecordLiteral>? _recordLiterals;
   List<_RuntimeTypeUse>? _runtimeTypeUses;
   List<_ForInData>? _forInData;
-  Map<ir.Member, List<ImpactData>>? conditionalImpacts;
-  ir.TreeNode? conditionalSource;
-  ir.TreeNode? conditionalReplacement;
+  List<ConditionalImpactData>? _conditionalImpacts;
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
   List<ir.Constructor>? _externalConstructorNodes;
@@ -1649,7 +1657,7 @@ class ImpactData {
       }
     }
 
-    conditionalImpacts?.forEach(registry.registerConditionalImpacts);
+    _conditionalImpacts?.forEach(registry.registerConditionalImpact);
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
     if (_externalConstructorNodes != null) {

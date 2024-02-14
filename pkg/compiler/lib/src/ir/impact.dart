@@ -7,7 +7,7 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../serialization/serialization.dart';
 import 'constants.dart';
-import 'impact_data.dart' show ImpactData;
+import 'impact_data.dart' show ConditionalImpactData, ImpactData;
 import 'runtime_type_analysis.dart';
 
 /// Interface for collecting world impact data.
@@ -178,8 +178,7 @@ abstract class ImpactRegistry {
   void registerExternalProcedureNode(ir.Procedure node);
   void registerForeignStaticInvocationNode(ir.StaticInvocation node);
   void registerConstSymbolConstructorInvocationNode();
-  void registerConditionalImpacts(
-      ir.Member condition, Iterable<ImpactData> impactData);
+  void registerConditionalImpact(ConditionalImpactData impact);
 }
 
 class ImpactBuilderData {

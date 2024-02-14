@@ -3888,6 +3888,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes,
       _MapLiteralEntryOffsets offsets) {
+    if (entry.isNullAware) {
+      spreadContext = computeNullable(spreadContext);
+    }
     ExpressionInferenceResult spreadResult =
         inferExpression(entry.expression, spreadContext, isVoidAllowed: true);
     if (entry.isNullAware) {

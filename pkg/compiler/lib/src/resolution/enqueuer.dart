@@ -336,20 +336,15 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   @override
-  void processConditionalUses(
-      Map<MemberEntity, List<ConditionalUse>> conditionalUses) {
-    conditionalUses.forEach((condition, uses) {
-      // Only register a conditional use as pending if the condition member is
-      // not live. If it is already live apply the attached impacts immediately.
-      // [worldBuilder.isInstanceMemberLive] checks against the set of members
-      // that have been registered as used by the enqueuer.
-      if (worldBuilder.isInstanceMemberLive(condition)) {
-        for (final use in uses) {
-          applyImpact(use.impact);
-        }
-      } else {
-        listener.registerPendingConditionalUses(condition, uses);
-      }
-    });
+  void processConditionalUse(ConditionalUse conditionalUse) {
+    // Only register a conditional use as pending if no condition member is
+    // live. If any condition member is live then immediately apply the impact.
+    // `worldBuilder.isMemberProcessed` checks whether the member is used
+    // including all static and instance members.
+    if (conditionalUse.conditions.any(worldBuilder.isMemberProcessed)) {
+      applyImpact(conditionalUse.impact);
+    } else {
+      listener.registerPendingConditionalUse(conditionalUse);
+    }
   }
 }

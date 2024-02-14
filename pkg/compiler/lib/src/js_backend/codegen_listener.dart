@@ -357,8 +357,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void registerPendingConditionalUses(
-      MemberEntity member, List<ConditionalUse> uses) {
+  void registerPendingConditionalUse(ConditionalUse use) {
     throw UnsupportedError(
         'Codegen enqueuer does not support conditional impacts.');
   }

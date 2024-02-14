@@ -400,6 +400,67 @@ R fb<R, P>(P p) {}
     }
   }
 
+  Future<void> test_class_augment() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import augment 'test.dart';
+
+class C {
+  // Endure that the outline for the augment doesn't include members from the
+  // augmented class.
+  void n() {}
+}
+''');
+    var unitOutline = await _computeOutline('''
+library augment 'a.dart';
+
+augment class C {
+  String f = '';
+  C();
+  C.named();
+  void m() {}
+  augment m() {}
+}
+''');
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+    // C
+    var outline_C = topOutlines[0];
+    var element_C = outline_C.element;
+    expect(element_C.kind, ElementKind.CLASS);
+    expect(element_C.name, 'C');
+    // C children
+    var outlines_C = outline_C.children!;
+    expect(outlines_C, hasLength(5));
+    // C.f
+    var outline_f = outlines_C[0];
+    var element_f = outline_f.element;
+    expect(element_f.kind, ElementKind.FIELD);
+    expect(element_f.name, 'f');
+    // C.new
+    var outline_new = outlines_C[1];
+    var element_new = outline_new.element;
+    expect(element_new.kind, ElementKind.CONSTRUCTOR);
+    expect(element_new.name, 'C');
+    // C.named
+    var outline_named = outlines_C[2];
+    var element_named = outline_named.element;
+    expect(element_named.kind, ElementKind.CONSTRUCTOR);
+    expect(element_named.name, 'C.named');
+    // C.m
+    var outline_m = outlines_C[3];
+    var element_m = outline_m.element;
+    expect(element_m.kind, ElementKind.METHOD);
+    expect(element_m.name, 'm');
+    expect(element_m.location?.offset, testCode.indexOf('m()'));
+    // C.m augmented
+    var outline_ma = outlines_C[4];
+    var element_ma = outline_ma.element;
+    expect(element_ma.kind, ElementKind.METHOD);
+    expect(element_ma.name, 'm');
+    expect(element_ma.location?.offset,
+        testCode.indexOf('m()', testCode.indexOf('m()') + 1));
+  }
+
   Future<void> test_enum_constants() async {
     var unitOutline = await _computeOutline('''
 enum E {

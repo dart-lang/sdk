@@ -340,7 +340,7 @@ void promiseThen(WasmExternRef? promise, WasmExternRef? successFunc,
 // `allowInterop` and to replace them with the wrapped variant when they flow
 // to JS.
 // NOTE: We are not currently replacing functions returned from JS.
-Map<Function, JSValue> functionToJSWrapper = {};
+final Map<Function, JSValue> functionToJSWrapper = Map.identity();
 
 WasmExternRef? jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
   ByteData byteData = ByteData.view(buffer);

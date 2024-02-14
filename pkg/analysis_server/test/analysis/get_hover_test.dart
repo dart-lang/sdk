@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,24 +43,22 @@ class A {}
 
 @reflectiveTest
 class AnalysisHoverTest extends PubPackageAnalysisServerTest {
-  Future<HoverInformation> prepareHover(String search, {String? inFile}) async {
+  Future<HoverInformation> prepareHover(String search, {File? inFile}) async {
     return (await prepareHoverOrNull(search, inFile: inFile))!;
   }
 
-  Future<HoverInformation?> prepareHoverAt(int offset, {String? inFile}) async {
+  Future<HoverInformation?> prepareHoverAt(int offset, {File? inFile}) async {
+    inFile ??= testFile;
     await waitForTasksFinished();
-    var request =
-        AnalysisGetHoverParams(inFile ?? testFile.path, offset).toRequest('0');
+    var request = AnalysisGetHoverParams(inFile.path, offset).toRequest('0');
     var response = await handleSuccessfulRequest(request);
     var result = AnalysisGetHoverResult.fromResponse(response);
-    var hovers = result.hovers;
-    return hovers.isNotEmpty ? hovers.first : null;
+    return result.hovers.firstOrNull;
   }
 
-  Future<HoverInformation?> prepareHoverOrNull(String search,
-      {String? inFile}) {
-    var offset =
-        offsetInFile(resourceProvider.getFile(inFile ?? testFile.path), search);
+  Future<HoverInformation?> prepareHoverOrNull(String search, {File? inFile}) {
+    inFile ??= testFile;
+    var offset = offsetInFile(inFile, search);
     return prepareHoverAt(offset, inFile: inFile);
   }
 
@@ -861,7 +860,7 @@ class C {
   C();
 }
 ''');
-    var hover = await prepareHover('C();', inFile: file.path);
+    var hover = await prepareHover('C();', inFile: file);
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'C');
@@ -890,7 +889,7 @@ class C {
   C.named();
 }
 ''');
-    var hover = await prepareHover('C.named();', inFile: file.path);
+    var hover = await prepareHover('C.named();', inFile: file);
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'C');
@@ -1431,7 +1430,7 @@ class C {
   void n() {}
 }
 ''');
-    var hover = await prepareHover('n();', inFile: file.path);
+    var hover = await prepareHover('n();', inFile: file);
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'C');
