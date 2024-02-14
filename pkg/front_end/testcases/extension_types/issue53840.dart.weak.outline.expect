@@ -19,7 +19,8 @@ library;
 // extension type E6(Null it) implements dynamic {} // Error.
 //                                       ^
 //
-// pkg/front_end/testcases/extension_types/issue53840.dart:22:39: Error: Can't implement 'double?' because it's marked with '?'.
+// pkg/front_end/testcases/extension_types/issue53840.dart:22:39: Error: Can't implement 'double?' because it's nullable.
+// Try removing the question mark.
 // extension type E7(Null it) implements double? {} // Error.
 //                                       ^
 //
