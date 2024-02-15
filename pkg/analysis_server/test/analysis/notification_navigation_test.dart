@@ -185,7 +185,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   String get augmentFilePath => '$testPackageLibPath/a.dart';
 
   Future<void> prepareNavigation([String? path]) async {
-    var filePath = path ?? testFile.path;
+    var filePath = path != null ? getFile(path).path : testFile.path;
     await handleSuccessfulRequest(
       AnalysisSetSubscriptionsParams({
         AnalysisService.NAVIGATION: [filePath],

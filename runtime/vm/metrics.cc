@@ -158,7 +158,10 @@ int64_t MetricHeapOldExternal::Value() const {
 
 int64_t MetricHeapNewUsed::Value() const {
   ASSERT(isolate_group() == IsolateGroup::Current());
-  return isolate_group()->heap()->UsedInWords(Heap::kNew) * kWordSize;
+  // UsedInWords requires a safepoint to access all the TLAB pointers without a
+  // data race, so coarsen this metric to capacity. Preferable to locking during
+  // new-space allocation.
+  return isolate_group()->heap()->CapacityInWords(Heap::kNew) * kWordSize;
 }
 
 int64_t MetricHeapNewCapacity::Value() const {
