@@ -237,4 +237,56 @@ ISOLATE_UNIT_TEST_CASE(Isolate_Ports) {
   EXPECT(!isolate->HasLivePorts());
 }
 
+ISOLATE_UNIT_TEST_CASE(Isolate_MayExit_True) {
+  TransitionVMToNative transition(thread);
+
+  EXPECT_EQ(false, thread->is_unwind_in_progress());
+
+  Dart_EnterScope();
+
+  Dart_Handle lib =
+      Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_Handle isolate_type = Dart_GetNonNullableType(
+      lib, Dart_NewStringFromCString("Isolate"), 0, nullptr);
+  EXPECT(!Dart_IsError(isolate_type));
+
+  Dart_Handle result =
+      Dart_Invoke(isolate_type, Dart_NewStringFromCString("exit"), 0, nullptr);
+  EXPECT(Dart_IsFatalError(result));
+
+  Dart_ExitScope();
+
+  EXPECT_EQ(true, thread->is_unwind_in_progress());
+}
+
+ISOLATE_UNIT_TEST_CASE(Isolate_MayExit_False) {
+  TransitionVMToNative transition(thread);
+
+  EXPECT_EQ(false, thread->is_unwind_in_progress());
+
+  Dart_EnterScope();
+
+  Dart_Handle lib =
+      Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_Handle isolate_type = Dart_GetNonNullableType(
+      lib, Dart_NewStringFromCString("Isolate"), 0, nullptr);
+  EXPECT(!Dart_IsError(isolate_type));
+
+  Dart_Handle setter_result = Dart_SetField(
+      isolate_type, Dart_NewStringFromCString("_mayExit"), Dart_False());
+  EXPECT(!Dart_IsError(setter_result));
+
+  Dart_Handle result =
+      Dart_Invoke(isolate_type, Dart_NewStringFromCString("exit"), 0, nullptr);
+  EXPECT(Dart_IsUnhandledExceptionError(result));
+
+  Dart_ExitScope();
+
+  EXPECT_EQ(false, thread->is_unwind_in_progress());
+}
+
 }  // namespace dart
