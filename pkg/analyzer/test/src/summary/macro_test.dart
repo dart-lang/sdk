@@ -1591,7 +1591,8 @@ augment class A {
     // See https://github.com/dart-lang/sdk/issues/54713
     // Create `FileState` with the same name as would be macro generated.
     // If we don't have implementation to discard it, we will get exception.
-    driverFor(testFile).getFileSync('$testPackageLibPath/test.macro.dart');
+    var macroFile = getFile('$testPackageLibPath/test.macro.dart');
+    driverFor(testFile).getFileSync2(macroFile);
 
     var library = await buildLibrary(r'''
 import 'append.dart';
