@@ -417,6 +417,9 @@ class TestConfiguration {
       return {...Feature.all.where((f) => !Feature.legacy.contains(f))};
     }
 
+    var isDart2jsProduction = dart2jsOptions.contains('-O3');
+    var isOptimizedDart2Wasm = dart2wasmOptions.contains('-O1');
+    var isJsCompiler = compiler == Compiler.dart2js || compiler == Compiler.ddc;
     return {
       // The supported NNBD features depending on the `nnbdMode`.
       if (NnbdMode.legacy == configuration.nnbdMode)
@@ -429,9 +432,17 @@ class TestConfiguration {
       // The configurations with the following builder tags and configurations
       // with the `minified` flag set to `true` will obfuscate `Type.toString`
       // strings.
-      if (!(const {"dart2js_production", "obfuscated"}).contains(builderTag) &&
-          !isMinified)
+      if (!isDart2jsProduction && builderTag != 'obfuscated' && !isMinified)
         Feature.readableTypeStrings,
+
+      if (isJsCompiler) Feature.jsNumbers else Feature.nativeNumbers,
+
+      if (!isDart2jsProduction && !isOptimizedDart2Wasm) ...[
+        Feature.checkedImplicitDowncasts,
+        Feature.checkedParameters,
+      ],
+
+      if (!isOptimizedDart2Wasm) Feature.checkedExplicitCasts,
     };
   }
 

@@ -4,6 +4,9 @@
 
 /// This library contains an Expect class with static methods that can be used
 /// for simple unit-tests.
+///
+/// This library is deliberately simple and uses very few language features.
+/// This makes it safer to use for writing the language test suite.
 library expect;
 
 /// Whether the program is running without sound null safety.
@@ -606,6 +609,22 @@ class Expect {
     _fail('Expect.throws$msg fails: Did not throw');
   }
 
+  /// Calls [computation] and checks that it throws an [E] when [condition] is
+  /// `true`.
+  ///
+  /// If [condition] is `true`, the test succeeds if an [E] is thrown, and then
+  /// that error is returned. The test fails if nothing is thrown or a different
+  /// error is thrown.
+  /// If [condition] is `false`, the test succeeds if nothing is thrown,
+  /// returning `null`, and fails if anything is thrown.
+  static E? throwsWhen<E extends Object>(
+      bool condition, void Function() computation,
+      [String? reason]) {
+    if (condition) return throws<E>(computation, null, reason);
+    computation();
+    return null;
+  }
+
   static ArgumentError throwsArgumentError(void Function() f,
           [String reason = "ArgumentError"]) =>
       Expect.throws<ArgumentError>(f, _defaultCheck, reason);
@@ -638,6 +657,11 @@ class Expect {
   static TypeError throwsTypeError(void Function() f,
           [String reason = "TypeError"]) =>
       Expect.throws<TypeError>(f, _defaultCheck, reason);
+
+  /// Checks that [f] throws a [TypeError] if an only if [condition] is `true`.
+  static TypeError? throwsTypeErrorWhen(bool condition, void Function() f,
+          [String? reason]) =>
+      Expect.throwsWhen<TypeError>(condition, f, reason);
 
   static UnsupportedError throwsUnsupportedError(void Function() f,
           [String reason = "UnsupportedError"]) =>

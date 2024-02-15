@@ -24,18 +24,14 @@ void main() {
   Expect.isTrue(f is Foo<Foo<int>>);
   Expect.isFalse(f is Foo<int>);
   Expect.isFalse(f is Foo<Object>);
-  if (v.checkedParameters) {
-    Expect.throwsTypeError(() => f(f));
-    Expect.throwsTypeError(() => f(42));
-  }
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => f(f));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => f(42));
 
   Foo<Foo<int>> bazInt = baz; // implicit instantiation baz<int>
   f = bazInt;
   Expect.isTrue(f(bar));
   Expect.isFalse(f is Foo<int>);
 
-  if (v.checkedParameters) {
-    Expect.throwsTypeError(() => f(f));
-    Expect.throwsTypeError(() => f(42));
-  }
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => f(f));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => f(42));
 }

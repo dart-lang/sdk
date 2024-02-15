@@ -565,9 +565,14 @@ class Search {
       } else {
         files = await _driver.getFilesReferencingName(name);
       }
-      if (searchedFiles.add(elementFile.path, this)) {
-        if (!files.contains(elementFile)) {
-          files.add(elementFile);
+      // Add all files of the library.
+      if (elementFile.kind.library case var library?) {
+        for (var file in library.files) {
+          if (searchedFiles.add(file.path, this)) {
+            if (!files.contains(file)) {
+              files.add(file);
+            }
+          }
         }
       }
     }

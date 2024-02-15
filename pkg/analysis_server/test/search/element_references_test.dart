@@ -939,8 +939,7 @@ void f() {
 }
 ''');
     await findElementReferences(search: 'fff(p) {}', false);
-    expect(results, hasLength(1));
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(10);');
+    expect(results, isEmpty);
   }
 
   Future<void> test_parameter() async {

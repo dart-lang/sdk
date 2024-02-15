@@ -30,11 +30,7 @@ class C<T> {
 
   void test(String nameOfT, bool expectedResult) {
     check(bool expectedResult, f()) {
-      if (!expectedResult) {
-        if (v.checkedParameters) Expect.throwsTypeError(f);
-      } else {
-        f();
-      }
+      Expect.throwsTypeErrorWhen(!expectedResult && v.checkedParameters, f);
     }
 
     dynamic foo = fooF, baz = bazF, boz = bozF;

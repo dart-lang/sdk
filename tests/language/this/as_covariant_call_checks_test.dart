@@ -45,14 +45,11 @@ void loop(A<String> obj, bool violateType) {
 }
 
 void main() {
-  // TODO(sigmund): update to use a Requirements comment instead
-  if (!v.checkedParameters) return;
-
   A<num>().field = 10;
   final obj = A<String>();
   loop(obj, false);
   loop(obj, false);
-  Expect.throwsTypeError(() => obj.testMethod(true));
-  Expect.throwsTypeError(() => obj.testSetter(true));
-  Expect.throwsTypeError(() => obj.testField(true));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => obj.testMethod(true));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => obj.testSetter(true));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => obj.testField(true));
 }

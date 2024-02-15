@@ -338,6 +338,10 @@ class LibraryAnalyzer {
     List<LinterContextUnit> allUnits, {
     required AnalysisOptionsImpl analysisOptions,
   }) {
+    // Skip computing lints on macro generated augmentations.
+    // See: https://github.com/dart-lang/sdk/issues/54875
+    if (unitAnalysis.file.isMacroAugmentation) return;
+
     var unit = currentUnit.unit;
     var errorReporter = unitAnalysis.errorReporter;
 

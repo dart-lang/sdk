@@ -1064,4 +1064,39 @@ prefix0.int get x => 0;
 ---
 ''');
   }
+
+  test_withLints() async {
+    writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig(
+      lints: ['unnecessary_this'],
+      experiments: ['macros'],
+    ));
+
+    /// A macro that will produce an augmented class with `unnecessary_this`
+    /// violations.
+    var macroFile = newFile(
+      '$testPackageLibPath/auto_to_string.dart',
+      getMacroCode('example/auto_to_string.dart'),
+    );
+    await assertErrorsInFile2(macroFile, []);
+
+    var testFile = newFile('$testPackageLibPath/test.dart', r'''
+import 'auto_to_string.dart';
+
+class User {
+  final String name;
+  final int age;
+  User(this.name, this.age);
+
+  @override
+  @AutoToString()
+  String toString();
+}
+''');
+    await assertErrorsInFile2(testFile, []);
+
+    var macroGeneratedFile = getFile('$testPackageLibPath/test.macro.dart');
+    await assertErrorsInFile2(macroGeneratedFile, [
+      // No lints.
+    ]);
+  }
 }

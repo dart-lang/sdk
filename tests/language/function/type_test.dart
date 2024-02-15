@@ -9,9 +9,7 @@ import "package:expect/variations.dart" as v;
 typedef FListInt(List<int> l);
 
 main() {
-  // TODO(sigmund): replace with a Requirement comment when available.
-  if (!v.checkedImplicitDowncasts) return;
-  Expect.throwsTypeError(() {
+  Expect.throwsTypeErrorWhen(v.checkedImplicitDowncasts, () {
     // Static result type of f(), i.e. FList, is a subtype of FListInt.
     // However, run time type of returned function is not a subtype of FListInt.
     // Run time type check should not be eliminated.
