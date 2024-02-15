@@ -242,8 +242,8 @@ Future<void> hasValidHttpRequests(HttpProfile profile, String method) async {
           if (method == 'POST') {
             // add() was used
             expect(
-              <int>[0, 1, 2],
               fullRequest.requestBody!,
+              <int>[0, 1, 2],
             );
           } else {
             // write() was used.

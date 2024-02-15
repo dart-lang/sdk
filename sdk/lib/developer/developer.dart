@@ -80,6 +80,7 @@ import 'dart:convert';
 import 'dart:isolate' show Isolate, RawReceivePort, SendPort;
 
 part 'extension.dart';
+part 'http_profiling.dart';
 part 'profiler.dart';
 part 'service.dart';
 part 'timeline.dart';

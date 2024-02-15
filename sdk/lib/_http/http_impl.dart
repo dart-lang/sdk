@@ -24,19 +24,16 @@ abstract final class HttpProfiler {
 
   static void clear() => _profile.clear();
 
-  static String toJson(int? updatedSince) {
-    return json.encode({
-      'type': _kType,
-      'timestamp': DateTime.now().microsecondsSinceEpoch,
-      'requests': [
-        for (final request in _profile.values.where(
-          (e) {
-            return (updatedSince == null) || e.lastUpdateTime >= updatedSince;
-          },
-        ))
-          request.toJson(),
-      ],
-    });
+  /// Returns a list of Maps, where each map conforms to the @HttpProfileRequest
+  /// type defined in the dart:io service extension spec.
+  static List<Map<String, dynamic>> serializeHttpProfileRequests(
+      int? updatedSince) {
+    return _profile.values
+        .where(
+          (e) => (updatedSince == null) || e.lastUpdateTime >= updatedSince,
+        )
+        .map((e) => e.toJson(ref: true))
+        .toList();
   }
 }
 
@@ -223,7 +220,7 @@ class _HttpProfileData {
     _updated();
   }
 
-  Map<String, dynamic> toJson({bool ref = true}) {
+  Map<String, dynamic> toJson({required bool ref}) {
     return <String, dynamic>{
       'type': '${ref ? '@' : ''}HttpProfileRequest',
       'id': id,
