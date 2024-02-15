@@ -301,6 +301,7 @@ abstract class AbstractLspAnalysisServerTest
 analyzer:
   enable-experiment:
     - inline-class
+    - macros
 ''');
 
     analysisOptionsUri = pathContext.toUri(analysisOptionsPath);

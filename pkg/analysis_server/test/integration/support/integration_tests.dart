@@ -12,6 +12,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -265,6 +266,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
 
   /// After every test, the server is stopped and [sourceDirectory] and
   /// [packagesDirectory] are deleted.
+  @mustCallSuper
   Future<void> tearDown() {
     return shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);

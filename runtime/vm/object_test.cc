@@ -2318,8 +2318,8 @@ ISOLATE_UNIT_TEST_CASE(TypedData_Grow) {
 
   Random random(42);
 
-  for (classid_t cid = kTypedDataInt8ArrayCid; cid < kByteDataViewCid;
-       cid += 4) {
+  for (classid_t cid = kFirstTypedDataCid; cid <= kLastTypedDataCid;
+       cid += kNumTypedDataCidRemainders) {
     ASSERT(IsTypedDataClassId(cid));
 
     const auto& small = TypedData::Handle(TypedData::New(cid, kSmallSize));

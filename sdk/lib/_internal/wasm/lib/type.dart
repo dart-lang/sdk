@@ -1405,3 +1405,11 @@ _Type _getMasqueradedRuntimeTypeNullable(Object? object) =>
 external bool _isObjectClassId(int classId);
 external bool _isClosureClassId(int classId);
 external bool _isRecordClassId(int classId);
+
+// Used by the generated code to compare types captured by instantiation
+// closures. Because we don't have a way of forcing adding a member the
+// dispatch table (like the entry-point pragma) we can't generate a virtual
+// call to `_Type.==` directly in the generated code.
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+bool _runtimeTypeEquals(_Type t1, _Type t2) => t1 == t2;
