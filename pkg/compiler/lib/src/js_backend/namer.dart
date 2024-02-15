@@ -1162,7 +1162,7 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
 ///     Duration_16000          // const Duration(milliseconds: 16)
 ///     EventKeyProvider_keyup  // const EventKeyProvider('keyup')
 ///
-class ConstantNamingVisitor implements ConstantValueVisitor {
+class ConstantNamingVisitor implements ConstantValueVisitor<void, Null> {
   final Namer _namer;
   final JClosedWorld _closedWorld;
   final ConstantCanonicalHasher _hasher;
