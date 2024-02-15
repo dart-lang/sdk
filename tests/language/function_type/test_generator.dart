@@ -694,11 +694,15 @@ final TYPEDEF_T_TESTS_TEMPLATE = """
     Expect.isFalse(#staticFunName is #typeName<bool>);
     Expect.isTrue(confuse(#staticFunName) is #typeName<int>);
     Expect.isFalse(confuse(#staticFunName) is #typeName<bool>);
-    if (tIsBool && v.checkedImplicitDowncasts) {
-      Expect.throws(() { #fieldName = (#staticFunName as dynamic); });
-      Expect.throws(() { #fieldName = confuse(#staticFunName); });
-      Expect.throws(() { #localName = (#staticFunName as dynamic); });
-      Expect.throws(() { #localName = confuse(#staticFunName); });
+    if (tIsBool) {
+      Expect.throwsWhen(v.checkedImplicitDowncasts,
+          () { #fieldName = (#staticFunName as dynamic); });
+      Expect.throwsWhen(v.checkedImplicitDowncasts,
+          () { #fieldName = confuse(#staticFunName); });
+      Expect.throwsWhen(v.checkedImplicitDowncasts,
+          () { #localName = (#staticFunName as dynamic); });
+      Expect.throwsWhen(v.checkedImplicitDowncasts,
+          () { #localName = confuse(#staticFunName); });
     }
     if (tIsInt || tIsBool) {
       Expect.equals(#isIntValue, #methodFunName is #typeName<int>);
