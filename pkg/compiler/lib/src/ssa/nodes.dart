@@ -216,11 +216,11 @@ abstract class HInstructionVisitor extends HGraphVisitor {
   @override
   void visitBasicBlock(HBasicBlock node) {
     void visitInstructionList(HInstructionList list) {
-      HInstruction? instruction = list.first;
-      while (instruction != null) {
+      for (var instruction = list.first;
+          instruction != null;
+          instruction = instruction.next) {
         visitInstruction(instruction);
-        instruction = instruction.next;
-        assert(instruction != list.first);
+        assert(instruction.next != list.first);
       }
     }
 
@@ -428,10 +428,10 @@ class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
   void visitBasicBlock(HBasicBlock node) {
     currentBlock = node;
 
-    HInstruction? instruction = node.first;
-    while (instruction != null) {
+    for (var instruction = node.first;
+        instruction != null;
+        instruction = instruction.next) {
       instruction.accept(this);
-      instruction = instruction.next;
     }
   }
 
@@ -733,10 +733,8 @@ class HInstructionList {
 
   /// Linear search for [instruction].
   bool contains(HInstruction instruction) {
-    HInstruction? cursor = first;
-    while (cursor != null) {
+    for (var cursor = first; cursor != null; cursor = cursor.next) {
       if (identical(cursor, instruction)) return true;
-      cursor = cursor.next;
     }
 
     return false;
@@ -749,17 +747,20 @@ class HInstructionList {
   /// the basic blocks are huge (50K nodes!), and we found that checking for
   /// [contains] within our assertions made compilation really slow.
   bool _truncatedContainsForAssert(HInstruction instruction) {
-    HInstruction? cursor = first;
     int count = 0;
-    while (cursor != null) {
+    for (var cursor = first; cursor != null; cursor = cursor.next) {
       count++;
       if (count > 100) return true;
       if (identical(cursor, instruction)) return true;
-      cursor = cursor.next;
     }
 
     return false;
   }
+}
+
+class HPhiList extends HInstructionList {
+  HPhi? get firstPhi => first as HPhi?;
+  HPhi? get lastPhi => last as HPhi?;
 }
 
 class HBasicBlock extends HInstructionList {
@@ -772,10 +773,7 @@ class HBasicBlock extends HInstructionList {
   static const int STATUS_CLOSED = 2;
   int status = STATUS_NEW;
 
-  // TODO(48820): Can we make the Phi list better typed? As it stands, the
-  // first/last fields and the next/previous fields of the HPhi nodes are all
-  // typed as HInstruction, requiring downcasts to HPhi/HPhi?
-  HInstructionList phis = HInstructionList();
+  var phis = HPhiList();
 
   HLoopInformation? loopInformation = null;
   HBlockFlow? blockFlow = null;
@@ -1020,10 +1018,10 @@ class HBasicBlock extends HInstructionList {
   }
 
   void forEachPhi(void f(HPhi phi)) {
-    var current = phis.first;
+    var current = phis.firstPhi;
     while (current != null) {
-      final next = current.next;
-      f(current as HPhi);
+      final next = current.nextPhi;
+      f(current);
       current = next;
     }
   }
@@ -1418,10 +1416,8 @@ abstract class HInstruction implements SpannableWithEntity {
     if (this == other) return false;
     if (block != other.block) return block!.dominates(other.block!);
 
-    HInstruction? current = this.next;
-    while (current != null) {
+    for (var current = next; current != null; current = current.next) {
       if (current == other) return true;
-      current = current.next;
     }
     return false;
   }
@@ -1552,14 +1548,12 @@ class DominatedUses {
     // Run through all the instructions before [dominator] and remove them from
     // the users set.
     if (usersInCurrentBlock > 0) {
-      HInstruction? current = dominatorBlock.first;
-      while (!identical(current, dominator)) {
-        if (users.contains(current)) {
-          // TODO(29302): Use 'user.remove(current)' as the condition.
-          users.remove(current);
+      for (var current = dominatorBlock.first;
+          !identical(current, dominator);
+          current = current!.next) {
+        if (users.remove(current)) {
           if (--usersInCurrentBlock == 0) break;
         }
-        current = current!.next;
       }
       if (excludeDominator) {
         users.remove(dominator);
@@ -3084,6 +3078,9 @@ class HPhi extends HInstruction {
   static const IS_OR = 2;
 
   int logicalOperatorType = IS_NOT_LOGICAL_OPERATOR;
+
+  HPhi? get previousPhi => previous as HPhi?;
+  HPhi? get nextPhi => next as HPhi?;
 
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor

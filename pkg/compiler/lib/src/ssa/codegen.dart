@@ -1673,7 +1673,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool tryControlFlowOperation(HIf node) {
     if (!controlFlowOperators.contains(node)) return false;
-    HPhi phi = node.joinBlock!.phis.first as HPhi;
+    final phi = node.joinBlock!.phis.first!;
     bool atUseSite = isGenerateAtUseSite(phi);
     // Don't generate a conditional operator in this situation:
     // i = condition ? bar() : i;
