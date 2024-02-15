@@ -153,6 +153,7 @@ static void OnExitHook(int64_t exit_code) {
 static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
                                       IsolateData* isolate_data,
                                       bool is_isolate_group_start,
+                                      bool is_kernel_isolate,
                                       const char** resolved_packages_config) {
   auto isolate_group_data = isolate_data->isolate_group_data();
   const auto packages_file = isolate_data->packages_file();
@@ -193,8 +194,7 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   Builtin::SetNativeResolver(Builtin::kCLILibrary);
   VmService::SetNativeResolver();
 
-  const char* namespc =
-      Dart_IsKernelIsolate(isolate) ? nullptr : Options::namespc();
+  const char* namespc = is_kernel_isolate ? nullptr : Options::namespc();
   result =
       DartUtils::SetupIOLibrary(namespc, script_uri, Options::exit_disabled());
   if (Dart_IsError(result)) return result;
@@ -218,6 +218,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
       isolate_group_data->RunFromAppSnapshot();
   Dart_Handle result = SetupCoreLibraries(isolate, isolate_data,
                                           /*group_start=*/false,
+                                          /*is_kernel_isolate=*/false,
                                           /*resolved_packages_config=*/nullptr);
   if (Dart_IsError(result)) goto failed;
 
@@ -270,9 +271,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   auto isolate_data = reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
 
   const char* resolved_packages_config = nullptr;
-  result = SetupCoreLibraries(isolate, isolate_data,
-                              /*is_isolate_group_start=*/true,
-                              &resolved_packages_config);
+  result =
+      SetupCoreLibraries(isolate, isolate_data,
+                         /*is_isolate_group_start=*/true,
+                         flags->is_kernel_isolate, &resolved_packages_config);
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
