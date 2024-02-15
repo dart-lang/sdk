@@ -243,6 +243,17 @@ int f() {
     await assertNoAssistAt('42;');
   }
 
+  Future<void> test_macroGenerated() async {
+    testFilePath = join(testPackageLibPath, 'test.macro.dart');
+    await resolveTestCode('''
+int f() {
+  return 0;
+}
+''');
+
+    await assertNoAssistAt('urn');
+  }
+
   Future<void> test_method_onBlock() async {
     await resolveTestCode('''
 class A {

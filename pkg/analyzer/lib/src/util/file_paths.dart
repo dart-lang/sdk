@@ -104,6 +104,12 @@ bool isGenerated(String path) {
   return false;
 }
 
+/// Returns `true` if the [filePath] should be assumed to be the path of a
+/// macro generated file.
+bool isMacroGenerated(String filePath) {
+  return filePath.endsWith('.macro.dart');
+}
+
 /// Return `true` if [path] is a `.dart_tool/package_config.json` file.
 bool isPackageConfigJson(p.Context pathContext, String path) {
   var components = pathContext.split(path);

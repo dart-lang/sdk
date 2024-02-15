@@ -533,6 +533,23 @@ Future foo;
     expectCommandLogged('dart.fix.remove.unusedImport');
   }
 
+  Future<void> test_macroGenerated() async {
+    setDartTextDocumentContentProviderSupport();
+    var macroFilePath = join(projectFolderPath, 'lib', 'test.macro.dart');
+    final code = TestCode.parse('''
+void f() {
+  js^on.encode('');
+}
+''');
+    newFile(macroFilePath, code.code);
+    await initialize();
+
+    final codeActions = await getCodeActions(
+        uriConverter.toClientUri(macroFilePath),
+        position: code.position.position);
+    expect(codeActions, isEmpty);
+  }
+
   /// Repro for https://github.com/Dart-Code/Dart-Code/issues/4462.
   ///
   /// Original code only included a fix on its first error (which in this sample

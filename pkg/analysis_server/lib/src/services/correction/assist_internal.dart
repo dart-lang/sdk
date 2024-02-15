@@ -75,6 +75,7 @@ import 'package:analysis_server/src/services/correction/dart/surround_with.dart'
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart'
     hide AssistContributor;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -172,6 +173,9 @@ class AssistProcessor extends BaseProcessor {
         );
 
   Future<List<Assist>> compute() async {
+    if (isMacroGenerated(assistContext.resolveResult.file.path)) {
+      return assists;
+    }
     await _addFromProducers();
     return assists;
   }
