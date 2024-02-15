@@ -310,7 +310,8 @@ class _CompilationErrorError {
   toString() => 'Aborted due to --throw-on-error: $message';
 }
 
-typedef MessageCallback = void Function(String message);
+typedef OnInfo = void Function(String message);
+typedef OnFailure = Never Function(String message);
 
 class RandomAccessFileOutputProvider implements api.CompilerOutput {
   // The file name to use for the main output. Also used as the filename prefix
@@ -318,11 +319,8 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
   // primary output but can still write other files.
   final Uri? out;
   final Uri? sourceMapOut;
-  final MessageCallback onInfo;
-
-  // TODO(48820): Make [onFailure] return `Never`. The value passed in for the
-  // real compiler exits. [onFailure] is not specified or faked in some tests.
-  final MessageCallback onFailure;
+  final OnInfo onInfo;
+  final OnFailure onFailure;
 
   int totalCharactersWritten = 0;
   int totalCharactersWrittenPrimary = 0;
@@ -332,9 +330,7 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
   List<String> allOutputFiles = <String>[];
 
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
-      {this.onInfo = _ignore, this.onFailure = _ignore});
-
-  static void _ignore(String message) {}
+      {required this.onInfo, required this.onFailure});
 
   Uri createUri(String name, String extension, api.OutputType type) {
     Uri uri;
@@ -400,8 +396,6 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
           .openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
-      // TODO(48820): Make onFailure return `Never`
-      throw StateError('unreachable');
     }
 
     allOutputFiles.add(fe.relativizeUri(Uri.base, uri, Platform.isWindows));
@@ -436,8 +430,6 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
           .openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
-      // TODO(48820): Make `onFailure` return `Never`.
-      throw StateError('unreachable');
     }
 
     void onClose(int bytesWritten) {
