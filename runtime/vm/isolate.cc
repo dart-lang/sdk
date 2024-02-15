@@ -1539,7 +1539,6 @@ void IsolateGroup::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->isolate_flag = flag;
   BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
-  api_flags->copy_parent_code = false;
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
 }
@@ -1550,7 +1549,6 @@ void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
   api_flags->isolate_flag = name();
   BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
-  api_flags->copy_parent_code = false;
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
 }
@@ -1592,7 +1590,6 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->isolate_flag = flag;
   BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
-  api_flags->copy_parent_code = false;
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
 }
@@ -1605,13 +1602,11 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->isolate_flag = name();
   BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
-  api_flags->copy_parent_code = false;
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
-  const bool copy_parent_code_ = copy_parent_code();
 #if defined(DART_PRECOMPILER)
 #define FLAG_FOR_PRECOMPILER(action) action
 #else
@@ -1631,7 +1626,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
                       api_flags.isolate_flag, isolate_flags_));
 
   BOOL_ISOLATE_FLAG_LIST(SET_FROM_FLAG)
-  isolate_flags_ = CopyParentCodeBit::update(copy_parent_code_, isolate_flags_);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT

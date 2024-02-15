@@ -913,9 +913,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
       paused.value(), fatal_errors, on_exit_port, on_error_port,
       utf8_debug_name, isolate->group()));
 
-  // Since this is a call to Isolate.spawn, copy the parent isolate's code.
-  state->isolate_flags()->copy_parent_code = true;
-
   isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
                                                          std::move(state));
   return Object::null();
@@ -1009,9 +1006,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
     Dart_IsolateFlags* flags = state->isolate_flags();
     flags->enable_asserts = checked.value();
   }
-
-  // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
-  state->isolate_flags()->copy_parent_code = false;
 
   isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
                                                          std::move(state));

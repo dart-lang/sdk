@@ -759,14 +759,6 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     }
   }
 
-  if (flags->copy_parent_code && callback_data != nullptr) {
-    auto parent_isolate_group_data =
-        reinterpret_cast<IsolateData*>(callback_data)->isolate_group_data();
-    kernel_buffer_ptr = parent_isolate_group_data->kernel_buffer();
-    kernel_buffer = kernel_buffer_ptr.get();
-    kernel_buffer_size = parent_isolate_group_data->kernel_buffer_size();
-  }
-
   if (kernel_buffer == nullptr && !isolate_run_app_snapshot) {
     dfe.ReadScript(script_uri, app_snapshot, &kernel_buffer,
                    &kernel_buffer_size, /*decode_uri=*/true,
