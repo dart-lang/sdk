@@ -302,6 +302,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
             target: method.asDiagnosticTarget,
           );
         }).toList(),
+        correctionMessage: 'Correction message',
       ),
     );
   }

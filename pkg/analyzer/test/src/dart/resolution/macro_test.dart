@@ -332,7 +332,8 @@ import 'diagnostic.dart';
 @ReportErrorAtTargetDeclaration()
 class A {}
 ''', [
-      error(CompileTimeErrorCode.MACRO_ERROR, 67, 1),
+      error(CompileTimeErrorCode.MACRO_ERROR, 67, 1,
+          correctionContains: 'Correction message'),
     ]);
   }
 
@@ -343,7 +344,8 @@ import 'diagnostic.dart';
 @ReportInfoAtTargetDeclaration()
 class A {}
 ''', [
-      error(HintCode.MACRO_INFO, 66, 1),
+      error(HintCode.MACRO_INFO, 66, 1,
+          correctionContains: 'Correction message'),
     ]);
   }
 
@@ -354,7 +356,8 @@ import 'diagnostic.dart';
 @ReportAtTargetDeclaration()
 class A {}
 ''', [
-      error(WarningCode.MACRO_WARNING, 62, 1),
+      error(WarningCode.MACRO_WARNING, 62, 1,
+          correctionContains: 'Correction message'),
     ]);
   }
 
@@ -820,10 +823,16 @@ class A {
   void bar() {}
 }
 ''', [
-      error(WarningCode.MACRO_WARNING, 27, 56, contextMessages: [
-        message('/home/test/lib/test.dart', 101, 3),
-        message('/home/test/lib/test.dart', 117, 3)
-      ]),
+      error(
+        WarningCode.MACRO_WARNING,
+        27,
+        56,
+        contextMessages: [
+          message('/home/test/lib/test.dart', 101, 3),
+          message('/home/test/lib/test.dart', 117, 3)
+        ],
+        correctionContains: 'Correction message',
+      ),
     ]);
   }
 
