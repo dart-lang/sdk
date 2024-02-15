@@ -189,10 +189,16 @@ class HeapSnapshotObject {
     _graph._firstSuccessors[_oid] = _graph._nextSuccessor;
   }
 
-  HeapSnapshotObject._read(this._graph, this._oid, ReadStream reader) {
+  HeapSnapshotObject._read(
+    this._graph,
+    this._oid,
+    ReadStream reader, {
+    required bool decodeObjectData,
+  }) {
     _classId = reader.readInteger();
     _shallowSize = reader.readInteger();
-    _data = _getNonReferenceData(reader);
+    final data = _getNonReferenceData(reader);
+    _data = decodeObjectData ? data : HeapSnapshotObjectNoData();
     _readReferences(reader);
   }
 
@@ -318,12 +324,20 @@ class HeapSnapshotGraph {
   /// Note: this method calls [VmService.streamListen] and
   /// [VmService.streamCancel] on [EventStreams.kHeapSnapshot].
   ///
-  /// Set [calculateReferrers] to false to save processing time by
-  /// skipping the calculation of [HeapSnapshotObject.referrers].
+  /// Set flags to false to save processing time and memory footprint
+  /// by skipping decoding or calculation of certain data:
+  ///
+  /// - [calculateReferrers] for [HeapSnapshotObject.referrers]
+  /// - [decodeObjectData] for [HeapSnapshotObject.data]
+  /// - [decodeExternalProperties] for [HeapSnapshotGraph.externalProperties]
+  /// - [decodeIdentityHashCodes] for [HeapSnapshotObject.identityHashCode]
   static Future<HeapSnapshotGraph> getSnapshot(
     VmService service,
     IsolateRef isolate, {
     bool calculateReferrers = true,
+    bool decodeObjectData = true,
+    bool decodeExternalProperties = true,
+    bool decodeIdentityHashCodes = true,
   }) async {
     await service.streamListen(EventStreams.kHeapSnapshot);
 
@@ -338,6 +352,9 @@ class HeapSnapshotGraph {
         completer.complete(HeapSnapshotGraph.fromChunks(
           chunks,
           calculateReferrers: calculateReferrers,
+          decodeObjectData: decodeObjectData,
+          decodeExternalProperties: decodeExternalProperties,
+          decodeIdentityHashCodes: decodeIdentityHashCodes,
         ));
       }
     });
@@ -350,11 +367,20 @@ class HeapSnapshotGraph {
 
   /// Populates the [HeapSnapshotGraph] by parsing the events from the
   /// `HeapSnapshot` stream.
-  /// Set [calculateReferrers] to false to save processing time by
-  /// skipping the calculation of [HeapSnapshotObject.referrers].
+  ///
+  /// Set flags to false to save processing time and memory footprint
+  /// by skipping decoding or calculation of certain data:
+  ///
+  /// - [calculateReferrers] for [HeapSnapshotObject.referrers]
+  /// - [decodeObjectData] for [HeapSnapshotObject.data]
+  /// - [decodeExternalProperties] for [HeapSnapshotGraph.externalProperties]
+  /// - [decodeIdentityHashCodes] for [HeapSnapshotObject.identityHashCode]
   HeapSnapshotGraph.fromChunks(
     List<ByteData> chunks, {
     bool calculateReferrers = true,
+    bool decodeObjectData = true,
+    bool decodeExternalProperties = true,
+    bool decodeIdentityHashCodes = true,
   }) {
     final reader = ReadStream(chunks);
 
@@ -371,10 +397,18 @@ class HeapSnapshotGraph {
     _externalSize = reader.readInteger();
 
     _readClasses(reader);
-    _readObjects(reader);
+    _readObjects(reader, decodeObjectData: decodeObjectData);
 
-    _readExternalProperties(reader);
-    _readIdentityHashCodes(reader);
+    if (decodeExternalProperties || decodeIdentityHashCodes) {
+      _readExternalProperties(
+        reader,
+        decodeExternalProperties: decodeExternalProperties,
+      );
+    }
+
+    if (decodeIdentityHashCodes) {
+      _readIdentityHashCodes(reader);
+    }
 
     if (calculateReferrers) _calculateReferrers();
   }
@@ -416,7 +450,7 @@ class HeapSnapshotGraph {
     }
   }
 
-  void _readObjects(ReadStream reader) {
+  void _readObjects(ReadStream reader, {required bool decodeObjectData}) {
     _referenceCount = reader.readInteger();
     final objectCount = reader.readInteger();
 
@@ -425,7 +459,12 @@ class HeapSnapshotGraph {
     _referrerCounts = _newUint32Array(objectCount + 2);
     _objects.add(HeapSnapshotObject._sentinel(this));
     for (int i = 1; i <= objectCount; ++i) {
-      _objects.add(HeapSnapshotObject._read(this, i, reader));
+      _objects.add(HeapSnapshotObject._read(
+        this,
+        i,
+        reader,
+        decodeObjectData: decodeObjectData,
+      ));
     }
     _firstSuccessors[objectCount + 1] = _nextSuccessor;
   }
@@ -470,10 +509,16 @@ class HeapSnapshotGraph {
     }
   }
 
-  void _readExternalProperties(ReadStream reader) {
+  void _readExternalProperties(
+    ReadStream reader, {
+    required bool decodeExternalProperties,
+  }) {
     final propertiesCount = reader.readInteger();
     for (int i = 0; i < propertiesCount; ++i) {
-      _externalProperties.add(HeapSnapshotExternalProperty._read(reader));
+      final property = HeapSnapshotExternalProperty._read(reader);
+      if (decodeExternalProperties) {
+        _externalProperties.add(property);
+      }
     }
   }
 
