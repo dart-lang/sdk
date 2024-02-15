@@ -704,19 +704,8 @@ class ClosureLayouter extends RecursiveVisitor {
       b.struct_get(contextStructType, typeFieldIdx);
       b.local_get(otherContextLocal);
       b.struct_get(contextStructType, typeFieldIdx);
-
-      // Virtual call to `Object.==`
-      final selector = translator.dispatchTable
-          .selectorForTarget(translator.coreTypes.objectEquals.reference);
-      final selectorOffset = selector.offset!;
-      b.local_get(thisContextLocal);
-      b.struct_get(contextStructType, typeFieldIdx);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      if (selectorOffset != 0) {
-        b.i32_const(selectorOffset);
-        b.i32_add();
-      }
-      b.call_indirect(selector.signature, translator.dispatchTable.wasmTable);
+      b.call(translator.functions
+          .getFunction(translator.runtimeTypeEquals.reference));
       b.if_();
     }
 
