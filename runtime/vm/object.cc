@@ -10531,6 +10531,12 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       FunctionType::Handle(zone, closure_function.signature());
 
   const auto& cls = Class::Handle(zone, Owner());
+
+  if (!is_static() && !IsConstructor() &&
+      StackTraceUtils::IsPossibleAwaiterLink(cls)) {
+    closure_function.set_awaiter_link({0, 0});
+  }
+
   const intptr_t num_type_params =
       IsConstructor() ? cls.NumTypeParameters() : NumTypeParameters();
 

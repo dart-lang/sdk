@@ -14,13 +14,19 @@ namespace dart {
 namespace {
 
 // Keep in sync with:
-// - sdk/lib/async/stream_controller.dart:_StreamController._STATE_SUBSCRIBED.
+// - _StreamController._STATE_SUBSCRIBED.
 const intptr_t k_StreamController__STATE_SUBSCRIBED = 1;
-// - sdk/lib/async/future_impl.dart:_FutureListener.stateThen.
+// - _StreamController._STATE_SUBSCRIPTION_MASK.
+const intptr_t k_StreamController__STATE_SUBSCRIPTION_MASK = 3;
+// - _StreamController._STATE_ADDSTREAM.
+const intptr_t k_StreamController__STATE_ADDSTREAM = 8;
+// - _BufferingStreamSubscription._STATE_HAS_ERROR_HANDLER.
+const intptr_t k_BufferingStreamSubscription__STATE_HAS_ERROR_HANDLER = 1 << 5;
+// - _FutureListener.stateThen.
 const intptr_t k_FutureListener_stateThen = 1;
-// - sdk/lib/async/future_impl.dart:_FutureListener.stateCatchError.
+// - _FutureListener.stateCatchError.
 const intptr_t k_FutureListener_stateCatchError = 2;
-// - sdk/lib/async/future_impl.dart:_FutureListener.stateWhenComplete.
+// - _FutureListener.stateWhenComplete.
 const intptr_t k_FutureListener_stateWhenComplete = 8;
 // - sdk/lib/async/future_impl.dart:_FutureListener.maskAwait.
 const intptr_t k_FutureListener_maskAwait = 16;
@@ -41,6 +47,29 @@ bool WasPreviouslySuspended(const Function& function,
   } else {
     UNREACHABLE();
   }
+}
+
+bool TryGetAwaiterLink(const Closure& closure, Object* link) {
+  *link = Object::null();
+  const auto& function = Function::Handle(closure.function());
+  const auto awaiter_link = function.awaiter_link();
+  if (awaiter_link.depth != ClosureData::kNoAwaiterLinkDepth) {
+    if (function.IsImplicitClosureFunction()) {
+      ASSERT(awaiter_link.depth == 0 && awaiter_link.index == 0);
+      *link = closure.GetImplicitClosureReceiver();
+      return true;
+    }
+
+    auto& context = Context::Handle(closure.GetContext());
+    intptr_t depth = awaiter_link.depth;
+    while (depth-- > 0) {
+      context = context.parent();
+    }
+
+    *link = context.At(awaiter_link.index);
+    return true;
+  }
+  return false;
 }
 
 // Unwinder which starts by unwinding the synchronous portion of the stack
@@ -93,9 +122,18 @@ class AsyncAwareStackUnwinder : public ValueObject {
   // |frame.next| is a |_Future| instance. Unwind to the next frame.
   void UnwindFrameToFutureListener();
 
-  // |frame.next| is an |_AsyncStarStreamController| instance corresponding to
-  // an async* function. Unwind to the next frame.
-  void UnwindFrameToStreamListener();
+  // |frame.next| is an |_SyncStreamController| instance.
+  void UnwindFrameToStreamController();
+
+  // Follow awaiter-links from the given closure until the first
+  // non-closure awaiter-link is encountered.
+  //
+  // |link| will contain the first non-closure awaiter-link or `null`.
+  // |closure| will be updated to point to the last closure in the chain.
+  void FollowAwaiterLinks(Closure* closure, Object* link);
+
+  // Update |awaiter_frame| by unwinding awaiter links of the current closure.
+  void ComputeNextFrameFromAwaiterLink();
 
   ObjectPtr GetReceiver() const;
 
@@ -110,7 +148,9 @@ class AsyncAwareStackUnwinder : public ValueObject {
   V(_FutureListener)                                                           \
   V(_StreamController)                                                         \
   V(_StreamIterator)                                                           \
-  V(_SyncStreamController)
+  V(_SyncStreamController)                                                     \
+  V(_StreamControllerAddStreamState)                                           \
+  V(_AddStreamState)
 
   enum ClassId {
 #define DECLARE_CONSTANT(symbol) k##symbol,
@@ -119,8 +159,12 @@ class AsyncAwareStackUnwinder : public ValueObject {
   };
 
 #define USED_FIELD_LIST(V)                                                     \
+  V(_AsyncStarStreamController, asyncStarBody)                                 \
   V(_AsyncStarStreamController, controller)                                    \
   V(_BufferingStreamSubscription, _onData)                                     \
+  V(_BufferingStreamSubscription, _onDone)                                     \
+  V(_BufferingStreamSubscription, _onError)                                    \
+  V(_BufferingStreamSubscription, _state)                                      \
   V(_Completer, future)                                                        \
   V(_Future, _resultOrListeners)                                               \
   V(_FutureListener, callback)                                                 \
@@ -128,8 +172,10 @@ class AsyncAwareStackUnwinder : public ValueObject {
   V(_FutureListener, state)                                                    \
   V(_StreamController, _state)                                                 \
   V(_StreamController, _varData)                                               \
+  V(_StreamControllerAddStreamState, _varData)                                 \
   V(_StreamIterator, _hasValue)                                                \
-  V(_StreamIterator, _stateData)
+  V(_StreamIterator, _stateData)                                               \
+  V(_AddStreamState, addStreamFuture)
 
   enum FieldId {
 #define DECLARE_CONSTANT(class_symbol, field_symbol)                           \
@@ -331,6 +377,22 @@ void AsyncAwareStackUnwinder::UnwindToAwaiter() {
   } while (awaiter_frame_.closure.IsNull() && !awaiter_frame_.next.IsNull());
 }
 
+void AsyncAwareStackUnwinder::FollowAwaiterLinks(Closure* closure,
+                                                 Object* link) {
+  *link = Object::null();
+  while (!closure->IsNull() && TryGetAwaiterLink(*closure, link) &&
+         link->IsClosure()) {
+    *closure ^= link->ptr();
+  }
+}
+
+void AsyncAwareStackUnwinder::ComputeNextFrameFromAwaiterLink() {
+  FollowAwaiterLinks(&awaiter_frame_.closure, &object_);
+  if (!object_.IsNull()) {
+    awaiter_frame_.next = object_.ptr();
+  }
+}
+
 void AsyncAwareStackUnwinder::UnwindAwaiterFrame() {
   if (awaiter_frame_.next.IsSuspendState()) {
     awaiter_frame_.next =
@@ -340,38 +402,19 @@ void AsyncAwareStackUnwinder::UnwindAwaiterFrame() {
     awaiter_frame_.next = Get_Completer_future(awaiter_frame_.next);
   }
 
+  if (awaiter_frame_.next.GetClassId() == _AsyncStarStreamController().id()) {
+    awaiter_frame_.next =
+        Get_AsyncStarStreamController_controller(awaiter_frame_.next);
+  }
+
   if (awaiter_frame_.next.GetClassId() == _Future().id()) {
     UnwindFrameToFutureListener();
-  } else if (awaiter_frame_.next.GetClassId() ==
-             _AsyncStarStreamController().id()) {
-    UnwindFrameToStreamListener();
+  } else if (awaiter_frame_.next.GetClassId() == _SyncStreamController().id()) {
+    UnwindFrameToStreamController();
+    ComputeNextFrameFromAwaiterLink();
   } else {
     awaiter_frame_.closure = Closure::null();
     awaiter_frame_.next = Object::null();
-    return;
-  }
-
-  while (!awaiter_frame_.closure.IsNull()) {
-    function_ = awaiter_frame_.closure.function();
-
-    const auto awaiter_link = function_.awaiter_link();
-    if (awaiter_link.depth != ClosureData::kNoAwaiterLinkDepth) {
-      context_ = awaiter_frame_.closure.GetContext();
-      intptr_t depth = awaiter_link.depth;
-      while (depth-- > 0) {
-        context_ = context_.parent();
-      }
-
-      const Object& object = Object::Handle(context_.At(awaiter_link.index));
-      if (object.IsClosure()) {
-        awaiter_frame_.closure ^= object.ptr();
-        continue;
-      } else {
-        awaiter_frame_.next = object.ptr();
-        return;
-      }
-    }
-    break;
   }
 }
 
@@ -409,21 +452,28 @@ void AsyncAwareStackUnwinder::InitializeAwaiterFrameFromFutureListener(
   awaiter_frame_.closure =
       Closure::RawCast(Get_FutureListener_callback(listener));
 
+  ComputeNextFrameFromAwaiterLink();
+
   // If the Future has catchError callback attached through either
   // `Future.catchError` or `Future.then(..., onError: ...)` then we should
   // treat this listener as a catch all exception handler. However we should
   // ignore the case when these callbacks are simply forwarding errors into a
   // suspended async function, because it will be represented by its own async
   // frame.
-  if ((state &
-       (k_FutureListener_stateCatchError | k_FutureListener_maskAwait)) ==
-      k_FutureListener_stateCatchError) {
+  //
+  // However if we fail to unwind this frame (e.g. because there is some
+  // Zone wrapping callbacks and obstructing unwinding) then we conservatively
+  // treat this error handler as handling all errors to prevent user
+  // unfriendly situations where debugger stops on handled exceptions.
+  if ((state & k_FutureListener_stateCatchError) != 0 &&
+      ((state & k_FutureListener_maskAwait) == 0 ||
+       !awaiter_frame_.next.IsSuspendState())) {
     encountered_async_catch_error_ = true;
   }
 }
 
-void AsyncAwareStackUnwinder::UnwindFrameToStreamListener() {
-  controller_ = Get_AsyncStarStreamController_controller(awaiter_frame_.next);
+void AsyncAwareStackUnwinder::UnwindFrameToStreamController() {
+  controller_ = awaiter_frame_.next.ptr();
 
   // Clear the frame.
   awaiter_frame_.closure = Closure::null();
@@ -431,58 +481,170 @@ void AsyncAwareStackUnwinder::UnwindFrameToStreamListener() {
 
   const auto state =
       Smi::Value(Smi::RawCast(Get_StreamController__state(controller_)));
-  if (state != k_StreamController__STATE_SUBSCRIBED) {
+
+  if ((state & k_StreamController__STATE_SUBSCRIPTION_MASK) !=
+      k_StreamController__STATE_SUBSCRIBED) {
     return;
   }
 
   subscription_ = Get_StreamController__varData(controller_);
+  if ((state & k_StreamController__STATE_ADDSTREAM) != 0) {
+    subscription_ = Get_StreamControllerAddStreamState__varData(subscription_);
+  }
+
   closure_ ^= Get_BufferingStreamSubscription__onData(subscription_);
+
+  const auto subscription_state = Smi::Value(
+      Smi::RawCast(Get_BufferingStreamSubscription__state(subscription_)));
+
+  const auto has_error_handler =
+      ((subscription_state &
+        k_BufferingStreamSubscription__STATE_HAS_ERROR_HANDLER) != 0);
 
   // If this is not the "_StreamIterator._onData" tear-off, we return the
   // callback we found.
   function_ = closure_.function();
-  if (!function_.IsImplicitInstanceClosureFunction() ||
-      function_.Owner() != _StreamIterator().ptr()) {
-    awaiter_frame_.closure = closure_.ptr();
-    return;
+  if (function_.IsImplicitClosureFunction()) {
+    // Handle `await for` case. In this case onData is calling
+    // _StreamIterator._onData which then notifies awaiter by completing
+    // _StreamIterator.moveNextFuture.
+    if (function_.Owner() == _StreamIterator().ptr()) {
+      // All implicit closure functions (tear-offs) have the "this" receiver
+      // captured in the context.
+      stream_iterator_ = closure_.GetImplicitClosureReceiver();
+
+      if (stream_iterator_.GetClassId() != _StreamIterator().id()) {
+        UNREACHABLE();
+      }
+
+      // If `_hasValue` is true then the `StreamIterator._stateData` field
+      // contains the iterator's value. In that case we cannot unwind anymore.
+      //
+      // Notice: With correct async* semantics this may never be true: the
+      // async* generator should only be invoked to produce a value if there's
+      // an in-progress `await streamIterator.moveNext()` call. Once such call
+      // has finished the async* generator should be paused/yielded until the
+      // next such call - and being paused/yielded means it should not appear
+      // in stack traces.
+      //
+      // See dartbug.com/48695.
+      if (Get_StreamIterator__hasValue(stream_iterator_) ==
+          Object::bool_true().ptr()) {
+        if (has_error_handler) {
+          encountered_async_catch_error_ = true;
+        }
+        return;
+      }
+
+      // If we have an await'er for `await streamIterator.moveNext()` we
+      // continue unwinding there.
+      //
+      // Notice: With correct async* semantics this may always contain a Future
+      // See also comment above as well as dartbug.com/48695.
+      object_ = Get_StreamIterator__stateData(stream_iterator_);
+      if (object_.GetClassId() == _Future().id()) {
+        awaiter_frame_.next = object_.ptr();
+      } else {
+        if (has_error_handler) {
+          encountered_async_catch_error_ = true;
+        }
+      }
+      return;
+    }
+
+    // Handle `yield*` case. Here one stream controller will be forwarding
+    // to another one. If the destination controller is
+    // _AsyncStarStreamController, then we should make sure to reflect
+    // its asyncStarBody in the stack trace.
+    if (function_.Owner() == _StreamController().ptr()) {
+      // Get the controller to which we are forwarding and check if it is
+      // in the ADD_STREAM state.
+      object_ = closure_.GetImplicitClosureReceiver();
+      const auto state =
+          Smi::Value(Smi::RawCast(Get_StreamController__state(object_)));
+      if ((state & k_StreamController__STATE_ADDSTREAM) != 0) {
+        // Get to the addStreamFuture - if this is yield* internals we
+        // will be able to get original _AsyncStarStreamController from
+        // handler attached to that future.
+        object_ = Get_StreamController__varData(object_);
+        object_ = Get_AddStreamState_addStreamFuture(object_);
+        object_ = Get_Future__resultOrListeners(object_);
+        if (object_.GetClassId() == _FutureListener().id()) {
+          const auto state =
+              Smi::Value(Smi::RawCast(Get_FutureListener_state(object_)));
+          if (state == k_FutureListener_stateThen) {
+            auto& handler = Closure::Handle(
+                Closure::RawCast(Get_FutureListener_callback(object_)));
+            FollowAwaiterLinks(&handler, &object_);
+            if (object_.GetClassId() == _AsyncStarStreamController().id()) {
+              awaiter_frame_.closure = Closure::RawCast(
+                  Get_AsyncStarStreamController_asyncStarBody(object_));
+              return;
+            }
+          }
+        }
+      }
+    }
   }
 
-  // All implicit closure functions (tear-offs) have the "this" receiver
-  // captured in the context.
-  stream_iterator_ = closure_.GetImplicitClosureReceiver();
+  awaiter_frame_.closure = closure_.ptr();
 
-  if (stream_iterator_.GetClassId() != _StreamIterator().id()) {
-    UNREACHABLE();
+  bool found_awaiter_link_in_sibling_handler = false;
+
+  if (!function_.HasAwaiterLink()) {
+    // If we don't have awaiter-link in the `onData` handler, try checking
+    // if either onError or onDone have an awaiter link.
+    closure_ ^= Get_BufferingStreamSubscription__onError(subscription_);
+    function_ = closure_.function();
+    found_awaiter_link_in_sibling_handler = function_.HasAwaiterLink();
   }
 
-  // If `_hasValue` is true then the `StreamIterator._stateData` field
-  // contains the iterator's value. In that case we cannot unwind anymore.
-  //
-  // Notice: With correct async* semantics this may never be true: The async*
-  // generator should only be invoked to produce a value if there's an
-  // in-progress `await streamIterator.moveNext()` call. Once such call has
-  // finished the async* generator should be paused/yielded until the next
-  // such call - and being paused/yielded means it should not appear in stack
-  // traces.
-  //
-  // See dartbug.com/48695.
-  if (Get_StreamIterator__hasValue(stream_iterator_) ==
-      Object::bool_true().ptr()) {
-    return;
+  if (!function_.HasAwaiterLink()) {
+    closure_ ^= Get_BufferingStreamSubscription__onDone(subscription_);
+    function_ = closure_.function();
+    found_awaiter_link_in_sibling_handler = function_.HasAwaiterLink();
   }
 
-  // If we have an await'er for `await streamIterator.moveNext()` we continue
-  // unwinding there.
-  //
-  // Notice: With correct async* semantics this may always contain a Future
-  // See also comment above as well as dartbug.com/48695.
-  object_ = Get_StreamIterator__stateData(stream_iterator_);
-  if (object_.GetClassId() == _Future().id()) {
-    awaiter_frame_.next = object_.ptr();
+  if (has_error_handler || found_awaiter_link_in_sibling_handler) {
+    FollowAwaiterLinks(&closure_, &object_);
+  }
+
+  if (has_error_handler && object_.GetClassId() != _Future().id() &&
+      object_.GetClassId() != _SyncStreamController().id()) {
+    encountered_async_catch_error_ = true;
+  }
+
+  if (found_awaiter_link_in_sibling_handler) {
+    if (object_.GetClassId() == _AsyncStarStreamController().id() ||
+        object_.GetClassId() == _SyncStreamController().id()) {
+      // We can continue unwinding from here.
+      awaiter_frame_.closure = closure_.ptr();
+    } else {
+      awaiter_frame_.next = object_.ptr();
+    }
   }
 }
 
 }  // namespace
+
+bool StackTraceUtils::IsPossibleAwaiterLink(const Class& cls) {
+  if (cls.library() != Library::AsyncLibrary()) {
+    return false;
+  }
+
+  String& class_name = String::Handle();
+  const auto is_class = [&](const String& name) {
+    class_name = cls.Name();
+    return String::EqualsIgnoringPrivateKey(class_name, name);
+  };
+
+  return is_class(Symbols::_AsyncStarStreamController()) ||
+         is_class(Symbols::_SyncStreamController()) ||
+         is_class(Symbols::_StreamController()) ||
+         is_class(Symbols::_Completer()) ||
+         is_class(Symbols::_AsyncCompleter()) ||
+         is_class(Symbols::_SyncCompleter()) || is_class(Symbols::_Future());
+}
 
 bool StackTraceUtils::IsNeededForAsyncAwareUnwinding(const Function& function) {
   // If this is a closure function which specifies an awaiter-link then
@@ -513,20 +675,8 @@ void StackTraceUtils::CollectFrames(
 
 bool StackTraceUtils::GetSuspendState(const Closure& closure,
                                       Object* suspend_state) {
-  const Function& function = Function::Handle(closure.function());
-  const auto awaiter_link = function.awaiter_link();
-  if (awaiter_link.depth != ClosureData::kNoAwaiterLinkDepth) {
-    Context& context = Context::Handle(closure.GetContext());
-    intptr_t depth = awaiter_link.depth;
-    while (depth-- > 0) {
-      context = context.parent();
-    }
-
-    const Object& link = Object::Handle(context.At(awaiter_link.index));
-    if (link.IsSuspendState()) {
-      *suspend_state = link.ptr();
-      return true;
-    }
+  if (TryGetAwaiterLink(closure, suspend_state)) {
+    return suspend_state->IsSuspendState();
   }
   return false;
 }

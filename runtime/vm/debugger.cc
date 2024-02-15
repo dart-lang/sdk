@@ -732,13 +732,18 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
 
 ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
     const Instance& exc_obj) const {
+  if (FLAG_trace_debugger_stacktrace) {
+    OS::PrintErr("GetHandlerFrame(%s)\n", exc_obj.ToCString());
+  }
+
   for (intptr_t frame_index = 0; frame_index < Length(); frame_index++) {
     ActivationFrame* frame = FrameAt(frame_index);
+    const bool can_handle = frame->HandlesException(exc_obj);
     if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("GetHandlerFrame: #%04" Pd " %s", frame_index,
-                   frame->ToCString());
+      OS::PrintErr("    #%04" Pd " (%s) %s", frame_index,
+                   can_handle ? "+" : "-", frame->ToCString());
     }
-    if (frame->HandlesException(exc_obj)) {
+    if (can_handle) {
       return frame;
     }
   }
