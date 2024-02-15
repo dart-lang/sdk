@@ -122,11 +122,19 @@ class AbstractContextTest
     List<String>? experiments,
     List<String>? cannotIgnore,
     List<String>? lints,
+    Map<String, Object?>? errors,
   }) {
     var buffer = StringBuffer();
 
-    if (experiments != null || cannotIgnore != null) {
+    if (experiments != null || cannotIgnore != null || errors != null) {
       buffer.writeln('analyzer:');
+    }
+
+    if (errors != null) {
+      buffer.writeln('  errors:');
+      for (var error in errors.entries) {
+        buffer.writeln('    ${error.key}: ${error.value}');
+      }
     }
 
     if (experiments != null) {

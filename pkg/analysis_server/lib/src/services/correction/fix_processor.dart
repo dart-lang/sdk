@@ -155,6 +155,7 @@ class FixProcessor extends BaseProcessor {
       var generators = [
         IgnoreDiagnosticOnLine.new,
         IgnoreDiagnosticInFile.new,
+        IgnoreDiagnosticInAnalysisOptionsFile.new,
       ];
       for (var generator in generators) {
         await compute(generator());

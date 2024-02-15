@@ -108,7 +108,8 @@ class LintFixTester {
       fixes.removeWhere(
         (fix) =>
             fix.kind == DartFixKind.IGNORE_ERROR_LINE ||
-            fix.kind == DartFixKind.IGNORE_ERROR_FILE,
+            fix.kind == DartFixKind.IGNORE_ERROR_FILE ||
+            fix.kind == DartFixKind.IGNORE_ERROR_ANALYSIS_FILE,
       );
     }
 
