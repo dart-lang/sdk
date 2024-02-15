@@ -710,6 +710,8 @@ Object typeTagSymbol(String recipe) {
 /// The first element of [interfaceRecipes] must always be the type recipe for
 /// the type represented by [classRef].
 void addRtiResources(Object classRef, JSArray<String> interfaceRecipes) {
+  // Create a rti object cache property used in dart:_rti.
+  JS('', '#[#] = null', classRef, rti.constructorRtiCachePropertyName);
   // Attach the [classRef]'s own interface type recipe.
   // The recipe is used in dart:_rti to create an [rti.Rti] instance when
   // needed.
@@ -731,8 +733,7 @@ void addRtiResources(Object classRef, JSArray<String> interfaceRecipes) {
 /// monomorphic, which results in faster execution in V8.
 addTypeCaches(type) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    // Create a rti object cache property used in dart:_rti.
-    JS('', '#[#] = null', type, rti.constructorRtiCachePropertyName);
+    throwUnimplementedInCurrentRti();
   } else {
     JS('', '#[#] = void 0', type, _cachedLegacy);
     JS('', '#[#] = void 0', type, _cachedNullable);
