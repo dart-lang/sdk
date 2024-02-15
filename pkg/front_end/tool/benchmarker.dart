@@ -49,12 +49,14 @@ void main(List<String> args) {
 
   List<List<Map<String, num>>> runResults = [];
   List<GCInfo> gcInfos = [];
+  Warnings warnings = new Warnings();
   for (String snapshot in snapshots) {
     List<Map<String, num>> snapshotResults = [];
     runResults.add(snapshotResults);
     for (int iteration = 0; iteration < iterations; iteration++) {
-      Map<String, num> benchmarkRun =
-          _benchmark(aotRuntime, core, snapshot, [], arguments);
+      Map<String, num> benchmarkRun = _benchmark(
+          aotRuntime, core, snapshot, [], arguments,
+          warnings: warnings);
       if (checkFileSize != null) {
         File f = new File(checkFileSize);
         if (f.existsSync()) {
@@ -78,6 +80,15 @@ void main(List<String> args) {
       print("No change.");
     }
     printGcDiff(gcInfos.first, gcInfos[i]);
+  }
+
+  if (warnings.scalingInEffect) {
+    print("Be aware the the above was with scaling in effect.");
+    print("As such the results are likely useless.");
+    print("Possibly some other process is using the hardware counters.");
+    print("Running this tool");
+    print("sudo out/ReleaseX64/dart pkg/front_end/tool/perf_event_tool.dart");
+    print("will attempt to give you such information.");
   }
 }
 
@@ -170,7 +181,7 @@ late final RegExp _extractNumbers =
 
 Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
     List<String> extraVmArguments, List<String> arguments,
-    {bool silent = false}) {
+    {bool silent = false, Warnings? warnings}) {
   if (!silent) stdout.write(".");
   ProcessResult processResult = Process.runSync("perf", [
     "stat",
@@ -239,6 +250,7 @@ Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
       result[caption] = value;
       if (scaling != null) {
         print("WARNING: $caption is scaled at $scaling!");
+        warnings?.scalingInEffect = true;
       }
     }
   }
@@ -368,4 +380,8 @@ class GCInfo {
   final Map<String, int> countWhat;
 
   GCInfo(this.combinedTime, this.countWhat);
+}
+
+class Warnings {
+  bool scalingInEffect = false;
 }

@@ -375,6 +375,7 @@ ha
 hackish
 hardcoding
 hardly
+hardware
 hb
 hc
 helpfully
@@ -750,6 +751,7 @@ subs
 subtool
 subtools
 successes
+sudo
 sueta
 suggest
 summarization
@@ -826,6 +828,7 @@ upgrade
 upload
 upstream
 upward
+useless
 uuid
 val
 verbatim
