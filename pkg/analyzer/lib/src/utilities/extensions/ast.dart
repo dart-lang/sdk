@@ -3,8 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 
 extension AstNodeExtension on AstNode {
+  /// Returns all tokens, from [beginToken] to [endToken] including.
+  List<Token> get allTokens {
+    var result = <Token>[];
+    var token = beginToken;
+    while (true) {
+      result.add(token);
+      if (token == endToken) {
+        break;
+      }
+      if (token.next case var next?) {
+        token = next;
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
+
   /// Return the minimal cover node for the range of characters beginning at the
   /// [offset] with the given [length], or `null` if the range is outside the
   /// range covered by the receiver.

@@ -1319,10 +1319,10 @@ class B extends A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class B {
-  augment prefix0.num? foo = 0;
+  augment num? foo = 0;
 }
 ''');
   }
@@ -1399,10 +1399,10 @@ class B extends A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class B {
-  augment prefix0.int get foo {}
+  augment int get foo {}
 }
 ''');
   }
@@ -1424,10 +1424,10 @@ class B extends A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class B {
-  augment void foo(prefix0.int a, ) {}
+  augment void foo(int a, ) {}
 }
 ''');
   }
@@ -1449,10 +1449,10 @@ class B extends A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class B {
-  augment prefix0.int foo() {}
+  augment int foo() {}
 }
 ''');
   }
@@ -1516,10 +1516,10 @@ class B extends A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class B {
-  augment void set foo(prefix0.int a, ) {}
+  augment void set foo(int a, ) {}
 }
 ''');
   }
@@ -1537,10 +1537,10 @@ class A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class A {
-  augment void set foo(prefix0.int _, ) {}
+  augment void set foo(int _, ) {}
 }
 ''');
   }
@@ -1579,10 +1579,10 @@ class A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class A {
-  augment static void set foo(prefix0.int _, ) {}
+  augment static void set foo(int _, ) {}
 }
 ''');
   }
@@ -1624,11 +1624,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A;
+    A;
   }
 }
 ''');
@@ -1652,11 +1652,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A.named;
+    A.named;
   }
 }
 ''');
@@ -1685,11 +1685,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A.named;
+    A.named;
   }
 }
 ''');
@@ -1745,11 +1745,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A.foo;
+    A.foo;
   }
 }
 ''');
@@ -1778,11 +1778,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A.foo;
+    A.foo;
   }
 }
 ''');
@@ -1809,11 +1809,11 @@ class A {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class A {
   void doReference() {
-    prefix0.B;
+    B;
   }
 }
 ''');
@@ -1869,11 +1869,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A.foo;
+    A.foo;
   }
 }
 ''');
@@ -1902,11 +1902,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A.foo;
+    A.foo;
   }
 }
 ''');
@@ -1962,11 +1962,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A.foo;
+    A.foo;
   }
 }
 ''');
@@ -1995,11 +1995,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A.foo;
+    A.foo;
   }
 }
 ''');
@@ -2021,11 +2021,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A;
+    A;
   }
 }
 ''');
@@ -2047,11 +2047,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A;
+    A;
   }
 }
 ''');
@@ -2068,9 +2068,9 @@ void foo(int a);
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
-augment void foo(prefix0.int a, ) {
+augment void foo(int a, ) {
   a;
 }
 ''');
@@ -2092,11 +2092,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A;
+    A;
   }
 }
 ''');
@@ -2118,11 +2118,11 @@ class X {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class X {
   void doReference() {
-    prefix0.A;
+    A;
   }
 }
 ''');
@@ -2161,11 +2161,11 @@ class A {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class A {
   void doReference() {
-    prefix0.foo;
+    foo;
   }
 }
 ''');
@@ -2192,11 +2192,11 @@ class A {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class A {
   void doReference() {
-    prefix0.foo;
+    foo;
   }
 }
 ''');
@@ -2218,11 +2218,11 @@ class A {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class A {
   void doReference() {
-    prefix0.foo;
+    foo;
   }
 }
 ''');
@@ -2249,11 +2249,11 @@ class A {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class A {
   void doReference() {
-    prefix0.foo;
+    foo;
   }
 }
 ''');
@@ -2275,11 +2275,11 @@ class A {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class A {
   void doReference() {
-    prefix0.foo;
+    foo;
   }
 }
 ''');
@@ -2301,11 +2301,11 @@ class A {}
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class A {
   void doReference() {
-    prefix0.foo;
+    foo;
   }
 }
 ''');
@@ -2324,10 +2324,10 @@ class A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class A {
-  augment prefix0.String toString() {
+  augment String toString() {
     return 'A';
   }
 }
@@ -2347,10 +2347,10 @@ class A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class A {
-  augment prefix0.String toString() => 'A';
+  augment String toString() => 'A';
 }
 ''');
   }
@@ -2398,75 +2398,59 @@ library
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
-@prefix0.AddMethodFoo()
+@AddMethodFoo()
 class B {}
 
 augment class B {
-  @prefix0.AddMethodBar()
+  @AddMethodBar()
   void foo() {}
   void bar() {}
 }
 ---
       imports
-        package:test/a.dart as prefix0 @62
+        package:test/a.dart
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          class B @102
+          class B @83
             reference: self::@augmentation::package:test/test.macro.dart::@class::B
             metadata
               Annotation
-                atSign: @ @72
-                name: PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: prefix0 @73
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
-                    staticType: null
-                  period: . @80
-                  identifier: SimpleIdentifier
-                    token: AddMethodFoo @81
-                    staticElement: package:test/a.dart::@class::AddMethodFoo
-                    staticType: null
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: AddMethodFoo @62
                   staticElement: package:test/a.dart::@class::AddMethodFoo
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @93
-                  rightParenthesis: ) @94
+                  leftParenthesis: ( @74
+                  rightParenthesis: ) @75
                 element: package:test/a.dart::@class::AddMethodFoo::@constructor::new
             augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
             augmented
               methods
                 self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
                 self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-          augment class B @122
+          augment class B @103
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
             augmentationTarget: self::@augmentation::package:test/test.macro.dart::@class::B
             methods
-              foo @159
+              foo @132
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
                 metadata
                   Annotation
-                    atSign: @ @128
-                    name: PrefixedIdentifier
-                      prefix: SimpleIdentifier
-                        token: prefix0 @129
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
-                        staticType: null
-                      period: . @136
-                      identifier: SimpleIdentifier
-                        token: AddMethodBar @137
-                        staticElement: package:test/a.dart::@class::AddMethodBar
-                        staticType: null
+                    atSign: @ @109
+                    name: SimpleIdentifier
+                      token: AddMethodBar @110
                       staticElement: package:test/a.dart::@class::AddMethodBar
                       staticType: null
                     arguments: ArgumentList
-                      leftParenthesis: ( @149
-                      rightParenthesis: ) @150
+                      leftParenthesis: ( @122
+                      rightParenthesis: ) @123
                     element: package:test/a.dart::@class::AddMethodBar::@constructor::new
                 returnType: void
-              bar @175
+              bar @148
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
                 returnType: void
 ''');
@@ -2876,6 +2860,640 @@ augment class A {
 ''');
   }
 
+  test_codeOptimizer_metadata_class_constructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType("""
+  @{{package:test/a.dart@A}}()
+  B.named();""")
+class B {}
+''');
+
+    configuration
+      ..forCodeOptimizer()
+      ..withConstructors = true;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  @A()
+  B.named();
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            constructors
+              named @90
+                metadata
+                  Annotation
+                    atSign: @ @81
+                    name: SimpleIdentifier
+                      token: A @82
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    arguments: ArgumentList
+                      leftParenthesis: ( @83
+                      rightParenthesis: ) @84
+                    element: package:test/a.dart::@class::A::@constructor::new
+                periodOffset: 89
+                nameEnd: 95
+''');
+  }
+
+  test_codeOptimizer_metadata_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType("""
+  @{{package:test/a.dart@A}}()
+  final int foo = 0;""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  @A()
+  final int foo = 0;
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            fields
+              final foo @98
+                metadata
+                  Annotation
+                    atSign: @ @81
+                    name: SimpleIdentifier
+                      token: A @82
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    arguments: ArgumentList
+                      leftParenthesis: ( @83
+                      rightParenthesis: ) @84
+                    element: package:test/a.dart::@class::A::@constructor::new
+                type: int
+                shouldUseTypeForInitializerInference: true
+            accessors
+              synthetic get foo @-1
+                returnType: int
+''');
+  }
+
+  test_codeOptimizer_metadata_class_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType("""
+  @{{package:test/a.dart@A}}()
+  int get foo => 0;""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  @A()
+  int get foo => 0;
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            fields
+              synthetic foo @-1
+                type: int
+            accessors
+              get foo @96
+                metadata
+                  Annotation
+                    atSign: @ @81
+                    name: SimpleIdentifier
+                      token: A @82
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    arguments: ArgumentList
+                      leftParenthesis: ( @83
+                      rightParenthesis: ) @84
+                    element: package:test/a.dart::@class::A::@constructor::new
+                returnType: int
+''');
+  }
+
+  test_codeOptimizer_metadata_class_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType("""
+  @{{package:test/a.dart@A}}()
+  void foo() {}""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  @A()
+  void foo() {}
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            methods
+              foo @93
+                metadata
+                  Annotation
+                    atSign: @ @81
+                    name: SimpleIdentifier
+                      token: A @82
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    arguments: ArgumentList
+                      leftParenthesis: ( @83
+                      rightParenthesis: ) @84
+                    element: package:test/a.dart::@class::A::@constructor::new
+                returnType: void
+''');
+  }
+
+  test_codeOptimizer_metadata_class_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType("""
+  @{{package:test/a.dart@A}}()
+  set foo(int _) {}""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  @A()
+  set foo(int _) {}
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            fields
+              synthetic foo @-1
+                type: int
+            accessors
+              set foo= @92
+                metadata
+                  Annotation
+                    atSign: @ @81
+                    name: SimpleIdentifier
+                      token: A @82
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    arguments: ArgumentList
+                      leftParenthesis: ( @83
+                      rightParenthesis: ) @84
+                    element: package:test/a.dart::@class::A::@constructor::new
+                parameters
+                  requiredPositional _ @100
+                    type: int
+                returnType: void
+''');
+  }
+
+  test_codeOptimizer_metadata_unit_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}()
+void foo() {}""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A()
+void foo() {}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        functions
+          foo @71
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  rightParenthesis: ) @64
+                element: package:test/a.dart::@class::A::@constructor::new
+            returnType: void
+''');
+  }
+
+  test_codeOptimizer_metadata_unit_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}()
+int get foo => 0;""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A()
+int get foo => 0;
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          synthetic static foo @-1
+            type: int
+        accessors
+          static get foo @74
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  rightParenthesis: ) @64
+                element: package:test/a.dart::@class::A::@constructor::new
+            returnType: int
+''');
+  }
+
+  test_codeOptimizer_metadata_unit_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}()
+set foo(int _) {}""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A()
+set foo(int _) {}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          synthetic static foo @-1
+            type: int
+        accessors
+          static set foo= @70
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  rightParenthesis: ) @64
+                element: package:test/a.dart::@class::A::@constructor::new
+            parameters
+              requiredPositional _ @78
+                type: int
+            returnType: void
+''');
+  }
+
+  test_codeOptimizer_metadata_unit_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}()
+final foo = 0;""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A()
+final foo = 0;
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static final foo @72
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  rightParenthesis: ) @64
+                element: package:test/a.dart::@class::A::@constructor::new
+            type: int
+            shouldUseTypeForInitializerInference: false
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+''');
+  }
+
+  test_codeOptimizer_namedType_notUniqueImport() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class X {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class X {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+import 'b.dart';
+
+@DeclareInLibrary('void foo({{package:test/a.dart@X}} x1, {{package:test/b.dart@X}} x2) {}')
+class A {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+    package:test/b.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+import 'package:test/b.dart' as prefix1;
+
+void foo(prefix0.X x1, prefix1.X x2) {}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+        package:test/b.dart as prefix1 @103
+      definingUnit
+        functions
+          foo @118
+            parameters
+              requiredPositional x1 @132
+                type: X
+              requiredPositional x2 @146
+                type: X
+            returnType: void
+''');
+  }
+
+  test_codeOptimizer_namedType_shadowedLocally() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class X {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary('void foo({{package:test/a.dart@X}} x) {}')
+class A {}
+
+class X {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+void foo(prefix0.X x) {}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+      definingUnit
+        functions
+          foo @77
+            parameters
+              requiredPositional x @91
+                type: X
+            returnType: void
+''');
+  }
+
   test_unit_function_add() async {
     var library = await buildLibrary(r'''
 import 'append.dart';
@@ -3032,32 +3650,32 @@ library
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 augment class A {
-  @prefix0.AugmentConstructor()
+  @AugmentConstructor()
   A.named();
   augment A.named() { print(42); }
 }
 ---
       imports
-        package:test/a.dart as prefix0 @62
+        package:test/a.dart
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @86
+          augment class A @75
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             constructors
-              named @126
+              named @107
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-                periodOffset: 125
-                nameEnd: 131
+                periodOffset: 106
+                nameEnd: 112
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
-              augment named @147
+              augment named @128
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
-                periodOffset: 146
-                nameEnd: 152
+                periodOffset: 127
+                nameEnd: 133
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
 ''');
   }
@@ -3104,33 +3722,33 @@ library
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
-import 'dart:core' as prefix1;
+import 'package:test/a.dart';
+import 'dart:core';
 
 augment class A {
-  @prefix0.AugmentField()
-  prefix1.int foo;
-  augment prefix1.int foo = 42;
+  @AugmentField()
+  int foo;
+  augment int foo = 42;
 }
 ---
       imports
-        package:test/a.dart as prefix0 @62
-        dart:core as prefix1 @93
+        package:test/a.dart
+        dart:core
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @117
+          augment class A @95
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
-              foo @161
+              foo @123
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
                 id: field_0
                 getter: getter_0
                 setter: setter_0
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
-              augment foo @188
+              augment foo @142
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
                 type: int
                 shouldUseTypeForInitializerInference: true
@@ -3194,22 +3812,22 @@ library
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
-import 'dart:core' as prefix1;
+import 'package:test/a.dart';
+import 'dart:core';
 
 augment class A {
-  @prefix0.AugmentGetter()
-  external prefix1.int get foo;
-  augment prefix1.int get foo => 42;
+  @AugmentGetter()
+  external int get foo;
+  augment int get foo => 42;
 }
 ---
       imports
-        package:test/a.dart as prefix0 @62
-        dart:core as prefix1 @93
+        package:test/a.dart
+        dart:core
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @117
+          augment class A @95
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
@@ -3219,13 +3837,13 @@ augment class A {
                 id: field_0
                 getter: getter_0
             accessors
-              external get foo @175
+              external get foo @137
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
                 returnType: int
                 id: getter_0
                 variable: field_0
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
-              augment get foo @206
+              augment get foo @160
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
                 returnType: int
                 id: getter_1
@@ -3272,30 +3890,30 @@ library
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
-import 'dart:core' as prefix1;
+import 'package:test/a.dart';
+import 'dart:core';
 
 augment class A {
-  @prefix0.AugmentMethod()
-  external prefix1.int foo();
-  augment prefix1.int foo() => 42;
+  @AugmentMethod()
+  external int foo();
+  augment int foo() => 42;
 }
 ---
       imports
-        package:test/a.dart as prefix0 @62
-        dart:core as prefix1 @93
+        package:test/a.dart
+        dart:core
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @117
+          augment class A @95
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             methods
-              external foo @171
+              external foo @133
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
                 returnType: int
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
-              augment foo @200
+              augment foo @154
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
                 returnType: int
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
@@ -3343,22 +3961,22 @@ library
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
-import 'dart:core' as prefix1;
+import 'package:test/a.dart';
+import 'dart:core';
 
 augment class A {
-  @prefix0.AugmentSetter()
-  external void set foo(prefix1.int value);
-  augment void set foo(prefix1.int value, ) { print(42); }
+  @AugmentSetter()
+  external void set foo(int value);
+  augment void set foo(int value, ) { print(42); }
 }
 ---
       imports
-        package:test/a.dart as prefix0 @62
-        dart:core as prefix1 @93
+        package:test/a.dart
+        dart:core
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @117
+          augment class A @95
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
@@ -3368,19 +3986,19 @@ augment class A {
                 id: field_0
                 setter: setter_0
             accessors
-              external set foo= @168
+              external set foo= @138
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
                 parameters
-                  requiredPositional value @184
+                  requiredPositional value @146
                     type: int
                 returnType: void
                 id: setter_0
                 variable: field_0
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
-              augment set foo= @211
+              augment set foo= @173
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
                 parameters
-                  requiredPositional value @227
+                  requiredPositional value @181
                     type: int
                 returnType: void
                 id: setter_1
@@ -5204,54 +5822,54 @@ library
 ---
 library augment 'test.dart';
 
-import 'package:test/json_serializable.dart' as prefix0;
-import 'dart:core' as prefix1;
+import 'package:test/json_serializable.dart';
+import 'dart:core';
 
 augment class A {
-  @prefix0.FromJson()
-  A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json);
-  @prefix0.ToJson()
-  prefix1.Map<prefix1.String, prefix1.Object?> toJson();
-  augment A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json, )  : this.foo = json["foo"] as prefix1.int,
-this.bar = json["bar"] as prefix1.int{}
-  augment prefix1.Map<prefix1.String, prefix1.Object?> toJson()  => {
+  @FromJson()
+  A.fromJson(Map<String, Object?> json);
+  @ToJson()
+  Map<String, Object?> toJson();
+  augment A.fromJson(Map<String, Object?> json, )  : this.foo = json["foo"] as int,
+this.bar = json["bar"] as int{}
+  augment Map<String, Object?> toJson()  => {
     'foo': this.foo,
     'bar': this.bar,
   };
 }
 ---
       imports
-        package:test/json_serializable.dart as prefix0 @78
-        dart:core as prefix1 @109
+        package:test/json_serializable.dart
+        dart:core
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @133
+          augment class A @111
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             constructors
-              fromJson @163
+              fromJson @133
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
-                periodOffset: 162
-                nameEnd: 171
+                periodOffset: 132
+                nameEnd: 141
                 parameters
-                  requiredPositional json @217
+                  requiredPositional json @163
                     type: Map<String, Object?>
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
-              augment fromJson @313
+              augment fromJson @227
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
-                periodOffset: 312
-                nameEnd: 321
+                periodOffset: 226
+                nameEnd: 235
                 parameters
-                  requiredPositional json @367
+                  requiredPositional json @257
                     type: Map<String, Object?>
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
             methods
-              abstract toJson @291
+              abstract toJson @205
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
                 returnType: Map<String, Object?>
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
-              augment toJson @512
+              augment toJson @362
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
                 returnType: Map<String, Object?>
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
@@ -5273,12 +5891,12 @@ class A {
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
 augment class A {
-  prefix0.int get foo => this._foo;
-  set foo(prefix0.int val) {
-    prefix0.print('Setting foo to ${val}');
+  int get foo => this._foo;
+  set foo(int val) {
+    print('Setting foo to ${val}');
     this._foo = val;
   }
 }
@@ -10292,21 +10910,21 @@ library
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 class MyClass {
-  void foo(prefix0.A _) {}
+  void foo(A _) {}
 }
 ---
       imports
-        package:test/a.dart as prefix0 @62
+        package:test/a.dart
       definingUnit
         classes
-          class MyClass @78
+          class MyClass @67
             methods
-              foo @95
+              foo @84
                 parameters
-                  requiredPositional _ @109
+                  requiredPositional _ @90
                     type: A
                 returnType: void
 ''');
@@ -10372,10 +10990,10 @@ files
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 class MyClass {
-  void foo(prefix0.A _) {}
+  void foo(A _) {}
 }
 ---
       kind: augmentation_3
@@ -10466,10 +11084,10 @@ files
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 class MyClass {
-  void foo(prefix0.A _) {}
+  void foo(A _) {}
 }
 ---
       kind: augmentation_3
@@ -10555,10 +11173,10 @@ files
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
 class MyClass {
-  void foo(prefix0.A _) {}
+  void foo(A _) {}
 }
 ---
       kind: augmentation_3
@@ -10656,19 +11274,19 @@ library
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
-@prefix0.AddClassB()
+@AddClassB()
 class A {}
 
 class B {}
 ---
       imports
-        package:test/a.dart as prefix0 @62
+        package:test/a.dart
       definingUnit
         classes
-          class A @99
-          class B @111
+          class A @80
+          class B @92
 ''');
 
     analyzerStatePrinterConfiguration.filesToPrintContent.add(
@@ -10716,9 +11334,9 @@ files
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
-@prefix0.AddClassB()
+@AddClassB()
 class A {}
 
 class B {}
@@ -10788,9 +11406,9 @@ files
 ---
 library augment 'test.dart';
 
-import 'package:test/a.dart' as prefix0;
+import 'package:test/a.dart';
 
-@prefix0.AddClassB()
+@AddClassB()
 class A {}
 
 class B {}
@@ -11492,6 +12110,17 @@ extension on Folder {
 }
 
 extension on ElementTextConfiguration {
+  void forCodeOptimizer() {
+    filter = (obj) {
+      if (obj is CompilationUnitElement) {
+        return obj.enclosingElement is LibraryAugmentationElement;
+      }
+      return true;
+    };
+    withConstructors = false;
+    withMetadata = true;
+  }
+
   void forOrder() {
     filter = (element) {
       if (element is CompilationUnitElement) {

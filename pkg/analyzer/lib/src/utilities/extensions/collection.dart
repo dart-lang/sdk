@@ -7,6 +7,13 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 
 extension IterableExtension<E> on Iterable<E> {
+  /// Note, elements must be unique.
+  Map<E, int> get asElementToIndexMap {
+    return {
+      for (final (index, element) in indexed) element: index,
+    };
+  }
+
   /// Returns the fixed-length [List] with elements of `this`.
   List<E> toFixedList() {
     var result = toList(growable: false);

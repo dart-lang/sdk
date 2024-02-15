@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/code_optimizer.dart' as macro;
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/ast/visitor.dart' as ast;
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Merges elements from [partialUnits] into [unitElement].
@@ -32,12 +35,15 @@ class MacroElementsMerger {
     required this.augmentation,
   });
 
-  void perform() {
-    _rewriteImportPrefixes();
+  void perform({
+    required Function() updateConstants,
+  }) {
     _mergeClasses();
     _mergeFunctions();
     _mergeUnitPropertyAccessors();
     _mergeUnitVariables();
+    updateConstants();
+    _rewriteImportPrefixes();
   }
 
   void _mergeClasses() {
@@ -228,7 +234,242 @@ class MacroElementsMerger {
   }
 }
 
-class _RewriteImportPrefixes extends RecursiveAstVisitor<void> {
+class MacroUpdateConstantsForOptimizedCode {
+  /// The parsed merged code.
+  final ast.CompilationUnit unitNode;
+
+  /// The edits applied to the code that was parsed into [unitNode].
+  /// This class does not have the optimized code itself.
+  final List<macro.Edit> codeEdits;
+
+  /// The merged element, with elements in the same order as in [unitNode].
+  final CompilationUnitElementImpl unitElement;
+
+  MacroUpdateConstantsForOptimizedCode({
+    required this.unitNode,
+    required this.codeEdits,
+    required this.unitElement,
+  });
+
+  void perform() {
+    var nodeAnnotations = _annotatedNodesInOrder().expand((node) sync* {
+      for (var annotation in node.metadata) {
+        yield (
+          declaration: node,
+          annotation: annotation,
+        );
+      }
+    }).toList();
+
+    var elementAnnotations =
+        _annotatedElementsInOrder().expand((element) sync* {
+      for (var annotation in element.metadata) {
+        annotation as ElementAnnotationImpl;
+        yield (
+          element: element,
+          annotation: annotation.annotationAst,
+        );
+      }
+    }).toList();
+
+    if (nodeAnnotations.length != elementAnnotations.length) {
+      throw StateError('''
+Different number of element / node annotations.
+nodeAnnotations: ${nodeAnnotations.length}
+elementAnnotations: ${elementAnnotations.length}
+''');
+    }
+
+    for (var i = 0; i < nodeAnnotations.length; i++) {
+      var nodeRecord = nodeAnnotations[i];
+      var elementRecord = elementAnnotations[i];
+
+      var nodeTokens = nodeRecord.annotation.allTokens;
+      var elementTokens = elementRecord.annotation.allTokens;
+      if (nodeTokens.length != elementTokens.length) {
+        throw StateError('''
+Different number of element / node annotations.
+nodeTokens: ${nodeTokens.length}
+elementTokens: ${elementTokens.length}
+''');
+      }
+
+      elementRecord.annotation.accept(
+        _RemoveImportPrefixesVisitor(
+          codeEdits: codeEdits,
+          nodeTokens: nodeTokens,
+          elementTokens: elementTokens.asElementToIndexMap,
+        ),
+      );
+    }
+  }
+
+  List<ElementImpl> _annotatedElementsInOrder() {
+    var result = <ElementImpl>[];
+
+    void addInstanceElement(InstanceElementImpl element) {
+      result.add(element);
+      for (var field in element.fields) {
+        if (!field.isSynthetic) {
+          result.add(field);
+        }
+      }
+      for (var getter in element.accessors) {
+        if (getter.isGetter && !getter.isSynthetic) {
+          result.add(getter);
+        }
+      }
+      for (var setter in element.accessors) {
+        if (setter.isSetter && !setter.isSynthetic) {
+          result.add(setter);
+        }
+      }
+      for (var method in element.methods) {
+        result.add(method);
+      }
+    }
+
+    void addInterfaceElement(InterfaceElementImpl element) {
+      addInstanceElement(element);
+      for (var constructor in element.constructors) {
+        result.add(constructor);
+      }
+    }
+
+    for (var class_ in unitElement.classes) {
+      addInterfaceElement(class_);
+    }
+
+    for (var variable in unitElement.topLevelVariables) {
+      if (!variable.isSynthetic) {
+        result.add(variable);
+      }
+    }
+
+    for (var getter in unitElement.accessors) {
+      if (getter.isGetter && !getter.isSynthetic) {
+        result.add(getter);
+      }
+    }
+
+    for (var setter in unitElement.accessors) {
+      if (setter.isSetter && !setter.isSynthetic) {
+        result.add(setter);
+      }
+    }
+
+    for (var function in unitElement.functions) {
+      result.add(function);
+    }
+
+    return result;
+  }
+
+  List<ast.AnnotatedNodeImpl> _annotatedNodesInOrder() {
+    var result = <ast.AnnotatedNodeImpl>[];
+
+    void addInterfaceMembers(List<ast.ClassMemberImpl> members) {
+      for (var field in members) {
+        if (field is ast.FieldDeclarationImpl) {
+          result.add(field);
+        }
+      }
+
+      for (var getter in members) {
+        if (getter is ast.MethodDeclarationImpl && getter.isGetter) {
+          result.add(getter);
+        }
+      }
+
+      for (var setter in members) {
+        if (setter is ast.MethodDeclarationImpl && setter.isSetter) {
+          result.add(setter);
+        }
+      }
+
+      for (var method in members) {
+        if (method is ast.MethodDeclarationImpl &&
+            method.propertyKeyword == null) {
+          result.add(method);
+        }
+      }
+
+      for (var constructor in members) {
+        if (constructor is ast.ConstructorDeclarationImpl) {
+          result.add(constructor);
+        }
+      }
+    }
+
+    for (var class_ in unitNode.declarations) {
+      if (class_ is ast.ClassDeclarationImpl) {
+        result.add(class_);
+        addInterfaceMembers(class_.members);
+      }
+    }
+
+    for (var variable in unitNode.declarations) {
+      if (variable is ast.TopLevelVariableDeclarationImpl) {
+        result.add(variable);
+      }
+    }
+
+    for (var getter in unitNode.declarations) {
+      if (getter is ast.FunctionDeclarationImpl && getter.isGetter) {
+        result.add(getter);
+      }
+    }
+
+    for (var setter in unitNode.declarations) {
+      if (setter is ast.FunctionDeclarationImpl && setter.isSetter) {
+        result.add(setter);
+      }
+    }
+
+    for (var function in unitNode.declarations) {
+      if (function is ast.FunctionDeclarationImpl &&
+          function.propertyKeyword == null) {
+        result.add(function);
+      }
+    }
+
+    return result;
+  }
+}
+
+class _RemoveImportPrefixesVisitor extends ast.RecursiveAstVisitor<void> {
+  final List<macro.Edit> codeEdits;
+  final List<Token> nodeTokens;
+  final Map<Token, int> elementTokens;
+  int nodePrefixIndex = 0;
+
+  _RemoveImportPrefixesVisitor({
+    required this.codeEdits,
+    required this.nodeTokens,
+    required this.elementTokens,
+  });
+
+  @override
+  void visitPrefixedIdentifier(ast.PrefixedIdentifier node) {
+    var prefix = node.prefix;
+    if (prefix.name.startsWith('prefix')) {
+      var index = elementTokens[node.prefix.token]!;
+      var nodePrefix = nodeTokens[index];
+      for (var edit in codeEdits) {
+        if (edit is macro.RemoveImportPrefixReferenceEdit) {
+          if (edit.offset == nodePrefix.offset) {
+            NodeReplacer.replace(node, node.identifier);
+            break;
+          }
+        }
+      }
+    }
+
+    super.visitPrefixedIdentifier(node);
+  }
+}
+
+class _RewriteImportPrefixes extends ast.RecursiveAstVisitor<void> {
   final Map<PrefixElementImpl, PrefixElementImpl> partialPrefixToMerged;
 
   _RewriteImportPrefixes(this.partialPrefixToMerged);

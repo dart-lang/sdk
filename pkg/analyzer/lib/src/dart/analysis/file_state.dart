@@ -402,7 +402,7 @@ class FileState {
   ///
   /// This feature set is then restricted, with the [packageLanguageVersion],
   /// or with a `@dart` language override token in the file header.
-  final FeatureSet _featureSet;
+  final FeatureSet featureSet;
 
   /// The language version for the package that contains this file.
   final Version packageLanguageVersion;
@@ -438,7 +438,7 @@ class FileState {
     this.uri,
     this.source,
     this.workspacePackage,
-    this._featureSet,
+    this.featureSet,
     this.packageLanguageVersion,
     this.analysisOptions,
   ) : uriProperties = FileUriProperties(uri);
@@ -515,6 +515,41 @@ class FileState {
     }
   }
 
+  /// Parses given [code] with the same features as this file.
+  CompilationUnitImpl parseCode({
+    required String code,
+    required AnalysisErrorListener errorListener,
+  }) {
+    CharSequenceReader reader = CharSequenceReader(code);
+    Scanner scanner = Scanner(source, reader, errorListener)
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet.restrictToVersion(
+          packageLanguageVersion,
+        ),
+      );
+    Token token = scanner.tokenize(reportScannerErrors: false);
+    LineInfo lineInfo = LineInfo(scanner.lineStarts);
+
+    Parser parser = Parser(
+      source,
+      errorListener,
+      featureSet: scanner.featureSet,
+      lineInfo: lineInfo,
+    );
+
+    var unit = parser.parseCompilationUnit(token);
+    unit.languageVersion = LibraryLanguageVersion(
+      package: packageLanguageVersion,
+      override: scanner.overrideVersion,
+    );
+
+    // Ensure the string canonicalization cache size is reasonable.
+    pruneStringCanonicalizationCache();
+
+    return unit;
+  }
+
   /// Read the file content and ensure that all of the file properties are
   /// consistent with the read content, including API signature.
   ///
@@ -540,7 +575,7 @@ class FileState {
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
-      signature.addFeatureSet(_featureSet);
+      signature.addFeatureSet(featureSet);
       signature.addLanguageVersion(packageLanguageVersion);
       signature.addString(contentHash);
       signature.addBool(exists);
@@ -733,34 +768,10 @@ class FileState {
   }
 
   CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
-    CharSequenceReader reader = CharSequenceReader(content);
-    Scanner scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(
-        featureSetForOverriding: _featureSet,
-        featureSet: _featureSet.restrictToVersion(
-          packageLanguageVersion,
-        ),
-      );
-    Token token = scanner.tokenize(reportScannerErrors: false);
-    LineInfo lineInfo = LineInfo(scanner.lineStarts);
-
-    Parser parser = Parser(
-      source,
-      errorListener,
-      featureSet: scanner.featureSet,
-      lineInfo: lineInfo,
+    return parseCode(
+      code: content,
+      errorListener: errorListener,
     );
-
-    var unit = parser.parseCompilationUnit(token);
-    unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion,
-      override: scanner.overrideVersion,
-    );
-
-    // Ensure the string canonicalization cache size is reasonable.
-    pruneStringCanonicalizationCache();
-
-    return unit;
   }
 
   // TODO(scheglov): write tests
