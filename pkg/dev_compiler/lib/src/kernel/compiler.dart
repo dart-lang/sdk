@@ -415,17 +415,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Initialize library variables.
     isBuildingSdk = libraries.any(isSdkInternalRuntime);
 
-    // TODO(48585) Remove after new type system has landed.
-    if (isBuildingSdk && !_options.newRuntimeTypes) {
-      libraries.removeWhere((library) {
-        var path = library.importUri.path;
-        return path == '_js_shared_embedded_names' ||
-            path == '_js_names' ||
-            path == '_recipe_syntax' ||
-            path == '_rti';
-      });
-    }
-
     // For runtime performance reasons, we only containerize SDK symbols in web
     // libraries. Otherwise, we use a 600-member cutoff before a module is
     // containerized. This is somewhat arbitrary but works promisingly for the
@@ -452,13 +441,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var items = startModule(libraries);
     // TODO(nshahan) Move into `startModule()` once `SharedCompiler` and
     // `ProgramCompiler` have been refactored together.
-    if (_options.newRuntimeTypes) {
-      rtiLibrary = coreLibrary.enclosingComponent!.libraries
-          .firstWhere((library) => isDartLibrary(library, '_rti'));
-      rtiClass = rtiLibrary.classes.firstWhere((cls) => cls.name == 'Rti');
-      if (!isBuildingSdk) {
-        forceLibraryImport(rtiLibrary, rtiLibraryId);
-      }
+    rtiClass = _coreTypes.index.getClass('dart:_rti', 'Rti');
+    rtiLibrary = rtiClass.enclosingLibrary;
+    if (!isBuildingSdk) {
+      forceLibraryImport(rtiLibrary, rtiLibraryId);
     }
 
     _nullableInference.allowNotNullDeclarations = isBuildingSdk;
@@ -527,88 +513,84 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     _ticker?.logMs('Added table caches');
     // Add all type hierarchy rules for the interface types used in this module.
-    if (_options.newRuntimeTypes) {
-      // TODO(nshahan) This is likely more information than the application
-      // really uses. It could be reduced to only the types of values that are
-      // potentially "live" in the module which includes the types of all the
-      // constructor invocations and the types of the constructors torn off
-      // (potentially constructed) within the module. The current constructor
-      // tearoff lowering does make this harder to know since all constructors
-      // appeared to be invoked in the body of the method created by the
-      // lowering. For now we over estimate and simply use all the interface
-      // types introduced by all the classes defined in the module.
-      for (var library in libraries) {
-        for (var cls in library.classes) {
-          var type = cls.getThisType(_coreTypes, Nullability.nonNullable);
-          _typeRecipeGenerator.addLiveTypeAncestries(type);
-        }
+    // TODO(nshahan) This is likely more information than the application
+    // really uses. It could be reduced to only the types of values that are
+    // potentially "live" in the module which includes the types of all the
+    // constructor invocations and the types of the constructors torn off
+    // (potentially constructed) within the module. The current constructor
+    // tearoff lowering does make this harder to know since all constructors
+    // appeared to be invoked in the body of the method created by the
+    // lowering. For now we over estimate and simply use all the interface
+    // types introduced by all the classes defined in the module.
+    for (var library in libraries) {
+      for (var cls in library.classes) {
+        var type = cls.getThisType(_coreTypes, Nullability.nonNullable);
+        _typeRecipeGenerator.addLiveTypeAncestries(type);
       }
-      var universeClass =
-          rtiLibrary.classes.firstWhere((cls) => cls.name == '_Universe');
-      var typeRules = _typeRecipeGenerator.liveInterfaceTypeRules;
-      if (typeRules.isNotEmpty) {
-        var template = '#._Universe.#(#, JSON.parse(#))';
-        var addRulesStatement = js.call(template, [
-          emitLibraryName(rtiLibrary),
-          _emitMemberName('addRules', memberClass: universeClass),
-          runtimeCall('typeUniverse'),
-          js.string(jsonEncode(typeRules), "'")
-        ]).toStatement();
-        moduleItems.add(addRulesStatement);
-      }
-      // Update type rules for `LegacyJavaScriptObject` to add all interop
-      // types in this module as a supertype.
-      var updateRules = _typeRecipeGenerator.updateLegacyJavaScriptObjectRules;
-      if (updateRules.isNotEmpty) {
-        // All JavaScript interop classes should be mutual subtypes with
-        // `LegacyJavaScriptObject`. To achieve this the rules are manually
-        // added here. There is special redirecting rule logic in the dart:_rti
-        // library for interop types because otherwise they would duplicate
-        // a lot of supertype information.
-        var updateRulesStatement =
-            js.statement('#._Universe.#(#, JSON.parse(#))', [
-          emitLibraryName(rtiLibrary),
-          _emitMemberName('addOrUpdateRules', memberClass: universeClass),
-          runtimeCall('typeUniverse'),
-          js.string(jsonEncode(updateRules), "'")
-        ]);
-        moduleItems.add(updateRulesStatement);
-      }
-      var jsInteropTypeRecipes =
-          _typeRecipeGenerator.visitedJsInteropTypeRecipes;
-      if (jsInteropTypeRecipes.isNotEmpty) {
-        // Update the `LegacyJavaScriptObject` class with the type tags for all
-        // interop types in this module. This is the quick path for simple type
-        // tests that matches the rules encoded above.
-        var legacyJavaScriptObjectClass = _coreTypes.index
-            .getClass('dart:_interceptors', 'LegacyJavaScriptObject');
-        var legacyJavaScriptObjectClassRef = _emitClassRef(
-            legacyJavaScriptObjectClass.getThisType(
-                _coreTypes, Nullability.nonNullable));
-        var interopRecipesArray = js_ast.stringArray([
-          _typeRecipeGenerator.interfaceTypeRecipe(legacyJavaScriptObjectClass),
-          ...jsInteropTypeRecipes
-        ]);
-        var jsInteropRules = runtimeStatement('addRtiResources(#, #)',
-            [legacyJavaScriptObjectClassRef, interopRecipesArray]);
-        moduleItems.add(jsInteropRules);
-      }
+    }
+    var universeClass =
+        rtiLibrary.classes.firstWhere((cls) => cls.name == '_Universe');
+    var typeRules = _typeRecipeGenerator.liveInterfaceTypeRules;
+    if (typeRules.isNotEmpty) {
+      var template = '#._Universe.#(#, JSON.parse(#))';
+      var addRulesStatement = js.call(template, [
+        emitLibraryName(rtiLibrary),
+        _emitMemberName('addRules', memberClass: universeClass),
+        runtimeCall('typeUniverse'),
+        js.string(jsonEncode(typeRules), "'")
+      ]).toStatement();
+      moduleItems.add(addRulesStatement);
+    }
+    // Update type rules for `LegacyJavaScriptObject` to add all interop
+    // types in this module as a supertype.
+    var updateRules = _typeRecipeGenerator.updateLegacyJavaScriptObjectRules;
+    if (updateRules.isNotEmpty) {
+      // All JavaScript interop classes should be mutual subtypes with
+      // `LegacyJavaScriptObject`. To achieve this the rules are manually
+      // added here. There is special redirecting rule logic in the dart:_rti
+      // library for interop types because otherwise they would duplicate
+      // a lot of supertype information.
+      var updateRulesStatement =
+          js.statement('#._Universe.#(#, JSON.parse(#))', [
+        emitLibraryName(rtiLibrary),
+        _emitMemberName('addOrUpdateRules', memberClass: universeClass),
+        runtimeCall('typeUniverse'),
+        js.string(jsonEncode(updateRules), "'")
+      ]);
+      moduleItems.add(updateRulesStatement);
+    }
+    var jsInteropTypeRecipes = _typeRecipeGenerator.visitedJsInteropTypeRecipes;
+    if (jsInteropTypeRecipes.isNotEmpty) {
+      // Update the `LegacyJavaScriptObject` class with the type tags for all
+      // interop types in this module. This is the quick path for simple type
+      // tests that matches the rules encoded above.
+      var legacyJavaScriptObjectClass = _coreTypes.index
+          .getClass('dart:_interceptors', 'LegacyJavaScriptObject');
+      var legacyJavaScriptObjectClassRef = _emitClassRef(
+          legacyJavaScriptObjectClass.getThisType(
+              _coreTypes, Nullability.nonNullable));
+      var interopRecipesArray = js_ast.stringArray([
+        _typeRecipeGenerator.interfaceTypeRecipe(legacyJavaScriptObjectClass),
+        ...jsInteropTypeRecipes
+      ]);
+      var jsInteropRules = runtimeStatement('addRtiResources(#, #)',
+          [legacyJavaScriptObjectClassRef, interopRecipesArray]);
+      moduleItems.add(jsInteropRules);
+    }
 
-      // Annotates the type parameter variances for each interface.
-      var typeVariances = _typeRecipeGenerator.variances;
-      if (typeVariances.isNotEmpty) {
-        var addTypeParameterVariancesTemplate =
-            '#._Universe.#(#, JSON.parse(#))';
-        var addTypeParameterVariancesStatement =
-            js.call(addTypeParameterVariancesTemplate, [
-          emitLibraryName(rtiLibrary),
-          _emitMemberName('addTypeParameterVariances',
-              memberClass: universeClass),
-          runtimeCall('typeUniverse'),
-          js.string(jsonEncode(typeVariances), "'")
-        ]).toStatement();
-        moduleItems.add(addTypeParameterVariancesStatement);
-      }
+    // Annotates the type parameter variances for each interface.
+    var typeVariances = _typeRecipeGenerator.variances;
+    if (typeVariances.isNotEmpty) {
+      var addTypeParameterVariancesTemplate = '#._Universe.#(#, JSON.parse(#))';
+      var addTypeParameterVariancesStatement =
+          js.call(addTypeParameterVariancesTemplate, [
+        emitLibraryName(rtiLibrary),
+        _emitMemberName('addTypeParameterVariances',
+            memberClass: universeClass),
+        runtimeCall('typeUniverse'),
+        js.string(jsonEncode(typeVariances), "'")
+      ]).toStatement();
+      moduleItems.add(addTypeParameterVariancesStatement);
     }
 
     // Visit directives (for exports)
@@ -643,8 +625,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (!isBuildingSdk) {
       items.add(
           runtimeStatement('_checkModuleNullSafetyMode(#)', [soundNullSafety]));
-      items.add(runtimeStatement('_checkModuleRuntimeTypes(#)',
-          [js_ast.LiteralBool(_options.newRuntimeTypes)]));
     }
 
     // Emit the hoisted type table cache variables
@@ -758,12 +738,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (isSdkInternalRuntime(library)) {
-      if (_options.newRuntimeTypes) {
-        // Add embedded globals.
-        moduleItems.add(
-            runtimeCall('typeUniverse = #', [js_ast.createRtiUniverse()])
-                .toStatement());
-      }
+      // Add embedded globals.
+      moduleItems.add(
+          runtimeCall('typeUniverse = #', [js_ast.createRtiUniverse()])
+              .toStatement());
       // `dart:_runtime` uses a different order for bootstrapping.
       //
       // Functions are first because we use them to associate type info
@@ -975,20 +953,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return allImplementedTypes;
     }
 
-    // Attach caches on all canonicalized types.
-    if (_options.newRuntimeTypes) {
-      var name = _typeRecipeGenerator.interfaceTypeRecipe(c);
-      var implementedRecipes = [
-        name,
-        for (var type in transitiveImplementedTypes(c))
-          _typeRecipeGenerator.interfaceTypeRecipe(type.classNode)
-      ];
-      body.add(runtimeStatement('addRtiResources(#, #)',
-          [className, js_ast.stringArray(implementedRecipes)]));
-    } else {
-      body.add(runtimeStatement('addTypeCaches(#)', [className]));
-    }
-
+    // Tag all classes with the resources needed by the dart:_rti library.
+    var name = _typeRecipeGenerator.interfaceTypeRecipe(c);
+    var implementedRecipes = [
+      name,
+      for (var type in transitiveImplementedTypes(c))
+        _typeRecipeGenerator.interfaceTypeRecipe(type.classNode)
+    ];
+    body.add(runtimeStatement('addRtiResources(#, #)',
+        [className, js_ast.stringArray(implementedRecipes)]));
     _emitClassSignature(c, className, body);
     _initExtensionSymbols(c);
     if (!c.isMixinDeclaration) {
@@ -1084,25 +1057,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       List<js_ast.Statement> deferredBaseClass) {
     assert(formals.isNotEmpty);
     var jsFormals = _emitTypeFormals(formals);
-
-    if (!_options.newRuntimeTypes) {
-      // In the new runtime type system variances are emitted as seperate rules
-      // saved in the type universe. There is no need to attach them to the
-      // class itself like in the old type system.
-      //
-      // Checks for explicitly set variance to avoid emitting legacy covariance
-      // Variance annotations are not necessary when variance experiment flag is
-      // not enabled or when no type parameters have explicitly defined
-      // variances.
-      var hasOnlyLegacyCovariance = formals.every((t) => t.isLegacyCovariant);
-      if (!hasOnlyLegacyCovariance) {
-        var varianceList = formals.map(_emitVariance);
-        var varianceStatement = runtimeStatement(
-            'setGenericArgVariances(#, [#])', [className, varianceList]);
-        body = js_ast.Statement.from([body, varianceStatement]);
-      }
-    }
-
     var typeConstructor = js.call('(#) => { #; #; #; return #; }', [
       jsFormals,
       _typeTable.dischargeFreeTypes(formals),
@@ -1130,20 +1084,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitTopLevelNameNoExternalInterop(c),
       genericName
     ]);
-  }
-
-  js_ast.Expression _emitVariance(TypeParameter typeParameter) {
-    switch (typeParameter.variance) {
-      case Variance.contravariant:
-        return runtimeCall('Variance.contravariant');
-      case Variance.invariant:
-        return runtimeCall('Variance.invariant');
-      case Variance.unrelated:
-        return runtimeCall('Variance.unrelated');
-      case Variance.covariant:
-      default:
-        return runtimeCall('Variance.covariant');
-    }
   }
 
   js_ast.Statement _emitClassStatement(Class c, js_ast.Expression className,
@@ -1241,13 +1181,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           case InterfaceType():
             _declareBeforeUse(t.classNode);
             if (t.typeArguments.isNotEmpty) {
-              var typeRep = _emitGenericClassType(
-                  t,
-                  _options.newRuntimeTypes
-                      // No reason to defer type arguments in the new type
-                      // representation.
-                      ? t.typeArguments.map(_emitType)
-                      : t.typeArguments.map(emitDeferredType));
+              var typeRep =
+                  _emitGenericClassType(t, t.typeArguments.map(_emitType));
               return emitNullability
                   ? _emitNullabilityWrapper(typeRep, t.declaredNullability)
                   : typeRep;
@@ -1709,19 +1644,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var savedClass = _classEmittingSignatures;
     _classEmittingSignatures = c;
 
-    var interfaces = c.implementedTypes.toList()..addAll(c.onClause);
-    if (interfaces.isNotEmpty &&
-        // New runtime types don't use this data structure to lookup interfaces
-        // a class implements.
-        !_options.newRuntimeTypes) {
-      body.add(js.statement('#[#] = () => [#];', [
-        className,
-        runtimeCall('implements'),
-        interfaces.map((i) =>
-            _emitInterfaceType(i.asInterfaceType, emitNullability: false))
-      ]));
-    }
-
     void emitSignature(String name, List<js_ast.Property> elements) {
       if (elements.isEmpty) return;
 
@@ -1825,9 +1747,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               : reifiedType.positionalParameters[0]);
         } else {
           type = visitFunctionType(reifiedType);
-          if (_options.newRuntimeTypes &&
-              !member.isStatic &&
-              reifiedType.typeParameters.isNotEmpty) {
+          if (!member.isStatic && reifiedType.typeParameters.isNotEmpty) {
             // Instance methods with generic type parameters require extra
             // information to support dynamic calls. The default values for the
             // type parameters are encoded into a separate storage object for
@@ -1893,14 +1813,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // TODO(40273) Skip for all statics when the debugger consumes signature
     // information from symbol files.
     emitSignature('StaticField', staticFields);
-
-    // Add static property dart._runtimeType to Object.
-    // All other Dart classes will (statically) inherit this property.
-    if (!_options.newRuntimeTypes && c == _coreTypes.objectClass) {
-      body.add(runtimeStatement('lazyFn(#, () => #)',
-          [className, _emitType(_coreTypes.typeNonNullableRawType)]));
-    }
-
     _classEmittingSignatures = savedClass;
   }
 
@@ -2026,7 +1938,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Instances of classes with type arguments need an rti object attached to
     // them since the type arguments could be instantiated differently for
     // each instance.
-    if (_options.newRuntimeTypes && _typeParametersInHierarchy(cls)) {
+    if (_typeParametersInHierarchy(cls)) {
       var type = cls.getThisType(_coreTypes, Nullability.nonNullable);
       // Only set the rti if there isn't one already. This avoids superclasses
       // from overwriting the value already set by subclass.
@@ -3313,21 +3225,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // Avoid tagging a closure as Function? or Function*
         type.withDeclaredNullability(Nullability.nonNullable),
         lazy: lazy);
-    if (_options.newRuntimeTypes) {
-      if (type.typeParameters.isEmpty) {
-        return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
-      } else {
-        var typeParameterDefaults = [
-          for (var parameter in type.typeParameters)
-            _emitType(parameter.defaultType)
-        ];
-        var defaultInstantiatedBounds =
-            _emitConstList(const DynamicType(), typeParameterDefaults);
-        return runtimeCall(
-            'gFn(#, #, #)', [fn, typeRep, defaultInstantiatedBounds]);
-      }
-    } else {
+    if (type.typeParameters.isEmpty) {
       return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
+    } else {
+      var typeParameterDefaults = [
+        for (var parameter in type.typeParameters)
+          _emitType(parameter.defaultType)
+      ];
+      var defaultInstantiatedBounds =
+          _emitConstList(const DynamicType(), typeParameterDefaults);
+      return runtimeCall(
+          'gFn(#, #, #)', [fn, typeRep, defaultInstantiatedBounds]);
     }
   }
 
@@ -3380,8 +3288,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Emits a Dart [type] into code.
-  js_ast.Expression _emitType(DartType type) =>
-      _options.newRuntimeTypes ? _newEmitType(type) : type.accept(this);
+  js_ast.Expression _emitType(DartType type) => _newEmitType(type);
 
   /// Returns an expression that evaluates to the rti object from the dart:_rti
   /// library that represents [type].
@@ -3700,19 +3607,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
   }
 
-  bool get _emittingClassSignatures =>
-      _currentClass != null &&
-      identical(_currentClass, _classEmittingSignatures);
-
   bool get _emittingClassExtends =>
       _currentClass != null && identical(_currentClass, _classEmittingExtends);
 
-  bool get _cacheTypes => _options.newRuntimeTypes
-      ? !_emittingDeferredType && !_emittingClassExtends
-      : !_emittingDeferredType &&
-              !_emittingClassExtends &&
-              !_emittingClassSignatures ||
-          _currentFunction != null;
+  bool get _cacheTypes => !_emittingDeferredType && !_emittingClassExtends;
 
   js_ast.Expression _emitGenericClassType(
       InterfaceType t, Iterable<js_ast.Expression> typeArgs) {
@@ -3730,103 +3628,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitFunctionType(type, {bool lazy = false}) {
-    if (_options.newRuntimeTypes) {
-      return _emitType(type);
-    }
-    var requiredTypes =
-        type.positionalParameters.take(type.requiredParameterCount).toList();
-    var optionalTypes =
-        type.positionalParameters.skip(type.requiredParameterCount).toList();
-
-    var namedTypes = <NamedType>[];
-    var requiredNamedTypes = <NamedType>[];
-    type.namedParameters.forEach((param) => param.isRequired
-        ? requiredNamedTypes.add(param)
-        : namedTypes.add(param));
-    var allNamedTypes = type.namedParameters;
-
-    var returnType = _emitType(type.returnType);
-    var requiredArgs = _emitTypeNames(requiredTypes);
-
-    List<js_ast.Expression> typeParts;
-    if (allNamedTypes.isNotEmpty) {
-      assert(optionalTypes.isEmpty);
-      var namedArgs = _emitTypeProperties(namedTypes);
-      var requiredNamedArgs = _emitTypeProperties(requiredNamedTypes);
-      typeParts = [returnType, requiredArgs, namedArgs, requiredNamedArgs];
-    } else if (optionalTypes.isNotEmpty) {
-      assert(allNamedTypes.isEmpty);
-      var optionalArgs = _emitTypeNames(optionalTypes);
-      typeParts = [returnType, requiredArgs, optionalArgs];
-    } else {
-      typeParts = [returnType, requiredArgs];
-    }
-
-    var typeFormals = type.typeParameters;
-    String helperCall;
-    if (typeFormals.isNotEmpty) {
-      var tf = _emitTypeFormals(typeFormals);
-
-      js_ast.Expression addTypeFormalsAsParameters(
-          List<js_ast.Expression> elements) {
-        var names = _typeTable.dischargeFreeTypes(typeFormals);
-        return names.isEmpty
-            ? js.call('(#) => [#]', [tf, elements])
-            : js.call('(#) => {#; return [#];}', [tf, names, elements]);
-      }
-
-      typeParts = [addTypeFormalsAsParameters(typeParts)];
-
-      helperCall = 'gFnType(#)';
-
-      /// Returns `true` when the type parameter [t] has a `Object*` bound
-      /// either implicit `<T>` or explicit `<T extends Object>` written in a
-      /// legacy library.
-      ///
-      /// Note: Kernel represents these differently in the default values.
-      /// `<T extends Object* = dynamic>` vs `<T extends Object* = Object*>` but
-      /// at runtime we treat both as having a default value of dynamic as it is
-      /// correct for the cases that appear more frequently.
-      bool typeParameterHasLegacyTopBound(StructuralParameter t) =>
-          t.bound == _types.coreTypes.objectLegacyRawType;
-
-      // Avoid emitting these bounds when possible and interpret the empty
-      // bounds at runtime to mean all bounds are `Object*`.
-      // TODO(nshahan) Revisit this representation when more libraries have
-      // migrated to null safety.
-      if (!typeFormals.every(typeParameterHasLegacyTopBound)) {
-        /// Emits the bound of the type parameter [t] for use in runtime
-        /// checking.
-        ///
-        /// Default values e.g. dynamic get replaced at runtime.
-        js_ast.Expression emitTypeParameterBound(StructuralParameter t) =>
-            _emitType(t.bound);
-
-        var bounds = typeFormals.map(emitTypeParameterBound).toList();
-        typeParts.add(addTypeFormalsAsParameters(bounds));
-      }
-    } else {
-      helperCall = 'fnType(#)';
-    }
-    var typeRep = runtimeCall(helperCall, [typeParts]);
-    // First add the type to the type table in its non-nullable form. It can be
-    // reused by the nullable and legacy versions.
-    typeRep = _cacheTypes
-        ? _typeTable.nameFunctionType(
-            type.withDeclaredNullability(Nullability.nonNullable), typeRep,
-            lazy: lazy)
-        : typeRep;
-
-    if (type.nullability == Nullability.nonNullable) return typeRep;
-
-    // Hoist the nullable or legacy versions of the type to the top level and
-    // use it everywhere it appears.
-    typeRep = _emitNullabilityWrapper(typeRep, type.nullability);
-    return _cacheTypes
-        ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
-        : typeRep;
-  }
+  js_ast.Expression visitFunctionType(type, {bool lazy = false}) =>
+      _emitType(type);
 
   @override
   js_ast.Expression visitRecordType(type) {
@@ -3869,10 +3672,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // If it's non-external but belongs to an interop class, we want the class
     // reference we defined in `_emitJSInteropClassNonExternalMembers`.
     return js_ast.PropertyAccess(
-        _options.newRuntimeTypes || usesJSInterop(type.classNode)
-            ? _emitClassRef(type)
-            : _emitInterfaceType(type, emitNullability: false),
-        _constructorName(c.name.text));
+        _emitClassRef(type), _constructorName(c.name.text));
   }
 
   /// Emits an expression that lets you access statics on [c] from code.
@@ -3884,19 +3684,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ? _emitTopLevelName(c)
         : _emitTopLevelNameNoExternalInterop(c);
   }
-
-  /// Emits named parameters in the form '{name: type}'.
-  js_ast.ObjectInitializer _emitTypeProperties(Iterable<NamedType> types) {
-    return js_ast.ObjectInitializer(types
-        .map((t) => js_ast.Property(propertyName(t.name), _emitType(t.type)))
-        .toList());
-  }
-
-  /// Emits a list of types and their metadata annotations to code.
-  ///
-  /// Annotatable contexts include typedefs and method/function declarations.
-  js_ast.ArrayInitializer _emitTypeNames(List<DartType> types) =>
-      js_ast.ArrayInitializer([for (var type in types) _emitType(type)]);
 
   @override
   js_ast.Expression visitTypeParameterType(TypeParameterType type) =>
@@ -6561,8 +6348,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // Optimize some internal SDK calls by avoiding the insertion of a
         // runtime cast.
         return args.positional.single.accept(this);
-      } else if (_options.newRuntimeTypes &&
-          node.arguments.positional.length == 2 &&
+      } else if (node.arguments.positional.length == 2 &&
           node.arguments.types.length == 1 &&
           node.arguments.named.isEmpty &&
           target.name.text == 'extractTypeArguments') {
@@ -6674,7 +6460,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 // errors when tests pass but would fail in sound null safety.
                 : runtimeCall('extraNullSafetyChecks'),
             'MINIFIED' => js.boolean(false),
-            'NEW_RUNTIME_TYPES' => js.boolean(_options.newRuntimeTypes),
+            'NEW_RUNTIME_TYPES' => js.boolean(true),
             'VARIANCE' =>
               // Variance is turned on by default, but only interfaces that have
               // at least one type parameter with non-legacy variance will have
@@ -7414,14 +7200,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     }
 
-    return _options.newRuntimeTypes
-        ? js.call('#.#(#)', [
-            _emitType(type),
-            _emitMemberName(js_ast.FixedNames.rtiIsField,
-                memberClass: rtiClass),
-            lhs
-          ])
-        : js.call('#.is(#)', [_emitType(type), lhs]);
+    return js.call('#.#(#)', [
+      _emitType(type),
+      _emitMemberName(js_ast.FixedNames.rtiIsField, memberClass: rtiClass),
+      lhs
+    ]);
   }
 
   @override
@@ -7499,14 +7282,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitCast(js_ast.Expression expr, DartType type) {
     if (_types.isTop(type)) return expr;
-    return _options.newRuntimeTypes
-        ? js.call('#.#(#)', [
-            _emitType(type),
-            _emitMemberName(js_ast.FixedNames.rtiAsField,
-                memberClass: rtiClass),
-            expr
-          ])
-        : js.call('#.as(#)', [_emitType(type), expr]);
+    return js.call('#.#(#)', [
+      _emitType(type),
+      _emitMemberName(js_ast.FixedNames.rtiAsField, memberClass: rtiClass),
+      expr
+    ]);
   }
 
   @override
@@ -7526,10 +7306,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // If the type is a type literal expression in Dart code, wrap the raw
     // runtime type in a "Type" instance.
-    return _options.newRuntimeTypes
-        ? js.call(
-            '#.createRuntimeType(#)', [emitLibraryName(rtiLibrary), typeRep])
-        : runtimeCall('wrapType(#)', [typeRep]);
+    return js
+        .call('#.createRuntimeType(#)', [emitLibraryName(rtiLibrary), typeRep]);
   }
 
   @override
@@ -8036,7 +7814,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var classRef = _emitClassRef(type as InterfaceType);
     var prototype = js.call('#.prototype', [classRef]);
     var properties = [
-      if (_options.newRuntimeTypes && type.typeArguments.isNotEmpty)
+      if (type.typeArguments.isNotEmpty)
         // Generic interface type instances require a type information tag.
         js_ast.Property(
             propertyName(js_ast.FixedNames.rtiName), _emitType(type)),
@@ -8093,7 +7871,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   List<js_ast.Comment> generateCompilationHeader() {
     var headerOptions = [
       if (_options.canaryFeatures) 'canary',
-      'newRuntimeTypes(${_options.newRuntimeTypes})',
       'soundNullSafety(${_options.soundNullSafety})',
       'enableAsserts(${_options.enableAsserts})',
     ];
