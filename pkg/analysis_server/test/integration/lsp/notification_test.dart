@@ -48,6 +48,8 @@ class LspOverLegacyNotificationTest extends AbstractLspOverLegacyTest
   tearDown() async {
     // Reset the converter that some tests set up.
     analyzer_plugin.clientUriConverter = ClientUriConverter.noop(pathContext);
+
+    await super.tearDown();
   }
 
   Future<void> test_macroModifiedContentEvent() async {
