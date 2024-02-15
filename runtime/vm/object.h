@@ -11673,21 +11673,24 @@ class TypedDataBase : public PointerBase {
       return kUint8ArrayElement;
     } else if (IsTypedDataClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderInternal) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     } else if (IsTypedDataViewClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderView) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     } else if (IsExternalTypedDataClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderExternal) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     } else {
       ASSERT(IsUnmodifiableTypedDataViewClassId(cid));
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderUnmodifiable) /
-          4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderUnmodifiable) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     }
   }
@@ -11753,7 +11756,8 @@ class TypedDataBase : public PointerBase {
     return size;
   }
   static constexpr intptr_t kNumElementSizes =
-      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 4 + 1;
+      ((kLastTypedDataCid + 1) - kFirstTypedDataCid) /
+      kNumTypedDataCidRemainders;
   static const intptr_t element_size_table[kNumElementSizes];
 
   HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, PointerBase);
