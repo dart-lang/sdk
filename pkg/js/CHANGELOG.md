@@ -1,3 +1,7 @@
+## 0.7.1
+
+- README update to indicate that `dart:js_interop` should be preferred.
+
 ## 0.7.0
 
 - Remove dependency on `dart:js`.
