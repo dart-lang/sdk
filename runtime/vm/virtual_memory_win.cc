@@ -178,7 +178,8 @@ VirtualMemory::~VirtualMemory() {
   // itself. The only way to release the mapping is to invoke VirtualFree
   // with original base pointer and MEM_RELEASE.
 #if defined(DART_COMPRESSED_POINTERS)
-  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
+  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer()) &&
+      (this != compressed_heap_)) {
     Decommit(reserved_.pointer(), reserved_.size());
     VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
     return;
