@@ -146,7 +146,7 @@ vars = {
   "ecosystem_rev": "3e4f2866d49c2448e44f51112956a689a2e50cd6",
   "file_rev": "3aa06490bf34bddf04c7ea964a50c177a4ca0de7",
   "fixnum_rev": "570b28adcfbfdd5b8a7230ea1d6ec0f9587493f1",
-  "flute_rev": "f42b09f77132210499ec8ed819a60c260af03db6",
+  "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "ef5f0650f66dc64587b11757fe3303538cfeb1d8",
   "html_rev": "327e37a6a4dd46599737ee982f280d73a8f646f7",
   "http_rev": "d8b237d273f49bada2aa7feaa0e7795e2541fe83",

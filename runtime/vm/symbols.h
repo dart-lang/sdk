@@ -454,6 +454,7 @@ class ObjectPointerVisitor;
   V(_mapGet, "_mapGet")                                                        \
   V(_mapKeys, "_mapKeys")                                                      \
   V(_name, "_name")                                                            \
+  V(_nextListener, "_nextListener")                                            \
   V(_nativeGetFloat32, "_nativeGetFloat32")                                    \
   V(_nativeSetFloat32, "_nativeSetFloat32")                                    \
   V(_nativeGetFloat64, "_nativeGetFloat64")                                    \

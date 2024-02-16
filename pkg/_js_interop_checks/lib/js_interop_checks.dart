@@ -114,7 +114,6 @@ class JsInteropChecks extends RecursiveVisitor {
     'js',
     'js_util',
     // Flutter/benchmarks.
-    'flute',
     'flutter',
     'engine',
     'ui',

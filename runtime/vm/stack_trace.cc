@@ -22,6 +22,8 @@ const intptr_t k_StreamController__STATE_SUBSCRIPTION_MASK = 3;
 const intptr_t k_StreamController__STATE_ADDSTREAM = 8;
 // - _BufferingStreamSubscription._STATE_HAS_ERROR_HANDLER.
 const intptr_t k_BufferingStreamSubscription__STATE_HAS_ERROR_HANDLER = 1 << 5;
+// - _Future._stateIgnoreError
+const intptr_t k_Future__stateIgnoreError = 1;
 // - _FutureListener.stateThen.
 const intptr_t k_FutureListener_stateThen = 1;
 // - _FutureListener.stateCatchError.
@@ -79,30 +81,33 @@ bool TryGetAwaiterLink(const Closure& closure, Object* link) {
 // of awaiters.
 class AsyncAwareStackUnwinder : public ValueObject {
  public:
-  explicit AsyncAwareStackUnwinder(Thread* thread)
+  explicit AsyncAwareStackUnwinder(Thread* thread,
+                                   bool* encountered_async_catch_error)
       : zone_(thread->zone()),
         sync_frames_(thread, StackFrameIterator::kNoCrossThreadIteration),
         sync_frame_(nullptr),
         awaiter_frame_{Closure::Handle(zone_), Object::Handle(zone_)},
+        encountered_async_catch_error_(encountered_async_catch_error),
         closure_(Closure::Handle(zone_)),
         code_(Code::Handle(zone_)),
         context_(Context::Handle(zone_)),
         function_(Function::Handle(zone_)),
         parent_function_(Function::Handle(zone_)),
         object_(Object::Handle(zone_)),
+        result_future_(Object::Handle(zone_)),
         suspend_state_(SuspendState::Handle(zone_)),
         controller_(Object::Handle(zone_)),
         subscription_(Object::Handle(zone_)),
         stream_iterator_(Object::Handle(zone_)),
         async_lib_(Library::Handle(zone_, Library::AsyncLibrary())),
-        null_closure_(Closure::Handle(zone_)) {}
+        null_closure_(Closure::Handle(zone_)) {
+    if (encountered_async_catch_error_ != nullptr) {
+      *encountered_async_catch_error_ = false;
+    }
+  }
 
   void Unwind(intptr_t skip_frames,
               std::function<void(const StackTraceUtils::Frame&)> handle_frame);
-
-  bool encountered_async_catch_error() const {
-    return encountered_async_catch_error_;
-  }
 
  private:
   bool HandleSynchronousFrame();
@@ -137,6 +142,28 @@ class AsyncAwareStackUnwinder : public ValueObject {
 
   ObjectPtr GetReceiver() const;
 
+  // Returns |true| if propagating an error to the listeners of this `_Future`
+  // will always encounter an error handler. Future handles error iff:
+  //
+  // * It has no listeners and is marked as ignoring errors
+  // * All of its listeners either have an error handler or corresponding
+  //   result future handles error.
+  //
+  // Note: this ignores simple error forwarding/rethrow which occurs in `await`
+  // or patterns like `fut.then(onError: c.completeError)`.
+  bool WillFutureHandleError(const Object& future, intptr_t depth = 0);
+
+  void MarkAsHandlingAsyncError() const {
+    if (ShouldComputeIfAsyncErrorIsHandled()) {
+      *encountered_async_catch_error_ = true;
+    }
+  }
+
+  bool ShouldComputeIfAsyncErrorIsHandled() const {
+    return encountered_async_catch_error_ != nullptr &&
+           !*encountered_async_catch_error_;
+  }
+
 #define USED_CLASS_LIST(V)                                                     \
   V(_AsyncStarStreamController)                                                \
   V(_BufferingStreamSubscription)                                              \
@@ -167,9 +194,11 @@ class AsyncAwareStackUnwinder : public ValueObject {
   V(_BufferingStreamSubscription, _state)                                      \
   V(_Completer, future)                                                        \
   V(_Future, _resultOrListeners)                                               \
+  V(_Future, _state)                                                           \
   V(_FutureListener, callback)                                                 \
   V(_FutureListener, result)                                                   \
   V(_FutureListener, state)                                                    \
+  V(_FutureListener, _nextListener)                                            \
   V(_StreamController, _state)                                                 \
   V(_StreamController, _varData)                                               \
   V(_StreamControllerAddStreamState, _varData)                                 \
@@ -226,7 +255,7 @@ class AsyncAwareStackUnwinder : public ValueObject {
   StackFrame* sync_frame_;
   AwaiterFrame awaiter_frame_;
 
-  bool encountered_async_catch_error_ = false;
+  bool* encountered_async_catch_error_;
 
   Closure& closure_;
   Code& code_;
@@ -234,6 +263,7 @@ class AsyncAwareStackUnwinder : public ValueObject {
   Function& function_;
   Function& parent_function_;
   Object& object_;
+  Object& result_future_;
   SuspendState& suspend_state_;
 
   Object& controller_;
@@ -423,9 +453,45 @@ void AsyncAwareStackUnwinder::UnwindFrameToFutureListener() {
   if (object_.GetClassId() == _FutureListener().id()) {
     InitializeAwaiterFrameFromFutureListener(object_);
   } else {
+    if (ShouldComputeIfAsyncErrorIsHandled()) {
+      // Check if error on this future was ignored through |Future.ignore|.
+      const auto state =
+          Smi::Value(Smi::RawCast(Get_Future__state(awaiter_frame_.next)));
+      if ((state & k_Future__stateIgnoreError) != 0) {
+        MarkAsHandlingAsyncError();
+      }
+    }
+
     awaiter_frame_.closure = Closure::null();
     awaiter_frame_.next = Object::null();
   }
+}
+
+bool AsyncAwareStackUnwinder::WillFutureHandleError(const Object& future,
+                                                    intptr_t depth /* = 0 */) {
+  if (depth > 100 || future.GetClassId() != _Future().id()) {
+    return true;  // Conservative.
+  }
+
+  if (Get_Future__resultOrListeners(future) == Object::null()) {
+    // No listeners: check if future is simply ignoring errors.
+    const auto state = Smi::Value(Smi::RawCast(Get_Future__state(future)));
+    return (state & k_Future__stateIgnoreError) != 0;
+  }
+
+  for (auto& listener = Object::Handle(Get_Future__resultOrListeners(future));
+       listener.GetClassId() == _FutureListener().id();
+       listener = Get_FutureListener__nextListener(listener)) {
+    const auto state =
+        Smi::Value(Smi::RawCast(Get_FutureListener_state(listener)));
+    if ((state & k_FutureListener_stateCatchError) == 0 &&
+        !WillFutureHandleError(
+            Object::Handle(Get_FutureListener_result(listener)), depth + 1)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 void AsyncAwareStackUnwinder::InitializeAwaiterFrameFromFutureListener(
@@ -445,14 +511,29 @@ void AsyncAwareStackUnwinder::InitializeAwaiterFrameFromFutureListener(
           (k_FutureListener_stateThen | k_FutureListener_stateCatchError) ||
       state == (k_FutureListener_stateThen | k_FutureListener_stateCatchError |
                 k_FutureListener_maskAwait)) {
-    awaiter_frame_.next = Get_FutureListener_result(listener);
+    result_future_ = Get_FutureListener_result(listener);
   } else {
-    awaiter_frame_.next = Object::null();
+    result_future_ = Object::null();
   }
   awaiter_frame_.closure =
       Closure::RawCast(Get_FutureListener_callback(listener));
+  awaiter_frame_.next = result_future_.ptr();
 
   ComputeNextFrameFromAwaiterLink();
+
+  if (ShouldComputeIfAsyncErrorIsHandled() && !result_future_.IsNull() &&
+      result_future_.ptr() != awaiter_frame_.next.ptr()) {
+    // We have unwound through closure rather than followed result future, this
+    // can be caused by unwinding through `await` or code like
+    // `fut.whenComplete(c.complete)`. If the current future does not
+    // catch the error then the error will be forwarded into result_future_.
+    // Check if result_future_ handles it and set
+    // encountered_async_catch_error_ respectively.
+    if ((state & k_FutureListener_stateCatchError) == 0 &&
+        WillFutureHandleError(result_future_)) {
+      MarkAsHandlingAsyncError();
+    }
+  }
 
   // If the Future has catchError callback attached through either
   // `Future.catchError` or `Future.then(..., onError: ...)` then we should
@@ -468,7 +549,7 @@ void AsyncAwareStackUnwinder::InitializeAwaiterFrameFromFutureListener(
   if ((state & k_FutureListener_stateCatchError) != 0 &&
       ((state & k_FutureListener_maskAwait) == 0 ||
        !awaiter_frame_.next.IsSuspendState())) {
-    encountered_async_catch_error_ = true;
+    MarkAsHandlingAsyncError();
   }
 }
 
@@ -531,7 +612,7 @@ void AsyncAwareStackUnwinder::UnwindFrameToStreamController() {
       if (Get_StreamIterator__hasValue(stream_iterator_) ==
           Object::bool_true().ptr()) {
         if (has_error_handler) {
-          encountered_async_catch_error_ = true;
+          MarkAsHandlingAsyncError();
         }
         return;
       }
@@ -546,7 +627,7 @@ void AsyncAwareStackUnwinder::UnwindFrameToStreamController() {
         awaiter_frame_.next = object_.ptr();
       } else {
         if (has_error_handler) {
-          encountered_async_catch_error_ = true;
+          MarkAsHandlingAsyncError();
         }
       }
       return;
@@ -611,7 +692,7 @@ void AsyncAwareStackUnwinder::UnwindFrameToStreamController() {
 
   if (has_error_handler && object_.GetClassId() != _Future().id() &&
       object_.GetClassId() != _SyncStreamController().id()) {
-    encountered_async_catch_error_ = true;
+    MarkAsHandlingAsyncError();
   }
 
   if (found_awaiter_link_in_sibling_handler) {
@@ -666,11 +747,8 @@ void StackTraceUtils::CollectFrames(
     int skip_frames,
     const std::function<void(const StackTraceUtils::Frame&)>& handle_frame,
     bool* has_async_catch_error /* = null */) {
-  AsyncAwareStackUnwinder it(thread);
+  AsyncAwareStackUnwinder it(thread, has_async_catch_error);
   it.Unwind(skip_frames, handle_frame);
-  if (has_async_catch_error != nullptr) {
-    *has_async_catch_error = it.encountered_async_catch_error();
-  }
 }
 
 bool StackTraceUtils::GetSuspendState(const Closure& closure,
