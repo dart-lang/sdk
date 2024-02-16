@@ -5,11 +5,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:expect/config.dart';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
-final isAOTRuntime = path.basenameWithoutExtension(Platform.executable) ==
-    'dart_precompiled_runtime';
+final isAOTRuntime = isVmAotConfiguration;
 final buildDir = path.dirname(Platform.executable);
 final sdkDir = path.dirname(path.dirname(buildDir));
 late final platformDill = () {

@@ -6,13 +6,14 @@ import "dart:async";
 import "dart:io";
 import "dart:convert";
 
+import 'package:expect/config.dart';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
 import 'use_flag_test_helper.dart';
 
 main(List<String> args) async {
-  if (!Platform.executable.endsWith("dart_precompiled_runtime")) {
+  if (!isVmAotConfiguration) {
     return; // Running in JIT: AOT binaries not available.
   }
 
