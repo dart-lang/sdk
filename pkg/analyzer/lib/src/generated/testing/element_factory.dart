@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -151,7 +151,7 @@ class ElementFactory {
 
   static FieldElementImpl fieldElement(
       String name, bool isStatic, bool isFinal, bool isConst, DartType type,
-      {Expression? initializer}) {
+      {ExpressionImpl? initializer}) {
     FieldElementImpl field =
         isConst ? ConstFieldElementImpl(name, 0) : FieldElementImpl(name, 0);
     field.isConst = isConst;

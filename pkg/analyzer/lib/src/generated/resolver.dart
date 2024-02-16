@@ -2156,7 +2156,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(
+    covariant DefaultFormalParameterImpl node,
+  ) {
     checkUnreachableNode(node);
     node.parameter.accept(this);
     var defaultValue = node.defaultValue;

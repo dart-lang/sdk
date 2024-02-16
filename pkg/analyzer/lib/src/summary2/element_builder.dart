@@ -580,7 +580,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     ParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameterImpl) {
       element = DefaultFieldFormalParameterElementImpl(
         name: name,
         nameOffset: nameOffset,
@@ -743,7 +743,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     ParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameterImpl) {
       element = DefaultParameterElementImpl(
         name: name,
         nameOffset: nameOffset,
@@ -1068,7 +1068,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     ParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter &&
+    if (parent is DefaultFormalParameterImpl &&
         _enclosingContext.hasDefaultFormalParameters) {
       element = DefaultParameterElementImpl(
         name: name,
@@ -1109,7 +1109,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     SuperFormalParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameterImpl) {
       element = DefaultSuperFormalParameterElementImpl(
         name: name,
         nameOffset: nameOffset,
