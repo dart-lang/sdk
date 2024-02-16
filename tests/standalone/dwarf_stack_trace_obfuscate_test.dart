@@ -6,6 +6,7 @@
 
 import 'dart:io';
 
+import 'package:expect/config.dart';
 import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:path/path.dart' as path;
 
@@ -31,8 +32,7 @@ Future<void> main() async {
     rawStack = st.toString();
   }
 
-  if (path.basenameWithoutExtension(Platform.executable) !=
-      "dart_precompiled_runtime") {
+  if (!isVmAotConfiguration) {
     return; // Not running from an AOT compiled snapshot.
   }
 

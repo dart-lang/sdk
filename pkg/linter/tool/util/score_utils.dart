@@ -45,8 +45,12 @@ Future<LintConfig?> _fetchConfig(Uri url) async {
 
 // TODO(pq): update `scorecard.dart` to reuse these fetch functions.
 Future<List<String>> _fetchLints(String url) async {
-  var req = await http.get(Uri.parse(url));
-  return _readLints(req.body);
+  try {
+    var req = await http.get(Uri.parse(url));
+    return _readLints(req.body);
+  } on http.ClientException {
+    return [];
+  }
 }
 
 Future<List<String>> _readCoreLints() async => _fetchLints(
