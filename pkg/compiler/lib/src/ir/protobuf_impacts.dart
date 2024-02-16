@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/clone.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 
 import '../kernel/element_map.dart';
@@ -139,7 +140,7 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
       ir.InstanceInvocation node) {
     return ir.InstanceInvocation(
         ir.InstanceAccessKind.Instance,
-        node.receiver,
+        _CloneVisitorLenientVariables().clone(node.receiver),
         _builderInfoAddMethod.name,
         ir.Arguments(
           <ir.Expression>[
@@ -205,5 +206,14 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
     registry.registerConditionalImpact(ConditionalImpactData(
         accessors, _impactData!,
         source: node, replacement: _buildProtobufMetadataPlaceholder(node)));
+  }
+}
+
+/// Clones nodes but returns same variable declaration on VariableGet if the
+/// declaration is not in scope.
+class _CloneVisitorLenientVariables extends ir.CloneVisitorNotMembers {
+  @override
+  ir.VariableDeclaration getVariableClone(ir.VariableDeclaration variable) {
+    return super.getVariableClone(variable) ?? variable;
   }
 }

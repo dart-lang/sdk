@@ -985,8 +985,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ];
       body.add(runtimeStatement('addRtiResources(#, #)',
           [className, js_ast.stringArray(implementedRecipes)]));
+    } else {
+      body.add(runtimeStatement('addTypeCaches(#)', [className]));
     }
-    body.add(runtimeStatement('addTypeCaches(#)', [className]));
 
     _emitClassSignature(c, className, body);
     _initExtensionSymbols(c);

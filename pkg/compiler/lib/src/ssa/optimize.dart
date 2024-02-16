@@ -338,16 +338,16 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     // Do 'statement' simplifications first, as they might reduce the number of
     // phis to one, enabling an 'expression' simplification.
-    HInstruction? phi = block.phis.first;
+    var phi = block.phis.firstPhi;
     while (phi != null) {
-      final next = phi.next;
-      simplifyStatementPhi(block, phi as HPhi);
+      final next = phi.nextPhi;
+      simplifyStatementPhi(block, phi);
       phi = next;
     }
 
-    phi = block.phis.first;
+    phi = block.phis.firstPhi;
     if (phi != null && phi.next == null) {
-      simplifyExpressionPhi(block, phi as HPhi);
+      simplifyExpressionPhi(block, phi);
     }
   }
 

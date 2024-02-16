@@ -1293,7 +1293,7 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
     HBasicBlock elseBlock = startIf.elseBlock;
 
     if (!identical(end.predecessors[1], elseBlock)) return;
-    HPhi phi = end.phis.first as HPhi;
+    final phi = end.phis.first!;
     // This useless phi should have been removed.  Do not generate-at-use if
     // there is no use. See #48383.
     if (phi.usedBy.isEmpty) return;
@@ -1324,7 +1324,7 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
         if (otherJoin.successors[0] != end) return;
         if (otherJoin.phis.isEmpty) return;
         if (!identical(otherJoin.phis.first, otherJoin.phis.last)) return;
-        HPhi otherPhi = otherJoin.phis.first as HPhi;
+        final otherPhi = otherJoin.phis.first!;
         if (thenInput != otherPhi) return;
         if (elseInput != otherPhi.inputs[1]) return;
       }

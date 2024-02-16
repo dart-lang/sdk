@@ -17,7 +17,7 @@ Future<List<Object>> resolveIdentifiers(
     result.add(str);
   }
 
-  final pattern = RegExp(r'\{\{(.+)@(\w+)\}\}');
+  final pattern = RegExp(r'\{\{(.+?)@(\w+?)\}\}');
   for (final match in pattern.allMatches(withIdentifiers)) {
     addStringPart(match.start);
     // ignore: deprecated_member_use

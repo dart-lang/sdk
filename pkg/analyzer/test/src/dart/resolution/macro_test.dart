@@ -727,10 +727,10 @@ ResolvedLibraryResult #0
 ---
 library augment 'test.dart';
 
-import 'package:test/diagnostic.dart' as prefix0;
+import 'package:test/diagnostic.dart';
 
 augment class A {
-  @prefix0.ReportAtTypeAnnotation([
+  @ReportAtTypeAnnotation([
     'field foo',
   ])
   void starter() {}
@@ -1058,9 +1058,9 @@ ResolvedLibraryResult #0
 ---
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'dart:core';
 
-prefix0.int get x => 0;
+int get x => 0;
 ---
 ''');
   }
