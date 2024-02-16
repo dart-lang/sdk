@@ -184,11 +184,10 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
 
   String get augmentFilePath => '$testPackageLibPath/a.dart';
 
-  Future<void> prepareNavigation([String? path]) async {
-    var filePath = path != null ? getFile(path).path : testFile.path;
+  Future<void> prepareNavigation() async {
     await handleSuccessfulRequest(
       AnalysisSetSubscriptionsParams({
-        AnalysisService.NAVIGATION: [filePath],
+        AnalysisService.NAVIGATION: [testFile.path],
       }).toRequest('0'),
     );
     await _resultsAvailable.future;
@@ -375,30 +374,30 @@ void f() {
   }
 
   Future<void> test_augmentation_class_method() async {
-    var aFile = newFile(augmentFilePath, r'''
-library augment 'test.dart';
+    addTestFile(r'''
+library augment 'a.dart';
 augment class A {
    foo(){
      bar();
    }
 }
 ''');
-    addTestFile('''
-import augment 'a.dart';
+    var aFile = newFile(augmentFilePath, '''
+import augment 'test.dart';
 
 class A {
   void bar(){}
 }
 ''');
 
-    await prepareNavigation(augmentFilePath);
-    assertHasRegion('bar', targetFile: aFile);
-    assertHasTarget('bar');
+    await prepareNavigation();
+    assertHasRegion('bar');
+    assertHasTarget('bar', targetFile: aFile);
   }
 
   Future<void> test_augmentation_within_augment() async {
-    var aFile = newFile(augmentFilePath, r'''
-library augment 'test.dart';
+    addTestFile(r'''
+library augment 'a.dart';
 augment class A {
    A.named(){
      bar();
@@ -407,8 +406,8 @@ augment class A {
   void bar(){}
 }
 ''');
-    addTestFile('''
-import augment 'a.dart';
+    newFile(augmentFilePath, '''
+import augment 'test.dart';
 
 class A {}
 
@@ -417,9 +416,9 @@ void f() {
 }
 ''');
 
-    await prepareNavigation(augmentFilePath);
-    assertHasRegion('bar', targetFile: aFile);
-    assertHasFileTarget(augmentFilePath, 86, 3);
+    await prepareNavigation();
+    assertHasRegion('bar');
+    assertHasFileTarget(testFilePath, 83, 3);
   }
 
   Future<void> test_class_augmentation_constructor() async {

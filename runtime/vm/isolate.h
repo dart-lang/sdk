@@ -155,7 +155,6 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
     FLAG_branch_coverage)
 
 #define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
-  V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code, false)        \
   V(NONPRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate, false)  \
   V(NONPRODUCT, is_service_isolate, IsServiceIsolate, is_service_isolate,      \
     false)                                                                     \
@@ -1567,7 +1566,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(ResumeRequest)                                                             \
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
-  V(CopyParentCode)                                                            \
   V(IsSystemIsolate)                                                           \
   V(IsServiceRegistered)
 

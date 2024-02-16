@@ -75,7 +75,8 @@ void DisassembleToMemory::ConsumeInstruction(char* hex_buffer,
 
   // TODO(compiler): Update assembler tests for other architectures so there is
   // coverage of encodings, not just mnemonics.
-#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64) ||            \
+    defined(TARGET_ARCH_ARM)
   len = strlen(hex_buffer);
   if (remaining_ < len + 100) {
     *buffer_++ = '.';

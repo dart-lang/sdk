@@ -43,6 +43,13 @@ class StackTraceUtils : public AllStatic {
   // perform the reverse lookup).
   static bool IsNeededForAsyncAwareUnwinding(const Function& function);
 
+  // Returns |true| if the given class might serve as an awaiter-link when
+  // unwinding an awaiter chain.
+  //
+  // This is used to eagerly mark tear-offs of methods on this class
+  // as having an awaiter-link.
+  static bool IsPossibleAwaiterLink(const Class& cls);
+
   /// Collects all frames on the current stack until an async/async* frame is
   /// hit which has yielded before (i.e. is not in sync-async case).
   ///

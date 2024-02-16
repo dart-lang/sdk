@@ -963,7 +963,7 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl(super.name, super.offset);
 
   @override
-  Expression? get constantInitializer {
+  ExpressionImpl? get constantInitializer {
     linkedData?.read(this);
     return super.constantInitializer;
   }
@@ -1209,7 +1209,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
   ConstTopLevelVariableElementImpl(super.name, super.offset);
 
   @override
-  Expression? get constantInitializer {
+  ExpressionImpl? get constantInitializer {
     linkedData?.read(this);
     return super.constantInitializer;
   }
@@ -1232,7 +1232,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// initializers.  However, analyzer also needs to handle incorrect Dart code,
   /// in which case there might be some constant variables that lack
   /// initializers.
-  Expression? constantInitializer;
+  ExpressionImpl? constantInitializer;
 
   Constant? _evaluationResult;
 

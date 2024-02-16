@@ -5760,6 +5760,7 @@ library
                 target: ElementMacroDiagnosticTarget
                   element: self::@class::A::@method::bar
             severity: warning
+            correctionMessage: Correction message
         methods
           foo @73
             returnType: void
@@ -6323,10 +6324,10 @@ class A
   superclass: Object
   constructors
     <unnamed>
-      flags: hasBody isStatic
+      flags: hasBody hasStatic
       returnType: A
     named
-      flags: hasBody isFactory isStatic
+      flags: hasBody hasStatic isFactory
       returnType: A
 ''');
   }
@@ -6346,7 +6347,7 @@ class A
   superclass: Object
   constructors
     <unnamed>
-      flags: hasBody isStatic
+      flags: hasBody hasStatic
       metadata
         IdentifierMetadataAnnotation
           identifier: a
@@ -6366,7 +6367,7 @@ class A
   superclass: Object
   constructors
     named
-      flags: hasBody isStatic
+      flags: hasBody hasStatic
       returnType: A
 ''');
   }
@@ -6383,7 +6384,7 @@ class A
   superclass: Object
   constructors
     <unnamed>
-      flags: hasBody isStatic
+      flags: hasBody hasStatic
       namedParameters
         a
           flags: isNamed isRequired
@@ -6407,7 +6408,7 @@ class A
   superclass: Object
   constructors
     <unnamed>
-      flags: hasBody isStatic
+      flags: hasBody hasStatic
       positionalParameters
         a
           flags: isRequired
@@ -6469,7 +6470,7 @@ class A
 ''');
   }
 
-  test_class_field_flag_isStatic() async {
+  test_class_field_flag_hasStatic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static int foo = 0;
@@ -6481,7 +6482,7 @@ class A
   superclass: Object
   fields
     foo
-      flags: isStatic
+      flags: hasStatic
       type: int
 ''');
   }
@@ -6864,7 +6865,7 @@ class A
 ''');
   }
 
-  test_class_method_flags_isStatic() async {
+  test_class_method_flags_hasStatic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static void foo() {}
@@ -6876,7 +6877,7 @@ class A
   superclass: Object
   methods
     foo
-      flags: hasBody isStatic
+      flags: hasBody hasStatic
       returnType: void
 ''');
   }
@@ -8045,7 +8046,7 @@ class A {
 class A
   constructors
     named
-      flags: isStatic
+      flags: hasStatic
       positionalParameters
         foo
           flags: isRequired
@@ -8103,7 +8104,7 @@ class A {
 class A
   fields
     foo
-      flags: hasFinal isStatic
+      flags: hasFinal hasStatic
       type: OmittedType
         inferred: dynamic
 ''');
@@ -8118,7 +8119,7 @@ class A {
 class A
   fields
     foo
-      flags: hasFinal isStatic
+      flags: hasFinal hasStatic
       type: OmittedType
         inferred: int
 ''');
@@ -8179,7 +8180,7 @@ class X {
 class X
   methods
     foo
-      flags: hasBody isGetter isStatic
+      flags: hasBody hasStatic isGetter
       returnType: OmittedType
         inferred: dynamic
 ''');
@@ -8238,7 +8239,7 @@ class X {
 class X
   methods
     foo
-      flags: hasBody isStatic
+      flags: hasBody hasStatic
       positionalParameters
         a
           flags: isRequired
@@ -8257,7 +8258,7 @@ class X {
 class X
   methods
     foo
-      flags: hasBody isStatic
+      flags: hasBody hasStatic
       returnType: OmittedType
         inferred: dynamic
 ''');
@@ -8315,7 +8316,7 @@ class X {
 class X
   methods
     foo
-      flags: hasBody isSetter isStatic
+      flags: hasBody hasStatic isSetter
       positionalParameters
         a
           flags: isRequired
@@ -8334,7 +8335,7 @@ class X {
 class X
   methods
     foo
-      flags: hasBody isSetter isStatic
+      flags: hasBody hasStatic isSetter
       positionalParameters
         a
           flags: isRequired
@@ -8633,7 +8634,7 @@ class A {
 }
 ''', r'''
 named
-  flags: hasBody isFactory isStatic
+  flags: hasBody hasStatic isFactory
   returnType: A
 ''');
   }
@@ -8654,7 +8655,7 @@ const a1 = 0;
 const a2 = 0;
 ''', r'''
 <unnamed>
-  flags: isStatic
+  flags: hasStatic
   metadata
     ConstructorMetadataAnnotation
       type: Introspect
@@ -8674,7 +8675,7 @@ class A {
 }
 ''', r'''
 named
-  flags: isStatic
+  flags: hasStatic
   returnType: A
 ''');
   }
@@ -8687,7 +8688,7 @@ class A {
 }
 ''', r'''
 <unnamed>
-  flags: isStatic
+  flags: hasStatic
   namedParameters
     a
       flags: isNamed isRequired
@@ -8707,7 +8708,7 @@ class A {
 }
 ''', r'''
 <unnamed>
-  flags: isStatic
+  flags: hasStatic
   positionalParameters
     a
       flags: isRequired
@@ -8726,7 +8727,7 @@ class A {
 }
 ''', r'''
 <unnamed>
-  flags: isStatic
+  flags: hasStatic
   returnType: A
 ''');
   }
@@ -8782,7 +8783,7 @@ foo
 ''');
   }
 
-  test_class_field_flags_isStatic() async {
+  test_class_field_flags_hasStatic() async {
     await _assertIntrospectText(r'''
 class X {
   @Introspect()
@@ -8790,7 +8791,7 @@ class X {
 }
 ''', r'''
 foo
-  flags: isStatic
+  flags: hasStatic
   type: int
 ''');
   }
@@ -9154,7 +9155,7 @@ foo
 ''');
   }
 
-  test_class_method_flags_isStatic() async {
+  test_class_method_flags_hasStatic() async {
     await _assertIntrospectText(r'''
 class A {
   @Introspect()
@@ -9162,7 +9163,7 @@ class A {
 }
 ''', r'''
 foo
-  flags: hasBody isStatic
+  flags: hasBody hasStatic
   returnType: void
 ''');
   }

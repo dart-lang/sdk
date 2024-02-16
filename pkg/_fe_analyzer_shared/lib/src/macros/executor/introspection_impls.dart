@@ -612,7 +612,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
   RemoteInstanceKind get kind => RemoteInstanceKind.methodDeclaration;
 
   @override
-  final bool isStatic;
+  final bool hasStatic;
 
   MethodDeclarationImpl({
     // Declaration fields.
@@ -632,7 +632,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.typeParameters,
     // Method fields.
     required this.definingType,
-    required this.isStatic,
+    required this.hasStatic,
   });
 
   @override
@@ -640,7 +640,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     super.serializeUncached(serializer, isConstructor: isConstructor);
 
     definingType.serialize(serializer);
-    if (!isConstructor) serializer.addBool(isStatic);
+    if (!isConstructor) serializer.addBool(hasStatic);
   }
 }
 
@@ -673,7 +673,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
           isGetter: false,
           isOperator: false,
           isSetter: false,
-          isStatic: true,
+          hasStatic: true,
         );
 
   @override
@@ -688,10 +688,16 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
+  final bool hasConst;
+
+  @override
   final bool hasExternal;
 
   @override
   final bool hasFinal;
+
+  @override
+  final bool hasInitializer;
 
   @override
   final bool hasLate;
@@ -707,8 +713,10 @@ class VariableDeclarationImpl extends DeclarationImpl
     required super.identifier,
     required super.library,
     required super.metadata,
+    required this.hasConst,
     required this.hasExternal,
     required this.hasFinal,
+    required this.hasInitializer,
     required this.hasLate,
     required this.type,
   });
@@ -718,8 +726,10 @@ class VariableDeclarationImpl extends DeclarationImpl
     super.serializeUncached(serializer);
 
     serializer
+      ..addBool(hasConst)
       ..addBool(hasExternal)
       ..addBool(hasFinal)
+      ..addBool(hasInitializer)
       ..addBool(hasLate);
     type.serialize(serializer);
   }
@@ -734,7 +744,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   final bool hasAbstract;
 
   @override
-  final bool isStatic;
+  final bool hasStatic;
 
   FieldDeclarationImpl({
     // Declaration fields.
@@ -743,14 +753,16 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required super.library,
     required super.metadata,
     // Variable fields.
+    required super.hasConst,
     required super.hasExternal,
     required super.hasFinal,
+    required super.hasInitializer,
     required super.hasLate,
     required super.type,
     // Field fields.
     required this.definingType,
     required this.hasAbstract,
-    required this.isStatic,
+    required this.hasStatic,
   });
 
   @override
@@ -763,7 +775,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     definingType.serialize(serializer);
     serializer
       ..addBool(hasAbstract)
-      ..addBool(isStatic);
+      ..addBool(hasStatic);
   }
 }
 

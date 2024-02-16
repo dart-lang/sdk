@@ -211,6 +211,62 @@ IsolateTest setBreakpointAtLineColumn(int line, int column) {
   };
 }
 
+extension FrameLocation on Frame {
+  Future<(String, int)> getLocation(
+    VmService service,
+    IsolateRef isolateRef,
+  ) async {
+    if (location?.tokenPos == null) {
+      return ('<unknown>', -1);
+    }
+
+    final script = (await service.getObject(
+      isolateRef.id!,
+      location!.script!.id!,
+    )) as Script;
+    return (
+      script.uri!,
+      script.getLineNumberFromTokenPos(location!.tokenPos!) ?? -1
+    );
+  }
+}
+
+Future<String> formatFrames(
+  VmService service,
+  IsolateRef isolateRef,
+  List<Frame> frames,
+) async {
+  final sb = StringBuffer();
+  for (Frame f in frames) {
+    sb.write(' $f');
+    if (f.function case final funcRef?) {
+      sb.write(' ');
+      sb.write(await qualifiedFunctionName(service, isolateRef, funcRef));
+    }
+    if (f.location != null) {
+      final (uri, lineNo) = await f.getLocation(service, isolateRef);
+      sb.write(' $uri:$lineNo');
+    }
+    sb.writeln();
+  }
+  return sb.toString();
+}
+
+Future<String> formatStack(
+  VmService service,
+  IsolateRef isolateRef,
+  Stack stack,
+) async {
+  final sb = StringBuffer();
+  sb.write('Full stack trace:\n');
+  sb.writeln(await formatFrames(service, isolateRef, stack.frames!));
+  if (stack.asyncCausalFrames case final asyncFrames?) {
+    sb.write('\nFull async stack trace:\n');
+    sb.writeln(await formatFrames(service, isolateRef, asyncFrames));
+  }
+  return sb.toString();
+}
+
 IsolateTest stoppedAtLine(int line) {
   return (VmService service, IsolateRef isolateRef) async {
     print('Checking we are at line $line');
@@ -227,33 +283,12 @@ IsolateTest stoppedAtLine(int line) {
     expect(frames.length, greaterThanOrEqualTo(1));
 
     final top = frames[0];
-    final Script script =
-        (await service.getObject(id, top.location!.script!.id!)) as Script;
-    final int actualLine =
-        script.getLineNumberFromTokenPos(top.location!.tokenPos!)!;
+    final (_, actualLine) = await top.getLocation(service, isolateRef);
     if (actualLine != line) {
       print('Actual: $actualLine Line: $line');
       final sb = StringBuffer();
       sb.write('Expected to be at line $line but actually at line $actualLine');
-      sb.write('\nFull stack trace:\n');
-      for (Frame f in frames) {
-        sb.write(
-          ' $f [${script.getLineNumberFromTokenPos(f.location!.tokenPos!)}]\n',
-        );
-      }
-      if (stack.asyncCausalFrames != null) {
-        final asyncFrames = stack.asyncCausalFrames!;
-        sb.write('\nFull async stack trace:\n');
-        for (Frame f in asyncFrames) {
-          sb.write(' $f');
-          if (f.location != null) {
-            sb.write(
-              ' [${script.getLineNumberFromTokenPos(f.location!.tokenPos!)}]',
-            );
-          }
-          sb.writeln();
-        }
-      }
+      sb.writeln(await formatStack(service, isolateRef, stack));
       throw sb.toString();
     } else {
       print('Program is stopped at line: $line');
@@ -708,20 +743,33 @@ IsolateTest stoppedInFunction(String functionName) {
         'Expected to be in function $functionName but '
         'actually in function $name',
       );
-      sb.writeln('Full stack trace:');
-      for (final frame in frames) {
-        final func = await service.getObject(
-          isolateId,
-          frame.function!.id!,
-        ) as Func;
-        final ownerName = func.owner.name!;
-        sb.write(' $frame [${func.name}] [$ownerName]\n');
-      }
+      sb.writeln(await formatStack(service, isolateRef, stack));
+
       throw sb.toString();
     } else {
       print('Program is stopped in function: $functionName');
     }
   };
+}
+
+Future<String> qualifiedFunctionName(
+  VmService service,
+  IsolateRef isolate,
+  FuncRef func,
+) async {
+  final funcName = func.name ?? '<unknown>';
+  switch (func.owner) {
+    case final FuncRef parentFuncRef:
+      final parentFuncName =
+          await qualifiedFunctionName(service, isolate, parentFuncRef);
+      return '$parentFuncName.$funcName';
+
+    case final ClassRef parentClass:
+      return '${parentClass.name!}.$funcName';
+
+    case _:
+      return funcName;
+  }
 }
 
 Future<void> expectFrame(
@@ -734,7 +782,10 @@ Future<void> expectFrame(
 }) async {
   expect(frame.kind, equals(kind));
   if (functionName != null) {
-    expect(frame.function?.name, equals(functionName));
+    expect(
+      await qualifiedFunctionName(service, isolate, frame.function!),
+      equals(functionName),
+    );
   }
   if (line != null) {
     expect(frame.location, isNotNull);
@@ -748,4 +799,69 @@ Future<void> expectFrame(
       equals(line),
     );
   }
+}
+
+Future<String> getCurrentExceptionAsString(
+  VmService service,
+  IsolateRef isolateRef,
+) async {
+  final isolate = await service.getIsolate(isolateRef.id!);
+  final event = isolate.pauseEvent!;
+  final exception = await service.getObject(
+    isolateRef.id!,
+    event.exception!.id!,
+  ) as Instance;
+  return exception.valueAsString!;
+}
+
+typedef ExpectedFrame = ({String? functionName, int? line});
+const ExpectedFrame asyncGap = (functionName: null, line: null);
+
+IsolateTest resumePastUnhandledException(String exceptionAsString) {
+  return (service, isolateRef) async {
+    do {
+      await resumeIsolate(service, isolateRef);
+      await hasStoppedWithUnhandledException(service, isolateRef);
+    } while (await getCurrentExceptionAsString(service, isolateRef) ==
+        exceptionAsString);
+  };
+}
+
+IsolateTest expectUnhandledExceptionWithFrames({
+  List<ExpectedFrame>? expectedFrames,
+  String? exceptionAsString,
+}) {
+  return (VmService service, IsolateRef isolateRef) async {
+    await hasStoppedWithUnhandledException(service, isolateRef);
+    if (exceptionAsString != null) {
+      expect(
+        await getCurrentExceptionAsString(service, isolateRef),
+        equals(exceptionAsString),
+      );
+    }
+
+    if (expectedFrames == null) {
+      return;
+    }
+
+    final stack = await service.getStack(isolateRef.id!);
+
+    final frames = stack.asyncCausalFrames!;
+    var currentKind = 'Regular';
+    for (var i = 0; i < expectedFrames.length; i++) {
+      final expected = expectedFrames[i];
+      final got = frames[i];
+      await expectFrame(
+        service,
+        isolateRef,
+        got,
+        kind: expected == asyncGap ? 'AsyncSuspensionMarker' : currentKind,
+        functionName: expected.functionName,
+        line: expected.line,
+      );
+      if (expected == asyncGap) {
+        currentKind = 'AsyncCausal';
+      }
+    }
+  };
 }

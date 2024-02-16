@@ -419,7 +419,8 @@ void Assembler::EmitDivOp(Condition cond,
   int32_t encoding = opcode | (static_cast<int32_t>(cond) << kConditionShift) |
                      (static_cast<int32_t>(rn) << kDivRnShift) |
                      (static_cast<int32_t>(rd) << kDivRdShift) | B26 | B25 |
-                     B24 | B20 | B4 | (static_cast<int32_t>(rm) << kDivRmShift);
+                     B24 | B20 | B15 | B14 | B13 | B12 | B4 |
+                     (static_cast<int32_t>(rm) << kDivRmShift);
   Emit(encoding);
 }
 

@@ -393,10 +393,12 @@ void main() {
           metadata: [],
           definingType: myEnum.identifier,
           hasAbstract: false,
+          hasConst: false,
           hasExternal: false,
           hasFinal: true,
+          hasInitializer: false,
           hasLate: false,
-          isStatic: false,
+          hasStatic: false,
           type: NamedTypeAnnotationImpl(
               id: RemoteInstance.uniqueId,
               isNullable: false,
@@ -470,7 +472,7 @@ void main() {
           metadata: [],
           definingType: myExtension.identifier,
           hasExternal: false,
-          isStatic: false,
+          hasStatic: false,
           returnType: NamedTypeAnnotationImpl(
               id: RemoteInstance.uniqueId,
               isNullable: false,

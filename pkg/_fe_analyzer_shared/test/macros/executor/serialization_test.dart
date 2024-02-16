@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
@@ -13,6 +15,13 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 void main() {
+  // We randomize fields which should make the tests more likely to catch issues
+  // related to serialization ordering.
+  final seed = Random().nextInt(1000);
+  print('Nondeterministic test ran with seed: $seed, change to this seed to '
+      'repro.');
+  final rand = Random(seed);
+
   for (var mode in [SerializationMode.json, SerializationMode.byteData]) {
     test('$mode can serialize and deserialize basic data', () {
       withSerializationMode(mode, () {
@@ -139,12 +148,12 @@ void main() {
   group('declarations', () {
     final barType = NamedTypeAnnotationImpl(
         id: RemoteInstance.uniqueId,
-        isNullable: false,
+        isNullable: rand.nextBool(),
         identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Bar'),
         typeArguments: []);
     final fooType = NamedTypeAnnotationImpl(
         id: RemoteInstance.uniqueId,
-        isNullable: true,
+        isNullable: rand.nextBool(),
         identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
         typeArguments: [barType]);
 
@@ -157,8 +166,8 @@ void main() {
 
         final fooNamedParam = FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
-            isNamed: true,
-            isRequired: true,
+            isNamed: rand.nextBool(),
+            isRequired: rand.nextBool(),
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
             library: Fixtures.library,
@@ -166,16 +175,16 @@ void main() {
             type: fooType);
         final fooNamedFunctionTypeParam = FormalParameterImpl(
             id: RemoteInstance.uniqueId,
-            isNamed: true,
-            isRequired: true,
+            isNamed: rand.nextBool(),
+            isRequired: rand.nextBool(),
             metadata: [],
             name: 'foo',
             type: fooType);
 
         final barPositionalParam = FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
-            isNamed: false,
-            isRequired: false,
+            isNamed: rand.nextBool(),
+            isRequired: rand.nextBool(),
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
@@ -183,18 +192,18 @@ void main() {
             type: barType);
         final barPositionalFunctionTypeParam = FormalParameterImpl(
             id: RemoteInstance.uniqueId,
-            isNamed: true,
-            isRequired: true,
+            isNamed: rand.nextBool(),
+            isRequired: rand.nextBool(),
             metadata: [],
             name: 'bar',
             type: fooType);
 
         final unnamedFunctionTypeParam = FormalParameterImpl(
             id: RemoteInstance.uniqueId,
-            isNamed: true,
-            isRequired: true,
+            isNamed: rand.nextBool(),
+            isRequired: rand.nextBool(),
             metadata: [],
-            name: null,
+            name: rand.nextBool() ? null : 'zip',
             type: fooType);
 
         final zapTypeParam = TypeParameterDeclarationImpl(
@@ -210,7 +219,7 @@ void main() {
         test('FunctionTypeAnnotation', () {
           var functionType = FunctionTypeAnnotationImpl(
             id: RemoteInstance.uniqueId,
-            isNullable: true,
+            isNullable: rand.nextBool(),
             namedParameters: [
               fooNamedFunctionTypeParam,
               unnamedFunctionTypeParam
@@ -236,11 +245,11 @@ void main() {
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'name'),
               library: Fixtures.library,
               metadata: [],
-              hasBody: false,
-              hasExternal: false,
-              isGetter: true,
-              isOperator: false,
-              isSetter: false,
+              hasBody: rand.nextBool(),
+              hasExternal: rand.nextBool(),
+              isGetter: rand.nextBool(),
+              isOperator: rand.nextBool(),
+              isSetter: rand.nextBool(),
               namedParameters: [],
               positionalParameters: [],
               returnType: fooType,
@@ -256,17 +265,17 @@ void main() {
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'zorp'),
               library: Fixtures.library,
               metadata: [],
-              hasBody: true,
-              hasExternal: false,
-              isGetter: false,
-              isOperator: false,
-              isSetter: true,
+              hasBody: rand.nextBool(),
+              hasExternal: rand.nextBool(),
+              isGetter: rand.nextBool(),
+              isOperator: rand.nextBool(),
+              isSetter: rand.nextBool(),
               namedParameters: [fooNamedParam],
               positionalParameters: [barPositionalParam],
               returnType: fooType,
               typeParameters: [zapTypeParam],
               definingType: fooType.identifier,
-              isStatic: false);
+              hasStatic: rand.nextBool());
           expectSerializationEquality<DeclarationImpl>(
               method, mode, RemoteInstance.deserialize);
         });
@@ -278,14 +287,14 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'new'),
             library: Fixtures.library,
             metadata: [],
-            hasBody: true,
-            hasExternal: false,
+            hasBody: rand.nextBool(),
+            hasExternal: rand.nextBool(),
             namedParameters: [fooNamedParam],
             positionalParameters: [barPositionalParam],
             returnType: fooType,
             typeParameters: [zapTypeParam],
             definingType: fooType.identifier,
-            isFactory: true,
+            isFactory: rand.nextBool(),
           );
           expectSerializationEquality<DeclarationImpl>(
               constructor, mode, RemoteInstance.deserialize);
@@ -298,9 +307,11 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
             metadata: [],
-            hasExternal: true,
-            hasFinal: false,
-            hasLate: true,
+            hasConst: rand.nextBool(),
+            hasExternal: rand.nextBool(),
+            hasFinal: rand.nextBool(),
+            hasInitializer: rand.nextBool(),
+            hasLate: rand.nextBool(),
             type: barType,
           );
           expectSerializationEquality<DeclarationImpl>(
@@ -314,13 +325,15 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
             metadata: [],
-            hasAbstract: true,
-            hasExternal: false,
-            hasFinal: true,
-            hasLate: false,
+            hasAbstract: rand.nextBool(),
+            hasConst: rand.nextBool(),
+            hasExternal: rand.nextBool(),
+            hasFinal: rand.nextBool(),
+            hasInitializer: rand.nextBool(),
+            hasLate: rand.nextBool(),
             type: barType,
             definingType: fooType.identifier,
-            isStatic: false,
+            hasStatic: rand.nextBool(),
           );
           expectSerializationEquality<DeclarationImpl>(
               bar, mode, RemoteInstance.deserialize);
@@ -337,33 +350,31 @@ void main() {
           id: RemoteInstance.uniqueId,
           identifier:
               IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Serializable'),
-          isNullable: false,
+          isNullable: rand.nextBool(),
           typeArguments: [],
         );
 
         test('ClassDeclaration', () {
-          for (var boolValue in [true, false]) {
-            var fooClass = ClassDeclarationImpl(
-              id: RemoteInstance.uniqueId,
-              identifier:
-                  IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
-              library: Fixtures.library,
-              metadata: [],
-              interfaces: [barType],
-              hasAbstract: boolValue,
-              hasBase: boolValue,
-              hasExternal: boolValue,
-              hasFinal: boolValue,
-              hasInterface: boolValue,
-              hasMixin: boolValue,
-              hasSealed: boolValue,
-              mixins: [serializableType],
-              superclass: objectType,
-              typeParameters: [zapTypeParam],
-            );
-            expectSerializationEquality<DeclarationImpl>(
-                fooClass, mode, RemoteInstance.deserialize);
-          }
+          var fooClass = ClassDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
+            library: Fixtures.library,
+            metadata: [],
+            interfaces: [barType],
+            hasAbstract: rand.nextBool(),
+            hasBase: rand.nextBool(),
+            hasExternal: rand.nextBool(),
+            hasFinal: rand.nextBool(),
+            hasInterface: rand.nextBool(),
+            hasMixin: rand.nextBool(),
+            hasSealed: rand.nextBool(),
+            mixins: [serializableType],
+            superclass: objectType,
+            typeParameters: [zapTypeParam],
+          );
+          expectSerializationEquality<DeclarationImpl>(
+              fooClass, mode, RemoteInstance.deserialize);
         });
 
         test('EnumDeclaration', () {
@@ -421,21 +432,19 @@ void main() {
         });
 
         test('MixinDeclaration', () {
-          for (var base in [true, false]) {
-            var mixin = MixinDeclarationImpl(
-              id: RemoteInstance.uniqueId,
-              identifier:
-                  IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyMixin'),
-              library: Fixtures.library,
-              metadata: [],
-              hasBase: base,
-              interfaces: [barType],
-              superclassConstraints: [serializableType],
-              typeParameters: [zapTypeParam],
-            );
-            expectSerializationEquality<DeclarationImpl>(
-                mixin, mode, RemoteInstance.deserialize);
-          }
+          var mixin = MixinDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyMixin'),
+            library: Fixtures.library,
+            metadata: [],
+            hasBase: rand.nextBool(),
+            interfaces: [barType],
+            superclassConstraints: [serializableType],
+            typeParameters: [zapTypeParam],
+          );
+          expectSerializationEquality<DeclarationImpl>(
+              mixin, mode, RemoteInstance.deserialize);
         });
 
         test('TypeAliasDeclaration', () {
@@ -448,7 +457,7 @@ void main() {
             typeParameters: [zapTypeParam],
             aliasedType: NamedTypeAnnotationImpl(
                 id: RemoteInstance.uniqueId,
-                isNullable: false,
+                isNullable: rand.nextBool(),
                 identifier:
                     IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
                 typeArguments: [barType]),
@@ -461,12 +470,12 @@ void main() {
         test('RecordTypeAnnotation', () {
           var recordType = RecordTypeAnnotationImpl(
             id: RemoteInstance.uniqueId,
-            isNullable: true,
+            isNullable: rand.nextBool(),
             namedFields: [
               RecordFieldDeclarationImpl(
                 id: RemoteInstance.uniqueId,
                 identifier:
-                    IdentifierImpl(id: RemoteInstance.uniqueId, name: r'hello'),
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: 'hello'),
                 library: Fixtures.library,
                 metadata: [],
                 name: 'hello',
@@ -480,7 +489,7 @@ void main() {
                     IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
                 library: Fixtures.library,
                 metadata: [],
-                name: null,
+                name: rand.nextBool() ? null : 'zoiks',
                 type: fooType,
               ),
             ],
@@ -578,7 +587,7 @@ void main() {
           final arguments = Arguments([
             MapArgument({
               StringArgument('hello'): ListArgument(
-                  [BoolArgument(true), NullArgument()],
+                  [BoolArgument(rand.nextBool()), NullArgument()],
                   [ArgumentKind.nullable, ArgumentKind.bool]),
             }, [
               ArgumentKind.string,

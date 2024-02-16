@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -70,7 +70,7 @@ class ConstantInitializersResolver {
     element as PropertyInducingElementImpl;
 
     var variable = linker.getLinkingNode(element);
-    if (variable is! VariableDeclaration) return;
+    if (variable is! VariableDeclarationImpl) return;
     if (variable.initializer == null) return;
 
     var declarationList = variable.parent as VariableDeclarationList;

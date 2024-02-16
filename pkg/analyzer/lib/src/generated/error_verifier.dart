@@ -6189,10 +6189,6 @@ class _MacroDiagnosticsReporter {
     }
   }
 
-  List<DiagnosticMessage> _convertMessages(MacroDiagnostic diagnostic) {
-    return diagnostic.contextMessages.map(_convertMessage).toList();
-  }
-
   void _reportArgument(ArgumentMacroDiagnostic diagnostic) {
     var annotation = _annotationNode(element, diagnostic.annotationIndex);
     var arguments = annotation.arguments!.arguments;
@@ -6209,21 +6205,36 @@ class _MacroDiagnosticsReporter {
       macro.Severity.warning => WarningCode.MACRO_WARNING,
       macro.Severity.error => CompileTimeErrorCode.MACRO_ERROR,
     };
+
+    final contextMessages =
+        diagnostic.contextMessages.map(_convertMessage).toList();
+
     final target = diagnostic.message.target;
     switch (target) {
       case ApplicationMacroDiagnosticTarget():
-        errorReporter.atNode(
-          _annotationNode(element, target.annotationIndex),
-          errorCode,
-          arguments: [diagnostic.message.message],
-          contextMessages: _convertMessages(diagnostic),
+        var node = _annotationNode(element, target.annotationIndex);
+        errorReporter.reportError(
+          AnalysisError.forValues(
+            source: element.source!,
+            offset: node.offset,
+            length: node.length,
+            errorCode: errorCode,
+            message: diagnostic.message.message,
+            correctionMessage: diagnostic.correctionMessage,
+            contextMessages: contextMessages,
+          ),
         );
       case ElementMacroDiagnosticTarget():
-        errorReporter.atElement(
-          target.element,
-          errorCode,
-          arguments: [diagnostic.message.message],
-          contextMessages: _convertMessages(diagnostic),
+        errorReporter.reportError(
+          AnalysisError.forValues(
+            source: target.element.source!,
+            offset: target.element.nameOffset,
+            length: target.element.nameLength,
+            errorCode: errorCode,
+            message: diagnostic.message.message,
+            correctionMessage: diagnostic.correctionMessage,
+            contextMessages: contextMessages,
+          ),
         );
       case TypeAnnotationMacroDiagnosticTarget():
         var nodeLocation = _MacroTypeAnnotationLocationConverter(
@@ -6231,19 +6242,17 @@ class _MacroDiagnosticsReporter {
         ).convert(target.location);
         var unitAnalysis = nodeLocation?.unitAnalysis;
         var errorEntity = nodeLocation?.entity;
-        if (unitAnalysis != null && errorEntity is AstNode) {
-          unitAnalysis.errorReporter.atNode(
-            errorEntity,
-            errorCode,
-            arguments: [diagnostic.message.message],
-            contextMessages: _convertMessages(diagnostic),
-          );
-        } else if (unitAnalysis != null && errorEntity is Token) {
-          unitAnalysis.errorReporter.atToken(
-            errorEntity,
-            errorCode,
-            arguments: [diagnostic.message.message],
-            contextMessages: _convertMessages(diagnostic),
+        if (unitAnalysis != null && errorEntity != null) {
+          unitAnalysis.errorReporter.reportError(
+            AnalysisError.forValues(
+              source: unitAnalysis.element.source,
+              offset: errorEntity.offset,
+              length: errorEntity.length,
+              errorCode: errorCode,
+              message: diagnostic.message.message,
+              correctionMessage: diagnostic.correctionMessage,
+              contextMessages: contextMessages,
+            ),
           );
         }
       case ElementAnnotationMacroDiagnosticTarget():

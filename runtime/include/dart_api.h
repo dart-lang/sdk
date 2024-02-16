@@ -589,7 +589,6 @@ typedef struct {
   bool use_osr;
   bool obfuscate;
   bool load_vmservice_library;
-  bool copy_parent_code;
   bool null_safety;
   bool is_system_isolate;
   bool is_service_isolate;
