@@ -17,6 +17,20 @@ class CamelCaseTypesTest extends LintRuleTest {
   @override
   String get lintRule => 'camel_case_types';
 
+  test_augmentationClass_lowerCase() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class a { }
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment class a { }
+''');
+  }
+
   test_extensionType_lowerCase() async {
     // No need to test all the variations. Name checking is shared with other
     // declaration types.
@@ -31,5 +45,13 @@ extension type fooBar(int i) {}
     await assertNoDiagnostics(r'''
 extension type FooBar(int i) {}
 ''');
+  }
+
+  test_macroClass_lowerCase() async {
+    await assertDiagnostics(r'''
+macro class a { }
+''', [
+      lint(12, 1),
+    ]);
   }
 }
