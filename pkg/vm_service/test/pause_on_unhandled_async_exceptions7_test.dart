@@ -20,7 +20,7 @@ import 'pause_on_unhandled_async_exceptions6_test.dart' as test6;
 
 Future<int> alwaysThrow() async {
   // Ensure that we suspend at least once and throw an error asynchronously.
-  await Future.delayed(const Duration(milliseconds: 10));
+  await Future.delayed(Duration.zero);
   print(StackTrace.current);
   throw 'Error';
 }
@@ -69,6 +69,24 @@ Future<void> throwSomeCaughtAsyncErrors() async {
     // Ignore.
   } finally {
     client.close();
+  }
+
+  {
+    print('ignoring an error (1)');
+    final c = Completer<void>();
+    // Here async unwinder might follow awaiter chain to `await c.future`
+    // because it detects forwarding automatically.
+    alwaysThrow().whenComplete(c.complete).ignore();
+    await c.future;
+  }
+
+  {
+    print('ignoring an error (2)');
+    final c = Completer<void>();
+    alwaysThrow().whenComplete(() {
+      c.complete();
+    }).ignore();
+    await c.future;
   }
 }
 

@@ -88,6 +88,7 @@ class _FutureListener<S, T> {
       maskValue | maskError | maskTestError | maskWhenComplete;
 
   // Listeners on the same future are linked through this link.
+  @pragma("vm:entry-point")
   _FutureListener? _nextListener;
 
   // The future to complete when this listener is activated.
@@ -223,6 +224,8 @@ class _Future<T> implements Future<T> {
   /// Set by the [FutureExtensions.ignore] method to avoid
   /// having to introduce an unnecessary listener.
   /// Only relevant until the future is completed.
+  ///
+  /// When changing update runtime/vm/stack_trace.cc
   static const int _stateIgnoreError = 1;
 
   /// Pending completion. Set when completed using [_asyncComplete] or
@@ -254,6 +257,7 @@ class _Future<T> implements Future<T> {
   static const int _completionStateMask = 30;
 
   /// Whether the future is complete, and as what.
+  @pragma('vm:entry-point')
   int _state = _stateIncomplete;
 
   /// Zone that the future was completed from.
