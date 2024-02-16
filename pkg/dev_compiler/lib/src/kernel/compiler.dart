@@ -1066,13 +1066,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (deferredBaseClass.isNotEmpty)
         js.call('(#) => { #; }', [jsFormals, deferredBaseClass]),
     ];
-
-    // FutureOr types have a runtime normalization step that will call
-    // generic() as needed.
-    var genericCall = c == _coreTypes.deprecatedFutureOrClass
-        ? runtimeCall('normalizeFutureOr(#)', [genericArgs])
-        : runtimeCall('generic(#)', [genericArgs]);
-
+    var genericCall = runtimeCall('generic(#)', [genericArgs]);
     var genericName = _emitTopLevelNameNoExternalInterop(c, suffix: '\$');
     return js.statement('{ # = #; # = #(); }', [
       genericName,
@@ -6271,7 +6265,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 // errors when tests pass but would fail in sound null safety.
                 : runtimeCall('extraNullSafetyChecks'),
             'MINIFIED' => js.boolean(false),
-            'NEW_RUNTIME_TYPES' => js.boolean(true),
             'VARIANCE' =>
               // Variance is turned on by default, but only interfaces that have
               // at least one type parameter with non-legacy variance will have
@@ -6315,11 +6308,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
         }
       } else if (node.arguments.positional.length == 1) {
-        var firstArg = node.arguments.positional[0];
-        var type = getTypeLiteralType(firstArg);
-        if (name == 'unwrapType' && type != null) {
-          return _emitType(type);
-        }
+        var firstArg = node.arguments.positional.single;
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {
           return getSymbol(getExtensionSymbolInternal(firstArg.value));
         }
@@ -6332,13 +6321,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             type.typeArguments.isEmpty) {
           return js.call('# instanceof #',
               [_visitExpression(firstArg), _emitTopLevelName(type.classNode)]);
-        }
-
-        if (name == '_equalType' && type != null) {
-          return js.call('# === #', [
-            _visitExpression(firstArg),
-            _emitType(type.withDeclaredNullability(Nullability.nonNullable))
-          ]);
         }
       }
     }
