@@ -5760,6 +5760,7 @@ library
                 target: ElementMacroDiagnosticTarget
                   element: self::@class::A::@method::bar
             severity: warning
+            correctionMessage: Correction message
         methods
           foo @73
             returnType: void
