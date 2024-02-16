@@ -102,7 +102,12 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
 
     return new _SingleProcessMacroExecutor(
         onClose: () {
-          client.close();
+          try {
+            client.close();
+          } catch (_) {
+            // The `process.kill` two lines down can trigger an exception here
+            // because the remote side closes the socket first. Ignore it.
+          }
           serverSocket.close();
           process.kill();
         },
