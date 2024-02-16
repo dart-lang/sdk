@@ -17,6 +17,17 @@
 [#54640]: https://github.com/dart-lang/sdk/issues/54640
 [#54828]: https://github.com/dart-lang/sdk/issues/54828
 
+### Libraries
+
+#### `dart:io`
+
+- **Breaking change** [#53863][]: `Stdout` has a new field `lineTerminator`,
+  which allows developers to control the line ending used by `stdout` and
+  `stderr`. Classes that `implement Stdout` must define the `lineTerminator`
+  field. The default semantics of `stdout` and `stderr` are not changed.
+
+[#53863]: https://github.com/dart-lang/sdk/issues/53863
+
 ### Tools
 
 #### Pub
