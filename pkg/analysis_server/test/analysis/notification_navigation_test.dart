@@ -418,7 +418,7 @@ void f() {
 
     await prepareNavigation();
     assertHasRegion('bar');
-    assertHasFileTarget(testFilePath, 83, 3);
+    assertHasFileTarget(convertPath(testFilePath), 83, 3);
   }
 
   Future<void> test_class_augmentation_constructor() async {
