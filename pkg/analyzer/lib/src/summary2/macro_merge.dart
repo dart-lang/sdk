@@ -251,7 +251,7 @@ class MacroUpdateConstantsForOptimizedCode {
     required this.unitElement,
   });
 
-  /// Iterate over two lists of annotations:
+  /// Iterate over two lists of annotations and constants:
   ///
   /// 1. From the merged, but not optimized, parsed AST.
   ///
@@ -263,15 +263,15 @@ class MacroUpdateConstantsForOptimizedCode {
   /// The same elements, in the same order.
   /// If not, we have a bug in [MacroElementsMerger].
   void perform() {
-    var nodeAnnotations = _annotatedNodesInOrder();
-    var elementAnnotations = _annotatedElementsInOrder();
-    assert(nodeAnnotations.length == elementAnnotations.length);
+    var nodeRecords = _orderedForNodes();
+    var elementRecords = _orderedForElement();
+    assert(nodeRecords.length == elementRecords.length);
 
-    for (var i = 0; i < nodeAnnotations.length; i++) {
-      var nodeRecord = nodeAnnotations[i];
+    for (var i = 0; i < nodeRecords.length; i++) {
+      var nodeRecord = nodeRecords[i];
       var nodeTokens = nodeRecord.$2.allTokens;
 
-      var elementRecord = elementAnnotations[i];
+      var elementRecord = elementRecords[i];
       var elementAnnotation = elementRecord.$2;
       var elementTokens = elementAnnotation.allTokens;
       assert(nodeTokens.length == elementTokens.length);
@@ -281,18 +281,32 @@ class MacroUpdateConstantsForOptimizedCode {
           codeEdits: codeEdits,
           nodeTokens: nodeTokens,
           elementTokens: elementTokens.asElementToIndexMap,
+          onReplace: ({required toReplace, required replacement}) {
+            // Maybe replace the whole constant initializer.
+            if (elementRecord.$1 case ConstVariableElement element) {
+              if (element.constantInitializer == toReplace) {
+                replacement as ast.ExpressionImpl;
+                element.constantInitializer = replacement;
+              }
+            }
+          },
         ),
       );
     }
   }
 
-  List<(ElementImpl, ast.AnnotationImpl)> _annotatedElementsInOrder() {
-    var result = <(ElementImpl, ast.AnnotationImpl)>[];
+  List<(ElementImpl, ast.AstNodeImpl)> _orderedForElement() {
+    var result = <(ElementImpl, ast.AstNodeImpl)>[];
 
     void addElement(ElementImpl element) {
       for (var annotation in element.metadata) {
         annotation as ElementAnnotationImpl;
         result.add((element, annotation.annotationAst));
+      }
+      if (element is ConstVariableElement) {
+        if (element.constantInitializer case var initializer?) {
+          result.add((element, initializer));
+        }
       }
     }
 
@@ -358,17 +372,20 @@ class MacroUpdateConstantsForOptimizedCode {
     return result;
   }
 
-  List<(ast.AstNodeImpl, ast.AnnotationImpl)> _annotatedNodesInOrder() {
-    var result = <(ast.AstNodeImpl, ast.AnnotationImpl)>[];
+  List<(ast.AstNodeImpl, ast.AstNodeImpl)> _orderedForNodes() {
+    var result = <(ast.AstNodeImpl, ast.AstNodeImpl)>[];
 
-    void addNode(ast.AstNodeImpl node, List<ast.AnnotationImpl> metadata) {
+    void addMetadata(
+      ast.AstNodeImpl node,
+      List<ast.AnnotationImpl> metadata,
+    ) {
       for (var annotation in metadata) {
         result.add((node, annotation));
       }
     }
 
     void addAnnotatedNode(ast.AnnotatedNodeImpl node) {
-      addNode(node, node.metadata);
+      addMetadata(node, node.metadata);
     }
 
     void addVariableList(
@@ -376,7 +393,12 @@ class MacroUpdateConstantsForOptimizedCode {
       List<ast.AnnotationImpl> metadata,
     ) {
       for (var variable in variableList.variables) {
-        addNode(variable, metadata);
+        addMetadata(variable, metadata);
+        if (variableList.isConst) {
+          if (variable.initializer case var initializer?) {
+            result.add((variable, initializer));
+          }
+        }
       }
     }
 
@@ -453,11 +475,16 @@ class _RemoveImportPrefixesVisitor extends ast.RecursiveAstVisitor<void> {
   final List<macro.Edit> codeEdits;
   final List<Token> nodeTokens;
   final Map<Token, int> elementTokens;
+  final void Function({
+    required ast.AstNodeImpl toReplace,
+    required ast.AstNodeImpl replacement,
+  }) onReplace;
 
   _RemoveImportPrefixesVisitor({
     required this.codeEdits,
     required this.nodeTokens,
     required this.elementTokens,
+    required this.onReplace,
   });
 
   @override
@@ -474,11 +501,15 @@ class _RemoveImportPrefixesVisitor extends ast.RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(ast.PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(covariant ast.PrefixedIdentifierImpl node) {
     var prefix = _correspondingNodeToken(node.prefix.token);
     var edit = _editForRemovePrefix(prefix);
     if (edit != null) {
       NodeReplacer.replace(node, node.identifier);
+      onReplace(
+        toReplace: node,
+        replacement: node.identifier,
+      );
     }
 
     super.visitPrefixedIdentifier(node);
