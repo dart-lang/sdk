@@ -37,12 +37,13 @@ class CodeActionHandler
       MessageInfo message, CancellationToken token) async {
     final performance = message.performance;
 
-    final path = pathOfDoc(params.textDocument);
+    var textDocument = params.textDocument;
+    final path = pathOfDoc(textDocument);
     if (path.isError) {
       return failure(path);
     }
     final unitPath = path.result;
-    if (!server.isAnalyzed(unitPath)) {
+    if (!server.isAnalyzed(unitPath) || !isEditableDocument(textDocument.uri)) {
       return success(const []);
     }
 

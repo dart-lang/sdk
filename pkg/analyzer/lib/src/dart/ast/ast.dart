@@ -12640,7 +12640,7 @@ abstract final class NamedType implements TypeAnnotation {
 ///        [Identifier] typeArguments? '?'?
 final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
-  final ImportPrefixReferenceImpl? importPrefix;
+  ImportPrefixReferenceImpl? importPrefix;
 
   @override
   final Token name2;

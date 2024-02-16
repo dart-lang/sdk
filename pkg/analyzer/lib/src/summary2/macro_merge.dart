@@ -251,50 +251,32 @@ class MacroUpdateConstantsForOptimizedCode {
     required this.unitElement,
   });
 
+  /// Iterate over two lists of annotations:
+  ///
+  /// 1. From the merged, but not optimized, parsed AST.
+  ///
+  /// 2. From the merged element models, also not optimized.
+  /// Because we never optimize partial macro units.
+  ///
+  /// These elements are *not* produced from the parsed AST above.
+  /// But they must be fully consistent with each other.
+  /// The same elements, in the same order.
+  /// If not, we have a bug in [MacroElementsMerger].
   void perform() {
-    var nodeAnnotations = _annotatedNodesInOrder().expand((node) sync* {
-      for (var annotation in node.metadata) {
-        yield (
-          declaration: node,
-          annotation: annotation,
-        );
-      }
-    }).toList();
-
-    var elementAnnotations =
-        _annotatedElementsInOrder().expand((element) sync* {
-      for (var annotation in element.metadata) {
-        annotation as ElementAnnotationImpl;
-        yield (
-          element: element,
-          annotation: annotation.annotationAst,
-        );
-      }
-    }).toList();
-
-    if (nodeAnnotations.length != elementAnnotations.length) {
-      throw StateError('''
-Different number of element / node annotations.
-nodeAnnotations: ${nodeAnnotations.length}
-elementAnnotations: ${elementAnnotations.length}
-''');
-    }
+    var nodeAnnotations = _annotatedNodesInOrder();
+    var elementAnnotations = _annotatedElementsInOrder();
+    assert(nodeAnnotations.length == elementAnnotations.length);
 
     for (var i = 0; i < nodeAnnotations.length; i++) {
       var nodeRecord = nodeAnnotations[i];
+      var nodeTokens = nodeRecord.$2.allTokens;
+
       var elementRecord = elementAnnotations[i];
+      var elementAnnotation = elementRecord.$2;
+      var elementTokens = elementAnnotation.allTokens;
+      assert(nodeTokens.length == elementTokens.length);
 
-      var nodeTokens = nodeRecord.annotation.allTokens;
-      var elementTokens = elementRecord.annotation.allTokens;
-      if (nodeTokens.length != elementTokens.length) {
-        throw StateError('''
-Different number of element / node annotations.
-nodeTokens: ${nodeTokens.length}
-elementTokens: ${elementTokens.length}
-''');
-      }
-
-      elementRecord.annotation.accept(
+      elementAnnotation.accept(
         _RemoveImportPrefixesVisitor(
           codeEdits: codeEdits,
           nodeTokens: nodeTokens,
@@ -304,35 +286,46 @@ elementTokens: ${elementTokens.length}
     }
   }
 
-  List<ElementImpl> _annotatedElementsInOrder() {
-    var result = <ElementImpl>[];
+  List<(ElementImpl, ast.AnnotationImpl)> _annotatedElementsInOrder() {
+    var result = <(ElementImpl, ast.AnnotationImpl)>[];
+
+    void addElement(ElementImpl element) {
+      for (var annotation in element.metadata) {
+        annotation as ElementAnnotationImpl;
+        result.add((element, annotation.annotationAst));
+      }
+    }
 
     void addInstanceElement(InstanceElementImpl element) {
-      result.add(element);
+      addElement(element);
+
       for (var field in element.fields) {
         if (!field.isSynthetic) {
-          result.add(field);
+          addElement(field);
         }
       }
+
       for (var getter in element.accessors) {
         if (getter.isGetter && !getter.isSynthetic) {
-          result.add(getter);
+          addElement(getter);
         }
       }
+
       for (var setter in element.accessors) {
         if (setter.isSetter && !setter.isSynthetic) {
-          result.add(setter);
+          addElement(setter);
         }
       }
+
       for (var method in element.methods) {
-        result.add(method);
+        addElement(method);
       }
     }
 
     void addInterfaceElement(InterfaceElementImpl element) {
       addInstanceElement(element);
       for (var constructor in element.constructors) {
-        result.add(constructor);
+        addElement(constructor);
       }
     }
 
@@ -342,94 +335,113 @@ elementTokens: ${elementTokens.length}
 
     for (var variable in unitElement.topLevelVariables) {
       if (!variable.isSynthetic) {
-        result.add(variable);
+        addElement(variable);
       }
     }
 
     for (var getter in unitElement.accessors) {
       if (getter.isGetter && !getter.isSynthetic) {
-        result.add(getter);
+        addElement(getter);
       }
     }
 
     for (var setter in unitElement.accessors) {
       if (setter.isSetter && !setter.isSynthetic) {
-        result.add(setter);
+        addElement(setter);
       }
     }
 
     for (var function in unitElement.functions) {
-      result.add(function);
+      addElement(function);
     }
 
     return result;
   }
 
-  List<ast.AnnotatedNodeImpl> _annotatedNodesInOrder() {
-    var result = <ast.AnnotatedNodeImpl>[];
+  List<(ast.AstNodeImpl, ast.AnnotationImpl)> _annotatedNodesInOrder() {
+    var result = <(ast.AstNodeImpl, ast.AnnotationImpl)>[];
+
+    void addNode(ast.AstNodeImpl node, List<ast.AnnotationImpl> metadata) {
+      for (var annotation in metadata) {
+        result.add((node, annotation));
+      }
+    }
+
+    void addAnnotatedNode(ast.AnnotatedNodeImpl node) {
+      addNode(node, node.metadata);
+    }
+
+    void addVariableList(
+      ast.VariableDeclarationListImpl variableList,
+      List<ast.AnnotationImpl> metadata,
+    ) {
+      for (var variable in variableList.variables) {
+        addNode(variable, metadata);
+      }
+    }
 
     void addInterfaceMembers(List<ast.ClassMemberImpl> members) {
       for (var field in members) {
         if (field is ast.FieldDeclarationImpl) {
-          result.add(field);
+          addVariableList(field.fields, field.metadata);
         }
       }
 
       for (var getter in members) {
         if (getter is ast.MethodDeclarationImpl && getter.isGetter) {
-          result.add(getter);
+          addAnnotatedNode(getter);
         }
       }
 
       for (var setter in members) {
         if (setter is ast.MethodDeclarationImpl && setter.isSetter) {
-          result.add(setter);
+          addAnnotatedNode(setter);
         }
       }
 
       for (var method in members) {
         if (method is ast.MethodDeclarationImpl &&
             method.propertyKeyword == null) {
-          result.add(method);
+          addAnnotatedNode(method);
         }
       }
 
       for (var constructor in members) {
         if (constructor is ast.ConstructorDeclarationImpl) {
-          result.add(constructor);
+          addAnnotatedNode(constructor);
         }
       }
     }
 
     for (var class_ in unitNode.declarations) {
       if (class_ is ast.ClassDeclarationImpl) {
-        result.add(class_);
+        addAnnotatedNode(class_);
         addInterfaceMembers(class_.members);
       }
     }
 
-    for (var variable in unitNode.declarations) {
-      if (variable is ast.TopLevelVariableDeclarationImpl) {
-        result.add(variable);
+    for (var topVariable in unitNode.declarations) {
+      if (topVariable is ast.TopLevelVariableDeclarationImpl) {
+        addVariableList(topVariable.variables, topVariable.metadata);
       }
     }
 
     for (var getter in unitNode.declarations) {
       if (getter is ast.FunctionDeclarationImpl && getter.isGetter) {
-        result.add(getter);
+        addAnnotatedNode(getter);
       }
     }
 
     for (var setter in unitNode.declarations) {
       if (setter is ast.FunctionDeclarationImpl && setter.isSetter) {
-        result.add(setter);
+        addAnnotatedNode(setter);
       }
     }
 
     for (var function in unitNode.declarations) {
       if (function is ast.FunctionDeclarationImpl &&
           function.propertyKeyword == null) {
-        result.add(function);
+        addAnnotatedNode(function);
       }
     }
 
@@ -441,7 +453,6 @@ class _RemoveImportPrefixesVisitor extends ast.RecursiveAstVisitor<void> {
   final List<macro.Edit> codeEdits;
   final List<Token> nodeTokens;
   final Map<Token, int> elementTokens;
-  int nodePrefixIndex = 0;
 
   _RemoveImportPrefixesVisitor({
     required this.codeEdits,
@@ -450,22 +461,43 @@ class _RemoveImportPrefixesVisitor extends ast.RecursiveAstVisitor<void> {
   });
 
   @override
-  void visitPrefixedIdentifier(ast.PrefixedIdentifier node) {
-    var prefix = node.prefix;
-    if (prefix.name.startsWith('prefix')) {
-      var index = elementTokens[node.prefix.token]!;
-      var nodePrefix = nodeTokens[index];
-      for (var edit in codeEdits) {
-        if (edit is macro.RemoveImportPrefixReferenceEdit) {
-          if (edit.offset == nodePrefix.offset) {
-            NodeReplacer.replace(node, node.identifier);
-            break;
-          }
-        }
+  void visitNamedType(covariant ast.NamedTypeImpl node) {
+    if (node.importPrefix case var importPrefix?) {
+      var prefix = _correspondingNodeToken(importPrefix.name);
+      var edit = _editForRemovePrefix(prefix);
+      if (edit != null) {
+        node.importPrefix = null;
       }
     }
 
+    super.visitNamedType(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(ast.PrefixedIdentifier node) {
+    var prefix = _correspondingNodeToken(node.prefix.token);
+    var edit = _editForRemovePrefix(prefix);
+    if (edit != null) {
+      NodeReplacer.replace(node, node.identifier);
+    }
+
     super.visitPrefixedIdentifier(node);
+  }
+
+  Token _correspondingNodeToken(Token elementToken) {
+    var index = elementTokens[elementToken]!;
+    return nodeTokens[index];
+  }
+
+  macro.RemoveImportPrefixReferenceEdit? _editForRemovePrefix(Token prefix) {
+    for (var edit in codeEdits) {
+      if (edit is macro.RemoveImportPrefixReferenceEdit) {
+        if (edit.offset == prefix.offset) {
+          return edit;
+        }
+      }
+    }
+    return null;
   }
 }
 

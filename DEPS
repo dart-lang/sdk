@@ -149,7 +149,7 @@ vars = {
   "flute_rev": "f42b09f77132210499ec8ed819a60c260af03db6",
   "glob_rev": "ef5f0650f66dc64587b11757fe3303538cfeb1d8",
   "html_rev": "327e37a6a4dd46599737ee982f280d73a8f646f7",
-  "http_rev": "f0a02f98f7c921e86ecc81c70f38bb6fbccc81b9", # https://github.com/dart-lang/sdk/issues/54165
+  "http_rev": "d8b237d273f49bada2aa7feaa0e7795e2541fe83",
   "http_multi_server_rev": "ba9d07f3596b24718ddf45c9e071d40879cca565",
   "http_parser_rev": "84db8b029d9b51859a0bb4966859af009f9442e3",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -157,7 +157,7 @@ vars = {
   "leak_tracker_rev": "4a5b077739886f61bd6dc11c78865ef487c917c2",
   "lints_rev": "ead770872e272e25a64315c120950ea8ad5b2509",
   "logging_rev": "cbaf4ee2e59c318d7519edb5381f5fe2a7f69587",
-  "markdown_rev": "c2b842937787bc0dce1763d56e7551b9045deb42",
+  "markdown_rev": "6efe1416f1a448905c79f8b589a41aa71633fd39",
   "matcher_rev": "d954c8d979579b4b46427b0ea1d9c721117c191e",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "9a168712d6db610c3822617c132daea72d4fd2b5",
@@ -190,7 +190,7 @@ vars = {
   "vector_math_rev": "cb976c731f5f9011f09311cd1c39d5778d4f8f2e",
   "watcher_rev": "21858a41da1482922e03ee65cdf2169d01d59a67",
   "web_rev": "a54a1f0447979f9a3ea220199eca849ffb214e91",
-  "web_socket_channel_rev": "5241175e7c66271850d6e75fb9ec90068f9dd3c4", # https://github.com/dart-lang/sdk/issues/54165
+  "web_socket_channel_rev": "3db86bc0a09e1038a0fa418262c8a92211c5de69",
   "webdev_rev": "629c63214466a77d0994e9b8003120f48af9ef1d",
   "webdriver_rev": "2c1b6f8b9d684caf62d72bb327c24f738a4e7455",
   "webkit_inspection_protocol_rev": "07295b9a5a1f1851666269128e95a9644d65107a",

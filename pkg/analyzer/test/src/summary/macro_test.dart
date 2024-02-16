@@ -2860,6 +2860,59 @@ augment class A {
 ''');
   }
 
+  test_codeOptimizer_metadata_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}()
+class C {}""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A()
+class C {}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @72
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  rightParenthesis: ) @64
+                element: package:test/a.dart::@class::A::@constructor::new
+''');
+  }
+
   test_codeOptimizer_metadata_class_constructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -2981,6 +3034,85 @@ augment class B {
                 shouldUseTypeForInitializerInference: true
             accessors
               synthetic get foo @-1
+                returnType: int
+''');
+  }
+
+  test_codeOptimizer_metadata_class_field2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType("""
+  @{{package:test/a.dart@A}}()
+  final int foo = 0, bar = 1;""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  @A()
+  final int foo = 0, bar = 1;
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            fields
+              final foo @98
+                metadata
+                  Annotation
+                    atSign: @ @81
+                    name: SimpleIdentifier
+                      token: A @82
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    arguments: ArgumentList
+                      leftParenthesis: ( @83
+                      rightParenthesis: ) @84
+                    element: package:test/a.dart::@class::A::@constructor::new
+                type: int
+                shouldUseTypeForInitializerInference: true
+              final bar @107
+                metadata
+                  Annotation
+                    atSign: @ @81
+                    name: SimpleIdentifier
+                      token: A @82
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    arguments: ArgumentList
+                      leftParenthesis: ( @83
+                      rightParenthesis: ) @84
+                    element: package:test/a.dart::@class::A::@constructor::new
+                type: int
+                shouldUseTypeForInitializerInference: true
+            accessors
+              synthetic get foo @-1
+                returnType: int
+              synthetic get bar @-1
                 returnType: int
 ''');
   }
@@ -3397,6 +3529,270 @@ final foo = 0;
         accessors
           synthetic static get foo @-1
             returnType: int
+''');
+  }
+
+  test_codeOptimizer_metadata_unit_variable2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}()
+final foo = 0, bar = 1;""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A()
+final foo = 0, bar = 1;
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static final foo @72
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  rightParenthesis: ) @64
+                element: package:test/a.dart::@class::A::@constructor::new
+            type: int
+            shouldUseTypeForInitializerInference: false
+          static final bar @81
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  rightParenthesis: ) @64
+                element: package:test/a.dart::@class::A::@constructor::new
+            type: int
+            shouldUseTypeForInitializerInference: false
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+          synthetic static get bar @-1
+            returnType: int
+''');
+  }
+
+  test_codeOptimizer_metadata_uses_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A(Object _);
+}
+
+void foo() {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}({{package:test/a.dart@foo}})
+class C {}""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A(foo)
+class C {}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @75
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  arguments
+                    SimpleIdentifier
+                      token: foo @64
+                      staticElement: package:test/a.dart::@function::foo
+                      staticType: void Function()
+                  rightParenthesis: ) @67
+                element: package:test/a.dart::@class::A::@constructor::new
+''');
+  }
+
+  test_codeOptimizer_metadata_uses_namedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A.named();
+}
+
+class X<T> {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}.named()
+class C {}""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A.named()
+class C {}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @78
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @63
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                period: . @62
+                constructorName: SimpleIdentifier
+                  token: named @64
+                  staticElement: package:test/a.dart::@class::A::@constructor::named
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @69
+                  rightParenthesis: ) @70
+                element: package:test/a.dart::@class::A::@constructor::named
+''');
+  }
+
+  test_codeOptimizer_metadata_uses_namedType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A(Object _);
+}
+
+class X<T> {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}({{package:test/a.dart@X}}<void>)
+class C {}""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A(X<void>)
+class C {}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @79
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  arguments
+                    TypeLiteral
+                      type: NamedType
+                        name: X @64
+                        typeArguments: TypeArgumentList
+                          leftBracket: < @65
+                          arguments
+                            NamedType
+                              name: void @66
+                              element: <null>
+                              type: void
+                          rightBracket: > @70
+                        element: package:test/a.dart::@class::X
+                        type: X<void>
+                      staticType: Type
+                  rightParenthesis: ) @71
+                element: package:test/a.dart::@class::A::@constructor::new
 ''');
   }
 
