@@ -283,6 +283,7 @@ dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://d
 
 [ $compiler == dartkp && $simulator ]
 dart/awaiter_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart/awaiter_stacks/stream_methods_test/1: Pass, Slow
 dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
 dart/isolates/fast_object_copy_test*: SkipSlow
 
