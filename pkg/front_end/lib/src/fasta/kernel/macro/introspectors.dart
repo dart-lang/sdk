@@ -386,7 +386,7 @@ class MacroIntrospection {
           isGetter: builder.isGetter,
           isOperator: builder.isOperator,
           isSetter: builder.isSetter,
-          isStatic: builder.isStatic,
+          hasStatic: builder.isStatic,
           positionalParameters: parameters[0],
           namedParameters: parameters[1],
           returnType: types.computeTypeAnnotation(
@@ -439,10 +439,12 @@ class MacroIntrospection {
           metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
           hasAbstract: builder.isAbstract,
+          hasConst: builder.isConst,
           hasExternal: builder.isExternal,
           hasFinal: builder.isFinal,
+          hasInitializer: builder.hasInitializer,
           hasLate: builder.isLate,
-          isStatic: builder.isStatic,
+          hasStatic: builder.isStatic,
           type: types.computeTypeAnnotation(
               builder.libraryBuilder, builder.type));
     } else {
@@ -455,8 +457,10 @@ class MacroIntrospection {
           library: library,
           // TODO: Provide metadata annotations.
           metadata: const [],
+          hasConst: builder.isConst,
           hasExternal: builder.isExternal,
           hasFinal: builder.isFinal,
+          hasInitializer: builder.hasInitializer,
           hasLate: builder.isLate,
           type: types.computeTypeAnnotation(
               builder.libraryBuilder, builder.type));

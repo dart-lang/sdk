@@ -229,7 +229,7 @@ extension DeserializerExtensions on Deserializer {
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         definingType: RemoteInstance.deserialize(this),
-        isStatic: (this..moveNext()).expectBool(),
+        hasStatic: (this..moveNext()).expectBool(),
       );
 
   ConstructorDeclarationImpl _expectConstructorDeclaration(int id) =>
@@ -254,8 +254,10 @@ extension DeserializerExtensions on Deserializer {
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
+        hasConst: (this..moveNext()).expectBool(),
         hasExternal: (this..moveNext()).expectBool(),
         hasFinal: (this..moveNext()).expectBool(),
+        hasInitializer: (this..moveNext()).expectBool(),
         hasLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
       );
@@ -263,16 +265,21 @@ extension DeserializerExtensions on Deserializer {
   FieldDeclarationImpl _expectFieldDeclaration(int id) =>
       new FieldDeclarationImpl(
         id: id,
+        // Declaration fields.
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
+        // VariableDeclaration fields
+        hasConst: (this..moveNext()).expectBool(),
         hasExternal: (this..moveNext()).expectBool(),
         hasFinal: (this..moveNext()).expectBool(),
+        hasInitializer: (this..moveNext()).expectBool(),
         hasLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
+        // FieldDeclaration fields
         definingType: RemoteInstance.deserialize(this),
         hasAbstract: (this..moveNext()).expectBool(),
-        isStatic: (this..moveNext()).expectBool(),
+        hasStatic: (this..moveNext()).expectBool(),
       );
 
   ClassDeclarationImpl _expectClassDeclaration(int id) =>

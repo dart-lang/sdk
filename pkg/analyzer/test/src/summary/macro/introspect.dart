@@ -484,11 +484,11 @@ class _Printer {
       await sink.writeFlags({
         'hasBody': e.hasBody,
         'hasExternal': e.hasExternal,
+        'hasStatic': e.hasStatic,
         'isFactory': e.isFactory,
         'isGetter': e.isGetter,
         'isOperator': e.isOperator,
         'isSetter': e.isSetter,
-        'isStatic': e.isStatic,
       });
       await _writeMetadata(e);
       await _writeNamedFormalParameters(e.namedParameters);
@@ -579,7 +579,7 @@ class _Printer {
         'hasExternal': e.hasExternal,
         'hasFinal': e.hasFinal,
         'hasLate': e.hasLate,
-        'isStatic': e.isStatic,
+        'hasStatic': e.hasStatic,
       });
       await _writeMetadata(e);
       await _writeNamedTypeAnnotation('type', e.type);
@@ -613,10 +613,10 @@ class _Printer {
       await sink.writeFlags({
         'hasBody': e.hasBody,
         'hasExternal': e.hasExternal,
+        'hasStatic': e.hasStatic,
         'isGetter': e.isGetter,
         'isOperator': e.isOperator,
         'isSetter': e.isSetter,
-        'isStatic': e.isStatic,
       });
       await _writeMetadata(e);
       await _writeNamedFormalParameters(e.namedParameters);

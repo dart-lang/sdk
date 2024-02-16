@@ -119,8 +119,8 @@ abstract interface class MemberDeclaration implements Declaration {
   /// The type that defines this member.
   Identifier get definingType;
 
-  /// Whether or not this is a static member.
-  bool get isStatic;
+  /// Whether or not member has the `static` keyword.
+  bool get hasStatic;
 }
 
 /// Marker interface for a declaration that defines a new type in the program.
@@ -288,11 +288,17 @@ abstract interface class ConstructorDeclaration implements MethodDeclaration {
 
 /// Variable introspection information.
 abstract interface class VariableDeclaration implements Declaration {
+  /// Whether this variable has a `const` modifier.
+  bool get hasConst;
+
   /// Whether this variable has an `external` modifier.
   bool get hasExternal;
 
   /// Whether this variable has a `final` modifier.
   bool get hasFinal;
+
+  /// Whether this variable has an initializer at its declaration.
+  bool get hasInitializer;
 
   /// Whether this variable has a `late` modifier.
   bool get hasLate;

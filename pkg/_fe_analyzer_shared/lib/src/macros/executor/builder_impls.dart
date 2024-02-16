@@ -532,7 +532,7 @@ List<DeclarationCode> _buildVariableAugmentations(
     augmentations.add(new DeclarationCode.fromParts([
       if (declaration is FieldDeclaration) '  ',
       'augment ',
-      if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
+      if (declaration is FieldDeclaration && declaration.hasStatic) 'static ',
       getter,
     ]));
   }
@@ -540,7 +540,7 @@ List<DeclarationCode> _buildVariableAugmentations(
     augmentations.add(new DeclarationCode.fromParts([
       if (declaration is FieldDeclaration) '  ',
       'augment ',
-      if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
+      if (declaration is FieldDeclaration && declaration.hasStatic) 'static ',
       setter,
     ]));
   }
@@ -549,7 +549,7 @@ List<DeclarationCode> _buildVariableAugmentations(
       if (initializerDocComments != null) initializerDocComments,
       if (declaration is FieldDeclaration) '  ',
       'augment ',
-      if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
+      if (declaration is FieldDeclaration && declaration.hasStatic) 'static ',
       if (declaration.hasFinal) 'final ',
       declaration.type.code,
       ' ',
@@ -581,7 +581,7 @@ DeclarationCode _buildFunctionAugmentation(
       declaration.definingType.name,
       if (declaration.identifier.name.isNotEmpty) '.',
     ] else ...[
-      if (declaration is MethodDeclaration && declaration.isStatic) 'static ',
+      if (declaration is MethodDeclaration && declaration.hasStatic) 'static ',
       declaration.returnType.code,
       ' ',
       if (declaration.isOperator) 'operator ',
