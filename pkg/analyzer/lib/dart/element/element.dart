@@ -143,6 +143,39 @@ abstract class AugmentedInstanceElement {
 
   /// Returns the setter from [accessors] that has the given [name].
   PropertyAccessorElement? getSetter(String name);
+
+  /// Returns the element representing the getter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  PropertyAccessorElement? lookUpGetter({
+    required String name,
+    required LibraryElement library,
+  });
+
+  /// Returns the element representing the method that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  MethodElement? lookUpMethod({
+    required String name,
+    required LibraryElement library,
+  });
+
+  /// Returns the element representing the setter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  PropertyAccessorElement? lookUpSetter({
+    required String name,
+    required LibraryElement library,
+  });
 }
 
 /// The result of applying augmentations to a [InterfaceElement].
