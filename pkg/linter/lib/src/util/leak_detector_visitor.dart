@@ -10,17 +10,20 @@ import 'package:meta/meta.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../extensions.dart';
 
-/// Builds a function that reports a variable node if none of the predicates
-/// which result from building [predicates] with [predicateBuilders] return
-/// `true` for any node inside the [container] node.
+/// Builds a function that reports a variable node if none of the [predicates]
+/// return `true` for any node inside the [container] node.
 _VisitVariableDeclaration _buildVariableReporter(
-        AstNode container,
-        Iterable<_PredicateBuilder> predicateBuilders,
-        LintRule rule,
-        Map<DartTypePredicate, String> predicates) =>
+  AstNode container,
+  LintRule rule,
+  Map<DartTypePredicate, String> predicates, {
+  required _VariableType variableType,
+}) =>
     (VariableDeclaration variable) {
+      if (variable.equals != null && variable.initializer is SimpleIdentifier) {
+        return;
+      }
+
       var variableElement = variable.declaredElement;
       if (variableElement == null) {
         return;
@@ -31,131 +34,26 @@ _VisitVariableDeclaration _buildVariableReporter(
         return;
       }
 
-      // TODO(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
-      // ignore: deprecated_member_use_from_same_package
-      var containerNodes = container.traverseNodesInDFS();
+      var visitor = _ValidUseVisitor(
+        variable,
+        variableElement,
+        predicates,
+        variableType: variableType,
+      );
+      container.accept(visitor);
 
-      for (var predicateBuilder in predicateBuilders) {
-        if (containerNodes.any(predicateBuilder(variableElement))) {
-          return;
-        }
-      }
-
-      if (_hasVariableAssignments(containerNodes, variable)) {
-        return;
-      }
-
-      if (_hasNodesInvokingMethodOnVariable(
-          containerNodes, variable, predicates)) {
-        return;
-      }
-
-      if (_hasMethodCallbackNodes(
-          containerNodes, variableElement, predicates)) {
-        return;
-      }
-
-      // If any function is invoked with our variable, we suppress lints. This
-      // is because it is not so uncommon to invoke the target method there. We
-      // might not have access to the body of such function at analysis time, so
-      // trying to infer if the close method is invoked there is not always
-      // possible.
-      // TODO(alexeidiaz): Should there be another lint more relaxed that omits this step?
-      if (_hasMethodInvocationsWithVariableAsArgument(
-          containerNodes, variableElement)) {
+      if (visitor.containsValidUse) {
         return;
       }
 
       rule.reportLint(variable);
     };
 
-/// Returns a predicate that returns true for a node `n` if `n` is a
-/// [ConstructorFieldInitializer] initializing [v].
-_Predicate _hasConstructorFieldInitializers(VariableElement v) => (AstNode n) =>
-    n is ConstructorFieldInitializer && n.fieldName.staticElement == v;
-
-/// Returns a predicate that returns true for a node `n` if `n` is a
-/// [FieldFormalParameter] initializing [v].
-_Predicate _hasFieldFormalParameter(VariableElement v) => (AstNode n) {
-      if (n is! FieldFormalParameter) {
-        return false;
-      }
-      var staticElement = n.declaredElement;
-      return staticElement is FieldFormalParameterElement &&
-          staticElement.field == v;
-    };
-
-/// Whether any of the [predicates] holds true for [type] and [methodName].
+/// Whether any of the [predicates] applies to [methodName] and holds true for
+/// [type].
 bool _hasMatch(Map<DartTypePredicate, String> predicates, DartType type,
         String methodName) =>
     predicates.keys.any((p) => predicates[p] == methodName && p(type));
-
-bool _hasMethodCallbackNodes(
-    Iterable<AstNode> containerNodes,
-    VariableElement variableElement,
-    Map<DartTypePredicate, String> predicates) {
-  var prefixedIdentifiers = containerNodes.whereType<PrefixedIdentifier>();
-  return prefixedIdentifiers.any((n) =>
-      n.prefix.staticElement == variableElement &&
-      _hasMatch(predicates, variableElement.type, n.identifier.token.lexeme));
-}
-
-bool _hasMethodInvocationsWithVariableAsArgument(
-    Iterable<AstNode> containerNodes, VariableElement variableElement) {
-  var methodInvocations = containerNodes.whereType<MethodInvocation>();
-  return methodInvocations.any((n) => n.argumentList.arguments
-      .whereType<SimpleIdentifier>()
-      .map((e) => e.staticElement)
-      .contains(variableElement));
-}
-
-bool _hasNodesInvokingMethodOnVariable(
-        Iterable<AstNode> classNodes,
-        VariableDeclaration variable,
-        Map<DartTypePredicate, String> predicates) =>
-    classNodes.any((AstNode n) {
-      var declaredElement = variable.declaredElement;
-      return declaredElement != null &&
-          n is MethodInvocation &&
-          ((_hasMatch(predicates, declaredElement.type, n.methodName.name) &&
-                  (_isSimpleIdentifierElementEqualToVariable(
-                          n.realTarget, declaredElement) ||
-                      _isPostfixExpressionOperandEqualToVariable(
-                          n.realTarget, declaredElement) ||
-                      _isPropertyAccessThroughThis(
-                          n.realTarget, declaredElement) ||
-                      (n.thisOrAncestorMatching((a) => a == variable) !=
-                          null))) ||
-              (_isInvocationThroughCascadeExpression(n, declaredElement)));
-    });
-
-/// Returns a predicate that returns true for a node `n` if `n` is a
-/// [ReturnStatement] initializing [v].
-_Predicate _hasReturn(VariableElement v) => (AstNode n) {
-      if (n is! ReturnStatement) {
-        return false;
-      }
-      var expression = n.expression;
-      return expression is SimpleIdentifier && expression.staticElement == v;
-    };
-
-bool _hasVariableAssignments(
-    Iterable<AstNode> containerNodes, VariableDeclaration variable) {
-  if (variable.equals != null && variable.initializer is SimpleIdentifier) {
-    return true;
-  }
-
-  return containerNodes.any((n) =>
-      n is AssignmentExpression &&
-      (_isElementEqualToVariable(n.writeElement, variable.declaredElement) ||
-          // Assignment to VariableDeclaration as setter.
-          (n.leftHandSide is PropertyAccess &&
-              (n.leftHandSide as PropertyAccess).propertyName.token.lexeme ==
-                  variable.name.lexeme))
-      // Being assigned another reference.
-      &&
-      n.rightHandSide is SimpleIdentifier);
-}
 
 bool _isElementEqualToVariable(
         Element? propertyElement, VariableElement? variableElement) =>
@@ -211,19 +109,9 @@ bool _isSimpleIdentifierElementEqualToVariable(
 
 typedef DartTypePredicate = bool Function(DartType type);
 
-typedef _Predicate = bool Function(AstNode node);
-
-typedef _PredicateBuilder = _Predicate Function(VariableElement v);
-
 typedef _VisitVariableDeclaration = void Function(VariableDeclaration node);
 
 abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
-  static final _variablePredicateBuilders = <_PredicateBuilder>[_hasReturn];
-  static final _fieldPredicateBuilders = <_PredicateBuilder>[
-    _hasConstructorFieldInitializers,
-    _hasFieldFormalParameter
-  ];
-
   final LintRule rule;
 
   LeakDetectorProcessors(this.rule);
@@ -235,8 +123,14 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     var unit = getCompilationUnit(node);
     if (unit != null) {
+      // When visiting a field declaration, we want to check tree under the
+      // containing unit for ConstructorFieldInitializers and FieldFormalParameters.
       node.fields.variables.forEach(_buildVariableReporter(
-          unit, _fieldPredicateBuilders, rule, predicates));
+        unit,
+        rule,
+        predicates,
+        variableType: _VariableType.field,
+      ));
     }
   }
 
@@ -244,8 +138,157 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     var function = node.thisOrAncestorOfType<FunctionBody>();
     if (function != null) {
+      // When visiting a variable declaration, we want to check tree under the
+      // containing function for ReturnStatements. If an interesting variable
+      // is returned, don't report it.
       node.variables.variables.forEach(_buildVariableReporter(
-          function, _variablePredicateBuilders, rule, predicates));
+        function,
+        rule,
+        predicates,
+        variableType: _VariableType.local,
+      ));
     }
   }
+}
+
+/// A visitor that tracks _any_ valid use of [variable].
+///
+/// A valid use may calling a method or tearing off a method on [variable] as
+/// per [predicates].
+///
+/// A valid use may also just be the variable "escaping" the scope, for example,
+/// being returned by a function, or being passed as an argument to a function.
+class _ValidUseVisitor extends RecursiveAstVisitor<void> {
+  /// The variable under consideration.
+  final VariableDeclaration variable;
+
+  /// The element of the variable under consideration; stored here as a non-
+  /// `null` value.
+  final VariableElement variableElement;
+
+  /// The predicates that determine whether a method call or method tear-off is
+  /// a valid use.
+  final Map<DartTypePredicate, String> predicates;
+
+  /// The type of variable, which determines a few specifics about variable
+  /// use.
+  final _VariableType variableType;
+
+  /// Whether the node tree, after being visited, was determined to contain a
+  /// valid use.
+  var containsValidUse = false;
+
+  _ValidUseVisitor(
+    this.variable,
+    this.variableElement,
+    this.predicates, {
+    required this.variableType,
+  });
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    // Being assigned another reference.
+    if (node.rightHandSide is SimpleIdentifier) {
+      if (_isElementEqualToVariable(
+          node.writeElement, variable.declaredElement)) {
+        containsValidUse = true;
+        return;
+      }
+      // Assignment to VariableDeclaration as setter.
+      var leftHandSide = node.leftHandSide;
+      if (leftHandSide is PropertyAccess &&
+          leftHandSide.propertyName.token.lexeme == variable.name.lexeme) {
+        containsValidUse = true;
+        return;
+      }
+    }
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (node.fieldName.staticElement == variableElement) {
+      containsValidUse = true;
+      return;
+    }
+    super.visitConstructorFieldInitializer(node);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    if (variableType == _VariableType.field) {
+      var staticElement = node.declaredElement;
+      if (staticElement is FieldFormalParameterElement &&
+          staticElement.field == variableElement) {
+        containsValidUse = true;
+        return;
+      }
+    }
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (_hasMatch(predicates, variableElement.type, node.methodName.name) &&
+        (_isSimpleIdentifierElementEqualToVariable(
+                node.realTarget, variableElement) ||
+            _isPostfixExpressionOperandEqualToVariable(
+                node.realTarget, variableElement) ||
+            _isPropertyAccessThroughThis(node.realTarget, variableElement) ||
+            (node.thisOrAncestorMatching((a) => a == variable) != null))) {
+      containsValidUse = true;
+      return;
+    }
+
+    if (_isInvocationThroughCascadeExpression(node, variableElement)) {
+      containsValidUse = true;
+      return;
+    }
+
+    if (node.argumentList.arguments
+        .whereType<SimpleIdentifier>()
+        .map((e) => e.staticElement)
+        .contains(variableElement)) {
+      // If any function is invoked with our variable, we suppress lints. This
+      // is because it is not so uncommon to invoke the target method there. We
+      // might not have access to the body of such function at analysis time, so
+      // we cannot infer whether the target method is invoked.
+      // TODO(alexeidiaz): Should there be another, stricter lint rule that
+      // omits this step?
+      containsValidUse = true;
+      return;
+    }
+
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (node.prefix.staticElement == variableElement &&
+        _hasMatch(
+            predicates, variableElement.type, node.identifier.token.lexeme)) {
+      containsValidUse = true;
+      return;
+    }
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    if (variableType == _VariableType.local) {
+      var expression = node.expression;
+      if (expression is SimpleIdentifier &&
+          expression.staticElement == variableElement) {
+        containsValidUse = true;
+        return;
+      }
+    }
+    super.visitReturnStatement(node);
+  }
+}
+
+/// The type of variable being assessed.
+enum _VariableType {
+  field,
+  local;
 }

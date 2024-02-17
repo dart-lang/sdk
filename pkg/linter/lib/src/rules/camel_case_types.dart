@@ -77,6 +77,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    // Don't lint augmentation classes.
+    if (node.augmentKeyword != null) return;
+
     check(node.name);
   }
 

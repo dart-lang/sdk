@@ -191,13 +191,6 @@ bool testTernaryAndEquality() {
   }
 }
 
-class TestConstructorFieldInitializer {
-  bool _x, _y;
-  TestConstructorFieldInitializer()
-      : _x = (1 == 2), // OK
-        _y = (true && false); // LINT
-}
-
 int test2() => (1 == 1 ? 2 : 3); // OK
 bool test3() => (1 == 1); // LINT
 
@@ -206,32 +199,6 @@ Invocation? invocation() => null;
 m({p}) => null;
 
 bool Function(dynamic) get fn => (x) => x is bool ? x : false;
-
-class ClassWithFunction {
-  Function? f;
-  int? number;
-
-  ClassWithFunction();
-  ClassWithFunction.named(int a) : this.number = (a + 2); // LINT
-  // https://github.com/dart-lang/linter/issues/1473
-  ClassWithFunction.named2(Function value)
-      : this.f = (value ?? (_) => 42); // OK
-}
-
-class ClassWithClassWithFunction {
-  ClassWithFunction c;
-
-  // https://github.com/dart-lang/linter/issues/1395
-  ClassWithClassWithFunction() : c = (ClassWithFunction()..f = () => 42); // OK
-}
-
-class UnnecessaryParenthesis {
-  ClassWithClassWithFunction c;
-
-  UnnecessaryParenthesis()
-      : c = (ClassWithClassWithFunction()
-          ..c = (ClassWithFunction()..f = () => 42)); // OK
-}
 
 extension<T> on Set<T> {
   Set<T> operator +(Set<T> other) => {...this, ...other};

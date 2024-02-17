@@ -17,6 +17,42 @@ class CamelCaseTypesTest extends LintRuleTest {
   @override
   String get lintRule => 'camel_case_types';
 
+  test_augmentationClass_lowerCase() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class a { }
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment class a { }
+''');
+  }
+
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/linter/issues/4881',
+      reason:
+          "ParserErrorCode.EXTRANEOUS_MODIFIER [27, 7, Can't have modifier 'augment' here.]")
+  test_augmentationEnum_lowerCase() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+enum e {
+  a;
+}
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment enum e {
+  augment b;
+}
+''');
+  }
+
   test_extensionType_lowerCase() async {
     // No need to test all the variations. Name checking is shared with other
     // declaration types.
@@ -31,5 +67,13 @@ extension type fooBar(int i) {}
     await assertNoDiagnostics(r'''
 extension type FooBar(int i) {}
 ''');
+  }
+
+  test_macroClass_lowerCase() async {
+    await assertDiagnostics(r'''
+macro class a { }
+''', [
+      lint(12, 1),
+    ]);
   }
 }

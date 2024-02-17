@@ -2860,6 +2860,368 @@ augment class A {
 ''');
   }
 
+  test_codeOptimizer_constant_classField_constant() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  static const x = {{package:test/a.dart@a}};')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  static const x = a;
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            fields
+              static const x @94
+                type: int
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  SimpleIdentifier
+                    token: a @98
+                    staticElement: package:test/a.dart::@getter::a
+                    staticType: int
+            accessors
+              synthetic static get x @-1
+                returnType: int
+''');
+  }
+
+  test_codeOptimizer_constant_classField_namedType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T> {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  static const x = {{package:test/a.dart@A}}<void>;')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  static const x = A<void>;
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            fields
+              static const x @94
+                type: Type
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  TypeLiteral
+                    type: NamedType
+                      name: A @98
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @99
+                        arguments
+                          NamedType
+                            name: void @100
+                            element: <null>
+                            type: void
+                        rightBracket: > @104
+                      element: package:test/a.dart::@class::A
+                      type: A<void>
+                    staticType: Type
+            accessors
+              synthetic static get x @-1
+                returnType: Type
+''');
+  }
+
+  test_codeOptimizer_constant_topVariable_constant() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary('const x = {{package:test/a.dart@a}};')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+const x = a;
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const x @67
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              SimpleIdentifier
+                token: a @71
+                staticElement: package:test/a.dart::@getter::a
+                staticType: int
+        accessors
+          synthetic static get x @-1
+            returnType: int
+''');
+  }
+
+  test_codeOptimizer_constant_topVariable_constant2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+const b = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary('const x = {{package:test/a.dart@a}} + {{package:test/a.dart@b}};')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+const x = a + b;
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const x @67
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: a @71
+                  staticElement: package:test/a.dart::@getter::a
+                  staticType: int
+                operator: + @73
+                rightOperand: SimpleIdentifier
+                  token: b @75
+                  staticElement: package:test/a.dart::@getter::b
+                  staticType: int
+                staticElement: dart:core::@class::num::@method::+
+                staticInvokeType: num Function(num)
+                staticType: int
+        accessors
+          synthetic static get x @-1
+            returnType: int
+''');
+  }
+
+  test_codeOptimizer_constant_topVariable_constant3() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary("""
+@{{package:test/a.dart@A}}()
+const x = {{package:test/a.dart@a}}, y = {{package:test/a.dart@a}};
+""")
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+@A()
+const x = a, y = a;
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const x @72
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  rightParenthesis: ) @64
+                element: package:test/a.dart::@class::A::@constructor::new
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              SimpleIdentifier
+                token: a @76
+                staticElement: package:test/a.dart::@getter::a
+                staticType: int
+          static const y @79
+            metadata
+              Annotation
+                atSign: @ @61
+                name: SimpleIdentifier
+                  token: A @62
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @63
+                  rightParenthesis: ) @64
+                element: package:test/a.dart::@class::A::@constructor::new
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              SimpleIdentifier
+                token: a @83
+                staticElement: package:test/a.dart::@getter::a
+                staticType: int
+        accessors
+          synthetic static get x @-1
+            returnType: int
+          synthetic static get y @-1
+            returnType: int
+''');
+  }
+
+  test_codeOptimizer_constant_topVariable_namedType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T> {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary('const x = {{package:test/a.dart@A}}<void>;')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+const x = A<void>;
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const x @67
+            type: Type
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              TypeLiteral
+                type: NamedType
+                  name: A @71
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @72
+                    arguments
+                      NamedType
+                        name: void @73
+                        element: <null>
+                        type: void
+                    rightBracket: > @77
+                  element: package:test/a.dart::@class::A
+                  type: A<void>
+                staticType: Type
+        accessors
+          synthetic static get x @-1
+            returnType: Type
+''');
+  }
+
   test_codeOptimizer_metadata_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

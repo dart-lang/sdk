@@ -31,6 +31,80 @@ void f(int i) {
 ''');
   }
 
+  test_constructorFieldInitializer_binaryInside() async {
+    await assertDiagnostics(r'''
+class C {
+  bool f;
+  C() : f = (true && false);
+}
+''', [
+      lint(32, 15),
+    ]);
+  }
+
+  test_constructorFieldInitializer_equalityInside() async {
+    await assertNoDiagnostics(r'''
+class C {
+  bool f;
+  C() : f = (1 == 2);
+}
+''');
+  }
+
+  test_constructorFieldInitializer_functionExpressionInAssignment() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final bool Function() e;
+
+  C(bool Function()? e) : e = e ??= (() => true);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/1395
+  test_constructorFieldInitializer_functionExpressionInCascade() async {
+    await assertNoDiagnostics(r'''
+class C {
+  Object f;
+
+  C() : f = (C()..f = () => 42);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/1395
+  test_constructorFieldInitializer_functionExpressionInCascade2() async {
+    await assertNoDiagnostics(r'''
+class C {
+  dynamic f;
+
+  C()
+      : f = (C()..f = (C()..f = () => 42));
+}
+''');
+  }
+
+  test_constructorFieldInitializer_functionExpressionInNullAware() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final bool Function() e;
+
+  C(bool Function()? e) : e = e ?? (() => true);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/1473
+  test_constructorFieldInitializer_functionExpressionInNullAware2() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final bool Function() e;
+
+  C(bool Function()? e) : e = (e ?? () => true);
+}
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/4041
   test_nullAware_cascadeAssignment() async {
     await assertNoDiagnostics(r'''
@@ -66,8 +140,8 @@ void f() {
 void f() {
   g(i: ((3,)));
 }
-g({required (int,) i}) { }
 
+void g({required (int,) i}) { }
 ''', [
       lint(18, 6),
     ]);
@@ -78,8 +152,8 @@ g({required (int,) i}) { }
 void f() {
   g(((3,)));
 }
-g((int,) i) { }
 
+void g((int,) i) { }
 ''', [
       lint(15, 6),
     ]);
@@ -100,32 +174,34 @@ void f() {
 
   test_singleElementRecordWithNoTrailingComma_namedParam() async {
     await assertDiagnostics(r'''
-f() {
+void f() {
   g(i: (3));
 }
 
-g({required (int,) i}) { }
+void g({required (int,) i}) { }
 ''', [
       error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-          13,
-          3),
+        CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+        18,
+        3,
+      ),
     ]);
   }
 
   /// https://github.com/dart-lang/linter/issues/4876
   test_singleElementRecordWithNoTrailingComma_param() async {
     await assertDiagnostics(r'''
-f() {    
+void f() {
   g((3));
 }
 
-g((int,) i) { }
+void g((int,) i) { }
 ''', [
       error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-          14,
-          3),
+        CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+        15,
+        3,
+      ),
     ]);
   }
 

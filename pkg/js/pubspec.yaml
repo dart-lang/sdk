@@ -1,5 +1,5 @@
 name: js
-version: 0.7.0
+version: 0.7.1
 description: Annotations to create static Dart interfaces for JavaScript APIs.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/js
 
@@ -9,7 +9,7 @@ analyzer:
     export_internal_library: ignore
 
 environment:
-  sdk: ">=3.1.0-66.0.dev <4.0.0"
+  sdk: ^3.1.0
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the

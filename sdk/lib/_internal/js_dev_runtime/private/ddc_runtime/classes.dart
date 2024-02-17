@@ -98,103 +98,12 @@ getMixin(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
 
 final mixinOn = JS('', 'Symbol("mixinOn")');
 
-@JSExportName('implements')
-final implements_ = JS('', 'Symbol("implements")');
-
-/// Returns `null` if [clazz] doesn't directly implement any interfaces or a
-/// a `Function` that when called produces a `List` of the type objects
-/// [clazz] implements.
-///
-/// Note, indirectly (e.g., via superclass) implemented interfaces aren't
-/// included here. See compiler.dart for when/how it is emitted.
-List<Object> Function()? getImplements(clazz) => JS(
-    '',
-    'Object.hasOwnProperty.call(#, #) ? #[#] : null',
-    clazz,
-    implements_,
-    clazz,
-    implements_);
-
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
-
-final _variances = JS('', 'Symbol("variances")');
 
 final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
-
-/// Normalizes `FutureOr` types when they are constructed at runtime.
-///
-/// This normalization should mirror the normalization performed at compile time
-/// in the method named `_normalizeFutureOr()`.
-///
-/// **NOTE** Normalization of FutureOr<T?>? --> FutureOr<T?> is handled in
-/// [nullable].
-normalizeFutureOr(typeConstructor, setBaseClass) {
-  // The canonical version of the generic FutureOr type constructor.
-  var genericFutureOrType =
-      JS('!', '#', generic(typeConstructor, setBaseClass));
-
-  normalize(typeArg) {
-    // Normalize raw FutureOr --> dynamic
-    if (JS<bool>('!', '# == void 0', typeArg)) return _dynamic;
-
-    // FutureOr<dynamic|void|Object?|Object*|Object> -->
-    //   dynamic|void|Object?|Object*|Object
-    if (_isTop(typeArg) ||
-        _equalType(typeArg, Object) ||
-        (_jsInstanceOf(typeArg, LegacyType) &&
-            JS<bool>('!', '#.type === #', typeArg, Object))) {
-      return typeArg;
-    }
-
-    // FutureOr<Never> --> Future<Never>
-    if (_equalType(typeArg, Never)) {
-      return JS('!', '#(#)', getGenericClassStatic<Future>(), typeArg);
-    }
-    // FutureOr<Null> --> Future<Null>?
-    if (_equalType(typeArg, Null)) {
-      return nullable(
-          JS('!', '#(#)', getGenericClassStatic<Future>(), typeArg));
-    }
-    // Otherwise, create the FutureOr<T> type as a normal generic type.
-    var genericType = JS('!', '#(#)', genericFutureOrType, typeArg);
-    // Overwrite the original declaration so that it correctly points back to
-    // this method. This ensures that the we can test a type value returned here
-    // as a FutureOr because it is equal to 'async.FutureOr` (in the JS).
-    JS('!', '#[#] = #', genericType, _originalDeclaration, normalize);
-    // Add FutureOr specific is and as methods.
-    is_FutureOr(obj) =>
-        JS<bool>('!', '#.is(#)', typeArg, obj) ||
-        JS<bool>(
-            '!', '#(#).is(#)', getGenericClassStatic<Future>(), typeArg, obj);
-    JS('!', '#.is = #', genericType, is_FutureOr);
-
-    as_FutureOr(obj) {
-      // Special test to handle case for mixed mode non-nullable FutureOr of a
-      // legacy type. This allows casts like `null as FutureOr<int*>` to work
-      // in weak and sound mode.
-      if (obj == null && _jsInstanceOf(typeArg, LegacyType)) {
-        return obj;
-      }
-
-      if (JS<bool>('!', '#.is(#)', typeArg, obj) ||
-          JS<bool>('!', '#(#).is(#)', getGenericClassStatic<Future>(), typeArg,
-              obj)) {
-        return obj;
-      }
-      return cast(
-          obj, JS('!', '#(#)', getGenericClassStatic<FutureOr>(), typeArg));
-    }
-
-    JS('!', '#.as = #', genericType, as_FutureOr);
-
-    return genericType;
-  }
-
-  return normalize;
-}
 
 /// Memoize a generic type constructor function.
 generic(typeConstructor, setBaseClass) => JS('', '''(() => {
@@ -268,16 +177,6 @@ external getGenericClassStatic<T>();
 List? getGenericArgs(type) =>
     JS<List?>('', '#', safeGetOwnProperty(type, _typeArguments));
 
-List? getGenericArgVariances(type) =>
-    JS<List?>('', '#', safeGetOwnProperty(type, _variances));
-
-void setGenericArgVariances(f, variances) =>
-    JS('', '#[#] = #', f, _variances, variances);
-
-List<TypeVariable> getGenericTypeFormals(genericClass) {
-  return _typeFormalsFromFunction(getGenericTypeCtor(genericClass));
-}
-
 Object instantiateClass(Object genericClass, List<Object> typeArgs) {
   return JS('', '#.apply(null, #)', genericClass, typeArgs);
 }
@@ -328,9 +227,7 @@ setLibraryUri(f, uri) => JS('', '#[#] = #', f, _libraryUri, uri);
 @notNull
 String getClassName(Object? cls) {
   if (cls != null) {
-    var tag = JS_GET_FLAG("NEW_RUNTIME_TYPES")
-        ? JS('', '#[#]', cls, rti.interfaceTypeRecipePropertyName)
-        : JS('', '#[#]', cls, _runtimeType);
+    var tag = JS('', '#[#]', cls, rti.interfaceTypeRecipePropertyName);
     if (tag != null) {
       var name = JS<String>('!', '#.name', cls);
       var args = getGenericArgs(cls);
@@ -358,9 +255,7 @@ bool isJsInterop(obj) {
   if (obj == null) return false;
   if (JS('!', 'typeof # === "function"', obj)) {
     // A function is a Dart function if it has runtime type information.
-    return JS_GET_FLAG('NEW_RUNTIME_TYPES')
-        ? JS('!', '#[#] == null', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME))
-        : JS('!', '#[#] == null', obj, _runtimeType);
+    return JS('!', '#[#] == null', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
   }
   // Primitive types are not JS interop types.
   if (JS('!', 'typeof # !== "object"', obj)) return false;
@@ -652,40 +547,6 @@ void setExtensionBaseClass(@notNull Object dartType, @notNull Object jsType) {
   jsObjectSetPrototypeOf(dartProto, JS('', '#.prototype', jsType));
 }
 
-/// Adds type test predicates to a class/interface type [ctor], using the
-/// provided [isClass] JS Symbol.
-///
-/// This will operate quickly for non-generic types, native extension types,
-/// as well as matching exact generic type arguments:
-///
-///     class C<T> {}
-///     class D extends C<int> {}
-///     main() { dynamic d = new D(); d as C<int>; }
-///
-addTypeTests(ctor, isClass) {
-  if (isClass == null) isClass = JS('', 'Symbol("_is_" + ctor.name)');
-  // TODO(jmesserly): since we know we're dealing with class/interface types,
-  // we can optimize this rather than go through the generic `dart.is` helpers.
-  JS('', '#.prototype[#] = true', ctor, isClass);
-  JS(
-      '',
-      '''#.is = function is_C(obj) {
-    return obj != null && (obj[#] || #(obj, this));
-  }''',
-      ctor,
-      isClass,
-      instanceOf);
-  JS(
-      '',
-      '''#.as = function as_C(obj) {
-    if (obj != null && obj[#]) return obj;
-    return #(obj, this);
-  }''',
-      ctor,
-      isClass,
-      cast);
-}
-
 /// A runtime mapping of interface type recipe to the symbol used to tag the
 /// class for simple identification in the dart:rti library.
 ///
@@ -725,43 +586,6 @@ void addRtiResources(Object classRef, JSArray<String> interfaceRecipes) {
     JS('', '#.# = #', prototype, tagSymbol, true);
   }
 }
-
-/// Pre-initializes types with empty type caches.
-///
-/// Allows us to perform faster lookups on local caches without having to
-/// filter out the prototype chain. Also allows types to remain relatively
-/// monomorphic, which results in faster execution in V8.
-addTypeCaches(type) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    throwUnimplementedInCurrentRti();
-  } else {
-    JS('', '#[#] = void 0', type, _cachedLegacy);
-    JS('', '#[#] = void 0', type, _cachedNullable);
-    var subtypeCacheMap = JS<Object>('!', 'new Map()');
-    JS('', '#[#] = #', type, _subtypeCache, subtypeCacheMap);
-    JS('', '#.push(#)', _cacheMaps, subtypeCacheMap);
-  }
-}
-
-// TODO(jmesserly): should we do this for all interfaces?
-
-/// The well known symbol for testing `is Future`
-final isFuture = JS('', 'Symbol("_is_Future")');
-
-/// The well known symbol for testing `is Iterable`
-final isIterable = JS('', 'Symbol("_is_Iterable")');
-
-/// The well known symbol for testing `is List`
-final isList = JS('', 'Symbol("_is_List")');
-
-/// The well known symbol for testing `is Map`
-final isMap = JS('', 'Symbol("_is_Map")');
-
-/// The well known symbol for testing `is Stream`
-final isStream = JS('', 'Symbol("_is_Stream")');
-
-/// The well known symbol for testing `is StreamSubscription`
-final isStreamSubscription = JS('', 'Symbol("_is_StreamSubscription")');
 
 /// The default `operator ==` that calls [identical].
 var identityEquals;

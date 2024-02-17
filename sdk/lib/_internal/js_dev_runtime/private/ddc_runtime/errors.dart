@@ -13,15 +13,6 @@ argumentError(value) {
   throw ArgumentError.value(value);
 }
 
-/// Only used during the development of the new runtime type system in branches
-/// that should never be executed in the active type system.
-// TODO(48585): Remove after switching to the new runtime type system.
-Never throwUnimplementedInCurrentRti() {
-  var systemVersion = JS_GET_FLAG('NEW_RUNTIME_TYPES') ? 'new' : 'old';
-  throw UnimplementedError('This code path is not supported with the '
-      '$systemVersion runtime type system.');
-}
-
 throwUnimplementedError(String message) {
   throw UnimplementedError(message);
 }
@@ -50,21 +41,6 @@ void _checkModuleNullSafetyMode(@notNull bool isModuleSound) {
     throw AssertionError('The null safety mode of the Dart SDK module '
         '($sdkMode) does not match the null safety mode of this module '
         '($moduleMode).');
-  }
-}
-
-/// Throws if [useNewTypes] does not match the version of the type
-/// representation of this SDK.
-///
-/// The call to this method is inserted into every module at compile time.
-void _checkModuleRuntimeTypes(@notNull bool useNewTypes) {
-  if (useNewTypes != JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    var sdkTypes = JS_GET_FLAG('NEW_RUNTIME_TYPES') ? 'new' : 'old';
-    var moduleTypes = useNewTypes ? 'new' : 'old';
-
-    throw AssertionError('The Dart SDK module is using the $sdkTypes runtime '
-        'type representation and is incompatible with the $moduleTypes '
-        'representation used in this module.');
   }
 }
 
@@ -150,19 +126,9 @@ String _castErrorMessage(from, to) {
   // }
   var fromName = "'${typeName(from)}'";
   var toName = "'${typeName(to)}'";
-
-  var toType = to;
-  if (_jsInstanceOf(to, NullableType) || _jsInstanceOf(to, LegacyType)) {
-    toType = to.type;
-  }
-  var fromType = from;
-  if (_jsInstanceOf(from, NullableType) || _jsInstanceOf(from, LegacyType)) {
-    fromType = from.type;
-  }
-
-  if (typeName(fromType) == typeName(toType)) {
-    fromName += ' (in ${getLibraryUri(fromType)})';
-    toName += ' (in ${getLibraryUri(toType)})';
+  if (fromName == toName) {
+    fromName += ' (in ${getLibraryUri(from)})';
+    toName += ' (in ${getLibraryUri(to)})';
   }
   return 'Expected a value of type $toName, but got one of type $fromName';
 }
