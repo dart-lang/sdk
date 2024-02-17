@@ -1,3 +1,7 @@
+# 3.2.1
+- Adding `unified_analytics` as a dependency and added static method `DevToolsUtils.initializeAnalytics` to create analytics instance for DevTools.
+- Updated `devtools_shared` constraint to ^7.0.0.
+
 # 3.2.0
 - [DAP] Fixed "Unable to find library" errors when using global evaluation when the context file resolves to a `package:` URI.
 - Updated `devtools_shared` to ^6.0.4.
