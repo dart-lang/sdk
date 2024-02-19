@@ -4,6 +4,7 @@
 
 import '../api.dart';
 import '../executor.dart';
+import 'span.dart';
 
 /// A mixin which provides a shared implementation of
 /// [MacroExecutor.buildAugmentationLibrary].
@@ -14,117 +15,177 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
       TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
       TypeAnnotation? Function(OmittedTypeAnnotation) typeInferrer,
-      {Map<OmittedTypeAnnotation, String>? omittedTypes}) {
-    Map<Uri, _SynthesizedNamePart> importNames = {};
-    Map<OmittedTypeAnnotation, _SynthesizedNamePart> typeNames = {};
-    List<_Part> importParts = [];
-    List<_Part> directivesParts = [];
-    List<_StringPart> stringParts = [];
-    StringBuffer directivesStringPartBuffer = new StringBuffer();
+      {Map<OmittedTypeAnnotation, String>? omittedTypes,
+      List<Span>? spans}) {
+    return new _Builder(
+            resolveDeclaration, resolveIdentifier, typeInferrer, omittedTypes)
+        .build(macroResults, spans: spans);
+  }
+}
 
-    void flushStringParts() {
-      if (directivesStringPartBuffer.isNotEmpty) {
-        _StringPart stringPart =
-            new _StringPart(directivesStringPartBuffer.toString());
-        directivesParts.add(stringPart);
-        stringParts.add(stringPart);
-        directivesStringPartBuffer = new StringBuffer();
+class _Builder {
+  final TypeDeclaration Function(Identifier) _resolveDeclaration;
+  final ResolvedIdentifier Function(Identifier) _resolveIdentifier;
+  final TypeAnnotation? Function(OmittedTypeAnnotation) _typeInferrer;
+  final Map<OmittedTypeAnnotation, String>? _omittedTypes;
+
+  final Map<Uri, _SynthesizedNamePart> _importNames = {};
+  final Map<OmittedTypeAnnotation, _SynthesizedNamePart> _typeNames = {};
+  final List<_AppliedPart<_Part>> _importParts = [];
+  final List<_AppliedPart<_Part>> _directivesParts = [];
+  final List<_AppliedPart<_StringPart>> _stringParts = [];
+  List<_AppliedPart<_StringPart>> _directivesStringPartBuffer = [];
+
+  // Keeps track of the last part written in `lastDirectivePart`.
+  String _lastDirectivePart = '';
+
+  _Builder(this._resolveDeclaration, this._resolveIdentifier,
+      this._typeInferrer, this._omittedTypes);
+
+  void _flushStringParts() {
+    if (_directivesStringPartBuffer.isNotEmpty) {
+      _directivesParts.addAll(_directivesStringPartBuffer);
+      _stringParts.addAll(_directivesStringPartBuffer);
+      _directivesStringPartBuffer = [];
+    }
+  }
+
+  void _writeDirectiveStringPart(Key key, String part) {
+    _lastDirectivePart = part;
+    _directivesStringPartBuffer.add(_AppliedPart.string(key, part));
+  }
+
+  void _writeDirectiveSynthesizedNamePart(Key key, _SynthesizedNamePart part) {
+    _flushStringParts();
+    _lastDirectivePart = '';
+    _directivesParts.add(_AppliedPart.synthesized(key, part));
+  }
+
+  void _buildString(Key parent, int index, String part) {
+    _writeDirectiveStringPart(new ContentKey.string(parent, index), part);
+  }
+
+  void _buildIdentifier(Key parent, int index, Identifier part) {
+    ResolvedIdentifier resolved = _resolveIdentifier(part);
+    _SynthesizedNamePart? prefix;
+    Uri? resolvedUri = resolved.uri;
+    if (resolvedUri != null) {
+      prefix = _importNames.putIfAbsent(resolvedUri, () {
+        _SynthesizedNamePart prefix = new _SynthesizedNamePart();
+        _importParts.add(_AppliedPart.string(
+            new UriKey.importPrefix(resolvedUri),
+            "import '${resolvedUri}' as "));
+        _importParts.add(_AppliedPart.synthesized(
+            new UriKey.prefixDefinition(resolvedUri), prefix));
+        _importParts.add(
+            _AppliedPart.string(new UriKey.importSuffix(resolvedUri), ";\n"));
+        return prefix;
+      });
+    }
+    if (resolved.kind == IdentifierKind.instanceMember) {
+      // Qualify with `this.` if we don't have a receiver.
+      if (!_lastDirectivePart.trimRight().endsWith('.')) {
+        _writeDirectiveStringPart(
+            new ContentKey.implicitThis(parent, index), 'this.');
+      }
+    } else if (prefix != null) {
+      _writeDirectiveSynthesizedNamePart(
+          new PrefixUseKey(parent, index, resolvedUri!), prefix);
+      _writeDirectiveStringPart(new ContentKey.prefixDot(parent, index), '.');
+    }
+    if (resolved.kind == IdentifierKind.staticInstanceMember) {
+      _writeDirectiveStringPart(new ContentKey.staticScope(parent, index),
+          '${resolved.staticScope!}.');
+    }
+    _writeDirectiveStringPart(
+        new ContentKey.identifierName(parent, index), '${part.name}');
+  }
+
+  void _buildOmittedTypeAnnotation(
+      Key parent, int index, OmittedTypeAnnotation part) {
+    TypeAnnotation? type = _typeInferrer(part);
+    Key typeAnnotationKey = new OmittedTypeAnnotationKey(parent, index, part);
+    if (type == null) {
+      if (_omittedTypes != null) {
+        _SynthesizedNamePart name =
+            _typeNames.putIfAbsent(part, () => new _SynthesizedNamePart());
+        _writeDirectiveSynthesizedNamePart(typeAnnotationKey, name);
+      } else {
+        throw new ArgumentError("No type inferred for $part");
+      }
+    } else {
+      _buildCode(typeAnnotationKey, type.code);
+    }
+  }
+
+  void _buildCode(Key parent, Code code) {
+    List<Object> parts = code.parts;
+    for (int index = 0; index < parts.length; index++) {
+      Object part = parts[index];
+      if (part is String) {
+        _buildString(parent, index, part);
+      } else if (part is Code) {
+        _buildCode(new ContentKey.code(parent, index), part);
+      } else if (part is Identifier) {
+        _buildIdentifier(parent, index, part);
+      } else if (part is OmittedTypeAnnotation) {
+        _buildOmittedTypeAnnotation(parent, index, part);
+      } else {
+        throw new ArgumentError(
+            'Code objects only support String, Identifier, and Code '
+            'instances but got $part which was not one of those.');
       }
     }
+  }
 
-    // Keeps track of the last part written in `lastDirectivePart`.
-    String lastDirectivePart = '';
-    void writeDirectiveStringPart(String part) {
-      lastDirectivePart = part;
-      directivesStringPartBuffer.write(part);
-    }
-
-    void writeDirectiveSynthesizedNamePart(_SynthesizedNamePart part) {
-      flushStringParts();
-      lastDirectivePart = '';
-      directivesParts.add(part);
-    }
-
-    void buildCode(Code code) {
-      for (Object part in code.parts) {
-        if (part is String) {
-          writeDirectiveStringPart(part);
-        } else if (part is Code) {
-          buildCode(part);
-        } else if (part is Identifier) {
-          ResolvedIdentifier resolved = resolveIdentifier(part);
-          _SynthesizedNamePart? prefix;
-          if (resolved.uri != null) {
-            prefix = importNames.putIfAbsent(resolved.uri!, () {
-              _SynthesizedNamePart prefix = new _SynthesizedNamePart();
-              importParts.add(new _StringPart("import '${resolved.uri}' as "));
-              importParts.add(prefix);
-              importParts.add(new _StringPart(";\n"));
-              return prefix;
-            });
-          }
-          if (resolved.kind == IdentifierKind.instanceMember) {
-            // Qualify with `this.` if we don't have a receiver.
-            if (!lastDirectivePart.trimRight().endsWith('.')) {
-              writeDirectiveStringPart('this.');
-            }
-          } else if (prefix != null) {
-            writeDirectiveSynthesizedNamePart(prefix);
-            writeDirectiveStringPart('.');
-          }
-          if (resolved.kind == IdentifierKind.staticInstanceMember) {
-            writeDirectiveStringPart('${resolved.staticScope!}.');
-          }
-          writeDirectiveStringPart('${part.name}');
-        } else if (part is OmittedTypeAnnotation) {
-          TypeAnnotation? type = typeInferrer(part);
-          if (type == null) {
-            if (omittedTypes != null) {
-              _SynthesizedNamePart name =
-                  typeNames.putIfAbsent(part, () => new _SynthesizedNamePart());
-              writeDirectiveSynthesizedNamePart(name);
-            } else {
-              throw new ArgumentError("No type inferred for $part");
-            }
-          } else {
-            buildCode(type.code);
-          }
-        } else {
-          throw new ArgumentError(
-              'Code objects only support String, Identifier, and Code '
-              'instances but got $part which was not one of those.');
-        }
-      }
-    }
-
-    Map<Identifier, List<DeclarationCode>> mergedTypeResults = {};
-    Map<Identifier, List<DeclarationCode>> mergedEntryResults = {};
-    Map<Identifier, List<TypeAnnotationCode>> mergedInterfaceResults = {};
-    Map<Identifier, List<TypeAnnotationCode>> mergedMixinResults = {};
+  String build(Iterable<MacroExecutionResult> macroResults,
+      {List<Span>? spans}) {
+    Map<Identifier, List<(Key, DeclarationCode)>> mergedTypeResults = {};
+    Map<Identifier, List<(Key, DeclarationCode)>> mergedEntryResults = {};
+    Map<Identifier, List<(Key, TypeAnnotationCode)>> mergedInterfaceResults =
+        {};
+    Map<Identifier, List<(Key, TypeAnnotationCode)>> mergedMixinResults = {};
     for (MacroExecutionResult result in macroResults) {
+      Key key = new MacroExecutionResultKey(result);
+      int index = 0;
       for (DeclarationCode augmentation in result.libraryAugmentations) {
-        buildCode(augmentation);
-        writeDirectiveStringPart('\n');
+        _buildCode(
+            new ContentKey.libraryAugmentation(key, index), augmentation);
+        _writeDirectiveStringPart(
+            new ContentKey.libraryAugmentationSeparator(key, index), '\n');
+        index++;
       }
-      result.enumValueAugmentations.forEach((key, value) {
+      result.enumValueAugmentations.forEach((identifier, value) {
+        int index = 0;
+        final Iterable<(Key, DeclarationCode)> values = value
+            .map((e) => (new IdentifierKey.enum_(key, index++, identifier), e));
         mergedEntryResults.update(
-            key, (enumValues) => enumValues..addAll(value),
-            ifAbsent: () => value.toList());
+            identifier, (enumValues) => enumValues..addAll(values),
+            ifAbsent: () => values.toList());
       });
-      result.interfaceAugmentations.forEach((key, value) {
+      result.interfaceAugmentations.forEach((identifier, value) {
+        int index = 0;
+        final Iterable<(Key, TypeAnnotationCode)> values = value.map(
+            (e) => (new IdentifierKey.interface(key, index++, identifier), e));
         mergedInterfaceResults.update(
-            key, (declarations) => declarations..addAll(value),
-            ifAbsent: () => value.toList());
+            identifier, (declarations) => declarations..addAll(values),
+            ifAbsent: () => values.toList());
       });
-      result.mixinAugmentations.forEach((key, value) {
+      result.mixinAugmentations.forEach((identifier, value) {
+        int index = 0;
+        final Iterable<(Key, TypeAnnotationCode)> values = value
+            .map((e) => (new IdentifierKey.mixin(key, index++, identifier), e));
         mergedMixinResults.update(
-            key, (declarations) => declarations..addAll(value),
-            ifAbsent: () => value.toList());
+            identifier, (declarations) => declarations..addAll(values),
+            ifAbsent: () => values.toList());
       });
-      result.typeAugmentations.forEach((key, value) {
+      result.typeAugmentations.forEach((identifier, value) {
+        int index = 0;
+        final Iterable<(Key, DeclarationCode)> values = value.map(
+            (e) => (new IdentifierKey.member(key, index++, identifier), e));
         mergedTypeResults.update(
-            key, (declarations) => declarations..addAll(value),
-            ifAbsent: () => value.toList());
+            identifier, (declarations) => declarations..addAll(values),
+            ifAbsent: () => values.toList());
       });
     }
     final Set<Identifier> mergedAugmentedTypes = {
@@ -134,7 +195,8 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
       ...mergedTypeResults.keys,
     };
     for (Identifier type in mergedAugmentedTypes) {
-      final TypeDeclaration typeDeclaration = resolveDeclaration(type);
+      final TypeDeclaration typeDeclaration = _resolveDeclaration(type);
+      final TypeDeclarationKey key = new TypeDeclarationKey(typeDeclaration);
       String declarationKind = switch (typeDeclaration) {
         ClassDeclaration() => 'class',
         EnumDeclaration() => 'enum',
@@ -158,75 +220,111 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
       ];
       // Has the effect of adding a space after the keywords
       if (keywords.isNotEmpty) keywords.add('');
-      writeDirectiveStringPart(
+      _writeDirectiveStringPart(new TypeDeclarationContentKey.declaration(key),
           'augment ${keywords.join(' ')}$declarationKind ${type.name} ');
 
       if (mergedMixinResults[type] case var mixins? when mixins.isNotEmpty) {
-        buildCode(new RawCode.fromParts([
-          'with ',
-          ...[
-            for (TypeAnnotationCode mixin in mixins) mixin,
-          ].joinAsCode(', '),
-          ' '
-        ]));
+        Key mixinsKey = new TypeDeclarationContentKey.mixins(key);
+        int index = 0;
+        _buildString(mixinsKey, index++, 'with ');
+        bool needsComma = false;
+        for (var (Key key, TypeAnnotationCode mixin) in mixins) {
+          if (needsComma) {
+            _buildString(mixinsKey, index++, ', ');
+          }
+          _buildCode(key, mixin);
+          needsComma = true;
+        }
+        _buildString(mixinsKey, index++, ' ');
       }
 
       if (mergedInterfaceResults[type] case var interfaces?
           when interfaces.isNotEmpty) {
-        buildCode(new RawCode.fromParts([
-          'implements ',
-          ...[
-            for (TypeAnnotationCode interface in interfaces) interface,
-          ].joinAsCode(', '),
-          ' '
-        ]));
-      }
-
-      writeDirectiveStringPart('{\n');
-      if (typeDeclaration is EnumDeclaration) {
-        for (DeclarationCode entryAugmentation
-            in mergedEntryResults[type] ?? []) {
-          buildCode(entryAugmentation);
+        Key interfacesKey = new TypeDeclarationContentKey.interfaces(key);
+        int index = 0;
+        _buildString(interfacesKey, index++, 'implements ');
+        bool needsComma = false;
+        for (var (Key key, TypeAnnotationCode interface) in interfaces) {
+          if (needsComma) {
+            _buildString(interfacesKey, index++, ', ');
+          }
+          _buildCode(key, interface);
+          needsComma = true;
         }
-        writeDirectiveStringPart(';\n');
+        _buildString(interfacesKey, index++, ' ');
       }
-      for (DeclarationCode augmentation in mergedTypeResults[type] ?? []) {
-        buildCode(augmentation);
-        writeDirectiveStringPart('\n');
-      }
-      writeDirectiveStringPart('}\n');
-    }
-    flushStringParts();
 
-    if (importNames.isNotEmpty) {
-      String prefix = _computeFreshPrefix(stringParts, 'prefix');
+      _writeDirectiveStringPart(
+          new TypeDeclarationContentKey.bodyStart(key), '{\n');
+      if (typeDeclaration is EnumDeclaration) {
+        for (var (Key key, DeclarationCode entryAugmentation)
+            in mergedEntryResults[type] ?? []) {
+          _buildCode(key, entryAugmentation);
+        }
+        _writeDirectiveStringPart(
+            new TypeDeclarationContentKey.enumValueEnd(key), ';\n');
+      }
+      for (var (Key key, DeclarationCode augmentation)
+          in mergedTypeResults[type] ?? []) {
+        _buildCode(key, augmentation);
+        _writeDirectiveStringPart(
+            new TypeDeclarationContentKey.declarationSeparator(key), '\n');
+      }
+      _writeDirectiveStringPart(
+          new TypeDeclarationContentKey.bodyEnd(key), '}\n');
+    }
+    _flushStringParts();
+
+    if (_importNames.isNotEmpty) {
+      String prefix = _computeFreshPrefix(_stringParts, 'prefix');
       int index = 0;
-      for (_SynthesizedNamePart part in importNames.values) {
+      for (_SynthesizedNamePart part in _importNames.values) {
         part.text = '$prefix${index++}';
       }
     }
-    if (omittedTypes != null && typeNames.isNotEmpty) {
-      String prefix = _computeFreshPrefix(stringParts, 'OmittedType');
+    if (_omittedTypes != null && _typeNames.isNotEmpty) {
+      String prefix = _computeFreshPrefix(_stringParts, 'OmittedType');
       int index = 0;
-      typeNames.forEach(
+      _typeNames.forEach(
           (OmittedTypeAnnotation omittedType, _SynthesizedNamePart part) {
         String name = '$prefix${index++}';
         part.text = name;
-        omittedTypes[omittedType] = name;
+        _omittedTypes[omittedType] = name;
       });
     }
 
     StringBuffer sb = new StringBuffer();
-    for (_Part part in importParts) {
-      sb.write(part.text);
+
+    void addText(Key key, String text) {
+      spans?.add(new Span(key, sb.length, text));
+      sb.write(text);
     }
-    sb.write('\n');
-    for (_Part part in directivesParts) {
-      sb.write(part.text);
+
+    for (_AppliedPart<_Part> appliedPart in _importParts) {
+      addText(appliedPart.key, appliedPart.part.text);
     }
+    addText(const ImportDeclarationSeparatorKey(), '\n');
+    for (_AppliedPart<_Part> appliedPart in _directivesParts) {
+      addText(appliedPart.key, appliedPart.part.text);
+    }
+    addText(const EndOfFileKey(), "");
 
     return sb.toString();
   }
+}
+
+class _AppliedPart<T extends _Part> {
+  final Key key;
+  final T part;
+
+  _AppliedPart(this.key, this.part);
+
+  static _AppliedPart<_StringPart> string(Key key, String part) =>
+      new _AppliedPart<_StringPart>(key, new _StringPart(part));
+
+  static _AppliedPart<_SynthesizedNamePart> synthesized(
+          Key key, _SynthesizedNamePart part) =>
+      new _AppliedPart<_SynthesizedNamePart>(key, part);
 }
 
 abstract class _Part {
@@ -251,15 +349,17 @@ class _StringPart implements _Part {
 /// This algorithm assumes that no two parts in [stringParts] occur in direct
 /// sequence where they are used, i.e. there is always at least one
 /// [_SynthesizedNamePart] between them.
-String _computeFreshPrefix(List<_StringPart> stringParts, String name) {
+String _computeFreshPrefix(
+    List<_AppliedPart<_StringPart>> stringParts, String name) {
   int index = -1;
   String prefix = name;
-  for (_StringPart part in stringParts) {
-    while (part.text.contains(prefix)) {
+  for (_AppliedPart<_StringPart> appliedPart in stringParts) {
+    while (appliedPart.part.text.contains(prefix)) {
       index++;
       prefix = '$name$index';
     }
   }
+
   if (index > 0) {
     // Add a separator when an index was needed. This is to ensure that
     // suffixing number to [prefix] doesn't blend the digits.

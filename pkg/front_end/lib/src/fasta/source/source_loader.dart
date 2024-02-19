@@ -937,13 +937,16 @@ severity: $severity
         // and the VM does not support that. Also, what would, for instance,
         // setting a breakpoint on line 42 of some import uri mean, if the uri
         // represented several files?
-        // TODO(johnniwinther): Replace this with something that supports
-        // augmentation libraries.
-        List<String> newPathSegments =
-            new List<String>.of(importUri.pathSegments);
-        newPathSegments.add(libraryBuilder.fileUri.pathSegments.last);
-        newPathSegments[0] = "${newPathSegments[0]}-patch";
-        importUri = importUri.replace(pathSegments: newPathSegments);
+        if (libraryBuilder.isPatchLibrary) {
+          // TODO(johnniwinther): Use augmentation-like solution for patching.
+          List<String> newPathSegments =
+              new List<String>.of(importUri.pathSegments);
+          newPathSegments.add(libraryBuilder.fileUri.pathSegments.last);
+          newPathSegments[0] = "${newPathSegments[0]}-patch";
+          importUri = importUri.replace(pathSegments: newPathSegments);
+        } else {
+          importUri = libraryBuilder.importUri;
+        }
       }
       target.addSourceInformation(
           importUri, libraryBuilder.fileUri, result.lineStarts, source);

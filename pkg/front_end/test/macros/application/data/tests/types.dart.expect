@@ -7,31 +7,31 @@ import "dart:core" as prefix0;
 import "package:macro/macro.dart" as prefix1;
 import "package:macro/macro.dart";
 
-class topLevelFunction1GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+class topLevelFunction1GeneratedClass extends core::Object { // from dart-macro+org-dartlang-test:///a/b/c/main.dart
   synthetic constructor •() → self::topLevelFunction1GeneratedClass
     : super core::Object::•()
     ;
   external method method() → void;
 }
-class topLevelFunction2GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+class topLevelFunction2GeneratedClass extends core::Object { // from dart-macro+org-dartlang-test:///a/b/c/main.dart
   synthetic constructor •() → self::topLevelFunction2GeneratedClass
     : super core::Object::•()
     ;
   external method method() → dynamic;
 }
-class topLevelFunction3GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+class topLevelFunction3GeneratedClass extends core::Object { // from dart-macro+org-dartlang-test:///a/b/c/main.dart
   synthetic constructor •() → self::topLevelFunction3GeneratedClass
     : super core::Object::•()
     ;
   external method method() → core::int;
 }
-class topLevelFunction4GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+class topLevelFunction4GeneratedClass extends core::Object { // from dart-macro+org-dartlang-test:///a/b/c/main.dart
   synthetic constructor •() → self::topLevelFunction4GeneratedClass
     : super core::Object::•()
     ;
   external method method() → mac::FunctionTypesMacro1?;
 }
-class topLevelFunction5GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+class topLevelFunction5GeneratedClass extends core::Object { // from dart-macro+org-dartlang-test:///a/b/c/main.dart
   synthetic constructor •() → self::topLevelFunction5GeneratedClass
     : super core::Object::•()
     ;

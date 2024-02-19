@@ -241,6 +241,12 @@ class CompilerOptions {
   /// order to ensure a stable output for testing.
   bool omitOsMessageForTesting = false;
 
+  /// If `true`, macro generated libraries will be printed during compilation.
+  bool showGeneratedMacroSourcesForTesting = false;
+
+  /// Object used for hooking into the compilation pipeline during testing.
+  HooksForTesting? hooksForTesting;
+
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool writeFileOnCrashReport = true;
 
@@ -619,4 +625,30 @@ class Verbosity {
 
   @override
   String toString() => 'Verbosity($name)';
+}
+
+/// Interface for hooking into the compilation pipeline for testing.
+class HooksForTesting {
+  /// Called before the intermediate macro augmentation libraries have been
+  /// replaced by the merged macro augmentation libraries.
+  ///
+  /// [Component] is the fully built component at this stage of the compilation.
+  ///
+  /// If macros are not applied, this is not called.
+  void beforeMergingMacroAugmentations(Component component) {}
+
+  /// Called after the intermediate macro augmentation libraries have been
+  /// replaced by the merged macro augmentation libraries.
+  ///
+  /// [Component] is the fully built component at this stage of the compilation.
+  ///
+  /// If macros are not applied, this is not called.
+  void afterMergingMacroAugmentations(Component component) {}
+
+  /// Called at the end of full compilation in the `KernelTarget.buildComponent`
+  /// method.
+  ///
+  /// [Component] is the fully built component as returned from
+  /// `KernelTarget.buildComponent`.
+  void onBuildComponentComplete(Component component) {}
 }

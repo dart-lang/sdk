@@ -22,7 +22,8 @@ augment void topLevelFunction3(prefix0.int a, [prefix0.int? b, ]) {
 }
 augment void topLevelFunction4(prefix0.int a, {prefix0.int? b, prefix0.int? c, }) {
   throw 42;
-}*/
+}
+*/
 
 import 'package:macro/macro.dart';
 

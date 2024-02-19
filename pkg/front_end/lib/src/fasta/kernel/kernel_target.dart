@@ -267,10 +267,20 @@ class KernelTarget extends TargetImplementation {
   SourceLoader createLoader() =>
       new SourceLoader(fileSystem, includeComments, this);
 
+  bool _hasAddedSources = false;
+
   void addSourceInformation(
       Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
-    uriToSource[fileUri] =
-        new Source(lineStarts, sourceCode, importUri, fileUri);
+    Source source = new Source(lineStarts, sourceCode, importUri, fileUri);
+    uriToSource[fileUri] = source;
+    if (_hasAddedSources) {
+      // The sources have already been added to the component in [link] so we
+      // have to add source directly here to create a consistent component.
+      component?.uriToSource[fileUri] = excludeSource
+          ? new Source(source.lineStarts, const <int>[], source.importUri,
+              source.fileUri)
+          : source;
+    }
   }
 
   /// Return list of same size as input with possibly translated uris.
@@ -650,6 +660,9 @@ class KernelTarget extends TargetImplementation {
         checkMacroApplications(loader.hierarchy, loader.macroClass!,
             loader.sourceLibraryBuilders, macroApplications);
       }
+      if (macroApplications != null) {
+        macroApplications.buildMergedAugmentationLibraries(component!);
+      }
 
       if (verify) {
         benchmarker?.enterPhase(BenchmarkPhases.body_verify);
@@ -668,6 +681,9 @@ class KernelTarget extends TargetImplementation {
       // library builders. To avoid it we null it out here.
       sourceClasses = null;
       extensionTypeDeclarations = null;
+
+      context.options.hooksForTesting?.onBuildComponentComplete(component!);
+
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
@@ -698,6 +714,7 @@ class KernelTarget extends TargetImplementation {
     }
 
     this.uriToSource.forEach(copySource);
+    _hasAddedSources = true;
 
     Component component = backendTarget.configureComponent(new Component(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));

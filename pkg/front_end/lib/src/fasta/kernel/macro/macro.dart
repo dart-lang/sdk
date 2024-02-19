@@ -4,9 +4,13 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/span.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/uri.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../../../api_prototype/compiler_options.dart';
 import '../../../base/common.dart';
 import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
@@ -27,8 +31,9 @@ import '../benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../hierarchy/hierarchy_builder.dart';
 import 'annotation_parser.dart';
 import 'introspectors.dart';
+import 'offsets.dart';
 
-const String augmentationScheme = 'org-dartlang-augmentation';
+const String intermediateAugmentationScheme = 'org-dartlang-augmentation';
 
 final Uri macroLibraryUri =
     Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart');
@@ -327,17 +332,22 @@ void checkMacroApplications(
 }
 
 class MacroApplications {
+  final SourceLoader _sourceLoader;
   final macro.MacroExecutor _macroExecutor;
   final MacroIntrospection _macroIntrospection;
   final Map<SourceLibraryBuilder, LibraryMacroApplicationData> _libraryData =
       {};
+  final Map<SourceLibraryBuilder, List<macro.MacroExecutionResult>>
+      _libraryResults = {};
+  final Map<SourceLibraryBuilder, Map<Uri, List<macro.Span>>>
+      _libraryResultSpans = {};
   final MacroApplicationDataForTesting? dataForTesting;
 
   List<LibraryMacroApplicationData> _pendingLibraryData = [];
 
   MacroApplications(
-      SourceLoader sourceLoader, this._macroExecutor, this.dataForTesting)
-      : _macroIntrospection = new MacroIntrospection(sourceLoader) {}
+      this._sourceLoader, this._macroExecutor, this.dataForTesting)
+      : _macroIntrospection = new MacroIntrospection(_sourceLoader);
 
   macro.MacroExecutor get macroExecutor => _macroExecutor;
 
@@ -539,6 +549,7 @@ class MacroApplications {
   }
 
   Future<List<macro.MacroExecutionResult>> _applyTypeMacros(
+      SourceLibraryBuilder originLibraryBuilder,
       ApplicationData applicationData) async {
     macro.Declaration declaration = applicationData.declaration;
     List<macro.MacroExecutionResult> results = [];
@@ -563,6 +574,7 @@ class MacroApplications {
                 _macroIntrospection.typePhaseIntrospector);
         result.reportDiagnostics(applicationData);
         if (result.isNotEmpty) {
+          _registerMacroExecutionResult(originLibraryBuilder, result);
           results.add(result);
         }
       }
@@ -588,30 +600,32 @@ class MacroApplications {
       SourceLibraryBuilder libraryBuilder = entry.key;
       LibraryMacroApplicationData data = entry.value;
       for (ApplicationData applicationData in data.memberApplications.values) {
-        executionResults.addAll(await _applyTypeMacros(applicationData));
+        executionResults.addAll(
+            await _applyTypeMacros(libraryBuilder.origin, applicationData));
       }
       for (MapEntry<ClassBuilder, ClassMacroApplicationData> entry
           in data.classData.entries) {
         ClassMacroApplicationData classApplicationData = entry.value;
         for (ApplicationData applicationData
             in classApplicationData.memberApplications.values) {
-          executionResults.addAll(await _applyTypeMacros(applicationData));
+          executionResults.addAll(
+              await _applyTypeMacros(libraryBuilder.origin, applicationData));
         }
         if (classApplicationData.classApplications != null) {
-          executionResults.addAll(
-              await _applyTypeMacros(classApplicationData.classApplications!));
+          executionResults.addAll(await _applyTypeMacros(
+              libraryBuilder.origin, classApplicationData.classApplications!));
         }
       }
       if (executionResults.isNotEmpty) {
         Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
-        String result = _macroExecutor
-            .buildAugmentationLibrary(
-                executionResults,
-                _macroIntrospection.resolveDeclaration,
-                _macroIntrospection.resolveIdentifier,
-                _macroIntrospection.types.inferOmittedType,
-                omittedTypes: omittedTypes)
-            .trim();
+        List<macro.Span> spans = [];
+        String result = _macroExecutor.buildAugmentationLibrary(
+            executionResults,
+            _macroIntrospection.resolveDeclaration,
+            _macroIntrospection.resolveIdentifier,
+            _macroIntrospection.types.inferOmittedType,
+            omittedTypes: omittedTypes,
+            spans: spans);
         assert(
             result.trim().isNotEmpty,
             "Empty types phase augmentation library source for "
@@ -623,9 +637,12 @@ class MacroApplications {
           Map<String, OmittedTypeBuilder>? omittedTypeBuilders =
               _macroIntrospection.types
                   .computeOmittedTypeBuilders(omittedTypes);
-          augmentationLibraries.add(await libraryBuilder.origin
+          SourceLibraryBuilder augmentationLibrary = await libraryBuilder.origin
               .createAugmentationLibrary(result,
-                  omittedTypes: omittedTypeBuilders));
+                  omittedTypes: omittedTypeBuilders);
+          augmentationLibraries.add(augmentationLibrary);
+          _registerMacroExecutionResultSpan(
+              libraryBuilder.origin, augmentationLibrary.importUri, spans);
         }
       }
     }
@@ -633,7 +650,21 @@ class MacroApplications {
     return augmentationLibraries;
   }
 
-  Future<void> _applyDeclarationsMacros(ApplicationData applicationData,
+  void _registerMacroExecutionResult(SourceLibraryBuilder originLibraryBuilder,
+      macro.MacroExecutionResult result) {
+    (_libraryResults[originLibraryBuilder] ??= []).add(result);
+  }
+
+  void _registerMacroExecutionResultSpan(
+      SourceLibraryBuilder originLibraryBuilder,
+      Uri uri,
+      List<macro.Span> spans) {
+    (_libraryResultSpans[originLibraryBuilder] ??= {})[uri] = spans;
+  }
+
+  Future<void> _applyDeclarationsMacros(
+      SourceLibraryBuilder originLibraryBuilder,
+      ApplicationData applicationData,
       Future<void> Function(SourceLibraryBuilder) onAugmentationLibrary) async {
     List<macro.MacroExecutionResult> results = [];
     macro.Declaration declaration = applicationData.declaration;
@@ -659,16 +690,19 @@ class MacroApplications {
         result.reportDiagnostics(applicationData);
         if (result.isNotEmpty) {
           Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
+          List<macro.Span> spans = [];
           String source = _macroExecutor.buildAugmentationLibrary(
               [result],
               _macroIntrospection.resolveDeclaration,
               _macroIntrospection.resolveIdentifier,
               _macroIntrospection.types.inferOmittedType,
-              omittedTypes: omittedTypes);
+              omittedTypes: omittedTypes,
+              spans: spans);
           if (retainDataForTesting) {
             dataForTesting?.registerDeclarationsResult(
                 applicationData.builder, result, source);
           }
+          _registerMacroExecutionResult(originLibraryBuilder, result);
           Map<String, OmittedTypeBuilder>? omittedTypeBuilders =
               _macroIntrospection.types
                   .computeOmittedTypeBuilders(omittedTypes);
@@ -677,6 +711,8 @@ class MacroApplications {
               .libraryBuilder.origin
               .createAugmentationLibrary(source,
                   omittedTypes: omittedTypeBuilders);
+          _registerMacroExecutionResultSpan(
+              originLibraryBuilder, augmentationLibrary.importUri, spans);
           await onAugmentationLibrary(augmentationLibrary);
           if (retainDataForTesting) {
             results.add(result);
@@ -705,8 +741,9 @@ class MacroApplications {
     // TODO(johnniwinther): Maintain a pending list instead of running through
     // all annotations to find the once have to be applied now.
     Future<void> applyClassMacros(SourceClassBuilder classBuilder) async {
+      SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
       LibraryMacroApplicationData? libraryApplicationData =
-          _libraryData[classBuilder.libraryBuilder];
+          _libraryData[libraryBuilder];
       if (libraryApplicationData == null) return;
 
       ClassMacroApplicationData? classApplicationData =
@@ -714,10 +751,11 @@ class MacroApplications {
       if (classApplicationData == null) return;
       for (ApplicationData applicationData
           in classApplicationData.memberApplications.values) {
-        await _applyDeclarationsMacros(applicationData, onAugmentationLibrary);
+        await _applyDeclarationsMacros(
+            libraryBuilder.origin, applicationData, onAugmentationLibrary);
       }
       if (classApplicationData.classApplications != null) {
-        await _applyDeclarationsMacros(
+        await _applyDeclarationsMacros(libraryBuilder.origin,
             classApplicationData.classApplications!, onAugmentationLibrary);
       }
     }
@@ -739,14 +777,17 @@ class MacroApplications {
     // Apply macros to library members second.
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
         in _libraryData.entries) {
+      SourceLibraryBuilder libraryBuilder = entry.key;
       LibraryMacroApplicationData data = entry.value;
       for (ApplicationData applicationData in data.memberApplications.values) {
-        await _applyDeclarationsMacros(applicationData, onAugmentationLibrary);
+        await _applyDeclarationsMacros(
+            libraryBuilder.origin, applicationData, onAugmentationLibrary);
       }
     }
   }
 
   Future<List<macro.MacroExecutionResult>> _applyDefinitionMacros(
+      SourceLibraryBuilder originLibraryBuilder,
       ApplicationData applicationData) async {
     List<macro.MacroExecutionResult> results = [];
     macro.Declaration declaration = applicationData.declaration;
@@ -771,6 +812,7 @@ class MacroApplications {
                 _macroIntrospection.definitionPhaseIntrospector);
         result.reportDiagnostics(applicationData);
         if (result.isNotEmpty) {
+          _registerMacroExecutionResult(originLibraryBuilder, result);
           results.add(result);
         }
       }
@@ -796,29 +838,30 @@ class MacroApplications {
       SourceLibraryBuilder libraryBuilder = entry.key;
       LibraryMacroApplicationData data = entry.value;
       for (ApplicationData applicationData in data.memberApplications.values) {
-        executionResults.addAll(await _applyDefinitionMacros(applicationData));
+        executionResults.addAll(await _applyDefinitionMacros(
+            libraryBuilder.origin, applicationData));
       }
       for (MapEntry<ClassBuilder, ClassMacroApplicationData> entry
           in data.classData.entries) {
         ClassMacroApplicationData classApplicationData = entry.value;
         for (ApplicationData applicationData
             in classApplicationData.memberApplications.values) {
-          executionResults
-              .addAll(await _applyDefinitionMacros(applicationData));
+          executionResults.addAll(await _applyDefinitionMacros(
+              libraryBuilder.origin, applicationData));
         }
         if (classApplicationData.classApplications != null) {
           executionResults.addAll(await _applyDefinitionMacros(
-              classApplicationData.classApplications!));
+              libraryBuilder.origin, classApplicationData.classApplications!));
         }
       }
       if (executionResults.isNotEmpty) {
-        String result = _macroExecutor
-            .buildAugmentationLibrary(
-                executionResults,
-                _macroIntrospection.resolveDeclaration,
-                _macroIntrospection.resolveIdentifier,
-                _macroIntrospection.types.inferOmittedType)
-            .trim();
+        List<macro.Span> spans = [];
+        String result = _macroExecutor.buildAugmentationLibrary(
+            executionResults,
+            _macroIntrospection.resolveDeclaration,
+            _macroIntrospection.resolveIdentifier,
+            _macroIntrospection.types.inferOmittedType,
+            spans: spans);
         assert(
             result.trim().isNotEmpty,
             "Empty definitions phase augmentation library source for "
@@ -826,11 +869,94 @@ class MacroApplications {
         if (retainDataForTesting) {
           dataForTesting?.libraryDefinitionResult[libraryBuilder] = result;
         }
-        augmentationLibraries
-            .add(await libraryBuilder.origin.createAugmentationLibrary(result));
+        SourceLibraryBuilder augmentationLibrary =
+            await libraryBuilder.origin.createAugmentationLibrary(result);
+        augmentationLibraries.add(augmentationLibrary);
+        _registerMacroExecutionResultSpan(
+            libraryBuilder.origin, augmentationLibrary.importUri, spans);
       }
     }
     return augmentationLibraries;
+  }
+
+  void buildMergedAugmentationLibraries(Component component) {
+    HooksForTesting? hooksForTesting =
+        _sourceLoader.target.context.options.hooksForTesting;
+    hooksForTesting?.beforeMergingMacroAugmentations(component);
+
+    Map<Uri, ReOffset> reOffsetMaps = {};
+    List<Uri> intermediateAugmentationUris = [];
+    for (MapEntry<SourceLibraryBuilder, List<macro.MacroExecutionResult>> entry
+        in _libraryResults.entries) {
+      SourceLibraryBuilder originLibraryBuilder = entry.key;
+      List<macro.Span> spans = [];
+      String source = _macroExecutor.buildAugmentationLibrary(
+          entry.value,
+          _macroIntrospection.resolveDeclaration,
+          _macroIntrospection.resolveIdentifier,
+          _macroIntrospection.types.inferOmittedType,
+          spans: spans);
+      Uri importUri = originLibraryBuilder.importUri;
+      Uri augmentationUri = toMacroLibraryUri(importUri);
+
+      Map<macro.Key, OffsetRange> output = {};
+      for (macro.Span span in spans) {
+        OffsetRange range =
+            new OffsetRange(span.offset, span.offset + span.text.length);
+        macro.Key? key = span.key;
+        while (key != null) {
+          output[key] = output[key].include(range);
+          key = key.parent;
+        }
+      }
+      Map<Uri, List<macro.Span>>? resultSpans =
+          _libraryResultSpans[originLibraryBuilder];
+      if (resultSpans != null) {
+        for (MapEntry<Uri, List<macro.Span>> entry in resultSpans.entries) {
+          Uri intermediateAugmentationUri = entry.key;
+          intermediateAugmentationUris.add(intermediateAugmentationUri);
+          Map<int, int?> reOffsetMap = {};
+          List<macro.Span> spans = entry.value;
+          for (macro.Span span in spans) {
+            int? offset = output[span.key]?.start;
+            reOffsetMap[span.offset] = offset;
+          }
+          if (spans.isNotEmpty) {
+            reOffsetMaps[intermediateAugmentationUri] = new ReOffset(
+                intermediateAugmentationUri, augmentationUri, reOffsetMap);
+          }
+        }
+      }
+
+      if (_sourceLoader
+          .target.context.options.showGeneratedMacroSourcesForTesting) {
+        print('==============================================================');
+        print('Origin library: ${importUri}');
+        print('Merged macro augmentation library: ${augmentationUri}');
+        print('---------------------------source-----------------------------');
+        print(source);
+        print('==============================================================');
+      }
+
+      component.accept(new ReOffsetVisitor(reOffsetMaps));
+
+      ScannerResult scannerResult = scanString(source,
+          configuration: new ScannerConfiguration(
+              enableExtensionMethods: true,
+              enableNonNullable: true,
+              enableTripleShift: true,
+              forAugmentationLibrary: true));
+      component.uriToSource[augmentationUri] = new Source(
+          scannerResult.lineStarts,
+          source.codeUnits,
+          augmentationUri,
+          augmentationUri);
+      for (Uri intermediateAugmentationUri in intermediateAugmentationUris) {
+        component.uriToSource.remove(intermediateAugmentationUri);
+      }
+    }
+
+    hooksForTesting?.afterMergingMacroAugmentations(component);
   }
 
   void close() {

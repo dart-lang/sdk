@@ -10,7 +10,7 @@ class Class1 extends core::Object {
   synthetic constructor •() → self::Class1
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ method() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method() → dynamic {}
 }
 @#C2
 @#C4
@@ -18,15 +18,15 @@ class Class2 extends core::Object {
   synthetic constructor •() → self::Class2
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ method() → dynamic {}
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ method1() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method1() → dynamic {}
 }
 @#C2
 class Class3 extends core::Object {
   synthetic constructor •() → self::Class3
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ method1() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method1() → dynamic {}
   @#C4
   method method() → dynamic {}
 }
@@ -37,9 +37,9 @@ class Class4 extends core::Object {
   synthetic constructor •() → self::Class4
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ method1() → dynamic {}
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-5 */ method3() → dynamic {}
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-6 */ method4() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method1() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method3() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method4() → dynamic {}
   @#C8
   method method() → dynamic {}
   @#C10
@@ -51,49 +51,49 @@ class Class5c extends self::Class5b {
   synthetic constructor •() → self::Class5c
     : super self::Class5b::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-9 */ method2() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method2() → dynamic {}
 }
 @#C2
 class Class5b extends self::Class5a {
   synthetic constructor •() → self::Class5b
     : super self::Class5a::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-8 */ method1() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method1() → dynamic {}
 }
 @#C2
 class Class5a extends core::Object {
   synthetic constructor •() → self::Class5a
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-7 */ method() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method() → dynamic {}
 }
 @#C2
 abstract class Class6d extends core::Object implements self::Class6c, self::Class6b {
   synthetic constructor •() → self::Class6d
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-13 */ method2() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method2() → dynamic {}
 }
 @#C2
 class Class6c extends core::Object {
   synthetic constructor •() → self::Class6c
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-10 */ method() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method() → dynamic {}
 }
 @#C2
 abstract class Class6b extends core::Object implements self::Class6a {
   synthetic constructor •() → self::Class6b
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-12 */ method1() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method1() → dynamic {}
 }
 @#C2
 class Class6a extends core::Object {
   synthetic constructor •() → self::Class6a
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-11 */ method() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method() → dynamic {}
 }
 abstract class _Class7d&Class7b&Class7c = self::Class7b with self::Class7c /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class7d&Class7b&Class7c
@@ -107,11 +107,11 @@ class Class7d extends self::_Class7d&Class7b&Class7c {
   synthetic constructor •() → self::Class7d
     : super self::_Class7d&Class7b&Class7c::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-17 */ method2() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method2() → dynamic {}
 }
 @#C2
 abstract class Class7c extends core::Object /*isMixinDeclaration*/  {
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-16 */ method() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method() → dynamic {}
 }
 abstract class _Class7b&Object&Class7a = core::Object with self::Class7a /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class7b&Object&Class7a
@@ -125,11 +125,11 @@ class Class7b extends self::_Class7b&Object&Class7a {
   synthetic constructor •() → self::Class7b
     : super self::_Class7b&Object&Class7a::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-15 */ method1() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method1() → dynamic {}
 }
 @#C2
 abstract class Class7a extends core::Object /*isMixinDeclaration*/  {
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-14 */ method() → dynamic {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ method() → dynamic {}
 }
 
 constants  {

@@ -14,6 +14,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/field_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
+import 'package:front_end/src/fasta/kernel/macro/offset_checker.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/macro_serializer.dart';
@@ -56,6 +57,7 @@ class MacroTestConfig extends CfeTestConfig {
   final Directory dataDir;
   final MacroSerializer macroSerializer;
   final bool generateExpectations;
+  final List<String> offsetErrors = [];
 
   MacroTestConfig(this.dataDir, this.macroSerializer,
       {required this.generateExpectations})
@@ -68,6 +70,7 @@ class MacroTestConfig extends CfeTestConfig {
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
     options.macroTarget = new VmTarget(new TargetFlags());
     options.macroSerializer = macroSerializer;
+    options.hooksForTesting = new MacroOffsetCheckerHook(offsetErrors);
   }
 
   @override
@@ -103,6 +106,11 @@ class MacroTestConfig extends CfeTestConfig {
     } else {
       throw 'Please use -g option to create file ${expectedUri} with this '
           'content:\n$actual';
+    }
+    if (offsetErrors.isNotEmpty) {
+      offsetErrors.forEach(print);
+      offsetErrors.clear();
+      throw "${testData.name} has macro offset errors.";
     }
   }
 }

@@ -237,6 +237,8 @@ abstract class NamedNode extends TreeNode {
 abstract class FileUriNode extends TreeNode {
   /// The URI of the source file this node was loaded from.
   Uri get fileUri;
+
+  void set fileUri(Uri value);
 }
 
 abstract class Annotatable extends TreeNode {
@@ -15034,8 +15036,7 @@ class Source {
     }
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
 
-    String cachedText =
-        this.cachedText ??= utf8.decode(source, allowMalformed: true);
+    String cachedText = text;
     // -1 as line numbers start at 1.
     int index = line - 1;
     if (index + 1 == lineStarts.length) {
@@ -15054,6 +15055,8 @@ class Source {
     // This shouldn't happen: should have been caught by the range check above.
     throw "Internal error";
   }
+
+  String get text => cachedText ??= utf8.decode(source, allowMalformed: true);
 
   /// Translates an offset to 1-based line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {

@@ -322,8 +322,12 @@ class Option<T> {
   const Option(this.flag, this.spec,
       {this.isDefines = false, this.aliases = const []});
 
-  T read(ParsedOptions parsedOptions) =>
-      (isDefines ? parsedOptions.defines : parsedOptions.options[flag]) as T;
+  T read(ParsedOptions parsedOptions) {
+    if (isDefines) {
+      return parsedOptions.defines as T;
+    }
+    return parsedOptions.options[flag] as T;
+  }
 
   List<String> remove(List<String> arguments) {
     arguments.remove(flag);

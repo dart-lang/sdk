@@ -33,6 +33,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
         messageFastaUsageLong,
         messageFastaUsageShort,
         templateUnspecified;
+import 'package:front_end/src/fasta/kernel/macro/offset_checker.dart';
 import 'package:front_end/src/fasta/problems.dart' show DebugAbort;
 import 'package:front_end/src/isolate_macro_serializer.dart';
 import 'package:front_end/src/scheme_based_file_system.dart'
@@ -65,6 +66,8 @@ const List<Option> optionSpecification = [
   Options.packages,
   Options.platform,
   Options.sdk,
+  Options.showGeneratedMacroSources,
+  Options.checkMacroOffsets,
   Options.singleRootBase,
   Options.singleRootScheme,
   Options.nnbdWeakMode,
@@ -193,6 +196,11 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final String verbosity = Options.verbosity.read(parsedOptions);
 
+  final bool showGeneratedMacroSources =
+      Options.showGeneratedMacroSources.read(parsedOptions);
+
+  final bool checkMacroOffsets = Options.checkMacroOffsets.read(parsedOptions);
+
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.nnbdStrongMode}' and "
@@ -261,7 +269,12 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..emitDeps = !noDeps
     ..warnOnReachabilityCheck = warnOnReachabilityCheck
     ..invocationModes = InvocationMode.parseArguments(invocationModes)
-    ..verbosity = Verbosity.parseArgument(verbosity);
+    ..verbosity = Verbosity.parseArgument(verbosity)
+    ..showGeneratedMacroSourcesForTesting = showGeneratedMacroSources;
+
+  if (checkMacroOffsets) {
+    compilerOptions.hooksForTesting = new MacroOffsetChecker();
+  }
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
