@@ -335,7 +335,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitThrow(Throw node) {
-    return new Throw(clone(node.expression));
+    return new Throw(clone(node.expression))..flags = node.flags;
   }
 
   @override

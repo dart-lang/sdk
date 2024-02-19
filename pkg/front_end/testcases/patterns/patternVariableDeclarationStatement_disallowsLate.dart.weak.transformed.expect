@@ -14,7 +14,7 @@ static method f(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     if(!true)
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }
 

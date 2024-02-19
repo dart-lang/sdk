@@ -461,7 +461,8 @@ class ForwardingNode {
       result = new Throw(new StaticInvocation(
           coreTypes.noSuchMethodErrorDefaultConstructor,
           new Arguments([new ThisExpression(), invocation])))
-        ..fileOffset = procedure.fileOffset;
+        ..fileOffset = procedure.fileOffset
+        ..forErrorHandling = true;
     } else {
       // Build `this.noSuchMethod(invocation)`.
       result = new InstanceInvocation(InstanceAccessKind.Instance,

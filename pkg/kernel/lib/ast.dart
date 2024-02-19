@@ -8144,9 +8144,26 @@ class Rethrow extends Expression {
 
 class Throw extends Expression {
   Expression expression;
+  int flags = 0;
 
   Throw(this.expression) {
     expression.parent = this;
+  }
+
+  // Must match serialized bit positions.
+  static const int FlagForErrorHandling = 1 << 0;
+
+  /// If `true`, this `throw` is *not* present in the source code but added
+  /// to ensure correctness and/or soundness of the generated code.
+  ///
+  /// This is used for instance in the lowering for handling duplicate writes
+  /// to a late final field or for pattern assignments that don't match.
+  bool get forErrorHandling => flags & FlagForErrorHandling != 0;
+
+  void set forErrorHandling(bool value) {
+    flags = value
+        ? (flags | FlagForErrorHandling)
+        : (flags & ~FlagForErrorHandling);
   }
 
   @override

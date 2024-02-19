@@ -122,7 +122,7 @@ static method test2(core::Object o) → core::String
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t9;
 static method main() → dynamic {
@@ -138,7 +138,7 @@ static method main() → dynamic {
   {
     final synthesized self::MyMap<core::String, core::int> #0#0 = map;
     if(!(#0#0.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final core::int #t18 = x1 = #0#0.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} as{Unchecked} core::int in true) && #0#0.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool} && (let final core::int #t19 = x2 = #0#0.{self::MyMap::[]}(#C7){(core::Object?) → core::int?} as{Unchecked} core::int in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
   map.{self::MyMap::clearLog}(){() → void};
@@ -147,7 +147,7 @@ static method main() → dynamic {
   {
     final synthesized self::MyMap<core::String, core::int> #1#0 = map;
     if(!(#1#0.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final core::int #t20 = y1 = #1#0.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} as{Unchecked} core::int in true) && #1#0.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool} && (let final core::int #t21 = y2 = #1#0.{self::MyMap::[]}(#C7){(core::Object?) → core::int?} as{Unchecked} core::int in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
 }

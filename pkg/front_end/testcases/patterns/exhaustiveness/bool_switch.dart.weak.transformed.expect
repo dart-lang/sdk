@@ -43,7 +43,7 @@ static method exhaustiveSwitch(core::bool b) → void {
       }
     #L4:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch1(core::bool b) → void {
@@ -57,7 +57,7 @@ static method nonExhaustiveSwitch1(core::bool b) → void {
       }
     #L7:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch2(core::bool b) → void {
@@ -71,7 +71,7 @@ static method nonExhaustiveSwitch2(core::bool b) → void {
       }
     #L10:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
@@ -114,7 +114,7 @@ static method exhaustiveNullableSwitch(core::bool? b) → void {
       }
     #L18:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveNullableSwitch1(core::bool? b) → void {
@@ -134,7 +134,7 @@ static method nonExhaustiveNullableSwitch1(core::bool? b) → void {
       }
     #L22:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveNullableSwitch2(core::bool? b) → void {
@@ -154,7 +154,7 @@ static method nonExhaustiveNullableSwitch2(core::bool? b) → void {
       }
     #L26:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase1(core::bool b) → void {
@@ -180,7 +180,7 @@ static method unreachableCase1(core::bool b) → void {
       }
     #L31:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase2(core::bool b) → void {
@@ -206,7 +206,7 @@ static method unreachableCase2(core::bool b) → void {
       }
     #L36:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase3(core::bool? b) → void {
@@ -238,7 +238,7 @@ static method unreachableCase3(core::bool? b) → void {
       }
     #L42:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 

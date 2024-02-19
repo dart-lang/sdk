@@ -19,10 +19,10 @@ class Class extends core::Object {
     : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   get field() → core::int?
-    return this.{self::Class::_#Class#field#isSet}{core::bool} ?{core::int?} this.{self::Class::_#Class#field}{core::int?} : throw new _in::LateError::fieldNI("field");
+    return this.{self::Class::_#Class#field#isSet}{core::bool} ?{core::int?} this.{self::Class::_#Class#field}{core::int?} : throw{for-error-handling} new _in::LateError::fieldNI("field");
   set field(core::int? field#param) → void
     if(this.{self::Class::_#Class#field#isSet}{core::bool})
-      throw new _in::LateError::fieldAI("field");
+      throw{for-error-handling} new _in::LateError::fieldAI("field");
     else {
       this.{self::Class::_#Class#field#isSet} = true;
       this.{self::Class::_#Class#field} = field#param;

@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 115;
+  UInt32 formatVersion = 116;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1081,6 +1081,7 @@ type Rethrow extends Expression {
 type Throw extends Expression {
   Byte tag = 48;
   FileOffset fileOffset;
+  Byte flags (forErrorHandling);
   Expression value;
 }
 

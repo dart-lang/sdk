@@ -1874,7 +1874,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitThrow(Throw node) {
-    writeWord('throw');
+    if (node.forErrorHandling) {
+      writeWord('throw{for-error-handling}');
+    } else {
+      writeWord('throw');
+    }
     writeSpace();
     writeExpression(node.expression);
   }

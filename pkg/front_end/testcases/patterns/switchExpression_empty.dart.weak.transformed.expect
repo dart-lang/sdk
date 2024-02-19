@@ -17,6 +17,6 @@ static method f(dynamic x) → dynamic
     switch(x) /* isExplicitlyExhaustive, dynamic */ {
       #L2:
       default:
-        throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+        throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t2 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  } =>#t2 in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");

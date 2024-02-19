@@ -10,12 +10,12 @@ static method method() → dynamic {
   {
     final synthesized core::List<dynamic> #0#0 = self::sideEffect<dynamic>(<dynamic>[]);
     if(!true)
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   {
     final synthesized core::List<dynamic> #1#0 = self::sideEffect<dynamic>(<dynamic>[]);
     if(!true)
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   {
     final synthesized core::List<dynamic> #2#0 = self::sideEffect<dynamic>(<dynamic>[]);

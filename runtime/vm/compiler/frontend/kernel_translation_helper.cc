@@ -2678,6 +2678,7 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kThrow:
       ReadPosition();    // read position.
+      SkipFlags();       // read flags.
       SkipExpression();  // read expression.
       return;
     case kListLiteral:

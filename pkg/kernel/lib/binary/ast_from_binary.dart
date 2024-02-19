@@ -2852,7 +2852,10 @@ class BinaryBuilder {
 
   Expression _readThrow() {
     int offset = readOffset();
-    return new Throw(readExpression())..fileOffset = offset;
+    int flags = readByte();
+    return new Throw(readExpression())
+      ..fileOffset = offset
+      ..flags = flags;
   }
 
   Expression _readListLiteral() {

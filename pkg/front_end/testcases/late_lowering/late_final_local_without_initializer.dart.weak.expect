@@ -8,10 +8,10 @@ static method main() → dynamic {
   lowered final core::int? #lateLocal;
   lowered core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int
-    return #lateLocal#isSet ?{core::int} #lateLocal{core::int} : throw new _in::LateError::localNI("lateLocal");
+    return #lateLocal#isSet ?{core::int} #lateLocal{core::int} : throw{for-error-handling} new _in::LateError::localNI("lateLocal");
   function #lateLocal#set(core::int lateLocal#param) → dynamic
     if(#lateLocal#isSet)
-      throw new _in::LateError::localAI("lateLocal");
+      throw{for-error-handling} new _in::LateError::localAI("lateLocal");
     else {
       #lateLocal#isSet = true;
       return #lateLocal = lateLocal#param;
@@ -29,10 +29,10 @@ static method main() → dynamic {
     lowered final T? #lateGenericLocal;
     lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T%
-      return #lateGenericLocal#isSet ?{T%} #lateGenericLocal{T%} : throw new _in::LateError::localNI("lateGenericLocal");
+      return #lateGenericLocal#isSet ?{T%} #lateGenericLocal{T%} : throw{for-error-handling} new _in::LateError::localNI("lateGenericLocal");
     function #lateGenericLocal#set(T% lateGenericLocal#param) → dynamic
       if(#lateGenericLocal#isSet)
-        throw new _in::LateError::localAI("lateGenericLocal");
+        throw{for-error-handling} new _in::LateError::localAI("lateGenericLocal");
       else {
         #lateGenericLocal#isSet = true;
         return #lateGenericLocal = lateGenericLocal#param;

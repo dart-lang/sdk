@@ -62,7 +62,7 @@ class SubClass2 extends core::Object implements acc::SuperClass {
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
   no-such-method-forwarder method _inaccessibleMethod1() → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
   no-such-method-forwarder method accessibleMethod() → void
     return this.{self::SubClass2::noSuchMethod}(new core::_InvocationMirror::_withType(#accessibleMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
 }
@@ -143,7 +143,7 @@ class SubAbstractSubClass2 extends self::AbstractSubClass2 {
   synthetic constructor •() → self::SubAbstractSubClass2
     ;
   no-such-method-forwarder method _inaccessibleMethod1() → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
   no-such-method-forwarder method accessibleMethod() → void
     return this.{self::AbstractSubClass2::noSuchMethod}(new core::_InvocationMirror::_withType(#accessibleMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
 }
@@ -161,7 +161,7 @@ class SubAbstractSubClassOverride2 extends self::AbstractSubClass2 {
     ;
   abstract method noSuchMethod(core::Invocation invocation) → dynamic;
   no-such-method-forwarder method _inaccessibleMethod1() → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
   no-such-method-forwarder method accessibleMethod() → void
     return this.{self::SubAbstractSubClassOverride2::noSuchMethod}(new core::_InvocationMirror::_withType(#accessibleMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
 }
@@ -178,7 +178,7 @@ class SubClassImplements2 extends core::Object implements acc::SuperClass, acc::
   synthetic constructor •() → self::SubClassImplements2
     ;
   no-such-method-forwarder method _inaccessibleMethod1() → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 abstract class _SubClassImplements3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_SubClassImplements3&Object&SuperClass
@@ -234,7 +234,7 @@ class SubAbstractSubClassImplements2 extends self::AbstractSubClassImplements2 {
   synthetic constructor •() → self::SubAbstractSubClassImplements2
     ;
   no-such-method-forwarder method _inaccessibleMethod1() → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 class SubAbstractSubClassImplements3 extends self::AbstractSubClassImplements3 {
   synthetic constructor •() → self::SubAbstractSubClassImplements3
@@ -262,7 +262,7 @@ class SubClassWith2 extends self::_SubClassWith2&Object&NoSuchMethodClass implem
   synthetic constructor •() → self::SubClassWith2
     ;
   no-such-method-forwarder method _inaccessibleMethod1() → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
   no-such-method-forwarder method accessibleMethod() → void
     return this.{self::_SubClassWith2&Object&NoSuchMethodClass::noSuchMethod}(new core::_InvocationMirror::_withType(#accessibleMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
 }
@@ -392,7 +392,7 @@ class SubAbstractSubClassWith2 extends self::AbstractSubClassWith2 {
   synthetic constructor •() → self::SubAbstractSubClassWith2
     ;
   no-such-method-forwarder method _inaccessibleMethod1() → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
   no-such-method-forwarder method accessibleMethod() → void
     return this.{self::_AbstractSubClassWith2&Object&NoSuchMethodClass::noSuchMethod}(new core::_InvocationMirror::_withType(#accessibleMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
 }

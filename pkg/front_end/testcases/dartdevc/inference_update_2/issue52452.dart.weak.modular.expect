@@ -41,16 +41,16 @@ abstract class M1 extends core::Object /*isMixinDeclaration*/  {
   field core::int? _#M1#_f4 = null;
   field core::bool _#M1#_f4#isSet = false;
   get _f2() → core::int?
-    return this.{self::M1::_#M1#_f2#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f2}{core::int?} : throw new _in::LateError::fieldNI("_f2");
+    return this.{self::M1::_#M1#_f2#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f2}{core::int?} : throw{for-error-handling} new _in::LateError::fieldNI("_f2");
   set _f2(core::int? _f2#param) → void {
     this.{self::M1::_#M1#_f2#isSet} = true;
     this.{self::M1::_#M1#_f2} = _f2#param;
   }
   get _f3() → core::int?
-    return this.{self::M1::_#M1#_f3#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f3}{core::int?} : throw new _in::LateError::fieldNI("_f3");
+    return this.{self::M1::_#M1#_f3#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f3}{core::int?} : throw{for-error-handling} new _in::LateError::fieldNI("_f3");
   set _f3(core::int? _f3#param) → void
     if(this.{self::M1::_#M1#_f3#isSet}{core::bool})
-      throw new _in::LateError::fieldAI("_f3");
+      throw{for-error-handling} new _in::LateError::fieldAI("_f3");
     else {
       this.{self::M1::_#M1#_f3#isSet} = true;
       this.{self::M1::_#M1#_f3} = _f3#param;
@@ -59,7 +59,7 @@ abstract class M1 extends core::Object /*isMixinDeclaration*/  {
     if(!this.{self::M1::_#M1#_f4#isSet}{core::bool}) {
       final core::int? #t1 = 0;
       if(this.{self::M1::_#M1#_f4#isSet}{core::bool})
-        throw new _in::LateError::fieldADI("_f4");
+        throw{for-error-handling} new _in::LateError::fieldADI("_f4");
       this.{self::M1::_#M1#_f4} = #t1;
       this.{self::M1::_#M1#_f4#isSet} = true;
     }

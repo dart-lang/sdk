@@ -82,7 +82,7 @@ static method methodNull1(self::ExtensionTypeNullable /* = core::String? */ o) �
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 static method methodNull2(self::ExtensionTypeNullable /* = core::String? */ o) → dynamic
@@ -97,7 +97,7 @@ static method methodNull2(self::ExtensionTypeNullable /* = core::String? */ o) �
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t2;
 static method methodNull3(core::String? o) → dynamic
@@ -114,7 +114,7 @@ static method methodNull3(core::String? o) → dynamic
           break #L3;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t3;
 static method methodNum1(self::ExtensionTypeNum /* = core::num */ o) → dynamic
@@ -135,7 +135,7 @@ static method methodNum1(self::ExtensionTypeNum /* = core::num */ o) → dynamic
           break #L4;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t4;
 static method methodNum2(self::ExtensionTypeNum /* = core::num */ o) → dynamic
@@ -150,7 +150,7 @@ static method methodNum2(self::ExtensionTypeNum /* = core::num */ o) → dynamic
           break #L5;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t5;
 static method methodNum3(core::num o) → dynamic
@@ -165,7 +165,7 @@ static method methodNum3(core::num o) → dynamic
           break #L6;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t6;
 static method methodBool1(self::ExtensionTypeBool /* = core::bool */ o) → dynamic
@@ -187,7 +187,7 @@ static method methodBool1(self::ExtensionTypeBool /* = core::bool */ o) → dyna
         }
       #L10:
       default:
-        throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+        throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t7;
 static method methodBool2(self::ExtensionTypeBool /* = core::bool */ o) → dynamic
@@ -202,7 +202,7 @@ static method methodBool2(self::ExtensionTypeBool /* = core::bool */ o) → dyna
           break #L11;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t8;
 static method methodBool3(core::bool o) → dynamic
@@ -217,7 +217,7 @@ static method methodBool3(core::bool o) → dynamic
           break #L12;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t9;
 static method methodSealed1(self::ExtensionTypeSealed /* = self::S */ o) → dynamic
@@ -238,7 +238,7 @@ static method methodSealed1(self::ExtensionTypeSealed /* = self::S */ o) → dyn
           break #L13;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t10;
 static method methodSealed2(self::ExtensionTypeSealed /* = self::S */ o) → dynamic
@@ -253,7 +253,7 @@ static method methodSealed2(self::ExtensionTypeSealed /* = self::S */ o) → dyn
           break #L14;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t11;
 static method methodSealed3(self::S o) → dynamic
@@ -268,7 +268,7 @@ static method methodSealed3(self::S o) → dynamic
           break #L15;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t12;
 static method main() → dynamic {

@@ -7,7 +7,7 @@ static method test(core::List<core::int> list) → dynamic {
   {
     final synthesized core::List<core::int> #0#0 = list;
     if(!(let final dynamic #t1 = #0#0 as core::List<core::int> in (#0#0 as core::List<core::int>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = v = (#0#0 as core::List<core::int>).{core::List::[]}(0){(core::int) → core::int} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   self::expect(42, v);
 }

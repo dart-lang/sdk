@@ -12,7 +12,7 @@ static method main() → void {
   {
     final synthesized core::Map<self::C<core::String>, core::int> #0#0 = <self::C<core::String>, core::int>{#C1: 1};
     if(!(#0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (let final dynamic #t1 = a1 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?} as{Unchecked} core::int in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }
 

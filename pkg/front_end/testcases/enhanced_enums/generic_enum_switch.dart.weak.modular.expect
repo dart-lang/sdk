@@ -117,7 +117,7 @@ static method method1(self::Enum<dynamic> e) → dynamic {
       }
     #L3:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method method2(self::Enum<core::num> e) → dynamic {
@@ -132,7 +132,7 @@ static method method2(self::Enum<core::num> e) → dynamic {
       }
     #L6:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method method3(self::Enum<core::int> e) → dynamic {
@@ -147,7 +147,7 @@ static method method3(self::Enum<core::int> e) → dynamic {
       }
     #L9:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method method4<T extends core::Object? = dynamic>(self::Enum<self::method4::T%> e) → dynamic {
@@ -162,7 +162,7 @@ static method method4<T extends core::Object? = dynamic>(self::Enum<self::method
       }
     #L12:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method method5<T extends core::num>(self::Enum<self::method5::T> e) → dynamic {
@@ -177,7 +177,7 @@ static method method5<T extends core::num>(self::Enum<self::method5::T> e) → d
       }
     #L15:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 

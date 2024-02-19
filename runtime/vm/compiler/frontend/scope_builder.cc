@@ -873,6 +873,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kThrow:
       helper_.ReadPosition();  // read position.
+      helper_.ReadFlags();     // read flags.
       VisitExpression();       // read expression.
       return;
     case kListLiteral: {
