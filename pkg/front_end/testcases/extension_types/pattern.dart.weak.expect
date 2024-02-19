@@ -29,13 +29,13 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
   {
     final synthesized self::MyList<core::int> /* = core::List<core::int> */ #0#0 = list;
     if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   hoisted has-declared-initializer core::bool b;
   {
     final synthesized self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ #1#0 = map;
     if(!(#1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (let final dynamic #t2 = b = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?} as{Unchecked} core::bool in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   {
     final synthesized self::MyList<core::int> /* = core::List<core::int> */ #2#0 = list;

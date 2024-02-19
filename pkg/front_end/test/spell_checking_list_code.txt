@@ -771,6 +771,7 @@ hoc
 holes
 hook
 hooked
+hooking
 hopefully
 horizontal
 href
@@ -1439,6 +1440,7 @@ relink
 reload
 reloading
 remapped
+remapping
 remedy
 remotely
 removal
@@ -1539,6 +1541,7 @@ selectively
 selectors
 semantically
 semver
+separation
 separators
 sequencing
 sequential
@@ -1621,6 +1624,7 @@ sortable
 sourcemap
 sourcemaps
 spaced
+spans
 sparse
 spawn
 spawned

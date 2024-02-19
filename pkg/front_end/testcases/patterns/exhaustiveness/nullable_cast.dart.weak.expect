@@ -19,7 +19,7 @@ static method exhaustiveNonNullableTypeVariable<T extends core::Object>(core::in
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 static method exhaustiveNonNullableType(core::int? o) → dynamic
@@ -34,7 +34,7 @@ static method exhaustiveNonNullableType(core::int? o) → dynamic
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t3;
 static method exhaustiveNonNullableSuperType(core::int? o) → dynamic
@@ -49,7 +49,7 @@ static method exhaustiveNonNullableSuperType(core::int? o) → dynamic
           break #L3;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t5;
 static method exhaustiveNonNullableFutureOr1(FutureOr<core::int>? o) → dynamic
@@ -64,7 +64,7 @@ static method exhaustiveNonNullableFutureOr1(FutureOr<core::int>? o) → dynamic
           break #L4;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t7;
 static method exhaustiveNonNullableFutureOr2(FutureOr<core::int?>o) → dynamic
@@ -79,7 +79,7 @@ static method exhaustiveNonNullableFutureOr2(FutureOr<core::int?>o) → dynamic
           break #L5;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t9;
 static method exhaustiveNonNullableFutureOrTypeVariable1<T extends core::Object>(FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>? o) → dynamic
@@ -94,7 +94,7 @@ static method exhaustiveNonNullableFutureOrTypeVariable1<T extends core::Object>
           break #L6;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t11;
 static method exhaustiveNonNullableFutureOrTypeVariable2<T extends core::Object>(FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T?>o) → dynamic
@@ -109,7 +109,7 @@ static method exhaustiveNonNullableFutureOrTypeVariable2<T extends core::Object>
           break #L7;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t13;
 static method main() → dynamic {

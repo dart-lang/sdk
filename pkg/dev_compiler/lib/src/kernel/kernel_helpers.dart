@@ -289,7 +289,7 @@ bool hasLabeledContinue(SwitchStatement node) {
   return visitor.found;
 }
 
-class LabelContinueFinder extends RecursiveVisitor<void> {
+class LabelContinueFinder extends RecursiveVisitor {
   var found = false;
 
   void visit(Statement? s) {
@@ -309,7 +309,7 @@ bool containsFunctionExpression(Node n) {
   return visitor.found;
 }
 
-class _FunctionExpressionFinder extends RecursiveVisitor<void> {
+class _FunctionExpressionFinder extends RecursiveVisitor {
   var found = false;
 
   static final instance = _FunctionExpressionFinder();
@@ -345,7 +345,7 @@ bool _isDartInternal(Uri uri) =>
 
 /// Collects all `TypeParameter`s from the `TypeParameterType`s present in the
 /// visited `DartType`.
-class TypeParameterFinder extends RecursiveVisitor<void> {
+class TypeParameterFinder extends RecursiveVisitor {
   final _found = <TypeParameter>{};
   static TypeParameterFinder? _instance;
 
@@ -367,7 +367,7 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
 }
 
 /// Collects [InterfaceType] nodes that appear in in a DartType.
-class InterfaceTypeExtractor extends RecursiveVisitor<DartType> {
+class InterfaceTypeExtractor extends RecursiveVisitor {
   final Set<InterfaceType> _found = {};
 
   @override

@@ -6,16 +6,17 @@
 Definition Order:
  function:ImportConflictMacro.new()
 Definitions:
-import 'dart:core' as prefix2_0;
-import 'dart:async' as prefix2_1;
-import 'dart:math' as prefix2_2;
-import 'dart:convert' as prefix2_3;
+import 'dart:core' as prefix1_0;
+import 'dart:async' as prefix1_1;
+import 'dart:math' as prefix1_2;
+import 'dart:convert' as prefix1_3;
 
-augment void function(prefix2_0.int i, prefix2_1.FutureOr<prefix2_2.Random> f, prefix2_3.JsonCodec c, ) {
-  var prefix = prefix2_0.int;
-  var prefix0 = prefix2_1.FutureOr<prefix2_2.Random>;
-  var prefix10 = prefix2_3.JsonCodec;
-}*/
+augment void function(prefix1_0.int i, prefix1_1.FutureOr<prefix1_2.Random> f, prefix1_3.JsonCodec c, ) {
+  var prefix = prefix1_0.int;
+  var prefix0 = prefix1_1.FutureOr<prefix1_2.Random>;
+  var prefix10 = prefix1_3.JsonCodec;
+}
+*/
 
 import 'package:macro/macro.dart';
 import 'dart:async';

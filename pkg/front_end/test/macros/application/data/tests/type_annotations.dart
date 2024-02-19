@@ -39,7 +39,8 @@ augment prefix0.Map<prefix1.Random, prefix0.List<prefix0.int>> topLevelFunction7
 }
 augment prefix0.Map<prefix0.int?, prefix0.String>? topLevelFunction8() {
   throw 42;
-}*/
+}
+*/
 
 import 'dart:math' as math;
 

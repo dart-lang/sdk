@@ -95,11 +95,11 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
   {
     final synthesized dynamic #4#0 = y as{TypeError,ForDynamic} self::A;
     if(!(#4#0 is self::A && (let final core::bool #t20 = qux = #4#0{self::A}.{self::A::qux}{core::bool} in true) && (let final core::String #t21 = quux = #4#0{self::A}.{self::A::quux}{core::String} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   {
     final synthesized dynamic #5#0 = z as{TypeError,ForDynamic} (dynamic, {quux: dynamic});
     if(!(#5#0 is (core::Object?, {quux: core::Object?}) && (let final core::Object? #t22 = qux = #5#0{(core::Object?, {quux: core::Object?})}.$1{core::Object?} in true) && (let final core::Object? #t23 = quux = #5#0{(core::Object?, {quux: core::Object?})}.quux{core::Object?} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }

@@ -69,7 +69,7 @@ static method exhaustiveDynamicAsStringOrInt(dynamic o) → dynamic
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 static method exhaustiveDynamicAsStringOrIntAnd(dynamic o) → dynamic
@@ -97,7 +97,7 @@ static method exhaustiveDynamicAsStringOrIntAnd(dynamic o) → dynamic
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t2;
 static method exhaustiveDynamicAsStringOrNum(dynamic o) → dynamic
@@ -121,7 +121,7 @@ static method exhaustiveDynamicAsStringOrNum(dynamic o) → dynamic
           break #L3;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t3;
 static method nonExhaustiveDynamicAsStringOrDouble(dynamic o) → dynamic
@@ -145,7 +145,7 @@ static method nonExhaustiveDynamicAsStringOrDouble(dynamic o) → dynamic
           break #L4;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t6;
 static method exhaustiveDynamicAsStringOrIntUnrestricted(dynamic o) → dynamic
@@ -171,7 +171,7 @@ static method exhaustiveDynamicAsStringOrIntUnrestricted(dynamic o) → dynamic
           break #L5;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t9;
 static method nonExhaustiveDynamicAsStringOrIntRestricted(dynamic o) → dynamic
@@ -194,7 +194,7 @@ static method nonExhaustiveDynamicAsStringOrIntRestricted(dynamic o) → dynamic
           break #L6;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t14;
 static method exhaustiveMAsM(self::M m) → dynamic
@@ -209,7 +209,7 @@ static method exhaustiveMAsM(self::M m) → dynamic
           break #L7;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t16;
 static method exhaustiveDynamicAsM(dynamic m) → dynamic
@@ -224,7 +224,7 @@ static method exhaustiveDynamicAsM(dynamic m) → dynamic
           break #L8;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t18;
 static method exhaustiveDynamicAsMUnrestricted(dynamic m) → dynamic
@@ -239,7 +239,7 @@ static method exhaustiveDynamicAsMUnrestricted(dynamic m) → dynamic
           break #L9;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t20;
 static method nonExhaustiveDynamicAsMRestricted(dynamic m) → dynamic
@@ -254,7 +254,7 @@ static method nonExhaustiveDynamicAsMRestricted(dynamic m) → dynamic
           break #L10;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t23;
 static method exhaustiveDynamicAsMSeeminglyRestricted(dynamic m) → dynamic
@@ -269,7 +269,7 @@ static method exhaustiveDynamicAsMSeeminglyRestricted(dynamic m) → dynamic
           break #L11;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t25;
 static method exhaustiveList(dynamic o) → dynamic
@@ -290,7 +290,7 @@ static method exhaustiveList(dynamic o) → dynamic
           break #L12;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t27;
 static method nonExhaustiveList(dynamic o) → dynamic
@@ -305,7 +305,7 @@ static method nonExhaustiveList(dynamic o) → dynamic
           break #L13;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t29;
 

@@ -557,7 +557,7 @@ class _RecordClassGenerator {
   }
 }
 
-class _RecordVisitor extends RecursiveVisitor<void> {
+class _RecordVisitor extends RecursiveVisitor {
   final _RecordClassGenerator classGenerator;
   final Set<Constant> constantCache = Set.identity();
 

@@ -3409,6 +3409,9 @@ class EquivalenceStrategy {
     if (!checkThrow_expression(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkThrow_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkThrow_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -7691,6 +7694,10 @@ class EquivalenceStrategy {
   bool checkThrow_expression(
       EquivalenceVisitor visitor, Throw node, Throw other) {
     return visitor.checkNodes(node.expression, other.expression, 'expression');
+  }
+
+  bool checkThrow_flags(EquivalenceVisitor visitor, Throw node, Throw other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
   bool checkThrow_fileOffset(

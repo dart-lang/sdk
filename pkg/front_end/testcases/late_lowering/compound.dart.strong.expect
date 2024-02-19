@@ -13,7 +13,7 @@ import "dart:_internal" as _in;
 static method main() → dynamic {
   lowered core::int? #local1;
   function #local1#get() → core::int
-    return let final core::int? #t1 = #local1 in #t1 == null ?{core::int} throw new _in::LateError::localNI("local1") : #t1{core::int};
+    return let final core::int? #t1 = #local1 in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::localNI("local1") : #t1{core::int};
   function #local1#set(core::int local1#param) → dynamic
     return #local1 = local1#param;
   #local1#set(0){(core::int) → dynamic};
@@ -32,12 +32,12 @@ static method main() → dynamic {
 static method error() → dynamic {
   lowered final core::int? #local;
   function #local#get() → core::int
-    return let final core::int? #t3 = #local in #t3 == null ?{core::int} throw new _in::LateError::localNI("local") : #t3{core::int};
+    return let final core::int? #t3 = #local in #t3 == null ?{core::int} throw{for-error-handling} new _in::LateError::localNI("local") : #t3{core::int};
   function #local#set(core::int local#param) → dynamic
     if(#local == null)
       return #local = local#param;
     else
-      throw new _in::LateError::localAI("local");
+      throw{for-error-handling} new _in::LateError::localAI("local");
   #local#set(invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
   local += 0;
   ^^^^^" in #local#get(){() → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};

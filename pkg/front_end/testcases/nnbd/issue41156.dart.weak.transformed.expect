@@ -49,12 +49,12 @@ static method main() → void {
   (core::int) → core::String x3 = (core::int v) → Never {
     return throw v;
   };
-  (core::int) → core::String x4 = (core::int v) → Never => let final Never #t1 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  (core::int) → core::String x4 = (core::int v) → Never => let final Never #t1 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   (core::int) → core::String x5 = (core::int v) → Never {
-    let final Never #t2 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    let final Never #t2 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   };
   (core::int) → core::String x6 = (core::int v) → Never {
-    return let final Never #t3 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    return let final Never #t3 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   };
   (core::int) → asy::Future<core::String> y1 = (core::int v) → asy::Future<Never> async /* emittedValueType= Never */ => throw v;
   (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<Never> async /* emittedValueType= Never */ {
@@ -63,12 +63,12 @@ static method main() → void {
   (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<Never> async /* emittedValueType= Never */ {
     return throw v;
   };
-  (core::int) → asy::Future<core::String> y4 = (core::int v) → asy::Future<Never> async /* emittedValueType= Never */ => let final Never #t4 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  (core::int) → asy::Future<core::String> y4 = (core::int v) → asy::Future<Never> async /* emittedValueType= Never */ => let final Never #t4 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<Never> async /* emittedValueType= Never */ {
-    let final Never #t5 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    let final Never #t5 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   };
   (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<Never> async /* emittedValueType= Never */ {
-    return let final Never #t6 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    return let final Never #t6 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   };
 }
 static method errors() → void async /* emittedValueType= void */ {
@@ -94,7 +94,7 @@ static method errors() → void async /* emittedValueType= void */ {
   };
   (core::int) → core::String x5 = (core::int v) → core::String {
     try {
-      let final Never #t7 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+      let final Never #t7 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
     }
     on core::Object catch(final core::Object _) {
     }
@@ -104,7 +104,7 @@ static method errors() → void async /* emittedValueType= void */ {
   };
   (core::int) → core::String x6 = (core::int v) → core::String {
     try {
-      return let final Never #t8 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+      return let final Never #t8 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
     }
     on core::Object catch(final core::Object _) {
     }
@@ -134,7 +134,7 @@ static method errors() → void async /* emittedValueType= void */ {
   };
   (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<core::String> async /* emittedValueType= core::String */ {
     try {
-      let final Never #t9 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+      let final Never #t9 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
     }
     on core::Object catch(final core::Object _) {
     }
@@ -144,7 +144,7 @@ static method errors() → void async /* emittedValueType= void */ {
   };
   (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<core::String> async /* emittedValueType= core::String */ {
     try {
-      return let final Never #t10 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+      return let final Never #t10 = self::throwing() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
     }
     on core::Object catch(final core::Object _) {
     }

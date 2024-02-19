@@ -512,18 +512,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(!isAugmenting,
         "createAugmentationLibrary is only supported on the origin library.");
     int index = _augmentationLibraries?.length ?? 0;
-    Uri uri =
-        new Uri(scheme: augmentationScheme, path: '${fileUri.path}-$index');
-    // TODO(johnniwinther): Add support for printing the generated macro
-    // libraries when running `fasta compile`.
-    /*
-    print('==================================================================');
-    print('Origin library: ${importUri}');
-    print('Augmentation library: $uri');
-    print('-----------------------------source-------------------------------');
-    print(source);
-    print('==================================================================');
-    */
+    Uri uri = new Uri(
+        scheme: intermediateAugmentationScheme, path: '${fileUri.path}-$index');
+
+    if (loader.target.context.options.showGeneratedMacroSourcesForTesting) {
+      print('==============================================================');
+      print('Origin library: ${importUri}');
+      print('Intermediate augmentation library: $uri');
+      print('---------------------------source-----------------------------');
+      print(source);
+      print('==============================================================');
+    }
+
     Map<String, Builder>? omittedTypeDeclarationBuilders;
     if (omittedTypes != null && omittedTypes.isNotEmpty) {
       omittedTypeDeclarationBuilders = {};

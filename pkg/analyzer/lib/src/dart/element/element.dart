@@ -941,6 +941,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return null;
   }
 
+  /// Returns the mixin defined in this compilation unit that has the given
+  /// [name], or `null` if this compilation unit does not define a mixin with
+  /// the given name.
+  MixinElement? getMixin(String name) {
+    for (final mixin in mixins) {
+      if (mixin.name == name) {
+        return mixin;
+      }
+    }
+    return null;
+  }
+
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
     reference.element = this;
@@ -4420,6 +4432,16 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return null;
   }
 
+  MixinElement? getMixin(String name) {
+    for (final unitElement in units) {
+      final element = unitElement.getMixin(name);
+      if (element != null) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   /// Return `true` if [reference] comes only from deprecated exports.
   bool isFromDeprecatedExport(ExportedReference reference) {
     if (reference is ExportedReferenceExported) {
@@ -4980,6 +5002,131 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
       }
     }
     return null;
+  }
+
+  @override
+  PropertyAccessorElement? lookUpGetter({
+    required String name,
+    required LibraryElement library,
+  }) {
+    return _implementationsOfGetter(name)
+        .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
+  }
+
+  @override
+  MethodElement? lookUpMethod({
+    required String name,
+    required LibraryElement library,
+  }) {
+    return _implementationsOfMethod(name).firstWhereOrNull(
+        (MethodElement method) => method.isAccessibleIn(library));
+  }
+
+  @override
+  PropertyAccessorElement? lookUpSetter({
+    required String name,
+    required LibraryElement library,
+  }) {
+    return _implementationsOfSetter(name).firstWhereOrNull(
+        (PropertyAccessorElement setter) => setter.isAccessibleIn(library));
+  }
+
+  /// Return an iterable containing all of the implementations of a getter with
+  /// the given [name] that are defined in this class and any superclass of this
+  /// class (but not in interfaces).
+  ///
+  /// The getters that are returned are not filtered in any way. In particular,
+  /// they can include getters that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The getters are returned based on the depth of their defining class; if
+  /// this class contains a definition of the getter it will occur first, if
+  /// Object contains a definition of the getter it will occur last.
+  Iterable<PropertyAccessorElement> _implementationsOfGetter(
+      String name) sync* {
+    final visitedClasses = <AugmentedInstanceElement>{};
+    AugmentedInstanceElement? augmented = this;
+    while (augmented != null && visitedClasses.add(augmented)) {
+      var getter = augmented.getGetter(name);
+      if (getter != null) {
+        yield getter;
+      }
+      if (augmented is! AugmentedInterfaceElement) {
+        return;
+      }
+      for (InterfaceType mixin in augmented.mixins.reversed) {
+        getter = mixin.element.augmented?.getGetter(name);
+        if (getter != null) {
+          yield getter;
+        }
+      }
+      augmented = augmented.declaration.supertype?.element.augmented;
+    }
+  }
+
+  /// Return an iterable containing all of the implementations of a method with
+  /// the given [name] that are defined in this class and any superclass of this
+  /// class (but not in interfaces).
+  ///
+  /// The methods that are returned are not filtered in any way. In particular,
+  /// they can include methods that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The methods are returned based on the depth of their defining class; if
+  /// this class contains a definition of the method it will occur first, if
+  /// Object contains a definition of the method it will occur last.
+  Iterable<MethodElement> _implementationsOfMethod(String name) sync* {
+    final visitedClasses = <AugmentedInstanceElement>{};
+    AugmentedInstanceElement? augmented = this;
+    while (augmented != null && visitedClasses.add(augmented)) {
+      var method = augmented.getMethod(name);
+      if (method != null) {
+        yield method;
+      }
+      if (augmented is! AugmentedInterfaceElement) {
+        return;
+      }
+      for (InterfaceType mixin in augmented.mixins.reversed) {
+        method = mixin.element.augmented?.getMethod(name);
+        if (method != null) {
+          yield method;
+        }
+      }
+      augmented = augmented.declaration.supertype?.element.augmented;
+    }
+  }
+
+  /// Return an iterable containing all of the implementations of a setter with
+  /// the given [name] that are defined in this class and any superclass of this
+  /// class (but not in interfaces).
+  ///
+  /// The setters that are returned are not filtered in any way. In particular,
+  /// they can include setters that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The setters are returned based on the depth of their defining class; if
+  /// this class contains a definition of the setter it will occur first, if
+  /// Object contains a definition of the setter it will occur last.
+  Iterable<PropertyAccessorElement> _implementationsOfSetter(
+      String name) sync* {
+    final visitedClasses = <AugmentedInstanceElement>{};
+    AugmentedInstanceElement? augmented = this;
+    while (augmented != null && visitedClasses.add(augmented)) {
+      var setter = augmented.getSetter(name);
+      if (setter != null) {
+        yield setter;
+      }
+      if (augmented is! AugmentedInterfaceElement) {
+        return;
+      }
+      for (InterfaceType mixin in augmented.mixins.reversed) {
+        setter = mixin.element.augmented?.getSetter(name);
+        if (setter != null) {
+          yield setter;
+        }
+      }
+      augmented = augmented.declaration.supertype?.element.augmented;
+    }
   }
 }
 

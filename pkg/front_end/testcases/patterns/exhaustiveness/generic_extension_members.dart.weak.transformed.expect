@@ -62,7 +62,7 @@ static method exhaustiveInferred(self::A<core::num> a) → dynamic
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 static method exhaustiveTyped(self::A<core::num> a) → dynamic
@@ -91,7 +91,7 @@ static method exhaustiveTyped(self::A<core::num> a) → dynamic
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t2;
 static method unreachable(self::A<core::num> a) → dynamic
@@ -116,7 +116,7 @@ static method unreachable(self::A<core::num> a) → dynamic
           break #L3;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t7;
 static method nonExhaustiveRestricted(self::A<core::num> a) → dynamic
@@ -143,7 +143,7 @@ static method nonExhaustiveRestricted(self::A<core::num> a) → dynamic
           break #L4;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t8;
 static method intersection(dynamic o) → dynamic {
@@ -186,7 +186,7 @@ static method exhaustiveMixed(self::I<core::num> i) → core::num
           break #L6;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t17;
 

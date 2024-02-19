@@ -237,6 +237,8 @@ abstract class NamedNode extends TreeNode {
 abstract class FileUriNode extends TreeNode {
   /// The URI of the source file this node was loaded from.
   Uri get fileUri;
+
+  void set fileUri(Uri value);
 }
 
 abstract class Annotatable extends TreeNode {
@@ -8144,9 +8146,26 @@ class Rethrow extends Expression {
 
 class Throw extends Expression {
   Expression expression;
+  int flags = 0;
 
   Throw(this.expression) {
     expression.parent = this;
+  }
+
+  // Must match serialized bit positions.
+  static const int FlagForErrorHandling = 1 << 0;
+
+  /// If `true`, this `throw` is *not* present in the source code but added
+  /// to ensure correctness and/or soundness of the generated code.
+  ///
+  /// This is used for instance in the lowering for handling duplicate writes
+  /// to a late final field or for pattern assignments that don't match.
+  bool get forErrorHandling => flags & FlagForErrorHandling != 0;
+
+  void set forErrorHandling(bool value) {
+    flags = value
+        ? (flags | FlagForErrorHandling)
+        : (flags & ~FlagForErrorHandling);
   }
 
   @override
@@ -15017,8 +15036,7 @@ class Source {
     }
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
 
-    String cachedText =
-        this.cachedText ??= utf8.decode(source, allowMalformed: true);
+    String cachedText = text;
     // -1 as line numbers start at 1.
     int index = line - 1;
     if (index + 1 == lineStarts.length) {
@@ -15037,6 +15055,8 @@ class Source {
     // This shouldn't happen: should have been caught by the range check above.
     throw "Internal error";
   }
+
+  String get text => cachedText ??= utf8.decode(source, allowMalformed: true);
 
   /// Translates an offset to 1-based line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {

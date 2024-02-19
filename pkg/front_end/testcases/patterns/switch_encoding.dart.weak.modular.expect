@@ -398,7 +398,7 @@ static method switchStatementEnum(self::E o) → dynamic {
       }
     #L23:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchStatementEnumWithGuard(self::E o) → dynamic {
@@ -426,7 +426,7 @@ static method switchStatementEnumWithGuard(self::E o) → dynamic {
       }
       break #L24;
     }
-    throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+    throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchStatementEnumWithLabel(self::E o) → dynamic {
@@ -452,7 +452,7 @@ static method switchStatementEnumWithLabel(self::E o) → dynamic {
       }
     #L29:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchStatementEnumWithContinue(self::E o) → dynamic {
@@ -478,7 +478,7 @@ static method switchStatementEnumWithContinue(self::E o) → dynamic {
       }
     #L34:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchStatementPrimitiveEquals(dynamic o) → dynamic {
@@ -546,7 +546,7 @@ static method switchExpression(dynamic o) → dynamic {
           break #L39;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t47;
 }
@@ -575,7 +575,7 @@ static method switchExpressionEnum(self::E o) → dynamic {
         }
       #L44:
       default:
-        throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+        throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t48;
 }
@@ -603,7 +603,7 @@ static method switchExpressionEnumWithGuard(self::E o) → dynamic {
           break #L45;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t49;
 }
@@ -631,7 +631,7 @@ static method switchExpressionPrimitiveEquals(dynamic o) → dynamic {
           break #L46;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t50;
 }
@@ -659,7 +659,7 @@ static method switchExpressionNonPrimitiveEquals(dynamic o) → dynamic {
           break #L47;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t51;
 }
@@ -714,7 +714,7 @@ static method switchExpressionSymbol(core::Symbol s) → dynamic {
           break #L49;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t52;
 }

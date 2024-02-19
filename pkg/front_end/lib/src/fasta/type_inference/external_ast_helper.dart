@@ -303,8 +303,10 @@ BlockExpression createBlockExpression(Block body, Expression value,
 
 /// Creates a throw of [expression] using the file offset of [expression] for
 /// the throw expression.
-Throw createThrow(Expression expression) {
-  return new Throw(expression)..fileOffset = expression.fileOffset;
+Throw createThrow(Expression expression, {bool forErrorHandling = false}) {
+  return new Throw(expression)
+    ..fileOffset = expression.fileOffset
+    ..forErrorHandling = forErrorHandling;
 }
 
 /// Creates an [ExpressionStatement] of [expression] using the file offset of

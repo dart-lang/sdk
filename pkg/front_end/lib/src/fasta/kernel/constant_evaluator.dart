@@ -1186,14 +1186,17 @@ class ConstantsTransformer extends RemovingTransformer {
             [],
             [],
             isDefault: true,
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                typeEnvironment.coreTypes.reachabilityErrorConstructor,
-                createArguments([
-                  createStringLiteral(
-                      messageNeverReachableSwitchStatementError.problemMessage,
-                      fileOffset: node.fileOffset)
-                ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))))
+            createExpressionStatement(createThrow(
+                createConstructorInvocation(
+                    typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                    createArguments([
+                      createStringLiteral(
+                          messageNeverReachableSwitchStatementError
+                              .problemMessage,
+                          fileOffset: node.fileOffset)
+                    ], fileOffset: node.fileOffset),
+                    fileOffset: node.fileOffset),
+                forErrorHandling: true)))
           ..fileOffset = node.fileOffset);
       }
 
@@ -1470,8 +1473,8 @@ class ConstantsTransformer extends RemovingTransformer {
       }
 
       if (needsThrowForNull) {
-        cases.add(
-            createExpressionStatement(createThrow(createConstructorInvocation(
+        cases.add(createExpressionStatement(createThrow(
+            createConstructorInvocation(
                 typeEnvironment.coreTypes.reachabilityErrorConstructor,
                 createArguments([
                   createStringLiteral(
@@ -1481,7 +1484,8 @@ class ConstantsTransformer extends RemovingTransformer {
                               .problemMessage,
                       fileOffset: node.fileOffset)
                 ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))));
+                fileOffset: node.fileOffset),
+            forErrorHandling: true)));
       }
 
       // TODO(johnniwinther): Find a better way to avoid name clashes between
@@ -1779,14 +1783,16 @@ class ConstantsTransformer extends RemovingTransformer {
         // TODO(cstefantsova): Provide a better diagnostic message.
         createIfStatement(
             createNot(readMatchingExpression),
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                typeEnvironment.coreTypes.stateErrorConstructor,
-                createArguments([
-                  createStringLiteral(
-                      messagePatternMatchingError.problemMessage,
-                      fileOffset: node.fileOffset)
-                ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))),
+            createExpressionStatement(createThrow(
+                createConstructorInvocation(
+                    typeEnvironment.coreTypes.stateErrorConstructor,
+                    createArguments([
+                      createStringLiteral(
+                          messagePatternMatchingError.problemMessage,
+                          fileOffset: node.fileOffset)
+                    ], fileOffset: node.fileOffset),
+                    fileOffset: node.fileOffset),
+                forErrorHandling: true)),
             fileOffset: node.fileOffset),
       ];
     }
@@ -1859,14 +1865,16 @@ class ConstantsTransformer extends RemovingTransformer {
         // TODO(cstefantsova): Provide a better diagnostic message.
         createIfStatement(
             createNot(readMatchingExpression),
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                typeEnvironment.coreTypes.stateErrorConstructor,
-                createArguments([
-                  createStringLiteral(
-                      messagePatternMatchingError.problemMessage,
-                      fileOffset: node.fileOffset)
-                ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))),
+            createExpressionStatement(createThrow(
+                createConstructorInvocation(
+                    typeEnvironment.coreTypes.stateErrorConstructor,
+                    createArguments([
+                      createStringLiteral(
+                          messagePatternMatchingError.problemMessage,
+                          fileOffset: node.fileOffset)
+                    ], fileOffset: node.fileOffset),
+                    fileOffset: node.fileOffset),
+                forErrorHandling: true)),
             fileOffset: node.fileOffset),
         ...effects.map((e) => createExpressionStatement(e)),
       ];
@@ -2027,14 +2035,17 @@ class ConstantsTransformer extends RemovingTransformer {
             [],
             [],
             isDefault: true,
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                typeEnvironment.coreTypes.reachabilityErrorConstructor,
-                createArguments([
-                  createStringLiteral(
-                      messageNeverReachableSwitchExpressionError.problemMessage,
-                      fileOffset: node.fileOffset)
-                ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))))
+            createExpressionStatement(createThrow(
+                createConstructorInvocation(
+                    typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                    createArguments([
+                      createStringLiteral(
+                          messageNeverReachableSwitchExpressionError
+                              .problemMessage,
+                          fileOffset: node.fileOffset)
+                    ], fileOffset: node.fileOffset),
+                    fileOffset: node.fileOffset),
+                forErrorHandling: true)))
           ..fileOffset = node.fileOffset);
       }
 
@@ -2155,8 +2166,8 @@ class ConstantsTransformer extends RemovingTransformer {
         needsThrow = forUnsoundness = true;
       }
       if (needsThrow) {
-        cases.add(
-            createExpressionStatement(createThrow(createConstructorInvocation(
+        cases.add(createExpressionStatement(createThrow(
+            createConstructorInvocation(
                 typeEnvironment.coreTypes.reachabilityErrorConstructor,
                 createArguments([
                   createStringLiteral(
@@ -2166,7 +2177,8 @@ class ConstantsTransformer extends RemovingTransformer {
                               .problemMessage,
                       fileOffset: node.fileOffset)
                 ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))));
+                fileOffset: node.fileOffset),
+            forErrorHandling: true)));
       }
 
       labeledStatement.body = createBlock(cases, fileOffset: node.fileOffset)

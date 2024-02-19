@@ -129,7 +129,8 @@ Statement createGetterWithInitializerWithRecheck(CoreTypes coreTypes,
               <Expression>[new StringLiteral(name)..fileOffset = fileOffset])
             ..fileOffset = fileOffset)
         ..fileOffset = fileOffset)
-    ..fileOffset = fileOffset;
+    ..fileOffset = fileOffset
+    ..forErrorHandling = true;
   VariableDeclaration temp =
       new VariableDeclaration.forValue(initializer, type: type)
         ..fileOffset = fileOffset;
@@ -276,7 +277,8 @@ Statement createGetterBodyWithoutInitializer(
               <Expression>[new StringLiteral(name)..fileOffset = fileOffset])
             ..fileOffset = fileOffset)
         ..fileOffset = fileOffset)
-    ..fileOffset = fileOffset;
+    ..fileOffset = fileOffset
+    ..forErrorHandling = true;
   switch (isSetEncoding) {
     case IsSetEncoding.useIsSetField:
       // Generate:
@@ -405,7 +407,8 @@ Statement createSetterBodyFinal(CoreTypes coreTypes, int fileOffset,
               <Expression>[new StringLiteral(name)..fileOffset = fileOffset])
             ..fileOffset = fileOffset)
         ..fileOffset = fileOffset)
-    ..fileOffset = fileOffset;
+    ..fileOffset = fileOffset
+    ..forErrorHandling = true;
 
   Statement createReturn(Expression value) {
     if (shouldReturnValue) {

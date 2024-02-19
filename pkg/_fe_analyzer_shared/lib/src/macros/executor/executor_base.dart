@@ -13,6 +13,7 @@ import '../executor.dart';
 import '../executor/introspection_impls.dart';
 import '../executor/protocol.dart';
 import '../executor/serialization.dart';
+import '../executor/span.dart';
 
 /// Base implementation for macro executors which communicate with some external
 /// process to run macros.
@@ -250,7 +251,8 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
           TypeDeclaration Function(Identifier) resolveDeclaration,
           ResolvedIdentifier Function(Identifier) resolveIdentifier,
           TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
-          {Map<OmittedTypeAnnotation, String>? omittedTypes}) =>
+          {Map<OmittedTypeAnnotation, String>? omittedTypes,
+          List<Span>? spans}) =>
       throw new StateError('Unreachable');
 
   @override

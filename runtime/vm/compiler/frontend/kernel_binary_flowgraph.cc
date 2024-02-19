@@ -4026,6 +4026,8 @@ Fragment StreamingFlowGraphBuilder::BuildThrow(TokenPosition* p) {
 
   Fragment instructions;
 
+  ReadByte();  // read flags.
+
   instructions += BuildExpression();  // read expression.
 
   if (NeedsDebugStepCheck(stack(), position)) {

@@ -27,7 +27,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     if(!self::Class::_#lateStaticField1#isSet) {
       final core::int? #t1 = self::Class::initLateStaticField1(87);
       if(self::Class::_#lateStaticField1#isSet)
-        throw new _in::LateError::fieldADI("lateStaticField1");
+        throw{for-error-handling} new _in::LateError::fieldADI("lateStaticField1");
       self::Class::_#lateStaticField1 = #t1;
       self::Class::_#lateStaticField1#isSet = true;
     }
@@ -40,7 +40,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     if(!self::Class::_#lateStaticField2#isSet) {
       final core::int? #t2 = self::Class::initLateStaticField2(42);
       if(self::Class::_#lateStaticField2#isSet)
-        throw new _in::LateError::fieldADI("lateStaticField2");
+        throw{for-error-handling} new _in::LateError::fieldADI("lateStaticField2");
       self::Class::_#lateStaticField2 = #t2;
       self::Class::_#lateStaticField2#isSet = true;
     }
@@ -58,7 +58,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     if(!this.{self::Class::_#Class#lateInstanceField#isSet}{core::bool}) {
       final core::int? #t3 = this.{self::Class::initLateInstanceField}(16){(core::int) → core::int?};
       if(this.{self::Class::_#Class#lateInstanceField#isSet}{core::bool})
-        throw new _in::LateError::fieldADI("lateInstanceField");
+        throw{for-error-handling} new _in::LateError::fieldADI("lateInstanceField");
       this.{self::Class::_#Class#lateInstanceField} = #t3;
       this.{self::Class::_#Class#lateInstanceField#isSet} = true;
     }
@@ -71,7 +71,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     if(!this.{self::Class::_#Class#lateGenericInstanceField#isSet}{core::bool}) {
       final self::Class::T? #t4 = this.{self::Class::initLateGenericInstanceField}(this.{self::Class::field}{self::Class::T?}){(self::Class::T?) → self::Class::T?};
       if(this.{self::Class::_#Class#lateGenericInstanceField#isSet}{core::bool})
-        throw new _in::LateError::fieldADI("lateGenericInstanceField");
+        throw{for-error-handling} new _in::LateError::fieldADI("lateGenericInstanceField");
       this.{self::Class::_#Class#lateGenericInstanceField} = #t4;
       this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     }
@@ -115,7 +115,7 @@ static get lateTopLevelField1() → core::int? {
   if(!self::_#lateTopLevelField1#isSet) {
     final core::int? #t5 = self::initLateTopLevelField1(123);
     if(self::_#lateTopLevelField1#isSet)
-      throw new _in::LateError::fieldADI("lateTopLevelField1");
+      throw{for-error-handling} new _in::LateError::fieldADI("lateTopLevelField1");
     self::_#lateTopLevelField1 = #t5;
     self::_#lateTopLevelField1#isSet = true;
   }
@@ -128,7 +128,7 @@ static extension-member get Extension|lateExtensionField1() → core::int? {
   if(!self::_#Extension|lateExtensionField1#isSet) {
     final core::int? #t6 = self::Extension|initLateExtensionField1(87);
     if(self::_#Extension|lateExtensionField1#isSet)
-      throw new _in::LateError::fieldADI("lateExtensionField1");
+      throw{for-error-handling} new _in::LateError::fieldADI("lateExtensionField1");
     self::_#Extension|lateExtensionField1 = #t6;
     self::_#Extension|lateExtensionField1#isSet = true;
   }
@@ -141,7 +141,7 @@ static extension-member get Extension|lateExtensionField2() → core::int? {
   if(!self::_#Extension|lateExtensionField2#isSet) {
     final core::int? #t7 = self::Extension|initLateExtensionField2(42);
     if(self::_#Extension|lateExtensionField2#isSet)
-      throw new _in::LateError::fieldADI("lateExtensionField2");
+      throw{for-error-handling} new _in::LateError::fieldADI("lateExtensionField2");
     self::_#Extension|lateExtensionField2 = #t7;
     self::_#Extension|lateExtensionField2#isSet = true;
   }

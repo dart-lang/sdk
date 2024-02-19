@@ -37,7 +37,7 @@ static method exhaustiveDirect(self::A a) → dynamic
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 static method exhaustiveWithWildcards(self::A a) → dynamic
@@ -52,7 +52,7 @@ static method exhaustiveWithWildcards(self::A a) → dynamic
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t2;
 static method exhaustiveWithFields(self::A a) → dynamic
@@ -71,7 +71,7 @@ static method exhaustiveWithFields(self::A a) → dynamic
           break #L3;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t5;
 static method exhaustiveWithTypedFields(self::A a) → dynamic
@@ -93,7 +93,7 @@ static method exhaustiveWithTypedFields(self::A a) → dynamic
           break #L4;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t6;
 static method nonExhaustiveFixedField(self::A a) → dynamic
@@ -108,7 +108,7 @@ static method nonExhaustiveFixedField(self::A a) → dynamic
           break #L5;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t12;
 static method nonExhaustiveTypedField(self::A a) → dynamic
@@ -127,7 +127,7 @@ static method nonExhaustiveTypedField(self::A a) → dynamic
           break #L6;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t13;
 

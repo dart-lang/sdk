@@ -119,11 +119,11 @@ namespace dart {
   V(_TypedListBase, _memMove4, TypedData_memMove4, 0xcfe37726)                 \
   V(_TypedListBase, _memMove8, TypedData_memMove8, 0xd1d8e325)                 \
   V(_TypedListBase, _memMove16, TypedData_memMove16, 0x07861cd5)               \
-  V(::, _typedDataIndexCheck, TypedDataIndexCheck, 0xc54f594f)                 \
-  V(::, _byteDataByteOffsetCheck, ByteDataByteOffsetCheck, 0x4ae73104)         \
+  V(::, _typedDataIndexCheck, TypedDataIndexCheck, 0x79215a89)                 \
+  V(::, _byteDataByteOffsetCheck, ByteDataByteOffsetCheck, 0xbb05a064)         \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0xcc42cce1)                         \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 0x7c662480)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 0x8af456e6)              \
   V(_SuspendState, get:_functionData, SuspendState_getFunctionData,            \
     0x7281768e)                                                                \
   V(_SuspendState, set:_functionData, SuspendState_setFunctionData,            \
@@ -462,8 +462,8 @@ namespace dart {
   V(_IntegerImplementation, +, Integer_add, 0x6f06d26c)                        \
   V(_IntegerImplementation, -, Integer_sub, 0x630fe15d)                        \
   V(_IntegerImplementation, *, Integer_mul, 0x467f35fa)                        \
-  V(_IntegerImplementation, %, Integer_mod, 0xd447d814)                        \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x8cfa2a80)               \
+  V(_IntegerImplementation, %, Integer_mod, 0xdb44b214)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 0xe536d880)               \
   V(_IntegerImplementation, unary-, Integer_negate, 0x914f7873)                \
   V(_IntegerImplementation, &, Integer_bitAnd, 0x4253b969)                     \
   V(_IntegerImplementation, |, Integer_bitOr, 0x45fe3321)                      \

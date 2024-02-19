@@ -12,19 +12,19 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   static get s() → dynamic
-    return self::C::_#s#isSet ?{dynamic} self::C::_#s : throw new _in::LateError::fieldNI("s");
+    return self::C::_#s#isSet ?{dynamic} self::C::_#s : throw{for-error-handling} new _in::LateError::fieldNI("s");
   static set s(dynamic s#param) → void
     if(self::C::_#s#isSet)
-      throw new _in::LateError::fieldAI("s");
+      throw{for-error-handling} new _in::LateError::fieldAI("s");
     else {
       self::C::_#s#isSet = true;
       self::C::_#s = s#param;
     }
   get v() → dynamic
-    return this.{self::C::_#C#v#isSet}{core::bool} ?{dynamic} this.{self::C::_#C#v}{dynamic} : throw new _in::LateError::fieldNI("v");
+    return this.{self::C::_#C#v#isSet}{core::bool} ?{dynamic} this.{self::C::_#C#v}{dynamic} : throw{for-error-handling} new _in::LateError::fieldNI("v");
   set v(dynamic v#param) → void
     if(this.{self::C::_#C#v#isSet}{core::bool})
-      throw new _in::LateError::fieldAI("v");
+      throw{for-error-handling} new _in::LateError::fieldAI("v");
     else {
       this.{self::C::_#C#v#isSet} = true;
       this.{self::C::_#C#v} = v#param;
@@ -33,10 +33,10 @@ class C extends core::Object {
 static field dynamic _#g = null;
 static field core::bool _#g#isSet = false;
 static get g() → dynamic
-  return self::_#g#isSet ?{dynamic} self::_#g : throw new _in::LateError::fieldNI("g");
+  return self::_#g#isSet ?{dynamic} self::_#g : throw{for-error-handling} new _in::LateError::fieldNI("g");
 static set g(dynamic g#param) → void
   if(self::_#g#isSet)
-    throw new _in::LateError::fieldAI("g");
+    throw{for-error-handling} new _in::LateError::fieldAI("g");
   else {
     self::_#g#isSet = true;
     self::_#g = g#param;
@@ -45,10 +45,10 @@ static method main() → dynamic {
   lowered final dynamic #l;
   lowered core::bool #l#isSet = false;
   function #l#get() → dynamic
-    return #l#isSet ?{dynamic} #l : throw new _in::LateError::localNI("l");
+    return #l#isSet ?{dynamic} #l : throw{for-error-handling} new _in::LateError::localNI("l");
   function #l#set(dynamic l#param) → dynamic
     if(#l#isSet)
-      throw new _in::LateError::localAI("l");
+      throw{for-error-handling} new _in::LateError::localAI("l");
     else {
       #l#isSet = true;
       return #l = l#param;

@@ -76,7 +76,7 @@ static method a1(self::A? a) → core::int? {
       }
     #L3:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method a2(self::A? a) → core::int? {
@@ -94,7 +94,7 @@ static method a2(self::A? a) → core::int? {
       }
     #L7:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method b1(self::B b) → core::int {
@@ -112,7 +112,7 @@ static method b1(self::B b) → core::int {
       }
     #L11:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method b2(self::B? b) → core::int? {
@@ -130,7 +130,7 @@ static method b2(self::B? b) → core::int? {
       }
     #L15:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method c1(mai::C? c) → core::int? {
@@ -143,7 +143,7 @@ static method c1(mai::C? c) → core::int? {
       }
     #L18:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method c2(mai::C? c) → core::int? {
@@ -161,7 +161,7 @@ static method c2(mai::C? c) → core::int? {
       }
     #L22:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method d1(mai::D d) → core::int {
@@ -179,7 +179,7 @@ static method d1(mai::D d) → core::int {
       }
     #L26:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method d2(mai::D? d) → core::int? {
@@ -197,7 +197,7 @@ static method d2(mai::D? d) → core::int? {
       }
     #L30:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method test() → void {

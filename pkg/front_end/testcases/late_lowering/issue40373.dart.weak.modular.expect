@@ -27,7 +27,7 @@ class C extends core::Object {
     if(!this.{self::C::_#C#p2#isSet}{core::bool}) {
       final core::num #t2 = this.{self::C::pi}{core::num};
       if(this.{self::C::_#C#p2#isSet}{core::bool})
-        throw new _in::LateError::fieldADI("p2");
+        throw{for-error-handling} new _in::LateError::fieldADI("p2");
       this.{self::C::_#C#p2} = #t2;
       this.{self::C::_#C#p2#isSet} = true;
     }

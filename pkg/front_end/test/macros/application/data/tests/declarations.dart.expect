@@ -18,9 +18,9 @@ class Class1 extends core::Object {
   constructor •() → self::Class1
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-7 */ Class1_GeneratedMethod_() → void {}
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-8 */ Class1_redirectGeneratedMethod_f() → void {}
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-9 */ Class1_factGeneratedMethod_f() → void {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_GeneratedMethod_() → void {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_redirectGeneratedMethod_f() → void {}
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_factGeneratedMethod_f() → void {}
   @#C4
   static factory redirect() → self::Class1 /* redirection-target: self::Class1::• */
     return new self::Class1::•();
@@ -57,35 +57,35 @@ static field core::int? topLevelField1;
 static final field core::int? topLevelField3 = null;
 @#C6
 late static field core::int? topLevelField4;
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ Class1_instanceMethod1GeneratedMethod_() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ Class1_instanceGetter1GeneratedMethod_g() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-10 */ Class1Introspection() → void {
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_instanceMethod1GeneratedMethod_() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_instanceGetter1GeneratedMethod_g() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1Introspection() → void {
   core::print("constructors='','redirect','fact'");
   core::print("fields='instanceField1','instanceField2','instanceField3'");
   core::print("methods='instanceMethod1','instanceGetter1','[]','instanceSetter1','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f'");
 }
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-11 */ Class1GeneratedMethod_() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-12 */ Class2_instanceMethod1GeneratedMethod_() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-13 */ Class2_instanceField1GeneratedMethod_a() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-14 */ Class2Introspection() → void {
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1GeneratedMethod_() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class2_instanceMethod1GeneratedMethod_() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class2_instanceField1GeneratedMethod_a() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class2Introspection() → void {
   core::print("constructors=");
   core::print("fields='instanceField1'");
   core::print("methods='instanceMethod1'");
 }
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-15 */ Class2GeneratedMethod_a() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-16 */ topLevelFunction1GeneratedMethod_() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-17 */ topLevelFunction2GeneratedMethod_e() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-18 */ topLevelField1GeneratedMethod_() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-19 */ topLevelField2GeneratedMethod_e() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ Class1_operatorGeneratedMethod_o() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-20 */ topLevelField3GeneratedMethod_f() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-21 */ topLevelField4GeneratedMethod_l() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-22 */ topLevelGetter1GeneratedMethod_g() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-23 */ topLevelSetter1GeneratedMethod_s() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ Class1_instanceField1GeneratedMethod_() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ Class1_instanceField2GeneratedMethod_f() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-5 */ Class1_instanceField3GeneratedMethod_fl() → void {}
-static method /* from org-dartlang-augmentation:/a/b/c/main.dart-6 */ Class1_instanceSetter1GeneratedMethod_s() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class2GeneratedMethod_a() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ topLevelFunction1GeneratedMethod_() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ topLevelFunction2GeneratedMethod_e() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ topLevelField1GeneratedMethod_() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ topLevelField2GeneratedMethod_e() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_operatorGeneratedMethod_o() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ topLevelField3GeneratedMethod_f() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ topLevelField4GeneratedMethod_l() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ topLevelGetter1GeneratedMethod_g() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ topLevelSetter1GeneratedMethod_s() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_instanceField1GeneratedMethod_() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_instanceField2GeneratedMethod_f() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_instanceField3GeneratedMethod_fl() → void {}
+static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ Class1_instanceSetter1GeneratedMethod_s() → void {}
 @#C7
 static method topLevelFunction1() → void {}
 @#C7

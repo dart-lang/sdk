@@ -22,7 +22,7 @@ class Class extends core::Object {
     : self2::Class::_#Class#foo = foo, super core::Object::•()
     ;
   get /* from org-dartlang-testcase:///patch_lib.dart */ foo() → core::int
-    return let final core::int? #t1 = this.{self2::Class::_#Class#foo}{core::int?} in #t1 == null ?{core::int} throw new _in::LateError::fieldNI("foo") : #t1{core::int};
+    return let final core::int? #t1 = this.{self2::Class::_#Class#foo}{core::int?} in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("foo") : #t1{core::int};
   set /* from org-dartlang-testcase:///patch_lib.dart */ foo(core::int foo#param) → void
     this.{self2::Class::_#Class#foo} = foo#param;
 }

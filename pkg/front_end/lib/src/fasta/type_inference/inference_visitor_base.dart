@@ -253,7 +253,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new ConstructorInvocation(
             coreTypes.reachabilityErrorConstructor, arguments)
           ..fileOffset = fileOffset)
-      ..fileOffset = fileOffset;
+      ..fileOffset = fileOffset
+      ..forErrorHandling = true;
   }
 
   /// Computes a list of context messages explaining why [receiver] was not

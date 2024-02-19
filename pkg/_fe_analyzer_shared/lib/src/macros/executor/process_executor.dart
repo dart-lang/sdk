@@ -7,12 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
-
 import '../executor.dart';
-import '../executor/executor_base.dart';
-import '../executor/message_grouper.dart';
-import '../executor/serialization.dart';
+import 'exception_impls.dart';
+import 'executor_base.dart';
+import 'message_grouper.dart';
+import 'serialization.dart';
 
 /// Spawns a [MacroExecutor] as a separate process, by running [program] with
 /// [arguments], and communicating using [serializationMode].

@@ -159,7 +159,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   method neverMethod(Never value) → Never
-    return let final Never #t1 = value in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    return let final Never #t1 = value in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   get neverProperty() → Never
     return throw "Should not reach here";
   set neverProperty(Never value) → void {}

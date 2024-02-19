@@ -54,14 +54,14 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
    ^^^^^^^^^^^^^^^^" && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:32:7: Error: Late final variable 'initializedLateFinal' definitely assigned.
       initializedLateFinal, // Error
       ^^^^^^^^^^^^^^^^^^^^" && (let final core::Object? #t1 = definitelyUnassignedFinal = #0#0{(core::Object?, core::Object?, core::Object?)}.$3{core::Object?} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   {
     final synthesized dynamic #1#0 = y as{TypeError,ForDynamic} core::List<core::int>;
     if(!(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t2 = definitelyUnassignedLateFinal = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as core::int in true) && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
     definitelyAssignedFinal] = y; // Error
     ^^^^^^^^^^^^^^^^^^^^^^^"))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   {
     final synthesized dynamic #2#0 = z as{TypeError,ForDynamic} self::Class;
@@ -76,7 +76,7 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^") && ((#2#3#isSet ?{dynamic} #2#3{dynamic} : let final core::bool* #t4 = #2#3#isSet = true in #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic}) is core::List<dynamic> && ((#2#3#isSet ?{dynamic} #2#3{dynamic} : let final core::bool* #t5 = #2#3#isSet = true in #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic}) as{Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#2#9#isSet ?{dynamic} #2#9{dynamic} : let final core::bool* #t6 = #2#9#isSet = true in #2#9 = ((#2#3#isSet ?{dynamic} #2#3{dynamic} : let final core::bool* #t7 = #2#3#isSet = true in #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic}) as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic}) is core::List<dynamic> && ((#2#9#isSet ?{dynamic} #2#9{dynamic} : let final core::bool* #t8 = #2#9#isSet = true in #2#9 = ((#2#3#isSet ?{dynamic} #2#3{dynamic} : let final core::bool* #t9 = #2#3#isSet = true in #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic}) as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:37:17: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.
       field2: [[notDefinitelyAssignedFinal, _], // Error
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^") && ((#2#16#isSet ?{dynamic} #2#16{dynamic} : let final core::bool* #t10 = #2#16#isSet = true in #2#16 = ((#2#3#isSet ?{dynamic} #2#3{dynamic} : let final core::bool* #t11 = #2#3#isSet = true in #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic}) as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic}) is core::List<dynamic> && ((#2#16#isSet ?{dynamic} #2#16{dynamic} : let final core::bool* #t12 = #2#16#isSet = true in #2#16 = ((#2#3#isSet ?{dynamic} #2#3{dynamic} : let final core::bool* #t13 = #2#3#isSet = true in #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic}) as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t14 = notDefinitelyAssignedLateFinal = ((#2#16#isSet ?{dynamic} #2#16{dynamic} : let final core::bool* #t15 = #2#16#isSet = true in #2#16 = ((#2#3#isSet ?{dynamic} #2#3{dynamic} : let final core::bool* #t16 = #2#3#isSet = true in #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic}) as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} as core::int in true)))))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }
 

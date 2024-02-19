@@ -31,7 +31,12 @@ import 'package:kernel/target/targets.dart'
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, InvocationMode, Verbosity, DiagnosticMessage;
+    show
+        CompilerOptions,
+        InvocationMode,
+        HooksForTesting,
+        Verbosity,
+        DiagnosticMessage;
 import '../api_prototype/experimental_flags.dart' as flags;
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -849,6 +854,11 @@ class ProcessedOptions {
       _raw.macroSerializationMode ??= SerializationMode.byteData;
 
   CompilerOptions get rawOptionsForTesting => _raw;
+
+  HooksForTesting? get hooksForTesting => _raw.hooksForTesting;
+
+  bool get showGeneratedMacroSourcesForTesting =>
+      _raw.showGeneratedMacroSourcesForTesting;
 
   /// Disposes macro executor if one is configured.
   Future<void> dispose() async {

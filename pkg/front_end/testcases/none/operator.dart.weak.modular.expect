@@ -80,7 +80,7 @@ static method add(core::num n, core::int i, core::double d, self::Class<core::St
   core::print("DynamicInvocation");
   dyn{dynamic}.+(n);
   core::print("DynamicInvocation (Never)");
-  let final Never #t1 = (let final Never #t2 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.+(n) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t1 = (let final Never #t2 = never in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.+(n) in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   core::print("DynamicInvocation (Invalid)");
   invalid-expression "pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the class 'String'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
@@ -96,7 +96,7 @@ static method unaryMinus(core::num n, core::int i, core::double d, self::Class<c
   core::print("DynamicInvocation");
   dyn{dynamic}.unary-();
   core::print("DynamicInvocation (Never)");
-  let final Never #t3 = (let final Never #t4 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.unary-() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t3 = (let final Never #t4 = never in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.unary-() in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   core::print("DynamicInvocation (Invalid)");
   invalid-expression "pkg/front_end/testcases/none/operator.dart:66:12: Error: Too few positional arguments: 1 required, 0 given.
   -c.method();
@@ -115,7 +115,7 @@ static method indexGet(core::List<core::int> list, core::Map<core::String, core:
   core::print("DynamicInvocation");
   dyn{dynamic}.[](0);
   core::print("DynamicInvocation (Never)");
-  let final Never #t5 = (let final Never #t6 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[](0) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t5 = (let final Never #t6 = never in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[](0) in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   core::print("DynamicInvocation (Invalid)");
   invalid-expression "pkg/front_end/testcases/none/operator.dart:86:11: Error: Too few positional arguments: 1 required, 0 given.
   c.method()[0];
@@ -131,7 +131,7 @@ static method indexSet(core::List<core::int> list, core::Map<core::String, core:
   core::print("DynamicInvocation");
   dyn{dynamic}.[]=(0, 42);
   core::print("DynamicInvocation (Never)");
-  (let final Never #t7 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[]=(0, 42);
+  (let final Never #t7 = never in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[]=(0, 42);
   core::print("DynamicInvocation (Invalid)");
   invalid-expression "pkg/front_end/testcases/none/operator.dart:106:11: Error: Too few positional arguments: 1 required, 0 given.
   c.method()[0] = 42;
@@ -151,7 +151,7 @@ static method compound(core::List<core::int> list, core::Map<core::String, core:
   core::print("DynamicInvocation");
   let final dynamic #t14 = dyn in let final core::int #t15 = 0 in #t14{dynamic}.[]=(#t15, #t14{dynamic}.[](#t15){dynamic}.+(42));
   core::print("DynamicInvocation (Never)");
-  let final Never #t16 = let final Never #t17 = let final Never #t18 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in let final core::int #t19 = 0 in #t17{Never}.[]=(#t19, #t17{Never}.[](#t19){Never}.+(42)) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t16 = let final Never #t17 = let final Never #t18 = never in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in let final core::int #t19 = 0 in #t17{Never}.[]=(#t19, #t17{Never}.[](#t19){Never}.+(42)) in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   core::print("DynamicInvocation (Invalid)");
   let final invalid-type #t20 = invalid-expression "pkg/front_end/testcases/none/operator.dart:126:11: Error: Too few positional arguments: 1 required, 0 given.
   c.method()[0] += 42;

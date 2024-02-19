@@ -10,7 +10,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   get x() → self::A::T%
-    return this.{self::A::_#A#x#isSet}{core::bool} ?{self::A::T%} let final self::A::T? #t1 = this.{self::A::_#A#x}{self::A::T?} in #t1{self::A::T%} : throw new _in::LateError::fieldNI("x");
+    return this.{self::A::_#A#x#isSet}{core::bool} ?{self::A::T%} let final self::A::T? #t1 = this.{self::A::_#A#x}{self::A::T?} in #t1{self::A::T%} : throw{for-error-handling} new _in::LateError::fieldNI("x");
   set x(covariant-by-class self::A::T% x#param) → void {
     this.{self::A::_#A#x#isSet} = true;
     this.{self::A::_#A#x} = x#param;

@@ -96,6 +96,7 @@ blah
 blorp
 bold
 boo
+boollist
 bools
 bots
 boundaries
@@ -160,6 +161,7 @@ commit
 commits
 companion
 comparative
+comparators
 comparer
 compiler's
 complement
@@ -645,6 +647,7 @@ regressions
 reify
 reject
 remap
+remapping
 remaps
 rendition
 reorder
