@@ -1480,6 +1480,7 @@ imitation
 immediate
 immediately
 immutable
+impact
 implement
 implementation
 implementations
@@ -1535,11 +1536,13 @@ indicate
 indicated
 indicates
 indicating
+indication
 indices
 indirect
 indirectly
 induce
 induced
+inducing
 infer
 inference
 inferrable
@@ -2061,6 +2064,7 @@ nothing
 notice
 noticed
 notifies
+notions
 now
 nowhere
 null

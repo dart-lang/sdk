@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../flow_analysis/flow_analysis_operations.dart';
+import 'nullability_suffix.dart';
 
 class RecordType<Type extends Object> {
   final List<Type> positional;
@@ -12,6 +13,23 @@ class RecordType<Type extends Object> {
     required this.positional,
     required this.named,
   });
+}
+
+/// Describes all possibility for a type to be derived from a declaration.
+///
+/// This enum is intended to exhaustively handle all possibilities for a type to
+/// be derived from a type declaration. Currently, there are two such kinds of
+/// declarations: declarations inducing interfaces for dynamic dispatch (such as
+/// classes, mixins, and enums), and extension types.
+enum TypeDeclarationKind {
+  /// Indication that the type is derived from a declaration inducing interface.
+  ///
+  /// An example of such declaration can be a class declaration, a mixin
+  /// declaration, or an enum declaration.
+  interfaceDeclaration,
+
+  /// Indication that the type is derived from an extension type declaration.
+  extensionTypeDeclaration,
 }
 
 /// Callback API used by the shared type analyzer to query and manipulate the
@@ -34,8 +52,14 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Returns the type `Never`.
   Type get neverType;
 
+  /// Returns the type `Null`.
+  Type get nullType;
+
   /// Returns the type `Object?`.
   Type get objectQuestionType;
+
+  /// Returns the type `Object`.
+  Type get objectType;
 
   /// Returns the unknown type schema (`_`) used in type inference.
   TypeSchema get unknownType;
@@ -45,6 +69,29 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
 
   /// If [type] is a record type, returns it.
   RecordType<Type>? asRecordType(Type type);
+
+  /// Returns the nullability modifier of [type].
+  NullabilitySuffix getNullabilitySuffix(Type type);
+
+  /// If [type] was introduced by a class, mixin, enum, or extension type,
+  /// returns a [TypeDeclarationKind] indicating what kind of thing it was
+  /// introduced by. Otherwise, returns `null`.
+  ///
+  /// Examples of types derived from a class declarations are `A`, `A?`, `A*`,
+  /// `B<T, S>`, where `A` and `B` are the names of class declarations or
+  /// extension type declarations, `T` and `S` are types.
+  TypeDeclarationKind? getTypeDeclarationKind(Type type);
+
+  /// If at top level [typeSchema] describes a type that was introduced by a
+  /// class, mixin, enum, or extension type, returns a [TypeDeclarationKind]
+  /// indicating what kind of thing it was introduced by. Otherwise, returns
+  /// `null`.
+  ///
+  /// Examples of type schemas at top level describing types derived from a
+  /// declaration are `A`, `A?`, `A*`, `B<T, S>`, `B<_, B<_, _>>?`, where `A`
+  /// and `B` are class declarations or extension type declarations, `T` and
+  /// `S` are type schemas.
+  TypeDeclarationKind? getTypeSchemaDeclarationKind(TypeSchema typeSchema);
 
   /// Computes the greatest lower bound of [type1] and [type2].
   Type glb(Type type1, Type type2);
@@ -64,14 +111,45 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   bool isTypeSchemaSatisfied(
       {required TypeSchema typeSchema, required Type type});
 
-  /// Returns `true` if [type] is the unknown type context (`_`).
-  bool isUnknownType(Type type);
+  /// Returns `true` if [type] is `F`, `F?`, or `F*` for some function type `F`.
+  bool isFunctionType(Type type);
+
+  /// If [type] takes the form `FutureOr<T>`, `FutureOr<T>?`, or `FutureOr<T>*`
+  /// for some `T`, returns the type `T`. Otherwise returns `null`.
+  Type? matchFutureOr(Type type);
+
+  /// Returns `true` if [type] is `E<T1, ..., Tn>`, `E<T1, ..., Tn>?`, or
+  /// `E<T1, ..., Tn>*` for some extension type declaration E, some
+  /// non-negative n, and some types T1, ..., Tn.
+  bool isExtensionType(Type type);
+
+  /// Returns `true` if [type] is `A<T1, ..., Tn>`, `A<T1, ..., Tn>?`, or
+  /// `A<T1, ..., Tn>*` for some class, mixin, or enum A, some non-negative n,
+  /// and some types T1, ..., Tn. The method returns `false` if [type] is an
+  /// extension type, a type alias, `Null`, `Never`, or `FutureOr<X>` for any
+  /// type `X`.
+  bool isInterfaceType(Type type);
+
+  /// Returns `true` if [type] is `Null`.
+  bool isNull(Type Type);
+
+  /// Returns `true` if [type] is `Object` from `dart:core`. The method returns
+  /// `false` for `Object?` and `Object*`.
+  bool isObject(Type type);
+
+  /// Returns `true` if [type] is `R`, `R?`, or `R*` for some record type `R`.
+  bool isRecordType(Type type);
+
+  /// Returns `true` if [typeSchema] is the unknown type schema (`_`).
+  bool isUnknownType(TypeSchema typeSchema);
 
   /// Returns whether [node] is final.
   bool isVariableFinal(Variable node);
 
-  /// Returns the type schema `Iterable`, with type argument
-  /// [elementTypeSchema].
+  /// Returns `true` if [type] is the type `void`.
+  bool isVoid(Type type);
+
+  /// Returns the type schema `Iterable`, with type argument.
   TypeSchema iterableTypeSchema(TypeSchema elementTypeSchema);
 
   /// Returns the type `List`, with type argument [elementType].
@@ -147,4 +225,7 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
 
   /// Converts a type into a corresponding type schema.
   TypeSchema typeToSchema(Type type);
+
+  /// Returns [type] suffixed with the [suffix].
+  Type withNullabilitySuffix(Type type, NullabilitySuffix suffix);
 }

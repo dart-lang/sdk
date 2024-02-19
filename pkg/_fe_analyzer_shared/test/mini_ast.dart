@@ -19,6 +19,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
         ThisPropertyTarget;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
@@ -2678,6 +2679,9 @@ class MiniAstOperations
   late final Type objectQuestionType = Type('Object?');
 
   @override
+  late final Type objectType = Type('Object');
+
+  @override
   late final TypeSchema unknownType = TypeSchema('_');
 
   @override
@@ -2685,6 +2689,9 @@ class MiniAstOperations
 
   @override
   late final Type neverType = Type('Never');
+
+  @override
+  late final Type nullType = Type('Null');
 
   @override
   late final Type doubleType = Type('double');
@@ -2814,6 +2821,33 @@ class MiniAstOperations
   }
 
   @override
+  NullabilitySuffix getNullabilitySuffix(Type type) {
+    if (type is QuestionType) {
+      return NullabilitySuffix.question;
+    } else if (type is StarType) {
+      return NullabilitySuffix.star;
+    } else {
+      return NullabilitySuffix.none;
+    }
+  }
+
+  @override
+  TypeDeclarationKind? getTypeDeclarationKind(Type type) {
+    if (isInterfaceType(type)) {
+      return TypeDeclarationKind.interfaceDeclaration;
+    } else if (isExtensionType(type)) {
+      return TypeDeclarationKind.extensionTypeDeclaration;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  TypeDeclarationKind? getTypeSchemaDeclarationKind(TypeSchema typeSchema) {
+    return getTypeDeclarationKind(typeSchema.toType());
+  }
+
+  @override
   Type glb(Type type1, Type type2) {
     if (type1.type == type2.type) return type1;
     var typeNames = [type1.type, type2.type];
@@ -2842,8 +2876,37 @@ class MiniAstOperations
       type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
 
   @override
+  bool isFunctionType(Type type) {
+    return withNullabilitySuffix(type, NullabilitySuffix.none) is FunctionType;
+  }
+
+  @override
+  Type? matchFutureOr(Type type) {
+    Type underlyingType = withNullabilitySuffix(type, NullabilitySuffix.none);
+    if (underlyingType is PrimaryType && underlyingType.args.length == 1) {
+      if (underlyingType.name == 'FutureOr') {
+        return underlyingType.args[0];
+      }
+    }
+    return null;
+  }
+
+  @override
   bool isError(Type type) =>
       type is PrimaryType && type.name == 'error' && type.args.isEmpty;
+
+  @override
+  bool isExtensionType(Type type) {
+    // TODO(cstefantsova): Add the support for extension types in the mini ast
+    // testing framework.
+    return false;
+  }
+
+  @override
+  bool isInterfaceType(Type type) {
+    Type underlyingType = withNullabilitySuffix(type, NullabilitySuffix.none);
+    return underlyingType is PrimaryType && underlyingType.isInterfaceType;
+  }
 
   @override
   bool isNever(Type type) {
@@ -2851,8 +2914,23 @@ class MiniAstOperations
   }
 
   @override
+  bool isNull(Type type) {
+    return type.type == 'Null';
+  }
+
+  @override
+  bool isObject(Type type) {
+    return type is PrimaryType && type.name == 'Object' && type.args.isEmpty;
+  }
+
+  @override
   bool isPropertyPromotable(covariant _PropertyElement property) =>
       property.isPromotable;
+
+  @override
+  bool isRecordType(Type type) {
+    return withNullabilitySuffix(type, NullabilitySuffix.none) is RecordType;
+  }
 
   @override
   bool isSameType(Type type1, Type type2) {
@@ -2873,12 +2951,16 @@ class MiniAstOperations
       isSubtypeOf(type, typeSchema.toType());
 
   @override
-  bool isUnknownType(Type type) => type is UnknownType;
+  bool isUnknownType(TypeSchema typeSchema) => typeSchema is UnknownType;
 
   @override
   bool isVariableFinal(Var node) {
     return node.isFinal;
   }
+
+  @override
+  bool isVoid(Type type) =>
+      type is PrimaryType && type.name == 'void' && type.args.isEmpty;
 
   @override
   TypeSchema iterableTypeSchema(TypeSchema elementTypeSchema) {
@@ -3068,6 +3150,36 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
           covariant _PropertyElement property) =>
       property.whyNotPromotable;
+
+  @override
+  Type withNullabilitySuffix(Type type, NullabilitySuffix modifier) {
+    switch (modifier) {
+      case NullabilitySuffix.none:
+        if (type is QuestionType) {
+          return type.innerType;
+        } else if (type is StarType) {
+          return type.innerType;
+        } else {
+          return type;
+        }
+      case NullabilitySuffix.question:
+        if (type is QuestionType) {
+          return type;
+        } else if (type is StarType) {
+          return QuestionType(type.innerType);
+        } else {
+          return QuestionType(type);
+        }
+      case NullabilitySuffix.star:
+        if (type is QuestionType) {
+          return StarType(type.innerType);
+        } else if (type is StarType) {
+          return type;
+        } else {
+          return StarType(type);
+        }
+    }
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
