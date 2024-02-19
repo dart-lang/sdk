@@ -37,7 +37,7 @@ void main(List<String> args) {
   }
 }
 
-class UnreachableIfFinder extends RecursiveVisitor<void> {
+class UnreachableIfFinder extends RecursiveVisitor {
   static List<Warning> find(Component c) {
     EffectivelyFinal effectivelyFinal = new EffectivelyFinal._();
     c.accept(effectivelyFinal);
@@ -116,7 +116,7 @@ class UnreachableIfFinder extends RecursiveVisitor<void> {
   }
 }
 
-class EffectivelyFinal extends RecursiveVisitor<void> {
+class EffectivelyFinal extends RecursiveVisitor {
   final Set<VariableDeclaration> unwritten = {};
 
   EffectivelyFinal._();

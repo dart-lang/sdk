@@ -51,7 +51,7 @@ String _toJson(List<Identifier> identifiers) {
   });
 }
 
-class _ResourceIdentifierVisitor extends RecursiveVisitor<void> {
+class _ResourceIdentifierVisitor extends RecursiveVisitor {
   final List<Identifier> identifiers = [];
   final List<LoadingUnit> _loadingUnits;
 
