@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 // Only needed so that [TestFile] can be referenced in doc comments.
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:path/path.dart' as p;
+
 import 'test_file.dart';
 
 /// A front end that can report static errors.
@@ -97,8 +101,9 @@ class StaticError implements Comparable<StaticError> {
 
   /// Parses the set of static error expectations defined in the Dart source
   /// file [source].
-  static List<StaticError> parseExpectations(String source) =>
-      _ErrorExpectationParser(source)._parse();
+  static List<StaticError> parseExpectations(
+          {required String path, required String source}) =>
+      _ErrorExpectationParser(path: path, source: source)._parse();
 
   /// Determines whether all [actualErrors] match the given [expectedErrors].
   ///
@@ -236,6 +241,9 @@ class StaticError implements Comparable<StaticError> {
     return buffer.toString().trimRight();
   }
 
+  /// The path of the file containing the error.
+  final String path;
+
   /// The one-based line number of the beginning of the error's location.
   final int line;
 
@@ -274,15 +282,17 @@ class StaticError implements Comparable<StaticError> {
   /// error is tested, a front end is expected to report *some* error on that
   /// error's line, but it can be any location, error code, or message.
   StaticError(this.source, this.message,
-      {required this.line,
+      {required String path,
+      required this.line,
       required this.column,
       this.length = 0,
       Set<int>? sourceLines})
-      : sourceLines = {...?sourceLines};
+      : path = p.relative(path, from: Directory.current.path),
+        sourceLines = {...?sourceLines};
 
   /// A textual description of this error's location.
   String get location {
-    var result = "line $line, column $column";
+    var result = "$path line $line, column $column";
     if (length > 0) result += ", length $length";
     return result;
   }
@@ -490,6 +500,7 @@ class _ErrorExpectationParser {
   /// are part of it.
   static final _errorMessageRestRegExp = RegExp(r"^\s*//\s*(.*)");
 
+  final String path;
   final List<String> _lines;
   final List<StaticError> _errors = [];
 
@@ -513,7 +524,8 @@ class _ErrorExpectationParser {
   // One-based index of the last line that wasn't part of an error expectation.
   int _lastRealLine = -1;
 
-  _ErrorExpectationParser(String source) : _lines = source.split("\n");
+  _ErrorExpectationParser({required this.path, required String source})
+      : _lines = source.split("\n");
 
   List<StaticError> _parse() {
     // Read all the lines.
@@ -527,6 +539,7 @@ class _ErrorExpectationParser {
         }
 
         _parseErrors(
+            path: path,
             line: _lastRealLine,
             column: sourceLine.indexOf("^") + 1,
             length: match[1]!.length);
@@ -538,6 +551,7 @@ class _ErrorExpectationParser {
       if (match != null) {
         var lineCapture = match[1];
         _parseErrors(
+            path: path,
             line: lineCapture == null ? _lastRealLine : int.parse(lineCapture),
             column: int.parse(match[2]!),
             length: int.parse(match[3]!));
@@ -549,6 +563,7 @@ class _ErrorExpectationParser {
       if (match != null) {
         var lineCapture = match[1];
         _parseErrors(
+            path: path,
             line: lineCapture == null ? _lastRealLine : int.parse(lineCapture),
             column: int.parse(match[2]!));
         _advance();
@@ -564,7 +579,11 @@ class _ErrorExpectationParser {
   }
 
   /// Finishes parsing a series of error expectations after parsing a location.
-  void _parseErrors({required int line, required int column, int length = 0}) {
+  void _parseErrors(
+      {required String path,
+      required int line,
+      required int column,
+      int length = 0}) {
     var locationLine = _currentLine;
     var parsedError = false;
 
@@ -623,6 +642,7 @@ class _ErrorExpectationParser {
       }
 
       var error = StaticError(source, message,
+          path: path,
           line: line,
           column: column,
           length: errorLength,

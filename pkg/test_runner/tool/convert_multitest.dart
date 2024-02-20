@@ -154,7 +154,7 @@ Future<void> convertFile(String testFilePath, bool writeToFile, bool verbose,
   // Read test file and setup output directory.
   var suiteDirectory = Path.raw(Uri.base.path);
   var content = await testFile.readAsString();
-  var test = TestFile.parse(suiteDirectory, testFilePath, content);
+  var test = TestFile.read(suiteDirectory, testFilePath);
   if (!content.contains(multitestMarker)) {
     print("Test ${test.path.toNativePath()} is not a multi-test.");
     exitCode = 1;
@@ -210,7 +210,7 @@ Future<void> convertFile(String testFilePath, bool writeToFile, bool verbose,
     // Insert the error message annotations for the static testing framework
     // and output the result.
     var annotatedContent =
-        updateErrorExpectations(contentWithoutMarkers, errors[0]);
+        updateErrorExpectations(testFilePath, contentWithoutMarkers, errors[0]);
     if (writeToFile) {
       await testFile.writeAsString(annotatedContent);
       print("Converted test '${test.path.toNativePath()}'.");

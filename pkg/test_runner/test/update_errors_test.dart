@@ -7,7 +7,6 @@
 import 'dart:math' as math;
 
 import 'package:expect/expect.dart';
-
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/update_errors.dart';
 
@@ -656,7 +655,7 @@ void expectUpdate(String original,
   remove ??= ErrorSource.all.toSet();
   includeContext ??= false;
 
-  var actual = updateErrorExpectations(original, errors,
+  var actual = updateErrorExpectations('some_test.dart', original, errors,
       remove: remove, includeContext: includeContext);
   if (actual != expected) {
     // Not using Expect.equals() because the diffs it shows aren't helpful for

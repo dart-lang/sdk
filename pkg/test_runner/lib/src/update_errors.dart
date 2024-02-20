@@ -15,10 +15,12 @@ final _lineCommentRegExp = RegExp(r"^\s*//");
 /// If [remove] is not empty, then only removes existing errors for the given
 /// sources. If [includeContext] is `true`, then includes context messages in
 /// the output. Otherwise discards them.
-String updateErrorExpectations(String source, List<StaticError> errors,
+String updateErrorExpectations(
+    String path, String source, List<StaticError> errors,
     {Set<ErrorSource> remove = const {}, bool includeContext = false}) {
   // Split the existing errors into kept and deleted lists.
-  var existingErrors = StaticError.parseExpectations(source);
+  var existingErrors =
+      StaticError.parseExpectations(source: source, path: path);
   var keptErrors = <StaticError>[];
   var removedErrors = <StaticError>[];
   for (var error in existingErrors) {
