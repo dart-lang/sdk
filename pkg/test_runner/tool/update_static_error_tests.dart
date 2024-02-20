@@ -174,8 +174,9 @@ Future<bool> _processFile(File file,
     required bool includeContext,
     required Set<ErrorSource> remove,
     required Set<ErrorSource> insert}) async {
-  var source = file.readAsStringSync();
-  var testFile = TestFile.parse(Path("."), file.absolute.path, source);
+  var testFile = TestFile.read(Path("."), file.absolute.path);
+  // Canonicalize the path in the same way StaticError does, so it matches.
+  file = File(p.relative(file.path, from: Directory.current.path));
 
   // Don't process multitests. The multitest file isn't necessarily a valid or
   // meaningful Dart file that can be processed by front ends. To process them,
@@ -228,17 +229,23 @@ Future<bool> _processFile(File file,
     errors.addAll(await runDart2js(file, options, cfeErrors));
   }
 
-  var result = updateErrorExpectations(source, errors,
-      remove: remove, includeContext: includeContext);
+  // Error expectations can be in imported or part files: iterate over the set
+  // of paths that is the main file path plus all paths mentioned in
+  // expectations, updating them.
+  for (final path in {file.path, ...errors.map((e) => e.path)}) {
+    final pathErrors = errors.where((e) => e.path == path).toList();
+    var result = updateErrorExpectations(
+        path, File(path).readAsStringSync(), pathErrors,
+        remove: remove, includeContext: includeContext);
 
-  stdout.writeln("\r${file.path} (Updated with ${errors.length} errors)");
+    stdout.writeln("\r$path (Updated with ${pathErrors.length} errors)");
 
-  if (dryRun) {
-    print(result);
-  } else {
-    await file.writeAsString(result);
+    if (dryRun) {
+      print(result);
+    } else {
+      await File(path).writeAsString(result);
+    }
   }
-
   return true;
 }
 

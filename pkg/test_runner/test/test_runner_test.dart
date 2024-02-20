@@ -9,13 +9,13 @@ import "package:status_file/expectation.dart";
 import "package:test_runner/src/command.dart";
 import "package:test_runner/src/configuration.dart";
 import "package:test_runner/src/options.dart";
-import 'package:test_runner/src/path.dart';
 import "package:test_runner/src/process_queue.dart";
 import "package:test_runner/src/repository.dart";
 import "package:test_runner/src/test_case.dart";
-import 'package:test_runner/src/test_file.dart';
 import "package:test_runner/src/test_progress.dart" as progress;
 import "package:test_runner/src/test_suite.dart";
+
+import "utils.dart";
 
 final defaultTimeout = 30;
 
@@ -98,7 +98,7 @@ class CustomTestSuite extends TestSuite {
         [command],
         configuration,
         Set<Expectation>.from(expectations),
-        TestFile.parse(Path('suite'), '/dummy_test.dart', ''));
+        createTestFile(source: '', suite: 'suite', path: '/dummy_test.dart'));
   }
 }
 

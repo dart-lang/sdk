@@ -78,7 +78,11 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
   }
 
   @override
-  Future<void> close() => new Future.sync(onClose);
+  Future<void> close() {
+    if (isClosed) return new Future.value();
+    isClosed = true;
+    return new Future.sync(onClose);
+  }
 
   /// Sends the [Serializer.result] to [sendPort], possibly wrapping it in a
   /// [TransferableTypedData] object.

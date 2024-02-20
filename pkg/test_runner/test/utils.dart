@@ -1,6 +1,8 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:io';
+
 import 'package:test_runner/src/configuration.dart';
 import 'package:test_runner/src/options.dart';
 import 'package:test_runner/src/path.dart';
@@ -8,11 +10,19 @@ import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
 import 'package:test_runner/src/test_suite.dart';
 
-TestFile parseTestFile(String source,
-    {String path = "some_test.dart", String suite = "language"}) {
-  final suiteDirectory = Path(suite);
-  path = suiteDirectory.absolute.append(path).toNativePath();
-  return TestFile.parse(suiteDirectory.absolute, path, source);
+final tempDir = Directory.systemTemp.createTempSync('test_runner_test');
+
+/// Writes then parses a test file.
+TestFile createTestFile(
+    {required String source,
+    String path = "some_test.dart",
+    String suite = "language"}) {
+  var suitePath = Path(tempDir.path).append(suite);
+  path = suitePath.append(path).toNativePath();
+  File(path)
+    ..parent.createSync(recursive: true)
+    ..writeAsStringSync(source);
+  return TestFile.read(suitePath.absolute, path);
 }
 
 // TODO(rnystrom): Would be nice if there was a simpler way to create a
@@ -31,7 +41,8 @@ StandardTestSuite makeTestSuite(TestConfiguration configuration,
 /// Only one of [analyzerError], [cfeError], [webError], or [contextError] may
 /// be passed.
 StaticError makeError(
-    {int line = 1,
+    {String path = 'test.dart',
+    int line = 1,
     int column = 2,
     int length = 0,
     String? analyzerError,
@@ -62,8 +73,8 @@ StaticError makeError(
     message = contextError;
   }
 
-  var error =
-      StaticError(source, message!, line: line, column: column, length: length);
+  var error = StaticError(source, message!,
+      path: path, line: line, column: column, length: length);
   if (context != null) error.contextMessages.addAll(context);
   return error;
 }

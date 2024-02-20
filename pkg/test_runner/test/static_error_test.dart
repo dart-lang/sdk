@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
+import 'dart:io';
 
+import 'package:expect/expect.dart';
 import 'package:test_runner/src/static_error.dart';
 
 import 'utils.dart';
@@ -17,26 +18,29 @@ void main() {
 
 void testProperties() {
   var analyzer = StaticError(ErrorSource.analyzer, "E.CODE",
-      line: 1, column: 2, length: 3, sourceLines: {1, 3, 5});
+      path: 'test.dart', line: 1, column: 2, length: 3, sourceLines: {1, 3, 5});
   Expect.equals(analyzer.source, ErrorSource.analyzer);
   Expect.equals(analyzer.message, "E.CODE");
+  Expect.equals(analyzer.path, 'test.dart');
   Expect.equals(analyzer.line, 1);
   Expect.equals(analyzer.column, 2);
   Expect.equals(analyzer.length, 3);
   Expect.isTrue(analyzer.isSpecified);
   Expect.setEquals({1, 3, 5}, analyzer.sourceLines);
 
-  var cfe = StaticError(ErrorSource.cfe, "Error.", line: 4, column: 5);
+  var cfe = StaticError(ErrorSource.cfe, "Error.",
+      path: '${Directory.current.path}/lib/test.dart', line: 4, column: 5);
   Expect.equals(cfe.source, ErrorSource.cfe);
   Expect.equals(cfe.message, "Error.");
+  Expect.equals(cfe.path, 'lib/test.dart'); // Current path gets removed.
   Expect.equals(cfe.line, 4);
   Expect.equals(cfe.column, 5);
   Expect.equals(cfe.length, 0);
   Expect.isTrue(cfe.isSpecified);
   Expect.isTrue(cfe.sourceLines.isEmpty);
 
-  var unspecified =
-      StaticError(ErrorSource.web, "unspecified", line: 1, column: 2);
+  var unspecified = StaticError(ErrorSource.web, "unspecified",
+      path: 'test.dart', line: 1, column: 2);
   Expect.isFalse(unspecified.isSpecified);
 }
 
@@ -117,13 +121,13 @@ void testValidate() {
     makeError(line: 2, column: 2, length: 9, analyzerError: "ERR.B"),
     makeError(line: 3, column: 2, length: 3, analyzerError: "ERR.Z"),
   ], """
-- Wrong error location line 1, column 2, length 3: ERR.A
+- Wrong error location test.dart line 1, column 2, length 3: ERR.A
   Expected column 2 but was column 9.
 
-- Wrong error location line 2, column 2, length 3: ERR.B
+- Wrong error location test.dart line 2, column 2, length 3: ERR.B
   Expected length 3 but was length 9.
 
-- Wrong message at line 3, column 2, length 3: ERR.Z
+- Wrong message at test.dart line 3, column 2, length 3: ERR.Z
   Expected: ERR.C""");
 
   expectValidate([
@@ -131,7 +135,7 @@ void testValidate() {
   ], [
     makeError(line: 4, column: 2, length: 3, cfeError: "Zzz."),
   ], """
-- Wrong message at line 4, column 2, length 3: Zzz.
+- Wrong message at test.dart line 4, column 2, length 3: Zzz.
   Expected: Four.""");
 
   expectValidate([
@@ -139,7 +143,7 @@ void testValidate() {
   ], [
     makeError(line: 5, column: 2, length: 3, webError: "Web Z."),
   ], """
-- Wrong message at line 5, column 2, length 3: Web Z.
+- Wrong message at test.dart line 5, column 2, length 3: Web Z.
   Expected: Web 5.""");
 
   // Unexpected errors.
@@ -156,13 +160,13 @@ void testValidate() {
     makeError(line: 6, column: 2, length: 3, cfeError: "Tres."),
     makeError(line: 7, column: 2, length: 3, cfeError: "7."),
   ], """
-- Unexpected error at line 1, column 2, length 3: 1.
+- Unexpected error at test.dart line 1, column 2, length 3: 1.
 
-- Unexpected error at line 3, column 2, length 3: 3.
+- Unexpected error at test.dart line 3, column 2, length 3: 3.
 
-- Unexpected error at line 5, column 2, length 3: 5.
+- Unexpected error at test.dart line 5, column 2, length 3: 5.
 
-- Unexpected error at line 7, column 2, length 3: 7.""");
+- Unexpected error at test.dart line 7, column 2, length 3: 7.""");
 
   // Missing errors.
   expectValidate([
@@ -175,11 +179,11 @@ void testValidate() {
     makeError(line: 2, column: 2, length: 3, analyzerError: "ERR.B"),
     makeError(line: 4, column: 2, length: 3, analyzerError: "ERR.D"),
   ], """
-- Missing expected error at line 1, column 2, length 3: ERR.A
+- Missing expected error at test.dart line 1, column 2, length 3: ERR.A
 
-- Missing expected error at line 3, column 2, length 3: ERR.C
+- Missing expected error at test.dart line 3, column 2, length 3: ERR.C
 
-- Missing expected error at line 5, column 2, length 3: ERR.E""");
+- Missing expected error at test.dart line 5, column 2, length 3: ERR.E""");
 
   // Unspecified errors.
   expectValidate([
@@ -194,9 +198,9 @@ void testValidate() {
     // Unexpected.
     makeError(line: 9, column: 9, length: 3, cfeError: "Actual 2."),
   ], """
-- Missing expected unspecified error at line 2, column 2, length 3.
+- Missing expected unspecified error at test.dart line 2, column 2, length 3.
 
-- Unexpected error at line 9, column 9, length 3: Actual 2.""");
+- Unexpected error at test.dart line 9, column 9, length 3: Actual 2.""");
 
   // Unspecified errors can match multiple errors on the same line.
   expectValidate([
@@ -231,7 +235,7 @@ void testValidate() {
     makeError(line: 1, column: 2, length: 1, cfeError: "message"),
     makeError(line: 2, column: 3, length: 2, cfeError: "message"),
     makeError(line: 3, column: 3, length: 3, cfeError: "message"),
-  ], '- Unexpected error at line 3, column 3, length 3: message');
+  ], '- Unexpected error at test.dart line 3, column 3, length 3: message');
 
   // Same location.
   expectValidate([
@@ -242,13 +246,13 @@ void testValidate() {
     makeError(line: 1, column: 2, length: 1, cfeError: "wrong 2"),
     makeError(line: 1, column: 2, length: 1, cfeError: "wrong 3"),
   ], '''
-- Wrong message at line 1, column 2, length 1: wrong 1
+- Wrong message at test.dart line 1, column 2, length 1: wrong 1
   Expected: message 1
 
-- Wrong message at line 1, column 2, length 1: wrong 2
+- Wrong message at test.dart line 1, column 2, length 1: wrong 2
   Expected: message 2
 
-- Unexpected error at line 1, column 2, length 1: wrong 3''');
+- Unexpected error at test.dart line 1, column 2, length 1: wrong 3''');
 
   // Prefer match over wrong message.
   expectValidate([
@@ -258,9 +262,9 @@ void testValidate() {
     makeError(line: 1, column: 1, length: 1, cfeError: /* not a */ "match"),
     makeError(line: 10, column: 1, length: 1, cfeError: "match"),
   ], '''
-- Missing expected error at line 10, column 1, length 1: a wrong message
+- Missing expected error at test.dart line 10, column 1, length 1: a wrong message
 
-- Unexpected error at line 1, column 1, length 1: match''');
+- Unexpected error at test.dart line 1, column 1, length 1: match''');
 
   // Combined.
   expectValidate([
@@ -276,15 +280,15 @@ void testValidate() {
     makeError(line: 10, column: 1, length: 1, cfeError: "match"),
     makeError(line: 40, column: 4, length: 4, cfeError: "match"),
   ], '''
-- Wrong error location line 30, column 3, length 3: wrong location
+- Wrong error location test.dart line 30, column 3, length 3: wrong location
   Expected line 30 but was line 10.
 
-- Wrong message at line 20, column 2, length 2: wrong message
+- Wrong message at test.dart line 20, column 2, length 2: wrong message
   Expected: message
 
-- Missing expected error at line 20, column 2, length 2: missing
+- Missing expected error at test.dart line 20, column 2, length 2: missing
 
-- Unexpected error at line 1, column 2, length 1: unexpected''');
+- Unexpected error at test.dart line 1, column 2, length 1: unexpected''');
 
   // If expectation has context, actual must match it.
   expectValidate([
@@ -309,7 +313,7 @@ void testValidate() {
       makeError(line: 4, column: 5, length: 6, contextError: "Context Z."),
     ]),
   ], """
-- Wrong context message at line 4, column 5, length 6: Context Z.
+- Wrong context message at test.dart line 4, column 5, length 6: Context Z.
   Expected: Context A.""");
 
   // Missing some actual context.
@@ -323,7 +327,7 @@ void testValidate() {
       makeError(line: 7, column: 8, length: 9, contextError: "Context B."),
     ]),
   ], """
-- Missing expected context message at line 4, column 5, length 6: Context A.""");
+- Missing expected context message at test.dart line 4, column 5, length 6: Context A.""");
 
   // Missing all actual context.
   expectValidate([
@@ -334,9 +338,9 @@ void testValidate() {
   ], [
     makeError(line: 1, column: 2, length: 3, cfeError: "Error."),
   ], """
-- Missing expected context message at line 4, column 5, length 6: Context A.
+- Missing expected context message at test.dart line 4, column 5, length 6: Context A.
 
-- Missing expected context message at line 7, column 8, length 9: Context B.""");
+- Missing expected context message at test.dart line 7, column 8, length 9: Context B.""");
 
   // Unexpected extra actual context.
   expectValidate([
@@ -349,7 +353,7 @@ void testValidate() {
       makeError(line: 7, column: 8, length: 9, contextError: "Context B."),
     ]),
   ], """
-- Unexpected context message at line 7, column 8, length 9: Context B.""");
+- Unexpected context message at test.dart line 7, column 8, length 9: Context B.""");
 
   // Actual context owned by wrong error.
   // TODO(rnystrom): This error is pretty confusing. Ideally we would detect
@@ -371,9 +375,9 @@ void testValidate() {
       makeError(line: 33, column: 5, length: 6, contextError: "Context."),
     ]),
   ], """
-- Missing expected context message at line 33, column 5, length 6: Context.
+- Missing expected context message at test.dart line 33, column 5, length 6: Context.
 
-- Unexpected context message at line 33, column 5, length 6: Context.""");
+- Unexpected context message at test.dart line 33, column 5, length 6: Context.""");
 
   // If expectation has no context at all, then ignore actual context.
   expectValidate([

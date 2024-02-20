@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
@@ -14,7 +13,6 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/norm.dart';
-import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
@@ -512,14 +510,8 @@ class OperationsCfe
   DartType get neverType => const NeverType.nonNullable();
 
   @override
-  DartType get nullType => const NullType();
-
-  @override
   DartType get objectQuestionType =>
       typeEnvironment.coreTypes.objectNullableRawType;
-
-  @override
-  DartType get objectType => typeEnvironment.coreTypes.objectNonNullableRawType;
 
   @override
   DartType get unknownType => const UnknownType();
@@ -553,20 +545,6 @@ class OperationsCfe
   }
 
   @override
-  NullabilitySuffix getNullabilitySuffix(DartType type) {
-    if (isTypeWithoutNullabilityMarker(type,
-        isNonNullableByDefault: nullability == Nullability.nonNullable)) {
-      return NullabilitySuffix.none;
-    } else if (isNullableTypeConstructorApplication(type)) {
-      return NullabilitySuffix.question;
-    } else {
-      assert(isLegacyTypeConstructorApplication(type,
-          isNonNullableByDefault: nullability == Nullability.nonNullable));
-      return NullabilitySuffix.star;
-    }
-  }
-
-  @override
   DartType factor(DartType from, DartType what) {
     return factorType(typeEnvironment, from, what);
   }
@@ -577,30 +555,8 @@ class OperationsCfe
   }
 
   @override
-  bool isExtensionType(DartType type) {
-    return type is ExtensionType;
-  }
-
-  @override
-  bool isInterfaceType(DartType type) {
-    return type is InterfaceType;
-  }
-
-  @override
   bool isNever(DartType type) {
     return typeEnvironment.coreTypes.isBottom(type);
-  }
-
-  @override
-  bool isNull(DartType type) {
-    return type is NullType;
-  }
-
-  @override
-  bool isObject(DartType type) {
-    return type is InterfaceType &&
-        type.classNode == typeEnvironment.objectClass &&
-        type.nullability == Nullability.nonNullable;
   }
 
   @override
@@ -626,9 +582,6 @@ class OperationsCfe
     if (!name.startsWith('_')) return false;
     return fieldNonPromotabilityInfo.fieldNameInfo[name] == null;
   }
-
-  @override
-  bool isRecordType(DartType type) => type is RecordType;
 
   @override
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
@@ -772,32 +725,17 @@ class OperationsCfe
   bool isError(DartType type) => type is InvalidType;
 
   @override
-  bool isFunctionType(DartType type) => type is FunctionType;
-
-  @override
-  DartType? matchFutureOr(DartType type) {
-    if (type is! FutureOrType) {
-      return null;
-    } else {
-      return type.typeArgument;
-    }
-  }
-
-  @override
   bool isTypeSchemaSatisfied(
           {required DartType typeSchema, required DartType type}) =>
       isSubtypeOf(type, typeSchema);
 
   @override
-  bool isUnknownType(DartType typeSchema) => typeSchema is UnknownType;
+  bool isUnknownType(DartType type) => type is UnknownType;
 
   @override
   bool isVariableFinal(VariableDeclaration node) {
     return node.isFinal;
   }
-
-  @override
-  bool isVoid(DartType type) => type is VoidType;
 
   @override
   DartType iterableTypeSchema(DartType elementTypeSchema) {
@@ -967,38 +905,6 @@ class OperationsCfe
 
   @override
   DartType typeToSchema(DartType type) => type;
-
-  @override
-  DartType withNullabilitySuffix(DartType type, NullabilitySuffix modifier) {
-    switch (modifier) {
-      case NullabilitySuffix.none:
-        return computeTypeWithoutNullabilityMarker(type,
-            isNonNullableByDefault: nullability == Nullability.nonNullable);
-      case NullabilitySuffix.question:
-        return type.withDeclaredNullability(Nullability.nullable);
-      case NullabilitySuffix.star:
-        return type.withDeclaredNullability(Nullability.legacy);
-    }
-  }
-
-  @override
-  TypeDeclarationKind? getTypeDeclarationKind(DartType type) {
-    if (type is TypeDeclarationType) {
-      switch (type) {
-        case InterfaceType():
-          return TypeDeclarationKind.interfaceDeclaration;
-        case ExtensionType():
-          return TypeDeclarationKind.extensionTypeDeclaration;
-      }
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  TypeDeclarationKind? getTypeSchemaDeclarationKind(DartType typeSchema) {
-    return getTypeDeclarationKind(typeSchema);
-  }
 }
 
 /// Type inference results used for testing.
