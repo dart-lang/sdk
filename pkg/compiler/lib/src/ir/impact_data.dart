@@ -170,14 +170,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void visitStaticGet(ir.StaticGet node) {
-    final target = node.target;
-    if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
-      // TODO(johnniwinther): Remove this when dart2js uses the new method
-      // invocation encoding.
-      registerStaticTearOff(target, getDeferredImport(node));
-    } else {
-      registerStaticGet(node.target, getDeferredImport(node));
-    }
+    registerStaticGet(node.target, getDeferredImport(node));
   }
 
   @override
@@ -602,10 +595,6 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   void visitDynamicGet(ir.DynamicGet node) {
     final receiverType = node.receiver.getStaticType(staticTypeContext);
     registerDynamicGet(receiverType, node.name);
-    if (node.name.text == Identifiers.runtimeType_) {
-      // This handles `runtimeType` access on `Never`.
-      handleRuntimeTypeGet(receiverType, node);
-    }
     node.receiver.accept(this);
   }
 
@@ -708,11 +697,9 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     node.arguments.accept(this);
   }
 
-  // TODO(johnniwinther): Change the key to `InstanceGet` when the old method
-  //  invocation encoding is no longer used.
-  final Map<ir.Expression, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
+  final Map<ir.InstanceGet, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
 
-  void handleRuntimeTypeGet(ir.DartType receiverType, ir.Expression node) {
+  void handleRuntimeTypeGet(ir.DartType receiverType, ir.InstanceGet node) {
     RuntimeTypeUseData data =
         computeRuntimeTypeUse(_pendingRuntimeTypeUseData, node);
     if (data.leftRuntimeTypeExpression == node) {
