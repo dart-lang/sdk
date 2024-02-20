@@ -759,7 +759,7 @@ final class ClientDefinitionPhaseIntrospector
 }
 
 /// Either returns the actual response from [response], casted to [T], or throws
-/// a [RemoteException] with the given error and stack trace.
+/// a [MacroException].
 T _handleResponse<T>(Response response) {
   if (response.responseType == MessageType.exception) {
     throw response.exception!;
@@ -798,12 +798,4 @@ enum MessageType {
   topLevelDeclarationsOfRequest,
   typeDeclarationOfRequest,
   typesOfRequest,
-}
-
-// TODO(davidmorgan): this is needed by a presubmit due to version mismatch,
-// remove.
-class RemoteException {
-  final String error;
-  final String? stackTrace;
-  RemoteException(this.error, this.stackTrace);
 }

@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/message_grouper.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 
@@ -40,7 +39,7 @@ class RequestChannel {
   /// result is returned from the [Future].
   ///
   /// If an exception happens on the other side, the returned future completes
-  /// with a [RemoteException].
+  /// with a [RequestChannelException].
   ///
   /// The other side may do callbacks.
   Future<T> sendRequest<T>(String method, Object? argument) async {
@@ -103,7 +102,7 @@ class RequestChannel {
         final Object? exception = message['exception'];
         if (exception is Map) {
           completer.completeError(
-            new UnexpectedMacroExceptionImpl(
+            new RequestChannelException(
               exception['message'] as String,
               stackTrace: exception['stackTrace'] as String,
             ),
@@ -117,7 +116,7 @@ class RequestChannel {
       }
     }
 
-    throw new StateError('Unexpected message: $message');
+    throw new RequestChannelException('Unexpected message: $message');
   }
 
   /// Sends [bytes] for [MessageGrouper].
@@ -134,4 +133,16 @@ class RequestChannel {
     serializer.addAny(object);
     _writeBytes(serializer.result);
   }
+}
+
+/// Message channel failure or unexpected message.
+class RequestChannelException {
+  final String message;
+  final String? stackTrace;
+
+  RequestChannelException(this.message, {this.stackTrace});
+
+  @override
+  String toString() => 'RequestChannelException: $message'
+      '${stackTrace == null ? '' : '\n$stackTrace'}';
 }
