@@ -38,7 +38,7 @@ const dartMimeType = 'text/x-dart';
 ///
 /// Setting this too high can have a performance impact, for example if the
 /// client requests 500 items in a variablesRequest for a list.
-const maxToStringsPerEvaluation = 10;
+const maxToStringsPerEvaluation = 100;
 
 /// An expression that evaluates to the exception for the current thread.
 ///
@@ -1909,7 +1909,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
             variable.value,
             name: variable.name,
             allowCallingToString: evaluateToStringInDebugViews &&
-                index <= maxToStringsPerEvaluation,
+                index < maxToStringsPerEvaluation,
             evaluateName: variable.name,
             format: format,
           );
@@ -1927,8 +1927,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         return _converter.convertFieldRefToVariable(
           thread,
           fieldRef,
-          allowCallingToString: evaluateToStringInDebugViews &&
-              index <= maxToStringsPerEvaluation,
+          allowCallingToString:
+              evaluateToStringInDebugViews && index < maxToStringsPerEvaluation,
           format: format,
         );
       }

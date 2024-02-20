@@ -162,7 +162,7 @@ class ProtocolConverter {
             name: name,
             evaluateName: itemEvaluateName,
             allowCallingToString:
-                allowCallingToString && index <= maxToStringsPerEvaluation,
+                allowCallingToString && index < maxToStringsPerEvaluation,
             format: format,
           );
         },
@@ -178,7 +178,7 @@ class ProtocolConverter {
         final key = mapEntry.key;
         final value = mapEntry.value;
         final callToString =
-            allowCallingToString && index <= maxToStringsPerEvaluation;
+            allowCallingToString && index < maxToStringsPerEvaluation;
 
         final keyDisplay = await convertVmResponseToDisplayString(
           thread,
@@ -250,7 +250,7 @@ class ProtocolConverter {
             name: name ?? '<unnamed field>',
             evaluateName: fieldEvaluateName,
             allowCallingToString:
-                allowCallingToString && index <= maxToStringsPerEvaluation,
+                allowCallingToString && index < maxToStringsPerEvaluation,
             format: format,
           );
         },
@@ -283,7 +283,7 @@ class ProtocolConverter {
                     getterName: getterName,
                     evaluateName: evaluateName,
                     allowCallingToString: allowCallingToString &&
-                        index <= maxToStringsPerEvaluation,
+                        index < maxToStringsPerEvaluation,
                     format: format,
                   );
           } catch (e) {
