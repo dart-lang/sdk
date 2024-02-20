@@ -119,39 +119,41 @@ class AbstractContextTest
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
-    List<String>? experiments,
-    List<String>? cannotIgnore,
-    List<String>? lints,
-    Map<String, Object?>? errors,
+    List<String> experiments = const [],
+    List<String> cannotIgnore = const [],
+    List<String> lints = const [],
+    Map<String, Object?> errors = const {},
   }) {
     var buffer = StringBuffer();
 
-    if (experiments != null || cannotIgnore != null || errors != null) {
+    if (experiments.isNotEmpty ||
+        cannotIgnore.isNotEmpty ||
+        errors.isNotEmpty) {
       buffer.writeln('analyzer:');
     }
 
-    if (errors != null) {
+    if (errors.isNotEmpty) {
       buffer.writeln('  errors:');
       for (var error in errors.entries) {
         buffer.writeln('    ${error.key}: ${error.value}');
       }
     }
 
-    if (experiments != null) {
+    if (experiments.isNotEmpty) {
       buffer.writeln('  enable-experiment:');
       for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
     }
 
-    if (cannotIgnore != null) {
+    if (cannotIgnore.isNotEmpty) {
       buffer.writeln('  cannot-ignore:');
       for (var unignorable in cannotIgnore) {
         buffer.writeln('    - $unignorable');
       }
     }
 
-    if (lints != null) {
+    if (lints.isNotEmpty) {
       buffer.writeln('linter:');
       buffer.writeln('  rules:');
       for (var lint in lints) {
