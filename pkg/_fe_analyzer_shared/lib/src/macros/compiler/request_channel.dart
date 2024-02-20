@@ -124,7 +124,6 @@ class RequestChannel {
     final ByteData lengthByteData = new ByteData(4)..setUint32(0, bytes.length);
     _socket.add(lengthByteData.buffer.asUint8List());
     _socket.add(bytes);
-    _socket.flush();
   }
 
   /// Serializes and sends the [object].
