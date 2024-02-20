@@ -18,6 +18,8 @@
 namespace dart {
 namespace bin {
 
+#if !defined(PRODUCT)
+
 #define RETURN_ERROR_HANDLE(handle)                                            \
   if (Dart_IsError(handle)) {                                                  \
     return handle;                                                             \
@@ -253,6 +255,8 @@ void VmService::SetServerAddress(const char* server_uri) {
   strncpy(server_uri_, server_uri, kServerUriStringBufferSize);
   server_uri_[kServerUriStringBufferSize - 1] = '\0';
 }
+
+#endif  // !defined(PRODUCT)
 
 }  // namespace bin
 }  // namespace dart

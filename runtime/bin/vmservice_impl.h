@@ -14,6 +14,32 @@ namespace bin {
 
 class VmService {
  public:
+#if defined(PRODUCT)
+  static bool Setup(const char* server_ip,
+                    intptr_t server_port,
+                    bool dev_mode_server,
+                    bool auth_codes_disabled,
+                    const char* write_service_info_filename,
+                    bool trace_loading,
+                    bool deterministic,
+                    bool enable_service_port_fallback,
+                    bool wait_for_dds_to_advertise_service,
+                    bool serve_observatory) {
+    return false;
+  }
+
+  static void SetNativeResolver() {}
+
+  // Error message if startup failed.
+  static const char* GetErrorMessage() {
+    return "VM Service not suppported in Product mode";
+  }
+
+  // HTTP Server's address.
+  static const char* GetServerAddress() { return nullptr; }
+
+ private:
+#else   // defined(PRODUCT)
   static bool Setup(const char* server_ip,
                     intptr_t server_port,
                     bool dev_mode_server,
@@ -41,7 +67,7 @@ class VmService {
 
   static const char* error_msg_;
   static char server_uri_[kServerUriStringBufferSize];
-
+#endif  // defined(PRODUCT)
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(VmService);
 };
