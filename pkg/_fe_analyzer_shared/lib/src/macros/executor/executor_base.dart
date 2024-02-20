@@ -30,6 +30,8 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   /// A map of response completers by request id.
   final _responseCompleters = <int, Completer<Response>>{};
 
+  bool isClosed = false;
+
   ExternalMacroExecutorBase(
       {required this.messageStream, required this.serializationMode}) {
     withSerializationMode(serializationMode, () {
@@ -313,33 +315,38 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
 
   /// Creates a [Request] with a given serialization zone ID, and handles the
   /// response, casting it to the expected type or throwing the error provided.
-  Future<T> _sendRequest<T>(Request Function(int) requestFactory) =>
-      withSerializationMode(serializationMode, () {
-        final int zoneId = newRemoteInstanceZone();
-        return withRemoteInstanceZone(zoneId, () async {
-          Request request = requestFactory(zoneId);
+  Future<T> _sendRequest<T>(Request Function(int) requestFactory) {
+    if (isClosed) {
+      throw new UnexpectedMacroExceptionImpl(
+          "Can't send request - ${this.runtimeType} is closed!");
+    }
+    return withSerializationMode(serializationMode, () {
+      final int zoneId = newRemoteInstanceZone();
+      return withRemoteInstanceZone(zoneId, () async {
+        Request request = requestFactory(zoneId);
+        Serializer serializer = serializerFactory();
+        // It is our responsibility to add the zone ID header.
+        serializer.addInt(zoneId);
+        request.serialize(serializer);
+        sendResult(serializer);
+        Completer<Response> completer = new Completer<Response>();
+        _responseCompleters[request.id] = completer;
+        try {
+          Response response = await completer.future;
+          T? result = response.response as T?;
+          if (result != null) return result;
+          throw response.exception!;
+        } finally {
+          // Clean up the zone after the request is done.
+          destroyRemoteInstanceZone(zoneId);
+          // Tell the remote client to clean it up as well.
           Serializer serializer = serializerFactory();
-          // It is our responsibility to add the zone ID header.
           serializer.addInt(zoneId);
-          request.serialize(serializer);
+          new DestroyRemoteInstanceZoneRequest(serializationZoneId: zoneId)
+              .serialize(serializer);
           sendResult(serializer);
-          Completer<Response> completer = new Completer<Response>();
-          _responseCompleters[request.id] = completer;
-          try {
-            Response response = await completer.future;
-            T? result = response.response as T?;
-            if (result != null) return result;
-            throw response.exception!;
-          } finally {
-            // Clean up the zone after the request is done.
-            destroyRemoteInstanceZone(zoneId);
-            // Tell the remote client to clean it up as well.
-            Serializer serializer = serializerFactory();
-            serializer.addInt(zoneId);
-            new DestroyRemoteInstanceZoneRequest(serializationZoneId: zoneId)
-                .serialize(serializer);
-            sendResult(serializer);
-          }
-        });
+        }
       });
+    });
+  }
 }
