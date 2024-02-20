@@ -315,15 +315,10 @@ bool memberEntityIsInWebLibrary(MemberEntity entity) {
 ///
 /// See [ir.ProcedureStubKind.ConcreteMixinStub] for why concrete mixin stubs
 /// are inserted in the first place.
-ir.Member? getEffectiveSuperTarget(ir.Member? target) {
+ir.Member getEffectiveSuperTarget(ir.Member target) {
   if (target is ir.Procedure) {
     if (target.stubKind == ir.ProcedureStubKind.ConcreteMixinStub) {
-      return getEffectiveSuperTarget(target.stubTarget);
-    }
-    // TODO(johnniwinther): Remove this when the CFE reports an error on
-    // missing concrete super targets.
-    if (target.isAbstract) {
-      return null;
+      return getEffectiveSuperTarget(target.stubTarget!);
     }
   }
   return target;

@@ -679,7 +679,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     registerSuperInvocation(
-        getEffectiveSuperTarget(node.interfaceTarget)!,
+        getEffectiveSuperTarget(node.interfaceTarget),
         node.arguments.positional.length,
         _getNamedArguments(node.arguments),
         node.arguments.types);
@@ -688,12 +688,12 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void visitSuperPropertyGet(ir.SuperPropertyGet node) {
-    registerSuperGet(getEffectiveSuperTarget(node.interfaceTarget)!);
+    registerSuperGet(getEffectiveSuperTarget(node.interfaceTarget));
   }
 
   @override
   void visitSuperPropertySet(ir.SuperPropertySet node) {
-    registerSuperSet(getEffectiveSuperTarget(node.interfaceTarget)!);
+    registerSuperSet(getEffectiveSuperTarget(node.interfaceTarget));
     node.value.accept(this);
   }
 
@@ -788,19 +788,19 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerSuperSet(ir.Member? target) {
-    (_data._superSets ??= []).add(target!);
+  void registerSuperSet(ir.Member target) {
+    (_data._superSets ??= []).add(target);
   }
 
   @override
-  void registerSuperGet(ir.Member? target) {
-    (_data._superGets ??= []).add(target!);
+  void registerSuperGet(ir.Member target) {
+    (_data._superGets ??= []).add(target);
   }
 
   @override
-  void registerSuperInvocation(ir.Member? target, int positionalArguments,
+  void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments) {
-    (_data._superInvocations ??= []).add(_SuperInvocation(target!,
+    (_data._superInvocations ??= []).add(_SuperInvocation(target,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
