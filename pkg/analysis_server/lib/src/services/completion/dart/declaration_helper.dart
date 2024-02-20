@@ -1400,6 +1400,8 @@ class DeclarationHelper {
       if (declaredElement != null) {
         _suggestVariable(declaredElement);
       }
+    } else if (node is ForEachPartsWithPattern) {
+      _visitPattern(node.pattern);
     } else if (node is ForPartsWithDeclarations) {
       var variables = node.variables;
       for (var variable in variables.variables) {
@@ -1408,6 +1410,8 @@ class DeclarationHelper {
           _suggestVariable(declaredElement);
         }
       }
+    } else if (node is ForPartsWithPattern) {
+      _visitPattern(node.variables.pattern);
     }
   }
 
