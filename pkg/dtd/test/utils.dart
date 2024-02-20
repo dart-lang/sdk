@@ -7,15 +7,21 @@ import 'dart:convert';
 import 'dart:io';
 
 class ToolingDaemonTestProcess {
-  late final String trustedSecret;
+  ToolingDaemonTestProcess({this.unrestricted = false});
+  late final String? trustedSecret;
   late final Uri uri;
   late final Process? process;
+  final bool unrestricted;
 
   Future<Process> start() async {
     final completer = Completer<void>();
     process = await Process.start(
       Platform.resolvedExecutable,
-      ['tooling-daemon', '--machine'],
+      [
+        'tooling-daemon',
+        '--machine',
+        if (unrestricted) '--unrestricted',
+      ],
     );
     process!.stdout.transform(utf8.decoder).listen((line) {
       stderr.write('DTD stdout: $line');
@@ -23,7 +29,8 @@ class ToolingDaemonTestProcess {
         final json = jsonDecode(line) as Map<String, Object?>;
         final toolingDaemonDetails =
             json['tooling_daemon_details'] as Map<String, dynamic>;
-        trustedSecret = toolingDaemonDetails['trusted_client_secret'] as String;
+        trustedSecret =
+            toolingDaemonDetails['trusted_client_secret'] as String?;
         uri = Uri.parse(toolingDaemonDetails['uri'] as String);
         completer.complete();
       } catch (e) {

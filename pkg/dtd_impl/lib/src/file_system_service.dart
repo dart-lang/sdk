@@ -12,11 +12,10 @@ import 'package:dtd/dtd.dart';
 import 'dtd_client.dart';
 
 class FileSystemService {
-  FileSystemService({
-    required String secret,
-  }) : _secret = secret;
+  FileSystemService({required this.secret, required this.unrestrictedMode});
 
-  final String _secret;
+  final String secret;
+  final bool unrestrictedMode;
   final List<Uri> _ideWorkspaceRoots = [];
 
   static const String _serviceName = 'FileSystem';
@@ -51,6 +50,9 @@ class FileSystemService {
   }
 
   void _ensureIDEWorkspaceRootsContainUri(Uri uri) {
+    // If in unrestricted mode, no need to do these checks.
+    if (unrestrictedMode) return;
+
     for (final root in _ideWorkspaceRoots) {
       if (uri.path.startsWith(root.path)) {
         return;
@@ -64,7 +66,7 @@ class FileSystemService {
   Map<String, Object?> _setIDEWorkspaceRoots(Parameters parameters) {
     final incomingSecret = parameters['secret'].asString;
 
-    if (_secret != incomingSecret) {
+    if (!unrestrictedMode && secret != incomingSecret) {
       throw RpcErrorCodes.buildRpcException(
         RpcErrorCodes.kPermissionDenied,
       );
@@ -91,9 +93,7 @@ class FileSystemService {
     return IDEWorkspaceRoots(ideWorkspaceRoots: _ideWorkspaceRoots).toJson();
   }
 
-  Future<Map<String, Object?>> _readFileAsString(
-    Parameters parameters,
-  ) async {
+  Future<Map<String, Object?>> _readFileAsString(Parameters parameters) async {
     final uri = _extractUri(parameters);
     _ensureIDEWorkspaceRootsContainUri(uri);
     final file = File.fromUri(uri);
@@ -120,9 +120,7 @@ class FileSystemService {
     return uri;
   }
 
-  Future<Map<String, Object?>> _writeFileAsString(
-    Parameters parameters,
-  ) async {
+  Future<Map<String, Object?>> _writeFileAsString(Parameters parameters) async {
     final uri = _extractUri(parameters);
     final contents = parameters['contents'].asString;
     final encoding = Encoding.getByName(

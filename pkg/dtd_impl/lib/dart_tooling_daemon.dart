@@ -29,6 +29,11 @@ enum DartToolingDaemonOptions {
     isFlag: true,
     negatable: false,
     help: 'Sets output format to JSON for consumption in tools.',
+  ),
+  unrestricted(
+    isFlag: true,
+    negatable: false,
+    help: 'Disables restrictions on services registered by DTD.',
   );
 
   const DartToolingDaemonOptions({
@@ -70,13 +75,17 @@ enum DartToolingDaemonOptions {
 class DartToolingDaemon {
   DartToolingDaemon._({
     required this.secret,
+    required bool unrestrictedMode,
     bool ipv6 = false,
     bool shouldLogRequests = false,
   })  : _ipv6 = ipv6,
         _shouldLogRequests = shouldLogRequests {
     streamManager = DTDStreamManager(this);
     clientManager = DTDClientManager();
-    fileSystemService = FileSystemService(secret: secret);
+    fileSystemService = FileSystemService(
+      secret: secret,
+      unrestrictedMode: unrestrictedMode,
+    );
   }
   static const _kSseHandlerPath = '\$debugHandler';
 
@@ -158,9 +167,13 @@ class DartToolingDaemon {
       return null;
     }
     final machineMode = parsedArgs[DartToolingDaemonOptions.machine.name];
+    final unrestrictedMode =
+        parsedArgs[DartToolingDaemonOptions.unrestricted.name];
+
     final secret = _generateSecret();
     final dtd = DartToolingDaemon._(
       secret: secret,
+      unrestrictedMode: unrestrictedMode,
       ipv6: ipv6,
       shouldLogRequests: shouldLogRequests,
     );
@@ -170,7 +183,7 @@ class DartToolingDaemon {
         jsonEncode({
           'tooling_daemon_details': {
             'uri': dtd.uri.toString(),
-            'trusted_client_secret': secret,
+            ...(!unrestrictedMode ? {'trusted_client_secret': secret} : {}),
           },
         }),
       );
@@ -179,7 +192,10 @@ class DartToolingDaemon {
         'The Dart Tooling Daemon is listening on '
         '${dtd.uri.toString()}',
       );
-      print('Trusted Client Secret: $secret');
+
+      if (!unrestrictedMode) {
+        print('Trusted Client Secret: $secret');
+      }
     }
     return dtd;
   }
