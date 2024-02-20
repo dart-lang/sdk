@@ -17,6 +17,113 @@ class PreferVoidToNullTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_void_to_null';
 
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/linter/issues/4890',
+      reason: 'Null check operator used on a null value')
+  test_augmentedField() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  Future<Null>? f;
+}  
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment class A {
+  augment Future<Null>? f;
+}
+''');
+  }
+
+  test_augmentedFunction() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+Future<Null>? f() => null;
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment Future<Null>? f() => null;
+''');
+  }
+
+  test_augmentedGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  Future<Null>? get v => null;
+}  
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment class A {
+  augment Future<Null>? get v => null;
+}
+''');
+  }
+
+  test_augmentedMethod() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  Future<Null>? f() => null;
+}
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment class A {
+  augment Future<Null>? f() => null;
+}
+''');
+  }
+
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/linter/issues/4890',
+      reason:
+          "CompileTimeErrorCode.DUPLICATE_DEFINITION [55, 1, The name 'v' is already defined.]")
+  test_augmentedTopLevelGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+Future<Null>? get v => null;
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment Future<Null>? get v => null;
+''');
+  }
+
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/linter/issues/4890',
+      reason:
+          "CompileTimeErrorCode.DUPLICATE_DEFINITION [49, 1, The name 'v' is already defined.]")
+  test_augmentedTopLevelVariable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+Future<Null>? v;
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment Future<Null>? v;
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/4201
   test_castAsExpression() async {
     await assertNoDiagnostics(r'''
