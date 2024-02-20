@@ -954,6 +954,7 @@ class MacroArgumentsTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
+  @TestTimeout(Timeout(Duration(seconds: 60)))
   test_error() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
@@ -10913,6 +10914,7 @@ class MacroStaticTypeTest extends MacroElementsBaseTest {
     );
   }
 
+  @TestTimeout(Timeout(Duration(seconds: 60)))
   test_isExactly() async {
     const testCases = {
       ('double', 'double', true),

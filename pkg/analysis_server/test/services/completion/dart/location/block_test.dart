@@ -351,6 +351,140 @@ suggestions
 ''');
   }
 
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_inFunction_withPatternVariables_for() async {
+    await computeSuggestions('''
+void f() {
+  int a0 = 5;
+  int b0 = 5;
+
+  for (var (int a1, :b1) = g(); a1 > 0; a1--) {
+    ^
+  }
+}
+
+(int, {int b1}) g() => (1, b1: 2);
+''');
+    assertResponse(r'''
+suggestions
+  a0
+    kind: localVariable
+  a1
+    kind: localVariable
+  assert
+    kind: keyword
+  b0
+    kind: localVariable
+  b1
+    kind: localVariable
+  break
+    kind: keyword
+  const
+    kind: keyword
+  continue
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_inFunction_withPatternVariables_forEach() async {
+    await computeSuggestions('''
+void f() {
+  int a0 = 5;
+  int b0 = 5;
+
+  for (var (int a1, :b1) in g()) {
+    ^
+  }
+}
+
+List<(int, {int b1})> g() => [(1, b1: 2)];
+''');
+    assertResponse(r'''
+suggestions
+  a0
+    kind: localVariable
+  a1
+    kind: localVariable
+  assert
+    kind: keyword
+  b0
+    kind: localVariable
+  b1
+    kind: localVariable
+  break
+    kind: keyword
+  const
+    kind: keyword
+  continue
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterLeftBrace_beforeRightBrace_inMethod() async {
     await computeSuggestions('''
 class A {foo() {for (int x in myList) {^}}}

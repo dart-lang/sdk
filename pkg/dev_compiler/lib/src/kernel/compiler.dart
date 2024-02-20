@@ -940,7 +940,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var supertype = toVisit.removeFirst();
         var superclass = supertype.classNode;
         if (allImplementedTypes.contains(supertype) ||
-            superclass == _coreTypes.objectClass) continue;
+            superclass == _coreTypes.objectClass) {
+          continue;
+        }
         toVisit.addAll(superclass.supers);
         // Skip encoding the synthetic classes in the type rules because they
         // will never be instantiated or appear in type tests.

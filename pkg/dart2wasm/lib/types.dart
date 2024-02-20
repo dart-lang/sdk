@@ -131,7 +131,9 @@ class Types {
       // classes whose supertype is [Object]. The latter case will be handled
       // directly in the subtype checking algorithm.
       if (superclassInfo.cls == null ||
-          superclassInfo.cls == coreTypes.objectClass) continue;
+          superclassInfo.cls == coreTypes.objectClass) {
+        continue;
+      }
       Class superclass = superclassInfo.cls!;
 
       // TODO(joshualitt): This includes abstract types that can't be

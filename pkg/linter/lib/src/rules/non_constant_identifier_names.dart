@@ -95,6 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.isAugmentation) return;
     // For rationale on accepting underscores, see:
     // https://github.com/dart-lang/linter/issues/1854
     checkIdentifier(node.name, underscoresOk: true);
@@ -118,7 +119,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
+    var inAugmentation = node.parent?.isAugmentation ?? false;
     for (var p in node.parameters) {
+      if (inAugmentation && p.isNamed) continue;
       if (p is! FieldFormalParameter) {
         checkIdentifier(p.name, underscoresOk: true);
       }
@@ -127,12 +130,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (node.isAugmentation) return;
+
     checkIdentifier(node.name);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (!node.isOperator) {
+    if (!node.isOperator && !node.isAugmentation) {
       checkIdentifier(node.name);
     }
   }
