@@ -76,4 +76,12 @@ macro class a { }
       lint(12, 1),
     ]);
   }
+
+  test_mixin_lowerCase() async {
+    await assertDiagnostics(r'''
+mixin m { }
+''', [
+      lint(6, 1),
+    ]);
+  }
 }
