@@ -6,9 +6,9 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -28,41 +28,50 @@ class RecordLiteralResolver {
     required DartType? contextType,
   }) {
     _resolveFields(node, contextType);
-    _buildType(node);
 
     _reportDuplicateFieldDefinitions(node);
     _reportInvalidFieldNames(node);
   }
 
-  void _buildType(RecordLiteralImpl node) {
-    final positionalFields = <RecordTypePositionalFieldImpl>[];
-    final namedFields = <RecordTypeNamedFieldImpl>[];
-    for (final field in node.fields) {
-      final fieldType = field.typeOrThrow;
+  /// If [contextType] is a record type, and the type schemas contained in it
+  /// should be used for inferring the expressions in [node], returns it as a
+  /// [RecordType]. Otherwise returns `null`.
+  ///
+  /// The type schemas contained in [contextType] should only be used for
+  /// inferring the expressions in [node] if it is a record type with a shape
+  /// that matches the shape of [node].
+  RecordType? _matchContextType(RecordLiteralImpl node, DartType? contextType) {
+    if (contextType is! RecordType) return null;
+    if (contextType.namedFields.length + contextType.positionalFields.length !=
+        node.fields.length) {
+      return null;
+    }
+    var numPositionalFields = 0;
+    for (var field in node.fields) {
       if (field is NamedExpressionImpl) {
-        namedFields.add(
-          RecordTypeNamedFieldImpl(
-            name: field.name.label.name,
-            type: fieldType,
-          ),
-        );
+        if (contextType.namedField(field.name.label.name) == null) {
+          return null;
+        }
       } else {
-        positionalFields.add(
-          RecordTypePositionalFieldImpl(
-            type: fieldType,
-          ),
-        );
+        numPositionalFields++;
       }
     }
-
-    _resolver.inferenceHelper.recordStaticType(
-      node,
-      RecordTypeImpl(
-        positionalFields: positionalFields,
-        namedFields: namedFields,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    );
+    if (contextType.positionalFields.length != numPositionalFields) {
+      return null;
+    }
+    // At this point we've established that:
+    // - The total number of fields in the context matches the total number of
+    //   fields in the literal.
+    // - The number of positional fields in the context matches the number of
+    //   positional fields in the literal.
+    // Therefore, the number of named fields in the context must match the
+    // number of named fields in the literal.
+    //
+    // We've also established that for each named field in the literal, there's
+    // a corresponding named field in the context. Therefore, the literal and
+    // the context have exactly the same set of named fields. So they match up
+    // to reordering of named fields.
+    return contextType;
   }
 
   /// Report any named fields in the record literal [node] that use a previously
@@ -122,47 +131,59 @@ class RecordLiteralResolver {
     }
   }
 
-  void _resolveField(ExpressionImpl field, DartType? contextType) {
-    _resolver.analyzeExpression(field, contextType);
+  DartType _resolveField(ExpressionImpl field, DartType? contextType) {
+    var staticType = _resolver.analyzeExpression(field, contextType);
     field = _resolver.popRewrite()!;
 
     // Implicit cast from `dynamic`.
-    if (contextType != null && field.typeOrThrow is DynamicType) {
-      field.staticType = contextType;
-      if (field is NamedExpressionImpl) {
-        field.expression.staticType = contextType;
+    if (contextType != null &&
+        contextType is! UnknownInferredType &&
+        staticType is DynamicType) {
+      var greatestClosureOfSchema =
+          _resolver.typeSystem.greatestClosureOfSchema(contextType);
+      if (!_resolver.typeSystem
+          .isSubtypeOf(staticType, greatestClosureOfSchema)) {
+        return greatestClosureOfSchema;
       }
     }
 
-    if (field.typeOrThrow is VoidType) {
+    if (staticType is VoidType) {
       errorReporter.atNode(
         field,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     }
+
+    return staticType;
   }
 
   void _resolveFields(RecordLiteralImpl node, DartType? contextType) {
-    if (contextType is RecordType) {
-      var index = 0;
-      for (final field in node.fields) {
-        DartType? fieldContextType;
-        if (field is NamedExpressionImpl) {
-          final name = field.name.label.name;
-          fieldContextType = contextType.namedField(name)?.type;
-        } else {
-          final positionalFields = contextType.positionalFields;
-          if (index < positionalFields.length) {
-            fieldContextType = positionalFields[index++].type;
-          }
-        }
-        _resolveField(field, fieldContextType);
-      }
-    } else {
-      for (final field in node.fields) {
-        _resolveField(field, null);
+    final positionalFields = <RecordTypePositionalFieldImpl>[];
+    final namedFields = <RecordTypeNamedFieldImpl>[];
+    var contextTypeAsRecord = _matchContextType(node, contextType);
+    var index = 0;
+    for (final field in node.fields) {
+      if (field is NamedExpressionImpl) {
+        final name = field.name.label.name;
+        var fieldContextType = contextTypeAsRecord?.namedField(name)!.type;
+        namedFields.add(RecordTypeNamedFieldImpl(
+            name: name, type: _resolveField(field, fieldContextType)));
+      } else {
+        var fieldContextType =
+            contextTypeAsRecord?.positionalFields[index++].type;
+        positionalFields.add(RecordTypePositionalFieldImpl(
+            type: _resolveField(field, fieldContextType)));
       }
     }
+
+    _resolver.inferenceHelper.recordStaticType(
+      node,
+      RecordTypeImpl(
+        positionalFields: positionalFields,
+        namedFields: namedFields,
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+    );
   }
 
   /// Returns whether [name] is a name forbidden for record fields because it
