@@ -4838,11 +4838,15 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
             });
           }
         }
-        _withDeclaredLocals(node, group.statements, () {
+        if (group.members.isEmpty) {
+          return;
+        }
+        var lastMember = group.members.last;
+        _withDeclaredLocals(lastMember, lastMember.statements, () {
           for (var variable in group.variables.values) {
             _define(variable);
           }
-          group.statements.accept(this);
+          lastMember.statements.accept(this);
         });
       }
     } finally {

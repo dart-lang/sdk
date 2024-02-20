@@ -159,30 +159,82 @@ class A {
     ]);
   }
 
+  test_shadowInMethodBody() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int x = 0;
+
+  void m(bool b) {
+    var x = this.x;
+    print(x);
+  }
+}
+''');
+  }
+
   test_shadowInObjectPattern() async {
     await assertNoDiagnostics(r'''
 class C {
   Object? value;
-  bool equals(Object other) =>
-      switch (other) { C(:var value) => this.value == value, _ => false };
+  bool equals(Object other) => switch (other) {
+        C(:var value) => this.value == value,
+        _ => false,
+      };
 }
 ''');
   }
 
   /// https://github.com/dart-lang/linter/issues/4457
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4457')
-  test_shadowSwitchPatternCase() async {
+  test_shadowInSwitchPatternCase() async {
     await assertNoDiagnostics(r'''
 class C {
-  String? name;
+  int x = 0;
 
-  void m(bool b) {
+  int m(bool b) {
     switch (b) {
       case true:
-        var name = this.name!;
-        print(name);
+        var x = this.x;
+        return x;
       case false:
-        break;
+        return 7;
+    }
+  }
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4457
+  test_shadowInSwitchPatternCase2() async {
+    await assertNoDiagnostics(r'''
+class C {
+  bool isEven = false;
+
+  bool m(int p) {
+    switch (p) {
+      case int(:var isEven) when isEven:
+        isEven = this.isEven;
+        return isEven;
+      default:
+        return false;
+    }
+  }
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4457
+  test_shadowInSwitchPatternCase3() async {
+    await assertNoDiagnostics(r'''
+class C {
+  bool isEven = false;
+
+  bool m(int p) {
+    switch (p) {
+      case int(:var isEven) when this.isEven:
+        isEven = this.isEven;
+        return isEven;
+      default:
+        return false;
     }
   }
 }

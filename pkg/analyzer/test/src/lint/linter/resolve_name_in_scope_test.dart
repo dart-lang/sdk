@@ -382,6 +382,26 @@ class A {
     _checkMethodRequestedLocalVariable();
   }
 
+  test_class_method_requested_localVariable_switchStatement() async {
+    await resolve('''
+class A {
+  void foo() {}
+
+  void bar(bool b) {
+    switch (b) {
+      case true:
+        var foo = 7;
+        this.foo();
+      case false:
+    }
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 3),
+    ]);
+    _checkMethodRequestedLocalVariable();
+  }
+
   test_class_method_requested_localVariable_thisBlock_after() async {
     await resolve('''
 class A {
