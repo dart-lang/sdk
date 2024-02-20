@@ -367,6 +367,13 @@ typedef enum {
  * |Dart_Timeline_Event_Async_Begin|, and |Dart_Timeline_Event_Async_Instant| to
  * support serialization in Perfetto's proto format.
  *
+ * The Dart VM can use various underlying recorders depending on configuration
+ * and operating system. Many recorders do not support all event types;
+ * unsupported event types are siliently dropped. Some recorders do not accept
+ * timestamps as input, instead implicitly using the time the event is recorded.
+ * For maximum compatibility, record events with the Begin and End types as they
+ * occur instead of using the Duration type or buffering.
+ *
  * \param label The name of the event. Its lifetime must extend at least until
  *     Dart_Cleanup.
  * \param timestamp0 The first timestamp of the event.
