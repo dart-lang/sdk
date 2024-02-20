@@ -929,6 +929,30 @@ AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
   ASSERT(!CompilerState::Current().is_aot());
 }
 
+Definition* AllocateContextInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return nullptr;
+  // Remove AllocateContext if it is only used as an object in StoreField
+  // instructions.
+  if (env_use_list() != nullptr) return this;
+  for (auto use : input_uses()) {
+    auto store = use->instruction()->AsStoreField();
+    if ((store == nullptr) ||
+        (use->use_index() != StoreFieldInstr::kInstancePos)) {
+      return this;
+    }
+  }
+  // Cleanup all StoreField uses.
+  while (input_use_list() != nullptr) {
+    input_use_list()->instruction()->RemoveFromGraph();
+  }
+  return nullptr;
+}
+
+Definition* AllocateClosureInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return nullptr;
+  return this;
+}
+
 LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = inputs_.length();

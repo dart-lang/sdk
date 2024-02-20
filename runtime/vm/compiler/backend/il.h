@@ -7342,6 +7342,11 @@ class TemplateAllocation : public AllocationInstr {
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
+  // Non-array allocation may throw, but it doesn't have any
+  // visible effects: it can be eliminated and other
+  // instructions can be hoisted over.
+  virtual bool MayHaveVisibleEffect() const { return false; }
+
   DECLARE_EMPTY_SERIALIZATION(TemplateAllocation, AllocationInstr)
 
  protected:
@@ -7390,6 +7395,11 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  // Object allocation may throw, but it doesn't have any
+  // visible effects: it can be eliminated and other
+  // instructions can be hoisted over.
+  virtual bool MayHaveVisibleEffect() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return WillAllocateNewOrRemembered(cls());
@@ -7465,6 +7475,8 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
         return TemplateAllocation::SlotForInput(pos);
     }
   }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -8191,6 +8203,8 @@ class AllocateContextInstr : public TemplateAllocation<0> {
   }
 
   intptr_t num_context_variables() const { return context_slots().length(); }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
