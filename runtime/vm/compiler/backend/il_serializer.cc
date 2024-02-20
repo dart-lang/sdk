@@ -2171,6 +2171,16 @@ void ParallelMoveInstr::ReadExtra(FlowGraphDeserializer* d) {
   move_schedule_ = d->Read<const MoveSchedule*>();
 }
 
+void ParameterInstr::WriteExtra(FlowGraphSerializer* s) {
+  TemplateDefinition::WriteExtra(s);
+  location_.Write(s);
+}
+
+void ParameterInstr::ReadExtra(FlowGraphDeserializer* d) {
+  TemplateDefinition::ReadExtra(d);
+  location_ = Location::Read(d);
+}
+
 void PhiInstr::WriteTo(FlowGraphSerializer* s) {
   VariadicDefinition::WriteTo(s);
   s->Write<Representation>(representation_);
@@ -2407,16 +2417,6 @@ FlowGraphDeserializer::ReadTrait<const compiler::TableSelector*>::Read(
 #else
   UNREACHABLE();
 #endif
-}
-
-void SpecialParameterInstr::WriteExtra(FlowGraphSerializer* s) {
-  TemplateDefinition::WriteExtra(s);
-  s->WriteRef<BlockEntryInstr*>(block_);
-}
-
-void SpecialParameterInstr::ReadExtra(FlowGraphDeserializer* d) {
-  TemplateDefinition::ReadExtra(d);
-  block_ = d->ReadRef<BlockEntryInstr*>();
 }
 
 template <intptr_t kExtraInputs>

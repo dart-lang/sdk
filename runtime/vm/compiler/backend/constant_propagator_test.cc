@@ -150,8 +150,7 @@ static void ConstantPropagatorUnboxedOpTest(
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
-    auto v0 = builder.AddParameter(/*index=*/0, /*param_offset=*/0,
-                                   /*with_frame=*/true, kTagged);
+    auto v0 = builder.AddParameter(/*index=*/0, kTagged);
     builder.AddBranch(
         new StrictCompareInstr(
             InstructionSource(), Token::kEQ_STRICT, new Value(H.IntConstant(1)),

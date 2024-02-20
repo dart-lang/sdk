@@ -433,7 +433,6 @@ struct InstrAttrs {
   M(AssertAssignable, _)                                                       \
   M(AssertSubtype, _)                                                          \
   M(AssertBoolean, _)                                                          \
-  M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
   M(CCall, kNoGC)                                                              \
@@ -2867,27 +2866,32 @@ class PhiInstr : public VariadicDefinition {
 
 // This instruction represents an incoming parameter for a function entry,
 // or incoming value for OSR entry or incoming value for a catch entry.
+//
 // [env_index] is a position of the parameter in the flow graph environment.
-// [param_index] is a position of the function parameter, or -1 if
-// this instruction doesn't correspond to a real function parameter.
+//
+// [param_index] is a position of the function parameter, or
+// kNotFunctionParameter if this instruction doesn't correspond to a real
+// function parameter.
+//
+// [loc] specifies where where the incomming value is located on entry to
+// the block. Note: for compound values (e.g. unboxed integers on 32-bit
+// values) this will be a Pair location.
 class ParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
   // [param_index] when ParameterInstr doesn't correspond to
   // a function parameter.
   static constexpr intptr_t kNotFunctionParameter = -1;
 
-  ParameterInstr(intptr_t env_index,
+  ParameterInstr(BlockEntryInstr* block,
+                 intptr_t env_index,
                  intptr_t param_index,
-                 intptr_t param_offset,
-                 BlockEntryInstr* block,
-                 Representation representation,
-                 Register base_reg = FPREG)
+                 const Location& loc,
+                 Representation representation)
       : env_index_(env_index),
         param_index_(param_index),
-        param_offset_(param_offset),
-        base_reg_(base_reg),
         representation_(representation),
-        block_(block) {}
+        block_(block),
+        location_(loc) {}
 
   DECLARE_INSTRUCTION(Parameter)
   DECLARE_ATTRIBUTE(index())
@@ -2900,8 +2904,7 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   // (between 0 and function.NumParameters()), or -1.
   intptr_t param_index() const { return param_index_; }
 
-  intptr_t param_offset() const { return param_offset_; }
-  Register base_reg() const { return base_reg_; }
+  const Location& location() const { return location_; }
 
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() { return block_; }
@@ -2930,21 +2933,17 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
 #define FIELD_LIST(F)                                                          \
   F(const intptr_t, env_index_)                                                \
   F(const intptr_t, param_index_)                                              \
-  /* The offset (in words) of the last slot of the parameter, relative */      \
-  /* to the first parameter. */                                                \
-  /* It is used in the FlowGraphAllocator when it sets the assigned */         \
-  /* location and spill slot for the parameter definition. */                  \
-  F(const intptr_t, param_offset_)                                             \
-  F(const Register, base_reg_)                                                 \
   F(const Representation, representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ParameterInstr,
                                           TemplateDefinition,
                                           FIELD_LIST)
+  DECLARE_EXTRA_SERIALIZATION
 #undef FIELD_LIST
 
  private:
   BlockEntryInstr* block_ = nullptr;
+  Location location_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
@@ -4434,68 +4433,6 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
-};
-
-// Denotes a special parameter, currently either the context of a closure,
-// the type arguments of a generic function or an arguments descriptor.
-class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
- public:
-#define FOR_EACH_SPECIAL_PARAMETER_KIND(M)                                     \
-  M(Context)                                                                   \
-  M(TypeArgs)                                                                  \
-  M(ArgDescriptor)                                                             \
-  M(Exception)                                                                 \
-  M(StackTrace)
-
-#define KIND_DECL(name) k##name,
-  enum SpecialParameterKind { FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_DECL) };
-#undef KIND_DECL
-
-  // Defined as a static intptr_t instead of inside the enum since some
-  // switch statements depend on the exhaustibility checking.
-#define KIND_INC(name) +1
-  static constexpr intptr_t kNumKinds =
-      0 FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_INC);
-#undef KIND_INC
-
-  static const char* KindToCString(SpecialParameterKind k);
-  static bool ParseKind(const char* str, SpecialParameterKind* out);
-
-  SpecialParameterInstr(SpecialParameterKind kind,
-                        intptr_t deopt_id,
-                        BlockEntryInstr* block)
-      : TemplateDefinition(deopt_id), kind_(kind), block_(block) {}
-
-  DECLARE_INSTRUCTION(SpecialParameter)
-
-  virtual BlockEntryInstr* GetBlock() { return block_; }
-
-  virtual CompileType ComputeType() const;
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual bool HasUnknownSideEffects() const { return false; }
-
-  virtual bool AttributesEqual(const Instruction& other) const {
-    return kind() == other.AsSpecialParameter()->kind();
-  }
-  SpecialParameterKind kind() const { return kind_; }
-
-  const char* ToCString() const;
-
-  PRINT_OPERANDS_TO_SUPPORT
-
-#define FIELD_LIST(F) F(const SpecialParameterKind, kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(SpecialParameterInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
- private:
-  BlockEntryInstr* block_ = nullptr;
-  DISALLOW_COPY_AND_ASSIGN(SpecialParameterInstr);
 };
 
 struct ArgumentsInfo {

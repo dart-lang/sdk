@@ -38,7 +38,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_UnboxInt64Phi) {
 
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
-    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    v0 = builder.AddParameter(0, kTagged);
     builder.AddInstruction(new GotoInstr(loop_header, S.GetNextDeoptId()));
   }
 

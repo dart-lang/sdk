@@ -191,8 +191,8 @@ void matchIL$testUnboxedRecordInTryCatch(FlowGraph graph) {
         ]),
     'B2' <<
         match.block('CatchBlock', [
-          'e' << match.SpecialParameter(),
-          'st' << match.SpecialParameter(),
+          'e' << match.Parameter(index: 2),
+          'st' << match.Parameter(index: 3),
           match.MoveArgument('e'),
           match.StaticCall(),
           match.Goto('B3'),

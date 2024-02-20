@@ -213,10 +213,10 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
                                       intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
 
   VerifyParameterIsBoxed(&builder, 0);
 
@@ -318,11 +318,11 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                                       intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-  Definition* value = builder.AddParameter(2, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
+  Definition* value = builder.AddParameter(2);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 2);
@@ -536,10 +536,10 @@ DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float64x2Array)
 static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* str = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* str = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
 
   VerifyParameterIsBoxed(&builder, 0);
 
@@ -608,10 +608,10 @@ static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
   Zone* zone = flow_graph->zone();
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* left = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* right = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* left = builder.AddParameter(0);
+  Definition* right = builder.AddParameter(1);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 1);
@@ -675,9 +675,9 @@ static bool BuildFloat32x4Get(FlowGraph* flow_graph,
   }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* receiver = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* receiver = builder.AddParameter(0);
 
   const auto& function = flow_graph->function();
   Definition* unboxed_receiver =
@@ -715,9 +715,9 @@ bool GraphIntrinsifier::Build_Float32x4GetW(FlowGraph* flow_graph) {
 static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
   VerifyParameterIsBoxed(&builder, 0);
 
   Definition* length = builder.AddDefinition(
@@ -751,9 +751,9 @@ bool GraphIntrinsifier::Build_ByteDataViewLength(FlowGraph* flow_graph) {
 bool GraphIntrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
   VerifyParameterIsBoxed(&builder, 0);
 
   Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
@@ -768,10 +768,10 @@ bool GraphIntrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
 bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* growable_array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
 
   VerifyParameterIsBoxed(&builder, 0);
 
@@ -795,11 +795,11 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
     FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-  Definition* value = builder.AddParameter(2, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
+  Definition* value = builder.AddParameter(2);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 2);
@@ -823,11 +823,11 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
     FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-  Definition* value = builder.AddParameter(2, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
+  Definition* value = builder.AddParameter(2);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 2);
@@ -853,10 +853,10 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
 bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* data = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* growable_array = builder.AddParameter(0);
+  Definition* data = builder.AddParameter(1);
   Zone* zone = flow_graph->zone();
 
   VerifyParameterIsBoxed(&builder, 0);
@@ -878,10 +878,10 @@ bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
 bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* length = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* growable_array = builder.AddParameter(0);
+  Definition* length = builder.AddParameter(1);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 1);
@@ -901,8 +901,8 @@ static bool BuildUnarySmiOp(FlowGraph* flow_graph, Token::Kind op_kind) {
   ASSERT(!flow_graph->function().is_unboxed_parameter_at(0));
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-  Definition* left = builder.AddParameter(0, /*with_frame=*/false);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
+  Definition* left = builder.AddParameter(0);
   builder.AddInstruction(
       new CheckSmiInstr(new Value(left), DeoptId::kNone, builder.Source()));
   Definition* result = builder.AddDefinition(
@@ -925,9 +925,9 @@ static bool BuildBinarySmiOp(FlowGraph* flow_graph, Token::Kind op_kind) {
   ASSERT(!flow_graph->function().is_unboxed_parameter_at(1));
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-  Definition* left = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* right = builder.AddParameter(1, /*with_frame=*/false);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
+  Definition* left = builder.AddParameter(0);
+  Definition* right = builder.AddParameter(1);
   builder.AddInstruction(
       new CheckSmiInstr(new Value(left), DeoptId::kNone, builder.Source()));
   builder.AddInstruction(
@@ -1004,9 +1004,9 @@ bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* receiver = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* receiver = builder.AddParameter(0);
   Definition* unboxed_value = ConvertOrUnboxDoubleParameter(
       &builder, receiver, 0, /* is_checked = */ true);
   if (unboxed_value == nullptr) {
