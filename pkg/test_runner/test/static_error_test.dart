@@ -29,10 +29,10 @@ void testProperties() {
   Expect.setEquals({1, 3, 5}, analyzer.sourceLines);
 
   var cfe = StaticError(ErrorSource.cfe, "Error.",
-      path: '${Directory.current.path}/lib/test.dart', line: 4, column: 5);
+      path: '${Directory.current.path}/test.dart', line: 4, column: 5);
   Expect.equals(cfe.source, ErrorSource.cfe);
   Expect.equals(cfe.message, "Error.");
-  Expect.equals(cfe.path, 'lib/test.dart'); // Current path gets removed.
+  Expect.equals(cfe.path, 'test.dart'); // Current path gets removed.
   Expect.equals(cfe.line, 4);
   Expect.equals(cfe.column, 5);
   Expect.equals(cfe.length, 0);
