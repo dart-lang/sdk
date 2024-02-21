@@ -130,7 +130,10 @@ class DartLazyTypeHierarchyComputer {
 
     var matches =
         await searchEngine.searchSubtypes(target, SearchEngineCache());
-    return matches.map(toHierarchyItem).toList();
+    return matches
+        .where((match) => !(match.element as InterfaceElement).isAugmentation)
+        .map(toHierarchyItem)
+        .toList();
   }
 
   /// Gets immediate super types for the class/mixin [element].
