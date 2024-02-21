@@ -113,8 +113,6 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
   return was_closed;
 }
 
-static Monitor* vm_service_calls_monitor = new Monitor();
-
 DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
                                             intptr_t request_json_length,
                                             uint8_t** response_json,
@@ -133,6 +131,7 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
   // We only allow one isolate reload at a time.  If this turns out to be on the
   // critical path, we can change it to have a global datastructure which is
   // mapping the reply ports to receive buffers.
+  static Monitor* vm_service_calls_monitor = new Monitor();
   MonitorLocker _(vm_service_calls_monitor);
 
   static Monitor* vm_service_call_monitor = new Monitor();

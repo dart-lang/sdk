@@ -132,7 +132,7 @@ bool File::VPrint(const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = vsnprintf(nullptr, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
@@ -140,7 +140,7 @@ bool File::VPrint(const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  vsnprintf(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
 
   bool result = WriteFully(buffer, len);

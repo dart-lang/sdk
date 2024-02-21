@@ -113,9 +113,6 @@ config("compiler") {
 
     # Common options for AddressSanitizer, LeakSanitizer, ThreadSanitizer and
     # MemorySanitizer
-    if (using_sanitizer) {
-      cflags += [ "-gline-tables-only" ]
-    }
     if (is_asan) {
       cflags += [ "-fsanitize=address" ]
       ldflags += [ "-fsanitize=address" ]

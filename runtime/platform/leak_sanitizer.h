@@ -7,7 +7,9 @@
 
 #include "platform/globals.h"
 
-#if defined(__has_feature)
+#if __SANITIZE_ADDRESS__
+#define USING_LEAK_SANITIZER
+#elif defined(__has_feature)
 #if __has_feature(leak_sanitizer) || __has_feature(address_sanitizer)
 #define USING_LEAK_SANITIZER
 #endif
