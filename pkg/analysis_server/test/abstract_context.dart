@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
@@ -30,6 +31,9 @@ class AbstractContextTest
   static bool _lintRulesAreRegistered = false;
 
   static final ByteStore _byteStore = MemoryByteStore();
+
+  /// Whether to rewrite line endings in test code based on platform.
+  bool useLineEndingsForPlatform = false;
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
@@ -161,7 +165,7 @@ class AbstractContextTest
       }
     }
 
-    newFile(analysisOptionsPath, buffer.toString());
+    writeAnalysisOptionsFile(buffer.toString());
   }
 
   /// Returns the existing analysis driver that should be used to analyze the
@@ -191,10 +195,15 @@ class AbstractContextTest
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    final file = super.newFile(path, content);
+    final file = super.newFile(path, normalizeSource(content));
     _addAnalyzedFileToDrivers(file);
     return file;
   }
+
+  /// Convenience function to normalize newlines in [code] for the current
+  /// platform if [useLineEndingsForPlatform] is `true`.
+  String normalizeSource(String code) =>
+      useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
 
   Future<AnalysisSession> sessionFor(File file) async {
     var analysisContext = _contextFor(file);
@@ -236,6 +245,11 @@ class AbstractContextTest
   }
 
   void verifyCreatedCollection() {}
+
+  /// Writes string content as an analysis options file.
+  void writeAnalysisOptionsFile(String content) {
+    newFile(analysisOptionsPath, content);
+  }
 
   void _addAnalyzedFilesToDrivers() {
     for (var analysisContext in _analysisContextCollection!.contexts) {

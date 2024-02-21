@@ -8,7 +8,6 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
-import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -156,18 +155,6 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends AbstractIgnoreDiagnostic {
 
       var edit = editor.edits.single;
       var replacement = edit.replacement;
-
-      // TODO(dantup): The YAML editor currently produces inconsistent line
-      //  endings in edits when the source file contains '\r\n'.
-      // https://github.com/dart-lang/yaml_edit/issues/65
-      var analysisOptionsEol = content.contains('\r')
-          ? '\r\n'
-          : content.contains('\n')
-              ? '\n'
-              : platformEol;
-      replacement =
-          replacement.replaceAll('\r', '').replaceAll('\n', analysisOptionsEol);
-
       builder.addSimpleInsertion(edit.offset, replacement);
     });
   }
