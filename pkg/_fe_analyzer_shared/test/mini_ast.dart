@@ -2814,6 +2814,9 @@ class MiniAstOperations
   }
 
   @override
+  String getDisplayString(Type type) => type.type;
+
+  @override
   Type glb(Type type1, Type type2) {
     if (type1.type == type2.type) return type1;
     var typeNames = [type1.type, type2.type];
@@ -2873,7 +2876,7 @@ class MiniAstOperations
       isSubtypeOf(type, typeSchema.toType());
 
   @override
-  bool isUnknownType(Type type) => type is UnknownType;
+  bool isUnknownType(TypeSchema type) => type.toType() is UnknownType;
 
   @override
   bool isVariableFinal(Var node) {
@@ -3047,6 +3050,11 @@ class MiniAstOperations
   }
 
   @override
+  bool typeIsSubtypeOfTypeSchema(Type leftType, TypeSchema rightSchema) {
+    return isSubtypeOf(leftType, rightSchema.toType());
+  }
+
+  @override
   TypeSchema typeSchemaGlb(TypeSchema typeSchema1, TypeSchema typeSchema2) =>
       TypeSchema.fromType(glb(typeSchema1.toType(), typeSchema2.toType()));
 
@@ -3055,6 +3063,10 @@ class MiniAstOperations
     var type = typeSchema.toType();
     return type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
   }
+
+  @override
+  TypeSchema typeSchemaLub(TypeSchema typeSchema1, TypeSchema typeSchema2) =>
+      TypeSchema.fromType(lub(typeSchema1.toType(), typeSchema2.toType()));
 
   @override
   TypeSchema typeToSchema(Type type) => TypeSchema.fromType(type);
@@ -3068,6 +3080,17 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
           covariant _PropertyElement property) =>
       property.whyNotPromotable;
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      TypeSchema leftSchema, TypeSchema rightSchema) {
+    return isSubtypeOf(leftSchema.toType(), rightSchema.toType());
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType) {
+    return isSubtypeOf(leftSchema.toType(), rightType);
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
