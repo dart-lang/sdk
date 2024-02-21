@@ -2075,7 +2075,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       } else {
         // Argument counts and names match. Compare types.
         int positionalShift = isImplicitExtensionMember ? 1 : 0;
-        int numPositionalArgs = arguments.positional.length - positionalShift;
+        int positionalIndex = 0;
+        int namedIndex = 0;
         for (int i = 0; i < formalTypes.length; i++) {
           DartType formalType = formalTypes[i];
           DartType expectedType = instantiator != null
@@ -2085,11 +2086,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           Expression expression;
           NamedExpression? namedExpression;
           bool coerceExpression;
-          if (i < numPositionalArgs) {
-            expression = arguments.positional[positionalShift + i];
+          Object? argumentInEvaluationOrder =
+              argumentsEvaluationOrder[i + positionalShift];
+          if (argumentInEvaluationOrder is Expression) {
+            expression =
+                arguments.positional[positionalShift + positionalIndex];
             coerceExpression = !arguments.positionalAreSuperParameters;
           } else {
-            namedExpression = arguments.named[i - numPositionalArgs];
+            namedExpression = arguments.named[namedIndex];
             expression = namedExpression.value;
             coerceExpression = !(arguments.namedSuperParameterNames
                     ?.contains(namedExpression.name) ??
@@ -2110,10 +2114,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               nullabilityNullTypeErrorTemplate:
                   templateArgumentTypeNotAssignableNullabilityNullType);
           if (namedExpression == null) {
-            arguments.positional[positionalShift + i] = expression
+            arguments.positional[positionalShift + positionalIndex] = expression
               ..parent = arguments;
+            positionalIndex++;
           } else {
             namedExpression.value = expression..parent = namedExpression;
+            namedIndex++;
           }
         }
       }
