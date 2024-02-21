@@ -12367,7 +12367,8 @@ class IntersectionType extends DartType {
     DartType resolvedTypeParameterType = right.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.nullability, declaredNullability));
+            resolvedTypeParameterType.declaredNullability,
+            declaredNullability));
   }
 
   @override
@@ -12659,7 +12660,8 @@ class TypeParameterType extends DartType {
     DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.nullability, declaredNullability));
+            resolvedTypeParameterType.declaredNullability,
+            declaredNullability));
   }
 
   @override

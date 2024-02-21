@@ -84,14 +84,14 @@ static method method(self::A a) → void {
   a = js_2::getProperty<self::A>(b1, "field");
   js_2::setProperty<self::A>(b1, "field", a);
   a = js_2::_callMethodUnchecked0<self::A>(b1, "method");
-  b2 = js_2::_callMethodUnchecked1<self::B% /* = self::A */>(b2, "genericMethod", b2);
+  b2 = js_2::_callMethodUnchecked1<self::B /* = self::A */>(b2, "genericMethod", b2);
   b1 = js_2::getProperty<self::B /* = self::A */>(b2, "getter");
   js_2::setProperty<self::B /* = self::A */>(b1, "setter", b2);
   js_2::setProperty<self::B /* = self::A */>(b1, "property", js_2::getProperty<self::B /* = self::A */>(b2, "property"));
   a = js_2::getProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticField");
   js_2::setProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticField", a);
   a = js_2::_callMethodUnchecked0<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticMethod");
-  b2 = js_2::_callMethodUnchecked1<self::B% /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGenericMethod", b2);
+  b2 = js_2::_callMethodUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGenericMethod", b2);
   b1 = js_2::getProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGetter");
   js_2::setProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticSetter", b2);
   js_2::setProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticProperty", js_2::getProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticProperty"));
