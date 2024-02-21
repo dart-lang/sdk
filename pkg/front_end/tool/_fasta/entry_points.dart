@@ -279,10 +279,12 @@ Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
       if (c.options.verbose) {
         print("Compiling directly to Kernel: ${arguments.join(' ')}");
       }
-      CompileTask task =
-          new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
-      return await task.compile(
-          omitPlatform: c.options.omitPlatform, benchmarker: benchmarker);
+      CompilerResult compilerResult =
+          await generateKernelInternal(benchmarker: benchmarker);
+      Component component = compilerResult.component!;
+      Uri uri = await _emitComponent(c, component, benchmarker);
+      _benchmarkAstVisitor(component, benchmarker);
+      return uri;
     });
   });
 }
@@ -446,7 +448,6 @@ class CompileTask {
         await _createKernelTarget(benchmarker: benchmarker);
     BuildResult buildResult = await _buildOutline(kernelTarget,
         supportAdditionalDills: supportAdditionalDills);
-    Uri uri = c.options.output!;
     buildResult = await kernelTarget.buildComponent(
         macroApplications: buildResult.macroApplications,
         verify: c.options.verify);
@@ -458,37 +459,49 @@ class CompileTask {
           libraryFilter: kernelTarget.isSourceLibraryForDebugging,
           showOffsets: c.options.debugDumpShowOffsets);
     }
-    if (omitPlatform) {
-      benchmarker?.enterPhase(BenchmarkPhases.omitPlatform);
-      component.computeCanonicalNames();
-      Component userCode = new Component(
-          nameRoot: component.root,
-          uriToSource: new Map<Uri, Source>.from(component.uriToSource));
-      userCode.setMainMethodAndMode(
-          component.mainMethodName, true, component.mode);
-      for (Library library in component.libraries) {
-        if (!library.importUri.isScheme("dart")) {
-          userCode.libraries.add(library);
-        }
-      }
-      component = userCode;
-    }
-    if (uri.isScheme("file")) {
-      benchmarker?.enterPhase(BenchmarkPhases.writeComponent);
-      await writeComponentToFile(component, uri);
-      ticker.logMs("Wrote component to ${uri.toFilePath()}");
-    }
-    if (benchmarker != null) {
-      // When benchmarking also do a recursive visit of the produced component
-      // that does nothing other than visiting everything. Do this to produce
-      // a reference point for comparing inference time and serialization time.
-      benchmarker.enterPhase(BenchmarkPhases.benchmarkAstVisit);
-      Component component = buildResult.component!;
-      component.accept(new EmptyRecursiveVisitorForBenchmarking());
-    }
-    benchmarker?.enterPhase(BenchmarkPhases.unknown);
+    Uri uri = await _emitComponent(c, component, benchmarker);
+    _benchmarkAstVisitor(component, benchmarker);
     return uri;
   }
+}
+
+/// Writes the [component] to the URI specified in the compiler options.
+Future<Uri> _emitComponent(
+    CompilerContext c, Component component, Benchmarker? benchmarker) async {
+  Uri uri = c.options.output!;
+  if (c.options.omitPlatform) {
+    benchmarker?.enterPhase(BenchmarkPhases.omitPlatform);
+    component.computeCanonicalNames();
+    Component userCode = new Component(
+        nameRoot: component.root,
+        uriToSource: new Map<Uri, Source>.from(component.uriToSource));
+    userCode.setMainMethodAndMode(
+        component.mainMethodName, true, component.mode);
+    for (Library library in component.libraries) {
+      if (!library.importUri.isScheme("dart")) {
+        userCode.libraries.add(library);
+      }
+    }
+    component = userCode;
+  }
+  if (uri.isScheme("file")) {
+    benchmarker?.enterPhase(BenchmarkPhases.writeComponent);
+    await writeComponentToFile(component, uri);
+    c.options.ticker.logMs("Wrote component to ${uri.toFilePath()}");
+  }
+  return uri;
+}
+
+/// Runs a visitor on [component] for benchmarking.
+void _benchmarkAstVisitor(Component component, Benchmarker? benchmarker) {
+  if (benchmarker != null) {
+    // When benchmarking also do a recursive visit of the produced component
+    // that does nothing other than visiting everything. Do this to produce
+    // a reference point for comparing inference time and serialization time.
+    benchmarker.enterPhase(BenchmarkPhases.benchmarkAstVisit);
+    component.accept(new EmptyRecursiveVisitorForBenchmarking());
+  }
+  benchmarker?.enterPhase(BenchmarkPhases.unknown);
 }
 
 class EmptyRecursiveVisitorForBenchmarking extends RecursiveVisitor {}
