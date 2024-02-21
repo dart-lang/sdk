@@ -176,7 +176,6 @@ class CommonMasks with AbstractValueDomain {
   late final TypeMask asyncStarStreamType =
       TypeMask.nonNullExact(commonElements.controllerStream, _closedWorld);
 
-  // TODO(johnniwinther): Assert that the null type has been resolved.
   @override
   late final TypeMask nullType = TypeMask.empty();
 
@@ -408,10 +407,6 @@ class CommonMasks with AbstractValueDomain {
     return _closedWorld.classHierarchy.isInstantiated(cls) &&
         typeMask.containsOnly(cls);
   }
-
-  @override
-  AbstractBool isInstanceOfOrNull(TypeMask typeMask, ClassEntity cls) =>
-      AbstractBool.trueOrMaybe(_isInstanceOfOrNull(typeMask, cls));
 
   bool _isInstanceOfOrNull(TypeMask typeMask, ClassEntity cls) {
     return _closedWorld.isImplemented(cls) &&

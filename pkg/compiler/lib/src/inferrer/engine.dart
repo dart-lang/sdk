@@ -114,8 +114,6 @@ class InferrerEngine {
       closedWorld.abstractValueDomain;
   CommonElements get commonElements => closedWorld.commonElements;
 
-  // TODO(johnniwinther): This should be part of [ClosedWorld] or
-  // [ClosureWorldRefiner].
   NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
   final MemberHierarchyBuilder memberHierarchyBuilder;

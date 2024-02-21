@@ -15,32 +15,20 @@ import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'call_structure.dart' show CallStructure;
 
-class SelectorKind {
+enum SelectorKind {
+  GETTER('getter'),
+  SETTER('setter'),
+  CALL('call'),
+  OPERATOR('operator'),
+  INDEX('index'),
+  SPECIAL('special'),
+  ;
+
   final String name;
-  final int index;
-  const SelectorKind(this.name, this.index);
-
-  static const SelectorKind GETTER = SelectorKind('getter', 0);
-  static const SelectorKind SETTER = SelectorKind('setter', 1);
-  static const SelectorKind CALL = SelectorKind('call', 2);
-  static const SelectorKind OPERATOR = SelectorKind('operator', 3);
-  static const SelectorKind INDEX = SelectorKind('index', 4);
-  static const SelectorKind SPECIAL = SelectorKind('special', 5);
-
-  @override
-  int get hashCode => index;
+  const SelectorKind(this.name);
 
   @override
   String toString() => name;
-
-  static const List<SelectorKind> values = [
-    GETTER,
-    SETTER,
-    CALL,
-    OPERATOR,
-    INDEX,
-    SPECIAL
-  ];
 }
 
 class Selector {

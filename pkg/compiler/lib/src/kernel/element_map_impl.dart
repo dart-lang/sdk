@@ -1283,8 +1283,7 @@ class KernelToElementMap implements IrToElementMap {
     Name name = getName(node.name);
     bool isStatic = node.isStatic;
     bool isExternal = node.isExternal;
-    // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
-    bool isAbstract = node.isAbstract && !node.isExternal;
+    bool isAbstract = node.isAbstract;
     AsyncMarker asyncMarker = getAsyncMarker(node.function);
     switch (node.kind) {
       case ir.ProcedureKind.Factory:
@@ -1901,9 +1900,8 @@ class KernelNativeMemberResolver {
         NativeBehavior fieldStoreBehavior =
             _computeNativeFieldStoreBehavior(field);
         _nativeDataBuilder!
-            .setNativeFieldLoadBehavior(field, fieldLoadBehavior);
-        _nativeDataBuilder!
-            .setNativeFieldStoreBehavior(field, fieldStoreBehavior);
+          ..setNativeFieldLoadBehavior(field, fieldLoadBehavior)
+          ..setNativeFieldStoreBehavior(field, fieldStoreBehavior);
       }
     }
   }

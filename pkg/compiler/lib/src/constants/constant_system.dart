@@ -229,8 +229,6 @@ ConstructedConstantValue createSymbol(
   InterfaceType type = commonElements.symbolImplementationType;
   FieldEntity field = commonElements.symbolField;
   ConstantValue argument = createString(text);
-  // TODO(johnniwinther): Use type arguments when all uses no longer expect
-  // a [FieldElement].
   var fields = <FieldEntity, ConstantValue>{field: argument};
   return ConstructedConstantValue(type, fields);
 }

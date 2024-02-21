@@ -239,11 +239,6 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
       _wrappedDomain.containsOnlyType(_unwrap(value), cls);
 
   @override
-  AbstractBool isInstanceOfOrNull(
-          covariant ComputableAbstractValue value, ClassEntity cls) =>
-      _wrappedDomain.isInstanceOfOrNull(_unwrap(value), cls);
-
-  @override
   AbstractBool isInstanceOf(
           covariant ComputableAbstractValue value, ClassEntity cls) =>
       _wrappedDomain.isInstanceOf(_unwrap(value), cls);

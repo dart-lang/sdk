@@ -451,11 +451,6 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
       _abstractValueDomain.isInstanceOf(value._abstractValue, cls);
 
   @override
-  AbstractBool isInstanceOfOrNull(
-          covariant WrappedAbstractValue value, ClassEntity cls) =>
-      _abstractValueDomain.isInstanceOfOrNull(value._abstractValue, cls);
-
-  @override
   AbstractBool containsOnlyType(
           covariant WrappedAbstractValue value, ClassEntity cls) =>
       _abstractValueDomain.containsOnlyType(value._abstractValue, cls);

@@ -26,7 +26,7 @@ class ObjectDataSink implements DataSink {
   }
 
   @override
-  void writeEnum(dynamic value) {
+  void writeEnum<E extends Enum>(E value) {
     _data!.add(value);
   }
 

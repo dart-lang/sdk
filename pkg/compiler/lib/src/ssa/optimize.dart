@@ -674,11 +674,11 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       AbstractValue resultType = _abstractValueDomain.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (_abstractValueDomain
-          .isInstanceOfOrNull(actualType, commonElements.jsUInt31Class)
+          .isInstanceOf(actualType, commonElements.jsUInt31Class)
           .isDefinitelyTrue) {
         resultType = _abstractValueDomain.uint31Type;
       } else if (_abstractValueDomain
-          .isInstanceOfOrNull(actualType, commonElements.jsUInt32Class)
+          .isInstanceOf(actualType, commonElements.jsUInt32Class)
           .isDefinitelyTrue) {
         resultType = _abstractValueDomain.uint32Type;
       }

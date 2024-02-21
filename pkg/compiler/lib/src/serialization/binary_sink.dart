@@ -71,8 +71,7 @@ class BinaryDataSink implements DataSink {
   }
 
   @override
-  void writeEnum(dynamic value) {
-    // ignore: avoid_dynamic_calls
+  void writeEnum<E extends Enum>(E value) {
     writeInt(value.index);
   }
 

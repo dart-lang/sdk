@@ -618,8 +618,7 @@ var ${startupMetricsGlobal} =
         });
     output.add('\n');
     output.add(js
-        .createCodeBuffer(epilogue, _options,
-            _sourceInformationStrategy as JavaScriptSourceInformationStrategy)
+        .createCodeBuffer(epilogue, _options, _sourceInformationStrategy)
         .getText());
     // Add semi-colon to separate from other fragments in the same part.
     output.add(';');

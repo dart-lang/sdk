@@ -2201,8 +2201,6 @@ class JsElementEnvironment extends ElementEnvironment
         return elementMap.getDartType(
             getFunctionNode(elementMap, function)!.emittedValueType!);
     }
-    throw failedAt(
-        CURRENT_ELEMENT_SPANNABLE, 'Unexpected marker ${asyncMarker}');
   }
 
   @override

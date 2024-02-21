@@ -990,9 +990,8 @@ class While extends Loop {
 class Do extends Loop {
   final Expression condition;
 
-  Do(Statement body, this.condition,
-      {JavaScriptNodeSourceInformation? sourceInformation})
-      : super(body) {
+  Do(super.body, this.condition,
+      {JavaScriptNodeSourceInformation? sourceInformation}) {
     _sourceInformation = sourceInformation;
   }
 
@@ -1249,7 +1248,7 @@ class Case extends SwitchClause {
 }
 
 class Default extends SwitchClause {
-  Default(Block body) : super(body);
+  Default(super.body);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDefault(this);
@@ -1728,7 +1727,7 @@ class Call extends Expression {
 }
 
 class New extends Call {
-  New(Expression cls, List<Expression> arguments) : super(cls, arguments);
+  New(super.cls, super.arguments);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitNew(this);
@@ -1906,7 +1905,7 @@ abstract class VariableReference extends Expression {
 }
 
 class VariableUse extends VariableReference {
-  VariableUse(String name) : super(name);
+  VariableUse(super.name);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitVariableUse(this);
@@ -1925,7 +1924,7 @@ class VariableUse extends VariableReference {
 class VariableDeclaration extends VariableReference implements Declaration {
   final bool allowRename;
 
-  VariableDeclaration(String name, {this.allowRename = true}) : super(name);
+  VariableDeclaration(super.name, {this.allowRename = true});
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitVariableDeclaration(this);
@@ -1939,7 +1938,7 @@ class VariableDeclaration extends VariableReference implements Declaration {
 }
 
 class Parameter extends VariableDeclaration {
-  Parameter(String name) : super(name);
+  Parameter(super.name);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitParameter(this);
@@ -2086,25 +2085,19 @@ class ArrowFunction extends FunctionExpression {
   int get precedenceLevel => ASSIGNMENT;
 }
 
-class AsyncModifier {
-  final int index;
+enum AsyncModifier {
+  sync('sync', isAsync: false, isYielding: false),
+  async('async', isAsync: true, isYielding: false),
+  asyncStar('async*', isAsync: true, isYielding: true),
+  syncStar('sync*', isAsync: false, isYielding: true),
+  ;
+
   final bool isAsync;
   final bool isYielding;
   final String description;
 
-  const AsyncModifier(this.index, this.description,
+  const AsyncModifier(this.description,
       {required this.isAsync, required this.isYielding});
-
-  static const AsyncModifier sync =
-      AsyncModifier(0, 'sync', isAsync: false, isYielding: false);
-  static const AsyncModifier async =
-      AsyncModifier(1, 'async', isAsync: true, isYielding: false);
-  static const AsyncModifier asyncStar =
-      AsyncModifier(2, 'async*', isAsync: true, isYielding: true);
-  static const AsyncModifier syncStar =
-      AsyncModifier(3, 'sync*', isAsync: false, isYielding: true);
-
-  static const List<AsyncModifier> values = [sync, async, asyncStar, syncStar];
 
   @override
   String toString() => description;
@@ -2510,7 +2503,7 @@ class MethodDefinition extends Node implements Property {
 }
 
 /// Tag class for all interpolated positions.
-abstract class InterpolatedNode implements Node {
+mixin InterpolatedNode implements Node {
   dynamic get nameOrPosition;
 
   bool get isNamed => nameOrPosition is String;

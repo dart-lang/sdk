@@ -22,7 +22,7 @@ abstract class DataSource {
   int readInt();
 
   /// Deserialization of an enum value in [values].
-  E readEnum<E>(List<E> values);
+  E readEnum<E extends Enum>(List<E> values);
 
   /// Returns the offset for a deferred entity and skips it in the read queue.
   /// The offset can later be passed to [readAtOffset] to get the value.
@@ -390,7 +390,7 @@ class DataSourceReader {
   ///    ...
   ///    Foo foo = source.readEnum(Foo.values);
   ///
-  E readEnum<E>(List<E> values) {
+  E readEnum<E extends Enum>(List<E> values) {
     _checkDataKind(DataKind.enumValue);
     return _sourceReader.readEnum(values);
   }
