@@ -1101,7 +1101,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType valueType = target.getSetterType(this);
 
     ExpressionInferenceResult valueResult =
-        inferExpression(node.value, const UnknownType(), isVoidAllowed: false);
+        inferExpression(node.value, valueType, isVoidAllowed: false);
     valueResult = ensureAssignableResult(valueType, valueResult);
     Expression value = valueResult.expression;
 
