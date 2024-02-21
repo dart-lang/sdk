@@ -12,6 +12,7 @@ import 'package:http_multi_server/http_multi_server.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
+import 'package:unified_analytics/unified_analytics.dart';
 
 import 'src/devtools/client.dart';
 import 'src/devtools/handler.dart';
@@ -51,6 +52,7 @@ class DevToolsServer {
 
   MachineModeCommandHandler? _machineModeCommandHandler;
   late ClientManager clientManager;
+  late Analytics analytics;
   final bool _isChromeOS = File('/dev/.cros_milestone').existsSync();
 
   /// Builds an arg parser for the DevTools server.
@@ -273,10 +275,12 @@ class DevToolsServer {
     clientManager = ClientManager(
       requestNotificationPermissions: enableNotifications,
     );
+    analytics = DevToolsUtils.initializeAnalytics();
     handler ??= await defaultHandler(
       buildDir: customDevToolsPath!,
       clientManager: clientManager,
       dtdUri: dtdUri,
+      analytics: analytics,
     );
 
     HttpServer? server;
