@@ -89,7 +89,7 @@ class DynamicVisitor extends ir.RecursiveVisitor {
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {
-      File file = File(_allowedListPath!);
+      File file = File(_allowedListPath);
       if (file.existsSync()) {
         try {
           _expectedJson = json.jsonDecode(file.readAsStringSync());
@@ -111,7 +111,7 @@ class DynamicVisitor extends ir.RecursiveVisitor {
         actualJson[uri] = map;
       });
 
-      File(_allowedListPath!).writeAsStringSync(
+      File(_allowedListPath).writeAsStringSync(
           json.JsonEncoder.withIndent('  ').convert(actualJson));
       return;
     }

@@ -151,6 +151,7 @@ class FlowGraph : public ZoneAllocated {
   static intptr_t ParameterOffsetAt(const Function& function,
                                     intptr_t index,
                                     bool last_slot = true);
+  static Location ParameterLocationAt(const Function& function, intptr_t index);
 
   static Representation ParameterRepresentationAt(const Function& function,
                                                   intptr_t index);

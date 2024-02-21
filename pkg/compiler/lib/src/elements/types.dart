@@ -1624,7 +1624,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
     // internal notion. The language specification does not define a '*' token
     // in the type language, and no such token should be surfaced to users.
     // For debugging, pass `--debug-print-legacy-stars` to emit the '*'.
-    if (_options == null || _options!.printLegacyStars) {
+    if (_options == null || _options.printLegacyStars) {
       _token('*');
     }
   }
@@ -1712,7 +1712,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
         needsComma = _comma(needsComma);
         _visit(typeVariable);
         DartType bound = typeVariable.bound;
-        if (_dartTypes == null || !_dartTypes!.isTopType(bound)) {
+        if (_dartTypes == null || !_dartTypes.isTopType(bound)) {
           _token(' extends ');
           _visit(bound);
         }

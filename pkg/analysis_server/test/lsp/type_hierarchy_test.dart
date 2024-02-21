@@ -176,6 +176,31 @@ import 'main.dart';
         ]));
   }
 
+  Future<void> test_augment_extends() async {
+    final content = '''
+import augment 'other.dart';
+
+class MyCl^ass1 {}
+[!class /*[1*/C/*1]*/ {}!]
+''';
+    final augmentation = '''
+library augment 'main.dart';
+
+augment class C extends MyClass1 {}
+''';
+    await _fetchSubtypes(content, otherContent: augmentation);
+    expect(
+        subtypes,
+        equals([
+          _isItem(
+            'C',
+            mainFileUri,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
+          ),
+        ]));
+  }
+
   Future<void> test_extends() async {
     final content = '''
 class MyCla^ss1 {}
@@ -305,6 +330,31 @@ class MyCla^ss2 extends MyClass1 {}
             otherFileUri,
             range: otherCode.ranges[0].range,
             selectionRange: otherCode.ranges[1].range,
+          ),
+        ]));
+  }
+
+  Future<void> test_augment_extends() async {
+    final content = '''
+import augment 'other.dart';
+
+[!class /*[1*/MyClass1/*1]*/ {}!]
+class C^s {}
+''';
+    final augmentation = '''
+library augment 'main.dart';
+
+augment class Cs extends MyClass1 {}
+''';
+    await _fetchSupertypes(content, otherContent: augmentation);
+    expect(
+        supertypes,
+        equals([
+          _isItem(
+            'MyClass1',
+            mainFileUri,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
           ),
         ]));
   }

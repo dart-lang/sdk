@@ -449,6 +449,16 @@ class Location : public ValueObject {
   // Returns the offset from the frame pointer for stack slot locations.
   intptr_t ToStackSlotOffset() const;
 
+  // If the given location is FP relative stack location this returns
+  // corresponding SP relative location assuming that FP-SP is equal to
+  // |fp_to_sp_delta|.
+  Location ToSpRelative(intptr_t fp_to_sp_delta) const;
+
+  // If the given location is FP relative stack location this returns
+  // corresponding SP relative location assuming that SP is equal to SP
+  // at the entry (i.e. no additional frame was setup on the stack).
+  Location ToEntrySpRelative() const;
+
   const char* Name() const;
   void PrintTo(BaseTextBuffer* f) const;
   void Print() const;

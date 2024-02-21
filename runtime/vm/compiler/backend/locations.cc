@@ -250,6 +250,31 @@ void LocationSummary::set_out(intptr_t index, Location loc) {
   output_location_ = loc;
 }
 
+Location Location::ToSpRelative(intptr_t fp_to_sp_delta) const {
+  if (IsPairLocation()) {
+    auto pair = AsPairLocation();
+    return Pair(pair->At(0).ToSpRelative(fp_to_sp_delta),
+                pair->At(1).ToSpRelative(fp_to_sp_delta));
+  }
+
+  if (HasStackIndex()) {
+    ASSERT(base_reg() == FPREG);
+    uword payload = StackSlotBaseField::encode(SPREG) |
+                    StackIndexField::encode(
+                        EncodeStackIndex(stack_index() - fp_to_sp_delta));
+    return Location(kind(), payload);
+  }
+
+  return *this;
+}
+
+Location Location::ToEntrySpRelative() const {
+  const auto fp_to_entry_sp_delta =
+      (compiler::target::frame_layout.param_end_from_fp + 1) -
+      compiler::target::frame_layout.last_param_from_entry_sp;
+  return ToSpRelative(fp_to_entry_sp_delta);
+}
+
 Location Location::Pair(Location first, Location second) {
   PairLocation* pair_location = new PairLocation();
   ASSERT((reinterpret_cast<intptr_t>(pair_location) & kLocationTagMask) == 0);
@@ -403,12 +428,16 @@ void Location::PrintTo(BaseTextBuffer* f) const {
   if (!FLAG_support_il_printer) {
     return;
   }
-  if (kind() == kStackSlot) {
-    f->Printf("S%+" Pd "", stack_index());
-  } else if (kind() == kDoubleStackSlot) {
-    f->Printf("DS%+" Pd "", stack_index());
-  } else if (kind() == kQuadStackSlot) {
-    f->Printf("QS%+" Pd "", stack_index());
+  if (kind() == kStackSlot || kind() == kDoubleStackSlot ||
+      kind() == kQuadStackSlot) {
+    const char* suffix = "";
+    if (kind() == kDoubleStackSlot) {
+      suffix = " f64";
+    } else if (kind() == kQuadStackSlot) {
+      suffix = " f128";
+    }
+    f->Printf("%s[%" Pd "] %s", base_reg() == FPREG ? "fp" : "sp",
+              stack_index(), suffix);
   } else if (IsPairLocation()) {
     f->AddString("(");
     AsPairLocation()->At(0).PrintTo(f);
@@ -428,8 +457,16 @@ const char* Location::ToCString() const {
 }
 
 void Location::Print() const {
-  if (kind() == kStackSlot) {
-    THR_Print("S%+" Pd "", stack_index());
+  if (kind() == kStackSlot || kind() == kDoubleStackSlot ||
+      kind() == kQuadStackSlot) {
+    const char* suffix = "";
+    if (kind() == kDoubleStackSlot) {
+      suffix = " f64";
+    } else if (kind() == kQuadStackSlot) {
+      suffix = " f128";
+    }
+    THR_Print("%s[%" Pd "] %s", base_reg() == FPREG ? "fp" : "sp",
+              stack_index(), suffix);
   } else {
     THR_Print("%s", Name());
   }

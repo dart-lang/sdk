@@ -1233,8 +1233,6 @@ CompileType ParameterInstr::ComputeType() const {
   }
 
   const intptr_t param_index = this->param_index();
-  ASSERT((param_index >= 0) || block_->IsCatchBlockEntry());
-
   if (param_index >= 0) {
     // Parameter is the receiver.
     if ((param_index == 0) &&
@@ -1431,27 +1429,6 @@ CompileType EqualityCompareInstr::ComputeType() const {
 CompileType RelationalOpInstr::ComputeType() const {
   // Used for numeric comparisons only.
   return CompileType::Bool();
-}
-
-CompileType SpecialParameterInstr::ComputeType() const {
-  switch (kind()) {
-    case kContext:
-      return CompileType::FromCid(kContextCid);
-    case kTypeArgs:
-      return CompileType::FromCid(kTypeArgumentsCid);
-    case kArgDescriptor:
-      return CompileType::FromCid(kImmutableArrayCid);
-    case kException:
-      return CompileType(CompileType::kCannotBeNull,
-                         CompileType::kCannotBeSentinel, kDynamicCid,
-                         &Object::dynamic_type());
-    case kStackTrace:
-      // We cannot use [kStackTraceCid] here because any kind of object can be
-      // used as a stack trace via `new Future.error(..., <obj>)` :-/
-      return CompileType::Dynamic();
-  }
-  UNREACHABLE();
-  return CompileType::Dynamic();
 }
 
 CompileType CloneContextInstr::ComputeType() const {

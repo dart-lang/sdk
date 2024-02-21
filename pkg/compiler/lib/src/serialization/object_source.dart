@@ -45,7 +45,7 @@ class ObjectDataSource implements DataSource {
   String readString() => _read();
 
   @override
-  E readEnum<E>(List<E> values) => _read();
+  E readEnum<E extends Enum>(List<E> values) => _read();
 
   @override
   int readInt() => _read();

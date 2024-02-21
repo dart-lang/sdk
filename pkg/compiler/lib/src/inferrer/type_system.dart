@@ -413,7 +413,7 @@ class TypeSystem {
     bool isTypedArray =
         _closedWorld.classHierarchy.isInstantiated(typedDataClass) &&
             _abstractValueDomain
-                .isInstanceOfOrNull(type.type, typedDataClass)
+                .isInstanceOf(type.type, typedDataClass)
                 .isDefinitelyTrue;
     bool isConst = (type.type == _abstractValueDomain.constListType);
     bool isFixed = (type.type == _abstractValueDomain.fixedListType) ||

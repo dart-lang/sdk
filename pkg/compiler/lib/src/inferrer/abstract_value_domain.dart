@@ -73,7 +73,7 @@ class AbstractBool {
 
   @override
   String toString() =>
-      'AbstractBool.${_value == null ? 'Maybe' : (_value! ? 'True' : 'False')}';
+      'AbstractBool.${_value == null ? 'Maybe' : (_value ? 'True' : 'False')}';
 }
 
 /// A value in an abstraction of runtime values.
@@ -295,12 +295,6 @@ mixin AbstractValueDomain {
   /// Returns an [AbstractBool] that describes whether [value] only contains
   /// subtypes of [cls] or `null` at runtime.
   AbstractBool containsOnlyType(covariant AbstractValue value, ClassEntity cls);
-
-  /// Returns an [AbstractBool] that describes whether [value] is an instance of
-  /// [cls] or `null` at runtime.
-  // TODO(johnniwinther): Merge this with [isInstanceOf].
-  AbstractBool isInstanceOfOrNull(
-      covariant AbstractValue value, ClassEntity cls);
 
   /// Returns an [AbstractBool] that describes whether [value] is known to be an
   /// instance of [cls] at runtime.

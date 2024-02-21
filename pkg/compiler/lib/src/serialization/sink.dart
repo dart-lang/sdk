@@ -15,7 +15,7 @@ abstract class DataSink {
   void writeInt(int value);
 
   /// Serialization of an enum value.
-  void writeEnum(dynamic value);
+  void writeEnum<E extends Enum>(E value);
 
   /// Serialization of a String value.
   void writeString(String value);
@@ -287,11 +287,7 @@ class DataSinkWriter {
   }
 
   /// Writes the enum value [value] to this data sink.
-  // TODO(johnniwinther): Change the signature to
-  // `void writeEnum<E extends Enum<E>>(E value);` when an interface for enums
-  // is added to the language.
-
-  void writeEnum(dynamic value) {
+  void writeEnum<E extends Enum>(E value) {
     _writeDataKind(DataKind.enumValue);
     _sinkWriter.writeEnum(value);
   }

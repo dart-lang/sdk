@@ -7,13 +7,13 @@ class Class1 {
   Class1.foo();
 }
 
-// TODO(johnniwinther): Uncomment this when #34965 is fixed:
-//class Class2 {
-//  var bar;
-//  factory Class2.bar() => null;
-//}
+class Class2 {
+  var bar;
+  factory Class2.bar() => Class2._();
+  Class2._();
+}
 
 main() {
   Class1.foo().foo;
-  //new Class2.bar().bar;
+  Class2.bar().bar;
 }

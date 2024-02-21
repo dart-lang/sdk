@@ -285,11 +285,6 @@ class FlowGraphAllocator : public ValueObject {
 
   void PrintLiveRanges();
 
-  Location ComputeParameterLocation(BlockEntryInstr* block,
-                                    ParameterInstr* param,
-                                    Register base_reg,
-                                    intptr_t pair_index);
-
   // Assign locations for each outgoing argument. Outgoing argumenst are
   // currently stored at the top of the stack in direct order (last argument
   // at the top of the stack).

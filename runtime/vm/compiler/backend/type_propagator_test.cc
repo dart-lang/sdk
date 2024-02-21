@@ -50,7 +50,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
 
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
-    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    v0 = builder.AddParameter(0, kTagged);
     builder.AddBranch(
         new StrictCompareInstr(
             InstructionSource(), Token::kEQ_STRICT, new Value(v0),
@@ -117,7 +117,7 @@ ISOLATE_UNIT_TEST_CASE(
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
-    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    v0 = builder.AddParameter(0, kTagged);
     auto load_cid = builder.AddDefinition(new LoadClassIdInstr(new Value(v0)));
     builder.AddBranch(
         new StrictCompareInstr(
@@ -216,7 +216,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
-    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    v0 = builder.AddParameter(0, kTagged);
     builder.AddBranch(new StrictCompareInstr(
                           InstructionSource(), Token::kEQ_STRICT, new Value(v0),
                           new Value(H.IntConstant(1)),
@@ -307,7 +307,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
-    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    v0 = builder.AddParameter(0, kTagged);
     builder.AddBranch(new StrictCompareInstr(
                           InstructionSource(), Token::kEQ_STRICT, new Value(v0),
                           new Value(H.IntConstant(1)),
@@ -509,7 +509,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RegressFlutter76919) {
 
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
-    Definition* v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    Definition* v0 = builder.AddParameter(0, kTagged);
     auto null_value = builder.AddNullDefinition();
     builder.AddDefinition(new AssertAssignableInstr(
         InstructionSource(), new Value(v0),

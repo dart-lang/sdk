@@ -324,10 +324,6 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
       AbstractBool.Maybe;
 
   @override
-  AbstractBool isInstanceOfOrNull(AbstractValue value, ClassEntity cls) =>
-      AbstractBool.Maybe;
-
-  @override
   AbstractBool containsOnlyType(AbstractValue value, ClassEntity cls) =>
       AbstractBool.Maybe;
 

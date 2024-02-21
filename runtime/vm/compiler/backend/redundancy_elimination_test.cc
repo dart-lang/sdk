@@ -109,8 +109,17 @@ static void TryCatchOptimizerTest(
   // We should only synchronize state for variables from the synchronized list.
   for (auto defn : *catch_entry->initial_definitions()) {
     if (ParameterInstr* param = defn->AsParameter()) {
+      if (param->location().IsRegister()) {
+        EXPECT(param->location().Equals(LocationExceptionLocation()) ||
+               param->location().Equals(LocationStackTraceLocation()));
+        continue;
+      }
+
       EXPECT(0 <= param->env_index() && param->env_index() < env.length());
       EXPECT(env[param->env_index()] != nullptr);
+      if (env[param->env_index()] == nullptr) {
+        OS::PrintErr("something is wrong with %s\n", param->ToCString());
+      }
     }
   }
 }
@@ -1630,9 +1639,8 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
   {
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
-    auto param0 =
-        builder.AddParameter(0, 0, /*with_frame=*/true, kUnboxedDouble);
-    auto param1 = builder.AddParameter(1, 2, /*with_frame=*/true, kTagged);
+    auto param0 = builder.AddParameter(0, kUnboxedDouble);
+    auto param1 = builder.AddParameter(1, kTagged);
     auto redef0 =
         builder.AddDefinition(new RedefinitionInstr(new Value(param0)));
     auto redef1 =

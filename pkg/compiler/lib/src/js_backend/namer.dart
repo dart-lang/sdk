@@ -425,10 +425,6 @@ class Namer extends ModularNamer {
 
       case SelectorKind.SPECIAL:
         return specialSelectorName(selector);
-
-      default:
-        throw failedAt(CURRENT_ELEMENT_SPANNABLE,
-            'Unexpected selector kind: ${selector.kind}');
     }
   }
 

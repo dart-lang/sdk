@@ -12,34 +12,47 @@ import 'dart:_vmservice';
 part 'vmservice_server.dart';
 
 // The TCP ip/port that the HTTP server listens on.
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 int _port = 0;
-@pragma('vm:entry-point')
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 String _ip = '';
+
 // Should the HTTP server auto start?
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _autoStart = false;
+
 // Should the HTTP server require an auth code?
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _authCodesDisabled = false;
+
 // Should the HTTP server run in devmode?
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _originCheckDisabled = false;
+
 // Location of file to output VM service connection info.
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 String? _serviceInfoFilename;
-@pragma('vm:entry-point')
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _isWindows = false;
-@pragma('vm:entry-point')
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _isFuchsia = false;
-@pragma('vm:entry-point')
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 Stream<ProcessSignal> Function(ProcessSignal signal)? _signalWatch;
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 StreamSubscription<ProcessSignal>? _signalSubscription;
-@pragma("vm:entry-point")
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _enableServicePortFallback = false;
-@pragma("vm:entry-point")
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _waitForDdsToAdvertiseService = false;
-@pragma("vm:entry-point", !const bool.fromEnvironment('dart.vm.product'))
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _serveObservatory = false;
 
 // HTTP server.

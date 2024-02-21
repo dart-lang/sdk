@@ -778,60 +778,25 @@ void FlowGraphAllocator::ProcessInitialDefinition(
   // Save the range end because it may change below.
   const intptr_t range_end = range->End();
 
-  // TODO(31956): Clean up this code and factor common functionality out.
-  // Consider also making a separate [ProcessInitialDefinition] for
-  // [CatchBlockEntry]'s.
-  if (block->IsCatchBlockEntry()) {
-    if (SpecialParameterInstr* param = defn->AsSpecialParameter()) {
-      Location loc;
-      switch (param->kind()) {
-        case SpecialParameterInstr::kException:
-          loc = LocationExceptionLocation();
-          break;
-        case SpecialParameterInstr::kStackTrace:
-          loc = LocationStackTraceLocation();
-          break;
-        default:
-          UNREACHABLE();
-      }
-      range->set_assigned_location(loc);
-      CompleteRange(defn, range);
-      range->finger()->Initialize(range);
-      SplitInitialDefinitionAt(range, GetLifetimePosition(block) + 1);
-      ConvertAllUses(range);
-
-      // We have exception/stacktrace in a register and need to
-      // ensure this register is not available for register allocation during
-      // the [CatchBlockEntry] to ensure it's not overwritten.
-      if (loc.IsRegister()) {
-        BlockLocation(loc, GetLifetimePosition(block),
-                      GetLifetimePosition(block) + 1);
-      }
-      return;
-    }
-  }
-
   if (auto param = defn->AsParameter()) {
-    const auto location =
-        ComputeParameterLocation(block, param, param->base_reg(),
-                                 second_location_for_definition ? 1 : 0);
+    auto location = param->location();
+    RELEASE_ASSERT(!location.IsInvalid());
+    if (location.IsPairLocation()) {
+      location =
+          location.AsPairLocation()->At(second_location_for_definition ? 1 : 0);
+    }
     range->set_assigned_location(location);
-    range->set_spill_slot(location);
-  } else if (defn->IsSpecialParameter()) {
-    SpecialParameterInstr* param = defn->AsSpecialParameter();
-    ASSERT(param->kind() == SpecialParameterInstr::kArgDescriptor);
-    Location loc;
-    loc = Location::RegisterLocation(ARGS_DESC_REG);
-    range->set_assigned_location(loc);
-    if (loc.IsRegister()) {
+    if (location.IsRegister()) {
       CompleteRange(defn, range);
-      if (range->End() > (GetLifetimePosition(block) + 2)) {
-        SplitInitialDefinitionAt(range, GetLifetimePosition(block) + 2);
+      if (range->End() > (GetLifetimePosition(block) + 1)) {
+        SplitInitialDefinitionAt(range, GetLifetimePosition(block) + 1);
       }
       ConvertAllUses(range);
-      BlockLocation(loc, GetLifetimePosition(block),
-                    GetLifetimePosition(block) + 2);
+      BlockLocation(location, GetLifetimePosition(block),
+                    GetLifetimePosition(block) + 1);
       return;
+    } else {
+      range->set_spill_slot(location);
     }
   } else {
     ConstantInstr* constant = defn->AsConstant();
@@ -3202,46 +3167,6 @@ void FlowGraphAllocator::CollectRepresentations() {
   }
 }
 
-Location FlowGraphAllocator::ComputeParameterLocation(BlockEntryInstr* block,
-                                                      ParameterInstr* param,
-                                                      Register base_reg,
-                                                      intptr_t pair_index) {
-  ASSERT(pair_index == 0 || param->HasPairRepresentation());
-
-  // Only function entries may have unboxed parameters, possibly making the
-  // parameters size different from the number of parameters on 32-bit
-  // architectures.
-  const intptr_t parameters_size = block->IsFunctionEntry()
-                                       ? flow_graph_.direct_parameters_size()
-                                       : flow_graph_.num_direct_parameters();
-  intptr_t slot_index = param->param_offset() - pair_index;
-  ASSERT(slot_index >= 0);
-  if (base_reg == FPREG) {
-    // Slot index for the rightmost fixed parameter is -1.
-    slot_index -= parameters_size;
-  } else {
-    // Slot index for a "frameless" parameter is reversed.
-    ASSERT(base_reg == SPREG);
-    ASSERT(slot_index < parameters_size);
-    slot_index = parameters_size - 1 - slot_index;
-  }
-
-  if (base_reg == FPREG) {
-    slot_index =
-        compiler::target::frame_layout.FrameSlotForVariableIndex(-slot_index);
-  } else {
-    ASSERT(base_reg == SPREG);
-    slot_index += compiler::target::frame_layout.last_param_from_entry_sp;
-  }
-
-  if (param->representation() == kUnboxedInt64 ||
-      param->representation() == kTagged) {
-    return Location::StackSlot(slot_index, base_reg);
-  } else {
-    ASSERT(param->representation() == kUnboxedDouble);
-    return Location::DoubleStackSlot(slot_index, base_reg);
-  }
-}
 
 void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
   // Intrinsic functions are naturally frameless.
@@ -3326,10 +3251,18 @@ void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
   // Fix location of parameters to use SP as their base register instead of FP.
   auto fix_location_for = [&](BlockEntryInstr* block, ParameterInstr* param,
                               intptr_t vreg, intptr_t pair_index) {
-    auto fp_relative =
-        ComputeParameterLocation(block, param, FPREG, pair_index);
-    auto sp_relative =
-        ComputeParameterLocation(block, param, SPREG, pair_index);
+    auto location = param->location();
+    if (location.IsPairLocation()) {
+      ASSERT(param->HasPairRepresentation());
+      location = location.AsPairLocation()->At(pair_index);
+    }
+    if (!location.HasStackIndex() || location.base_reg() != FPREG) {
+      return;
+    }
+
+    const auto fp_relative = location;
+    const auto sp_relative = fp_relative.ToEntrySpRelative();
+
     for (LiveRange* range = GetLiveRange(vreg); range != nullptr;
          range = range->next_sibling()) {
       if (range->assigned_location().Equals(fp_relative)) {

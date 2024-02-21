@@ -607,13 +607,6 @@ class PowersetDomain with AbstractValueDomain {
           _abstractValueDomain.isInstanceOf(value._abstractValue, cls));
 
   @override
-  AbstractBool isInstanceOfOrNull(
-          covariant PowersetValue value, ClassEntity cls) =>
-      AbstractBool.strengthen(
-          _powersetBitsDomain.isInstanceOfOrNull(value._powersetBits, cls),
-          _abstractValueDomain.isInstanceOfOrNull(value._abstractValue, cls));
-
-  @override
   AbstractBool containsOnlyType(
           covariant PowersetValue value, ClassEntity cls) =>
       AbstractBool.strengthen(

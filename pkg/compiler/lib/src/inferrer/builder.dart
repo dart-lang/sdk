@@ -1598,8 +1598,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
 
   @override
   TypeInformation visitLoadLibrary(ir.LoadLibrary node) {
-    // TODO(johnniwinther): Improve this by returning a Future type instead.
-    return _types.dynamicType;
+    return _types.asyncFutureType;
   }
 
   @override

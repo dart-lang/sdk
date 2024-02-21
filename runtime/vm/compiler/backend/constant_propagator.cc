@@ -476,10 +476,6 @@ void ConstantPropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
   }
 }
 
-void ConstantPropagator::VisitSpecialParameter(SpecialParameterInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
 void ConstantPropagator::VisitClosureCall(ClosureCallInstr* instr) {
   SetValue(instr, non_constant_);
 }

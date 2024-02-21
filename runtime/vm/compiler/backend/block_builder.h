@@ -18,13 +18,16 @@ namespace compiler {
 // Helper class for building basic blocks in SSA form.
 class BlockBuilder : public ValueObject {
  public:
-  BlockBuilder(FlowGraph* flow_graph, BlockEntryInstr* entry)
+  BlockBuilder(FlowGraph* flow_graph,
+               BlockEntryInstr* entry,
+               bool with_frame = true)
       : flow_graph_(flow_graph),
         source_(InstructionSource(flow_graph_->function().token_pos(),
                                   flow_graph->inlining_id())),
         entry_(entry),
         current_(entry),
-        dummy_env_(new Environment(0, 0, 0, flow_graph->function(), nullptr)) {
+        dummy_env_(new Environment(0, 0, 0, flow_graph->function(), nullptr)),
+        with_frame_(with_frame) {
     // Some graph transformations use environments from block entries.
     entry->SetEnvironment(dummy_env_);
   }
@@ -69,22 +72,23 @@ class BlockBuilder : public ValueObject {
     return instr;
   }
 
-  Definition* AddParameter(intptr_t index, bool with_frame) {
+  Definition* AddParameter(intptr_t index) {
     const auto& function = flow_graph_->function();
-    const intptr_t param_offset = FlowGraph::ParameterOffsetAt(function, index);
+    const auto loc = FlowGraph::ParameterLocationAt(function, index);
     const auto representation =
         FlowGraph::ParameterRepresentationAt(function, index);
-    return AddParameter(index, param_offset, with_frame, representation);
+    return AddParameter(index, representation,
+                        with_frame_ ? loc : loc.ToEntrySpRelative());
   }
 
   Definition* AddParameter(intptr_t index,
-                           intptr_t param_offset,
-                           bool with_frame,
-                           Representation representation) {
+                           Representation representation,
+                           Location location = Location()) {
     auto normal_entry = flow_graph_->graph_entry()->normal_entry();
-    return AddToInitialDefinitions(new ParameterInstr(
-        /*env_index=*/index, /*param_index=*/index, param_offset, normal_entry,
-        representation, with_frame ? FPREG : SPREG));
+    return AddToInitialDefinitions(
+        new ParameterInstr(normal_entry,
+                           /*env_index=*/index,
+                           /*param_index=*/index, location, representation));
   }
 
   TokenPosition TokenPos() const { return source_.token_pos; }
@@ -162,6 +166,7 @@ class BlockBuilder : public ValueObject {
   BlockEntryInstr* entry_;
   Instruction* current_;
   Environment* dummy_env_;
+  const bool with_frame_;
 };
 
 }  // namespace compiler

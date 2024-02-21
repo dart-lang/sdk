@@ -881,7 +881,7 @@ class JsClosureClassInfo extends JsScopeInfo
   @override
   Local? getClosureEntity(KernelToLocalsMap localsMap) {
     return _closureEntityVariable != null
-        ? localsMap.getLocalVariable(_closureEntityVariable!)
+        ? localsMap.getLocalVariable(_closureEntityVariable)
         : _closureEntity;
   }
 }
