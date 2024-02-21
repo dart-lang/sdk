@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dtd/dtd.dart';
@@ -10,30 +11,37 @@ import 'package:path/path.dart' as path;
 void main(List<String> args) async {
   final url = args[0]; // pass the url as a param to the example
 
-  print('Connecting to DTD at $url');
+  // The directory to run in is passed as the 2nd argument to this example.
+  final workingDirectory = Directory.fromUri(Uri.parse(args[1]));
 
-  final client = await DartToolingDaemon.connect(Uri.parse('ws://$url'));
-  final directory = Directory('/tmp/dtd_file_system_service_example');
-  if (!directory.existsSync()) {
-    directory.createSync();
+  // Create the client that will be talking to the FileSystem service..
+  DTDConnection? client = await DartToolingDaemon.connect(Uri.parse(url));
+
+  try {
+    final testFile = Uri.file(path.join(workingDirectory.path, 'a.txt'));
+
+    // Writing a file from a DTD client.
+    await client.writeFileAsString(
+      testFile,
+      'Here are some file contents to write.',
+    );
+
+    // Reading a file from a DTD client.
+    final fileContents = await client.readFileAsString(testFile);
+
+    print(jsonEncode({'step': 'read', 'response': fileContents.toJson()}));
+
+    // Listing directories from a DTD client.
+    final listFilesResponse = await client.listDirectoryContents(
+      workingDirectory.uri,
+    );
+
+    print(
+      jsonEncode(
+        {'step': 'listDirectories', 'response': listFilesResponse.toJson()},
+      ),
+    );
+  } finally {
+    await client.close();
   }
-  final directoryUri = directory.uri;
-
-  final testFile = Uri.file(path.join(directory.path, 'a.txt'));
-
-  final now = DateTime.now().toLocal().toIso8601String();
-
-  await client.writeFileAsString(testFile, now);
-  print('Wrote "$now" to $testFile');
-
-  final fileContents = await client.readFileAsString(testFile);
-  print('\nThe Contents of $testFile are:\n${fileContents.content}');
-
-  final listFilesResponse = await client.listDirectoryContents(
-    directoryUri,
-  );
-  print(
-    '\nThe files in $directoryUri are:\n'
-    '${listFilesResponse.uris?.join('\n')}',
-  );
 }
