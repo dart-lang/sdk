@@ -660,6 +660,7 @@ extension DapTestClientExtension on DapTestClient {
     String? cwd,
     List<String>? args,
     List<String>? toolArgs,
+    bool? evaluateToStringInDebugViews,
     Future<Response> Function()? launch,
   }) async {
     assert(condition == null || additionalBreakpoints == null,
@@ -679,6 +680,7 @@ extension DapTestClientExtension on DapTestClient {
             cwd: cwd,
             args: args,
             toolArgs: toolArgs,
+            evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           ),
     ], eagerError: true);
 

@@ -1336,30 +1336,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return ConstructedConstantValue(_commonElements.requiredSentinelType, {});
   }
 
-  @override
-  FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
-    while (true) {
-      ClassEntity? superclass = elementEnvironment.getSuperClass(cls);
-      if (superclass == null) break;
-      MemberEntity? member = elementEnvironment.lookupLocalClassMember(
-          superclass, Names.noSuchMethod_);
-      if (member != null && !member.isAbstract) {
-        if (member.isFunction) {
-          final function = member as FunctionEntity;
-          if (function.parameterStructure.positionalParameters >= 1) {
-            return function;
-          }
-        }
-        // If [member] is not a valid `noSuchMethod` the target is
-        // `Object.superNoSuchMethod`.
-        break;
-      }
-      cls = superclass;
-    }
-    return elementEnvironment.lookupLocalClassMember(
-        commonElements.objectClass, Names.noSuchMethod_)! as FunctionEntity;
-  }
-
   JTypeVariable createTypeVariable(
       Entity typeDeclaration, String name, int index) {
     return JTypeVariable(typeDeclaration, name, index);

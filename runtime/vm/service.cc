@@ -4734,7 +4734,7 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
         timeline.AddProperty("name", "Timeline");
         timeline.AddProperty(
             "description",
-            "Timeline events from dart:developer and Dart_TimelineEvent");
+            "Timeline events from dart:developer and Dart_RecordTimelineEvent");
         intptr_t size = Timeline::recorder()->Size();
         vm_size += size;
         timeline.AddProperty64("size", size);

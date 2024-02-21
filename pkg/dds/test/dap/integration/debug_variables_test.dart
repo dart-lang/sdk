@@ -329,6 +329,51 @@ void main(List<String> args) {
       );
     });
 
+    test('only calls toString() for 100 items in a list', () async {
+      final client = dap.client;
+      // Generate a file that assigns a list of 150 items
+      // so we can request a subset and ensure only the first 100 items had
+      // toString() evaluated.
+      final testFile = dap.createTestFile('''
+class S {
+  final int i;
+  S(this.i);
+  @override
+  String toString() => 'Item \$i';
+}
+
+void main(List<String> args) {
+  final myList = List.generate(150, S.new);
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        evaluateToStringInDebugViews: true,
+      );
+      await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myList',
+        expectedDisplayString: 'List (150 items)',
+        expectedIndexedItems: 150,
+        // Fetch 105 items starting at 5.
+        start: 5,
+        count: 105,
+        expectedVariables: [
+          for (int i = 5; i < 110; i++)
+            i < 105
+                // For items < 105 (100 from the start), toString() is called
+                // so we include "Item x"
+                ? '[$i]: S (Item $i), eval: myList[$i]'
+                // For rest, toString is skipped
+                : '[$i]: S, eval: myList[$i]',
+        ].join('\n'),
+      );
+    });
+
     /// Helper to verify variables types of list.
     checkList(
       String typeName, {

@@ -157,7 +157,7 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends AbstractIgnoreDiagnostic {
       var edit = editor.edits.single;
       var replacement = edit.replacement;
 
-      // HACK(dantup): The YAML editor currently produces inconsistent line
+      // TODO(dantup): The YAML editor currently produces inconsistent line
       //  endings in edits when the source file contains '\r\n'.
       // https://github.com/dart-lang/yaml_edit/issues/65
       var analysisOptionsEol = content.contains('\r')

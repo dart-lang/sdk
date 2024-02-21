@@ -15,6 +15,9 @@ typedef ReportErrorFunction = void Function(
 class TryConstantEvaluator extends ConstantEvaluator {
   final bool _supportReevaluationForTesting;
 
+  @override
+  final _ErrorReporter errorReporter;
+
   TryConstantEvaluator(
       DartLibrarySupport librarySupport,
       ConstantsBackend constantsBackend,
@@ -22,28 +25,28 @@ class TryConstantEvaluator extends ConstantEvaluator {
       TypeEnvironment typeEnvironment,
       ReportErrorFunction reportError,
       {Map<String, String>? environmentDefines,
-      super.evaluationMode,
+      required EvaluationMode evaluationMode,
+      bool supportReevaluationForTesting = false})
+      : this._(librarySupport, constantsBackend, component, typeEnvironment,
+            new _ErrorReporter(reportError),
+            environmentDefines: environmentDefines,
+            evaluationMode: evaluationMode,
+            supportReevaluationForTesting: supportReevaluationForTesting);
+
+  TryConstantEvaluator._(
+      DartLibrarySupport librarySupport,
+      ConstantsBackend constantsBackend,
+      Component component,
+      TypeEnvironment typeEnvironment,
+      this.errorReporter,
+      {Map<String, String>? environmentDefines,
+      required super.evaluationMode,
       bool supportReevaluationForTesting = false})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
-        assert((evaluationMode as dynamic) != null),
-        super(
-            librarySupport,
-            constantsBackend,
-            component,
-            environmentDefines ?? const {},
-            typeEnvironment,
-            new _ErrorReporter(reportError),
+        super(librarySupport, constantsBackend, component,
+            environmentDefines ?? const {}, typeEnvironment, errorReporter,
             enableTripleShift: true);
 
-  @override
-  _ErrorReporter get errorReporter => super.errorReporter as _ErrorReporter;
-  // TODO(48820): ^Store another reference to the error reporter with the
-  // refined type and use that.
-
-  // We can't override [ConstantEvaluator.evaluate] and have a nullable
-  // return type.
-  // TODO(48820): Consider using composition. We will need to ensure that
-  // [TryConstantEvaluator] is not referenced via [ConstantEvaluator].
   @override
   Constant evaluate(StaticTypeContext staticTypeContext, Expression node,
       {TreeNode? contextNode}) {

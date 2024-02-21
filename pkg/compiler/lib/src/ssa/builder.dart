@@ -4003,21 +4003,14 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     HInstruction value = pop();
 
     final target = getEffectiveSuperTarget(node.interfaceTarget);
-    if (target == null) {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name + "=",
-          [value], const <DartType>[], sourceInformation);
-    } else {
-      MemberEntity member = _elementMap.getMember(target);
-      _buildInvokeSuper(
-          _elementMap.getSelector(node),
-          _elementMap.getClass(_containingClass(node)),
-          member,
-          [value],
-          const <DartType>[],
-          sourceInformation);
-    }
+    MemberEntity member = _elementMap.getMember(target);
+    _buildInvokeSuper(
+        _elementMap.getSelector(node),
+        _elementMap.getClass(_containingClass(node)),
+        member,
+        [value],
+        const <DartType>[],
+        sourceInformation);
     pop();
     stack.add(value);
   }
@@ -5919,55 +5912,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     throw ArgumentError.value(node, 'node', 'No containing class found.');
   }
 
-  void _generateSuperNoSuchMethod(
-      ir.Expression invocation,
-      String publicName,
-      List<HInstruction> arguments,
-      List<DartType> typeArguments,
-      SourceInformation? sourceInformation) {
-    Selector selector = _elementMap.getSelector(invocation);
-    ClassEntity containingClass =
-        _elementMap.getClass(_containingClass(invocation));
-    FunctionEntity noSuchMethod =
-        _elementMap.getSuperNoSuchMethod(containingClass);
-
-    ConstantValue nameConstant = constant_system.createString(publicName);
-
-    js.Name internalName = _namer.invocationName(selector);
-
-    var argumentsInstruction = _buildLiteralList(arguments);
-    add(argumentsInstruction);
-
-    List<HInstruction> argumentNames = [];
-    for (String argumentName in selector.namedArguments) {
-      ConstantValue argumentNameConstant =
-          constant_system.createString(argumentName);
-      argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
-    }
-    var argumentNamesInstruction = _buildLiteralList(argumentNames);
-    add(argumentNamesInstruction);
-
-    ConstantValue kindConstant =
-        constant_system.createIntFromInt(selector.invocationMirrorKind);
-
-    _pushStaticInvocation(
-        _commonElements.createInvocationMirror,
-        [
-          graph.addConstant(nameConstant, closedWorld),
-          graph.addConstantStringFromName(internalName, closedWorld),
-          graph.addConstant(kindConstant, closedWorld),
-          argumentsInstruction,
-          argumentNamesInstruction,
-          graph.addConstantInt(typeArguments.length, closedWorld),
-        ],
-        _abstractValueDomain.dynamicType,
-        typeArguments,
-        sourceInformation: sourceInformation);
-
-    _buildInvokeSuper(Selectors.noSuchMethod_, containingClass, noSuchMethod,
-        [pop()], typeArguments, sourceInformation);
-  }
-
   HInstruction _buildInvokeSuper(
       Selector selector,
       ClassEntity containingClass,
@@ -6008,13 +5952,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitSuperPropertyGet(ir.SuperPropertyGet node) {
     final sourceInformation = _sourceInformationBuilder.buildGet(node);
     final target = getEffectiveSuperTarget(node.interfaceTarget);
-    if (target == null) {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name,
-          const <HInstruction>[], const <DartType>[], sourceInformation);
-      return;
-    }
     MemberEntity member = _elementMap.getMember(target);
     if (member is FieldEntity) {
       FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
@@ -6038,19 +5975,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     final sourceInformation = _sourceInformationBuilder.buildCall(node, node);
     final superTarget = getEffectiveSuperTarget(node.interfaceTarget);
-    if (superTarget == null) {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      Selector selector = _elementMap.getSelector(node);
-      List<DartType> typeArguments = <DartType>[];
-      selector =
-          _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
-      List<HInstruction> arguments = _visitArgumentsForDynamicTarget(
-          selector, node.arguments, typeArguments);
-      _generateSuperNoSuchMethod(
-          node, selector.name, arguments, typeArguments, sourceInformation);
-      return;
-    }
     MemberEntity member = _elementMap.getMember(superTarget);
     List<DartType> typeArguments =
         _getStaticTypeArguments(member as FunctionEntity, node.arguments);

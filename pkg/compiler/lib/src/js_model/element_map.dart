@@ -78,10 +78,6 @@ abstract class JsToElementMap {
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
 
-  /// Returns the `noSuchMethod` [FunctionEntity] call from a
-  /// `super.noSuchMethod` invocation within [cls].
-  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
-
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
 

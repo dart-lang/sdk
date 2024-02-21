@@ -337,7 +337,6 @@ main() {
     "Dart_ThreadDisableProfiling",
     "Dart_ThreadEnableProfiling",
     "Dart_ThrowException",
-    "Dart_TimelineEvent",
     "Dart_TimelineGetMicros",
     "Dart_TimelineGetTicks",
     "Dart_TimelineGetTicksFrequency",

@@ -6436,18 +6436,6 @@ DART_EXPORT int64_t Dart_TimelineGetTicksFrequency() {
   return OS::GetCurrentMonotonicFrequency();
 }
 
-DART_EXPORT void Dart_TimelineEvent(const char* label,
-                                    int64_t timestamp0,
-                                    int64_t timestamp1_or_id,
-                                    Dart_Timeline_Event_Type type,
-                                    intptr_t argument_count,
-                                    const char** argument_names,
-                                    const char** argument_values) {
-  Dart_RecordTimelineEvent(label, timestamp0, timestamp1_or_id,
-                           /*flow_id_count=*/0, /*flow_ids=*/nullptr, type,
-                           argument_count, argument_names, argument_values);
-}
-
 DART_EXPORT void Dart_RecordTimelineEvent(const char* label,
                                           int64_t timestamp0,
                                           int64_t timestamp1_or_id,

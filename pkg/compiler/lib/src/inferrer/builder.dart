@@ -243,16 +243,6 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     return visit(_analyzedNode)!;
   }
 
-  bool isIncompatibleInvoke(FunctionEntity function, ArgumentsTypes arguments) {
-    ParameterStructure parameterStructure = function.parameterStructure;
-
-    return arguments.positional.length <
-            parameterStructure.requiredPositionalParameters ||
-        arguments.positional.length > parameterStructure.positionalParameters ||
-        arguments.named.keys
-            .any((name) => !parameterStructure.namedParameters.contains(name));
-  }
-
   void recordReturnType(TypeInformation type) {
     final analyzedMethod = _analyzedMember as FunctionEntity;
     _returnType = _inferrer.addReturnTypeForMethod(analyzedMethod, type);
@@ -940,10 +930,6 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     ClosureRepresentationInfo info =
         _closureDataLookup.getClosureInfo(function);
     final callMethod = info.callMethod!;
-    if (isIncompatibleInvoke(callMethod, argumentsTypes)) {
-      return _types.dynamicType;
-    }
-
     TypeInformation type =
         handleStaticInvoke(node, selector, callMethod, argumentsTypes);
     FunctionType functionType =
@@ -2153,15 +2139,6 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     return _types.nonNullEmpty();
   }
 
-  TypeInformation handleSuperNoSuchMethod(
-      ir.Node node, Selector selector, ArgumentsTypes? arguments) {
-    // Ensure we create a node, to make explicit the call to the
-    // `noSuchMethod` handler.
-    FunctionEntity noSuchMethod =
-        _elementMap.getSuperNoSuchMethod(_analyzedMember.enclosingClass!);
-    return handleStaticInvoke(node, selector, noSuchMethod, arguments);
-  }
-
   @override
   TypeInformation visitSuperPropertyGet(ir.SuperPropertyGet node) {
     // TODO(herhut): We could do better here if we knew what we
@@ -2170,13 +2147,6 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
 
     final target = getEffectiveSuperTarget(node.interfaceTarget);
     Selector selector = Selector.getter(_elementMap.getName(node.name));
-    if (target == null) {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      // TODO(48820): If this path is infeasible, update types on
-      //  getEffectiveSuperTarget.
-      return handleSuperNoSuchMethod(node, selector, null);
-    }
     MemberEntity member = _elementMap.getMember(target);
     TypeInformation type = handleStaticInvoke(node, selector, member, null);
     if (member.isGetter) {
@@ -2208,11 +2178,6 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     final target = getEffectiveSuperTarget(node.interfaceTarget);
     Selector selector = Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = ArgumentsTypes([rhsType], null);
-    if (target == null) {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      return handleSuperNoSuchMethod(node, selector, arguments);
-    }
     final member = _elementMap.getMember(target);
     handleStaticInvoke(node, selector, member, arguments);
     return rhsType;
@@ -2227,27 +2192,19 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     final target = getEffectiveSuperTarget(node.interfaceTarget);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
-    if (target == null) {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      return handleSuperNoSuchMethod(node, selector, arguments);
-    }
     MemberEntity member = _elementMap.getMember(target);
     assert(member.isFunction, "Unexpected super invocation target: $member");
-    if (isIncompatibleInvoke(member as FunctionEntity, arguments)) {
-      return handleSuperNoSuchMethod(node, selector, arguments);
-    } else {
-      TypeInformation type =
-          handleStaticInvoke(node, selector, member, arguments);
-      FunctionType functionType =
-          _elementMap.elementEnvironment.getFunctionType(member);
-      if (functionType.returnType.containsFreeTypeVariables) {
-        // The return type varies with the call site so we narrow the static
-        // return type.
-        type = _types.narrowType(type, _getStaticType(node));
-      }
-      return type;
+    member as FunctionEntity;
+    TypeInformation type =
+        handleStaticInvoke(node, selector, member, arguments);
+    FunctionType functionType =
+        _elementMap.elementEnvironment.getFunctionType(member);
+    if (functionType.returnType.containsFreeTypeVariables) {
+      // The return type varies with the call site so we narrow the static
+      // return type.
+      type = _types.narrowType(type, _getStaticType(node));
     }
+    return type;
   }
 
   @override

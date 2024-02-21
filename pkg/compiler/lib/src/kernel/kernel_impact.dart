@@ -474,63 +474,36 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerSuperInvocation(ir.Member? target, int positionalArguments,
+  void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments) {
-    if (target != null) {
-      FunctionEntity method = elementMap.getMember(target) as FunctionEntity;
-      List<DartType>? dartTypeArguments = _getTypeArguments(typeArguments);
-      impactBuilder.registerStaticUse(StaticUse.superInvoke(
-          method,
-          CallStructure(positionalArguments + namedArguments.length,
-              namedArguments, typeArguments.length),
-          dartTypeArguments));
+    FunctionEntity method = elementMap.getMember(target) as FunctionEntity;
+    List<DartType>? dartTypeArguments = _getTypeArguments(typeArguments);
+    impactBuilder.registerStaticUse(StaticUse.superInvoke(
+        method,
+        CallStructure(positionalArguments + namedArguments.length,
+            namedArguments, typeArguments.length),
+        dartTypeArguments));
+  }
+
+  @override
+  void registerSuperGet(ir.Member target) {
+    MemberEntity member = elementMap.getMember(target);
+    if (member.isFunction) {
+      impactBuilder
+          .registerStaticUse(StaticUse.superTearOff(member as FunctionEntity));
     } else {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      impactBuilder.registerStaticUse(StaticUse.superInvoke(
-          elementMap.getSuperNoSuchMethod(currentMember.enclosingClass!),
-          CallStructure.ONE_ARG));
-      registerBackendImpact(_impacts.superNoSuchMethod);
+      impactBuilder.registerStaticUse(StaticUse.superGet(member));
     }
   }
 
   @override
-  void registerSuperGet(ir.Member? target) {
-    if (target != null) {
-      MemberEntity member = elementMap.getMember(target);
-      if (member.isFunction) {
-        impactBuilder.registerStaticUse(
-            StaticUse.superTearOff(member as FunctionEntity));
-      } else {
-        impactBuilder.registerStaticUse(StaticUse.superGet(member));
-      }
+  void registerSuperSet(ir.Member target) {
+    MemberEntity member = elementMap.getMember(target);
+    if (member is FieldEntity) {
+      impactBuilder.registerStaticUse(StaticUse.superFieldSet(member));
     } else {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      impactBuilder.registerStaticUse(StaticUse.superInvoke(
-          elementMap.getSuperNoSuchMethod(currentMember.enclosingClass!),
-          CallStructure.ONE_ARG));
-      registerBackendImpact(_impacts.superNoSuchMethod);
-    }
-  }
-
-  @override
-  void registerSuperSet(ir.Member? target) {
-    if (target != null) {
-      MemberEntity member = elementMap.getMember(target);
-      if (member is FieldEntity) {
-        impactBuilder.registerStaticUse(StaticUse.superFieldSet(member));
-      } else {
-        impactBuilder.registerStaticUse(
-            StaticUse.superSetterSet(member as FunctionEntity));
-      }
-    } else {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      impactBuilder.registerStaticUse(StaticUse.superInvoke(
-          elementMap.getSuperNoSuchMethod(currentMember.enclosingClass!),
-          CallStructure.ONE_ARG));
-      registerBackendImpact(_impacts.superNoSuchMethod);
+      impactBuilder.registerStaticUse(
+          StaticUse.superSetterSet(member as FunctionEntity));
     }
   }
 

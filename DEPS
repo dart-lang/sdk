@@ -149,7 +149,7 @@ vars = {
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "ef5f0650f66dc64587b11757fe3303538cfeb1d8",
   "html_rev": "327e37a6a4dd46599737ee982f280d73a8f646f7",
-  "http_rev": "f0a02f98f7c921e86ecc81c70f38bb6fbccc81b9", # https://github.com/dart-lang/sdk/issues/54165
+  "http_rev": "6d9f9efe04886d9685fbfb1a76ba24a71b6c951c",
   "http_multi_server_rev": "ba9d07f3596b24718ddf45c9e071d40879cca565",
   "http_parser_rev": "84db8b029d9b51859a0bb4966859af009f9442e3",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
