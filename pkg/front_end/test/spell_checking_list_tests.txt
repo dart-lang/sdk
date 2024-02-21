@@ -137,6 +137,7 @@ cells
 center
 certificate
 cf
+cfasta
 characteristics
 charset
 checkme
@@ -182,6 +183,7 @@ corge
 corners
 costing
 cov
+coverable
 coverages
 cp
 cpu
@@ -297,6 +299,7 @@ ex
 examines
 exceed
 excess
+excuse
 exe
 exercised
 exercises
@@ -402,6 +405,7 @@ i'm
 ia
 identification
 idle
+if's
 ikg
 illustrate
 image
@@ -484,6 +488,7 @@ mds
 meaningless
 measured
 measurement
+merger
 mf
 mfs
 micro
@@ -667,6 +672,7 @@ revealed
 revisions
 risky
 rk
+rnone
 row
 rows
 rr
@@ -699,6 +705,7 @@ series
 services
 setups
 severe
+sharp
 sheets
 shipped
 shortest
@@ -707,6 +714,7 @@ shuffle
 sidebar
 sigint
 signalled
+sigterm
 sigwinch
 silence
 simplistic
@@ -811,6 +819,7 @@ unassignment
 unawaited
 unbreak
 uncaught
+uncompiled
 unconverted
 uncover
 uncovers

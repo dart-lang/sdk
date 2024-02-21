@@ -29,12 +29,15 @@ import 'package:kernel/kernel.dart';
 import 'package:package_config/package_config.dart';
 
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Result, Step, TestDescription;
 
+import 'fasta/suite_utils.dart';
 import 'testing_utils.dart' show checkEnvironment, getGitFiles;
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "lint suite",
+    configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {

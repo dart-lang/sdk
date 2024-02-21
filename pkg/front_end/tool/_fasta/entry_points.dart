@@ -5,7 +5,8 @@
 library fasta.tool.entry_points;
 
 import 'dart:convert' show JsonEncoder, LineSplitter, jsonDecode, utf8;
-import 'dart:io' show File, Platform, stderr, stdin, stdout;
+import 'dart:io'
+    show File, Platform, ProcessSignal, exit, stderr, stdin, stdout;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
@@ -45,6 +46,7 @@ import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:kernel/verifier.dart';
 
+import '../../test/coverage_helper.dart';
 import 'additional_targets.dart' show installAdditionalTargets;
 import 'bench_maker.dart' show BenchMaker;
 import 'command_line.dart' show runProtectedFromAbort, withGlobalOptions;
@@ -154,11 +156,44 @@ Future<void> compilePlatformEntryPoint(List<String> arguments) async {
   }
 }
 
-Future<void> batchEntryPoint(List<String> arguments) {
+Future<void> batchEntryPoint(List<String> arguments) async {
+  tryListenToSignal(ProcessSignal.sigterm,
+      () => possiblyCollectCoverage("batch_compiler", exitWithCode: 1));
   installAdditionalTargets();
-  return new BatchCompiler(
+  await new BatchCompiler(
           stdin.transform(utf8.decoder).transform(new LineSplitter()))
       .run();
+}
+
+bool tryListenToSignal(ProcessSignal signal, void Function() callback) {
+  try {
+    signal.watch().listen((_) => callback());
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+Future<void> possiblyCollectCoverage(
+  String displayNamePrefix, {
+  int? exitWithCode,
+}) async {
+  String? coverage = Platform.environment["CFE_COVERAGE"];
+
+  if (coverage != null) {
+    Uri coverageUri = Uri.base.resolveUri(Uri.file(coverage));
+    String displayName =
+        "${displayNamePrefix}_${DateTime.now().microsecondsSinceEpoch}";
+    File f = new File.fromUri(coverageUri.resolve("$displayName.coverage"));
+    // Force compiling seems to add something like 1 second to the collection
+    // time, but we get rid of uncompiled functions so it seems to be worth it.
+    (await collectCoverage(displayName: displayName, forceCompile: true))
+        ?.writeToFile(f);
+  }
+
+  if (exitWithCode != null) {
+    exit(exitWithCode);
+  }
 }
 
 class BatchCompiler {

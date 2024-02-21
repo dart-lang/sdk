@@ -20,10 +20,10 @@ import 'package:testing/testing.dart'
         ExpectationSet,
         Result,
         Step,
-        TestDescription,
-        runMe;
+        TestDescription;
 
 import '../utils/kernel_chain.dart' show MatchContext;
+import 'suite_utils.dart';
 import 'testing/folder_options.dart';
 import 'testing/suite.dart' show UPDATE_EXPECTATIONS;
 
@@ -57,8 +57,11 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
   return new Future.value(new Context(suite.uri, environment));
 }
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../../testing.json");
+void main([List<String> arguments = const []]) => internalMain(
+      createContext,
+      arguments: arguments,
+      displayName: "textual outline suite",
+    );
 
 class Context extends ChainContext with MatchContext {
   final SuiteFolderOptions suiteFolderOptions;
