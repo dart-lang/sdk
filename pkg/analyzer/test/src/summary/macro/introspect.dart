@@ -576,8 +576,10 @@ class _Printer {
     await sink.withIndent(() async {
       await sink.writeFlags({
         'hasAbstract': e.hasAbstract,
+        'hasConst': e.hasConst,
         'hasExternal': e.hasExternal,
         'hasFinal': e.hasFinal,
+        'hasInitializer': e.hasInitializer,
         'hasLate': e.hasLate,
         'hasStatic': e.hasStatic,
       });
@@ -655,9 +657,11 @@ class _Printer {
 
     await sink.withIndent(() async {
       await sink.writeFlags({
+        'hasConst': e.hasConst,
         'hasExternal': e.hasExternal,
         'hasFinal': e.hasFinal,
         'hasLate': e.hasLate,
+        'hasInitializer': e.hasInitializer,
       });
       await _writeMetadata(e);
       await _writeNamedTypeAnnotation('type', e.type);
