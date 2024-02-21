@@ -217,6 +217,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_BoxedInt", "_truncDiv");
   late final Procedure runtimeTypeEquals =
       index.getTopLevelProcedure("dart:core", "_runtimeTypeEquals");
+  late final Procedure runtimeTypeHashCode =
+      index.getTopLevelProcedure("dart:core", "_runtimeTypeHashCode");
 
   // dart:core invocation/exception procedures
   late final Procedure invocationGetterFactory =
@@ -296,6 +298,11 @@ mixin KernelNodes {
       index.getProcedure("dart:_wasm", "WasmFunction", "get:call");
   late final Procedure wasmTableCallIndirect =
       index.getProcedure("dart:_wasm", "WasmTable", "callIndirect");
+
+  // Hash utils
+  late final Field hashSeed = index.getTopLevelField('dart:core', '_hashSeed');
+  late final Procedure systemHashCombine =
+      index.getProcedure("dart:_internal", "SystemHash", "combine");
 
   // Debugging
   late final Procedure printToConsole =

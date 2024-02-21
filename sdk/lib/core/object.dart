@@ -561,4 +561,5 @@ class Object {
 }
 
 // A per-isolate seed for hash code computations.
+@pragma("wasm:entry-point")
 final int _hashSeed = identityHashCode(Object);
