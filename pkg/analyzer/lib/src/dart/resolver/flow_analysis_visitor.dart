@@ -445,6 +445,9 @@ class TypeSystemOperations
   }
 
   @override
+  String getDisplayString(DartType type) => type.getDisplayString();
+
+  @override
   DartType glb(DartType type1, DartType type2) {
     return typeSystem.greatestLowerBound(type1, type2);
   }
@@ -637,12 +640,33 @@ class TypeSystemOperations
   }
 
   @override
+  bool typeIsSubtypeOfTypeSchema(DartType leftType, DartType rightSchema) {
+    return isSubtypeOf(leftType, rightSchema);
+  }
+
+  @override
   DartType typeSchemaGlb(DartType typeSchema1, DartType typeSchema2) {
     return typeSystem.greatestLowerBound(typeSchema1, typeSchema2);
   }
 
   @override
   bool typeSchemaIsDynamic(DartType typeSchema) => typeSchema is DynamicType;
+
+  @override
+  bool typeSchemaIsSubtypeOfType(DartType leftSchema, DartType rightType) {
+    return isSubtypeOf(leftSchema, rightType);
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      DartType leftSchema, DartType rightSchema) {
+    return isSubtypeOf(leftSchema, rightSchema);
+  }
+
+  @override
+  DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {
+    return typeSystem.leastUpperBound(typeSchema1, typeSchema2);
+  }
 
   @override
   DartType typeToSchema(DartType type) => type;

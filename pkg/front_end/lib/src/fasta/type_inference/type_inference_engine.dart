@@ -13,6 +13,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/norm.dart';
+import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
@@ -700,7 +701,7 @@ class OperationsCfe
   @override
   DartType glb(DartType type1, DartType type2) {
     return typeEnvironment.getStandardLowerBound(type1, type2,
-        isNonNullableByDefault: true);
+        isNonNullableByDefault: nullability == Nullability.nonNullable);
   }
 
   @override
@@ -758,7 +759,7 @@ class OperationsCfe
   @override
   DartType lub(DartType type1, DartType type2) {
     return typeEnvironment.getStandardUpperBound(type1, type2,
-        isNonNullableByDefault: true);
+        isNonNullableByDefault: nullability == Nullability.nonNullable);
   }
 
   @override
@@ -905,6 +906,32 @@ class OperationsCfe
 
   @override
   DartType typeToSchema(DartType type) => type;
+
+  @override
+  String getDisplayString(DartType type) {
+    return type.toText(const AstTextStrategy());
+  }
+
+  @override
+  DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {
+    return lub(typeSchema1, typeSchema2);
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      DartType leftSchema, DartType rightSchema) {
+    return isSubtypeOf(leftSchema, rightSchema);
+  }
+
+  @override
+  bool typeIsSubtypeOfTypeSchema(DartType leftType, DartType rightSchema) {
+    return isSubtypeOf(leftType, rightSchema);
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfType(DartType leftSchema, DartType rightType) {
+    return isSubtypeOf(leftSchema, rightType);
+  }
 }
 
 /// Type inference results used for testing.

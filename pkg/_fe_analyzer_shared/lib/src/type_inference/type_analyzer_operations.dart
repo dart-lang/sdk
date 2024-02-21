@@ -46,6 +46,13 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// If [type] is a record type, returns it.
   RecordType<Type>? asRecordType(Type type);
 
+  /// Return the presentation of this type as it should appear when presented
+  /// to users in contexts such as error messages.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  String getDisplayString(Type type);
+
   /// Computes the greatest lower bound of [type1] and [type2].
   Type glb(Type type1, Type type2);
 
@@ -64,8 +71,8 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   bool isTypeSchemaSatisfied(
       {required TypeSchema typeSchema, required Type type});
 
-  /// Returns `true` if [type] is the unknown type context (`_`).
-  bool isUnknownType(Type type);
+  /// Returns `true` if [typeSchema] is the unknown type context (`_`).
+  bool isUnknownType(TypeSchema typeSchema);
 
   /// Returns whether [node] is final.
   bool isVariableFinal(Variable node);
@@ -138,12 +145,46 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Returns the type schema `Stream`, with type argument [elementTypeSchema].
   TypeSchema streamTypeSchema(TypeSchema elementTypeSchema);
 
+  /// Returns `true` if [leftType] is a subtype of the greatest closure of
+  /// [rightSchema].
+  ///
+  /// This method can be implemented directly, by computing the greatest
+  /// closure of [rightSchema] and then comparing the resulting type and
+  /// [leftType] via [isSubtypeOf]. However, that would mean at least two
+  /// recursive descends over types. This method is supposed to have optimized
+  /// implementations that only use one recursive descend.
+  bool typeIsSubtypeOfTypeSchema(Type leftType, TypeSchema rightSchema);
+
   /// Computes the greatest lower bound of [typeSchema1] and [typeSchema2].
   TypeSchema typeSchemaGlb(TypeSchema typeSchema1, TypeSchema typeSchema2);
 
   /// Determines whether the given type schema corresponds to the `dynamic`
   /// type.
   bool typeSchemaIsDynamic(TypeSchema typeSchema);
+
+  /// Returns `true` if least closure of [leftSchema] is a subtype of
+  /// the greatest closure of [rightSchema].
+  ///
+  /// This method can be implemented directly, by computing the least closure of
+  /// [leftSchema], the greatest closure of [rightSchema], and then comparing
+  /// the resulting types via [isSubtypeOf]. However, that would mean at least
+  /// three recursive descends over types. This method is supposed to have
+  /// optimized implementations that only use one recursive descend.
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      TypeSchema leftSchema, TypeSchema rightSchema);
+
+  /// Returns `true` if the least closure of [leftSchema] is a subtype of
+  /// [rightType].
+  ///
+  /// This method can be implemented directly, by computing the least closure
+  /// of [leftSchema] and then comparing the resulting type and [rightType] via
+  /// [isSubtypeOf]. However, that would mean at least two recursive descends
+  /// over types. This method is supposed to have optimized implementations
+  /// that only use one recursive descend.
+  bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType);
+
+  /// Computes the least upper bound of [typeSchema1] and [typeSchema2].
+  TypeSchema typeSchemaLub(TypeSchema typeSchema1, TypeSchema typeSchema2);
 
   /// Converts a type into a corresponding type schema.
   TypeSchema typeToSchema(Type type);

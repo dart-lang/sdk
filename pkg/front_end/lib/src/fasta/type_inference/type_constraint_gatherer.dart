@@ -19,13 +19,13 @@ import 'type_schema_environment.dart';
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
 class TypeConstraintGatherer {
-  final List<_ProtoConstraint> _protoConstraints = [];
+  final List<GeneratedTypeConstraint> _protoConstraints = [];
 
   final List<StructuralParameter> _parametersToConstrain;
 
   final bool _isNonNullableByDefault;
 
-  final OperationsCfe _typeOperations;
+  final OperationsCfe typeOperations;
 
   final TypeSchemaEnvironment _environment;
 
@@ -33,22 +33,10 @@ class TypeConstraintGatherer {
       this._environment, Iterable<StructuralParameter> typeParameters,
       {required bool isNonNullableByDefault,
       required OperationsCfe typeOperations})
-      : _typeOperations = typeOperations,
+      : typeOperations = typeOperations,
         _isNonNullableByDefault = isNonNullableByDefault,
         _parametersToConstrain =
             new List<StructuralParameter>.of(typeParameters);
-
-  void addUpperBound(TypeConstraint constraint, DartType upper,
-      {required bool isNonNullableByDefault}) {
-    _environment.addUpperBound(constraint, upper,
-        isNonNullableByDefault: isNonNullableByDefault);
-  }
-
-  void addLowerBound(TypeConstraint constraint, DartType lower,
-      {required bool isNonNullableByDefault}) {
-    _environment.addLowerBound(constraint, lower,
-        isNonNullableByDefault: isNonNullableByDefault);
-  }
 
   /// Applies all the argument constraints implied by trying to make
   /// [actualTypes] assignable to [formalTypes].
@@ -80,20 +68,18 @@ class TypeConstraintGatherer {
   }
 
   /// Returns the set of type constraints that was gathered.
-  Map<StructuralParameter, TypeConstraint> computeConstraints(
+  Map<StructuralParameter, MergedTypeConstraint> computeConstraints(
       {required bool isNonNullableByDefault}) {
-    Map<StructuralParameter, TypeConstraint> result = {};
+    Map<StructuralParameter, MergedTypeConstraint> result = {};
     for (StructuralParameter parameter in _parametersToConstrain) {
-      result[parameter] = new TypeConstraint();
+      result[parameter] = new MergedTypeConstraint(
+          lower: const UnknownType(),
+          upper: const UnknownType(),
+          origin: const UnknownTypeConstraintOrigin());
     }
-    for (_ProtoConstraint protoConstraint in _protoConstraints) {
-      if (protoConstraint.isUpper) {
-        addUpperBound(result[protoConstraint.parameter]!, protoConstraint.bound,
-            isNonNullableByDefault: isNonNullableByDefault);
-      } else {
-        addLowerBound(result[protoConstraint.parameter]!, protoConstraint.bound,
-            isNonNullableByDefault: isNonNullableByDefault);
-      }
+    for (GeneratedTypeConstraint protoConstraint in _protoConstraints) {
+      result[protoConstraint.typeParameter]!
+          .mergeIn(protoConstraint, typeOperations);
     }
     return result;
   }
@@ -168,12 +154,12 @@ class TypeConstraintGatherer {
 
   /// Add constraint: [lower] <: [parameter] <: TOP.
   void _constrainParameterLower(StructuralParameter parameter, DartType lower) {
-    _protoConstraints.add(new _ProtoConstraint.lower(parameter, lower));
+    _protoConstraints.add(new GeneratedTypeConstraint.lower(parameter, lower));
   }
 
   /// Add constraint: BOTTOM <: [parameter] <: [upper].
   void _constrainParameterUpper(StructuralParameter parameter, DartType upper) {
-    _protoConstraints.add(new _ProtoConstraint.upper(parameter, upper));
+    _protoConstraints.add(new GeneratedTypeConstraint.upper(parameter, upper));
   }
 
   bool _isFunctionSubtypeMatch(FunctionType subtype, FunctionType supertype) {
@@ -429,10 +415,10 @@ class TypeConstraintGatherer {
     if (p is InvalidType || q is InvalidType) return false;
 
     // If P is _ then the match holds with no constraints.
-    if (_typeOperations.isUnknownType(p)) return true;
+    if (typeOperations.isUnknownType(p)) return true;
 
     // If Q is _ then the match holds with no constraints.
-    if (_typeOperations.isUnknownType(q)) return true;
+    if (typeOperations.isUnknownType(q)) return true;
 
     // If P is a type variable X in L, then the match holds:
     //
@@ -867,7 +853,7 @@ class TypeConstraintGatherer {
             q, typeParametersOfPAsTypesForQ);
         if (_isNullabilityAwareSubtypeMatch(instantiatedP, instantiatedQ,
             constrainSupertype: constrainSupertype)) {
-          List<_ProtoConstraint> constraints =
+          List<GeneratedTypeConstraint> constraints =
               _protoConstraints.sublist(baseConstraintCount);
           _protoConstraints.length = baseConstraintCount;
           NullabilityAwareTypeVariableEliminator eliminator =
@@ -883,13 +869,13 @@ class TypeConstraintGatherer {
                           ? false
                           : throw new UnsupportedError(
                               "Unsupported type '${type.runtimeType}'."));
-          for (_ProtoConstraint constraint in constraints) {
+          for (GeneratedTypeConstraint constraint in constraints) {
             if (constraint.isUpper) {
-              _constrainParameterUpper(constraint.parameter,
-                  eliminator.eliminateToLeast(constraint.bound));
+              _constrainParameterUpper(constraint.typeParameter,
+                  eliminator.eliminateToLeast(constraint.constraint));
             } else {
-              _constrainParameterLower(constraint.parameter,
-                  eliminator.eliminateToGreatest(constraint.bound));
+              _constrainParameterLower(constraint.typeParameter,
+                  eliminator.eliminateToGreatest(constraint.constraint));
             }
           }
           return true;
@@ -1185,29 +1171,5 @@ class TypeConstraintGatherer {
       if (!_isNullabilityObliviousSubtypeMatch(bound2, bound1)) return false;
     }
     return true;
-  }
-}
-
-/// Tracks a single constraint on a single type variable.
-///
-/// This is called "_ProtoConstraint" to distinguish from [TypeConstraint],
-/// which tracks the upper and lower bounds that are together implied by a set
-/// of [_ProtoConstraint]s.
-class _ProtoConstraint {
-  final StructuralParameter parameter;
-
-  final DartType bound;
-
-  final bool isUpper;
-
-  _ProtoConstraint.lower(this.parameter, this.bound) : isUpper = false;
-
-  _ProtoConstraint.upper(this.parameter, this.bound) : isUpper = true;
-
-  @override
-  String toString() {
-    return isUpper
-        ? "${parameter.name} <: $bound"
-        : "$bound <: ${parameter.name}";
   }
 }

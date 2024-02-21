@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -12,34 +13,14 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 
-/// A constraint on the type [parameter] that we're inferring.
-/// We require that `lower <: parameter <: upper`.
-class TypeConstraint {
-  final TypeParameterElement parameter;
-  final DartType lower;
-  final DartType upper;
-
-  TypeConstraint._(this.parameter, this.lower, this.upper);
-
-  bool get isEmpty {
-    return identical(lower, UnknownInferredType.instance) &&
-        identical(upper, UnknownInferredType.instance);
-  }
-
-  @override
-  String toString() {
-    var lowerStr = lower.getDisplayString();
-    var upperStr = upper.getDisplayString();
-    return '$lowerStr <: ${parameter.name} <: $upperStr';
-  }
-}
-
 /// Creates sets of [TypeConstraint]s for type parameters, based on an attempt
 /// to make one type schema a subtype of another.
 class TypeConstraintGatherer {
   final TypeSystemImpl _typeSystem;
   final Set<TypeParameterElement> _typeParameters = Set.identity();
-  final List<TypeConstraint> _constraints = [];
+  final List<
+      GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+          PromotableElement>> _constraints = [];
   final TypeSystemOperations _typeSystemOperations;
 
   TypeConstraintGatherer({
@@ -54,31 +35,27 @@ class TypeConstraintGatherer {
   bool get isConstraintSetEmpty => _constraints.isEmpty;
 
   /// Returns the set of type constraints that was gathered.
-  Map<TypeParameterElement, TypeConstraint> computeConstraints() {
-    var result = <TypeParameterElement, TypeConstraint>{};
+  Map<
+      TypeParameterElement,
+      MergedTypeConstraint<DartType, DartType, TypeParameterElement,
+          PromotableElement>> computeConstraints() {
+    var result = <TypeParameterElement,
+        MergedTypeConstraint<DartType, DartType, TypeParameterElement,
+            PromotableElement>>{};
     for (var parameter in _typeParameters) {
-      result[parameter] = TypeConstraint._(
-        parameter,
-        UnknownInferredType.instance,
-        UnknownInferredType.instance,
+      result[parameter] = MergedTypeConstraint<DartType, DartType,
+          TypeParameterElement, PromotableElement>(
+        lower: UnknownInferredType.instance,
+        upper: UnknownInferredType.instance,
+        origin: const UnknownTypeConstraintOrigin(),
       );
     }
 
     for (var constraint in _constraints) {
-      var parameter = constraint.parameter;
+      var parameter = constraint.typeParameter;
       var mergedConstraint = result[parameter]!;
 
-      var lower = _typeSystem.leastUpperBound(
-        mergedConstraint.lower,
-        constraint.lower,
-      );
-
-      var upper = _typeSystem.greatestLowerBound(
-        mergedConstraint.upper,
-        constraint.upper,
-      );
-
-      result[parameter] = TypeConstraint._(parameter, lower, upper);
+      mergedConstraint.mergeIn(constraint, _typeSystemOperations);
     }
 
     return result;
@@ -345,13 +322,15 @@ class TypeConstraintGatherer {
 
   void _addLower(TypeParameterElement element, DartType lower) {
     _constraints.add(
-      TypeConstraint._(element, lower, UnknownInferredType.instance),
+      GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+          PromotableElement>.lower(element, lower),
     );
   }
 
   void _addUpper(TypeParameterElement element, DartType upper) {
     _constraints.add(
-      TypeConstraint._(element, UnknownInferredType.instance, upper),
+      GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+          PromotableElement>.upper(element, upper),
     );
   }
 

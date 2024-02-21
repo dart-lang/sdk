@@ -909,6 +909,7 @@ java
 jenkins
 jensj
 jit
+jmesserly
 job
 johnniwinther
 js
