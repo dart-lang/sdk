@@ -63,7 +63,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       tasks_(0),
       concurrent_marker_tasks_(0),
       concurrent_marker_tasks_active_(0),
-      pause_concurrent_marking_(false),
+      pause_concurrent_marking_(0),
       phase_(kDone),
 #if defined(DEBUG)
       iterating_thread_(nullptr),
@@ -435,8 +435,8 @@ void PageSpace::ReleaseLock(FreeList* freelist) {
 
 void PageSpace::PauseConcurrentMarking() {
   MonitorLocker ml(&tasks_lock_);
-  ASSERT(!pause_concurrent_marking_);
-  pause_concurrent_marking_ = true;
+  ASSERT(pause_concurrent_marking_.load() == 0);
+  pause_concurrent_marking_.store(1);
   while (concurrent_marker_tasks_active_ != 0) {
     ml.Wait();
   }
@@ -444,20 +444,20 @@ void PageSpace::PauseConcurrentMarking() {
 
 void PageSpace::ResumeConcurrentMarking() {
   MonitorLocker ml(&tasks_lock_);
-  ASSERT(pause_concurrent_marking_);
-  pause_concurrent_marking_ = false;
+  ASSERT(pause_concurrent_marking_.load() != 0);
+  pause_concurrent_marking_.store(0);
   ml.NotifyAll();
 }
 
 void PageSpace::YieldConcurrentMarking() {
   MonitorLocker ml(&tasks_lock_);
-  if (pause_concurrent_marking_) {
+  if (pause_concurrent_marking_.load() != 0) {
     TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Pause");
     concurrent_marker_tasks_active_--;
     if (concurrent_marker_tasks_active_ == 0) {
       ml.NotifyAll();
     }
-    while (pause_concurrent_marking_) {
+    while (pause_concurrent_marking_.load() != 0) {
       ml.Wait();
     }
     concurrent_marker_tasks_active_++;
