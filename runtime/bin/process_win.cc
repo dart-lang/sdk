@@ -316,47 +316,6 @@ static HANDLE OpenNul() {
   return nul;
 }
 
-typedef BOOL(WINAPI* InitProcThreadAttrListFn)(LPPROC_THREAD_ATTRIBUTE_LIST,
-                                               DWORD,
-                                               DWORD,
-                                               PSIZE_T);
-
-typedef BOOL(WINAPI* UpdateProcThreadAttrFn)(LPPROC_THREAD_ATTRIBUTE_LIST,
-                                             DWORD,
-                                             DWORD_PTR,
-                                             PVOID,
-                                             SIZE_T,
-                                             PVOID,
-                                             PSIZE_T);
-
-typedef VOID(WINAPI* DeleteProcThreadAttrListFn)(LPPROC_THREAD_ATTRIBUTE_LIST);
-
-static InitProcThreadAttrListFn init_proc_thread_attr_list = nullptr;
-static UpdateProcThreadAttrFn update_proc_thread_attr = nullptr;
-static DeleteProcThreadAttrListFn delete_proc_thread_attr_list = nullptr;
-
-static Mutex* initialized_mutex = nullptr;
-static bool load_attempted = false;
-
-static bool EnsureInitialized() {
-  HMODULE kernel32_module = GetModuleHandleW(L"kernel32.dll");
-  if (!load_attempted) {
-    MutexLocker locker(initialized_mutex);
-    if (load_attempted) {
-      return (delete_proc_thread_attr_list != nullptr);
-    }
-    init_proc_thread_attr_list = reinterpret_cast<InitProcThreadAttrListFn>(
-        GetProcAddress(kernel32_module, "InitializeProcThreadAttributeList"));
-    update_proc_thread_attr = reinterpret_cast<UpdateProcThreadAttrFn>(
-        GetProcAddress(kernel32_module, "UpdateProcThreadAttribute"));
-    delete_proc_thread_attr_list = reinterpret_cast<DeleteProcThreadAttrListFn>(
-        GetProcAddress(kernel32_module, "DeleteProcThreadAttributeList"));
-    load_attempted = true;
-    return (delete_proc_thread_attr_list != nullptr);
-  }
-  return (delete_proc_thread_attr_list != nullptr);
-}
-
 const int kMaxPipeNameSize = 80;
 template <int Count>
 static int GenerateNames(wchar_t pipe_names[Count][kMaxPipeNameSize]) {
@@ -494,7 +453,7 @@ class ProcessStarter {
 
   ~ProcessStarter() {
     if (attribute_list_ != nullptr) {
-      delete_proc_thread_attr_list(attribute_list_);
+      DeleteProcThreadAttributeList(attribute_list_);
     }
   }
 
@@ -515,34 +474,31 @@ class ProcessStarter {
       startup_info.StartupInfo.hStdError = stderr_handles_[kWriteHandle];
       startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
 
-      bool supports_proc_thread_attr_lists = EnsureInitialized();
-      if (supports_proc_thread_attr_lists) {
-        // Setup the handles to inherit. We only want to inherit the three
-        // handles for stdin, stdout and stderr.
-        SIZE_T size = 0;
-        // The call to determine the size of an attribute list always fails with
-        // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
-        if (!init_proc_thread_attr_list(nullptr, 1, 0, &size) &&
-            (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
-          return CleanupAndReturnError();
-        }
-        attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
-            Dart_ScopeAllocate(size));
-        ZeroMemory(attribute_list_, size);
-        if (!init_proc_thread_attr_list(attribute_list_, 1, 0, &size)) {
-          return CleanupAndReturnError();
-        }
-        inherited_handles_ = {stdin_handles_[kReadHandle],
-                              stdout_handles_[kWriteHandle],
-                              stderr_handles_[kWriteHandle]};
-        if (!update_proc_thread_attr(
-                attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-                inherited_handles_.data(),
-                inherited_handles_.size() * sizeof(HANDLE), nullptr, nullptr)) {
-          return CleanupAndReturnError();
-        }
-        startup_info.lpAttributeList = attribute_list_;
+      // Setup the handles to inherit. We only want to inherit the three
+      // handles for stdin, stdout and stderr.
+      SIZE_T size = 0;
+      // The call to determine the size of an attribute list always fails with
+      // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
+      if (!InitializeProcThreadAttributeList(nullptr, 1, 0, &size) &&
+          (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
+        return CleanupAndReturnError();
       }
+      attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
+          Dart_ScopeAllocate(size));
+      ZeroMemory(attribute_list_, size);
+      if (!InitializeProcThreadAttributeList(attribute_list_, 1, 0, &size)) {
+        return CleanupAndReturnError();
+      }
+      inherited_handles_ = {stdin_handles_[kReadHandle],
+                            stdout_handles_[kWriteHandle],
+                            stderr_handles_[kWriteHandle]};
+      if (!UpdateProcThreadAttribute(
+              attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+              inherited_handles_.data(),
+              inherited_handles_.size() * sizeof(HANDLE), nullptr, nullptr)) {
+        return CleanupAndReturnError();
+      }
+      startup_info.lpAttributeList = attribute_list_;
     }
 
     PROCESS_INFORMATION process_info;
@@ -1126,10 +1082,6 @@ void Process::Init() {
   ASSERT(signal_mutex == nullptr);
   signal_mutex = new Mutex();
 
-  ASSERT(initialized_mutex == nullptr);
-  initialized_mutex = new Mutex();
-  load_attempted = false;
-
   ASSERT(Process::global_exit_code_mutex_ == nullptr);
   Process::global_exit_code_mutex_ = new Mutex();
 }
@@ -1140,10 +1092,6 @@ void Process::Cleanup() {
   ASSERT(signal_mutex != nullptr);
   delete signal_mutex;
   signal_mutex = nullptr;
-
-  ASSERT(initialized_mutex != nullptr);
-  delete initialized_mutex;
-  initialized_mutex = nullptr;
 
   ASSERT(Process::global_exit_code_mutex_ != nullptr);
   delete Process::global_exit_code_mutex_;
