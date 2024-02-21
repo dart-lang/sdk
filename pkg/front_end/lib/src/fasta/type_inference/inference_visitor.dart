@@ -5006,7 +5006,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard = createNullAwareGuard(node.variable);
     ExpressionInferenceResult expressionResult =
-        inferExpression(node.expression, const UnknownType());
+        inferExpression(node.expression, typeContext);
     return createNullAwareExpressionInferenceResult(
         expressionResult.inferredType,
         expressionResult.expression,
