@@ -9,8 +9,6 @@ import 'dart:math' show max, min;
 
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
-import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
-    show eraseStaticInteropTypesForJSCompilers;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName, JsBuiltin;
 import 'package:kernel/class_hierarchy.dart';
@@ -1165,132 +1163,38 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return;
     }
 
-    js_ast.Expression emitDeferredType(DartType t,
-        {bool emitNullability = true}) {
-      js_ast.Expression emitDeferredType(DartType t,
-          {bool emitNullability = true}) {
-        switch (t) {
-          case InterfaceType():
-            _declareBeforeUse(t.classNode);
-            if (t.typeArguments.isNotEmpty) {
-              var typeRep =
-                  _emitGenericClassType(t, t.typeArguments.map(_emitType));
-              return emitNullability
-                  ? _emitNullabilityWrapper(typeRep, t.declaredNullability)
-                  : typeRep;
-            }
-            return _emitInterfaceType(t, emitNullability: emitNullability);
-          case FutureOrType():
-            var normalizedType =
-                _futureOrNormalizer.normalize(t.extensionTypeErasure);
-            if (normalizedType is FutureOrType) {
-              _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
-              var typeRep = _emitFutureOrTypeWithArgument(
-                  emitDeferredType(normalizedType.typeArgument));
-              return emitNullability
-                  ? _emitNullabilityWrapper(
-                      typeRep, normalizedType.declaredNullability)
-                  : typeRep;
-            }
-            return emitDeferredType(normalizedType,
-                emitNullability: emitNullability);
-          case RecordType():
-            var positional = t.positional.map(emitDeferredType);
-            var named = t.named.map((n) => emitDeferredType(n.type));
-            var typeRep = _emitRecordType(t, positional, named);
-            return emitNullability
-                ? _emitNullabilityWrapper(typeRep, t.nullability)
-                : typeRep;
-
-          case TypeParameterType():
-          case StructuralParameterType():
-            return _emitTypeParameterType(t, emitNullability: emitNullability);
-          case IntersectionType():
-            return _emitTypeParameterType(t.left,
-                emitNullability: emitNullability);
-          case ExtensionType():
-            return emitDeferredType(t.extensionTypeErasure);
-          case DynamicType():
-          case VoidType():
-          case NeverType():
-          case NullType():
-          // TODO(nshahan): It seems like a bug that `FunctionType`s have no
-          // special handling here when they do in `shouldDefer()`.
-          case FunctionType():
-          case TypedefType():
-            return _emitType(t);
-          case AuxiliaryType():
-            throwUnsupportedAuxiliaryType(t);
-          case InvalidType():
-            throwUnsupportedInvalidType(t);
-        }
-      }
-
+    js_ast.Expression emitDeferredClassRef(InterfaceType type) {
       var savedEmittingDeferredType = _emittingDeferredType;
       _emittingDeferredType = true;
-      var deferredClassRep =
-          emitDeferredType(t, emitNullability: emitNullability);
+      _declareBeforeUse(type.classNode);
+      var deferredClassRef = _emitClassRef(type);
       _emittingDeferredType = savedEmittingDeferredType;
-      return deferredClassRep;
+      return deferredClassRef;
     }
 
-    bool shouldDefer(InterfaceType t) {
+    bool shouldDefer(InterfaceType type) {
       var visited = <DartType>{};
-      bool defer(DartType t) {
-        switch (t) {
-          case InterfaceType(classNode: var tc):
-            if (c == tc) return true;
-            if (tc == _coreTypes.objectClass || !visited.add(t)) return false;
-            if (t.typeArguments.any(defer)) return true;
-            var mixin = tc.mixedInType;
-            return mixin != null && defer(mixin.asInterfaceType) ||
-                defer(tc.supertype!.asInterfaceType);
-          case FutureOrType():
-            if (c == _coreTypes.deprecatedFutureOrClass) return true;
-            if (!visited.add(t)) return false;
-            if (defer(t.typeArgument)) return true;
-            return defer(
-                _coreTypes.deprecatedFutureOrClass.supertype!.asInterfaceType);
-          case TypedefType():
-            return t.typeArguments.any(defer);
-          case FunctionType():
-            return defer(t.returnType) ||
-                t.positionalParameters.any(defer) ||
-                t.namedParameters.any((np) => defer(np.type)) ||
-                t.typeParameters.any((tp) => defer(tp.bound));
-          case RecordType():
-            return t.positional.any(defer) || t.named.any((n) => defer(n.type));
-          case ExtensionType():
-            return defer(t.extensionTypeErasure);
-          case DynamicType():
-          case VoidType():
-          case NeverType():
-          case NullType():
-          case IntersectionType():
-          case TypeParameterType():
-          case StructuralParameterType():
-            return false;
-          case AuxiliaryType():
-            throwUnsupportedAuxiliaryType(t);
-          case InvalidType():
-            throwUnsupportedInvalidType(t);
-        }
+      bool defer(InterfaceType t) {
+        var tc = t.classNode;
+        if (c == tc) return true;
+        if (tc == _coreTypes.objectClass || !visited.add(t)) return false;
+        var mixin = tc.mixedInType;
+        return mixin != null && defer(mixin.asInterfaceType) ||
+            defer(tc.supertype!.asInterfaceType);
       }
 
-      return defer(t);
+      return defer(type);
     }
 
     js_ast.Expression emitClassRef(InterfaceType t) {
       // TODO(jmesserly): investigate this. It seems like `lazyJSType` is
       // invalid for use in an `extends` clause, hence this workaround.
-      return _emitJSInterop(t.classNode) ??
-          _emitInterfaceType(t, emitNullability: false);
+      return _emitJSInterop(t.classNode) ?? _emitClassRef(t);
     }
 
     js_ast.Expression getBaseClass(int count) {
-      var base = emitDeferredType(
-          c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable),
-          emitNullability: false);
+      var base = emitDeferredClassRef(
+          c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable));
       while (--count >= 0) {
         base = _emitJSObjectGetPrototypeOf(base, fullyQualifiedName: true);
       }
@@ -1365,7 +1269,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var originalSupertype = supertype;
       deferredSupertypes.add(() => runtimeStatement('setBaseClass(#, #)', [
             getBaseClass(mixinApplications.length),
-            emitDeferredType(originalSupertype, emitNullability: false),
+            emitDeferredClassRef(originalSupertype),
           ]));
       // Refers to 'supertype' without type parameters. We remove these from
       // the 'extends' clause for generics for cyclic dependencies and append
@@ -1439,7 +1343,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (shouldDefer(mixinType)) {
         deferredSupertypes.add(() => runtimeStatement('applyMixin(#, #)', [
               getBaseClass(mixinApplications.length - i),
-              emitDeferredType(mixinType, emitNullability: false)
+              emitDeferredClassRef(mixinType)
             ]));
       } else {
         body.add(runtimeStatement(
@@ -2388,10 +2292,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression emitConstructorAccess(InterfaceType type) {
-    return _emitJSInterop(type.classNode) ??
-        _emitInterfaceType(type, emitNullability: false);
-  }
+  js_ast.Expression emitConstructorAccess(InterfaceType type) =>
+      _emitJSInterop(type.classNode) ?? _emitClassRef(type);
 
   /// This is called whenever a derived class needs to introduce a new field,
   /// shadowing a field or getter/setter pair on its parent.
@@ -3302,94 +3204,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         [js.escapedString('node <${node.runtimeType}> $message`$node`')]);
   }
 
-  /// Emits the representation of [type].
-  ///
-  /// Will avoid emitting the type wrappers for null safety when
-  /// [emitNullability] is `false` to avoid cases where marking [type] with
-  /// nullability information makes no sense in the context.
-  js_ast.Expression _emitInterfaceType(InterfaceType type,
-      {bool emitNullability = true}) {
-    var c = type.classNode;
-    _declareBeforeUse(c);
-    js_ast.Expression? typeRep;
-
-    // Type parameters don't matter as JS interop types cannot be reified.
-    // package:js types fall under non-`@staticInterop` and `@staticInterop`
-    // types. non-`@staticInterop` types are represented at runtime using
-    // PackageJSType. `@staticInterop` types are erased here during emission to
-    // `JavaScriptObject`.
-    if (isStaticInteropType(c)) {
-      typeRep =
-          _emitType(eraseStaticInteropTypesForJSCompilers(_coreTypes, type));
-    } else {
-      var jsName = isJSAnonymousType(c)
-          ? getLocalClassName(c)
-          : _emitJsNameWithoutGlobal(c);
-      if (jsName != null) {
-        if (type.typeArguments.isNotEmpty) {
-          // This does not handle the type arguments as such, it simply includes
-          // them in the textual representation of this type so you can see them
-          // when printed. They are not used as part of the type system at all.
-          jsName =
-              '$jsName<${type.typeArguments.map((_) => 'any').join(', ')}>';
-        }
-        typeRep = runtimeCall('packageJSType(#)', [js.escapedString(jsName)]);
-      }
-    }
-
-    if (typeRep != null) {
-      // JS types are not currently cached in the type table like other types
-      // are below.
-      return emitNullability
-          ? _emitNullabilityWrapper(typeRep, type.nullability)
-          : typeRep;
-    }
-
-    var args = type.typeArguments;
-    Iterable<js_ast.Expression>? jsArgs;
-    if (args.any((a) => a != const DynamicType())) {
-      jsArgs = args.map(_emitType);
-    }
-    if (jsArgs != null) {
-      // We force nullability to non-nullable to prevent caching nullable
-      // and non-nullable generic types separately (e.g., C<T> and C<T>?).
-      // Forward-defined types will only have nullability wrappers around
-      // their type arguments (not the generic type itself).
-      typeRep = _emitGenericClassType(
-          type.withDeclaredNullability(Nullability.nonNullable), jsArgs);
-      if (_cacheTypes) {
-        typeRep = _typeTable.nameType(
-            type.withDeclaredNullability(Nullability.nonNullable), typeRep);
-      }
-    }
-
-    typeRep ??= _emitTopLevelNameNoExternalInterop(type.classNode);
-
-    // Avoid emitting the null safety wrapper types when:
-    // * This specific InterfaceType is known to be from a context where
-    //   the nullability is meaningless:
-    //   * `class A extends B {...}` where B is the InterfaceType.
-    //   * Emitting non-null constructor calls.
-    // * The InterfaceType is the Null type.
-    if (!emitNullability || type == _coreTypes.deprecatedNullType) {
-      return typeRep;
-    }
-
-    if (type.nullability == Nullability.undetermined) {
-      _undeterminedNullabilityError(type);
-    }
-
-    // Emit non-nullable version directly.
-    typeRep = _emitNullabilityWrapper(typeRep, type.nullability);
-    if (!_cacheTypes || type.nullability == Nullability.nonNullable) {
-      return typeRep;
-    }
-
-    // Hoist the nullable or legacy versions of the type to the top level and
-    // use it everywhere it appears.
-    return _typeTable.nameType(type, typeRep);
-  }
-
   /// Emits a reference to the class described by [type].
   ///
   /// The nullability of [type] is not considered because it is meaningless when
@@ -3418,30 +3232,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _emitTopLevelNameNoExternalInterop(type.classNode);
   }
 
-  Never _undeterminedNullabilityError(DartType type) =>
-      _typeCompilationError(type, 'Undetermined nullability.');
-
   Never _typeCompilationError(DartType type, String description) =>
       throw UnsupportedError('$description Encountered while compiling '
           '${_currentLibrary!.fileUri}, which contains the type: $type.');
-
-  /// Wraps [typeRep] in the appropriate wrapper for the given [nullability].
-  ///
-  /// Non-nullable and undetermined nullability will not cause any wrappers to
-  /// be emitted.
-  js_ast.Expression _emitNullabilityWrapper(
-      js_ast.Expression typeRep, Nullability nullability) {
-    switch (nullability) {
-      case Nullability.legacy:
-        return runtimeCall('legacy(#)', [typeRep]);
-      case Nullability.nullable:
-        return runtimeCall('nullable(#)', [typeRep]);
-      default:
-        // Do not wrap types that are known to be non-nullable or those that do
-        // not yet have the nullability determined.
-        return typeRep;
-    }
-  }
 
   bool get _emittingClassExtends =>
       _currentClass != null && identical(_currentClass, _classEmittingExtends);
@@ -3453,34 +3246,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var genericName =
         _emitTopLevelNameNoExternalInterop(t.classNode, suffix: '\$');
     return js.call('#(#)', [genericName, typeArgs]);
-  }
-
-  js_ast.Expression _emitFutureOrTypeWithArgument(js_ast.Expression typeArg) {
-    var genericName = _emitFutureOrNameNoInterop(suffix: '\$');
-    return js.call('#(#)', [
-      genericName,
-      [typeArg]
-    ]);
-  }
-
-  js_ast.Expression _emitRecordType(
-      RecordType type,
-      Iterable<js_ast.Expression> positionalTypeReps,
-      Iterable<js_ast.Expression> namedTypeReps) {
-    // RecordType names are already sorted alphabetically in kernel.
-    var positionals = positionalTypeReps.length;
-    var names = type.named.map((e) => e.name);
-    var shapeKey = _recordShapeKey(positionals, names);
-
-    return runtimeCall('recordTypeLiteral(#, #, #, [#])', [
-      js.string(shapeKey),
-      js.number(positionals),
-      names.isEmpty ? js.call('void 0') : js.stringArray(names),
-      [
-        ...positionalTypeReps,
-        ...namedTypeReps,
-      ]
-    ]);
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
@@ -3507,32 +3272,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return isExternal
         ? _emitTopLevelName(c)
         : _emitTopLevelNameNoExternalInterop(c);
-  }
-
-  js_ast.Expression _emitTypeParameterType(
-      /* TypeParameterType | StructuralParameterType */ DartType type,
-      {bool emitNullability = true}) {
-    assert(type is TypeParameterType || type is StructuralParameterType);
-    js_ast.Identifier typeParam;
-    if (type is TypeParameterType) {
-      typeParam = _emitTypeParameter(type.parameter);
-    } else {
-      type as StructuralParameterType;
-      typeParam = _emitTypeParameter(type.parameter);
-    }
-
-    // Avoid wrapping the type parameter in a nullability or hoisting a type
-    // that has no nullability wrappers.
-    if (!emitNullability || type.isPotentiallyNonNullable) return typeParam;
-
-    var typeWithNullability =
-        _emitNullabilityWrapper(typeParam, type.nullability);
-
-    if (!_cacheTypes) return typeWithNullability;
-
-    // Hoist the wrapped version to the top level and use it everywhere this
-    // type appears.
-    return _typeTable.nameType(type, typeWithNullability);
   }
 
   js_ast.Identifier _emitTypeParameter(
@@ -3780,10 +3519,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
 
       var returnType = _expectedReturnType(function, _coreTypes.iterableClass);
-      var syncIterable = _emitInterfaceType(
-          InterfaceType(
-              _syncIterableClass, Nullability.nonNullable, [returnType]),
-          emitNullability: false);
+      var syncIterable = _emitClassRef(InterfaceType(
+          _syncIterableClass, Nullability.nonNullable, [returnType]));
       return js.call('new #.new(#)', [syncIterable, gen]);
     }
 
@@ -3798,10 +3535,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var gen = emitGeneratorFn((_) => [_asyncStarController!]);
 
       var returnType = _expectedReturnType(function, _coreTypes.streamClass);
-      var asyncStarImpl = _emitInterfaceType(
-          InterfaceType(
-              _asyncStarImplClass, Nullability.nonNullable, [returnType]),
-          emitNullability: false);
+      var asyncStarImpl = _emitClassRef(InterfaceType(
+          _asyncStarImplClass, Nullability.nonNullable, [returnType]));
       return js.call('new #.new(#).stream', [asyncStarImpl, gen]);
     }
 
@@ -4106,7 +3841,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           isCovariantByClass &&
           !_types.isTop(bound)) {
         body.add(runtimeStatement('checkTypeBound(#, #, #)', [
-          _emitTypeParameterType(typeParameterType, emitNullability: false),
+          _emitType(typeParameterType),
           _emitType(bound),
           propertyName(name)
         ]));
