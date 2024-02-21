@@ -2861,7 +2861,275 @@ augment class A {
 ''');
   }
 
-  test_codeOptimizer_constant_classField_const() async {
+  test_codeOptimizer_class_constructor_optionalPositional_defaultValue() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  B([x = {{package:test/a.dart@a}}]);')
+class B {}
+''');
+
+    configuration
+      ..forCodeOptimizer()
+      ..withConstructors = true;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  B([x = a]);
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            constructors
+              @81
+                parameters
+                  optionalPositional default x @84
+                    type: dynamic
+                    constantInitializer
+                      SimpleIdentifier
+                        token: a @88
+                        staticElement: package:test/a.dart::@getter::a
+                        staticType: int
+''');
+  }
+
+  test_codeOptimizer_class_method_optionalPositional_defaultValue() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  void foo([x = {{package:test/a.dart@a}}]) {}')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  void foo([x = a]) {}
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            methods
+              foo @86
+                parameters
+                  optionalPositional default x @91
+                    type: dynamic
+                    constantInitializer
+                      SimpleIdentifier
+                        token: a @95
+                        staticElement: package:test/a.dart::@getter::a
+                        staticType: int
+                returnType: void
+''');
+  }
+
+  test_codeOptimizer_class_method_optionalPositional_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  void foo([@{{package:test/a.dart@a}} x]) {}')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  void foo([@a x]) {}
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            methods
+              foo @86
+                parameters
+                  optionalPositional default x @94
+                    type: dynamic
+                    metadata
+                      Annotation
+                        atSign: @ @91
+                        name: SimpleIdentifier
+                          token: a @92
+                          staticElement: package:test/a.dart::@getter::a
+                          staticType: null
+                        element: package:test/a.dart::@getter::a
+                returnType: void
+''');
+  }
+
+  test_codeOptimizer_class_method_requiredPositional_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  void foo(@{{package:test/a.dart@a}} x) {}')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  void foo(@a x) {}
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            methods
+              foo @86
+                parameters
+                  requiredPositional x @93
+                    type: dynamic
+                    metadata
+                      Annotation
+                        atSign: @ @90
+                        name: SimpleIdentifier
+                          token: a @91
+                          staticElement: package:test/a.dart::@getter::a
+                          staticType: null
+                        element: package:test/a.dart::@getter::a
+                returnType: void
+''');
+  }
+
+  test_codeOptimizer_class_setter_requiredPositional_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  set foo(@{{package:test/a.dart@a}} x) {}')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  set foo(@a x) {}
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            fields
+              synthetic foo @-1
+                type: dynamic
+            accessors
+              set foo= @85
+                parameters
+                  requiredPositional x @92
+                    type: dynamic
+                    metadata
+                      Annotation
+                        atSign: @ @89
+                        name: SimpleIdentifier
+                          token: a @90
+                          staticElement: package:test/a.dart::@getter::a
+                          staticType: null
+                        element: package:test/a.dart::@getter::a
+                returnType: void
+''');
+  }
+
+  test_codeOptimizer_constant_class_field_const() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
@@ -2913,7 +3181,7 @@ augment class B {
 ''');
   }
 
-  test_codeOptimizer_constant_classField_final_hasConstConstructor() async {
+  test_codeOptimizer_constant_class_field_final_hasConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
@@ -2967,7 +3235,7 @@ augment class B {
 ''');
   }
 
-  test_codeOptimizer_constant_classField_final_noConstConstructor() async {
+  test_codeOptimizer_constant_class_field_final_noConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
@@ -3014,7 +3282,7 @@ augment class B {
 ''');
   }
 
-  test_codeOptimizer_constant_classField_namedType() async {
+  test_codeOptimizer_constant_class_field_namedType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
@@ -3821,6 +4089,52 @@ void foo() {}
 ''');
   }
 
+  test_codeOptimizer_metadata_unit_function_optionalPositional_defaultValue() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary('void foo([x = {{package:test/a.dart@a}}]) {}')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+void foo([x = a]) {}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        functions
+          foo @66
+            parameters
+              optionalPositional default x @71
+                type: dynamic
+                constantInitializer
+                  SimpleIdentifier
+                    token: a @75
+                    staticElement: package:test/a.dart::@getter::a
+                    staticType: int
+            returnType: void
+''');
+  }
+
   test_codeOptimizer_metadata_unit_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -3934,6 +4248,58 @@ set foo(int _) {}
             parameters
               requiredPositional _ @78
                 type: int
+            returnType: void
+''');
+  }
+
+  test_codeOptimizer_metadata_unit_setter_requiredPositional_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInLibrary('set foo(@{{package:test/a.dart@a}} x) {}')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+set foo(@a x) {}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          synthetic static foo @-1
+            type: dynamic
+        accessors
+          static set foo= @65
+            parameters
+              requiredPositional x @72
+                type: dynamic
+                metadata
+                  Annotation
+                    atSign: @ @69
+                    name: SimpleIdentifier
+                      token: a @70
+                      staticElement: package:test/a.dart::@getter::a
+                      staticType: null
+                    element: package:test/a.dart::@getter::a
             returnType: void
 ''');
   }

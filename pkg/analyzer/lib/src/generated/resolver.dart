@@ -1261,7 +1261,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     ExecutableElement? enclosingExecutableElement,
   }) {
     enclosingClass = enclosingClassElement;
-    _thisType = enclosingClass?.thisType;
+    _setupThisType();
     _enclosingFunction = enclosingExecutableElement;
   }
 

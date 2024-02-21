@@ -36,3 +36,9 @@ extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
     }).toList();
   }
 }
+
+extension ParameterElementExtension on ParameterElement {
+  ParameterElementImpl get declarationImpl {
+    return declaration as ParameterElementImpl;
+  }
+}
