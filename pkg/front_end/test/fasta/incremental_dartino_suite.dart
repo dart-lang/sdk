@@ -14,7 +14,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import "package:kernel/ast.dart" show Component;
 
 import "package:testing/testing.dart"
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Result, Step, TestDescription;
 
 import "package:testing/src/log.dart" show splitLines;
 
@@ -47,6 +47,7 @@ import "incremental_expectations.dart"
     show IncrementalExpectation, extractJsonExpectations;
 
 import "incremental_source_files.dart" show expandDiff, expandUpdates;
+import "suite_utils.dart";
 
 const JsonEncoder json = const JsonEncoder.withIndent("  ");
 
@@ -243,5 +244,8 @@ Future<Context> createContext(
   return new Context(new CompilerContext(options), errors);
 }
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../../testing.json");
+void main([List<String> arguments = const []]) => internalMain(
+      createContext,
+      arguments: arguments,
+      displayName: "incremental dartino suite",
+    );

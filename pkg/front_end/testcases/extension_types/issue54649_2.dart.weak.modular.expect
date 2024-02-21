@@ -58,7 +58,7 @@ static method test2<X extends FutureOr<self::E1 /* = asy::Future<core::int> */>,
   if(x is self::test2::Y%) {
     await invalid-expression "pkg/front_end/testcases/extension_types/issue54649_2.dart:25:11: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
     await x; // Error.
-          ^" in x{self::test2::X% & self::test2::Y% /* '%' & '%' = '%' */} /* runtimeCheckType= asy::Future<self::E1% /* = asy::Future<core::int> */> */ ;
+          ^" in x{self::test2::X% & self::test2::Y% /* '%' & '%' = '%' */} /* runtimeCheckType= asy::Future<self::E1 /* = asy::Future<core::int> */> */ ;
   }
 }
 static method test3<X extends self::E3? /* = asy::Future<core::int>? */, Y extends self::E3 /* = asy::Future<core::int> */>(self::test3::X% x) → dynamic async /* emittedValueType= dynamic */ {

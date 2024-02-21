@@ -356,7 +356,11 @@ class _Future<T> implements Future<T> {
   }
 
   void _ignore() {
-    _state |= _stateIgnoreError;
+    _Future<Object?> source = this;
+    while (source._isChained) {
+      source = source._chainSource;
+    }
+    source._state |= _stateIgnoreError;
   }
 
   Future<T> catchError(Function onError, {bool test(Object error)?}) {
@@ -573,6 +577,7 @@ class _Future<T> implements Future<T> {
     while (source._isChained) {
       source = source._chainSource;
     }
+    source._state |= target._state & _stateIgnoreError;
     if (source._isComplete) {
       _FutureListener? listeners = target._removeListeners();
       target._cloneResult(source);

@@ -1101,7 +1101,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType valueType = target.getSetterType(this);
 
     ExpressionInferenceResult valueResult =
-        inferExpression(node.value, const UnknownType(), isVoidAllowed: false);
+        inferExpression(node.value, valueType, isVoidAllowed: false);
     valueResult = ensureAssignableResult(valueType, valueResult);
     Expression value = valueResult.expression;
 
@@ -5006,7 +5006,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard = createNullAwareGuard(node.variable);
     ExpressionInferenceResult expressionResult =
-        inferExpression(node.expression, const UnknownType());
+        inferExpression(node.expression, typeContext);
     return createNullAwareExpressionInferenceResult(
         expressionResult.inferredType,
         expressionResult.expression,

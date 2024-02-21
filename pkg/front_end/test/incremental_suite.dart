@@ -88,8 +88,7 @@ import "package:testing/testing.dart"
         ExpectationSet,
         Result,
         Step,
-        TestDescription,
-        runMe;
+        TestDescription;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
@@ -97,6 +96,7 @@ import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import 'binary_md_dill_reader.dart' show DillComparer;
 
+import 'fasta/suite_utils.dart';
 import 'fasta/testing/suite.dart';
 import "incremental_utils.dart" as util;
 
@@ -106,8 +106,10 @@ import 'testing_utils.dart' show checkEnvironment;
 import 'utils/io_utils.dart' show computeRepoDir;
 import 'utils/values.dart';
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "incremental suite",
+    configurationPath: "../testing.json");
 
 /// Top level yaml properties for an incremental test.
 class TestProperties {

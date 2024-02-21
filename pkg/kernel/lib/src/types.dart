@@ -1211,12 +1211,16 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
     return types
         // Rule 11.
         .performNullabilityAwareSubtypeCheck(
-            s, t.typeArgument.withDeclaredNullability(t.nullability))
+            s,
+            t.typeArgument.withDeclaredNullability(
+                combineNullabilitiesForSubstitution(
+                    t.typeArgument.declaredNullability, t.declaredNullability)))
         // Rule 13.
         .orSubtypeCheckFor(
             s.parameter.bound.withDeclaredNullability(
                 combineNullabilitiesForSubstitution(
-                    s.parameter.bound.nullability, s.nullability)),
+                    s.parameter.bound.declaredNullability,
+                    s.declaredNullability)),
             t,
             types)
         // Rule 10.

@@ -3783,8 +3783,10 @@ enum _VirtualCallKind {
 }
 
 extension MacroAssembler on w.InstructionsBuilder {
-  // Expects there to be a i32 on the stack, will consume it and leave
-  // true/false on the stack.
+  /// `[i32] -> [i32]`
+  ///
+  /// Consumes an `i32` for a class ID, leaves an `i32` as `bool` for whether
+  /// the class ID is in the given list of ranges.
   void emitClassIdRangeCheck(List<Range> ranges) {
     if (ranges.isEmpty) {
       drop();
@@ -3822,5 +3824,74 @@ extension MacroAssembler on w.InstructionsBuilder {
       i32_const(0);
       end(); // done
     }
+  }
+
+  /// `[ref _Closure] -> [i32]`
+  ///
+  /// Given a closure reference returns whether the closure is an
+  /// instantiation.
+  void emitInstantiationClosureCheck(Translator translator) {
+    ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+        nullable: false));
+    struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext);
+    ref_test(w.RefType(
+        translator.closureLayouter.instantiationContextBaseStruct,
+        nullable: false));
+  }
+
+  /// `[ref _Closure] -> [ref _ClosureBase]`
+  ///
+  /// Given an instantiation closure returns the instantiated closure.
+  void emitGetInstantiatedClosure(Translator translator) {
+    // instantiation.context
+    ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+        nullable: false));
+    struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext);
+    ref_cast(w.RefType(
+        translator.closureLayouter.instantiationContextBaseStruct,
+        nullable: false));
+    // instantiation.context.inner
+    struct_get(translator.closureLayouter.instantiationContextBaseStruct,
+        FieldIndex.instantiationContextInner);
+  }
+
+  /// `[ref #ClosureBase] -> [ref #InstantiationContextBase]`
+  ///
+  /// Given an instantiation closure returns the instantiated closure's
+  /// context.
+  void emitGetInstantiationContextInner(Translator translator) {
+    // instantiation.context
+    struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext);
+    ref_cast(w.RefType(
+        translator.closureLayouter.instantiationContextBaseStruct,
+        nullable: false));
+    // instantiation.context.inner
+    struct_get(translator.closureLayouter.instantiationContextBaseStruct,
+        FieldIndex.instantiationContextInner);
+  }
+
+  /// `[ref _Closure] -> [i32]`
+  ///
+  /// Given a closure returns whether the closure is a tear-off.
+  void emitTearOffCheck(Translator translator) {
+    ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+        nullable: false));
+    struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext);
+    ref_test(translator.topInfo.nonNullableType);
+  }
+
+  /// `[ref _Closure] -> [ref #Top]`
+  ///
+  /// Given a closure returns the receiver of the closure.
+  void emitGetTearOffReceiver(Translator translator) {
+    ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+        nullable: false));
+    struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext);
+    ref_cast(translator.topInfo.nonNullableType);
   }
 }

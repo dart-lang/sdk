@@ -35,6 +35,7 @@ import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class AugmentedClassDeclarationBuilder
     extends AugmentedInstanceDeclarationBuilder {
@@ -186,6 +187,13 @@ class LibraryBuilder {
 
   /// The `export` directives that export this library.
   final List<Export> exports = [];
+
+  /// The fields that were speculatively created as [ConstFieldElementImpl],
+  /// but we want to clear [ConstVariableElement.constantInitializer] for it
+  /// if the class will not end up with a `const` constructor. We don't know
+  /// at the time when we create them, because of future augmentations, use
+  /// written or macro generated.
+  final Set<ConstFieldElementImpl> finalInstanceFields = Set.identity();
 
   final List<List<macro.MacroExecutionResult>> _macroResults = [];
 
@@ -584,6 +592,32 @@ class LibraryBuilder {
     AugmentedInstanceDeclarationBuilder element,
   ) {
     _augmentedBuilders[name] = element;
+  }
+
+  void replaceConstFieldsIfNoConstConstructor() {
+    var withConstConstructors = Set<ClassElementImpl>.identity();
+    for (var classElement in element.topLevelElements) {
+      if (classElement is! ClassElementImpl) continue;
+      if (classElement.isMixinApplication) continue;
+      if (classElement.isAugmentation) continue;
+      if (classElement.augmented case var augmented?) {
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/54967
+        augmented.constructors; // remove when fixed
+        var hasConst = augmented.constructors.any((e) => e.isConst);
+        if (hasConst) {
+          withConstConstructors.add(classElement);
+        }
+      }
+    }
+
+    for (var fieldElement in finalInstanceFields) {
+      var enclosing = fieldElement.enclosingElement;
+      var augmented = enclosing.ifTypeOrNull<ClassElementImpl>()?.augmented;
+      if (augmented == null) continue;
+      if (!withConstConstructors.contains(augmented.declaration)) {
+        fieldElement.constantInitializer = null;
+      }
+    }
   }
 
   void resolveConstructorFieldFormals() {

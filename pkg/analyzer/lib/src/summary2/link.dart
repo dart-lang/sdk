@@ -224,6 +224,7 @@ class Linker {
     );
 
     _buildClassSyntheticConstructors();
+    _replaceConstFieldsIfNoConstConstructor();
     _resolveConstructorFieldFormals();
     _buildEnumChildren();
     _computeFieldPromotability();
@@ -369,6 +370,12 @@ class Linker {
 
   void _performTopLevelInference() {
     TopLevelInference(this).infer();
+  }
+
+  void _replaceConstFieldsIfNoConstConstructor() {
+    for (final library in builders.values) {
+      library.replaceConstFieldsIfNoConstConstructor();
+    }
   }
 
   void _resolveConstantInitializers() {

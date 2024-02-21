@@ -82,12 +82,6 @@ abstract class TypeEnvironment extends Types {
         coreTypes.futureClass, nullability, <DartType>[type]);
   }
 
-  DartType _withDeclaredNullability(DartType type, Nullability nullability) {
-    if (type is NullType) return type;
-    return type.withDeclaredNullability(
-        uniteNullabilities(type.declaredNullability, nullability));
-  }
-
   DartType? _futureTypeOf(DartType t) {
     // We say that S is the "future type of a type" T in the following cases,
     // using the first applicable case:
@@ -106,7 +100,7 @@ abstract class TypeEnvironment extends Types {
       if (futureType != null) {
         // TODO(johnniwinther): The two implementations are inconsistent wrt.
         //  how [isNonNullableByDefault] is treated.
-        return futureType.withDeclaredNullability(resolved.nullability);
+        return futureType.withDeclaredNullability(resolved.declaredNullability);
       }
     } else if (resolved is FutureOrType) {
       return resolved;
@@ -129,33 +123,29 @@ abstract class TypeEnvironment extends Types {
       DartType bound = t.right;
       DartType? futureType = _futureTypeOf(bound);
       if (futureType != null) {
-        DartType flattenedFutureType = flatten(futureType);
-        return _withDeclaredNullability(flattenedFutureType,
-            uniteNullabilities(t.nullability, flattenedFutureType.nullability));
+        return flatten(futureType);
       } else {
-        DartType flattenedFutureType = flatten(t.left);
-        return _withDeclaredNullability(flattenedFutureType,
-            uniteNullabilities(t.nullability, flattenedFutureType.nullability));
+        return flatten(t.left);
       }
     } else {
       DartType? futureType = _futureTypeOf(t);
       if (futureType is InterfaceType) {
         assert(futureType.classNode == coreTypes.futureClass);
         DartType typeArgument = futureType.typeArguments.single;
-        return _withDeclaredNullability(
-            typeArgument,
-            uniteNullabilities(
-                t.nullability,
-                uniteNullabilities(
-                    futureType.nullability, typeArgument.nullability)));
+        return typeArgument.withDeclaredNullability(
+            combineNullabilitiesForSubstitution(
+                combineNullabilitiesForSubstitution(
+                    typeArgument.declaredNullability,
+                    futureType.declaredNullability),
+                t.declaredNullability));
       } else if (futureType is FutureOrType) {
         DartType typeArgument = futureType.typeArgument;
-        return _withDeclaredNullability(
-            typeArgument,
-            uniteNullabilities(
-                t.nullability,
-                uniteNullabilities(
-                    futureType.nullability, typeArgument.nullability)));
+        return typeArgument.withDeclaredNullability(
+            combineNullabilitiesForSubstitution(
+                combineNullabilitiesForSubstitution(
+                    typeArgument.declaredNullability,
+                    futureType.declaredNullability),
+                t.declaredNullability));
       } else {
         return t;
       }

@@ -1413,3 +1413,8 @@ external bool _isRecordClassId(int classId);
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
 bool _runtimeTypeEquals(_Type t1, _Type t2) => t1 == t2;
+
+// Same as [_RuntimeTypeEquals], but for `Object.hashCode`.
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+int _runtimeTypeHashCode(_Type t) => t.hashCode;

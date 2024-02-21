@@ -1282,7 +1282,7 @@ abstract class _TypeSubstitutor extends _SubstitutorBase {
     if (replacement != null) {
       return replacement.withDeclaredNullability(
           combineNullabilitiesForSubstitution(
-              replacement.nullability, node.nullability));
+              replacement.declaredNullability, node.nullability));
     }
     return node;
   }
@@ -1304,7 +1304,7 @@ abstract class _TypeSubstitutor extends _SubstitutorBase {
     if (replacement == null) return node;
     return replacement.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            node.nullability, replacement.nullability));
+            node.declaredNullability, replacement.nullability));
   }
 
   @override
@@ -1564,7 +1564,7 @@ class FunctionTypeInstantiator implements DartTypeVisitor<DartType?> {
     if (replacement != null) {
       return replacement.withDeclaredNullability(
           combineNullabilitiesForSubstitution(
-              replacement.nullability, node.nullability));
+              replacement.declaredNullability, node.nullability));
     }
     return null;
   }

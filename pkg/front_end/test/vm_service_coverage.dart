@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'coverage_helper.dart';
 import 'vm_service_helper.dart' as vmService;
 
 Future<void> main(List<String> args) async {
@@ -61,54 +62,13 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
         forceCompile: forceCompilation);
     print("Got source report from VM in ${stopwatch.elapsedMilliseconds} ms");
     stopwatch.reset();
-    Map<Uri, Coverage> coverages = {};
-    for (vmService.SourceReportRange range in sourceReport.ranges!) {
-      vmService.ScriptRef script = sourceReport.scripts![range.scriptIndex!];
-      Uri scriptUri = Uri.parse(script.uri!);
-      if (!includeCoverageFor(scriptUri)) continue;
-      Coverage coverage = coverages[scriptUri] ??= new Coverage();
-
-      vmService.SourceReportCoverage? sourceReportCoverage = range.coverage;
-      if (sourceReportCoverage == null) {
-        // Range not compiled. Record the range if provided.
-        assert(!range.compiled!);
-        if (range.startPos! >= 0 || range.endPos! >= 0) {
-          coverage.notCompiled
-              .add(new StartEndPair(range.startPos!, range.endPos!));
-        }
-        continue;
-      }
-      coverage.hits.addAll(sourceReportCoverage.hits!);
-      coverage.misses.addAll(sourceReportCoverage.misses!);
-    }
-    print("Processed source report from VM in "
-        "${stopwatch.elapsedMilliseconds} ms");
-    stopwatch.reset();
+    Coverage coverage =
+        getCoverageFromSourceReport([sourceReport], includeCoverageFor);
 
     // It's paused at exit, so resuming should allow us to exit.
     await serviceClient.resume(isolateRef.id!);
 
-    for (MapEntry<Uri, Coverage> entry in coverages.entries) {
-      assert(entry.value.hits.intersection(entry.value.misses).isEmpty);
-      if (entry.value.hits.isEmpty &&
-          entry.value.misses.isEmpty &&
-          entry.value.notCompiled.isEmpty) {
-        continue;
-      }
-      print(entry.key);
-      if (printHits) {
-        print("Hits: ${entry.value.hits.toList()..sort()}");
-      }
-      print("Misses: ${entry.value.misses.toList()..sort()}");
-      print("Not compiled: ${entry.value.notCompiled.toList()..sort()}");
-      print("");
-    }
-  }
-
-  Completer<String> cProcessExited = new Completer();
-  @override
-  void processExited(int exitCode) {
-    cProcessExited.complete("Exit");
+    coverage.printCoverage(printHits);
   }
 
   bool includeCoverageFor(Uri uri) {
@@ -122,27 +82,10 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
     }
     return true;
   }
-}
 
-class Coverage {
-  final Set<int> hits = {};
-  final Set<int> misses = {};
-  final Set<StartEndPair> notCompiled = {};
-}
-
-class StartEndPair implements Comparable {
-  final int startPos;
-  final int endPos;
-
-  StartEndPair(this.startPos, this.endPos);
-
+  Completer<String> cProcessExited = new Completer();
   @override
-  String toString() => "[$startPos - $endPos]";
-
-  @override
-  int compareTo(dynamic other) {
-    if (other is! StartEndPair) return -1;
-    StartEndPair o = other;
-    return startPos - o.startPos;
+  void processExited(int exitCode) {
+    cProcessExited.complete("Exit");
   }
 }

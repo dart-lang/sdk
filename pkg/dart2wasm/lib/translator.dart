@@ -813,6 +813,7 @@ class Translator with KernelNodes {
     ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
       ib.ref_func(representation.instantiationTypeComparisonFunction);
+      ib.ref_func(representation.instantiationTypeHashFunction);
       ib.ref_func(representation.instantiationFunction);
     }
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
