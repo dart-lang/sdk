@@ -2861,7 +2861,7 @@ augment class A {
 ''');
   }
 
-  test_codeOptimizer_constant_classField_constant() async {
+  test_codeOptimizer_constant_classField_const() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
@@ -2909,6 +2909,107 @@ augment class B {
                     staticType: int
             accessors
               synthetic static get x @-1
+                returnType: int
+''');
+  }
+
+  test_codeOptimizer_constant_classField_final_hasConstConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  final x = {{package:test/a.dart@a}};')
+class B {
+  const B();
+}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  final x = a;
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            fields
+              final x @87
+                type: int
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  SimpleIdentifier
+                    token: a @91
+                    staticElement: package:test/a.dart::@getter::a
+                    staticType: int
+            accessors
+              synthetic get x @-1
+                returnType: int
+''');
+  }
+
+  test_codeOptimizer_constant_classField_final_noConstConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  final x = {{package:test/a.dart@a}};')
+class B {}
+''');
+
+    configuration.forCodeOptimizer();
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart';
+
+augment class B {
+  final x = a;
+}
+---
+      imports
+        package:test/a.dart
+      definingUnit
+        classes
+          augment class B @75
+            augmentationTarget: self::@class::B
+            fields
+              final x @87
+                type: int
+                shouldUseTypeForInitializerInference: false
+            accessors
+              synthetic get x @-1
                 returnType: int
 ''');
   }
