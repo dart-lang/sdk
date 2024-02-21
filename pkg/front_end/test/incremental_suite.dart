@@ -1918,7 +1918,9 @@ Result? checkNNBDSettings(Component component) {
 
     // Agnostic can be mixed with everything.
     if (lib.nonNullableByDefaultCompiledMode ==
-        NonNullableByDefaultCompiledMode.Agnostic) continue;
+        NonNullableByDefaultCompiledMode.Agnostic) {
+      continue;
+    }
 
     if (mode == NonNullableByDefaultCompiledMode.Strong ||
         lib.nonNullableByDefaultCompiledMode ==
@@ -2775,7 +2777,9 @@ void doSimulateTransformer(Component c) {
     if (lib.fields
         .where((f) => f.name.text == "unique_SimulateTransformer")
         .toList()
-        .isNotEmpty) continue;
+        .isNotEmpty) {
+      continue;
+    }
     Name fieldName = new Name("unique_SimulateTransformer");
     Field field = new Field.immutable(fieldName,
         isFinal: true,
@@ -2792,7 +2796,9 @@ void doSimulateTransformer(Component c) {
       if (c.fields
           .where((f) => f.name.text == "unique_SimulateTransformer")
           .toList()
-          .isNotEmpty) continue;
+          .isNotEmpty) {
+        continue;
+      }
       fieldName = new Name("unique_SimulateTransformer");
       field = new Field.immutable(fieldName,
           isFinal: true,

@@ -138,7 +138,9 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     if (node.typeParameters.isNotEmpty ||
         node.requiredParameterCount != 0 ||
         node.positionalParameters.isNotEmpty ||
-        node.namedParameters.isNotEmpty) return null;
+        node.namedParameters.isNotEmpty) {
+      return null;
+    }
     Statement? body = node.body;
     if (body is! ReturnStatement) return null;
     Expression? expression = body.expression;

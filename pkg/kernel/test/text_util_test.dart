@@ -34,7 +34,9 @@ void testQualifiedCanonicalNameToString() {
       String throughCanonicalName =
           namedNode.reference.canonicalName!.toText(strategy);
       if (throughNode == throughReference &&
-          throughReference == throughCanonicalName) continue;
+          throughReference == throughCanonicalName) {
+        continue;
+      }
       print("${namedNode.runtimeType} "
           "(${strategy.includeLibraryNamesInMembers},"
           "${strategy.includeLibraryNamesInTypes}): "

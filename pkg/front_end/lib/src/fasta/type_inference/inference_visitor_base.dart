@@ -4362,7 +4362,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       int value, String? literal, int charOffset) {
     if (value >= 0 && value <= (1 << 53)) return null;
     if (!libraryBuilder
-        .loader.target.backendTarget.errorOnUnexactWebIntLiterals) return null;
+        .loader.target.backendTarget.errorOnUnexactWebIntLiterals) {
+      return null;
+    }
     BigInt asInt = new BigInt.from(value).toUnsigned(64);
     BigInt asDouble = new BigInt.from(asInt.toDouble());
     if (asInt == asDouble) return null;

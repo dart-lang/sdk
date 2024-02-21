@@ -27,7 +27,7 @@ import 'fasta/crash.dart' show withCrashReporting;
 import 'fasta/dill/dill_target.dart' show DillTarget;
 import 'fasta/fasta_codes.dart' show LocatedMessage;
 import 'fasta/hybrid_file_system.dart';
-import 'fasta/kernel/benchmarker.dart' show BenchmarkPhases;
+import 'fasta/kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'fasta/kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import 'fasta/kernel/macro/macro.dart';
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
@@ -61,7 +61,8 @@ Future<CompilerResult> generateKernelInternal(
     bool truncateSummary = false,
     bool includeOffsets = true,
     bool retainDataForTesting = false,
-    bool includeHierarchyAndCoreTypes = false}) async {
+    bool includeHierarchyAndCoreTypes = false,
+    Benchmarker? benchmarker}) async {
   ProcessedOptions options = CompilerContext.current.options;
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
@@ -72,8 +73,9 @@ Future<CompilerResult> generateKernelInternal(
       // TODO(johnniwinther): How much can we reuse between iterations?
       UriTranslator uriTranslator = await options.getUriTranslator();
 
-      DillTarget dillTarget =
-          new DillTarget(options.ticker, uriTranslator, options.target);
+      DillTarget dillTarget = new DillTarget(
+          options.ticker, uriTranslator, options.target,
+          benchmarker: benchmarker);
 
       List<Component> loadedComponents = <Component>[];
 
