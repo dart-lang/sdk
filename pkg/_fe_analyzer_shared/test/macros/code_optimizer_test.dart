@@ -777,7 +777,6 @@ void assertEdits({
   }
 
   // Apply in reverse order.
-  edits = edits.reversed.toList();
   var optimized = Edit.applyList(edits, code);
   buffer.write(optimized);
 
