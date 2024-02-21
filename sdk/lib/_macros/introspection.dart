@@ -45,13 +45,13 @@ abstract interface class FunctionTypeAnnotation implements TypeAnnotation {
   TypeAnnotation get returnType;
 
   /// The positional parameters for this function.
-  Iterable<FunctionTypeParameter> get positionalParameters;
+  Iterable<FormalParameter> get positionalParameters;
 
   /// The named parameters for this function.
-  Iterable<FunctionTypeParameter> get namedParameters;
+  Iterable<FormalParameter> get namedParameters;
 
   /// The type parameters for this function.
-  Iterable<TypeParameterDeclaration> get typeParameters;
+  Iterable<TypeParameter> get typeParameters;
 }
 
 /// An unresolved reference to a type.
@@ -119,8 +119,8 @@ abstract interface class MemberDeclaration implements Declaration {
   /// The type that defines this member.
   Identifier get definingType;
 
-  /// Whether or not this is a static member.
-  bool get isStatic;
+  /// Whether or not member has the `static` keyword.
+  bool get hasStatic;
 }
 
 /// Marker interface for a declaration that defines a new type in the program.
@@ -267,10 +267,10 @@ abstract interface class FunctionDeclaration implements Declaration {
   TypeAnnotation get returnType;
 
   /// The positional parameters for this function.
-  Iterable<ParameterDeclaration> get positionalParameters;
+  Iterable<FormalParameterDeclaration> get positionalParameters;
 
   /// The named parameters for this function.
-  Iterable<ParameterDeclaration> get namedParameters;
+  Iterable<FormalParameterDeclaration> get namedParameters;
 
   /// The type parameters for this function.
   Iterable<TypeParameterDeclaration> get typeParameters;
@@ -288,11 +288,17 @@ abstract interface class ConstructorDeclaration implements MethodDeclaration {
 
 /// Variable introspection information.
 abstract interface class VariableDeclaration implements Declaration {
+  /// Whether this variable has a `const` modifier.
+  bool get hasConst;
+
   /// Whether this variable has an `external` modifier.
   bool get hasExternal;
 
   /// Whether this variable has a `final` modifier.
   bool get hasFinal;
+
+  /// Whether this variable has an initializer at its declaration.
+  bool get hasInitializer;
 
   /// Whether this variable has a `late` modifier.
   bool get hasLate;
@@ -308,9 +314,12 @@ abstract interface class FieldDeclaration
   bool get hasAbstract;
 }
 
-/// General parameter introspection information, see the subtypes
-/// [FunctionTypeParameter] and [ParameterDeclaration].
-abstract interface class Parameter implements Annotatable {
+/// General parameter introspection information, for both function type
+/// parameters and regular parameters.
+///
+/// See the subtype [FormalParameterDeclaration] as well, for regular
+/// parameters which are not a part of a function type.
+abstract interface class FormalParameter implements Annotatable {
   /// The type of this parameter.
   TypeAnnotation get type;
 
@@ -321,6 +330,11 @@ abstract interface class Parameter implements Annotatable {
   /// parameter or an optional parameter with the `required` keyword.
   bool get isRequired;
 
+  /// The name of this parameter, if present.
+  ///
+  /// Specifically, function type parameters may not have a name.
+  String? get name;
+
   /// A convenience method to get a `code` object equivalent to this parameter.
   ///
   /// Note that the original default value will not be included, as it is not a
@@ -328,26 +342,37 @@ abstract interface class Parameter implements Annotatable {
   ParameterCode get code;
 }
 
-/// Parameters of normal functions/methods, which always have an identifier.
-abstract interface class ParameterDeclaration
-    implements Parameter, Declaration {}
-
-/// Function type parameters don't always have names, and it is never useful to
-/// get an [Identifier] for them, so they do not implement [Declaration] and
-/// instead have an optional name.
-abstract interface class FunctionTypeParameter implements Parameter {
-  String? get name;
+/// Parameters of normal functions/methods, which always have an identifier, and
+/// declare a new variable in scope.
+abstract interface class FormalParameterDeclaration
+    implements FormalParameter, Declaration {
+  @override
+  String get name;
 }
 
 /// Generic type parameter introspection information.
-abstract interface class TypeParameterDeclaration implements TypeDeclaration {
+///
+/// Not all type parameters introduce new declarations that can be referenced,
+/// but those that do will implement the [TypeParameterDeclaration] interface.
+abstract interface class TypeParameter implements Annotatable {
   /// The bound for this type parameter, if it has any.
   TypeAnnotation? get bound;
+
+  /// The name of this type parameter.
+  String get name;
 
   /// A convenience method to get a `code` object equivalent to this type
   /// parameter.
   TypeParameterCode get code;
 }
+
+/// Generic type parameter introspection information for type parameters which
+/// introduce a true type declaration that can be referenced.
+///
+/// Note that type parameters for function types cannot be referenced and only
+/// implement [TypeParameter].
+abstract interface class TypeParameterDeclaration
+    implements TypeDeclaration, TypeParameter {}
 
 /// Introspection information for a field declaration on a Record type.
 ///
