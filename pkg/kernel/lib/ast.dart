@@ -12167,7 +12167,9 @@ class ExtensionType extends TypeDeclarationType {
     if (other is ExtensionType) {
       if (nullability != other.nullability) return false;
       if (extensionTypeDeclarationReference !=
-          other.extensionTypeDeclarationReference) return false;
+          other.extensionTypeDeclarationReference) {
+        return false;
+      }
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
         if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {

@@ -46,7 +46,9 @@ class TestParser extends Parser {
       if (line.contains("parser_test_listener.dart:") ||
           line.contains("parser_suite.dart:") ||
           line.contains("parser_test_parser.dart:") ||
-          line == "<asynchronous suspension>") continue;
+          line == "<asynchronous suspension>") {
+        continue;
+      }
       return line.substring(line.indexOf("(") + 1, line.lastIndexOf(")"));
     }
     return "N/A";
