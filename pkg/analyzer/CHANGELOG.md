@@ -2,6 +2,8 @@
 * Deprecated `LibraryElement.toLegacyTypeIfOptOut`.
 * Deprecated `LibraryElement.toLegacyElementIfOptOut`.
 * Deprecated `LibraryElement.isNonNullableByDefault`.
+* Deprecated `InterfaceElement.lookUpGetter`, `InterfaceElement.lookUpMethod`,
+  and `InterfaceElement.lookUpSetter`.
 
 ## 6.4.1
 * Patch for crash in ffi_verifier.
@@ -194,7 +196,7 @@
 * Update SDK constraints to `>=2.17.0 <3.0.0`.
 * Deprecated `ImportDirective.COMPARATOR`, use appropriate custom logic, if necessary.
 * Deprecated `Element.isAccessibleIn()`, use `isAccessibleIn2()` instead.
-* Bug fixes: 49225. 
+* Bug fixes: 49225.
 
 ## 4.1.0
 * Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.

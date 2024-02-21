@@ -205,15 +205,20 @@ class TypeHierarchyComputerHelper {
     for (var mixin in clazz.mixins.reversed) {
       var mixinElement = mixin.element;
       if (pivotKind == ElementKind.METHOD) {
-        result = mixinElement.lookUpMethod(pivotName, pivotLibrary);
+        result = mixinElement.augmented
+            ?.lookUpMethod(name: pivotName, library: pivotLibrary);
       } else if (pivotKind == ElementKind.GETTER) {
-        result = mixinElement.lookUpGetter(pivotName, pivotLibrary);
+        result = mixinElement.augmented
+            ?.lookUpGetter(name: pivotName, library: pivotLibrary);
       } else if (pivotKind == ElementKind.SETTER) {
-        result = mixinElement.lookUpSetter(pivotName, pivotLibrary);
+        result = mixinElement.augmented
+            ?.lookUpSetter(name: pivotName, library: pivotLibrary);
       } else if (pivotKind == ElementKind.FIELD) {
-        result = mixinElement.lookUpGetter(pivotName, pivotLibrary);
+        result = mixinElement.augmented
+            ?.lookUpGetter(name: pivotName, library: pivotLibrary);
         if (result == null && !pivotFieldFinal) {
-          result = mixinElement.lookUpSetter(pivotName, pivotLibrary);
+          result = mixinElement.augmented
+              ?.lookUpSetter(name: pivotName, library: pivotLibrary);
         }
       }
       if (result == pivotElement) {

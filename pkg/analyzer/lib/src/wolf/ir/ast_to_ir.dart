@@ -192,7 +192,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   MethodElement lookupToString(DartType? type) {
     var class_ =
         type is InterfaceType ? type.element : typeProvider.objectElement;
-    return class_.lookUpMethod('toString', coreLibrary)!;
+    return (class_.augmented
+        ?.lookUpMethod(name: 'toString', library: coreLibrary))!;
   }
 
   /// Performs a null check that is part of a null shorting expression.
