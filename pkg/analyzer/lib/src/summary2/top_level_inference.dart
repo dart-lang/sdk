@@ -27,7 +27,6 @@ class ConstantInitializersResolver {
   late LibraryBuilder _libraryBuilder;
   late CompilationUnitElementImpl _unitElement;
   late LibraryElement _library;
-  bool _enclosingClassHasConstConstructor = false;
   late Scope _scope;
 
   ConstantInitializersResolver(this.linker);
@@ -57,37 +56,34 @@ class ConstantInitializersResolver {
   }
 
   void _resolveInterfaceFields(InterfaceElement class_) {
-    _enclosingClassHasConstConstructor =
-        class_.constructors.any((c) => c.isConst);
-
     var node = linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
     class_.fields.forEach(_resolveVariable);
-    _enclosingClassHasConstConstructor = false;
   }
 
   void _resolveVariable(PropertyInducingElement element) {
     element as PropertyInducingElementImpl;
 
+    if (element is FieldElementImpl && element.isEnumConstant) {
+      return;
+    }
+
+    var constElement = element.ifTypeOrNull<ConstVariableElement>();
+    if (constElement == null) return;
+    if (constElement.constantInitializer == null) return;
+
     var variable = linker.getLinkingNode(element);
     if (variable is! VariableDeclarationImpl) return;
     if (variable.initializer == null) return;
 
-    var declarationList = variable.parent as VariableDeclarationList;
+    var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+    var astResolver =
+        AstResolver(linker, _unitElement, _scope, analysisOptions);
+    astResolver.resolveExpression(() => variable.initializer!,
+        contextType: element.type);
 
-    if (declarationList.isConst ||
-        declarationList.isFinal && _enclosingClassHasConstConstructor) {
-      var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-      var astResolver =
-          AstResolver(linker, _unitElement, _scope, analysisOptions);
-      astResolver.resolveExpression(() => variable.initializer!,
-          contextType: element.type);
-    }
-
-    if (element is ConstVariableElement) {
-      var constElement = element as ConstVariableElement;
-      constElement.constantInitializer = variable.initializer;
-    }
+    // We could have rewritten the initializer.
+    constElement.constantInitializer = variable.initializer;
   }
 }
 
