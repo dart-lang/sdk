@@ -228,6 +228,7 @@ template("build_gen_snapshot") {
       libs = [
         "iphlpapi.lib",
         "ws2_32.lib",
+        "Pathcch.lib",
         "Rpcrt4.lib",
         "shlwapi.lib",
         "winmm.lib",
@@ -814,6 +815,7 @@ template("dart_executable") {
         # CoTaskMemAlloc up with `DynamicLibrary.process()`.
         "ole32.lib",
         "iphlpapi.lib",
+        "Pathcch.lib",
         "psapi.lib",
         "ws2_32.lib",
         "Rpcrt4.lib",
@@ -1032,6 +1034,7 @@ executable("run_vm_tests") {
       # CoTaskMemAlloc up with `DynamicLibrary.process()`.
       "ole32.lib",
       "iphlpapi.lib",
+      "Pathcch.lib",
       "psapi.lib",
       "ws2_32.lib",
       "Rpcrt4.lib",
