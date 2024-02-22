@@ -197,21 +197,24 @@ class _OverriddenElementsFinder {
     Element? member;
     // method
     if (_kinds.contains(ElementKind.METHOD)) {
-      member = classElement.lookUpMethod(_name, _library);
+      var augmented = classElement.augmented;
+      member = augmented?.lookUpMethod(name: _name, library: _library);
       if (member != null) {
         return member;
       }
     }
     // getter
     if (_kinds.contains(ElementKind.GETTER)) {
-      member = classElement.lookUpGetter(_name, _library);
+      var augmented = classElement.augmented;
+      member = augmented?.lookUpGetter(name: _name, library: _library);
       if (member != null) {
         return member;
       }
     }
     // setter
     if (_kinds.contains(ElementKind.SETTER)) {
-      member = classElement.lookUpSetter('$_name=', _library);
+      var augmented = classElement.augmented;
+      member = augmented?.lookUpSetter(name: '$_name=', library: _library);
       if (member != null) {
         return member;
       }

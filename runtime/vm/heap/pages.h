@@ -302,6 +302,9 @@ class PageSpace {
   void PauseConcurrentMarking();
   void ResumeConcurrentMarking();
   void YieldConcurrentMarking();
+  void PushDependencyToConcurrentMarking() {
+    pause_concurrent_marking_.fetch_or(0);
+  }
 
   Monitor* tasks_lock() const { return &tasks_lock_; }
   intptr_t tasks() const { return tasks_; }
@@ -327,7 +330,9 @@ class PageSpace {
     DEBUG_ASSERT(tasks_lock_.IsOwnedByCurrentThread());
     concurrent_marker_tasks_active_ = val;
   }
-  bool pause_concurrent_marking() const { return pause_concurrent_marking_; }
+  bool pause_concurrent_marking() const {
+    return pause_concurrent_marking_.load() != 0;
+  }
   Phase phase() const { return phase_; }
   void set_phase(Phase val) { phase_ = val; }
 
@@ -467,7 +472,7 @@ class PageSpace {
   intptr_t tasks_;
   intptr_t concurrent_marker_tasks_;
   intptr_t concurrent_marker_tasks_active_;
-  RelaxedAtomic<bool> pause_concurrent_marking_;
+  AcqRelAtomic<uword> pause_concurrent_marking_;
   Phase phase_;
 
 #if defined(DEBUG)

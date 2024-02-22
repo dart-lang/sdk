@@ -6,9 +6,6 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import '../../dtd.dart';
 
-// TODO(https://github.com/flutter/devtools/issues/6996): find an elegant way
-// to extend DTDResponse.
-
 /// A list or [uris] on the system where the Dart Tooling Daemon is running.
 class UriList {
   /// The key for the type parameter.

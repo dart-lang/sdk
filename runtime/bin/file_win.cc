@@ -12,6 +12,7 @@
 #include <Shlwapi.h>  // NOLINT
 #include <fcntl.h>     // NOLINT
 #include <io.h>        // NOLINT
+#include <pathcch.h>   // NOLINT
 #include <winioctl.h>  // NOLINT
 #undef StrDup          // defined in Shlwapi.h as StrDupW
 #include <stdio.h>     // NOLINT
@@ -589,10 +590,6 @@ typedef struct _REPARSE_DATA_BUFFER {
   };
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
-static constexpr int kReparseDataHeaderSize =
-    sizeof(ULONG) + 2 * sizeof(USHORT);
-static constexpr int kMountPointHeaderSize = 4 * sizeof(USHORT);
-
 bool File::CreateLink(Namespace* namespc,
                       const char* utf8_name,
                       const char* utf8_target) {
@@ -600,11 +597,62 @@ bool File::CreateLink(Namespace* namespc,
   Utf8ToWideScope target(PrefixLongFilePath(utf8_target));
   DWORD flags = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
 
-  File::Type type = File::GetType(namespc, utf8_target, true);
+  File::Type type;
+  if (File::IsAbsolutePath(utf8_target)) {
+    type = File::GetType(namespc, utf8_target, true);
+  } else {
+    // The path of `target` is relative to `name`.
+    //
+    // To determine if `target` is a file or directory, we need to calculate
+    // either its absolute path or its path relative to the current working
+    // directory.
+    //
+    // For example:
+    //
+    // name=           C:\A\B\Link      ..\..\Link      ..\..\Link
+    // target=         MyFile           MyFile          ..\Dir\MyFile
+    // --------------------------------------------------------------------
+    // target_path=    C:\A\B\MyFile    ..\..\MyFile    ..\..\..\Dir\MyFile
+    //
+    // The transformation steps are:
+    // 1. target_path := name                           ..\..\Link
+    // 2. target_path := remove_file(target_path)       ..\..\
+    // 3. target_path := combine(target_path, target)   ..\..\..\Dir\MyFile
+
+    // 1. target_path := name
+    intptr_t target_path_max_length = name.length() + target.length();
+    Wchart target_path(target_path_max_length);
+    wcscpy_s(target_path.buf(), target_path_max_length, name.wide());
+
+    // 2. target_path := remove_file(target_path)
+    HRESULT remove_result =
+        PathCchRemoveFileSpec(target_path.buf(), target_path_max_length);
+    if (remove_result == S_FALSE) {
+      // If the file component could not be removed, then `name` is
+      // top-level, like "C:\" or "/". Attempts to create files at those paths
+      // will fail with ERROR_ACCESS_DENIED.
+      SetLastError(ERROR_ACCESS_DENIED);
+      return false;
+    } else if (remove_result != S_OK) {
+      SetLastError(remove_result);
+      return false;
+    }
+
+    // 3. target_path := combine(target_path, target)
+    HRESULT combine_result = PathCchCombineEx(
+        target_path.buf(), target_path_max_length, target_path.buf(),
+        target.wide(), PATHCCH_ALLOW_LONG_PATHS);
+    if (combine_result != S_OK) {
+      SetLastError(combine_result);
+      return false;
+    }
+
+    type = PathIsDirectoryW(target_path.buf()) ? kIsDirectory : kIsFile;
+  }
+
   if (type == kIsDirectory) {
     flags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
   }
-
   int create_status = CreateSymbolicLinkW(name.wide(), target.wide(), flags);
 
   // If running on a Windows 10 build older than 14972, an invalid parameter
@@ -1120,9 +1168,8 @@ File::Type File::GetType(Namespace* namespc,
   // Convert to wchar_t string.
   Utf8ToWideScope name(prefixed_path);
   DWORD attributes = GetFileAttributesW(name.wide());
-  File::Type result = kIsFile;
   if (attributes == INVALID_FILE_ATTRIBUTES) {
-    result = kDoesNotExist;
+    return kDoesNotExist;
   } else if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     if (follow_links) {
       HANDLE target_handle = CreateFileW(
@@ -1130,17 +1177,12 @@ File::Type File::GetType(Namespace* namespc,
           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
           OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
       if (target_handle == INVALID_HANDLE_VALUE) {
-        DWORD last_error = GetLastError();
-        if ((last_error == ERROR_FILE_NOT_FOUND) ||
-            (last_error == ERROR_PATH_NOT_FOUND)) {
-          return kDoesNotExist;
-        }
-        result = kIsLink;
+        return kDoesNotExist;
       } else {
         BY_HANDLE_FILE_INFORMATION info;
         if (!GetFileInformationByHandle(target_handle, &info)) {
           CloseHandle(target_handle);
-          return File::kIsLink;
+          return File::kDoesNotExist;
         }
         CloseHandle(target_handle);
         return ((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
@@ -1148,12 +1190,12 @@ File::Type File::GetType(Namespace* namespc,
                    : kIsFile;
       }
     } else {
-      result = kIsLink;
+      return kIsLink;
     }
   } else if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-    result = kIsDirectory;
+    return kIsDirectory;
   }
-  return result;
+  return kIsFile;
 }
 
 File::Identical File::AreIdentical(Namespace* namespc_1,

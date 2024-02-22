@@ -21,6 +21,12 @@ class IgnoreDiagnosticAnaylsisOptionFileTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
 
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = true;
+    super.setUp();
+  }
+
   Future<void> test_addFixToExistingErrorMap() async {
     createAnalysisOptionsFile(
       errors: {'unused_label': 'ignore'},
@@ -44,18 +50,19 @@ analyzer:
 
   Future<void> test_emptyAnalysisOptionsFile() async {
     // This overwrites the file created by `super.setUp` method.
-    resourceProvider.getFile(analysisOptionsPath).writeAsStringSync('');
+    writeBlankAnalysisOptionsFile();
 
     await resolveTestCode('''
-  void f() {
-    var a = 1;
-  }
-  ''');
+void f() {
+  var a = 1;
+}
+''');
     await assertHasFix(
       '''
 analyzer:
   errors:
-    unused_local_variable: ignore''',
+    unused_local_variable: ignore
+''',
       target: analysisOptionsPath,
     );
   }
@@ -63,12 +70,10 @@ analyzer:
   Future<void> test_invalidAnalysisOptionsFormat() async {
     // This overwrites the file created by `super.setUp` method.
     // Note: a label without a value is an `invalid_section_format` for dart.
-    resourceProvider.getFile(analysisOptionsPath).writeAsStringSync(
-      '''
+    writeAnalysisOptionsFile('''
 analyzer:
   linter:
-''',
-    );
+''');
 
     await resolveTestCode('''
   void f() {
@@ -88,15 +93,15 @@ analyzer:
     // This deletes the file created by `super.setUp` method.
     resourceProvider.getFile(analysisOptionsPath).delete();
     await resolveTestCode('''
-  void f() {
-    var a = 1;
-  }
-  ''');
+void f() {
+  var a = 1;
+}
+''');
     await assertNoFix();
   }
 
   Future<void> test_noAnalyzerLabel() async {
-    createAnalysisOptionsFile();
+    writeBlankAnalysisOptionsFile();
 
     await resolveTestCode('''
 void f() {
@@ -107,7 +112,8 @@ void f() {
       '''
 analyzer:
   errors:
-    unused_local_variable: ignore''',
+    unused_local_variable: ignore
+''',
       target: analysisOptionsPath,
     );
   }
@@ -151,9 +157,12 @@ void f() {
 
   Future<void> test_onlyIncludeLabel() async {
     // This overwrites the file created by `super.setUp` method.
-    resourceProvider.getFile(analysisOptionsPath).writeAsStringSync(
-          'include: package:lints/recommended.yaml',
-        );
+    // Having a newline is important because yaml_edit copies existing
+    // newlines and we want to test the current platforms EOLs.
+    // The content is normalized in newFile().
+    writeAnalysisOptionsFile('''
+include: package:lints/recommended.yaml
+''');
 
     await resolveTestCode('''
   void f() {
@@ -165,7 +174,8 @@ void f() {
 analyzer:
   errors:
     unused_local_variable: ignore
-include: package:lints/recommended.yaml''',
+include: package:lints/recommended.yaml
+''',
       target: analysisOptionsPath,
     );
   }
@@ -182,6 +192,14 @@ void f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  void writeBlankAnalysisOptionsFile() {
+    // Include a newline because yaml_edit will copy existing newlines and
+    // this newline will be normalized for the current platform. Without it,
+    // yaml_edit will produce new content using \n on Windows which may not
+    // match the expectations here depending on Git EOL settings.
+    writeAnalysisOptionsFile('\n');
   }
 }
 

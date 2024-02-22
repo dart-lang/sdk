@@ -7634,6 +7634,9 @@ sealed class FormalParameterImpl extends AstNodeImpl
 
   /// Return the kind of this parameter.
   ParameterKind get kind;
+
+  @override
+  NodeList<AnnotationImpl> get metadata;
 }
 
 /// The formal parameter list of a method declaration, function declaration, or

@@ -607,6 +607,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var getter = ElementFactory.getterElement(getterName, false, intNone);
     classA.accessors = [getter];
     library.definingCompilationUnit.classes = [classA];
+    // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpGetter(getterName, library), same(getter));
   }
 
@@ -624,6 +625,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     library.definingCompilationUnit.classes = [classA, classB];
+    // ignore: deprecated_member_use_from_same_package
     expect(classB.lookUpGetter(getterName, library), same(getter));
   }
 
@@ -633,6 +635,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     library.definingCompilationUnit.classes = [classA];
+    // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpGetter("g", library), isNull);
   }
 
@@ -647,6 +650,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
     library.definingCompilationUnit.classes = [classA, classB];
+    // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpGetter("g", library), isNull);
   }
 
@@ -657,6 +661,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var method = ElementFactory.methodElement(methodName, intNone);
     classA.methods = [method];
     library.definingCompilationUnit.classes = [classA];
+    // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpMethod(methodName, library), same(method));
   }
 
@@ -669,6 +674,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     library.definingCompilationUnit.classes = [classA, classB];
+    // ignore: deprecated_member_use_from_same_package
     expect(classB.lookUpMethod(methodName, library), same(method));
   }
 
@@ -676,6 +682,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     library.definingCompilationUnit.classes = [classA];
+    // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpMethod("m", library), isNull);
   }
 
@@ -686,6 +693,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
     library.definingCompilationUnit.classes = [classA, classB];
+    // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpMethod("m", library), isNull);
   }
 
@@ -699,6 +707,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var setter = ElementFactory.setterElement(setterName, false, intNone);
     classA.accessors = [setter];
     library.definingCompilationUnit.classes = [classA];
+    // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpSetter(setterName, library), same(setter));
   }
 
@@ -716,6 +725,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     library.definingCompilationUnit.classes = [classA, classB];
+    // ignore: deprecated_member_use_from_same_package
     expect(classB.lookUpSetter(setterName, library), same(setter));
   }
 
@@ -725,6 +735,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     library.definingCompilationUnit.classes = [classA];
+    // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpSetter("s", library), isNull);
   }
 
@@ -739,6 +750,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
     library.definingCompilationUnit.classes = [classA, classB];
+    // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpSetter("s", library), isNull);
   }
 

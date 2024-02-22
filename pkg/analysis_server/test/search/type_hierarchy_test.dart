@@ -81,6 +81,71 @@ class B extends A {
     ]);
   }
 
+  Future<void> test_class_augmentation() async {
+    addTestFile('''
+import augment 'a.dart';
+
+class MyClass1 {}
+class C {}
+''');
+
+    newFile('$testPackageLibPath/a.dart', '''
+library augment 'test.dart';
+
+augment class C extends MyClass1 {}
+ ''');
+    var items = await _getTypeHierarchy('MyClass1 {}');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'MyClass1',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [2, 3]
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'C',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'C',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
+  }
+
   Future<void> test_class_displayName() async {
     addTestFile('''
 class A<T> {

@@ -7,7 +7,9 @@
 
 #include "platform/globals.h"
 
-#if defined(__has_feature)
+#if __SANITIZE_THREAD__
+#define USING_THREAD_SANITIZER
+#elif defined(__has_feature)
 #if __has_feature(thread_sanitizer)
 #define USING_THREAD_SANITIZER
 #endif

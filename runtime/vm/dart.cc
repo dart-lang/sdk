@@ -897,30 +897,12 @@ ErrorPtr Dart::InitIsolateGroupFromSnapshot(
 static void FinalizeBuiltinClasses(Thread* thread) {
   auto class_table = thread->isolate_group()->class_table();
   Class& cls = Class::Handle(thread->zone());
-
-#define ENSURE_FINALIZED(clazz)                                                \
-  if (class_table->HasValidClassAt(k##clazz##Cid)) {                           \
-    cls = class_table->At(k##clazz##Cid);                                      \
-    RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Object::null());           \
+  for (intptr_t cid = kInstanceCid; cid < kNumPredefinedCids; cid++) {
+    if (class_table->HasValidClassAt(cid)) {
+      cls = class_table->At(cid);
+      RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Object::null());
+    }
   }
-
-  CLASS_LIST_INSTANCE_SINGLETONS(ENSURE_FINALIZED)
-  CLASS_LIST_ARRAYS(ENSURE_FINALIZED)
-  CLASS_LIST_STRINGS(ENSURE_FINALIZED)
-  // No maps/sets.
-
-#define ENSURE_TD_FINALIZED(clazz)                                             \
-  ENSURE_FINALIZED(TypedData##clazz)                                           \
-  ENSURE_FINALIZED(TypedData##clazz##View)                                     \
-  ENSURE_FINALIZED(ExternalTypedData##clazz)                                   \
-  ENSURE_FINALIZED(UnmodifiableTypedData##clazz##View)
-
-  CLASS_LIST_TYPED_DATA(ENSURE_TD_FINALIZED)
-#undef ENSURE_TD_FINALIZED
-
-  ENSURE_FINALIZED(ByteDataView)
-  ENSURE_FINALIZED(UnmodifiableByteDataView)
-  ENSURE_FINALIZED(ByteBuffer)
 }
 
 ErrorPtr Dart::InitializeIsolateGroup(Thread* T,

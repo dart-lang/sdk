@@ -2246,6 +2246,51 @@ library
 ''');
   }
 
+  test_augmented_methods_add_withDefaultValue() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  void foo([int x = 42]) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+          constructors
+            self::@class::A::@constructor::new
+          methods
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            methods
+              foo @54
+                parameters
+                  optionalPositional default x @63
+                    type: int
+                    constantInitializer
+                      IntegerLiteral
+                        literal: 42 @67
+                        staticType: int
+                returnType: void
+''');
+  }
+
   test_augmented_methods_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';

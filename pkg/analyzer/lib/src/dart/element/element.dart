@@ -3683,6 +3683,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         (method) => !method.isAbstract && method.isAccessibleIn(library));
   }
 
+  @Deprecated('Use `element.augmented.lookUpGetter`.')
   @override
   PropertyAccessorElement? lookUpGetter(
       String getterName, LibraryElement library) {
@@ -3739,12 +3740,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         method.enclosingElement != this);
   }
 
+  @Deprecated('Use `element.augmented.lookUpMethod`.')
   @override
   MethodElement? lookUpMethod(String methodName, LibraryElement library) {
     return _implementationsOfMethod(methodName).firstWhereOrNull(
         (MethodElement method) => method.isAccessibleIn(library));
   }
 
+  @Deprecated('Use `element.augmented.lookUpSetter`.')
   @override
   PropertyAccessorElement? lookUpSetter(
       String setterName, LibraryElement library) {
@@ -3878,8 +3881,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   static PropertyAccessorElement? getSetterFromAccessors(
       String setterName, List<PropertyAccessorElement> accessors) {
-    // TODO(jwren): revisit- should we append '=' here or require clients to
-    // include it?
     // Do we need the check for isSetter below?
     if (!setterName.endsWith('=')) {
       setterName += '=';
@@ -4988,20 +4989,11 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
 
   @override
   PropertyAccessorElement? getSetter(String name) {
-    final nameLength = name.length;
-    final length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
-      if (accessor.isSetter) {
-        final accessorName = accessor.name;
-        if (accessorName.length == nameLength + 1) {
-          if (accessorName.startsWith(name)) {
-            return accessor;
-          }
-        }
-      }
+    if (!name.endsWith('=')) {
+      name += '=';
     }
-    return null;
+    return accessors.firstWhereOrNull(
+        (accessor) => accessor.isSetter && accessor.name == name);
   }
 
   @override

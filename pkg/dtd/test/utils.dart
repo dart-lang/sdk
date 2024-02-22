@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+/// Helper class for starting a Dart Tooling Daemon instance, and extracting
+/// it's [trustedSecret] and [uri] from stdout.
 class ToolingDaemonTestProcess {
   ToolingDaemonTestProcess({this.unrestricted = false});
   late final String? trustedSecret;
@@ -23,24 +25,26 @@ class ToolingDaemonTestProcess {
         if (unrestricted) '--unrestricted',
       ],
     );
-    process!.stdout.transform(utf8.decoder).listen((line) {
-      stderr.write('DTD stdout: $line');
-      try {
-        final json = jsonDecode(line) as Map<String, Object?>;
-        final toolingDaemonDetails =
-            json['tooling_daemon_details'] as Map<String, dynamic>;
-        trustedSecret =
-            toolingDaemonDetails['trusted_client_secret'] as String?;
-        uri = Uri.parse(toolingDaemonDetails['uri'] as String);
-        completer.complete();
-      } catch (e) {
-        // If we failed to decode then this line doesn't have json.
-        print('Json parsing error: $e');
-      }
-    });
-    process!.stderr
-        .transform(utf8.decoder)
-        .listen((line) => print('DTD stderr: $line'));
+    process!.handle(
+      stdoutLines: (line) {
+        stdout.write('DTD stdout: $line');
+        try {
+          final json = jsonDecode(line) as Map<String, Object?>;
+          final toolingDaemonDetails =
+              json['tooling_daemon_details'] as Map<String, dynamic>;
+          trustedSecret =
+              toolingDaemonDetails['trusted_client_secret'] as String?;
+          uri = Uri.parse(toolingDaemonDetails['uri'] as String);
+          completer.complete();
+        } catch (e) {
+          // If we failed to decode then this line doesn't have json.
+          print('Json parsing error: $e');
+        }
+      },
+      stderrLines: (line) {
+        stderr.write('DTD stderr: $line');
+      },
+    );
 
     await completer.future;
     return process!;
@@ -48,5 +52,26 @@ class ToolingDaemonTestProcess {
 
   void kill() {
     process?.kill();
+  }
+}
+
+extension OutputProcessExtension on Process {
+  void handle({
+    required void Function(String) stdoutLines,
+    void Function(String)? stderrLines,
+  }) {
+    this
+        .stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((line) => stdoutLines(line));
+
+    if (stderrLines != null) {
+      this
+          .stderr
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((line) => stderrLines(line));
+    }
   }
 }

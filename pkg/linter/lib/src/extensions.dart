@@ -433,7 +433,8 @@ extension MethodDeclarationExtension on MethodDeclaration {
     }
     var parent = declaredElement.enclosingElement;
     if (parent is InterfaceElement) {
-      return parent.lookUpGetter(name.lexeme, declaredElement.library);
+      return parent.augmented
+          ?.lookUpGetter(name: name.lexeme, library: declaredElement.library);
     }
     if (parent is ExtensionElement) {
       return parent.getGetter(name.lexeme);

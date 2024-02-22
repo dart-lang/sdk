@@ -109,31 +109,44 @@ void testFileStat(String dir) {
 }
 
 void testCreateLinkToDir(String dir) {
-  final path = '${dir}\\a_long_path_linkname';
-  Expect.isTrue(path.length > maxPath);
-  var target = '$dir\\a_long_path_target';
-  final link = Link(path)..createSync(target);
+  final linkPath = '$dir\\a_long_path_linkname';
+  final renamedPath = '$dir\\a_long_renamed_path_linkname';
 
-  final dest = Directory(target)..createSync();
-  Expect.isTrue(dest.existsSync());
+  Expect.isTrue(linkPath.length > maxPath);
+  Expect.isTrue(renamedPath.length > maxPath);
 
+  var targetDirectory1 = '$dir\\a_long_directory_target1';
+  var targetDirectory2 = '$dir\\a_long_directory_target2';
+
+  Directory(targetDirectory1).createSync();
+  Directory(targetDirectory2).createSync();
+
+  // Create link
+  final link = Link(linkPath)..createSync(targetDirectory1);
   Expect.isTrue(link.existsSync());
-  Expect.isTrue(link.targetSync().contains('a_long_path_target'));
+  final resolvedCreatePath = link.resolveSymbolicLinksSync();
+  Expect.isTrue(
+      FileSystemEntity.identicalSync(targetDirectory1, resolvedCreatePath),
+      '${link.path} should resolve to $targetDirectory1 but resolved to $resolvedCreatePath');
 
   // Rename link
-  var renamedLink = link.renameSync('${dir}\\a_renamed_long_path_link');
+  var renamedLink = link.renameSync(renamedPath);
   Expect.isTrue(renamedLink.existsSync());
   Expect.isFalse(link.existsSync());
-  Expect.isTrue(renamedLink.targetSync().contains('a_long_path_target'));
+  final resolvedRenamePath = renamedLink.resolveSymbolicLinksSync();
+  Expect.isTrue(
+      FileSystemEntity.identicalSync(targetDirectory1, resolvedRenamePath),
+      '${link.path} should resolve to $targetDirectory1 but resolved to $resolvedRenamePath');
 
   // Update link target
-  target = '$dir\\an_updated_target';
-  final renamedDest = Directory(target)..createSync();
-  renamedLink.updateSync(target);
-  Expect.isTrue(renamedLink.targetSync().contains('an_updated_target'));
+  renamedLink.updateSync(targetDirectory2);
+  final resolvedUpdatedPath = renamedLink.resolveSymbolicLinksSync();
+  Expect.isTrue(
+      FileSystemEntity.identicalSync(targetDirectory2, resolvedUpdatedPath),
+      '${link.path} should resolve to $targetDirectory2 but resolved to $resolvedRenamePath');
 
-  dest.deleteSync();
-  renamedDest.deleteSync();
+  Directory(targetDirectory1).deleteSync();
+  Directory(targetDirectory2).deleteSync();
   renamedLink.deleteSync();
 }
 
@@ -147,8 +160,9 @@ void testCreateLinkToFile(String dir) {
   Expect.isTrue(dest.existsSync());
 
   Expect.isTrue(link.existsSync());
-  Expect.isTrue(link.targetSync().contains('a_long_path_target'));
-  Expect.isTrue(link.resolveSymbolicLinksSync().contains('a_long_path_target'));
+  final resolvedPath = link.resolveSymbolicLinksSync();
+  Expect.isTrue(FileSystemEntity.identicalSync(target, resolvedPath),
+      '${link.path} should resolve to $target but resolved to $resolvedPath');
 
   // Rename link
   var renamedLink = link.renameSync('${dir}\\a_renamed_long_path_link');

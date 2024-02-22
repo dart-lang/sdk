@@ -1684,7 +1684,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
   /// lookup has failed.
   /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
+  @Deprecated('Use `element.augmented.lookUpGetter`.')
   PropertyAccessorElement? lookUpGetter(
       String getterName, LibraryElement library);
 
@@ -1784,7 +1784,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
   /// failed.
   /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
+  @Deprecated('Use `element.augmented.lookUpMethod`.')
   MethodElement? lookUpMethod(String methodName, LibraryElement library);
 
   /// Returns the element representing the setter that results from looking up
@@ -1803,7 +1803,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
   /// lookup has failed.
   /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
+  @Deprecated('Use `element.augmented.lookUpSetter`.')
   PropertyAccessorElement? lookUpSetter(
       String setterName, LibraryElement library);
 }

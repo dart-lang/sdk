@@ -5,7 +5,9 @@
 #ifndef RUNTIME_PLATFORM_UNDEFINED_BEHAVIOR_SANITIZER_H_
 #define RUNTIME_PLATFORM_UNDEFINED_BEHAVIOR_SANITIZER_H_
 
-#if defined(__has_feature)
+#if __SANITIZE_UNDEFINED__
+#define USING_UNDEFINED_BEHAVIOR_SANITIZER
+#elif defined(__has_feature)
 #if __has_feature(undefined_behavior_sanitizer)
 #define USING_UNDEFINED_BEHAVIOR_SANITIZER
 #endif

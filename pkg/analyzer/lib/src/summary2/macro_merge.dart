@@ -13,6 +13,7 @@ import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Merges elements from [partialUnits] into [unitElement].
 ///
@@ -235,6 +236,9 @@ class MacroElementsMerger {
 }
 
 class MacroUpdateConstantsForOptimizedCode {
+  /// The container of [unitElement].
+  final LibraryElementImpl libraryElement;
+
   /// The parsed merged code.
   final ast.CompilationUnit unitNode;
 
@@ -245,7 +249,11 @@ class MacroUpdateConstantsForOptimizedCode {
   /// The merged element, with elements in the same order as in [unitNode].
   final CompilationUnitElementImpl unitElement;
 
+  /// The names of classes that have a `const` constructor.
+  final Set<String> _namesOfConstClasses = {};
+
   MacroUpdateConstantsForOptimizedCode({
+    required this.libraryElement,
     required this.unitNode,
     required this.codeEdits,
     required this.unitElement,
@@ -263,6 +271,7 @@ class MacroUpdateConstantsForOptimizedCode {
   /// The same elements, in the same order.
   /// If not, we have a bug in [MacroElementsMerger].
   void perform() {
+    _findConstClasses();
     var nodeRecords = _orderedForNodes();
     var elementRecords = _orderedForElement();
     assert(nodeRecords.length == elementRecords.length);
@@ -295,6 +304,21 @@ class MacroUpdateConstantsForOptimizedCode {
     }
   }
 
+  void _findConstClasses() {
+    for (var element in libraryElement.topLevelElements) {
+      if (element is! ClassElementImpl) continue;
+      if (element.isAugmentation) continue;
+
+      var augmented = element.augmented;
+      if (augmented == null) continue;
+
+      var hasConst = augmented.constructors.any((e) => e.isConst);
+      if (hasConst) {
+        _namesOfConstClasses.add(element.name);
+      }
+    }
+  }
+
   List<(ElementImpl, ast.AstNodeImpl)> _orderedForElement() {
     var result = <(ElementImpl, ast.AstNodeImpl)>[];
 
@@ -303,10 +327,16 @@ class MacroUpdateConstantsForOptimizedCode {
         annotation as ElementAnnotationImpl;
         result.add((element, annotation.annotationAst));
       }
-      if (element is ConstVariableElement) {
-        if (element.constantInitializer case var initializer?) {
-          result.add((element, initializer));
-        }
+
+      switch (element) {
+        case ConstVariableElement():
+          if (element.constantInitializer case var initializer?) {
+            result.add((element, initializer));
+          }
+        case ExecutableElementImpl():
+          for (var formalParameter in element.parameters) {
+            addElement(formalParameter.declarationImpl);
+          }
       }
     }
 
@@ -390,11 +420,13 @@ class MacroUpdateConstantsForOptimizedCode {
 
     void addVariableList(
       ast.VariableDeclarationListImpl variableList,
-      List<ast.AnnotationImpl> metadata,
-    ) {
+      List<ast.AnnotationImpl> metadata, {
+      required bool withFinals,
+    }) {
       for (var variable in variableList.variables) {
         addMetadata(variable, metadata);
-        if (variableList.isConst) {
+
+        if (variableList.isConst || variableList.isFinal && withFinals) {
           if (variable.initializer case var initializer?) {
             result.add((variable, initializer));
           }
@@ -402,22 +434,44 @@ class MacroUpdateConstantsForOptimizedCode {
       }
     }
 
-    void addInterfaceMembers(List<ast.ClassMemberImpl> members) {
+    void addFormalParameters(ast.FormalParameterListImpl? parameterList) {
+      if (parameterList != null) {
+        for (var formalParameter in parameterList.parameters) {
+          addMetadata(formalParameter, formalParameter.metadata);
+          if (formalParameter is ast.DefaultFormalParameterImpl) {
+            if (formalParameter.defaultValue case var defaultValue?) {
+              result.add((formalParameter, defaultValue));
+            }
+          }
+        }
+      }
+    }
+
+    void addInterfaceMembers(
+      List<ast.ClassMemberImpl> members, {
+      required bool hasConstConstructor,
+    }) {
       for (var field in members) {
         if (field is ast.FieldDeclarationImpl) {
-          addVariableList(field.fields, field.metadata);
+          addVariableList(
+            field.fields,
+            field.metadata,
+            withFinals: hasConstConstructor && !field.isStatic,
+          );
         }
       }
 
       for (var getter in members) {
         if (getter is ast.MethodDeclarationImpl && getter.isGetter) {
           addAnnotatedNode(getter);
+          addFormalParameters(getter.parameters);
         }
       }
 
       for (var setter in members) {
         if (setter is ast.MethodDeclarationImpl && setter.isSetter) {
           addAnnotatedNode(setter);
+          addFormalParameters(setter.parameters);
         }
       }
 
@@ -425,12 +479,14 @@ class MacroUpdateConstantsForOptimizedCode {
         if (method is ast.MethodDeclarationImpl &&
             method.propertyKeyword == null) {
           addAnnotatedNode(method);
+          addFormalParameters(method.parameters);
         }
       }
 
       for (var constructor in members) {
         if (constructor is ast.ConstructorDeclarationImpl) {
           addAnnotatedNode(constructor);
+          addFormalParameters(constructor.parameters);
         }
       }
     }
@@ -438,25 +494,36 @@ class MacroUpdateConstantsForOptimizedCode {
     for (var class_ in unitNode.declarations) {
       if (class_ is ast.ClassDeclarationImpl) {
         addAnnotatedNode(class_);
-        addInterfaceMembers(class_.members);
+        addInterfaceMembers(
+          class_.members,
+          hasConstConstructor: _namesOfConstClasses.contains(
+            class_.name.lexeme,
+          ),
+        );
       }
     }
 
     for (var topVariable in unitNode.declarations) {
       if (topVariable is ast.TopLevelVariableDeclarationImpl) {
-        addVariableList(topVariable.variables, topVariable.metadata);
+        addVariableList(
+          topVariable.variables,
+          topVariable.metadata,
+          withFinals: false,
+        );
       }
     }
 
     for (var getter in unitNode.declarations) {
       if (getter is ast.FunctionDeclarationImpl && getter.isGetter) {
         addAnnotatedNode(getter);
+        addFormalParameters(getter.functionExpression.parameters);
       }
     }
 
     for (var setter in unitNode.declarations) {
       if (setter is ast.FunctionDeclarationImpl && setter.isSetter) {
         addAnnotatedNode(setter);
+        addFormalParameters(setter.functionExpression.parameters);
       }
     }
 
@@ -464,6 +531,7 @@ class MacroUpdateConstantsForOptimizedCode {
       if (function is ast.FunctionDeclarationImpl &&
           function.propertyKeyword == null) {
         addAnnotatedNode(function);
+        addFormalParameters(function.functionExpression.parameters);
       }
     }
 
