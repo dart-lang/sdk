@@ -5388,8 +5388,13 @@ class A {}
       ..withConstructors = false
       ..withMetadata = false
       ..macroDiagnosticMessageValidator = (message) {
-        expect(message, contains('unresolved'));
-        expect(message, contains('executeTypesMacro'));
+        if (message.contains('#0')) {
+          // It's the context: stack trace with the underlying issue.
+          expect(message, contains('unresolved'));
+        } else {
+          // It's the main message.
+          expect(message, contains('failed due to a bug in the macro'));
+        }
       };
     checkElementText(library, r'''
 library
@@ -5403,7 +5408,12 @@ library
             message: MacroDiagnosticMessage
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
+            contextMessages
+              MacroDiagnosticMessage
+                target: ApplicationMacroDiagnosticTarget
+                  annotationIndex: 0
             severity: error
+            correctionMessage: Try reporting the failure to the macro author.
 ''');
   }
 
@@ -6724,12 +6734,18 @@ library
         macroDiagnostics
           MacroDiagnostic
             message: MacroDiagnosticMessage
-              message:
-Unhandled error: My declarations phase
-Stack trace: <cut>
+              message: Macro application failed due to a bug in the macro.
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
+            contextMessages
+              MacroDiagnosticMessage
+                message:
+My declarations phase
+#0 <cut>
+                target: ApplicationMacroDiagnosticTarget
+                  annotationIndex: 0
             severity: error
+            correctionMessage: Try reporting the failure to the macro author.
 ''');
   }
 
@@ -6761,12 +6777,18 @@ library
             macroDiagnostics
               MacroDiagnostic
                 message: MacroDiagnosticMessage
-                  message:
-Unhandled error: My declarations phase
-Stack trace: <cut>
+                  message: Macro application failed due to a bug in the macro.
                   target: ApplicationMacroDiagnosticTarget
                     annotationIndex: 0
+                contextMessages
+                  MacroDiagnosticMessage
+                    message:
+My declarations phase
+#0 <cut>
+                    target: ApplicationMacroDiagnosticTarget
+                      annotationIndex: 0
                 severity: error
+                correctionMessage: Try reporting the failure to the macro author.
 ''');
   }
 
@@ -6802,12 +6824,18 @@ library
             macroDiagnostics
               MacroDiagnostic
                 message: MacroDiagnosticMessage
-                  message:
-Unhandled error: My declarations phase
-Stack trace: <cut>
+                  message: Macro application failed due to a bug in the macro.
                   target: ApplicationMacroDiagnosticTarget
                     annotationIndex: 0
+                contextMessages
+                  MacroDiagnosticMessage
+                    message:
+My declarations phase
+#0 <cut>
+                    target: ApplicationMacroDiagnosticTarget
+                      annotationIndex: 0
                 severity: error
+                correctionMessage: Try reporting the failure to the macro author.
         accessors
           synthetic get foo @-1
             returnType: int
@@ -6850,12 +6878,18 @@ library
             macroDiagnostics
               MacroDiagnostic
                 message: MacroDiagnosticMessage
-                  message:
-Unhandled error: My declarations phase
-Stack trace: <cut>
+                  message: Macro application failed due to a bug in the macro.
                   target: ApplicationMacroDiagnosticTarget
                     annotationIndex: 0
+                contextMessages
+                  MacroDiagnosticMessage
+                    message:
+My declarations phase
+#0 <cut>
+                    target: ApplicationMacroDiagnosticTarget
+                      annotationIndex: 0
                 severity: error
+                correctionMessage: Try reporting the failure to the macro author.
 ''');
   }
 
@@ -6885,12 +6919,18 @@ library
         macroDiagnostics
           MacroDiagnostic
             message: MacroDiagnosticMessage
-              message:
-Unhandled error: My definitions phase
-Stack trace: <cut>
+              message: Macro application failed due to a bug in the macro.
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
+            contextMessages
+              MacroDiagnosticMessage
+                message:
+My definitions phase
+#0 <cut>
+                target: ApplicationMacroDiagnosticTarget
+                  annotationIndex: 0
             severity: error
+            correctionMessage: Try reporting the failure to the macro author.
 ''');
   }
 
@@ -6920,12 +6960,18 @@ library
         macroDiagnostics
           MacroDiagnostic
             message: MacroDiagnosticMessage
-              message:
-Unhandled error: My types phase
-Stack trace: <cut>
+              message: Macro application failed due to a bug in the macro.
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
+            contextMessages
+              MacroDiagnosticMessage
+                message:
+My types phase
+#0 <cut>
+                target: ApplicationMacroDiagnosticTarget
+                  annotationIndex: 0
             severity: error
+            correctionMessage: Try reporting the failure to the macro author.
 ''');
   }
 

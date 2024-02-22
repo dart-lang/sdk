@@ -794,7 +794,7 @@ class _ElementWriter {
         validator(object.message);
       } else {
         final message = object.message;
-        const stackTraceText = 'Stack trace:';
+        const stackTraceText = '#0';
         final stackTraceIndex = message.indexOf(stackTraceText);
         if (stackTraceIndex >= 0) {
           final end = stackTraceIndex + stackTraceText.length;
