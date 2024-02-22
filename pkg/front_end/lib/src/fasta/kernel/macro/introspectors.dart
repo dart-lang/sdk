@@ -138,7 +138,7 @@ class MacroIntrospection {
     }
   }
 
-  macro.LibraryImpl _libraryFor(LibraryBuilder builder) {
+  macro.LibraryImpl getLibrary(LibraryBuilder builder) {
     return _libraries[builder] ??= () {
       final Version version = builder.library.languageVersion;
       return new macro.LibraryImpl(
@@ -183,7 +183,7 @@ class MacroIntrospection {
     final List<macro.NamedTypeAnnotationImpl> interfaces =
         types.typeBuildersToAnnotations(
             builder.libraryBuilder, builder.interfaceBuilders);
-    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
+    final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
 
     macro.ParameterizedTypeDeclaration declaration = builder.isMixinDeclaration
         ? new macro.MixinDeclarationImpl(
@@ -228,7 +228,7 @@ class MacroIntrospection {
 
   macro.TypeAliasDeclaration _createTypeAliasDeclaration(
       TypeAliasBuilder builder) {
-    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
+    final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
     macro.TypeAliasDeclaration declaration = new macro.TypeAliasDeclarationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: new TypeDeclarationBuilderIdentifier(
@@ -255,7 +255,7 @@ class MacroIntrospection {
     } else {
       positionalParameters = [];
       namedParameters = [];
-      final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
+      final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
       for (FormalParameterBuilder formal in formals) {
         macro.TypeAnnotationImpl type =
             types.computeTypeAnnotation(builder.libraryBuilder, formal.type);
@@ -309,7 +309,7 @@ class MacroIntrospection {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
-      library: _libraryFor(builder.libraryBuilder),
+      library: getLibrary(builder.libraryBuilder),
       // TODO: Provide metadata annotations.
       metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
@@ -340,7 +340,7 @@ class MacroIntrospection {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
-      library: _libraryFor(builder.libraryBuilder),
+      library: getLibrary(builder.libraryBuilder),
       // TODO: Provide metadata annotations.
       metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
@@ -366,7 +366,7 @@ class MacroIntrospection {
     if (builder.classBuilder != null) {
       definingClass = getClassDeclaration(builder.classBuilder!);
     }
-    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
+    final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
@@ -424,7 +424,7 @@ class MacroIntrospection {
     if (builder.classBuilder != null) {
       definingClass = getClassDeclaration(builder.classBuilder!);
     }
-    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
+    final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
