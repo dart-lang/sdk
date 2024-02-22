@@ -133,13 +133,13 @@ class MissingDependencyValidator {
     Object? data,
   ]) {
     final span = node.span;
-    reporter.reportErrorForOffset(
-      errorCode,
-      span.start.offset,
-      span.length,
-      arguments,
-      messages,
-      data,
+    reporter.atOffset(
+      offset: span.start.offset,
+      length: span.length,
+      errorCode: errorCode,
+      arguments: arguments,
+      contextMessages: messages,
+      data: data,
     );
   }
 }

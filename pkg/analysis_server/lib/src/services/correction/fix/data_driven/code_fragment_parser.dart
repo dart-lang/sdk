@@ -80,8 +80,14 @@ class CodeFragmentParser {
         }
         accessors.add(accessor);
       } else {
-        errorReporter.reportErrorForOffset(TransformSetErrorCode.wrongToken,
-            token.offset + delta, token.length, ['.', token.kind.displayName]);
+        errorReporter.atOffset(
+          offset: token.offset + delta,
+          length: token.length,
+          errorCode: TransformSetErrorCode.wrongToken,
+          arguments: ['.', token.kind.displayName],
+          contextMessages: null,
+          data: null,
+        );
         return null;
       }
     }
@@ -106,8 +112,14 @@ class CodeFragmentParser {
     var expression = _parseLogicalAndExpression();
     if (currentIndex < _tokens.length) {
       var token = _tokens[currentIndex];
-      errorReporter.reportErrorForOffset(TransformSetErrorCode.unexpectedToken,
-          token.offset + delta, token.length, [token.kind.displayName]);
+      errorReporter.atOffset(
+        offset: token.offset + delta,
+        length: token.length,
+        errorCode: TransformSetErrorCode.unexpectedToken,
+        arguments: [token.kind.displayName],
+        contextMessages: null,
+        data: null,
+      );
       return null;
     }
     return expression;
@@ -140,16 +152,25 @@ class CodeFragmentParser {
         offset = last.offset;
         length = last.length;
       }
-      errorReporter.reportErrorForOffset(TransformSetErrorCode.missingToken,
-          offset + delta, length, [validKindsDisplayString()]);
+      errorReporter.atOffset(
+        offset: offset + delta,
+        length: length,
+        errorCode: TransformSetErrorCode.missingToken,
+        arguments: [validKindsDisplayString()],
+        contextMessages: null,
+        data: null,
+      );
       return null;
     }
     if (!validKinds.contains(token.kind)) {
-      errorReporter.reportErrorForOffset(
-          TransformSetErrorCode.wrongToken,
-          token.offset + delta,
-          token.length,
-          [validKindsDisplayString(), token.kind.displayName]);
+      errorReporter.atOffset(
+        offset: token.offset + delta,
+        length: token.length,
+        errorCode: TransformSetErrorCode.wrongToken,
+        arguments: [validKindsDisplayString(), token.kind.displayName],
+        contextMessages: null,
+        data: null,
+      );
       return null;
     }
     return token;
@@ -217,8 +238,14 @@ class CodeFragmentParser {
       advance();
       return TypeArgumentAccessor(argumentIndex);
     } else {
-      errorReporter.reportErrorForOffset(TransformSetErrorCode.unknownAccessor,
-          token.offset + delta, token.length, [identifier]);
+      errorReporter.atOffset(
+        offset: token.offset + delta,
+        length: token.length,
+        errorCode: TransformSetErrorCode.unknownAccessor,
+        arguments: [identifier],
+        contextMessages: null,
+        data: null,
+      );
       return null;
     }
   }
@@ -293,11 +320,14 @@ class CodeFragmentParser {
         var variableName = token.lexeme;
         var generator = variableScope.lookup(variableName);
         if (generator == null) {
-          errorReporter.reportErrorForOffset(
-              TransformSetErrorCode.undefinedVariable,
-              token.offset + delta,
-              token.length,
-              [variableName]);
+          errorReporter.atOffset(
+            offset: token.offset + delta,
+            length: token.length,
+            errorCode: TransformSetErrorCode.undefinedVariable,
+            arguments: [variableName],
+            contextMessages: null,
+            data: null,
+          );
           return null;
         }
         return VariableReference(generator);
@@ -323,8 +353,14 @@ class CodeFragmentParser {
       offset = token.offset + delta;
       length = token.length;
     }
-    errorReporter.reportErrorForOffset(
-        TransformSetErrorCode.expectedPrimary, offset, length);
+    errorReporter.atOffset(
+      offset: offset,
+      length: length,
+      errorCode: TransformSetErrorCode.expectedPrimary,
+      arguments: null,
+      contextMessages: null,
+      data: null,
+    );
     return null;
   }
 }
@@ -454,8 +490,14 @@ class _CodeFragmentScanner {
 
   /// Report the presence of an invalid character at the given [offset].
   Null _reportInvalidCharacter(int offset) {
-    errorReporter.reportErrorForOffset(TransformSetErrorCode.invalidCharacter,
-        offset + delta, 1, [content.substring(offset, offset + 1)]);
+    errorReporter.atOffset(
+      offset: offset + delta,
+      length: 1,
+      errorCode: TransformSetErrorCode.invalidCharacter,
+      arguments: [content.substring(offset, offset + 1)],
+      contextMessages: null,
+      data: null,
+    );
     return null;
   }
 

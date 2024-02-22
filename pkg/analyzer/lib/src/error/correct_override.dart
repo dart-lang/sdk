@@ -125,17 +125,19 @@ class CovariantParametersVerifier {
           // always named, so we can safely assume
           // `_thisMember.enclosingElement3.name` and
           // `superMember.enclosingElement3.name` are non-`null`.
-          errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_OVERRIDE,
-            errorNode.offset,
-            errorNode.length,
-            [
+          errorReporter.atOffset(
+            offset: errorNode.offset,
+            length: errorNode.length,
+            errorCode: CompileTimeErrorCode.INVALID_OVERRIDE,
+            arguments: [
               _thisMember.name,
               _thisMember.enclosingElement.name!,
               _thisMember.type,
               superMember.enclosingElement.name!,
               superMember.type,
             ],
+            contextMessages: null,
+            data: null,
           );
         }
       }

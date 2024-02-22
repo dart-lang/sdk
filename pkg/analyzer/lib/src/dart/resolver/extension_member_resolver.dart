@@ -106,11 +106,11 @@ class ExtensionMemberResolver {
         return extension.asResolutionResult;
       },
       (noneMoreSpecific) {
-        _errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
-          nameEntity.offset,
-          nameEntity.length,
-          [
+        _errorReporter.atOffset(
+          offset: nameEntity.offset,
+          length: nameEntity.length,
+          errorCode: CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
+          arguments: [
             name,
             noneMoreSpecific.map((e) {
               var name = e.extension.name;
@@ -121,6 +121,8 @@ class ExtensionMemberResolver {
               return "unnamed extension on '$type'";
             }).commaSeparatedWithAnd,
           ],
+          contextMessages: null,
+          data: null,
         );
         return ResolutionResult.ambiguous;
       },

@@ -180,8 +180,14 @@ class ErrorReporter {
     //  declaration. This might make it easier to be consistent.
     if (constructor.name != null) {
       var offset = constructor.returnType.offset;
-      reportErrorForOffset(
-          code, offset, constructor.name!.end - offset, arguments);
+      atOffset(
+        offset: offset,
+        length: constructor.name!.end - offset,
+        errorCode: code,
+        arguments: arguments,
+        contextMessages: null,
+        data: null,
+      );
     } else {
       atNode(
         constructor.returnType,
@@ -212,6 +218,7 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments]. The location
   /// of the error is specified by the given [offset] and [length].
+  @Deprecated('Use atOffset() instead')
   void reportErrorForOffset(
     ErrorCode errorCode,
     int offset,
@@ -234,7 +241,14 @@ class ErrorReporter {
   /// of the error is specified by the given [span].
   void reportErrorForSpan(ErrorCode errorCode, SourceSpan span,
       [List<Object>? arguments]) {
-    reportErrorForOffset(errorCode, span.start.offset, span.length, arguments);
+    atOffset(
+      offset: span.start.offset,
+      length: span.length,
+      errorCode: errorCode,
+      arguments: arguments,
+      contextMessages: null,
+      data: null,
+    );
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The [token] is
@@ -268,7 +282,14 @@ class ErrorReporter {
   @Deprecated('Use reportErrorForNode(), it will convert types as well')
   void reportTypeErrorForNode(
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
-    reportErrorForOffset(errorCode, node.offset, node.length, arguments);
+    atOffset(
+      offset: node.offset,
+      length: node.length,
+      errorCode: errorCode,
+      arguments: arguments,
+      contextMessages: null,
+      data: null,
+    );
   }
 
   /// Convert all [Element]s in the [arguments] into their display strings.

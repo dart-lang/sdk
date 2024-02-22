@@ -3890,22 +3890,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         for (var constantName in constantNames) {
           int offset = statement.offset;
           int end = statement.rightParenthesis.end;
-          errorReporter.reportErrorForOffset(
-            StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-            offset,
-            end - offset,
-            [constantName],
+          errorReporter.atOffset(
+            offset: offset,
+            length: end - offset,
+            errorCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            arguments: [constantName],
+            contextMessages: null,
+            data: null,
           );
         }
 
         if (typeSystem.isNullable(expressionType) && !hasCaseNull) {
           int offset = statement.offset;
           int end = statement.rightParenthesis.end;
-          errorReporter.reportErrorForOffset(
-            StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-            offset,
-            end - offset,
-            ['null'],
+          errorReporter.atOffset(
+            offset: offset,
+            length: end - offset,
+            errorCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            arguments: ['null'],
+            contextMessages: null,
+            data: null,
           );
         }
       }
@@ -4760,10 +4764,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (redirectedElement != null &&
         element.isConst &&
         !redirectedElement.isConst) {
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
-        errorEntity.offset,
-        errorEntity.end - errorEntity.offset,
+      errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.end - errorEntity.offset,
+        errorCode: CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+        arguments: null,
+        contextMessages: null,
+        data: null,
       );
     }
   }
@@ -5134,7 +5141,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var name = constructor.name;
       int offset = returnType.offset;
       int length = (name != null ? name.end : returnType.end) - offset;
-      errorReporter.reportErrorForOffset(errorCode, offset, length, arguments);
+      errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: errorCode,
+        arguments: arguments,
+        contextMessages: null,
+        data: null,
+      );
     }
 
     if (!_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
@@ -5233,11 +5247,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (targetElement is InterfaceElement ||
             targetElement is ExtensionElement ||
             targetElement is TypeAliasElement) {
-          errorReporter.reportErrorForOffset(
-            errorCode,
-            operator.offset,
-            endToken.end - operator.offset,
-            arguments,
+          errorReporter.atOffset(
+            offset: operator.offset,
+            length: endToken.end - operator.offset,
+            errorCode: errorCode,
+            arguments: arguments,
+            contextMessages: null,
+            data: null,
           );
         }
       }
@@ -5258,11 +5274,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           return;
         }
       }
-      errorReporter.reportErrorForOffset(
-        errorCode,
-        operator.offset,
-        endToken.end - operator.offset,
-        arguments,
+      errorReporter.atOffset(
+        offset: operator.offset,
+        length: endToken.end - operator.offset,
+        errorCode: errorCode,
+        arguments: arguments,
+        contextMessages: null,
+        data: null,
       );
     }
   }
@@ -5605,15 +5623,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     TypeParameterElementImpl typeParameterImpl =
         typeParameter as TypeParameterElementImpl;
     if (!variance.greaterThanOrEqual(typeParameterImpl.variance)) {
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
-        errorTarget.offset,
-        errorTarget.length,
-        [
+      errorReporter.atOffset(
+        offset: errorTarget.offset,
+        length: errorTarget.length,
+        errorCode: CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
+        arguments: [
           typeParameterImpl.variance.toKeywordString(),
           typeParameterImpl.name,
           variance.toKeywordString()
         ],
+        contextMessages: null,
+        data: null,
       );
     }
   }
@@ -5770,10 +5790,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (parameter.isRequiredNamed) {
           if (parameter.defaultValue != null) {
             final errorTarget = _parameterName(parameter) ?? parameter;
-            errorReporter.reportErrorForOffset(
-              CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
-              errorTarget.offset,
-              errorTarget.length,
+            errorReporter.atOffset(
+              offset: errorTarget.offset,
+              length: errorTarget.length,
+              errorCode:
+                  CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
+              arguments: null,
+              contextMessages: null,
+              data: null,
             );
           }
         } else if (defaultValuesAreExpected) {
@@ -5796,8 +5820,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                     : CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER;
                 arguments = [parameterName?.lexeme ?? '?'];
               }
-              errorReporter.reportErrorForOffset(
-                  errorCode, errorTarget.offset, errorTarget.length, arguments);
+              errorReporter.atOffset(
+                offset: errorTarget.offset,
+                length: errorTarget.length,
+                errorCode: errorCode,
+                arguments: arguments,
+                contextMessages: null,
+                data: null,
+              );
             }
           }
         }

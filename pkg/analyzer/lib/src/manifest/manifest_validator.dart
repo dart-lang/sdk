@@ -460,8 +460,14 @@ class ManifestValidator {
       [List<Object>? arguments]) {
     var span =
         key == null ? node.sourceSpan! : node.attributes[key]!.sourceSpan;
-    reporter.reportErrorForOffset(
-        errorCode, span.start.offset, span.length, arguments);
+    reporter.atOffset(
+      offset: span.start.offset,
+      length: span.length,
+      errorCode: errorCode,
+      arguments: arguments,
+      contextMessages: null,
+      data: null,
+    );
   }
 
   /// Validate the 'activity' tags.

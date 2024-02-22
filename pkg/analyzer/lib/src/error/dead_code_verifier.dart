@@ -234,10 +234,22 @@ class NullSafetyDeadCodeVerifier {
             doEnd = body.leftBracket.end;
             whileOffset = body.rightBracket.offset;
           }
-          _errorReporter.reportErrorForOffset(
-              WarningCode.DEAD_CODE, doOffset, doEnd - doOffset);
-          _errorReporter.reportErrorForOffset(
-              WarningCode.DEAD_CODE, whileOffset, whileEnd - whileOffset);
+          _errorReporter.atOffset(
+            offset: doOffset,
+            length: doEnd - doOffset,
+            errorCode: WarningCode.DEAD_CODE,
+            arguments: null,
+            contextMessages: null,
+            data: null,
+          );
+          _errorReporter.atOffset(
+            offset: whileOffset,
+            length: whileEnd - whileOffset,
+            errorCode: WarningCode.DEAD_CODE,
+            arguments: null,
+            contextMessages: null,
+            data: null,
+          );
           offset = parent.semicolon.next!.offset;
           if (parent.hasBreakStatement) {
             offset = node.end;
@@ -257,8 +269,14 @@ class NullSafetyDeadCodeVerifier {
 
         var length = node.end - offset;
         if (length > 0) {
-          _errorReporter.reportErrorForOffset(
-              WarningCode.DEAD_CODE, offset, length);
+          _errorReporter.atOffset(
+            offset: offset,
+            length: length,
+            errorCode: WarningCode.DEAD_CODE,
+            arguments: null,
+            contextMessages: null,
+            data: null,
+          );
         }
       }
 
@@ -272,11 +290,13 @@ class NullSafetyDeadCodeVerifier {
       (first, last, errorCode, arguments) {
         var offset = first.offset;
         var length = last.end - offset;
-        _errorReporter.reportErrorForOffset(
-          errorCode,
-          offset,
-          length,
-          arguments,
+        _errorReporter.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: errorCode,
+          arguments: arguments,
+          contextMessages: null,
+          data: null,
         );
         _deadCatchClauseRanges.add(SourceRange(offset, length));
       },
@@ -362,8 +382,14 @@ class NullSafetyDeadCodeVerifier {
       var beginToken = updaters.beginToken;
       var endToken = updaters.endToken;
       if (beginToken != null && endToken != null) {
-        _errorReporter.reportErrorForOffset(WarningCode.DEAD_CODE,
-            beginToken.offset, endToken.end - beginToken.offset);
+        _errorReporter.atOffset(
+          offset: beginToken.offset,
+          length: endToken.end - beginToken.offset,
+          errorCode: WarningCode.DEAD_CODE,
+          arguments: null,
+          contextMessages: null,
+          data: null,
+        );
       }
     }
   }

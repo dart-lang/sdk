@@ -276,12 +276,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         switch (result) {
           case InvalidConstant():
             if (!result.avoidReporting) {
-              _errorReporter.reportErrorForOffset(
-                result.errorCode,
-                result.offset,
-                result.length,
-                result.arguments,
-                result.contextMessages,
+              _errorReporter.atOffset(
+                offset: result.offset,
+                length: result.length,
+                errorCode: result.errorCode,
+                arguments: result.arguments,
+                contextMessages: result.contextMessages,
+                data: null,
               );
             }
           case DartObjectImpl():

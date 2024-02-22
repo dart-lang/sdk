@@ -581,12 +581,13 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant evaluateAndReportInvalidConstant(AstNode node) {
     var result = evaluateConstant(node);
     if (result case InvalidConstant(avoidReporting: false)) {
-      _errorReporter.reportErrorForOffset(
-        result.errorCode,
-        result.offset,
-        result.length,
-        result.arguments,
-        result.contextMessages,
+      _errorReporter.atOffset(
+        offset: result.offset,
+        length: result.length,
+        errorCode: result.errorCode,
+        arguments: result.arguments,
+        contextMessages: result.contextMessages,
+        data: null,
       );
     }
     return result;
@@ -1946,12 +1947,13 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // interaction with g3 more elegantly.
       case InvalidConstant(isUnresolved: true):
         if (!expressionValue.avoidReporting) {
-          _errorReporter.reportErrorForOffset(
-            expressionValue.errorCode,
-            expressionValue.offset,
-            expressionValue.length,
-            expressionValue.arguments,
-            expressionValue.contextMessages,
+          _errorReporter.atOffset(
+            offset: expressionValue.offset,
+            length: expressionValue.length,
+            errorCode: expressionValue.errorCode,
+            arguments: expressionValue.arguments,
+            contextMessages: expressionValue.contextMessages,
+            data: null,
           );
         }
         return ConstantEvaluationEngine._unresolvedObject(

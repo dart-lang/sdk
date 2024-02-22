@@ -356,11 +356,13 @@ class NamedTypeResolver with ScopeHelpers {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
     } else {
       node.type = InvalidTypeImpl.instance;
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.NOT_A_TYPE,
-        importPrefix.offset,
-        nameToken.end - importPrefix.offset,
-        ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
+      errorReporter.atOffset(
+        offset: importPrefix.offset,
+        length: nameToken.end - importPrefix.offset,
+        errorCode: CompileTimeErrorCode.NOT_A_TYPE,
+        arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
+        contextMessages: null,
+        data: null,
       );
     }
   }
@@ -413,19 +415,25 @@ class NamedTypeResolver with ScopeHelpers {
         var errorRange = _ErrorHelper._getErrorRange(node);
         var constructorUsage = parent.parent;
         if (constructorUsage is InstanceCreationExpression) {
-          errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode
+          errorReporter.atOffset(
+            offset: errorRange.offset,
+            length: errorRange.length,
+            errorCode: CompileTimeErrorCode
                 .INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-            errorRange.offset,
-            errorRange.length,
+            arguments: null,
+            contextMessages: null,
+            data: null,
           );
         } else if (constructorUsage is ConstructorDeclaration &&
             constructorUsage.redirectedConstructor == parent) {
-          errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode
+          errorReporter.atOffset(
+            offset: errorRange.offset,
+            length: errorRange.length,
+            errorCode: CompileTimeErrorCode
                 .REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-            errorRange.offset,
-            errorRange.length,
+            arguments: null,
+            contextMessages: null,
+            data: null,
           );
         } else {
           throw UnimplementedError('${constructorUsage.runtimeType}');
@@ -450,10 +458,13 @@ class NamedTypeResolver with ScopeHelpers {
       }
       if (errorCode != null) {
         var errorRange = _ErrorHelper._getErrorRange(node);
-        errorReporter.reportErrorForOffset(
-          errorCode,
-          errorRange.offset,
-          errorRange.length,
+        errorReporter.atOffset(
+          offset: errorRange.offset,
+          length: errorRange.length,
+          errorCode: errorCode,
+          arguments: null,
+          contextMessages: null,
+          data: null,
         );
         hasErrorReported = true;
         return InvalidTypeImpl.instance;
@@ -485,13 +496,15 @@ class _ErrorHelper {
       var instanceCreation = constructorName.parent;
       if (instanceCreation is InstanceCreationExpression) {
         final errorRange = _getErrorRange(node, skipImportPrefix: true);
-        errorReporter.reportErrorForOffset(
-          instanceCreation.isConst
+        errorReporter.atOffset(
+          offset: errorRange.offset,
+          length: errorRange.length,
+          errorCode: instanceCreation.isConst
               ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
               : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
-          errorRange.offset,
-          errorRange.length,
-          [node.name2.lexeme],
+          arguments: [node.name2.lexeme],
+          contextMessages: null,
+          data: null,
         );
         return true;
       }
@@ -506,33 +519,39 @@ class _ErrorHelper {
 
     if (node.name2.lexeme == 'boolean') {
       final errorRange = _getErrorRange(node, skipImportPrefix: true);
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
-        errorRange.offset,
-        errorRange.length,
-        [node.name2.lexeme],
+      errorReporter.atOffset(
+        offset: errorRange.offset,
+        length: errorRange.length,
+        errorCode: CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
+        arguments: [node.name2.lexeme],
+        contextMessages: null,
+        data: null,
       );
       return;
     }
 
     if (_isTypeInCatchClause(node)) {
       final errorRange = _getErrorRange(node);
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
-        errorRange.offset,
-        errorRange.length,
-        [node.name2.lexeme],
+      errorReporter.atOffset(
+        offset: errorRange.offset,
+        length: errorRange.length,
+        errorCode: CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
+        arguments: [node.name2.lexeme],
+        contextMessages: null,
+        data: null,
       );
       return;
     }
 
     if (_isTypeInAsExpression(node)) {
       final errorRange = _getErrorRange(node);
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.CAST_TO_NON_TYPE,
-        errorRange.offset,
-        errorRange.length,
-        [node.name2.lexeme],
+      errorReporter.atOffset(
+        offset: errorRange.offset,
+        length: errorRange.length,
+        errorCode: CompileTimeErrorCode.CAST_TO_NON_TYPE,
+        arguments: [node.name2.lexeme],
+        contextMessages: null,
+        data: null,
       );
       return;
     }
@@ -540,18 +559,22 @@ class _ErrorHelper {
     if (_isTypeInIsExpression(node)) {
       final errorRange = _getErrorRange(node);
       if (element != null) {
-        errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
-          errorRange.offset,
-          errorRange.length,
-          [node.name2.lexeme],
+        errorReporter.atOffset(
+          offset: errorRange.offset,
+          length: errorRange.length,
+          errorCode: CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
+          arguments: [node.name2.lexeme],
+          contextMessages: null,
+          data: null,
         );
       } else {
-        errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
-          errorRange.offset,
-          errorRange.length,
-          [node.name2.lexeme],
+        errorReporter.atOffset(
+          offset: errorRange.offset,
+          length: errorRange.length,
+          errorCode: CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+          arguments: [node.name2.lexeme],
+          contextMessages: null,
+          data: null,
         );
       }
       return;
@@ -559,22 +582,26 @@ class _ErrorHelper {
 
     if (_isRedirectingConstructor(node)) {
       final errorRange = _getErrorRange(node);
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
-        errorRange.offset,
-        errorRange.length,
-        [node.name2.lexeme],
+      errorReporter.atOffset(
+        offset: errorRange.offset,
+        length: errorRange.length,
+        errorCode: CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
+        arguments: [node.name2.lexeme],
+        contextMessages: null,
+        data: null,
       );
       return;
     }
 
     if (_isTypeInTypeArgumentList(node)) {
       final errorRange = _getErrorRange(node);
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
-        errorRange.offset,
-        errorRange.length,
-        [node.name2.lexeme],
+      errorReporter.atOffset(
+        offset: errorRange.offset,
+        length: errorRange.length,
+        errorCode: CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
+        arguments: [node.name2.lexeme],
+        contextMessages: null,
+        data: null,
       );
       return;
     }
@@ -607,11 +634,13 @@ class _ErrorHelper {
 
     if (element != null) {
       final errorRange = _getErrorRange(node);
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.NOT_A_TYPE,
-        errorRange.offset,
-        errorRange.length,
-        [node.name2.lexeme],
+      errorReporter.atOffset(
+        offset: errorRange.offset,
+        length: errorRange.length,
+        errorCode: CompileTimeErrorCode.NOT_A_TYPE,
+        arguments: [node.name2.lexeme],
+        contextMessages: null,
+        data: null,
       );
       return;
     }
@@ -625,11 +654,13 @@ class _ErrorHelper {
     }
 
     final errorRange = _getErrorRange(node);
-    errorReporter.reportErrorForOffset(
-      CompileTimeErrorCode.UNDEFINED_CLASS,
-      errorRange.offset,
-      errorRange.length,
-      [node.name2.lexeme],
+    errorReporter.atOffset(
+      offset: errorRange.offset,
+      length: errorRange.length,
+      errorCode: CompileTimeErrorCode.UNDEFINED_CLASS,
+      arguments: [node.name2.lexeme],
+      contextMessages: null,
+      data: null,
     );
   }
 
