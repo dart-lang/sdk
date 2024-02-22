@@ -58,10 +58,12 @@ final class DeclarationsIntrospectionCycleDiagnostic
 
 final class ElementAnnotationMacroDiagnosticTarget
     extends MacroDiagnosticTarget {
-  final ElementAnnotationImpl annotation;
+  final ElementImpl element;
+  final int annotationIndex;
 
   ElementAnnotationMacroDiagnosticTarget({
-    required this.annotation,
+    required this.element,
+    required this.annotationIndex,
   });
 }
 

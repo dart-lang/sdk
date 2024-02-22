@@ -6000,7 +6000,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _reportMacroDiagnostics(MacroTargetElement element) {
     _MacroDiagnosticsReporter(
-      libraryVerificationContext: libraryVerificationContext,
+      libraryContext: libraryVerificationContext,
       errorReporter: errorReporter,
       element: element,
     ).report();
@@ -6169,12 +6169,12 @@ class LibraryVerificationContext {
 }
 
 class _MacroDiagnosticsReporter {
-  final LibraryVerificationContext libraryVerificationContext;
+  final LibraryVerificationContext libraryContext;
   final ErrorReporter errorReporter;
   final MacroTargetElement element;
 
   _MacroDiagnosticsReporter({
-    required this.libraryVerificationContext,
+    required this.libraryContext,
     required this.errorReporter,
     required this.element,
   });
@@ -6273,9 +6273,31 @@ class _MacroDiagnosticsReporter {
             contextMessages: contextMessages,
           ),
         );
+      case ElementAnnotationMacroDiagnosticTarget():
+        var location = libraryContext.declarationByElement(
+          target.element,
+        );
+        if (location == null) {
+          return;
+        }
+        var node = _annotationNode(
+          target.element,
+          target.annotationIndex,
+        );
+        location.unitAnalysis.errorReporter.reportError(
+          AnalysisError.forValues(
+            source: target.element.source!,
+            offset: node.offset,
+            length: node.length,
+            errorCode: errorCode,
+            message: diagnostic.message.message,
+            correctionMessage: diagnostic.correctionMessage,
+            contextMessages: contextMessages,
+          ),
+        );
       case TypeAnnotationMacroDiagnosticTarget():
         var nodeLocation = _MacroTypeAnnotationLocationConverter(
-          libraryVerificationContext: libraryVerificationContext,
+          libraryVerificationContext: libraryContext,
         ).convert(target.location);
         var unitAnalysis = nodeLocation?.unitAnalysis;
         var errorEntity = nodeLocation?.entity;
@@ -6292,9 +6314,6 @@ class _MacroDiagnosticsReporter {
             ),
           );
         }
-      case ElementAnnotationMacroDiagnosticTarget():
-        // TODO(scheglov): Handle this case.
-        throw UnimplementedError();
     }
   }
 

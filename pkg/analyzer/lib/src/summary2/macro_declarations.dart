@@ -71,6 +71,25 @@ class ConstructorDeclarationImpl extends macro.ConstructorDeclarationImpl
   });
 }
 
+final class ConstructorMetadataAnnotationImpl extends macro
+    .ConstructorMetadataAnnotationImpl implements MetadataAnnotationImpl {
+  @override
+  final ElementImpl element;
+
+  @override
+  final int annotationIndex;
+
+  ConstructorMetadataAnnotationImpl({
+    required this.element,
+    required this.annotationIndex,
+    required super.id,
+    required super.constructor,
+    required super.type,
+    required super.positionalArguments,
+    required super.namedArguments,
+  });
+}
+
 class DeclarationBuilder {
   final ast.AstNode? Function(Element?) nodeOfElement;
 
@@ -325,16 +344,28 @@ class DeclarationBuilder {
   }
 
   List<macro.MetadataAnnotationImpl> _buildMetadata(Element element) {
-    return element.withAugmentations
-        .expand((current) => current.metadata)
-        .map(_buildMetadataElement)
-        .nonNulls
-        .toList();
+    var result = <macro.MetadataAnnotationImpl>[];
+    for (var partialElement in element.withAugmentations) {
+      partialElement as ElementImpl;
+      var metadata = partialElement.metadata;
+      for (var i = 0; i < metadata.length; i++) {
+        result.addIfNotNull(
+          _buildMetadataElement(
+            element: partialElement,
+            annotationIndex: i,
+            annotation: metadata[i],
+          ),
+        );
+      }
+    }
+    return result;
   }
 
-  macro.MetadataAnnotationImpl? _buildMetadataElement(
-    ElementAnnotation annotation,
-  ) {
+  macro.MetadataAnnotationImpl? _buildMetadataElement({
+    required ElementImpl element,
+    required int annotationIndex,
+    required ElementAnnotation annotation,
+  }) {
     annotation as ElementAnnotationImpl;
     final node = annotation.annotationAst;
 
@@ -374,7 +405,9 @@ class DeclarationBuilder {
     final argumentList = node.arguments;
     if (argumentList != null) {
       final arguments = argumentList.arguments;
-      return macro.ConstructorMetadataAnnotationImpl(
+      return ConstructorMetadataAnnotationImpl(
+        element: element,
+        annotationIndex: annotationIndex,
         id: macro.RemoteInstance.uniqueId,
         constructor: IdentifierImplFromNode(
           id: macro.RemoteInstance.uniqueId,
@@ -394,7 +427,9 @@ class DeclarationBuilder {
         }).mapFromEntries,
       );
     } else {
-      return macro.IdentifierMetadataAnnotationImpl(
+      return IdentifierMetadataAnnotationImpl(
+        element: element,
+        annotationIndex: annotationIndex,
         id: macro.RemoteInstance.uniqueId,
         identifier: identifierMacro,
       );
@@ -2082,6 +2117,22 @@ class IdentifierImplFromNode extends IdentifierImpl {
   Element? get element => getElement();
 }
 
+class IdentifierMetadataAnnotationImpl extends macro
+    .IdentifierMetadataAnnotationImpl implements MetadataAnnotationImpl {
+  @override
+  final ElementImpl element;
+
+  @override
+  final int annotationIndex;
+
+  IdentifierMetadataAnnotationImpl({
+    required this.element,
+    required this.annotationIndex,
+    required super.id,
+    required super.identifier,
+  });
+}
+
 abstract class LibraryImpl extends macro.LibraryImpl {
   LibraryImpl({
     required super.id,
@@ -2104,6 +2155,12 @@ class LibraryImplFromElement extends LibraryImpl {
     required super.uri,
     required this.element,
   });
+}
+
+sealed class MetadataAnnotationImpl implements macro.MetadataAnnotationImpl {
+  int get annotationIndex;
+
+  ElementImpl get element;
 }
 
 class MethodDeclarationImpl extends macro.MethodDeclarationImpl

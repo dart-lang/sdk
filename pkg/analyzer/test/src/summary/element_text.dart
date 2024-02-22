@@ -829,6 +829,16 @@ class _ElementWriter {
           _sink.withIndent(() {
             _elementPrinter.writeNamedElement('element', target.element);
           });
+        case ElementAnnotationMacroDiagnosticTarget():
+          _sink.writelnWithIndent(
+            'target: ElementAnnotationMacroDiagnosticTarget',
+          );
+          _sink.withIndent(() {
+            _elementPrinter.writeNamedElement('element', target.element);
+            _sink.writelnWithIndent(
+              'annotationIndex: ${target.annotationIndex}',
+            );
+          });
         case TypeAnnotationMacroDiagnosticTarget():
           _sink.writelnWithIndent(
             'target: TypeAnnotationMacroDiagnosticTarget',
@@ -836,9 +846,6 @@ class _ElementWriter {
           _sink.withIndent(() {
             writeTypeAnnotationLocation(target.location);
           });
-        case ElementAnnotationMacroDiagnosticTarget():
-          // TODO(scheglov): Implement this
-          throw UnimplementedError();
       }
     }
 

@@ -2427,6 +2427,12 @@ class ResolutionReader {
         target = ElementMacroDiagnosticTarget(
           element: element as ElementImpl,
         );
+      case MacroDiagnosticTargetKind.elementAnnotation:
+        final element = readElement();
+        target = ElementAnnotationMacroDiagnosticTarget(
+          element: element as ElementImpl,
+          annotationIndex: readUInt30(),
+        );
       case MacroDiagnosticTargetKind.type:
         var location = readTypeAnnotationLocation();
         target = TypeAnnotationMacroDiagnosticTarget(location: location);
