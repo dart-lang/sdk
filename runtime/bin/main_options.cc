@@ -445,7 +445,6 @@ bool Options::ParseArguments(int argc,
 
   bool enable_dartdev_analytics = false;
   bool disable_dartdev_analytics = false;
-  bool serve_devtools = true;
   char* packages_argument = nullptr;
 
   // Parse out the vm options.
@@ -475,12 +474,6 @@ bool Options::ParseArguments(int argc,
         // Just add this option even if we don't go to dartdev.
         // It is irrelevant for the vm.
         dart_options->AddArgument("--no-analytics");
-        skipVmOption = true;
-      } else if (IsOption(argv[i], "serve-devtools")) {
-        serve_devtools = true;
-        skipVmOption = true;
-      } else if (IsOption(argv[i], "no-serve-devtools")) {
-        serve_devtools = false;
         skipVmOption = true;
       } else if (IsOption(argv[i], "dds")) {
         // This flag is set by default in dartdev, so we ignore it. --no-dds is
@@ -642,16 +635,6 @@ bool Options::ParseArguments(int argc,
       // run command. If 'run' is provided, it will be the first argument
       // processed in this loop.
       dart_options->AddArgument("run");
-
-      // Ensure we can enable / disable DevTools when invoking 'dart run'
-      // implicitly.
-      if (enable_vm_service_) {
-        if (serve_devtools) {
-          dart_options->AddArgument("--serve-devtools");
-        } else {
-          dart_options->AddArgument("--no-serve-devtools");
-        }
-      }
     } else {
       dart_options->AddArgument(argv[i]);
       i++;
@@ -664,29 +647,6 @@ bool Options::ParseArguments(int argc,
       bool run_command = implicitly_use_dart_dev;
       if (!run_command && strcmp(argv[i - 1], "run") == 0) {
         run_command = true;
-      }
-      if (!Options::disable_dart_dev() && !Options::disable_dds() &&
-          enable_vm_service_ && run_command) {
-        const char* dds_format_str = "--launch-dds=%s\\:%d";
-        size_t size =
-            snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),
-                     vm_service_server_port());
-        // Make room for '\0'.
-        ++size;
-        char* dds_uri = new char[size];
-        snprintf(dds_uri, size, dds_format_str, vm_service_server_ip(),
-                 vm_service_server_port());
-        dart_options->AddArgument(dds_uri);
-
-        // Only add --disable-service-auth-codes if dartdev is being run
-        // implicitly. Otherwise it will already be forwarded.
-        if (implicitly_use_dart_dev && Options::vm_service_auth_disabled()) {
-          dart_options->AddArgument("--disable-service-auth-codes");
-        }
-        if (implicitly_use_dart_dev &&
-            Options::enable_service_port_fallback()) {
-          dart_options->AddArgument("--enable-service-port-fallback");
-        }
       }
 #if !defined(DART_PRECOMPILED_RUNTIME)
       // Bring any --packages option into the dartdev command

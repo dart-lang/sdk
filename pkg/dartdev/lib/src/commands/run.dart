@@ -12,7 +12,6 @@ import 'package:path/path.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
-import '../dds_runner.dart';
 import '../experiments.dart';
 import '../generate_kernel.dart';
 import '../native_assets.dart';
@@ -277,47 +276,6 @@ class RunCommand extends DartdevCommand {
       mainCommand = args.rest.first;
       // The command line arguments after the command name.
       runArgs = args.rest.skip(1).toList();
-    }
-    if (!isProductMode) {
-      // --launch-dds is provided by the VM if the VM service is to be enabled. In
-      // that case, we need to launch DDS as well.
-      String? launchDdsArg = args['launch-dds'];
-      String ddsHost = '';
-      String ddsPort = '';
-
-      bool launchDevTools = args['serve-devtools'] ?? false;
-      bool launchDds = false;
-      if (launchDdsArg != null) {
-        launchDds = true;
-        final ddsUrl = launchDdsArg.split('\\:');
-        ddsHost = ddsUrl[0];
-        ddsPort = ddsUrl[1];
-      }
-      final bool debugDds = args['debug-dds'];
-
-      bool disableServiceAuthCodes = args['disable-service-auth-codes'];
-      final bool enableServicePortFallback =
-          args['enable-service-port-fallback'];
-
-      // If the user wants to start a debugging session we need to do some extra
-      // work and spawn a Dart Development Service (DDS) instance. DDS is a VM
-      // service intermediary which implements the VM service protocol and
-      // provides non-VM specific extensions (e.g., log caching, client
-      // synchronization).
-      DDSRunner debugSession;
-      if (launchDds) {
-        debugSession = DDSRunner();
-        if (!await debugSession.startForCurrentProcess(
-          ddsHost: ddsHost,
-          ddsPort: ddsPort,
-          disableServiceAuthCodes: disableServiceAuthCodes,
-          enableDevTools: launchDevTools,
-          debugDds: debugDds,
-          enableServicePortFallback: enableServicePortFallback,
-        )) {
-          return errorExitCode;
-        }
-      }
     }
 
     String? nativeAssets;

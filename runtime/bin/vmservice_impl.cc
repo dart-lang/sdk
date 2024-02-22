@@ -9,6 +9,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/isolate_data.h"
+#include "bin/main_options.h"
 #include "bin/platform.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -122,6 +123,7 @@ bool VmService::Setup(const char* server_ip,
                       bool deterministic,
                       bool enable_service_port_fallback,
                       bool wait_for_dds_to_advertise_service,
+                      bool serve_devtools,
                       bool serve_observatory) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != nullptr);
@@ -161,8 +163,6 @@ bool VmService::Setup(const char* server_ip,
   SHUTDOWN_ON_ERROR(library);
 
   // Set HTTP server state.
-  result = DartUtils::SetStringField(library, "_ip", server_ip);
-  SHUTDOWN_ON_ERROR(result);
   // If we have a port specified, start the server immediately.
   bool auto_start = server_port >= 0;
   if (server_port < 0) {
@@ -170,8 +170,22 @@ bool VmService::Setup(const char* server_ip,
     // port when the HTTP server is started.
     server_port = 0;
   }
-  result = DartUtils::SetIntegerField(library, "_port", server_port);
-  SHUTDOWN_ON_ERROR(result);
+  if (wait_for_dds_to_advertise_service) {
+    result = DartUtils::SetStringField(library, "_ddsIP", server_ip);
+    SHUTDOWN_ON_ERROR(result);
+    result = DartUtils::SetIntegerField(library, "_ddsPort", server_port);
+    SHUTDOWN_ON_ERROR(result);
+    result =
+        DartUtils::SetStringField(library, "_ip", DEFAULT_VM_SERVICE_SERVER_IP);
+    SHUTDOWN_ON_ERROR(result);
+    result = DartUtils::SetIntegerField(library, "_port", 0);
+    SHUTDOWN_ON_ERROR(result);
+  } else {
+    result = DartUtils::SetStringField(library, "_ip", server_ip);
+    SHUTDOWN_ON_ERROR(result);
+    result = DartUtils::SetIntegerField(library, "_port", server_port);
+    SHUTDOWN_ON_ERROR(result);
+  }
   result = Dart_SetField(library, DartUtils::NewString("_autoStart"),
                          Dart_NewBoolean(auto_start));
   SHUTDOWN_ON_ERROR(result);
@@ -197,6 +211,10 @@ bool VmService::Setup(const char* server_ip,
   result = Dart_SetField(library,
                          DartUtils::NewString("_waitForDdsToAdvertiseService"),
                          Dart_NewBoolean(wait_for_dds_to_advertise_service));
+  SHUTDOWN_ON_ERROR(result);
+
+  result = Dart_SetField(library, DartUtils::NewString("_serveDevtools"),
+                         serve_devtools ? Dart_True() : Dart_False());
   SHUTDOWN_ON_ERROR(result);
 
   result = Dart_SetField(library, DartUtils::NewString("_serveObservatory"),
