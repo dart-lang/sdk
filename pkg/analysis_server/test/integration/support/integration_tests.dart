@@ -11,13 +11,16 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import '../../analysis_server_base.dart' show AnalysisOptionsFileConfig;
 import '../../src/utilities/mock_packages.dart';
 import '../../support/configuration_files.dart';
+import '../../test_macros.dart' as macros;
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
@@ -86,7 +89,7 @@ typedef NotificationProcessor = void Function(
 
 /// Base class for analysis server integration tests.
 abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
-    with MockPackagesMixin, ConfigurationFilesMixin {
+    with MockPackagesMixin, ConfigurationFilesMixin, macros.TestMacros {
   /// Amount of time to give the server to respond to a shutdown request before
   /// forcibly terminating it.
   static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 60);
@@ -151,6 +154,24 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   @override
   String get testPackageRootPath => sourceDirectory.path;
 
+  /// Adds support for macros to the `package_config.json` file and creates a
+  /// `macros.dart` file that defines the given [macros]. The macros should not
+  /// include imports, the imports for macros will be added automatically.
+  void addMacros(List<String> macros) {
+    writeTestPackageConfig(
+      macro: true,
+    );
+    writeFile(
+        '$testPackageRootPath/lib/macros.dart',
+        [
+          '''
+// There is no public API exposed yet, the in-progress API lives here.
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+''',
+          ...macros
+        ].join('\n'));
+  }
+
   /// Print out any messages exchanged with the server.  If some messages have
   /// already been exchanged with the server, they are printed out immediately.
   void debugStdio() {
@@ -192,6 +213,12 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
         Directory(pathContext.join(tempDirectoryPath, 'packages'))
           ..createSync();
     writeTestPackageConfig();
+
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: ['macros'],
+      ),
+    );
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
@@ -301,6 +328,12 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     var file = File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
+  }
+
+  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
+    String filePath =
+        path.join(testPackageRootPath, file_paths.analysisOptionsYaml);
+    writeFile(filePath, config.toContent());
   }
 }
 
