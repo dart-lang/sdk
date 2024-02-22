@@ -942,9 +942,10 @@ augment final LibraryInfo library = LibraryInfo(Uri.parse('package:foo/bar.dart'
                     d.correctionMessage == 'correct me!'),
                 predicate<Diagnostic>((d) =>
                     d.severity == Severity.error &&
-                    d.message.message.contains('I threw an error!') &&
+                    d.message.message.contains('bug in the macro') &&
                     // Quick test that some stack trace also appears
-                    d.message.message.contains('simple_macro.dart')),
+                    d.contextMessages.first.message
+                        .contains('simple_macro.dart')),
               ]);
             });
           });

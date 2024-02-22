@@ -10,5 +10,6 @@ import 'dart:collection' show UnmodifiableListView;
 part 'builders.dart';
 part 'code.dart';
 part 'diagnostic.dart';
+part 'exceptions.dart';
 part 'introspection.dart';
 part 'macro.dart';
