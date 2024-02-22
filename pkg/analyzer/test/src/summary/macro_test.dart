@@ -7040,6 +7040,7 @@ class MacroExampleTest extends MacroElementsBaseTest {
   bool get keepLinkingLibraries => true;
 
   test_jsonSerializable() async {
+    _addExampleMacro('json_key.dart');
     _addExampleMacro('json_serializable.dart');
 
     final library = await buildLibrary(r'''
@@ -7103,15 +7104,17 @@ import 'dart:core';
 
 augment class A {
   @FromJson()
-  A.fromJson(Map<String, Object?> json);
+  external A.fromJson(Map<String, Object?> json);
   @ToJson()
-  Map<String, Object?> toJson();
-  augment A.fromJson(Map<String, Object?> json, )  : this.foo = json["foo"] as int,
-this.bar = json["bar"] as int;
-  augment Map<String, Object?> toJson()  => {
-    'foo': this.foo,
-    'bar': this.bar,
-  };
+  external Map<String, Object?> toJson();
+  augment A.fromJson(Map<String, Object?> json, )  : this.foo = json['foo'] as int,
+this.bar = json['bar'] as int;
+  augment Map<String, Object?> toJson() {
+    var json = <String, Object?>{};
+    json['foo'] = this.foo;
+json['bar'] = this.bar;
+    return json;
+  }
 }
 ---
       imports
@@ -7124,28 +7127,28 @@ this.bar = json["bar"] as int;
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             constructors
-              fromJson @133
+              external fromJson @142
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
-                periodOffset: 132
-                nameEnd: 141
+                periodOffset: 141
+                nameEnd: 150
                 parameters
-                  requiredPositional json @163
+                  requiredPositional json @172
                     type: Map<String, Object?>
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
-              augment fromJson @227
+              augment fromJson @245
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
-                periodOffset: 226
-                nameEnd: 235
+                periodOffset: 244
+                nameEnd: 253
                 parameters
-                  requiredPositional json @257
+                  requiredPositional json @275
                     type: Map<String, Object?>
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
             methods
-              abstract toJson @205
+              external toJson @223
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
                 returnType: Map<String, Object?>
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
-              augment toJson @361
+              augment toJson @379
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
                 returnType: Map<String, Object?>
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
