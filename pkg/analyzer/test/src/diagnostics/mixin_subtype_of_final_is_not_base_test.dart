@@ -37,7 +37,7 @@ mixin C implements B {}
           text:
               "The mixin 'C' must be 'base' because the supertype 'A' is 'final'.",
           contextMessages: [
-            ExpectedContextMessage(testFile.path, 12, 1,
+            ExpectedContextMessage(testFile, 12, 1,
                 text:
                     "The type 'B' is a subtype of 'A', and 'A' is defined here.")
           ]),

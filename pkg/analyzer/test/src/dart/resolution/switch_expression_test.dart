@@ -577,7 +577,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 64,
           1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 64, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 58, 1)]),
+          contextMessages: [message(testFile, 58, 1)]),
     ]);
 
     final node = findNode.switchExpression('switch');

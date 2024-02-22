@@ -462,8 +462,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  ExpectedContextMessage message(String filePath, int offset, int length) =>
-      ExpectedContextMessage(convertPath(filePath), offset, length);
+  ExpectedContextMessage message(File file, int offset, int length) =>
+      ExpectedContextMessage(file, offset, length);
 
   Matcher multiplyDefinedElementMatcher(List<Element> elements) {
     return _MultiplyDefinedElementMatcher(elements);

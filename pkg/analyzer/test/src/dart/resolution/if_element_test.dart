@@ -104,7 +104,7 @@ void f(Object x) {
       error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 62,
           1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
+          contextMessages: [message(testFile, 56, 1)]),
     ]);
 
     final node = findNode.ifElement('if');

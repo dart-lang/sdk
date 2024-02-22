@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ConstEvalPropertyAccessTest extends PubPackageResolutionTest {
   test_constructorFieldInitializer_fromSeparateLibrary() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
+    var lib = newFile('$testPackageLibPath/lib.dart', r'''
 class A<T> {
   final int f;
   const A() : f = T.foo;
@@ -32,8 +32,7 @@ const a = const A();
         29,
         9,
         contextMessages: [
-          ExpectedContextMessage(
-              convertPath('$testPackageLibPath/lib.dart'), 46, 5,
+          ExpectedContextMessage(lib, 46, 5,
               text:
                   "The error is in the field initializer of 'A', and occurs here."),
         ],
@@ -56,7 +55,7 @@ class RequiresNonEmptyList {
         16,
         31,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 138, 14,
+          ExpectedContextMessage(testFile, 138, 14,
               text:
                   "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here."),
         ],

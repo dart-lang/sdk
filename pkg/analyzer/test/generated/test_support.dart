@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
@@ -16,7 +17,7 @@ import 'package:test/test.dart';
 /// A description of a message that is expected to be reported with an error.
 class ExpectedContextMessage {
   /// The path of the file with which the message is associated.
-  final String filePath;
+  final File file;
 
   /// The offset of the beginning of the error's region.
   final int offset;
@@ -27,12 +28,12 @@ class ExpectedContextMessage {
   /// The message text for the error.
   final String? text;
 
-  ExpectedContextMessage(this.filePath, this.offset, this.length, {this.text});
+  ExpectedContextMessage(this.file, this.offset, this.length, {this.text});
 
   /// Return `true` if the [message] matches this description of what it's
   /// expected to be.
   bool matches(DiagnosticMessage message) {
-    return message.filePath == filePath &&
+    return message.filePath == file.path &&
         message.offset == offset &&
         message.length == length &&
         (text == null || message.messageText(includeUrl: true) == text);

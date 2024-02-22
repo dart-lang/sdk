@@ -24,7 +24,7 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE, 38, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 23, 1)]),
+          contextMessages: [message(testFile, 23, 1)]),
     ]);
   }
 
@@ -37,7 +37,7 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE, 26, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 23, 1)]),
+          contextMessages: [message(testFile, 23, 1)]),
     ]);
   }
 
@@ -50,9 +50,9 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE, 26, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 23, 1)]),
+          contextMessages: [message(testFile, 23, 1)]),
       error(CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE, 29, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 23, 1)]),
+          contextMessages: [message(testFile, 23, 1)]),
     ]);
   }
 

@@ -315,9 +315,9 @@ class C implements A, B {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 64, 3)]),
+          contextMessages: [message(testFile, 64, 3)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 25, 3)]),
+          contextMessages: [message(testFile, 25, 3)]),
     ]);
   }
 

@@ -133,7 +133,7 @@ A<String> Function() bar() {
 }
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 41, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 39, 9)]),
+          contextMessages: [message(testFile, 39, 9)]),
     ]);
 
     var node = findNode.constructorReference('A.foo;');

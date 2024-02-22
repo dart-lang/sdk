@@ -4,7 +4,9 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,6 +21,10 @@ void main() {
 
 @reflectiveTest
 class InferredTypeTest extends PubPackageResolutionTest {
+  File get dartAsyncFile {
+    return getFile('${sdkRoot.posixPath}/lib/async/async.dart');
+  }
+
   CompilationUnitElement get _resultUnitElement {
     return result.unit.declaredElement!;
   }
@@ -475,9 +481,9 @@ class C2 implements A, B {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 154, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 204, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 116, 1)]),
+          contextMessages: [message(testFile, 116, 1)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 150, 1)]),
+          contextMessages: [message(testFile, 150, 1)]),
     ]);
   }
 
@@ -784,7 +790,7 @@ foo() {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 22, 1)]),
+          contextMessages: [message(testFile, 22, 1)]),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 97, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 118, 1),
     ]);
@@ -1887,7 +1893,7 @@ void main() {
 
     List<ExpectedError> errors = [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 188, 4,
-          contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 226, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 239, 4),
       error(
@@ -1980,7 +1986,7 @@ void main() {
     await _assertErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "Future"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2012,7 +2018,7 @@ void main() {
     await _assertErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2044,7 +2050,7 @@ void main() {
     await _assertErrors(
         build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2077,7 +2083,7 @@ void main() {
         build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
         [
           error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-              contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+              contextMessages: [message(dartAsyncFile, 506, 4)]),
           error(
               CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
           error(
@@ -2114,7 +2120,7 @@ void main() {
     await _assertErrors(
         build(declared: "Future", downwards: "Future", upwards: "MyFuture"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2146,7 +2152,7 @@ void main() {
     await _assertErrors(
         build(declared: "Future", downwards: "Future", upwards: "Future"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2263,7 +2269,7 @@ $declared foo() => new $declared<int>.value(1);
       build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 506, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
@@ -2277,7 +2283,7 @@ $declared foo() => new $declared<int>.value(1);
       build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 506, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 311, 2),
@@ -2292,7 +2298,7 @@ $declared foo() => new $declared<int>.value(1);
       build(declared: "Future", downwards: "Future", upwards: "Future"),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 506, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
@@ -2356,7 +2362,7 @@ $downwards<int> g3(bool x) async {
     await assertErrorsInCode(
         build(downwards: "Future", upwards: "Future", expectedInfo: ''), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 185, 4,
-          contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 223, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 236, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 285, 29),
@@ -2367,7 +2373,7 @@ $downwards<int> g3(bool x) async {
 
     await assertErrorsInCode(build(downwards: "Future", upwards: "MyFuture"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 185, 4,
-          contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 223, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 236, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 285, 31),
@@ -2415,7 +2421,7 @@ $downwards<List<int>> g3() async {
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 506, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
@@ -2433,7 +2439,7 @@ $downwards<List<int>> g3() async {
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 506, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
@@ -2451,7 +2457,7 @@ $downwards<List<int>> g3() async {
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 506, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
@@ -2469,7 +2475,7 @@ $downwards<List<int>> g3() async {
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message('/sdk/lib/async/async.dart', 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 506, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
@@ -2623,7 +2629,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 91, 5),
     ]);
   }
@@ -2703,9 +2709,9 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 33, 1)]),
+          contextMessages: [message(testFile, 33, 1)]),
     ]);
   }
 
@@ -3487,7 +3493,7 @@ main() {
       error(WarningCode.UNUSED_ELEMENT, 177, 2),
       error(WarningCode.UNUSED_ELEMENT, 194, 2),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 203, 2,
-          contextMessages: [message(testFile.path, 211, 2)]),
+          contextMessages: [message(testFile, 211, 2)]),
     ]);
 
     void assertLocalFunctionType(String name, String expected) {
@@ -4302,7 +4308,7 @@ foo() {
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 23, 1)]),
+          contextMessages: [message(testFile, 23, 1)]),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 106, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 127, 1),
     ]);
