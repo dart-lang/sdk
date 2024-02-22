@@ -6,6 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/test_support.dart';
 import '../../summary/macros_environment.dart';
 import 'context_collection_resolution.dart';
 import 'resolution.dart';
@@ -93,7 +94,11 @@ class A {}
           'Macro application failed due to a bug in the macro.',
         ],
         contextMessages: [
-          message(testFile, 18, 10),
+          ExpectedContextMessage(testFile, 18, 10, textContains: [
+            'package:test/a.dart',
+            'MyMacro',
+            'unresolved',
+          ]),
         ],
       ),
     ]);
@@ -870,7 +875,11 @@ class A {}
           'Macro application failed due to a bug in the macro.'
         ],
         contextMessages: [
-          message(testFile, 18, 10),
+          ExpectedContextMessage(testFile, 18, 10, textContains: [
+            'package:test/a.dart',
+            '12345',
+            'MyMacro',
+          ]),
         ],
       ),
     ]);

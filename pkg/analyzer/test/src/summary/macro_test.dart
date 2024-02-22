@@ -5387,15 +5387,12 @@ class A {}
     configuration
       ..withConstructors = false
       ..withMetadata = false
-      ..macroDiagnosticMessageValidator = (message) {
-        if (message.contains('#0')) {
-          // It's the context: stack trace with the underlying issue.
-          expect(message, contains('unresolved'));
-        } else {
-          // It's the main message.
-          expect(message, contains('failed due to a bug in the macro'));
-        }
-      };
+      ..macroDiagnosticMessagePatterns = [
+        'Macro application failed due to a bug in the macro.',
+        'package:test/a.dart',
+        'MyMacro',
+        'unresolved',
+      ];
     checkElementText(library, r'''
 library
   imports
@@ -5406,10 +5403,16 @@ library
         macroDiagnostics
           MacroDiagnostic
             message: MacroDiagnosticMessage
+              contains
+                Macro application failed due to a bug in the macro.
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
             contextMessages
               MacroDiagnosticMessage
+                contains
+                  package:test/a.dart
+                  MyMacro
+                  unresolved
                 target: ApplicationMacroDiagnosticTarget
                   annotationIndex: 0
             severity: error

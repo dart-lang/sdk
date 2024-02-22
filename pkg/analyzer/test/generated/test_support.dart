@@ -28,15 +28,45 @@ class ExpectedContextMessage {
   /// The message text for the error.
   final String? text;
 
-  ExpectedContextMessage(this.file, this.offset, this.length, {this.text});
+  /// A list of patterns that should be contained in the message test; empty if
+  /// the message contents should not be checked.
+  final List<Pattern> textContains;
+
+  ExpectedContextMessage(
+    this.file,
+    this.offset,
+    this.length, {
+    this.text,
+    this.textContains = const [],
+  });
 
   /// Return `true` if the [message] matches this description of what it's
   /// expected to be.
   bool matches(DiagnosticMessage message) {
-    return message.filePath == file.path &&
-        message.offset == offset &&
-        message.length == length &&
-        (text == null || message.messageText(includeUrl: true) == text);
+    if (message.filePath != file.path) {
+      return false;
+    }
+
+    if (message.offset != offset) {
+      return false;
+    }
+
+    if (message.length != length) {
+      return false;
+    }
+
+    var messageText = message.messageText(includeUrl: true);
+    if (text != null && messageText != text) {
+      return false;
+    }
+
+    for (var pattern in textContains) {
+      if (!messageText.contains(pattern)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 
