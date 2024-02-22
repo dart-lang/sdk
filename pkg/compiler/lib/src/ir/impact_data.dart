@@ -17,7 +17,6 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../options.dart';
-import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'constants.dart';
 import 'impact.dart';
@@ -1210,142 +1209,6 @@ class ImpactData {
 
   ImpactData();
 
-  ImpactData.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    _superInitializers =
-        source.readListOrNull(() => _SuperInitializer.fromDataSource(source));
-    _superSets = source.readListOrNull(() => source.readMemberNode());
-    _superGets = source.readListOrNull(() => source.readMemberNode());
-    _superInvocations =
-        source.readListOrNull(() => _SuperInvocation.fromDataSource(source));
-    _instanceSets =
-        source.readListOrNull(() => _InstanceAccess.fromDataSource(source));
-    _dynamicSets =
-        source.readListOrNull(() => _DynamicAccess.fromDataSource(source));
-    _instanceGets =
-        source.readListOrNull(() => _InstanceAccess.fromDataSource(source));
-    _dynamicGets =
-        source.readListOrNull(() => _DynamicAccess.fromDataSource(source));
-    _functionInvocations =
-        source.readListOrNull(() => _FunctionInvocation.fromDataSource(source));
-    _instanceInvocations =
-        source.readListOrNull(() => _InstanceInvocation.fromDataSource(source));
-    _dynamicInvocations =
-        source.readListOrNull(() => _DynamicInvocation.fromDataSource(source));
-    _localFunctionInvocations = source
-        .readListOrNull(() => _LocalFunctionInvocation.fromDataSource(source));
-    _staticInvocations =
-        source.readListOrNull(() => _StaticInvocation.fromDataSource(source));
-    _constructorInvocations = source
-        .readListOrNull(() => _ConstructorInvocation.fromDataSource(source));
-    _features = EnumSet<_Feature>.fromValue(source.readInt());
-    _typeUses = source.readListOrNull(() => _TypeUse.fromDataSource(source));
-    _redirectingInitializers = source
-        .readListOrNull(() => _RedirectingInitializer.fromDataSource(source));
-    _fieldInitializers = source.readMemberNodesOrNull<ir.Field>();
-    _fieldConstantInitializers =
-        source.readMemberNodeMapOrNull(source.readTreeNodes);
-    _typeLiterals =
-        source.readListOrNull(() => _TypeLiteral.fromDataSource(source));
-    _localFunctions = source.readTreeNodesOrNull();
-    _genericInstantiations = source
-        .readListOrNull(() => _GenericInstantiation.fromDataSource(source));
-    _staticSets =
-        source.readListOrNull(() => _StaticAccess.fromDataSource(source));
-    _staticGets =
-        source.readListOrNull(() => _StaticAccess.fromDataSource(source));
-    _staticTearOffs =
-        source.readListOrNull(() => _StaticAccess.fromDataSource(source));
-    _weakStaticTearOffs =
-        source.readListOrNull(() => _StaticAccess.fromDataSource(source));
-    _mapLiterals =
-        source.readListOrNull(() => _MapLiteral.fromDataSource(source));
-    _listLiterals =
-        source.readListOrNull(() => _ContainerLiteral.fromDataSource(source));
-    _setLiterals =
-        source.readListOrNull(() => _ContainerLiteral.fromDataSource(source));
-    _recordLiterals =
-        source.readListOrNull(() => _RecordLiteral.fromDataSource(source));
-    _runtimeTypeUses =
-        source.readListOrNull(() => _RuntimeTypeUse.fromDataSource(source));
-    _forInData = source.readListOrNull(() => _ForInData.fromDataSource(source));
-
-    // TODO(johnniwinther): Remove these when CFE provides constants.
-    _externalConstructorNodes = source.readMemberNodesOrNull<ir.Constructor>();
-    _fieldNodes = source.readMemberNodesOrNull<ir.Field>();
-    _externalProcedureNodes = source.readMemberNodesOrNull<ir.Procedure>();
-    _foreignStaticInvocationNodes =
-        source.readTreeNodesOrNull<ir.StaticInvocation>();
-    _hasConstSymbolConstructorInvocation = source.readBool();
-    source.end(tag);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-
-    sink.writeListOrNull(
-        _superInitializers, (_SuperInitializer o) => o.toDataSink(sink));
-    sink.writeListOrNull(_superSets, sink.writeMemberNode);
-    sink.writeListOrNull(_superGets, sink.writeMemberNode);
-    sink.writeListOrNull(
-        _superInvocations, (_SuperInvocation o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _instanceSets, (_InstanceAccess o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _dynamicSets, (_DynamicAccess o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _instanceGets, (_InstanceAccess o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _dynamicGets, (_DynamicAccess o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _functionInvocations, (_FunctionInvocation o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _instanceInvocations, (_InstanceInvocation o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _dynamicInvocations, (_DynamicInvocation o) => o.toDataSink(sink));
-    sink.writeListOrNull(_localFunctionInvocations,
-        (_LocalFunctionInvocation o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _staticInvocations, (_StaticInvocation o) => o.toDataSink(sink));
-    sink.writeListOrNull(_constructorInvocations,
-        (_ConstructorInvocation o) => o.toDataSink(sink));
-    sink.writeInt(_features?.value ?? 0);
-    sink.writeListOrNull(_typeUses, (_TypeUse o) => o.toDataSink(sink));
-    sink.writeListOrNull(_redirectingInitializers,
-        (_RedirectingInitializer o) => o.toDataSink(sink));
-    sink.writeMemberNodesOrNull(_fieldInitializers);
-    sink.writeMemberNodeMapOrNull(
-        _fieldConstantInitializers, sink.writeTreeNodes);
-    sink.writeListOrNull(_typeLiterals, (_TypeLiteral o) => o.toDataSink(sink));
-    sink.writeTreeNodesOrNull(_localFunctions);
-    sink.writeListOrNull(_genericInstantiations,
-        (_GenericInstantiation o) => o.toDataSink(sink));
-    sink.writeListOrNull(_staticSets, (_StaticAccess o) => o.toDataSink(sink));
-    sink.writeListOrNull(_staticGets, (_StaticAccess o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _staticTearOffs, (_StaticAccess o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _weakStaticTearOffs, (_StaticAccess o) => o.toDataSink(sink));
-    sink.writeListOrNull(_mapLiterals, (_MapLiteral o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _listLiterals, (_ContainerLiteral o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _setLiterals, (_ContainerLiteral o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _recordLiterals, (_RecordLiteral o) => o.toDataSink(sink));
-    sink.writeListOrNull(
-        _runtimeTypeUses, (_RuntimeTypeUse o) => o.toDataSink(sink));
-    sink.writeListOrNull(_forInData, (_ForInData o) => o.toDataSink(sink));
-
-    sink.writeMemberNodesOrNull(_externalConstructorNodes);
-    sink.writeMemberNodesOrNull(_fieldNodes);
-    sink.writeMemberNodesOrNull(_externalProcedureNodes);
-    sink.writeTreeNodesOrNull(_foreignStaticInvocationNodes);
-    sink.writeBool(_hasConstSymbolConstructorInvocation);
-
-    sink.end(tag);
-  }
-
   /// Registers the impact data with [registry].
   void apply(ImpactRegistry registry) {
     if (_superInitializers != null) {
@@ -1674,8 +1537,6 @@ class ImpactData {
 }
 
 class _CallStructure {
-  static const String tag = '_CallStructure';
-
   final List<ir.DartType> typeArguments;
   final int positionalArguments;
   final List<String> namedArguments;
@@ -1688,261 +1549,76 @@ class _CallStructure {
     return _CallStructure.internal(
         typeArguments, positionalArguments, namedArguments);
   }
-
-  factory _CallStructure.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    List<ir.DartType> typeArguments = source.readDartTypeNodes();
-    int positionalArguments = source.readInt();
-    List<String> namedArguments = source.readStrings();
-    source.end(tag);
-    return _CallStructure.internal(
-        typeArguments, positionalArguments, namedArguments);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNodes(typeArguments);
-    sink.writeInt(positionalArguments);
-    sink.writeStrings(namedArguments);
-    sink.end(tag);
-  }
 }
 
 class _SuperInitializer {
-  static const String tag = '_SuperInitializer';
-
   final ir.Constructor source;
   final ir.Constructor target;
   final _CallStructure callStructure;
 
   _SuperInitializer(this.source, this.target, this.callStructure);
-
-  factory _SuperInitializer.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.Constructor sourceConstructor =
-        source.readMemberNode() as ir.Constructor;
-    ir.Constructor targetConstructor =
-        source.readMemberNode() as ir.Constructor;
-    _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    source.end(tag);
-    return _SuperInitializer(
-        sourceConstructor, targetConstructor, callStructure);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeMemberNode(source);
-    sink.writeMemberNode(target);
-    callStructure.toDataSink(sink);
-    sink.end(tag);
-  }
 }
 
 class _SuperInvocation {
-  static const String tag = '_SuperInvocation';
-
   final ir.Member target;
   final _CallStructure callStructure;
 
   _SuperInvocation(this.target, this.callStructure);
-
-  factory _SuperInvocation.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.Member member = source.readMemberNode();
-    _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    source.end(tag);
-    return _SuperInvocation(member, callStructure);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeMemberNode(target);
-    callStructure.toDataSink(sink);
-    sink.end(tag);
-  }
 }
 
 class _InstanceAccess {
-  static const String tag = '_InstanceAccess';
-
   final ir.DartType receiverType;
   final ir.Member target;
 
   _InstanceAccess(this.receiverType, this.target);
-
-  factory _InstanceAccess.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType receiverType = source.readDartTypeNode();
-    ir.Member target = source.readMemberNode();
-    source.end(tag);
-    return _InstanceAccess(receiverType, target);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(receiverType);
-    sink.writeMemberNode(target);
-    sink.end(tag);
-  }
 }
 
 class _DynamicAccess {
-  static const String tag = '_DynamicAccess';
-
   final ir.DartType receiverType;
   final ir.Name name;
 
   _DynamicAccess(this.receiverType, this.name);
-
-  factory _DynamicAccess.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType receiverType = source.readDartTypeNode();
-    ir.Name name = source.readName();
-    source.end(tag);
-    return _DynamicAccess(receiverType, name);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(receiverType);
-    sink.writeName(name);
-    sink.end(tag);
-  }
 }
 
 class _FunctionInvocation {
-  static const String tag = '_FunctionInvocation';
-
   final ir.DartType receiverType;
   final _CallStructure callStructure;
 
   _FunctionInvocation(this.receiverType, this.callStructure);
-
-  factory _FunctionInvocation.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType receiverType = source.readDartTypeNode();
-    _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    source.end(tag);
-    return _FunctionInvocation(receiverType, callStructure);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(receiverType);
-    callStructure.toDataSink(sink);
-    sink.end(tag);
-  }
 }
 
 class _InstanceInvocation {
-  static const String tag = '_InstanceInvocation';
-
   final ir.DartType receiverType;
   final ir.Member target;
   final _CallStructure callStructure;
 
   _InstanceInvocation(this.receiverType, this.target, this.callStructure);
-
-  factory _InstanceInvocation.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType receiverType = source.readDartTypeNode();
-    ir.Member target = source.readMemberNode();
-    _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    source.end(tag);
-    return _InstanceInvocation(receiverType, target, callStructure);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(receiverType);
-    sink.writeMemberNode(target);
-    callStructure.toDataSink(sink);
-    sink.end(tag);
-  }
 }
 
 class _DynamicInvocation {
-  static const String tag = '_DynamicInvocation';
-
   final ir.DartType receiverType;
   final ir.Name name;
   final _CallStructure callStructure;
 
   _DynamicInvocation(this.receiverType, this.name, this.callStructure);
-
-  factory _DynamicInvocation.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType receiverType = source.readDartTypeNode();
-    ir.Name name = source.readName();
-    _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    source.end(tag);
-    return _DynamicInvocation(receiverType, name, callStructure);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(receiverType);
-    sink.writeName(name);
-    callStructure.toDataSink(sink);
-    sink.end(tag);
-  }
 }
 
 class _LocalFunctionInvocation {
-  static const String tag = '_LocalFunctionInvocation';
-
   final ir.FunctionDeclaration localFunction;
   final _CallStructure callStructure;
 
   _LocalFunctionInvocation(this.localFunction, this.callStructure);
-
-  factory _LocalFunctionInvocation.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.FunctionDeclaration localFunction =
-        source.readTreeNode() as ir.FunctionDeclaration;
-    _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    source.end(tag);
-    return _LocalFunctionInvocation(localFunction, callStructure);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeTreeNode(localFunction);
-    callStructure.toDataSink(sink);
-    sink.end(tag);
-  }
 }
 
 class _StaticInvocation {
-  static const String tag = '_StaticInvocation';
-
   final ir.Procedure target;
   final _CallStructure callStructure;
   final ir.LibraryDependency? import;
 
   _StaticInvocation(this.target, this.callStructure, this.import);
-
-  factory _StaticInvocation.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.Procedure target = source.readMemberNode() as ir.Procedure;
-    _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    ir.LibraryDependency? import = source.readLibraryDependencyNodeOrNull();
-    source.end(tag);
-    return _StaticInvocation(target, callStructure, import);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeMemberNode(target);
-    callStructure.toDataSink(sink);
-    sink.writeLibraryDependencyNodeOrNull(import);
-    sink.end(tag);
-  }
 }
 
 class _ConstructorInvocation {
-  static const String tag = '_ConstructorInvocation';
-
   final ir.Member constructor;
   final ir.InterfaceType type;
   final _CallStructure callStructure;
@@ -1952,28 +1628,6 @@ class _ConstructorInvocation {
   _ConstructorInvocation(
       this.constructor, this.type, this.callStructure, this.import,
       {required this.isConst});
-
-  factory _ConstructorInvocation.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.Member constructor = source.readMemberNode();
-    ir.InterfaceType type = source.readDartTypeNode() as ir.InterfaceType;
-    _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    ir.LibraryDependency? import = source.readLibraryDependencyNodeOrNull();
-    bool isConst = source.readBool();
-    source.end(tag);
-    return _ConstructorInvocation(constructor, type, callStructure, import,
-        isConst: isConst);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeMemberNode(constructor);
-    sink.writeDartTypeNode(type);
-    callStructure.toDataSink(sink);
-    sink.writeLibraryDependencyNodeOrNull(import);
-    sink.writeBool(isConst);
-    sink.end(tag);
-  }
 }
 
 class _ConstInstantiation {
@@ -2003,27 +1657,10 @@ enum _Feature {
 }
 
 class _TypeUse {
-  static const String tag = '_TypeUse';
-
   final ir.DartType type;
   final _TypeUseKind kind;
 
   _TypeUse(this.type, this.kind);
-
-  factory _TypeUse.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType type = source.readDartTypeNode();
-    _TypeUseKind kind = source.readEnum(_TypeUseKind.values);
-    source.end(tag);
-    return _TypeUse(type, kind);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(type);
-    sink.writeEnum(kind);
-    sink.end(tag);
-  }
 }
 
 enum _TypeUseKind {
@@ -2038,105 +1675,34 @@ enum _TypeUseKind {
 }
 
 class _RedirectingInitializer {
-  static const String tag = '_RedirectingInitializer';
-
   final ir.Constructor constructor;
   final _CallStructure callStructure;
 
   _RedirectingInitializer(this.constructor, this.callStructure);
-
-  factory _RedirectingInitializer.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.Constructor constructor = source.readMemberNode() as ir.Constructor;
-    _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    source.end(tag);
-    return _RedirectingInitializer(constructor, callStructure);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeMemberNode(constructor);
-    callStructure.toDataSink(sink);
-    sink.end(tag);
-  }
 }
 
 class _TypeLiteral {
-  static const String tag = '_TypeLiteral';
-
   final ir.DartType type;
   final ir.LibraryDependency? import;
 
   _TypeLiteral(this.type, this.import);
-
-  factory _TypeLiteral.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType type = source.readDartTypeNode();
-    ir.LibraryDependency? import = source.readLibraryDependencyNodeOrNull();
-    source.end(tag);
-    return _TypeLiteral(type, import);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(type);
-    sink.writeLibraryDependencyNodeOrNull(import);
-    sink.end(tag);
-  }
 }
 
 class _GenericInstantiation {
-  static const String tag = '_GenericInstantiation';
-
   final ir.FunctionType expressionType;
   final List<ir.DartType> typeArguments;
 
   _GenericInstantiation(this.expressionType, this.typeArguments);
-
-  factory _GenericInstantiation.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.FunctionType expressionType =
-        source.readDartTypeNode() as ir.FunctionType;
-    List<ir.DartType> typeArguments = source.readDartTypeNodes();
-    source.end(tag);
-    return _GenericInstantiation(expressionType, typeArguments);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(expressionType);
-    sink.writeDartTypeNodes(typeArguments);
-    sink.end(tag);
-  }
 }
 
 class _StaticAccess {
-  static const String tag = '_StaticAccess';
-
   final ir.Member target;
   final ir.LibraryDependency? import;
 
   _StaticAccess(this.target, this.import);
-
-  factory _StaticAccess.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.Member target = source.readMemberNode();
-    ir.LibraryDependency? import = source.readLibraryDependencyNodeOrNull();
-    source.end(tag);
-    return _StaticAccess(target, import);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeMemberNode(target);
-    sink.writeLibraryDependencyNodeOrNull(import);
-    sink.end(tag);
-  }
 }
 
 class _MapLiteral {
-  static const String tag = '_MapLiteral';
-
   final ir.DartType keyType;
   final ir.DartType valueType;
   final bool isConst;
@@ -2144,129 +1710,36 @@ class _MapLiteral {
 
   _MapLiteral(this.keyType, this.valueType,
       {required this.isConst, required this.isEmpty});
-
-  factory _MapLiteral.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType keyType = source.readDartTypeNode();
-    ir.DartType valueType = source.readDartTypeNode();
-    bool isConst = source.readBool();
-    bool isEmpty = source.readBool();
-    source.end(tag);
-    return _MapLiteral(keyType, valueType, isConst: isConst, isEmpty: isEmpty);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(keyType);
-    sink.writeDartTypeNode(valueType);
-    sink.writeBool(isConst);
-    sink.writeBool(isEmpty);
-    sink.end(tag);
-  }
 }
 
 class _ContainerLiteral {
-  static const String tag = '_ContainerLiteral';
-
   final ir.DartType elementType;
   final bool isConst;
   final bool isEmpty;
 
   _ContainerLiteral(this.elementType,
       {required this.isConst, required this.isEmpty});
-
-  factory _ContainerLiteral.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType elementType = source.readDartTypeNode();
-    bool isConst = source.readBool();
-    bool isEmpty = source.readBool();
-    source.end(tag);
-    return _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(elementType);
-    sink.writeBool(isConst);
-    sink.writeBool(isEmpty);
-    sink.end(tag);
-  }
 }
 
 class _RecordLiteral {
-  static const String tag = '_RecordLiteral';
-
   final ir.RecordType recordType;
   final bool isConst;
 
   _RecordLiteral(this.recordType, {required this.isConst});
-
-  factory _RecordLiteral.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.RecordType recordType = source.readDartTypeNode() as ir.RecordType;
-    bool isConst = source.readBool();
-    source.end(tag);
-    return _RecordLiteral(recordType, isConst: isConst);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(recordType);
-    sink.writeBool(isConst);
-    sink.end(tag);
-  }
 }
 
 class _RuntimeTypeUse {
-  static const String tag = '_RuntimeTypeUse';
-
   final RuntimeTypeUseKind kind;
   final ir.DartType receiverType;
   final ir.DartType? argumentType;
 
   _RuntimeTypeUse(this.kind, this.receiverType, this.argumentType);
-
-  factory _RuntimeTypeUse.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
-    ir.DartType receiverType = source.readDartTypeNode();
-    ir.DartType? argumentType = source.readDartTypeNodeOrNull();
-    source.end(tag);
-    return _RuntimeTypeUse(kind, receiverType, argumentType);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeEnum(kind);
-    sink.writeDartTypeNode(receiverType);
-    sink.writeDartTypeNodeOrNull(argumentType);
-    sink.end(tag);
-  }
 }
 
 class _ForInData {
-  static const String tag = '_ForInData';
-
   final ir.DartType iterableType;
   final ir.DartType iteratorType;
   final bool isAsync;
 
   _ForInData(this.iterableType, this.iteratorType, {required this.isAsync});
-
-  factory _ForInData.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.DartType iterableType = source.readDartTypeNode();
-    ir.DartType iteratorType = source.readDartTypeNode();
-    bool isAsync = source.readBool();
-    source.end(tag);
-    return _ForInData(iterableType, iteratorType, isAsync: isAsync);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(iteratorType);
-    sink.writeDartTypeNode(iteratorType);
-    sink.writeBool(isAsync);
-    sink.end(tag);
-  }
 }

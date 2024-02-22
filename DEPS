@@ -100,7 +100,7 @@ vars = {
   "boringssl_gen_rev": "9c7294fd58261a79794f5afaa26598cf1442ad20",
   "boringssl_rev": "d24a38200fef19150eef00cad35b138936c08767",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "devtools_rev": "1f208c84965e9edddea11485fb73b170dba1cd96",
+  "devtools_rev": "333b00377c092306534404c68a82e925ee2e23a3",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -178,7 +178,7 @@ vars = {
   "stream_channel_rev": "e02a5ddef804f0d546a405ab3917fb27788acaef",
   "string_scanner_rev": "a2bcdb575f6bb30b944b4f632ea95d8dc4f914bd",
   "sync_http_rev": "b849559fedc7c5d19a68950f255b6edde6eec6ef",
-  "tar_rev": "0fc831c6e93be5342d4863d9e464428e73007cce",
+  "tar_rev": "6150a0c88d9bd17e3e961593a9a7a9564866e8b4",
   "term_glyph_rev": "85a4aa6bf25cd6ecaa5c56a1b259b2d95264a439",
   "test_rev": "a3f05ec8b16df6815a10d02ad4bc07e22dfda74d",
   "test_descriptor_rev": "35f97afacb2b7fe627f6ed0bede722fd48980848",

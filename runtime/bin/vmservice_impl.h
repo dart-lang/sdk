@@ -24,6 +24,7 @@ class VmService {
                     bool deterministic,
                     bool enable_service_port_fallback,
                     bool wait_for_dds_to_advertise_service,
+                    bool serve_devtools,
                     bool serve_observatory) {
     return false;
   }
@@ -49,6 +50,7 @@ class VmService {
                     bool deterministic,
                     bool enable_service_port_fallback,
                     bool wait_for_dds_to_advertise_service,
+                    bool serve_devtools,
                     bool serve_observatory);
 
   static void SetNativeResolver();

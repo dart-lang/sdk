@@ -11,6 +11,13 @@ import 'dart:_vmservice';
 
 part 'vmservice_server.dart';
 
+// The TCP ip/port that dds listens on.
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+int _ddsPort = 0;
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+String _ddsIP = '';
+
 // The TCP ip/port that the HTTP server listens on.
 @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 int _port = 0;
@@ -45,6 +52,9 @@ Stream<ProcessSignal> Function(ProcessSignal signal)? _signalWatch;
 
 @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 StreamSubscription<ProcessSignal>? _signalSubscription;
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+bool _serveDevtools = true;
 
 @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _enableServicePortFallback = false;
@@ -155,10 +165,8 @@ class _DebuggingSession {
         completer.complete();
       } else {
         final error = result['error'] ?? event;
-        final stacktrace = result['stacktrace'] ?? '';
         stderrSub.cancel();
-        completer.completeError(
-            'Could not start Observatory HTTP server:\n$error\n$stacktrace\n');
+        completer.completeError('Could not start the VM service:\n$error\n');
       }
     });
     try {
@@ -330,6 +338,7 @@ Future<Uri?> webServerControlCallback(bool enable, bool? silenceOutput) async {
   if (_server.running != enable) {
     if (enable) {
       await _server.startup();
+      // TODO: if dds is enabled a dds instance needs to be started.
     } else {
       await _server.shutdown(true);
     }
@@ -342,7 +351,7 @@ void webServerAcceptNewWebSocketConnections(bool enable) {
   _server.acceptNewWebSocketConnections = enable;
 }
 
-_onSignal(ProcessSignal signal) {
+_onSignal(ProcessSignal signal) async {
   if (serverFuture != null) {
     // Still waiting.
     return;
@@ -357,13 +366,15 @@ _onSignal(ProcessSignal signal) {
     });
   } else {
     _server.startup().then((_) {
-      ddsInstance = _DebuggingSession()
-        ..start(
-          _server._ip,
-          _server._port.toString(),
-          false,
-          true,
-        );
+      if (_waitForDdsToAdvertiseService) {
+        ddsInstance = _DebuggingSession()
+          ..start(
+            _ddsIP,
+            _ddsPort.toString(),
+            _authCodesDisabled,
+            _serveDevtools,
+          );
+      }
     });
   }
 }
@@ -412,7 +423,17 @@ main() {
   VMService();
   if (_autoStart) {
     final _server = _lazyServerBoot();
-    _server.startup();
+    _server.startup().then((_) {
+      if (_waitForDdsToAdvertiseService) {
+        ddsInstance = _DebuggingSession()
+          ..start(
+            _ddsIP,
+            _ddsPort.toString(),
+            _authCodesDisabled,
+            _serveDevtools,
+          );
+      }
+    });
     // It's just here to push an event on the event loop so that we invoke the
     // scheduled microtasks.
     Timer.run(() {});

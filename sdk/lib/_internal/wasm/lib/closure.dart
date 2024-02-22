@@ -14,13 +14,45 @@ final class _Closure implements Function {
 
   @override
   bool operator ==(Object other) {
-    if (other is! Function) {
+    if (other is! _Closure) {
       return false;
     }
-    return _equals(this, other);
-  }
 
-  external static bool _equals(Function a, Function b);
+    if (identical(this, other)) {
+      return true;
+    }
+
+    final thisIsInstantiation = _isInstantiationClosure;
+    final otherIsInstantiation = other._isInstantiationClosure;
+
+    if (thisIsInstantiation != otherIsInstantiation) {
+      return false;
+    }
+
+    if (thisIsInstantiation) {
+      final thisInstantiatedClosure = _instantiatedClosure;
+      final otherInstantiatedClosure = other._instantiatedClosure;
+      return thisInstantiatedClosure == otherInstantiatedClosure &&
+          _instantiationClosureTypeEquals(other);
+    }
+
+    if (_vtable != other._vtable) {
+      return false;
+    }
+
+    final thisIsTearOff = _isInstanceTearOff;
+    final otherIsTearOff = other._isInstanceTearOff;
+
+    if (thisIsTearOff != otherIsTearOff) {
+      return false;
+    }
+
+    if (thisIsTearOff) {
+      return _instanceTearOffReceiver == other._instanceTearOffReceiver;
+    }
+
+    return false;
+  }
 
   @pragma("wasm:entry-point")
   @pragma("wasm:prefer-inline")
@@ -55,13 +87,18 @@ final class _Closure implements Function {
   /// When the closure is an instantiation, get the instantiated closure.
   ///
   /// Traps when the closure is not an instantiation.
-  external _Closure? get _instantiatedClosure;
+  external _Closure get _instantiatedClosure;
 
   /// When the closure is an instantiation, returns the combined hash code of
   /// the captured types.
   ///
   /// Traps when the closure is not an instantiation.
   external int _instantiationClosureTypeHash();
+
+  /// When [this] and [other] are instantiations, compare captured types for equality.
+  ///
+  /// Traps when one or both of the closures are not an instantiation.
+  external bool _instantiationClosureTypeEquals(_Closure other);
 
   /// Whether the closure is an instance tear-off.
   ///
@@ -72,4 +109,7 @@ final class _Closure implements Function {
   ///
   /// Traps when the closure is not an instance tear-off.
   external Object? get _instanceTearOffReceiver;
+
+  /// The vtable of the closure.
+  external WasmAnyRef get _vtable;
 }

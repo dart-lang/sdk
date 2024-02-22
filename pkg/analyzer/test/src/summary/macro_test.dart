@@ -7249,6 +7249,23 @@ class A
 ''');
   }
 
+  test_class_field_flag_hasConst() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const int foo = 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: hasConst hasInitializer hasStatic
+      type: int
+''');
+  }
+
   test_class_field_flag_hasExternal() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -7278,7 +7295,7 @@ class A
   superclass: Object
   fields
     foo
-      flags: hasFinal
+      flags: hasFinal hasInitializer
       type: int
 ''');
   }
@@ -7312,7 +7329,7 @@ class A
   superclass: Object
   fields
     foo
-      flags: hasStatic
+      flags: hasInitializer hasStatic
       type: int
 ''');
   }
@@ -7387,10 +7404,10 @@ class A
   superclass: Object
   fields
     foo
-      flags: hasFinal
+      flags: hasFinal hasInitializer
       type: int
     bar
-      flags: hasFinal
+      flags: hasFinal hasInitializer
       type: int
 ''');
   }
@@ -8496,7 +8513,7 @@ mixin A
     Object
   fields
     foo
-      flags: hasFinal
+      flags: hasFinal hasInitializer
       type: int
 ''');
   }
@@ -8775,7 +8792,19 @@ final foo = 0;
 
     await _assertIntrospectText('foo', r'''
 foo
-  flags: hasFinal
+  flags: hasFinal hasInitializer
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasConst_true() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const foo = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasConst hasInitializer
   type: int
 ''');
   }
@@ -8799,7 +8828,19 @@ var foo = 0;
 
     await _assertIntrospectText('foo', r'''
 foo
+  flags: hasInitializer
   type: int
+''');
+  }
+
+  test_unit_variable_flags_hasInitializer_false() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+int? foo;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  type: int?
 ''');
   }
 
@@ -8827,7 +8868,7 @@ const a2 = 0;
 
     await _assertIntrospectText('foo', r'''
 foo
-  flags: hasFinal
+  flags: hasFinal hasInitializer
   metadata
     IdentifierMetadataAnnotation
       identifier: a1
@@ -8899,7 +8940,7 @@ class X {
 class X
   fields
     foo
-      flags: hasFinal
+      flags: hasFinal hasInitializer
       type: OmittedType
         inferred: int
 ''');
@@ -8919,7 +8960,7 @@ class X
   superclass: A
   fields
     foo
-      flags: hasFinal
+      flags: hasFinal hasInitializer
       type: OmittedType
         inferred: int
 ''');
@@ -8949,7 +8990,7 @@ class A {
 class A
   fields
     foo
-      flags: hasFinal hasStatic
+      flags: hasFinal hasInitializer hasStatic
       type: OmittedType
         inferred: int
 ''');
@@ -9221,7 +9262,7 @@ foo
 final foo = 0;
 ''', r'''
 foo
-  flags: hasFinal
+  flags: hasFinal hasInitializer
   type: OmittedType
     inferred: int
 ''');
@@ -9361,10 +9402,10 @@ final int bar = 0;
 ''', r'''
 topLevelDeclarationsOf
   foo
-    flags: hasFinal
+    flags: hasFinal hasInitializer
     type: int
   bar
-    flags: hasFinal
+    flags: hasFinal hasInitializer
     type: int
 ''');
   }
@@ -9562,6 +9603,19 @@ class A {
 ''');
   }
 
+  test_class_field_flags_hasConst_true() async {
+    await _assertIntrospectText(r'''
+class X {
+  @Introspect()
+  static const int foo = 0;
+}
+''', r'''
+foo
+  flags: hasConst hasInitializer hasStatic
+  type: int
+''');
+  }
+
   test_class_field_flags_hasExternal() async {
     await _assertIntrospectText(r'''
 class X {
@@ -9583,6 +9637,7 @@ class X {
 }
 ''', r'''
 foo
+  flags: hasInitializer
   type: int
 ''');
   }
@@ -9595,8 +9650,20 @@ class X {
 }
 ''', r'''
 foo
-  flags: hasFinal
+  flags: hasFinal hasInitializer
   type: int
+''');
+  }
+
+  test_class_field_flags_hasInitializer_false() async {
+    await _assertIntrospectText(r'''
+class X {
+  @Introspect()
+  int? foo;
+}
+''', r'''
+foo
+  type: int?
 ''');
   }
 
@@ -9621,7 +9688,7 @@ class X {
 }
 ''', r'''
 foo
-  flags: hasStatic
+  flags: hasInitializer hasStatic
   type: int
 ''');
   }
@@ -9634,6 +9701,7 @@ class X {
 }
 ''', r'''
 foo
+  flags: hasInitializer
   type: int
 ''');
   }
@@ -9646,7 +9714,7 @@ class X {
 }
 ''', r'''
 foo
-  flags: hasFinal
+  flags: hasFinal hasInitializer
   type: OmittedType
 ''');
   }
@@ -9662,9 +9730,10 @@ class X {
 class X
   fields
     foo
-      flags: hasFinal
+      flags: hasFinal hasInitializer
       type: int
     bar
+      flags: hasInitializer
       type: String
 ''');
   }
@@ -10995,9 +11064,10 @@ mixin X {
 mixin X
   fields
     foo
-      flags: hasFinal
+      flags: hasFinal hasInitializer
       type: int
     bar
+      flags: hasInitializer
       type: String
 ''');
   }
@@ -11235,6 +11305,17 @@ foo
 ''');
   }
 
+  test_unit_variable_flags_hasConst_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+const foo = 0;
+''', r'''
+foo
+  flags: hasConst hasInitializer
+  type: OmittedType
+''');
+  }
+
   test_unit_variable_flags_hasExternal_true() async {
     await _assertIntrospectText(r'''
 @Introspect()
@@ -11252,6 +11333,7 @@ foo
 var foo = 0;
 ''', r'''
 foo
+  flags: hasInitializer
   type: OmittedType
 ''');
   }
@@ -11262,7 +11344,7 @@ foo
 final foo = 0;
 ''', r'''
 foo
-  flags: hasFinal
+  flags: hasFinal hasInitializer
   type: OmittedType
 ''');
   }
@@ -11289,7 +11371,7 @@ const a1 = 0;
 const a2 = 0;
 ''', r'''
 foo
-  flags: hasFinal
+  flags: hasFinal hasInitializer
   metadata
     ConstructorMetadataAnnotation
       type: Introspect
@@ -11307,7 +11389,7 @@ foo
 final num foo = 0;
 ''', r'''
 foo
-  flags: hasFinal
+  flags: hasFinal hasInitializer
   type: num
 ''');
   }
@@ -11318,7 +11400,7 @@ foo
 final foo = 0;
 ''', r'''
 foo
-  flags: hasFinal
+  flags: hasFinal hasInitializer
   type: OmittedType
 ''');
   }

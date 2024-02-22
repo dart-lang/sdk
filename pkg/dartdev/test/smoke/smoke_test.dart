@@ -106,13 +106,12 @@ void main() {
             observeScript,
           ],
         );
-        int port = server.port;
         final completer = Completer<void>();
         late StreamSubscription sub;
         bool sawServiceMsg = false;
         void onData(event) {
-          if (event.contains(
-              'Could not start the VM service: localhost:$port is already in use')) {
+          print(event);
+          if (event.contains('Could not start the VM service:')) {
             sawServiceMsg = true;
             process.kill();
           }

@@ -14,6 +14,7 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 void test() {
+  debugger();
   print('start');
   debugger();
   print('stdout');
@@ -26,6 +27,14 @@ void test() {
 }
 
 var tests = <IsolateTest>[
+  // The testeee will print the VM service is listening message
+  // which could race with the regular stdio prints from the testee
+  // The first debugger stop ensures we have these VM service
+  // messages outputed before the testee writes anything to stdout.
+  hasStoppedAtBreakpoint,
+  (VmService service, IsolateRef isolateRef) async {
+    await service.resume(isolateRef.id!);
+  },
   hasStoppedAtBreakpoint,
   (VmService service, IsolateRef isolateRef) async {
     final completer = Completer<void>();

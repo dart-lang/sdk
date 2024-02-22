@@ -138,12 +138,15 @@ sealed class Edit {
   });
 
   static String applyList(List<Edit> edits, String value) {
+    final StringBuffer buffer = new StringBuffer();
+    int offset = 0;
     for (Edit edit in edits) {
-      String before = value.substring(0, edit.offset);
-      String after = value.substring(edit.offset + edit.length);
-      value = before + edit.replacement + after;
+      buffer.write(value.substring(offset, edit.offset));
+      buffer.write(edit.replacement);
+      offset = edit.offset + edit.length;
     }
-    return value;
+    if (offset < value.length) buffer.write(value.substring(offset));
+    return buffer.toString();
   }
 }
 

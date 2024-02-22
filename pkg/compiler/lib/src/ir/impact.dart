@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
-import '../serialization/serialization.dart';
 import 'constants.dart';
 import 'impact_data.dart' show ConditionalImpactData, ImpactData;
 import 'runtime_type_analysis.dart';
@@ -188,21 +187,6 @@ class ImpactBuilderData {
   final ImpactData impactData;
 
   ImpactBuilderData(this.node, this.impactData);
-
-  factory ImpactBuilderData.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    var node = source.readMemberNode();
-    var data = ImpactData.fromDataSource(source);
-    source.end(tag);
-    return ImpactBuilderData(node, data);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeMemberNode(node);
-    impactData.toDataSink(sink);
-    sink.end(tag);
-  }
 }
 
 class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {

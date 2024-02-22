@@ -543,31 +543,21 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
   CHECK_RESULT(result);
 
-  int vm_service_server_port = INVALID_VM_SERVICE_SERVER_PORT;
-  if (Options::disable_dart_dev() || Options::disable_dds()) {
-    vm_service_server_port = Options::vm_service_server_port();
-  } else if (Options::vm_service_server_port() !=
-             INVALID_VM_SERVICE_SERVER_PORT) {
-    vm_service_server_port = 0;
-  }
-
-  // We do not want to wait for DDS to advertise availability of VM service in
-  // the following scenarios:
-  // - The DartDev CLI is disabled (CLI isolate starts DDS) and VM service is
-  //   enabled.
+  // We do not spawn the external dds process in the following scenarios:
+  // - The DartDev CLI is disabled and VM service is enabled.
   // - DDS is disabled.
-  // TODO(bkonyi): do we want to tie DevTools / DDS to the CLI in the long run?
   bool wait_for_dds_to_advertise_service =
       !(Options::disable_dart_dev() || Options::disable_dds());
+  bool serve_devtools =
+      Options::enable_devtools() || !Options::disable_devtools();
   // Load embedder specific bits and return.
   if (!VmService::Setup(
-          !wait_for_dds_to_advertise_service ? Options::vm_service_server_ip()
-                                             : DEFAULT_VM_SERVICE_SERVER_IP,
-          vm_service_server_port, Options::vm_service_dev_mode(),
-          Options::vm_service_auth_disabled(),
+          Options::vm_service_server_ip(), Options::vm_service_server_port(),
+          Options::vm_service_dev_mode(), Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback(),
-          wait_for_dds_to_advertise_service, Options::enable_observatory())) {
+          wait_for_dds_to_advertise_service, serve_devtools,
+          Options::enable_observatory())) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return nullptr;
   }

@@ -49,6 +49,8 @@ namespace bin {
   V(bypass_trusting_system_roots, bypass_trusting_system_roots)                \
   V(delayed_filewatch_callback, delayed_filewatch_callback)                    \
   V(mark_main_isolate_as_system_isolate, mark_main_isolate_as_system_isolate)  \
+  V(no_serve_devtools, disable_devtools)                                       \
+  V(serve_devtools, enable_devtools)                                           \
   V(no_serve_observatory, disable_observatory)                                 \
   V(serve_observatory, enable_observatory)
 

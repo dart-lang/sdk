@@ -1515,7 +1515,15 @@ severity: $severity
   /// If no macros need precompilation, `null` is returned.
   NeededPrecompilations? computeMacroDeclarations() {
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
-    if (macroLibraryBuilder == null) return null;
+    if (macroLibraryBuilder == null) {
+      // The macro library might not be directly imported by the source
+      // libraries, so we look up in the dill loader as well.
+      macroLibraryBuilder =
+          target.dillTarget.loader.lookupLibraryBuilder(macroLibraryUri);
+      if (macroLibraryBuilder == null) {
+        return null;
+      }
+    }
 
     Builder? macroClassBuilder =
         macroLibraryBuilder.lookupLocalMember(macroClassName);

@@ -528,32 +528,12 @@ class DataSourceReader {
     return map;
   }
 
-  /// Reads a kernel name node from this data source.
-  ir.Name readName() {
-    String text = readString();
-    ir.Library? library = readValueOrNull(readLibraryNode);
-    return ir.Name(text, library);
-  }
-
   /// Reads a [Name] from this data source.
   Name readMemberName() {
     String text = readString();
     Uri? uri = readValueOrNull(readUri);
     bool setter = readBool();
     return Name(text, uri, isSetter: setter);
-  }
-
-  /// Reads a kernel library dependency node from this data source.
-  ir.LibraryDependency readLibraryDependencyNode() {
-    ir.Library library = readLibraryNode();
-    int index = readInt();
-    return library.dependencies[index];
-  }
-
-  /// Reads a potentially `null` kernel library dependency node from this data
-  /// source.
-  ir.LibraryDependency? readLibraryDependencyNodeOrNull() {
-    return readValueOrNull(readLibraryDependencyNode);
   }
 
   /// Reads a reference to a kernel tree node from this data source.

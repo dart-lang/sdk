@@ -513,6 +513,11 @@ void IsolateGroup::Shutdown() {
     thread_pool_.reset();
   }
 
+  // Needs to happen before starting to destroy the heap so helper tasks like
+  // the SampleBlockProcessor don't try to enter the group during this
+  // tear-down.
+  UnregisterIsolateGroup(this);
+
   // Wait for any pending GC tasks.
   if (heap_ != nullptr) {
     // Wait for any concurrent GC tasks to finish before shutting down.
@@ -526,8 +531,6 @@ void IsolateGroup::Shutdown() {
     // still valid.
     old_space->AbandonMarkingForShutdown();
   }
-
-  UnregisterIsolateGroup(this);
 
   // If the creation of the isolate group (or the first isolate within the
   // isolate group) failed, we do not invoke the cleanup callback (the

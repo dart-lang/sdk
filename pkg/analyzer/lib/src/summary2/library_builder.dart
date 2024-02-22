@@ -505,7 +505,7 @@ class LibraryBuilder {
       scannerConfiguration: Scanner.buildConfig(kind.file.featureSet),
     );
     var optimizedCode = macro.Edit.applyList(
-      optimizedCodeEdits.reversed.toList(),
+      optimizedCodeEdits,
       augmentationCode,
     );
 

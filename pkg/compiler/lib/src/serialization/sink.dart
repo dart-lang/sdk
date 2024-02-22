@@ -409,30 +409,11 @@ class DataSinkWriter {
     writeMapOrNull(map, writeMemberNode, f);
   }
 
-  /// Writes a kernel name node to this data sink.
-  void writeName(ir.Name value) {
-    writeString(value.text);
-    writeValueOrNull(value.library, writeLibraryNode);
-  }
-
   /// Writes a [Name] to this data sink.
   void writeMemberName(Name value) {
     writeString(value.text);
     writeValueOrNull(value.uri, writeUri);
     writeBool(value.isSetter);
-  }
-
-  /// Writes a kernel library dependency node [value] to this data sink.
-  void writeLibraryDependencyNode(ir.LibraryDependency value) {
-    final library = value.parent as ir.Library;
-    writeLibraryNode(library);
-    writeInt(library.dependencies.indexOf(value));
-  }
-
-  /// Writes a potentially `null` kernel library dependency node [value] to
-  /// this data sink.
-  void writeLibraryDependencyNodeOrNull(ir.LibraryDependency? value) {
-    writeValueOrNull(value, writeLibraryDependencyNode);
   }
 
   /// Writes a reference to the kernel tree node [value] to this data sink.

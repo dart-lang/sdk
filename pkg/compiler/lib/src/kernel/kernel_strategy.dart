@@ -232,15 +232,6 @@ class KernelFrontendStrategy {
     }
   }
 
-  void registerModuleData(ModuleData? data) {
-    if (data == null) {
-      _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
-    } else {
-      _modularStrategy =
-          DeserializedModularStrategy(_compilerTask, _elementMap, data);
-    }
-  }
-
   IrAnnotationData get irAnnotationDataForTesting => _irAnnotationData;
 
   ModularStrategy get modularStrategyForTesting => _modularStrategy;
@@ -438,37 +429,5 @@ class KernelModularStrategy extends ModularStrategy {
       return computeModularMemberData(
           _elementMap, node, scopeModel, annotations);
     });
-  }
-}
-
-class DeserializedModularStrategy extends ModularStrategy {
-  final CompilerTask _compilerTask;
-  final KernelToElementMap _elementMap;
-  final Map<ir.Member, ImpactBuilderData> _cache = {};
-
-  DeserializedModularStrategy(
-      this._compilerTask, this._elementMap, ModuleData data) {
-    for (Map<ir.Member, ImpactBuilderData> moduleData
-        in data.impactData.values) {
-      _cache.addAll(moduleData);
-    }
-  }
-
-  @override
-  List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
-    return computePragmaAnnotationDataFromIr(node);
-  }
-
-  @override
-  ModularMemberData getModularMemberData(
-      ir.Member node, EnumSet<PragmaAnnotation> annotations) {
-    // TODO(joshualitt): serialize scope model too.
-    var scopeModel = _compilerTask.measureSubtask(
-        'closures', () => ScopeModel.from(node, _elementMap.typeEnvironment));
-    var impactBuilderData = _cache[node];
-    if (impactBuilderData == null) {
-      throw 'missing modular analysis data for $node';
-    }
-    return ModularMemberData(scopeModel, impactBuilderData);
   }
 }
