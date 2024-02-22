@@ -508,7 +508,7 @@ void pollute() {
 ///
 ///    Run benchmarks with name containing all the dot-separated words in the
 ///    selector, so `--Set.const` will run benchmark
-///    'Iterators.const.Set.int.N`, and `--2.UpTo` will select
+///    `Iterators.const.Set.int.N`, and `--2.UpTo` will select
 ///    `Iterators.UpTo.2`.  Each selector is matched independently, and if
 ///    selectors are used, only benchmarks matching some selector are run.
 ///

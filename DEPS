@@ -57,7 +57,7 @@ vars = {
   "co19_rev": "867d139b3169fc131488e893ec1133dc98cc3aa0",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "3e58fcfa1464ffd7b1d3edc7a8d5d9a24a321c5d",
+  "benchmarks_internal_rev": "175974d2b43dae39c380fc5f7f583a377cd3c11d",
   "checkout_benchmarks_internal": False,
 
   # Checkout the flute benchmark only when benchmarking.

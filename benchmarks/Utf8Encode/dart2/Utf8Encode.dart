@@ -70,11 +70,6 @@ class Utf8Encode extends BenchmarkBase {
   }
 
   @override
-  void warmup() {
-    BenchmarkBase.measureFor(run, 1000);
-  }
-
-  @override
   double measure() {
     // Report time per input rune.
     return super.measure() / size / benchmarkTextChunks.length;
