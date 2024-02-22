@@ -422,7 +422,7 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
       throw new UnsupportedError(
           'Augmenting existing constructor bodies is not allowed.');
     }
-    body ??= new FunctionBodyCode.fromString('{}');
+    body ??= new FunctionBodyCode.fromString(';');
     DeclarationCode augmentation = _buildFunctionAugmentation(body, declaration,
         initializers: initializers, docComments: docComments);
     _typeAugmentations.update(

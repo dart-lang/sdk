@@ -7104,7 +7104,7 @@ augment class A {
   @ToJson()
   Map<String, Object?> toJson();
   augment A.fromJson(Map<String, Object?> json, )  : this.foo = json["foo"] as int,
-this.bar = json["bar"] as int{}
+this.bar = json["bar"] as int;
   augment Map<String, Object?> toJson()  => {
     'foo': this.foo,
     'bar': this.bar,
@@ -7142,7 +7142,7 @@ this.bar = json["bar"] as int{}
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
                 returnType: Map<String, Object?>
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
-              augment toJson @362
+              augment toJson @361
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
                 returnType: Map<String, Object?>
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
