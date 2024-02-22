@@ -2892,6 +2892,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // should be private
     var sdk = _currentLibrary.context.sourceFactory.dartSdk!;
     var uri = exportedLibrary.source.uri.toString();
+
+    // We allow exporting `dart:_macros` from `package:macros`.
+    if (uri == 'dart:_macros' &&
+        _currentLibrary.source.uri.scheme == 'package' &&
+        _currentLibrary.source.uri.pathSegments.first == 'macros') {
+      return;
+    }
     var sdkLibrary = sdk.getSdkLibrary(uri);
     if (sdkLibrary == null) {
       return;

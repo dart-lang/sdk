@@ -309,8 +309,17 @@ const Map<String, LibraryInfo> libraries = const {
     documented: false,
     platforms: DART2JS_PLATFORM,
   ),
-  "_wasm": const LibraryInfo('_wasm/wasm_types.dart',
-      categories: '', documented: false),
+  "_wasm": const LibraryInfo(
+    '_wasm/wasm_types.dart',
+    categories: '',
+    documented: false,
+  ),
+  "_macros": const LibraryInfo(
+    '_macros/macros.dart',
+    documented: false,
+    platforms: VM_PLATFORM,
+    maturity: Maturity.EXPERIMENTAL,
+  ),
 };
 
 /// Information about a "dart:" library.
