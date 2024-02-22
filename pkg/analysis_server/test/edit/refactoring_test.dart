@@ -1672,7 +1672,7 @@ class A {
     addTestFile('''
 import 'macros.dart';
 
-@DeclareInType('  /// named\\n  C.named();')
+@DeclareInType('  C.named();')
 class C {}
 ''');
     return assertSuccessfulRefactoring(() {
@@ -1680,9 +1680,9 @@ class C {}
     }, '''
 import 'macros.dart';
 
-@DeclareInType('  /// named\\n  C.named();')
+@DeclareInType('  C.named();')
 class NewName {}
-''');
+''', changeEdits: 1);
   }
 
   Future<void> test_class_method_in_objectPattern() {
@@ -2806,20 +2806,25 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
 
   Future<void> assertSuccessfulRefactoring(
       Future<Response> Function() requestSender, String expectedCode,
-      {void Function(RefactoringFeedback?)? feedbackValidator}) async {
+      {void Function(RefactoringFeedback?)? feedbackValidator,
+      int changeEdits = 0}) async {
     var result = await getRefactoringResult(requestSender);
     assertResultProblemsOK(result);
     if (feedbackValidator != null) {
       feedbackValidator(result.feedback);
     }
-    assertTestRefactoringResult(result, expectedCode);
+    assertTestRefactoringResult(result, expectedCode, changeEdits: changeEdits);
   }
 
   /// Asserts that the given [EditGetRefactoringResult] has a [testFile] change
   /// which results in the [expectedCode].
   void assertTestRefactoringResult(
-      EditGetRefactoringResult result, String expectedCode) {
+      EditGetRefactoringResult result, String expectedCode,
+      {int changeEdits = 0}) {
     var change = result.change!;
+    if (changeEdits != 0) {
+      expect(change.edits.length, changeEdits);
+    }
     for (var fileEdit in change.edits) {
       if (fileEdit.file == testFile.path) {
         var actualCode =
