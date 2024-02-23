@@ -56,15 +56,12 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
 
     check(tryPromote(numNone, T_none), 'T & num');
     check(tryPromote(numQuestion, T_none), 'T & num?');
-    check(tryPromote(numStar, T_none), 'T & num*');
 
     check(tryPromote(numNone, T_question), 'T & num');
     check(tryPromote(numQuestion, T_question), '(T & num?)?');
-    check(tryPromote(numStar, T_question), '(T & num*)*');
 
     check(tryPromote(numNone, T_star), '(T & num)*');
     check(tryPromote(numQuestion, T_star), '(T & num?)*');
-    check(tryPromote(numStar, T_star), '(T & num*)*');
   }
 
   test_typeParameter_twice() {

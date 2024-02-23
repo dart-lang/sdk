@@ -29,7 +29,6 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
     check(intNone, 'int');
     check(intQuestion, 'int?');
-    check(intStar, 'int*');
 
     check(dynamicType, 'dynamic');
     check(voidNone, 'void');
@@ -39,7 +38,6 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
     check(objectNone, 'Object');
     check(objectQuestion, 'Object?');
-    check(objectStar, 'Object*');
   }
 
   /// futureValueType(FutureOr<`S`>) = `S`, for all `S`.
@@ -50,7 +48,6 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
     check(intNone, 'int');
     check(intQuestion, 'int?');
-    check(intStar, 'int*');
 
     check(dynamicType, 'dynamic');
     check(voidNone, 'void');
@@ -60,7 +57,6 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
     check(objectNone, 'Object');
     check(objectQuestion, 'Object?');
-    check(objectStar, 'Object*');
   }
 
   /// Otherwise, for all `S`, futureValueType(`S`) = `Object?`.
@@ -75,15 +71,12 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
     _check(futureQuestion(intNone), 'int');
     _check(futureQuestion(intQuestion), 'int?');
-    _check(futureQuestion(intStar), 'int*');
 
     _check(futureOrQuestion(intNone), 'int');
     _check(futureOrQuestion(intQuestion), 'int?');
-    _check(futureOrQuestion(intStar), 'int*');
 
     _check(futureQuestion(objectNone), 'Object');
     _check(futureQuestion(objectQuestion), 'Object?');
-    _check(futureQuestion(objectStar), 'Object*');
 
     _check(futureQuestion(dynamicType), 'dynamic');
     _check(futureQuestion(voidNone), 'void');
@@ -91,19 +84,14 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
   /// futureValueType(`S*`) = futureValueType(`S`), for all `S`.
   test_suffix_star() {
-    _check(intStar, 'Object?');
-
     _check(futureStar(intNone), 'int');
     _check(futureStar(intQuestion), 'int?');
-    _check(futureStar(intStar), 'int*');
 
     _check(futureOrStar(intNone), 'int');
     _check(futureOrStar(intQuestion), 'int?');
-    _check(futureOrStar(intStar), 'int*');
 
     _check(futureStar(objectNone), 'Object');
     _check(futureStar(objectQuestion), 'Object?');
-    _check(futureStar(objectStar), 'Object*');
 
     _check(futureStar(dynamicType), 'dynamic');
     _check(futureStar(voidNone), 'void');

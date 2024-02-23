@@ -27,7 +27,6 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
 
     check(intNone, 'int');
     check(intQuestion, 'int?');
-    check(intStar, 'int*');
 
     check(dynamicType, 'dynamic');
     check(voidNone, 'void');
@@ -37,17 +36,14 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
 
     check(objectNone, 'Object');
     check(objectQuestion, 'Object?');
-    check(objectStar, 'Object*');
   }
 
   test_other() {
     _check(intNone, 'int');
     _check(intQuestion, 'int?');
-    _check(intStar, 'int*');
 
     _check(objectNone, 'Object');
     _check(objectQuestion, 'Object?');
-    _check(objectStar, 'Object*');
   }
 
   /// futureValueType(`void`) = `void`.

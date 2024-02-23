@@ -49,7 +49,6 @@ class HasTypeParameterReferenceTest extends AbstractTypeSystemTest {
   test_interfaceType() {
     _checkFalse(intNone);
     _checkFalse(intQuestion);
-    _checkFalse(intStar);
 
     var T = typeParameter('T');
     var T_none = typeParameterTypeNone(T);
