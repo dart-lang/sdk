@@ -4,6 +4,17 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/*macro*/ class AskFieldsWillThrow implements ClassDefinitionMacro {
+  const AskFieldsWillThrow();
+
+  @override
+  buildDefinitionForClass(declaration, builder) async {
+    // We expect that the analyzer will throw an exception.
+    // This simulates a bug in the analyzer, e.g. something not implemented.
+    await builder.fieldsOf(declaration);
+  }
+}
+
 /*macro*/ class MacroWithArguments implements ClassDeclarationsMacro {
   final Object? a1;
   final Object? a2;

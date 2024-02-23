@@ -68,6 +68,9 @@ class LibraryMacroApplier {
   @visibleForTesting
   static bool testThrowExceptionDefinitions = false;
 
+  @visibleForTesting
+  static bool testThrowExceptionIntrospection = false;
+
   final LinkedElementFactory elementFactory;
   final MultiMacroExecutor macroExecutor;
   final bool Function(Uri) isLibraryBeingLinked;
@@ -588,14 +591,14 @@ class LibraryMacroApplier {
       );
     }
 
-    void addIntrospectionCycle(macro.MacroException? exception) {
+    bool addIntrospectionCycle(macro.MacroException? exception) {
       if (exception is! _MacroIntrospectionCycleException) {
-        return;
+        return false;
       }
 
       var introspectedElement = application.lastIntrospectedElement;
       if (introspectedElement == null) {
-        return;
+        return false;
       }
 
       var applications = exception.applications;
@@ -617,9 +620,21 @@ class LibraryMacroApplier {
           components: components,
         ),
       );
+      return true;
     }
 
-    addIntrospectionCycle(result.exception);
+    if (result.exception case var exception?) {
+      var reported = addIntrospectionCycle(exception);
+      if (!reported) {
+        application.target.element.addMacroDiagnostic(
+          ExceptionMacroDiagnostic(
+            annotationIndex: application.annotationIndex,
+            message: exception.message,
+            stackTrace: exception.stackTrace ?? '<null>',
+          ),
+        );
+      }
+    }
   }
 
   macro.MacroTarget _buildTarget(ast.AstNode node) {
@@ -1004,6 +1019,10 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   Future<List<macro.FieldDeclaration>> fieldsOf(
     macro.TypeDeclaration type,
   ) async {
+    if (LibraryMacroApplier.testThrowExceptionIntrospection) {
+      throw 'Intentional exception';
+    }
+
     final element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 

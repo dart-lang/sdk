@@ -16,6 +16,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/macro.dart';
+import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -6415,6 +6416,50 @@ library
 ''');
   }
 
+  test_macroDiagnostics_report_atTypeAnnotation_kind_typedef_namedType() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+typedef A = List<int>;
+
+@ReportAtTypeAnnotation([
+  'returnType',
+])
+A foo() => throw 0;
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    typeAliases
+      A @35
+        aliasedType: List<int>
+    functions
+      foo @98
+        returnType: List<int>
+          alias: self::@typeAlias::A
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: TypeAnnotationMacroDiagnosticTarget
+                ElementTypeLocation
+                  element: self::@function::foo
+                ReturnTypeLocation
+            severity: warning
+''');
+  }
+
   test_macroDiagnostics_report_atTypeAnnotation_method_formalParameter_positional() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',
@@ -7018,6 +7063,42 @@ My definitions phase
                   annotationIndex: 0
             severity: error
             correctionMessage: Try reporting the failure to the macro author.
+''');
+  }
+
+  test_macroDiagnostics_throwException_duringIntrospection() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    LibraryElementImpl library;
+    try {
+      LibraryMacroApplier.testThrowExceptionIntrospection = true;
+      library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@AskFieldsWillThrow()
+class A {}
+''');
+    } finally {
+      LibraryMacroApplier.testThrowExceptionIntrospection = false;
+    }
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @55
+        macroDiagnostics
+          ExceptionMacroDiagnostic
+            annotationIndex: 0
+            message: Intentional exception
 ''');
   }
 
