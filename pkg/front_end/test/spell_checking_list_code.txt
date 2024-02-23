@@ -156,6 +156,7 @@ binders
 bindings
 bindir
 binds
+bitmask
 bj
 bk
 bla
@@ -680,9 +681,11 @@ framework
 freed
 freedom
 freely
+freeze
 freshly
 frontend
 frontends
+frozen
 fs
 fsource
 fuchsia
