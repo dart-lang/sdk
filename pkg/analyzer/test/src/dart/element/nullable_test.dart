@@ -550,10 +550,6 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
     isNotStrictlyNonNullable(
       typeParameterTypeQuestion(T),
     );
-
-    isNotStrictlyNonNullable(
-      typeParameterTypeStar(T),
-    );
   }
 
   test_typeParameter_boundQuestion() {
@@ -565,10 +561,6 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
 
     isNotStrictlyNonNullable(
       typeParameterTypeQuestion(T),
-    );
-
-    isNotStrictlyNonNullable(
-      typeParameterTypeStar(T),
     );
   }
 
@@ -685,12 +677,6 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
       element: element,
       promotedBound: intNone,
     );
-
-    _checkTypeParameter(
-      typeParameterTypeStar(element),
-      element: element,
-      promotedBound: intNone,
-    );
   }
 
   test_typeParameter_promotedBound_none() {
@@ -707,12 +693,6 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
       element: element,
       promotedBound: intNone,
     );
-
-    _checkTypeParameter(
-      promotedTypeParameterTypeStar(element, intNone),
-      element: element,
-      promotedBound: intNone,
-    );
   }
 
   test_typeParameter_promotedBound_question() {
@@ -726,12 +706,6 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
 
     _checkTypeParameter(
       promotedTypeParameterTypeQuestion(element, intQuestion),
-      element: element,
-      promotedBound: intNone,
-    );
-
-    _checkTypeParameter(
-      promotedTypeParameterTypeStar(element, intQuestion),
       element: element,
       promotedBound: intNone,
     );

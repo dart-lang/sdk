@@ -593,17 +593,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  TypeParameterTypeImpl promotedTypeParameterTypeStar(
-    TypeParameterElement element,
-    DartType promotedBound,
-  ) {
-    return promotedTypeParameterType(
-      element: element,
-      nullabilitySuffix: NullabilitySuffix.star,
-      promotedBound: promotedBound,
-    );
-  }
-
   RecordTypeImpl recordType({
     List<DartType> positionalTypes = const [],
     Map<String, DartType> namedTypes = const {},
@@ -733,17 +722,6 @@ mixin ElementsTypesMixin {
     return typeParameterType(
       element,
       nullabilitySuffix: NullabilitySuffix.question,
-      promotedBound: promotedBound,
-    );
-  }
-
-  TypeParameterTypeImpl typeParameterTypeStar(
-    TypeParameterElement element, {
-    DartType? promotedBound,
-  }) {
-    return typeParameterType(
-      element,
-      nullabilitySuffix: NullabilitySuffix.star,
       promotedBound: promotedBound,
     );
   }
