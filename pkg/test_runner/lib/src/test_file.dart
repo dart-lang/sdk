@@ -325,8 +325,10 @@ class TestFile extends _TestFileBase {
     // Missing files set no expectations.
     if (!file.existsSync()) return [];
 
+    // Catch import loops.
+    if (!alreadyParsed.add(Uri.parse(path).toString())) return [];
+
     // Parse one file.
-    alreadyParsed.add(path);
     var contents = File(path).readAsStringSync();
     var result = StaticError.parseExpectations(path: path, source: contents);
 
@@ -337,7 +339,6 @@ class TestFile extends _TestFileBase {
       // Broken import paths set no expectations.
       if (localPath == null) continue;
       var uriString = Uri.parse(path).resolve(localPath.path).toString();
-      if (alreadyParsed.contains(uriString)) continue;
       result
           .addAll(_parseExpectations(uriString, alreadyParsed: alreadyParsed));
     }

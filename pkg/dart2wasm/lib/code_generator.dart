@@ -1158,8 +1158,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Only emit the type test if the guard is not [Object].
       if (emitGuard) {
         b.local_get(thrownException);
-        types.emitIsTest(
-            this, guard, translator.coreTypes.objectNonNullableRawType, catch_);
+        types.emitIsTest(this, guard,
+            translator.coreTypes.objectNonNullableRawType, catch_.location);
         b.i32_eqz();
         b.br_if(catchBlock);
       }
@@ -3028,7 +3028,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         ? translator.topInfo.nullableType
         : translator.topInfo.nonNullableType;
     wrap(node.operand, boxedOperandType);
-    types.emitIsTest(this, node.type, operandType, node);
+    types.emitIsTest(this, node.type, operandType, node.location);
     return w.NumType.i32;
   }
 
@@ -3044,7 +3044,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         : translator.topInfo.nonNullableType;
     wrap(node.operand, boxedOperandType);
     return types.emitAsCheck(
-        this, node.type, operandType, boxedOperandType, node);
+        this, node.type, operandType, boxedOperandType, node.location);
   }
 
   @override
