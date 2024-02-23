@@ -158,8 +158,7 @@ class ClassStubGenerator {
   }
 
   StubMethod generateStubForNoSuchMethod(jsAst.Name name, Selector selector) {
-    // Values match JSInvocationMirror in js-helper library.
-    int type = selector.invocationMirrorKind;
+    int type = selector.invocationMirrorKind.value;
     List<String> parameterNames =
         List.generate(selector.argumentCount, (i) => '\$$i') +
             List.generate(selector.typeArgumentCount, (i) => '\$T${i + 1}');

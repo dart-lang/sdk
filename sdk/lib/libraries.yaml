@@ -433,6 +433,9 @@ _dart2js_common:
     _async_status_codes:
       uri: "_internal/js_runtime/lib/synced/async_status_codes.dart"
 
+    _invocation_mirror_constants:
+      uri: "_internal/js_runtime/lib/synced/invocation_mirror_constants.dart"
+
     _load_library_priority:
       uri: "_internal/js_runtime/lib/synced/load_library_priority.dart"
 

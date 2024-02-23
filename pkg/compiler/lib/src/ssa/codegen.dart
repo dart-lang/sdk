@@ -214,21 +214,24 @@ class _CodegenMetrics extends MetricsBase {
       ];
 }
 
-class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
-  /// Returned by [expressionType] to tell how code can be generated for
-  /// a subgraph.
-  /// - [TYPE_STATEMENT] means that the graph must be generated as a statement,
-  /// which is always possible.
-  /// - [TYPE_EXPRESSION] means that the graph can be generated as an expression,
-  /// or possibly several comma-separated expressions.
-  /// - [TYPE_DECLARATION] means that the graph can be generated as an
-  /// expression, and that it only generates expressions of the form
+/// Returned by [_expressionType] to tell how code can be generated for
+/// a subgraph.
+enum _ExpressionCodegenType {
+  /// The graph must be generated as a statement, which is always possible.
+  statement,
+
+  /// The graph can be generated as an expression, or possibly several
+  /// comma-separated expressions.
+  expression,
+
+  /// The graph can be generated as an expression, and it only generates
+  /// expressions of the form
   ///   variable = expression
   /// which are also valid as parts of a "var" declaration.
-  static const int TYPE_STATEMENT = 0;
-  static const int TYPE_EXPRESSION = 1;
-  static const int TYPE_DECLARATION = 2;
+  declaration,
+}
 
+class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /// Whether we are currently generating expressions instead of statements.
   /// This includes declarations, which are generated as expressions.
   bool isGeneratingExpression = false;
@@ -455,7 +458,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /// Declarations must only generate assignments on the form "id = expression",
   /// and not, e.g., expressions where the value isn't assigned, or where it's
   /// assigned to something that's not a simple variable.
-  int expressionType(HExpressionInformation info) {
+  _ExpressionCodegenType _expressionType(HExpressionInformation info) {
     // The only HExpressionInformation used as part of a HBlockInformation is
     // current HSubExpressionBlockInformation, so it's the only one reaching
     // here. If we start using the other HExpressionInformation types too,
@@ -470,19 +473,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // statement, and in the latter case, we can return immediately since
     // it can't get any worse. E.g., a function call where the return value
     // isn't used can't be in a declaration.
-    int result = TYPE_DECLARATION;
+    var result = _ExpressionCodegenType.declaration;
     HBasicBlock basicBlock = limits.start;
     do {
       HInstruction current = basicBlock.first!;
       while (current != basicBlock.last) {
         // E.g, bounds check.
         if (current.isControlFlow()) {
-          return TYPE_STATEMENT;
+          return _ExpressionCodegenType.statement;
         }
         // HFieldSet generates code on the form "x.y = ...", which isn't valid
         // in a declaration.
         if (current.usedBy.isEmpty || current is HFieldSet) {
-          result = TYPE_EXPRESSION;
+          result = _ExpressionCodegenType.expression;
         }
         current = current.next!;
       }
@@ -497,18 +500,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           basicBlock = basicBlock.successors[0];
         } else {
           // We allow an expression to end on an HIf (a condition expression).
-          return identical(basicBlock, limits.end) ? result : TYPE_STATEMENT;
+          return identical(basicBlock, limits.end)
+              ? result
+              : _ExpressionCodegenType.statement;
         }
       } else {
         // Expression-incompatible control flow.
-        return TYPE_STATEMENT;
+        return _ExpressionCodegenType.statement;
       }
     } while (limits.contains(basicBlock));
     return result;
   }
 
   bool isJSExpression(HExpressionInformation info) {
-    return !identical(expressionType(info), TYPE_STATEMENT);
+    return !identical(_expressionType(info), _ExpressionCodegenType.statement);
   }
 
   bool isJSCondition(HExpressionInformation? info) {
@@ -516,7 +521,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     info as HSubExpressionBlockInformation;
 
     SubExpression? limits = info.subExpression;
-    return !identical(expressionType(info), TYPE_STATEMENT) &&
+    return !identical(
+            _expressionType(info), _ExpressionCodegenType.statement) &&
         (limits!.end.last is HConditionalBranch);
   }
 
@@ -934,15 +940,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     switch (info.kind) {
       // Treat all three "test-first" loops the same way.
-      case HLoopBlockInformation.FOR_LOOP:
-      case HLoopBlockInformation.WHILE_LOOP:
-      case HLoopBlockInformation.FOR_IN_LOOP:
-      case HLoopBlockInformation.SWITCH_CONTINUE_LOOP:
+      case LoopBlockInformationKind.forLoop:
+      case LoopBlockInformationKind.whileLoop:
+      case LoopBlockInformationKind.forInLoop:
+      case LoopBlockInformationKind.switchContinueLoop:
         HExpressionInformation? initialization = info.initializer;
-        int initializationType = TYPE_STATEMENT;
+        var initializationType = _ExpressionCodegenType.statement;
         if (initialization != null) {
-          initializationType = expressionType(initialization);
-          if (initializationType == TYPE_STATEMENT) {
+          initializationType = _expressionType(initialization);
+          if (initializationType == _ExpressionCodegenType.statement) {
             generateStatements(initialization);
             initialization = null;
           }
@@ -1061,7 +1067,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               sourceInformation: info.sourceInformation);
         }
         break;
-      case HLoopBlockInformation.DO_WHILE_LOOP:
+      case LoopBlockInformationKind.doWhileLoop:
         if (info.initializer != null) {
           generateStatements(info.initializer);
         }
@@ -1131,12 +1137,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
         currentContainer = oldContainer;
         break;
-      default:
+      case LoopBlockInformationKind.notALoop:
         failedAt(condition!.conditionExpression!,
             'Unexpected loop kind: ${info.kind}.');
     }
     js.Statement result = loop;
-    if (info.kind == HLoopBlockInformation.SWITCH_CONTINUE_LOOP) {
+    if (info.kind == LoopBlockInformationKind.switchContinueLoop) {
       String continueLabelString =
           _namer.implicitContinueLabelName(info.target!);
       result = js.LabeledStatement(continueLabelString, result);
@@ -2311,16 +2317,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Name name = _namer.instanceFieldPropertyName(element);
     use(node.receiver);
     js.Expression fieldReference = js.PropertyAccess(pop(), name);
-    if (node.isPreOp) {
-      push(js.Prefix(node.jsOp, fieldReference)
-          .withSourceInformation(node.sourceInformation));
-    } else if (node.isPostOp) {
-      push(js.Postfix(node.jsOp, fieldReference)
-          .withSourceInformation(node.sourceInformation));
-    } else {
-      use(node.value);
-      push(js.Assignment.compound(fieldReference, node.jsOp, pop())
-          .withSourceInformation(node.sourceInformation));
+    switch (node.opKind) {
+      case ReadModifyWriteKind.prefix:
+        push(js.Prefix(node.jsOp, fieldReference)
+            .withSourceInformation(node.sourceInformation));
+      case ReadModifyWriteKind.postfix:
+        push(js.Postfix(node.jsOp, fieldReference)
+            .withSourceInformation(node.sourceInformation));
+      case ReadModifyWriteKind.assign:
+        use(node.value);
+        push(js.Assignment.compound(fieldReference, node.jsOp, pop())
+            .withSourceInformation(node.sourceInformation));
     }
   }
 
@@ -2691,9 +2698,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     // If the checks always succeeds, we would have removed the bounds check
     // completely.
-    assert(node.staticChecks != HBoundsCheck.ALWAYS_TRUE);
+    assert(node.staticChecks != StaticBoundsChecks.alwaysTrue);
 
-    if (node.staticChecks == HBoundsCheck.ALWAYS_FALSE) {
+    if (node.staticChecks == StaticBoundsChecks.alwaysFalse) {
       _pushThrowWithHelper(_commonElements.throwIndexOutOfRangeException,
           [node.array, node.reportedIndex],
           sourceInformation: node.sourceInformation);
@@ -2728,7 +2735,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // This test is 'NaN-safe' since `a!==b` is the same as `!(a===b)`.
       under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
       indexCanBeNaN = false;
-    } else if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
+    } else if (node.staticChecks != StaticBoundsChecks.alwaysAboveZero) {
       use(index);
       // The index must be an `int`, otherwise we could have used the combined
       // check above.
@@ -2739,7 +2746,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
-    if (node.staticChecks != HBoundsCheck.ALWAYS_BELOW_LENGTH) {
+    if (node.staticChecks != StaticBoundsChecks.alwaysBelowLength) {
       use(index);
       js.Expression jsIndex = pop();
       use(node.length);
@@ -2982,18 +2989,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Block oldContainer = currentContainer;
     js.Block body = currentContainer = js.Block.empty();
     final sourceInformation = node.sourceInformation;
-    if (node.isArgumentTypeCheck) {
-      use(node.checkedInput);
-      _pushCallStatic(_commonElements.throwIllegalArgumentException, [pop()],
-          node.sourceInformation);
-      pushStatement(js.Return(pop()).withSourceInformation(sourceInformation));
-    } else if (node.isReceiverTypeCheck) {
-      use(node.checkedInput);
-      js.Name methodName =
-          _namer.invocationName(node.receiverTypeCheckSelector!);
-      js.Expression call = js.propertyCall(
-          pop(), methodName, []).withSourceInformation(sourceInformation);
-      pushStatement(js.Return(call).withSourceInformation(sourceInformation));
+    switch (node.kind) {
+      case PrimitiveCheckKind.argumentType:
+        use(node.checkedInput);
+        _pushCallStatic(_commonElements.throwIllegalArgumentException, [pop()],
+            node.sourceInformation);
+        pushStatement(
+            js.Return(pop()).withSourceInformation(sourceInformation));
+      case PrimitiveCheckKind.receiverType:
+        use(node.checkedInput);
+        js.Name methodName =
+            _namer.invocationName(node.receiverTypeCheckSelector!);
+        js.Expression call = js.propertyCall(
+            pop(), methodName, []).withSourceInformation(sourceInformation);
+        pushStatement(js.Return(call).withSourceInformation(sourceInformation));
     }
     currentContainer = oldContainer;
     final then = unwrapStatement(body);

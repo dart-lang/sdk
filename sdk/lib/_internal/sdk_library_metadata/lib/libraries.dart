@@ -285,6 +285,12 @@ const Map<String, LibraryInfo> libraries = const {
     documented: false,
     platforms: DART2JS_PLATFORM,
   ),
+  '_invocation_mirror_constants': const LibraryInfo(
+    '_internal/js_runtime/lib/synced/invocation_mirror_constants.dart',
+    categories: '',
+    documented: false,
+    platforms: DART2JS_PLATFORM,
+  ),
   '_recipe_syntax': const LibraryInfo(
     '_internal/js_shared/lib/synced/recipe_syntax.dart',
     categories: '',

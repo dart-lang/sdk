@@ -4,7 +4,7 @@
 
 library dart2js.common.codegen;
 
-import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
+import 'package:js_ast/src/precedence.dart' as js show Precedence;
 
 import '../common/elements.dart';
 import '../constants/values.dart';
@@ -595,7 +595,8 @@ class ModularExpression extends js.DeferredExpression
   }
 
   @override
-  int get precedenceLevel => _value?.precedenceLevel ?? js.PRIMARY;
+  js.Precedence get precedenceLevel =>
+      _value?.precedenceLevel ?? js.Precedence.primary;
 
   @override
   Iterable<js.Node> get containedNodes {

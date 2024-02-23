@@ -903,14 +903,14 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
       checkBlock.rewrite(check, check.index);
       checkBlock.remove(check);
     } else if (indexRange.isNegative || lengthRange < indexRange) {
-      check.staticChecks = HBoundsCheck.ALWAYS_FALSE;
+      check.staticChecks = StaticBoundsChecks.alwaysFalse;
       // The check is always false, and whatever instruction it
       // dominates is dead code.
       return indexRange;
     } else if (indexRange.isPositive) {
-      check.staticChecks = HBoundsCheck.ALWAYS_ABOVE_ZERO;
+      check.staticChecks = StaticBoundsChecks.alwaysAboveZero;
     } else if (belowLength) {
-      check.staticChecks = HBoundsCheck.ALWAYS_BELOW_LENGTH;
+      check.staticChecks = StaticBoundsChecks.alwaysBelowLength;
     }
 
     if (indexRange.isPositive) {

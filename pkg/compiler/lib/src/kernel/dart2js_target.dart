@@ -20,7 +20,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../options.dart';
-import 'invocation_mirror_constants.dart';
+import 'invocation_mirror.dart';
 import 'transformations/modular/transform.dart' as modularTransforms;
 
 const Iterable<String> _allowedDartSchemePaths = [
@@ -183,15 +183,15 @@ class Dart2jsTarget extends Target {
       ir.Arguments arguments,
       int offset,
       bool isSuper) {
-    int kind;
+    InvocationMirrorKind kind;
     if (name.startsWith('get:')) {
-      kind = invocationMirrorGetterKind;
+      kind = InvocationMirrorKind.getter;
       name = name.substring(4);
     } else if (name.startsWith('set:')) {
-      kind = invocationMirrorSetterKind;
+      kind = InvocationMirrorKind.setter;
       name = name.substring(4);
     } else {
-      kind = invocationMirrorMethodKind;
+      kind = InvocationMirrorKind.method;
     }
     return ir.StaticInvocation(
         coreTypes.index
@@ -211,7 +211,7 @@ class Dart2jsTarget extends Target {
           })), keyType: coreTypes.stringNonNullableRawType)
             ..isConst = (arguments.named.length == 0)
             ..fileOffset = arguments.fileOffset,
-          ir.IntLiteral(kind)..fileOffset = offset,
+          ir.IntLiteral(kind.value)..fileOffset = offset,
         ]))
       ..fileOffset = offset;
   }
@@ -263,6 +263,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_http',
     'dart:_interceptors',
     'dart:_internal',
+    'dart:_invocation_mirror_constants',
     'dart:_js',
     'dart:_js_annotations',
     'dart:_js_embedded_names',
@@ -305,6 +306,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_http',
     'dart:_interceptors',
     'dart:_internal',
+    'dart:_invocation_mirror_constants',
     'dart:_js',
     'dart:_js_annotations',
     'dart:_js_embedded_names',

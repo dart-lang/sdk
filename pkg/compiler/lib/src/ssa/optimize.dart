@@ -1143,7 +1143,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       assert(index.constant is! IntConstantValue);
       if (!constant_system.isInt(index.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
-        node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
+        node.staticChecks = StaticBoundsChecks.alwaysFalse;
       }
     }
     return node;

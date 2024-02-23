@@ -45,7 +45,7 @@ import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
 import '../js_model/type_recipe.dart';
 import '../js_model/records.dart' show RecordData, JRecordGetter;
-import '../kernel/invocation_mirror_constants.dart';
+import '../kernel/invocation_mirror.dart';
 import '../native/behavior.dart';
 import '../native/js.dart';
 import '../options.dart';
@@ -2100,7 +2100,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         return;
       }
     }
-    assert(!current!.isClosed());
+    assert(!current!.isClosed);
     if (stack.isNotEmpty) {
       reporter.internalError(
           NO_LOCATION_SPANNABLE, 'Non-empty instruction stack');
@@ -2681,8 +2681,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       node.condition.accept(this);
       assert(!isAborted());
       HInstruction conditionInstruction = popBoolified();
-      HBasicBlock conditionEndBlock =
-          close(HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
+      HBasicBlock conditionEndBlock = close(HLoopBranch(conditionInstruction));
 
       HBasicBlock avoidCriticalEdge = addNewBlock();
       conditionEndBlock.addSuccessor(avoidCriticalEdge);
@@ -2705,7 +2704,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       SubGraph bodyGraph = SubGraph(loopEntryBlock, bodyExitBlock);
       final newLoopInfo = loopEntryBlock.loopInformation!;
       HLoopBlockInformation loopBlockInfo = HLoopBlockInformation(
-          HLoopBlockInformation.DO_WHILE_LOOP,
+          LoopBlockInformationKind.doWhileLoop,
           null,
           wrapExpressionGraph(conditionExpression),
           wrapStatementGraph(bodyGraph),
@@ -4701,15 +4700,15 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     int kind = _readIntLiteral(invocation.arguments.positional[4]);
 
     Name memberName = Name(name, _currentFrame!.member.library.canonicalUri);
-    Selector? selector;
-    switch (kind) {
-      case invocationMirrorGetterKind:
+    Selector selector;
+    switch (InvocationMirrorKind.values[kind]) {
+      case InvocationMirrorKind.getter:
         selector = Selector.getter(memberName);
         break;
-      case invocationMirrorSetterKind:
+      case InvocationMirrorKind.setter:
         selector = Selector.setter(memberName);
         break;
-      case invocationMirrorMethodKind:
+      case InvocationMirrorKind.method:
         if (memberName == Names.INDEX_NAME) {
           selector = Selector.index();
         } else if (memberName == Names.INDEX_SET_NAME) {
@@ -4763,7 +4762,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         value.accept(this);
         namedValues[name] = pop();
       });
-      for (String name in selector!.callStructure.getOrderedNamedArguments()) {
+      for (String name in selector.callStructure.getOrderedNamedArguments()) {
         arguments.add(namedValues[name]!);
       }
     }
@@ -4776,7 +4775,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     List<HInstruction> argumentNames = <HInstruction>[];
     for (String argumentName
-        in selector!.callStructure.getOrderedNamedArguments()) {
+        in selector.callStructure.getOrderedNamedArguments()) {
       ConstantValue argumentNameConstant =
           constant_system.createString(argumentName);
       argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld)
@@ -4793,7 +4792,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     js.Name internalName = _namer.invocationName(selector);
 
     ConstantValue kindConstant =
-        constant_system.createIntFromInt(selector.invocationMirrorKind);
+        constant_system.createIntFromInt(selector.invocationMirrorKind.index);
 
     _pushStaticInvocation(
         _commonElements.createUnmangledInvocationMirror,
