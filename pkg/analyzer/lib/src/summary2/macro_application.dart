@@ -1243,11 +1243,14 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
       element = element.variable;
     }
     if (element == null) {
-      throw macro.MacroImplementationExceptionImpl([
-        'Unresolved identifier.',
-        'library: $library',
-        'name: $name',
-      ].join('\n'));
+      throw macro.MacroImplementationExceptionImpl(
+        [
+          'Unresolved identifier.',
+          'library: $library',
+          'name: $name',
+        ].join('\n'),
+        stackTrace: StackTrace.current.toString(),
+      );
     }
     return declarationBuilder.fromElement.identifier(element);
   }

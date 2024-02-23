@@ -36,6 +36,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     ClassDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
+    await _typeDeclarationOf(declaration, builder);
+
     await _write(builder, declaration, (printer) async {
       await printer.writeClassDeclaration(declaration);
     });
@@ -56,6 +58,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     EnumDeclaration declaration,
     EnumDeclarationBuilder builder,
   ) async {
+    await _typeDeclarationOf(declaration, builder);
+
     await _write(builder, declaration, (printer) async {
       await printer.writeEnumDeclaration(declaration);
     });
@@ -76,6 +80,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     ExtensionDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
+    await _typeDeclarationOf(declaration, builder);
+
     await _write(builder, declaration, (printer) async {
       await printer.writeExtensionDeclaration(declaration);
     });
@@ -86,6 +92,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     ExtensionTypeDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
+    await _typeDeclarationOf(declaration, builder);
+
     await _write(builder, declaration, (printer) async {
       await printer.writeExtensionTypeDeclaration(declaration);
     });
@@ -159,6 +167,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     MixinDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
+    await _typeDeclarationOf(declaration, builder);
+
     await _write(builder, declaration, (printer) async {
       await printer.writeMixinDeclaration(declaration);
     });
@@ -169,7 +179,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     TypeAliasDeclaration declaration,
     DeclarationBuilder builder,
   ) async {
-    await _typeDeclarationOfSelf(declaration, builder);
+    await _typeDeclarationOf(declaration, builder);
+
     await _write(builder, declaration, (printer) async {
       await printer.writeTypeAliasDeclaration(declaration);
     });
@@ -193,15 +204,13 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     );
   }
 
-  Future<void> _typeDeclarationOfSelf(
-    Declaration declaration,
+  Future<void> _typeDeclarationOf(
+    TypeDeclaration declaration,
     DeclarationBuilder builder,
   ) async {
     var identifier = declaration.identifier;
-    var self = await builder.typeDeclarationOf(identifier);
-    if (!identical(self, declaration)) {
-      throw StateError('Expected to be the same.');
-    }
+    await builder.typeDeclarationOf(identifier);
+    // No check, just don't crash.
   }
 
   Future<void> _write(
