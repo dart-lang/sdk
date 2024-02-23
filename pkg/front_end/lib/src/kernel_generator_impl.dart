@@ -80,17 +80,20 @@ Future<CompilerResult> generateKernelInternal(
       List<Component> loadedComponents = <Component>[];
 
       Component? sdkSummary = await options.loadSdkSummary(null);
-      // By using the nameRoot of the summary, we enable sharing the
-      // sdkSummary between multiple invocations.
-      CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
       if (sdkSummary != null) {
         dillTarget.loader.appendLibraries(sdkSummary);
       }
 
-      for (Component additionalDill
-          in await options.loadAdditionalDills(nameRoot)) {
-        loadedComponents.add(additionalDill);
-        dillTarget.loader.appendLibraries(additionalDill);
+      // By using the nameRoot of the summary, we enable sharing the
+      // sdkSummary between multiple invocations.
+      CanonicalName? nameRoot;
+      if (options.hasAdditionalDills) {
+        nameRoot = sdkSummary?.root ?? new CanonicalName.root();
+        for (Component additionalDill
+            in await options.loadAdditionalDills(nameRoot)) {
+          loadedComponents.add(additionalDill);
+          dillTarget.loader.appendLibraries(additionalDill);
+        }
       }
 
       dillTarget.buildOutlines();
@@ -133,7 +136,7 @@ Future<CompilerResult> generateKernelInternal(
 Future<CompilerResult> _buildInternal(
     {required ProcessedOptions options,
     required KernelTarget kernelTarget,
-    required CanonicalName nameRoot,
+    required CanonicalName? nameRoot,
     required Component? sdkSummary,
     required List<Component> loadedComponents,
     required bool buildSummary,

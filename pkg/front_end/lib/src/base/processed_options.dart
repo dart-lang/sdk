@@ -193,6 +193,8 @@ class ProcessedOptions {
 
   bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
 
+  bool get hasAdditionalDills => _raw.additionalDills.isNotEmpty;
+
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
 

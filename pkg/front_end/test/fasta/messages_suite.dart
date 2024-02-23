@@ -795,7 +795,8 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
           ..packagesFileUri = packageConfigUri
           ..onDiagnostic = messages.add
-          ..environmentDefines = const {}),
+          ..environmentDefines = const {}
+          ..omitPlatform = true),
         main,
         output);
 
