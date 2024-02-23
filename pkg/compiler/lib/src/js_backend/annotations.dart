@@ -20,151 +20,80 @@ import '../util/enumset.dart';
 ///
 /// Some of these annotations are (documented
 /// elsewhere)[pkg/compiler/doc/pragmas.md].
-class PragmaAnnotation {
-  final int _index;
-  final String name;
-  final bool forFunctionsOnly;
-  final bool forFieldsOnly;
-  final bool internalOnly;
-
-  // TODO(sra): Review [forFunctionsOnly] and [forFieldsOnly]. Fields have
-  // implied getters and setters, so some annotations meant only for functions
-  // could reasonable be placed on a field to apply to the getter and setter.
-
-  const PragmaAnnotation(this._index, this.name,
-      {this.forFunctionsOnly = false,
-      this.forFieldsOnly = false,
-      this.internalOnly = false});
-
-  int get index {
-    assert(_index == values.indexOf(this));
-    return _index;
-  }
-
+enum PragmaAnnotation {
   /// Tells the optimizing compiler to not inline the annotated method.
-  static const PragmaAnnotation noInline =
-      PragmaAnnotation(0, 'noInline', forFunctionsOnly: true);
+  noInline('noInline', forFunctionsOnly: true),
 
   /// Tells the optimizing compiler to always inline the annotated method, if
   /// possible.
-  static const PragmaAnnotation tryInline =
-      PragmaAnnotation(1, 'tryInline', forFunctionsOnly: true);
+  tryInline('tryInline', forFunctionsOnly: true),
 
   /// Annotation on a member that tells the optimizing compiler to disable
   /// inlining at call sites within the member.
-  static const PragmaAnnotation disableInlining =
-      PragmaAnnotation(2, 'disable-inlining');
+  disableInlining('disable-inlining'),
 
-  static const PragmaAnnotation disableFinal = PragmaAnnotation(
-      3, 'disableFinal',
-      forFunctionsOnly: true, internalOnly: true);
-
-  static const PragmaAnnotation noElision = PragmaAnnotation(4, 'noElision');
+  disableFinal('disableFinal', forFunctionsOnly: true, internalOnly: true),
+  noElision('noElision'),
 
   /// Tells the optimizing compiler that the annotated method cannot throw.
   /// Requires @pragma('dart2js:noInline') to function correctly.
-  static const PragmaAnnotation noThrows = PragmaAnnotation(5, 'noThrows',
-      forFunctionsOnly: true, internalOnly: true);
+  noThrows('noThrows', forFunctionsOnly: true, internalOnly: true),
 
   /// Tells the optimizing compiler that the annotated method has no
   /// side-effects. Allocations don't count as side-effects, since they can be
   /// dropped without changing the semantics of the program.
   ///
   /// Requires @pragma('dart2js:noInline') to function correctly.
-  static const PragmaAnnotation noSideEffects = PragmaAnnotation(
-      6, 'noSideEffects',
-      forFunctionsOnly: true, internalOnly: true);
+  noSideEffects('noSideEffects', forFunctionsOnly: true, internalOnly: true),
 
   /// Use this as metadata on method declarations to disable closed world
   /// assumptions on parameters, effectively assuming that the runtime arguments
   /// could be any value. Note that the constraints due to static types still
   /// apply.
-  static const PragmaAnnotation assumeDynamic = PragmaAnnotation(
-      7, 'assumeDynamic',
-      forFunctionsOnly: true, internalOnly: true);
+  assumeDynamic('assumeDynamic', forFunctionsOnly: true, internalOnly: true),
 
-  static const PragmaAnnotation asTrust = PragmaAnnotation(8, 'as:trust',
-      forFunctionsOnly: false, internalOnly: false);
-
-  static const PragmaAnnotation asCheck = PragmaAnnotation(9, 'as:check',
-      forFunctionsOnly: false, internalOnly: false);
-
-  static const PragmaAnnotation typesTrust = PragmaAnnotation(10, 'types:trust',
-      forFunctionsOnly: false, internalOnly: false);
-
-  static const PragmaAnnotation typesCheck = PragmaAnnotation(11, 'types:check',
-      forFunctionsOnly: false, internalOnly: false);
-
-  static const PragmaAnnotation parameterTrust = PragmaAnnotation(
-      12, 'parameter:trust',
-      forFunctionsOnly: false, internalOnly: false);
-
-  static const PragmaAnnotation parameterCheck = PragmaAnnotation(
-      13, 'parameter:check',
-      forFunctionsOnly: false, internalOnly: false);
-
-  static const PragmaAnnotation downcastTrust = PragmaAnnotation(
-      14, 'downcast:trust',
-      forFunctionsOnly: false, internalOnly: false);
-
-  static const PragmaAnnotation downcastCheck = PragmaAnnotation(
-      15, 'downcast:check',
-      forFunctionsOnly: false, internalOnly: false);
-
-  static const PragmaAnnotation indexBoundsTrust = PragmaAnnotation(
-      16, 'index-bounds:trust',
-      forFunctionsOnly: false, internalOnly: false);
-
-  static const PragmaAnnotation indexBoundsCheck = PragmaAnnotation(
-      17, 'index-bounds:check',
-      forFunctionsOnly: false, internalOnly: false);
+  asTrust('as:trust', forFunctionsOnly: false, internalOnly: false),
+  asCheck('as:check', forFunctionsOnly: false, internalOnly: false),
+  typesTrust('types:trust', forFunctionsOnly: false, internalOnly: false),
+  typesCheck('types:check', forFunctionsOnly: false, internalOnly: false),
+  parameterTrust('parameter:trust',
+      forFunctionsOnly: false, internalOnly: false),
+  parameterCheck('parameter:check',
+      forFunctionsOnly: false, internalOnly: false),
+  downcastTrust('downcast:trust', forFunctionsOnly: false, internalOnly: false),
+  downcastCheck('downcast:check', forFunctionsOnly: false, internalOnly: false),
+  indexBoundsTrust('index-bounds:trust',
+      forFunctionsOnly: false, internalOnly: false),
+  indexBoundsCheck('index-bounds:check',
+      forFunctionsOnly: false, internalOnly: false),
 
   /// Annotation for a `late` field to omit the checks on the late field. The
   /// annotation is not restricted to a field since it is copied from the field
   /// to the getter and setter.
   // TODO(45682): Make this annotation apply to local and static late variables.
-  static const PragmaAnnotation lateTrust = PragmaAnnotation(18, 'late:trust');
+  lateTrust('late:trust'),
 
   /// Annotation for a `late` field to perform the checks on the late field. The
   /// annotation is not restricted to a field since it is copied from the field
   /// to the getter and setter.
   // TODO(45682): Make this annotation apply to local and static late variables.
-  static const PragmaAnnotation lateCheck = PragmaAnnotation(19, 'late:check');
+  lateCheck('late:check'),
 
-  static const PragmaAnnotation loadLibraryPriorityNormal =
-      PragmaAnnotation(20, 'load-priority:normal');
+  loadLibraryPriorityNormal('load-priority:normal'),
+  loadLibraryPriorityHigh('load-priority:high'),
+  resourceIdentifier('resource-identifier'),
+  ;
 
-  static const PragmaAnnotation loadLibraryPriorityHigh =
-      PragmaAnnotation(21, 'load-priority:high');
+  final String name;
+  final bool forFunctionsOnly;
+  final bool internalOnly;
 
-  static const PragmaAnnotation resourceIdentifier =
-      PragmaAnnotation(22, 'resource-identifier');
+  // TODO(sra): Review [forFunctionsOnly]. Fields have implied getters and
+  // setters, so some annotations meant only for functions could reasonable be
+  // placed on a field to apply to the getter and setter.
 
-  static const List<PragmaAnnotation> values = [
-    noInline,
-    tryInline,
-    disableInlining,
-    disableFinal,
-    noElision,
-    noThrows,
-    noSideEffects,
-    assumeDynamic,
-    asTrust,
-    asCheck,
-    typesTrust,
-    typesCheck,
-    parameterTrust,
-    parameterCheck,
-    downcastTrust,
-    downcastCheck,
-    indexBoundsTrust,
-    indexBoundsCheck,
-    lateTrust,
-    lateCheck,
-    loadLibraryPriorityNormal,
-    loadLibraryPriorityHigh,
-    resourceIdentifier,
-  ];
+  const PragmaAnnotation(this.name,
+      {this.forFunctionsOnly = false, this.internalOnly = false});
 
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
     typesTrust: {parameterTrust, downcastTrust},
@@ -239,15 +168,6 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
               computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
             'text': "@pragma('$name') annotation is only supported "
                 "for methods and constructors."
-          });
-        }
-      }
-      if (annotation.forFieldsOnly) {
-        if (node is! ir.Field) {
-          reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
-            'text': "@pragma('$name') annotation is only supported "
-                "for fields."
           });
         }
       }
