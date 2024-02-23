@@ -149,6 +149,7 @@ class Tag {
 }
 
 enum TypeAnnotationLocationKind {
+  aliasedType,
   element,
   extendsClause,
   formalParameter,

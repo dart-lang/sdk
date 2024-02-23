@@ -69,6 +69,8 @@ class SimpleMacro
         MixinTypesMacro,
         MixinDeclarationsMacro,
         MixinDefinitionMacro,
+        TypeAliasTypesMacro,
+        TypeAliasDeclarationsMacro,
         VariableTypesMacro,
         VariableDeclarationsMacro,
         VariableDefinitionMacro {
@@ -713,6 +715,32 @@ class LibraryInfo {
       '=> [',
       for (var field in onTypeFields) "'${field.identifier.name}',",
       '];',
+    ]));
+  }
+
+  @override
+  FutureOr<void> buildTypesForTypeAlias(
+      TypeAliasDeclaration extensionType, TypeBuilder builder) {
+    final representationType = extensionType.aliasedType as NamedTypeAnnotation;
+    final name = '${extensionType.identifier.name}AliasedType'
+        '${representationType.identifier.name}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForTypeAlias(
+      TypeAliasDeclaration extensionType, DeclarationBuilder builder) async {
+    final dartCoreList =
+        // ignore: deprecated_member_use_from_same_package
+        await builder.resolveIdentifier(Uri.parse('dart:core'), 'List');
+    final dartCoreString =
+        // ignore: deprecated_member_use_from_same_package
+        await builder.resolveIdentifier(Uri.parse('dart:core'), 'String');
+    builder.declareInLibrary(DeclarationCode.fromParts([
+      NamedTypeAnnotationCode(name: dartCoreList, typeArguments: [
+        NamedTypeAnnotationCode(name: dartCoreString),
+      ]),
+      ' get aliasedTypeFieldNames;',
     ]));
   }
 }

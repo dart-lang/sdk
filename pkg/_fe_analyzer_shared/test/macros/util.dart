@@ -687,6 +687,18 @@ class Fixtures {
       typeParameters: [],
       representationType: myClassType);
 
+  static final myTypeAlias = TypeAliasDeclarationImpl(
+    id: RemoteInstance.uniqueId,
+    identifier: IdentifierImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'MyTypeAlias',
+    ),
+    library: Fixtures.library,
+    metadata: [],
+    typeParameters: [],
+    aliasedType: myClassType,
+  );
+
   static final myGeneratedExtensionMethod = MethodDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier:

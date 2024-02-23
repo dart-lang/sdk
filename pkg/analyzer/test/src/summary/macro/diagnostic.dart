@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /*macro*/ class AskFieldsWillThrow implements ClassDefinitionMacro {
@@ -144,6 +146,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
         FunctionDeclarationsMacro,
         FieldDeclarationsMacro,
         MethodDeclarationsMacro,
+        TypeAliasDeclarationsMacro,
         VariableDeclarationsMacro {
   final List<String> pathList;
 
@@ -166,6 +169,11 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
   @override
   buildDeclarationsForMethod(declaration, builder) async {
+    await _report(declaration, builder);
+  }
+
+  @override
+  Future<void> buildDeclarationsForTypeAlias(declaration, builder) async {
     await _report(declaration, builder);
   }
 
@@ -245,6 +253,12 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
       }
       if (_verbIndex(step, 'positionalField') case var index?) {
         return current.positionalFields.elementAt(index).type;
+      }
+    }
+
+    if (current is TypeAliasDeclaration) {
+      if (step == 'aliasedType') {
+        return current.aliasedType;
       }
     }
 

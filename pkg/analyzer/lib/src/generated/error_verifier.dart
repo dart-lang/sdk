@@ -932,12 +932,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
+    var element = node.declaredElement as TypeAliasElementImpl;
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForMainFunction1(node.name, node.declaredElement!);
     _checkForTypeAliasCannotReferenceItself(
         node.name, node.declaredElement as TypeAliasElementImpl);
+    _reportMacroDiagnostics(element);
     super.visitGenericTypeAlias(node);
   }
 
@@ -6420,6 +6422,8 @@ class _MacroTypeAnnotationLocationConverter {
     TypeAnnotationLocation location,
   ) {
     switch (location) {
+      case AliasedTypeLocation():
+        return _aliasedType(location);
       case ElementTypeLocation():
         var element = location.element;
         return libraryVerificationContext.declarationByElement(element);
@@ -6439,6 +6443,22 @@ class _MacroTypeAnnotationLocationConverter {
         return _variableType(location);
       default:
         throw UnimplementedError('${location.runtimeType}');
+    }
+  }
+
+  _MacroSyntacticTypeAnnotationLocation? _aliasedType(
+    AliasedTypeLocation location,
+  ) {
+    var nodeLocation = convert(location.parent);
+    if (nodeLocation == null) {
+      return null;
+    }
+    var node = nodeLocation.entity;
+    switch (node) {
+      case GenericTypeAlias():
+        return nodeLocation.next(node.type);
+      default:
+        throw UnimplementedError('${node.runtimeType}');
     }
   }
 

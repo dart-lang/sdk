@@ -19,6 +19,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
         LibraryDeclarationsMacro,
         MethodDeclarationsMacro,
         MixinDeclarationsMacro,
+        TypeAliasDeclarationsMacro,
         VariableDeclarationsMacro {
   final Set<Object?> withDetailsFor;
   final bool withMetadata;
@@ -160,6 +161,16 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeMixinDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForTypeAlias(
+    TypeAliasDeclaration declaration,
+    DeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeTypeAliasDeclaration(declaration);
     });
   }
 
@@ -438,6 +449,8 @@ class _Printer {
         await writeFunctionDeclaration(declaration);
       case MixinDeclaration():
         await writeMixinDeclaration(declaration);
+      case TypeAliasDeclaration():
+        await writeTypeAliasDeclaration(declaration);
       case VariableDeclaration():
         await writeVariable(declaration);
       default:
@@ -649,6 +662,24 @@ class _Printer {
       );
       await _writeTypeAnnotations('interfaces', e.interfaces);
       await _writeTypeDeclarationMembers(e);
+    });
+  }
+
+  Future<void> writeTypeAliasDeclaration(TypeAliasDeclaration e) async {
+    if (!shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    sink.writelnWithIndent('typedef ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+
+      await _writeTypeParameters(e.typeParameters);
+      await _writeNamedTypeAnnotation(
+        'aliasedType',
+        e.aliasedType,
+      );
     });
   }
 

@@ -218,8 +218,14 @@ class LibraryMacroApplier {
           // TODO(scheglov): implement it
           break;
         case ast.GenericTypeAliasImpl():
-          // TODO(scheglov): implement it
-          break;
+          await _addAnnotations(
+            libraryElement: libraryElement,
+            container: container,
+            targetNode: declaration,
+            targetNodeElement: declaration.declaredElement,
+            targetDeclarationKind: macro.DeclarationKind.typeAlias,
+            annotations: declaration.metadata,
+          );
         case ast.MixinDeclarationImpl():
           final element = declaration.declaredElement!;
           final declarationElement = element.augmented?.declaration ?? element;

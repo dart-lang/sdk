@@ -743,6 +743,19 @@ class A {
     ]);
   }
 
+  test_diagnostic_report_atTypeAnnotation_typeAlias_aliasedType() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'aliasedType',
+])
+typedef A = List<int>;
+''', [
+      error(WarningCode.MACRO_WARNING, 85, 9),
+    ]);
+  }
+
   test_diagnostic_report_contextMessages_superClassMethods() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {

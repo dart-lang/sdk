@@ -343,6 +343,22 @@ void main() {
                         'class MyExtensionTypeOnMyClass {}'));
               });
 
+              test('on type aliases', () async {
+                var result = await executor.executeTypesPhase(
+                  simpleMacroInstanceId,
+                  Fixtures.myTypeAlias,
+                  TestTypePhaseIntrospector(),
+                );
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, isEmpty);
+                expect(
+                  result.libraryAugmentations.single.debugString().toString(),
+                  equalsIgnoringWhitespace(
+                    'class MyTypeAliasAliasedTypeMyClass {}',
+                  ),
+                );
+              });
+
               test('on mixins', () async {
                 var result = await executor.executeTypesPhase(
                     simpleMacroInstanceId,
@@ -592,6 +608,23 @@ class LibraryInfo {
                 List<String> get onTypeFieldNames;
               '''));
                 expect(result.libraryAugmentations, isEmpty);
+              });
+
+              test('on type aliases', () async {
+                var result = await executor.executeDeclarationsPhase(
+                  simpleMacroInstanceId,
+                  Fixtures.myTypeAlias,
+                  Fixtures.testDeclarationPhaseIntrospector,
+                );
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.libraryAugmentations, hasLength(1));
+                expect(
+                  result.libraryAugmentations.single.debugString().toString(),
+                  equalsIgnoringWhitespace(
+                    'List<String> get aliasedTypeFieldNames;',
+                  ),
+                );
+                expect(result.typeAugmentations, isEmpty);
               });
 
               test('on mixins', () async {

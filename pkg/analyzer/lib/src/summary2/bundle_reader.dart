@@ -2378,6 +2378,9 @@ class ResolutionReader {
     TypeAnnotationLocation readTypeAnnotationLocation() {
       var kind = readEnum(TypeAnnotationLocationKind.values);
       switch (kind) {
+        case TypeAnnotationLocationKind.aliasedType:
+          var parent = readTypeAnnotationLocation();
+          return AliasedTypeLocation(parent);
         case TypeAnnotationLocationKind.element:
           var element = readElement()!;
           return ElementTypeLocation(element);
@@ -2603,6 +2606,7 @@ class TypeAliasElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();

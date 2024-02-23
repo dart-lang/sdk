@@ -193,6 +193,20 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
                   interfaces |= interfaceMask;
                 }
             }
+          case DeclarationKind.typeAlias:
+            switch (phase) {
+              case Phase.types:
+                if (macro is TypeAliasTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.declarations:
+                if (macro is TypeAliasDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.definitions:
+                // Does not have definitions.
+                break;
+            }
           case DeclarationKind.variable:
             switch (phase) {
               case Phase.types:

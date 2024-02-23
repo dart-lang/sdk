@@ -273,6 +273,16 @@ typedef F = void Function();
     expect(result, isNull);
   }
 
+  test_genericTypeAlias() async {
+    await resolveTestCode(r'''
+typedef A = List<int>;
+''');
+    var element = findNode.genericTypeAlias('A').declaredElement!;
+    var result = await getElementDeclaration(element);
+    var node = result!.node as GenericTypeAlias;
+    expect(node.name.lexeme, 'A');
+  }
+
   test_getter_class() async {
     await resolveTestCode(r'''
 class A {
