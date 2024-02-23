@@ -751,8 +751,14 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       {List<Object> arguments = const [],
       List<DiagnosticMessage>? contextMessages,
       ErrorCode? errorCode}) {
-    reporter.reportErrorForOffset(
-        errorCode ?? lintCode, offset, length, arguments, contextMessages);
+    reporter.atOffset(
+      offset: offset,
+      length: length,
+      errorCode: errorCode ?? lintCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+      data: null,
+    );
   }
 
   void reportLintForToken(Token? token,

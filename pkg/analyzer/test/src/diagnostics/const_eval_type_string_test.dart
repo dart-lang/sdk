@@ -30,7 +30,7 @@ const y = B(x);
         70,
         4,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 47, 8,
+          ExpectedContextMessage(testFile, 47, 8,
               text:
                   "The error is in the field initializer of 'B', and occurs here."),
         ],

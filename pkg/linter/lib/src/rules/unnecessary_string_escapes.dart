@@ -93,7 +93,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         for (var index in escapeIndexes) {
           // case for '''___\'''' : without last backslash it leads a parsing error
           if (contentsEnd != token.end && index + 2 == contentsEnd) continue;
-          rule.reporter.reportErrorForOffset(rule.lintCode, index, 1);
+          rule.reporter.atOffset(
+            offset: index,
+            length: 1,
+            errorCode: rule.lintCode,
+          );
         }
       }
     }
@@ -110,8 +114,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (isSingleQuoted && current == '"' ||
             !isSingleQuoted && current == "'" ||
             !allowedEscapedChars.contains(current)) {
-          rule.reporter
-              .reportErrorForOffset(rule.lintCode, contentsOffset + i - 1, 1);
+          rule.reporter.atOffset(
+            offset: contentsOffset + i - 1,
+            length: 1,
+            errorCode: rule.lintCode,
+          );
         }
       }
       if (isSingleQuoted ? current == "'" : current == '"') {

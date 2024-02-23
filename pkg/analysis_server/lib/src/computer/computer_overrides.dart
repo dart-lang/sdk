@@ -136,6 +136,7 @@ class _OverriddenElementsFinder {
 
   /// Add the [OverriddenElements] for this element.
   OverriddenElements find() {
+    _class = _class.augmented?.declaration ?? _class;
     _visited.clear();
     _addSuperOverrides(_class, withThisType: false);
     _visited.clear();

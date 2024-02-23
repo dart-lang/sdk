@@ -55,7 +55,7 @@ base class C implements B {}
         text:
             "The class 'A' can't be implemented outside of its library because it's a base class.",
         contextMessages: [
-          ExpectedContextMessage(a.path, 11, 1,
+          ExpectedContextMessage(a, 11, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -82,7 +82,7 @@ class C implements B {}
         text:
             "The class 'A' can't be implemented outside of its library because it's a base class.",
         contextMessages: [
-          ExpectedContextMessage(a.path, 11, 1,
+          ExpectedContextMessage(a, 11, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -162,7 +162,7 @@ base class C = Object with M implements B;
         text:
             "The class 'A' can't be implemented outside of its library because it's a base class.",
         contextMessages: [
-          ExpectedContextMessage(a.path, 11, 1,
+          ExpectedContextMessage(a, 11, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],

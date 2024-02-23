@@ -24,7 +24,7 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 42, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 33, 1)]),
+          contextMessages: [message(testFile, 33, 1)]),
     ]);
     final node = findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
@@ -77,7 +77,7 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 53, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 44, 1)]),
+          contextMessages: [message(testFile, 44, 1)]),
     ]);
     final node = findNode.singleSwitchPatternCase;
     assertResolvedNodeText(node, r'''
@@ -118,7 +118,7 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 21, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 18, 1)]),
+          contextMessages: [message(testFile, 18, 1)]),
     ]);
 
     final node = findNode.singleBlock;

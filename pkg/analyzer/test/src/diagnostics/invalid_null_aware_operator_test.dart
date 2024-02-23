@@ -26,7 +26,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           31, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
+          contextMessages: [message(testFile, 23, 2)]),
     ]);
   }
 
@@ -38,7 +38,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           27, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 1)]),
+          contextMessages: [message(testFile, 23, 1)]),
     ]);
   }
 
@@ -54,7 +54,7 @@ class C {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           75, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 69, 2)]),
+          contextMessages: [message(testFile, 69, 2)]),
     ]);
   }
 
@@ -66,7 +66,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           40, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
+          contextMessages: [message(testFile, 23, 2)]),
     ]);
   }
 
@@ -78,10 +78,10 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           40, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
+          contextMessages: [message(testFile, 23, 2)]),
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           55, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
+          contextMessages: [message(testFile, 23, 2)]),
     ]);
   }
 }

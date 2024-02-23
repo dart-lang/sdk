@@ -6,6 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/test_support.dart';
 import '../../summary/macros_environment.dart';
 import 'context_collection_resolution.dart';
 import 'resolution.dart';
@@ -93,7 +94,11 @@ class A {}
           'Macro application failed due to a bug in the macro.',
         ],
         contextMessages: [
-          message('/home/test/lib/test.dart', 18, 10),
+          ExpectedContextMessage(testFile, 18, 10, textContains: [
+            'package:test/a.dart',
+            'MyMacro',
+            'unresolved',
+          ]),
         ],
       ),
     ]);
@@ -121,40 +126,28 @@ class A3 {}
         23,
         34,
         messageContains: ["'A2'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 34),
-          message('/home/test/lib/test.dart', 78, 34)
-        ],
+        contextMessages: [message(testFile, 23, 34), message(testFile, 78, 34)],
       ),
       error(
         CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
         78,
         34,
         messageContains: ["'A1'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 34),
-          message('/home/test/lib/test.dart', 78, 34)
-        ],
+        contextMessages: [message(testFile, 23, 34), message(testFile, 78, 34)],
       ),
       error(
         CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
         133,
         34,
         messageContains: ["'A1'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 34),
-          message('/home/test/lib/test.dart', 78, 34)
-        ],
+        contextMessages: [message(testFile, 23, 34), message(testFile, 78, 34)],
       ),
       error(
         CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
         175,
         34,
         messageContains: ["'A2'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 34),
-          message('/home/test/lib/test.dart', 78, 34)
-        ],
+        contextMessages: [message(testFile, 23, 34), message(testFile, 78, 34)],
       ),
     ]);
   }
@@ -181,40 +174,28 @@ class A3 {}
         23,
         28,
         messageContains: ["'A2'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 28),
-          message('/home/test/lib/test.dart', 72, 28)
-        ],
+        contextMessages: [message(testFile, 23, 28), message(testFile, 72, 28)],
       ),
       error(
         CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
         72,
         28,
         messageContains: ["'A1'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 28),
-          message('/home/test/lib/test.dart', 72, 28)
-        ],
+        contextMessages: [message(testFile, 23, 28), message(testFile, 72, 28)],
       ),
       error(
         CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
         121,
         28,
         messageContains: ["'A1'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 28),
-          message('/home/test/lib/test.dart', 72, 28)
-        ],
+        contextMessages: [message(testFile, 23, 28), message(testFile, 72, 28)],
       ),
       error(
         CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
         157,
         28,
         messageContains: ["'A2'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 28),
-          message('/home/test/lib/test.dart', 72, 28)
-        ],
+        contextMessages: [message(testFile, 23, 28), message(testFile, 72, 28)],
       ),
     ]);
   }
@@ -241,40 +222,28 @@ class A3 {}
         23,
         29,
         messageContains: ["'A2'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 29),
-          message('/home/test/lib/test.dart', 73, 29)
-        ],
+        contextMessages: [message(testFile, 23, 29), message(testFile, 73, 29)],
       ),
       error(
         CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
         73,
         29,
         messageContains: ["'A1'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 29),
-          message('/home/test/lib/test.dart', 73, 29)
-        ],
+        contextMessages: [message(testFile, 23, 29), message(testFile, 73, 29)],
       ),
       error(
         CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
         123,
         29,
         messageContains: ["'A1'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 29),
-          message('/home/test/lib/test.dart', 73, 29)
-        ],
+        contextMessages: [message(testFile, 23, 29), message(testFile, 73, 29)],
       ),
       error(
         CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
         160,
         29,
         messageContains: ["'A2'"],
-        contextMessages: [
-          message('/home/test/lib/test.dart', 23, 29),
-          message('/home/test/lib/test.dart', 73, 29)
-        ],
+        contextMessages: [message(testFile, 23, 29), message(testFile, 73, 29)],
       ),
     ]);
   }
@@ -775,7 +744,7 @@ class A {
   }
 
   test_diagnostic_report_contextMessages_superClassMethods() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo() {}
   void bar() {}
@@ -789,10 +758,8 @@ import 'diagnostic.dart';
 @ReportWithContextMessages(forSuperClass: true)
 class B extends A {}
 ''', [
-      error(WarningCode.MACRO_WARNING, 98, 1, contextMessages: [
-        message('/home/test/lib/a.dart', 17, 3),
-        message('/home/test/lib/a.dart', 33, 3)
-      ]),
+      error(WarningCode.MACRO_WARNING, 98, 1,
+          contextMessages: [message(a, 17, 3), message(a, 33, 3)]),
     ]);
   }
 
@@ -807,8 +774,8 @@ class A {
 }
 ''', [
       error(WarningCode.MACRO_WARNING, 62, 1, contextMessages: [
-        message('/home/test/lib/test.dart', 73, 3),
-        message('/home/test/lib/test.dart', 89, 3)
+        message(testFile, 73, 3),
+        message(testFile, 89, 3)
       ]),
     ]);
   }
@@ -827,10 +794,7 @@ class A {
         WarningCode.MACRO_WARNING,
         27,
         56,
-        contextMessages: [
-          message('/home/test/lib/test.dart', 101, 3),
-          message('/home/test/lib/test.dart', 117, 3)
-        ],
+        contextMessages: [message(testFile, 101, 3), message(testFile, 117, 3)],
         correctionContains: 'Correction message',
       ),
     ]);
@@ -911,7 +875,11 @@ class A {}
           'Macro application failed due to a bug in the macro.'
         ],
         contextMessages: [
-          message('/home/test/lib/test.dart', 18, 10),
+          ExpectedContextMessage(testFile, 18, 10, textContains: [
+            'package:test/a.dart',
+            '12345',
+            'MyMacro',
+          ]),
         ],
       ),
     ]);

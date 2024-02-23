@@ -123,11 +123,13 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
         String parameterName = parameter.name;
         if (!_containsNamedExpression(
             enclosingConstructor, arguments, parameterName)) {
-          _errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
-            errorNode.offset,
-            errorNode.length,
-            [parameterName],
+          _errorReporter.atOffset(
+            offset: errorNode.offset,
+            length: errorNode.length,
+            errorCode: CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
+            arguments: [parameterName],
+            contextMessages: null,
+            data: null,
           );
         }
       }
@@ -139,18 +141,22 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
               enclosingConstructor, arguments, parameterName)) {
             var reason = annotation.getReason(strictCasts: true);
             if (reason != null) {
-              _errorReporter.reportErrorForOffset(
-                WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
-                errorNode.offset,
-                errorNode.length,
-                [parameterName, reason],
+              _errorReporter.atOffset(
+                offset: errorNode.offset,
+                length: errorNode.length,
+                errorCode: WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
+                arguments: [parameterName, reason],
+                contextMessages: null,
+                data: null,
               );
             } else {
-              _errorReporter.reportErrorForOffset(
-                WarningCode.MISSING_REQUIRED_PARAM,
-                errorNode.offset,
-                errorNode.length,
-                [parameterName],
+              _errorReporter.atOffset(
+                offset: errorNode.offset,
+                length: errorNode.length,
+                errorCode: WarningCode.MISSING_REQUIRED_PARAM,
+                arguments: [parameterName],
+                contextMessages: null,
+                data: null,
               );
             }
           }

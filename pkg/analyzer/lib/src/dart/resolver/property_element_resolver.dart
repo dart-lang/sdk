@@ -372,7 +372,14 @@ class PropertyElementResolver with ScopeHelpers {
     var offset = leftBracket.offset;
     var length = rightBracket.end - offset;
 
-    errorReporter.reportErrorForOffset(errorCode, offset, length, arguments);
+    errorReporter.atOffset(
+      offset: offset,
+      length: length,
+      errorCode: errorCode,
+      arguments: arguments,
+      contextMessages: null,
+      data: null,
+    );
   }
 
   PropertyElementResolverResult _resolve({

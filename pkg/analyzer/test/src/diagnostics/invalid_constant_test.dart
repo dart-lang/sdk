@@ -174,7 +174,7 @@ var b = const B();
         77,
         9,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 47, 7,
+          ExpectedContextMessage(testFile, 47, 7,
               text:
                   "The error is in the field initializer of 'B', and occurs here."),
         ],

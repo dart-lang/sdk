@@ -30,7 +30,14 @@ class UnicodeTextVerifier {
                 ? WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL
                 : WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT;
         var code = codeUnit.toRadixString(16).toUpperCase();
-        errorReporter.reportErrorForOffset(errorCode, offset, 1, [code]);
+        errorReporter.atOffset(
+          offset: offset,
+          length: 1,
+          errorCode: errorCode,
+          arguments: [code],
+          contextMessages: null,
+          data: null,
+        );
       }
     }
   }

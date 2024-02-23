@@ -1834,7 +1834,7 @@ class B {}
     var originalSource = '''
 import 'package:test/other.dart' as other;
 
-${code.rawCode}
+${code.markedCode}
 ''';
 
     var expected = '''

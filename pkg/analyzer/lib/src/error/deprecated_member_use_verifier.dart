@@ -345,13 +345,15 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
 
     message = message?.trim();
     if (message == null || message.isEmpty || message == '.') {
-      _errorReporter.reportErrorForOffset(
-        _isLibraryInWorkspacePackage(library)
+      _errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.length,
+        errorCode: _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
             : HintCode.DEPRECATED_MEMBER_USE,
-        errorEntity.offset,
-        errorEntity.length,
-        [displayName],
+        arguments: [displayName],
+        contextMessages: null,
+        data: null,
       );
     } else {
       if (!message.endsWith('.') &&
@@ -359,13 +361,15 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
           !message.endsWith('!')) {
         message = '$message.';
       }
-      _errorReporter.reportErrorForOffset(
-        _isLibraryInWorkspacePackage(library)
+      _errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.length,
+        errorCode: _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
             : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
-        errorEntity.offset,
-        errorEntity.length,
-        [displayName, message],
+        arguments: [displayName, message],
+        contextMessages: null,
+        data: null,
       );
     }
   }

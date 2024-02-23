@@ -32,297 +32,483 @@ class FastaErrorReporter {
 
     switch (analyzerCode) {
       case "ASYNC_FOR_IN_WRONG_CONTEXT":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
+        );
         return;
       case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+        );
         return;
       case "AWAIT_IN_WRONG_CONTEXT":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+        );
         return;
       case "BUILT_IN_IDENTIFIER_AS_TYPE":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-            offset,
-            length,
-            [lexeme()]);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+          arguments: [lexeme()],
+        );
         return;
       case "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-            offset,
-            length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+        );
         return;
       case "CONST_CONSTRUCTOR_WITH_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY,
+        );
         return;
       case "CONST_NOT_INITIALIZED":
         var name = arguments['name'] as String;
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.CONST_NOT_INITIALIZED, offset, length, [name]);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+          arguments: [name],
+        );
         return;
       case "DEFAULT_VALUE_IN_FUNCTION_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+        );
         return;
       case "LABEL_UNDEFINED":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.LABEL_UNDEFINED,
-            offset,
-            length,
-            [arguments['name'] as Object]);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.LABEL_UNDEFINED,
+          arguments: [arguments['name'] as Object],
+        );
         return;
       case "EMPTY_ENUM_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EMPTY_ENUM_BODY, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.EMPTY_ENUM_BODY,
+        );
         return;
       case "EXPECTED_CLASS_MEMBER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_CLASS_MEMBER, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.EXPECTED_CLASS_MEMBER,
+        );
         return;
       case "EXPECTED_EXECUTABLE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_EXECUTABLE, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.EXPECTED_EXECUTABLE,
+        );
         return;
       case "EXPECTED_STRING_LITERAL":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_STRING_LITERAL, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.EXPECTED_STRING_LITERAL,
+        );
         return;
       case "EXPECTED_TOKEN":
-        errorReporter?.reportErrorForOffset(ParserErrorCode.EXPECTED_TOKEN,
-            offset, length, [arguments['string'] as Object]);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.EXPECTED_TOKEN,
+          arguments: [arguments['string'] as Object],
+        );
         return;
       case "EXPECTED_TYPE_NAME":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_TYPE_NAME, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.EXPECTED_TYPE_NAME,
+        );
         return;
       case "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
-            offset,
-            length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode:
+              CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+        );
         return;
       case "FINAL_NOT_INITIALIZED":
         var name = arguments['name'] as String;
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+          arguments: [name],
+        );
         return;
       case "FINAL_NOT_INITIALIZED_CONSTRUCTOR_1":
         var name = arguments['name'] as String;
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
-            offset,
-            length,
-            [name]);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+          arguments: [name],
+        );
         return;
       case "GETTER_WITH_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.GETTER_WITH_PARAMETERS,
+        );
         return;
       case "ILLEGAL_CHARACTER":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ScannerErrorCode.ILLEGAL_CHARACTER,
+        );
         return;
       case "INVALID_ASSIGNMENT":
         var type1 = arguments['type'] as Object;
         var type2 = arguments['type2'] as Object;
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_ASSIGNMENT,
-            offset,
-            length,
-            [type1, type2]);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+          arguments: [type1, type2],
+        );
         return;
       case "INVALID_INLINE_FUNCTION_TYPE":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
+        );
         return;
       case "INVALID_LITERAL_IN_CONFIGURATION":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION,
+        );
         return;
       case "IMPORT_OF_NON_LIBRARY":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+        );
         return;
       case "INVALID_CAST_FUNCTION":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_CAST_FUNCTION, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_CAST_FUNCTION,
+        );
         return;
       case "INVALID_CAST_FUNCTION_EXPR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR,
+        );
         return;
       case "INVALID_CAST_LITERAL_LIST":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST,
+        );
         return;
       case "INVALID_CAST_LITERAL_MAP":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP,
+        );
         return;
       case "INVALID_CAST_LITERAL_SET":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_CAST_LITERAL_SET, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_CAST_LITERAL_SET,
+        );
         return;
       case "INVALID_CAST_METHOD":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_CAST_METHOD, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_CAST_METHOD,
+        );
         return;
       case "INVALID_CAST_NEW_EXPR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_CAST_NEW_EXPR,
+        );
         return;
       case "INVALID_CODE_POINT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_CODE_POINT, offset, length, ['\\u{...}']);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.INVALID_CODE_POINT,
+          arguments: ['\\u{...}'],
+        );
         return;
       case "INVALID_GENERIC_FUNCTION_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE,
+        );
         return;
       case "INVALID_METHOD_OVERRIDE":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_OVERRIDE, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_OVERRIDE,
+        );
         return;
       case "INVALID_MODIFIER_ON_SETTER":
-        _reportByCode(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, message,
-            offset, length);
+        _reportByCode(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+          message: message,
+        );
         return;
       case "INVALID_OPERATOR_FOR_SUPER":
-        _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
-            offset, length);
+        _reportByCode(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+          message: message,
+        );
         return;
       case "MISSING_DIGIT":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.MISSING_DIGIT, offset, length);
+        errorReporter?.atOffset(
+          errorCode: ScannerErrorCode.MISSING_DIGIT,
+          offset: offset,
+          length: length,
+        );
         return;
       case "MISSING_ENUM_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_ENUM_BODY, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.MISSING_ENUM_BODY,
+        );
         return;
       case "MISSING_FUNCTION_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_FUNCTION_BODY, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.MISSING_FUNCTION_BODY,
+        );
         return;
       case "MISSING_FUNCTION_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_FUNCTION_PARAMETERS, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+        );
         return;
       case "MISSING_HEX_DIGIT":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ScannerErrorCode.MISSING_HEX_DIGIT,
+        );
         return;
       case "MISSING_IDENTIFIER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_IDENTIFIER, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.MISSING_IDENTIFIER,
+        );
         return;
       case "MISSING_METHOD_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_METHOD_PARAMETERS, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.MISSING_METHOD_PARAMETERS,
+        );
         return;
       case "MISSING_STAR_AFTER_SYNC":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_STAR_AFTER_SYNC, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.MISSING_STAR_AFTER_SYNC,
+        );
         return;
       case "MISSING_TYPEDEF_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
+        );
         return;
       case "MULTIPLE_IMPLEMENTS_CLAUSES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES,
+        );
         return;
       case "NAMED_FUNCTION_EXPRESSION":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.NAMED_FUNCTION_EXPRESSION, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.NAMED_FUNCTION_EXPRESSION,
+        );
         return;
       case "NAMED_PARAMETER_OUTSIDE_GROUP":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP,
+        );
         return;
       case "NON_PART_OF_DIRECTIVE_IN_PART":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
+        );
         return;
       case "NON_SYNC_FACTORY":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.NON_SYNC_FACTORY, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.NON_SYNC_FACTORY,
+        );
         return;
       case "POSITIONAL_AFTER_NAMED_ARGUMENT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT,
+        );
         return;
       case "RECURSIVE_CONSTRUCTOR_REDIRECT":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
-            offset,
-            length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+        );
         return;
       case "RETURN_IN_GENERATOR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.RETURN_IN_GENERATOR,
+        );
         return;
       case "SUPER_INVOCATION_NOT_LAST":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
+        );
         return;
       case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
-            offset,
-            length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+        );
         return;
       case "UNDEFINED_CLASS":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.UNDEFINED_CLASS, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.UNDEFINED_CLASS,
+        );
         return;
       case "UNDEFINED_GETTER":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.UNDEFINED_GETTER, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.UNDEFINED_GETTER,
+        );
         return;
       case "UNDEFINED_METHOD":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.UNDEFINED_METHOD, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.UNDEFINED_METHOD,
+        );
         return;
       case "UNDEFINED_SETTER":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.UNDEFINED_SETTER, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.UNDEFINED_SETTER,
+        );
         return;
       case "UNEXPECTED_DOLLAR_IN_STRING":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING,
+        );
         return;
       case "UNEXPECTED_TOKEN":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.UNEXPECTED_TOKEN, offset, length, [lexeme()]);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.UNEXPECTED_TOKEN,
+          arguments: [lexeme()],
+        );
         return;
       case "UNTERMINATED_MULTI_LINE_COMMENT":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
+        );
         return;
       case "UNTERMINATED_STRING_LITERAL":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.UNTERMINATED_STRING_LITERAL, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        );
         return;
       case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-            offset,
-            length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+        );
         return;
       case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
-            offset,
-            length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
+        );
         return;
       case "YIELD_IN_NON_GENERATOR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, offset, length);
+        errorReporter?.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
+        );
         return;
       case "BUILT_IN_IDENTIFIER_IN_DECLARATION":
         // Reported by [ErrorVerifier._checkForBuiltInIdentifierAsName].
@@ -393,12 +579,20 @@ class FastaErrorReporter {
       ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
-    errorReporter?.reportErrorForOffset(
-        errorCode, offset, length, arguments ?? const []);
+    errorReporter?.atOffset(
+      errorCode: errorCode,
+      offset: offset,
+      length: length,
+      arguments: arguments ?? const [],
+    );
   }
 
-  void _reportByCode(
-      ErrorCode errorCode, Message message, int offset, int length) {
+  void _reportByCode({
+    required int offset,
+    required int length,
+    required ErrorCode errorCode,
+    required Message message,
+  }) {
     if (errorReporter != null) {
       errorReporter!.reportError(
         AnalysisError.tmp(

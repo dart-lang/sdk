@@ -126,15 +126,23 @@ class IgnoreValidator {
     for (var ignoredElement in duplicated) {
       if (ignoredElement is DiagnosticName) {
         var name = ignoredElement.name;
-        _errorReporter.reportErrorForOffset(WarningCode.DUPLICATE_IGNORE,
-            ignoredElement.offset, name.length, [name]);
+        _errorReporter.atOffset(
+          offset: ignoredElement.offset,
+          length: name.length,
+          errorCode: WarningCode.DUPLICATE_IGNORE,
+          arguments: [name],
+          contextMessages: null,
+          data: null,
+        );
         list.remove(ignoredElement);
       } else if (ignoredElement is DiagnosticType) {
-        _errorReporter.reportErrorForOffset(
-          WarningCode.DUPLICATE_IGNORE,
-          ignoredElement.offset,
-          ignoredElement.length,
-          [ignoredElement.type],
+        _errorReporter.atOffset(
+          offset: ignoredElement.offset,
+          length: ignoredElement.length,
+          errorCode: WarningCode.DUPLICATE_IGNORE,
+          arguments: [ignoredElement.type],
+          contextMessages: null,
+          data: null,
         );
         list.remove(ignoredElement);
       }

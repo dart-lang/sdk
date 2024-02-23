@@ -131,11 +131,13 @@ class TypeArgumentsVerifier {
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         final errorTarget = typeArgumentNodes?[i] ?? node.name;
-        _errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          errorTarget.offset,
-          errorTarget.length,
-          [typeArgument, typeParameter.name, bound],
+        _errorReporter.atOffset(
+          offset: errorTarget.offset,
+          length: errorTarget.length,
+          errorCode: CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          arguments: [typeArgument, typeParameter.name, bound],
+          contextMessages: null,
+          data: null,
         );
       }
     }

@@ -43,7 +43,7 @@ String getLibraryText({
 
 class ElementTextConfiguration {
   bool Function(Object) filter;
-  void Function(String message)? macroDiagnosticMessageValidator;
+  List<Pattern>? macroDiagnosticMessagePatterns;
   bool withAllSupertypes = false;
   bool withAugmentedWithoutAugmentation = false;
   bool withCodeRanges = false;
@@ -789,9 +789,15 @@ class _ElementWriter {
 
     void writeMessage(MacroDiagnosticMessage object) {
       // Write the message.
-      final validator = configuration.macroDiagnosticMessageValidator;
-      if (validator != null) {
-        validator(object.message);
+      if (configuration.macroDiagnosticMessagePatterns case var patterns?) {
+        _sink.writelnWithIndent('contains');
+        _sink.withIndent(() {
+          for (var pattern in patterns) {
+            if (object.message.contains(pattern)) {
+              _sink.writelnWithIndent(pattern);
+            }
+          }
+        });
       } else {
         final message = object.message;
         const stackTraceText = '#0';

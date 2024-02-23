@@ -125,7 +125,14 @@ class BinaryExpressionResolver {
           ? WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE
           : WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE;
       var offset = start.offset;
-      _errorReporter.reportErrorForOffset(errorCode, offset, end.end - offset);
+      _errorReporter.atOffset(
+        offset: offset,
+        length: end.end - offset,
+        errorCode: errorCode,
+        arguments: null,
+        contextMessages: null,
+        data: null,
+      );
     }
 
     if (left is SimpleIdentifierImpl && right is NullLiteralImpl) {

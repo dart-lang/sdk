@@ -1668,6 +1668,23 @@ class A {
 ''');
   }
 
+  Future<void> test_class_macros() {
+    addTestFile('''
+import 'macros.dart';
+
+@DeclareInType('  /// named\\n  C.named();')
+class C {}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('C {', 'NewName');
+    }, '''
+import 'macros.dart';
+
+@DeclareInType('  /// named\\n  C.named();')
+class NewName {}
+''');
+  }
+
   Future<void> test_class_method_in_objectPattern() {
     addTestFile('''
 void f(Object? x) {

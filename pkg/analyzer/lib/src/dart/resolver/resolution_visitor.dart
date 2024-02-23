@@ -1708,7 +1708,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     final firstToken = namedType.importPrefix?.name ?? namedType.name2;
     final offset = firstToken.offset;
     final length = namedType.name2.end - offset;
-    _errorReporter.reportErrorForOffset(errorCode, offset, length);
+    _errorReporter.atOffset(
+      offset: offset,
+      length: length,
+      errorCode: errorCode,
+      arguments: null,
+      contextMessages: null,
+      data: null,
+    );
   }
 
   /// Resolve the types in the given list of type names.

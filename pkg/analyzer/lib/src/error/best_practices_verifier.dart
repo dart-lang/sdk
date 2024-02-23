@@ -1083,10 +1083,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       SyntacticEntity endEntity,
     ) {
       var offset = startEntity.offset;
-      _errorReporter.reportErrorForOffset(
-        errorCode,
-        offset,
-        endEntity.end - offset,
+      _errorReporter.atOffset(
+        offset: offset,
+        length: endEntity.end - offset,
+        errorCode: errorCode,
+        arguments: null,
+        contextMessages: null,
+        data: null,
       );
     }
 
@@ -1112,10 +1115,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       SyntacticEntity endEntity,
     ) {
       var offset = startEntity.offset;
-      _errorReporter.reportErrorForOffset(
-        errorCode,
-        offset,
-        endEntity.end - offset,
+      _errorReporter.atOffset(
+        offset: offset,
+        length: endEntity.end - offset,
+        errorCode: errorCode,
+        arguments: null,
+        contextMessages: null,
+        data: null,
       );
     }
 
@@ -1747,11 +1753,14 @@ class _InvalidAccessVerifier {
       }
       var errorEntity = node.errorEntity;
 
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
-          errorEntity.offset,
-          errorEntity.length,
-          [element.displayName]);
+      _errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.length,
+        errorCode: WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+        arguments: [element.displayName],
+        contextMessages: null,
+        data: null,
+      );
     }
 
     _checkForOtherInvalidAccess(node, element);
@@ -1793,11 +1802,13 @@ class _InvalidAccessVerifier {
         node = nameToken;
       }
 
-      _errorReporter.reportErrorForOffset(
-        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
-        node.offset,
-        node.length,
-        [name],
+      _errorReporter.atOffset(
+        offset: node.offset,
+        length: node.length,
+        errorCode: WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+        arguments: [name],
+        contextMessages: null,
+        data: null,
       );
     }
   }
@@ -1863,26 +1874,35 @@ class _InvalidAccessVerifier {
       return;
     }
     if (hasProtected) {
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
-          errorEntity.offset,
-          errorEntity.length,
-          [name, definingClass.source!.uri]);
+      _errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.length,
+        errorCode: WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
+        arguments: [name, definingClass.source!.uri],
+        contextMessages: null,
+        data: null,
+      );
     }
     if (isVisibleForTemplateApplied) {
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
-          errorEntity.offset,
-          errorEntity.length,
-          [name, definingClass.source!.uri]);
+      _errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.length,
+        errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
+        arguments: [name, definingClass.source!.uri],
+        contextMessages: null,
+        data: null,
+      );
     }
 
     if (hasVisibleForTesting) {
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
-          errorEntity.offset,
-          errorEntity.length,
-          [name, definingClass.source!.uri]);
+      _errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.length,
+        errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
+        arguments: [name, definingClass.source!.uri],
+        contextMessages: null,
+        data: null,
+      );
     }
 
     if (hasVisibleForOverriding) {
@@ -1897,11 +1917,14 @@ class _InvalidAccessVerifier {
         }
       }
       if (!validOverride) {
-        _errorReporter.reportErrorForOffset(
-            WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
-            errorEntity.offset,
-            errorEntity.length,
-            [name]);
+        _errorReporter.atOffset(
+          offset: errorEntity.offset,
+          length: errorEntity.length,
+          errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+          arguments: [name],
+          contextMessages: null,
+          data: null,
+        );
       }
     }
   }

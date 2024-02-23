@@ -203,14 +203,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
               throw UnimplementedError('(${target.runtimeType}) $target');
             }
           }
-          _errorReporter.reportErrorForOffset(
-            WarningCode.SDK_VERSION_SINCE,
-            errorEntity.offset,
-            errorEntity.length,
-            [
+          _errorReporter.atOffset(
+            offset: errorEntity.offset,
+            length: errorEntity.length,
+            errorCode: WarningCode.SDK_VERSION_SINCE,
+            arguments: [
               sinceSdkVersion.toString(),
               _versionConstraint.toString(),
             ],
+            contextMessages: null,
+            data: null,
           );
         }
       }

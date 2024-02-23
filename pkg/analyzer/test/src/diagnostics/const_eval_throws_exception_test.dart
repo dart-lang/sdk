@@ -36,7 +36,7 @@ var v = const C<String>();
           70,
           17,
           contextMessages: [
-            ExpectedContextMessage(testFile.path, 27, 1,
+            ExpectedContextMessage(testFile, 27, 1,
                 text:
                     "The exception is 'In a const constructor, a value of type 'int' can't be assigned to the field 'x', which has type 'String'.' and occurs here."),
           ],
@@ -58,7 +58,7 @@ var v = const A('foo');
         57,
         14,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 29, 1,
+          ExpectedContextMessage(testFile, 29, 1,
               text:
                   "The exception is 'In a const constructor, a value of type 'String' can't be assigned to the field 'y', which has type 'int'.' and occurs here."),
         ],
@@ -73,7 +73,7 @@ var v = const A('foo');
         57,
         13,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 29, 1,
+          ExpectedContextMessage(testFile, 29, 1,
               text:
                   "The exception is 'In a const constructor, a value of type 'Null' can't be assigned to the field 'y', which has type 'int'.' and occurs here."),
         ],
@@ -102,7 +102,7 @@ const a = const C(null);
         60,
         13,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 44, 1,
+          ExpectedContextMessage(testFile, 44, 1,
               text:
                   "The exception is 'In a const constructor, a value of type 'Null' can't be assigned to the field 'f', which has type 'int'.' and occurs here."),
         ],
@@ -131,7 +131,7 @@ main() {
         92,
         19,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 51, 6,
+          ExpectedContextMessage(testFile, 51, 6,
               text:
                   "The error is in the field initializer of 'C', and occurs here."),
         ],
@@ -141,7 +141,7 @@ main() {
         115,
         18,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 51, 6,
+          ExpectedContextMessage(testFile, 51, 6,
               text:
                   "The error is in the field initializer of 'C', and occurs here."),
         ],
@@ -167,7 +167,7 @@ main() {
         104,
         21,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 51, 12,
+          ExpectedContextMessage(testFile, 51, 12,
               text:
                   "The error is in the field initializer of 'C', and occurs here."),
         ],
@@ -177,7 +177,7 @@ main() {
         129,
         18,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 51, 12,
+          ExpectedContextMessage(testFile, 51, 12,
               text:
                   "The error is in the field initializer of 'C', and occurs here."),
         ],
@@ -197,7 +197,7 @@ var v = const A(3, 2);
         61,
         13,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 36, 13,
+          ExpectedContextMessage(testFile, 36, 13,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -223,10 +223,10 @@ main() {
         124,
         10,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 84, 1,
+          ExpectedContextMessage(testFile, 84, 1,
               text:
                   "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
-          ExpectedContextMessage(testFile.path, 31, 14,
+          ExpectedContextMessage(testFile, 31, 14,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -360,7 +360,7 @@ enum E {
         11,
         3,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 57, 8,
+          ExpectedContextMessage(testFile, 57, 8,
               text:
                   "The error is in the field initializer of 'E', and occurs here."),
         ],
@@ -382,7 +382,7 @@ enum E {
         36,
         4,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 38, 1,
+          ExpectedContextMessage(testFile, 38, 1,
               text:
                   "The exception is 'A value of type 'Null' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here."),
         ],
@@ -404,7 +404,7 @@ enum E {
         35,
         4,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 37, 1,
+          ExpectedContextMessage(testFile, 37, 1,
               text:
                   "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here."),
         ],
@@ -539,7 +539,7 @@ var v = const A.a1(0);
         74,
         13,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 36, 1,
+          ExpectedContextMessage(testFile, 36, 1,
               text:
                   "The exception is 'A value of type 'int' can't be assigned to a parameter of type 'String' in a const constructor.' and occurs here."),
         ],
@@ -563,10 +563,10 @@ const f = const D('0.0');
         106,
         14,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 77, 1,
+          ExpectedContextMessage(testFile, 77, 1,
               text:
                   "The evaluated constructor 'C' is called by 'D' and 'D' is defined here."),
-          ExpectedContextMessage(testFile.path, 90, 1,
+          ExpectedContextMessage(testFile, 90, 1,
               text:
                   "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here."),
         ],
