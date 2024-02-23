@@ -910,9 +910,11 @@ class _ElementWriter {
                 _sink.writelnWithIndent(
                   'message: ${diagnostic.message}',
                 );
-                _sink.writelnWithIndent(
-                  'stackTrace:\n${diagnostic.stackTrace}',
-                );
+                if (configuration.withMacroStackTraces) {
+                  _sink.writelnWithIndent(
+                    'stackTrace:\n${diagnostic.stackTrace}',
+                  );
+                }
               });
             case InvalidMacroTargetDiagnostic():
               _sink.writelnWithIndent('InvalidMacroTargetDiagnostic');
