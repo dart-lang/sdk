@@ -1042,6 +1042,23 @@ int get x => 0;
 ''');
   }
 
+  test_macroDiagnostics_report_atAnnotation_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await assertErrorsInCode(r'''
+import 'diagnostic.dart';
+import 'a.dart';
+
+@ReportAtTargetAnnotation(1)
+@a
+class X {}
+''', [
+      error(WarningCode.MACRO_WARNING, 73, 2),
+    ]);
+  }
+
   test_withLints() async {
     writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig(
       lints: ['unnecessary_this'],

@@ -558,9 +558,12 @@ class LibraryMacroApplier {
         case macro.TypeAnnotationDiagnosticTarget macroTarget:
           target = _typeAnnotationTarget(application, macroTarget);
         case macro.MetadataAnnotationDiagnosticTarget macroTarget:
+          var annotation =
+              macroTarget.metadataAnnotation as MetadataAnnotationImpl;
           target = ElementAnnotationMacroDiagnosticTarget(
-              annotation:
-                  macroTarget.metadataAnnotation as ElementAnnotationImpl);
+            element: annotation.element,
+            annotationIndex: annotation.annotationIndex,
+          );
         case null:
           target = ApplicationMacroDiagnosticTarget(
             annotationIndex: application.annotationIndex,

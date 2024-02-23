@@ -50,6 +50,33 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 }
 
+/*macro*/ class ReportAtTargetAnnotation implements ClassTypesMacro {
+  final int annotationIndex;
+
+  const ReportAtTargetAnnotation(this.annotationIndex);
+
+  Severity get _severity => Severity.warning;
+
+  @override
+  buildTypesForClass(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  void _report(Declaration declaration, Builder builder) {
+    var annotation = declaration.metadata.elementAt(annotationIndex);
+    builder.report(
+      Diagnostic(
+        DiagnosticMessage(
+          'Reported message',
+          target: annotation.asDiagnosticTarget,
+        ),
+        _severity,
+        correctionMessage: 'Correction message',
+      ),
+    );
+  }
+}
+
 /*macro*/ class ReportAtTargetDeclaration
     implements
         ClassTypesMacro,

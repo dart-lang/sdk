@@ -631,8 +631,8 @@ class Types {
     if (_canUseAsCheckHelper(codeGen, type, operandType)) return true;
 
     if (type is! InterfaceType) return false;
-    if (type.typeArguments.any((t) => t is! DynamicType)) {
-      // Type has at least one type argument that is not `dynamic`.
+    if (_hasNonDefaultTypeArguments(type)) {
+      // Type has at least one type argument that is not default.
       //
       // In cases like `x is List<T>` where `x : Iterable<T>` (tested-against
       // type is a subtype of the operand's static type and the types have same
@@ -658,9 +658,19 @@ class Types {
   bool _canUseAsCheckHelper(
       CodeGenerator codeGen, DartType type, DartType operandType) {
     if (type is! InterfaceType) return false;
-    // TODO: Should be rather defaults to bounds instead of `dynamic`.
-    // (assuming omitting bound will make it dynamic rather than void/Object?)
-    return type.typeArguments.every((t) => t is DynamicType);
+    return !_hasNonDefaultTypeArguments(type);
+  }
+
+  bool _hasNonDefaultTypeArguments(InterfaceType type) {
+    if (type.typeArguments.isEmpty) return false;
+
+    final parameters = type.classNode.typeParameters;
+    final arguments = type.typeArguments;
+    assert(parameters.length == arguments.length);
+    for (int i = 0; i < arguments.length; ++i) {
+      if (arguments[i] != parameters[i].defaultType) return true;
+    }
+    return false;
   }
 
   final Map<DartType, w.BaseFunction> _nullableIsCheckers = {};
@@ -682,7 +692,7 @@ class Types {
             [argumentType],
             [w.NumType.i32],
           ),
-          '<obj> is <$type>');
+          '<obj> is ${type.classNode}');
 
       final b = function.body;
       b.local_get(b.locals[0]);
@@ -744,7 +754,7 @@ class Types {
             [argumentType],
             [returnType],
           ),
-          '<obj> as <$type>');
+          '<obj> as ${type.classNode}');
 
       final b = function.body;
       w.Label asCheckBlock = b.block();

@@ -1024,12 +1024,13 @@ class ResolutionSink extends _SummaryDataWriter {
       case ElementMacroDiagnosticTarget():
         writeEnum(MacroDiagnosticTargetKind.element);
         writeElement(target.element);
+      case ElementAnnotationMacroDiagnosticTarget():
+        writeEnum(MacroDiagnosticTargetKind.elementAnnotation);
+        writeElement(target.element);
+        writeUInt30(target.annotationIndex);
       case TypeAnnotationMacroDiagnosticTarget():
         writeEnum(MacroDiagnosticTargetKind.type);
         writeTypeAnnotationLocation(target.location);
-      case ElementAnnotationMacroDiagnosticTarget():
-        // TODO(scheglov): Implement this
-        throw UnimplementedError('');
     }
   }
 

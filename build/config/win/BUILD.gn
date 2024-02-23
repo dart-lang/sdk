@@ -101,17 +101,8 @@ config("common_linker_setup") {
 # Subsystem -------------------------------------------------------------------
 
 # This is appended to the subsystem to specify a minimum version.
-if (current_cpu == "x86") {
-  # 5.01 = Windows XP.
-  subsystem_version_suffix = ",5.01"
-} else if (current_cpu == "x64") {
-  # The number after the comma is the minimum required OS version.
-  # 5.02 = Windows Server 2003.
-  subsystem_version_suffix = ",5.02"
-} else if (current_cpu == "arm") {
-  subsystem_version_suffix = ",6.02"
-} else if (current_cpu == "arm64") {
-  # Windows ARM64 requires Windows 10.
+if (current_cpu == "x86" || current_cpu == "x64" || current_cpu == "arm" ||
+    current_cpu == "arm64") {
   subsystem_version_suffix = ",10.0"
 } else {
   assert(false, "Unknown current_cpu: $current_cpu")

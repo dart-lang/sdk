@@ -5483,6 +5483,90 @@ library
 ''');
   }
 
+  test_macroDiagnostics_report_atAnnotation_constructor() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+import 'a.dart';
+
+@ReportAtTargetAnnotation(1)
+@A()
+class X {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+    package:test/a.dart
+  definingUnit
+    classes
+      class X @84
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementAnnotationMacroDiagnosticTarget
+                element: self::@class::X
+                annotationIndex: 1
+            severity: warning
+            correctionMessage: Correction message
+''');
+  }
+
+  test_macroDiagnostics_report_atAnnotation_identifier() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+import 'a.dart';
+
+@ReportAtTargetAnnotation(1)
+@a
+class X {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+    package:test/a.dart
+  definingUnit
+    classes
+      class X @82
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementAnnotationMacroDiagnosticTarget
+                element: self::@class::X
+                annotationIndex: 1
+            severity: warning
+            correctionMessage: Correction message
+''');
+  }
+
   test_macroDiagnostics_report_atDeclaration_class() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',

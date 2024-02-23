@@ -34,6 +34,7 @@ enum MacroDiagnosticKind {
 enum MacroDiagnosticTargetKind {
   application,
   element,
+  elementAnnotation,
   type,
 }
 
