@@ -19,8 +19,6 @@ intptr_t UnwindingRecordsPlatform::SizeInBytes() {
 #if !defined(DART_HOST_OS_WINDOWS) ||                                          \
     (!defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64))
 
-void UnwindingRecordsPlatform::Init() {}
-void UnwindingRecordsPlatform::Cleanup() {}
 void UnwindingRecordsPlatform::RegisterExecutableMemory(
     void* start,
     intptr_t size,

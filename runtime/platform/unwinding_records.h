@@ -12,18 +12,12 @@ namespace dart {
 
 class UnwindingRecordsPlatform : public AllStatic {
  public:
-  static void Init();
-  static void Cleanup();
-
   static intptr_t SizeInBytes();
 
   static void RegisterExecutableMemory(void* start,
                                        intptr_t size,
                                        void** pp_dynamic_table);
   static void UnregisterDynamicTable(void* p_dynamic_table);
-
-  static void* GetAddGrowableFunctionTableFunc();
-  static void* GetDeleteGrowableFunctionTableFunc();
 };
 
 #if (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&      \

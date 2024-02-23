@@ -342,7 +342,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   ForwardingCorpse::Init();
   Api::Init();
   NativeSymbolResolver::Init();
-  UnwindingRecordsPlatform::Init();
   Page::Init();
   StoreBuffer::Init();
   MarkingStack::Init();
@@ -758,7 +757,6 @@ char* Dart::Cleanup() {
   StoreBuffer::Cleanup();
   Object::Cleanup();
   Page::Cleanup();
-  UnwindingRecordsPlatform::Cleanup();
   StubCode::Cleanup();
 #if defined(SUPPORT_TIMELINE)
   if (FLAG_trace_shutdown) {

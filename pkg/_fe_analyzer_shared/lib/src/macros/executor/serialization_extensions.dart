@@ -141,10 +141,10 @@ extension DeserializerExtensions on Deserializer {
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
       );
 
-  FormalParameterImpl _expectFormalParameter(int id) => new FormalParameterImpl(
+  FormalParameterImpl _expectFormalParameter(int id) =>
+      new FormalParameterImpl.fromBitMask(
         id: id,
-        isNamed: expectBool(),
-        isRequired: (this..moveNext()).expectBool(),
+        bitMask: new BitMask(expectInt()),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
         name: (this..moveNext()).expectNullableString(),
         type: RemoteInstance.deserialize(this),
@@ -156,13 +156,12 @@ extension DeserializerExtensions on Deserializer {
       );
 
   FormalParameterDeclarationImpl _expectFormalParameterDeclaration(int id) =>
-      new FormalParameterDeclarationImpl(
+      new FormalParameterDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        isNamed: (this..moveNext()).expectBool(),
-        isRequired: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         type: RemoteInstance.deserialize(this),
       );
 
@@ -200,16 +199,12 @@ extension DeserializerExtensions on Deserializer {
       );
 
   FunctionDeclarationImpl _expectFunctionDeclaration(int id) =>
-      new FunctionDeclarationImpl(
+      new FunctionDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasBody: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
-        isGetter: (this..moveNext()).expectBool(),
-        isOperator: (this..moveNext()).expectBool(),
-        isSetter: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         namedParameters: (this..moveNext())._expectRemoteInstanceList(),
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
@@ -217,89 +212,65 @@ extension DeserializerExtensions on Deserializer {
       );
 
   MethodDeclarationImpl _expectMethodDeclaration(int id) =>
-      new MethodDeclarationImpl(
+      new MethodDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasBody: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
-        isGetter: (this..moveNext()).expectBool(),
-        isOperator: (this..moveNext()).expectBool(),
-        isSetter: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         namedParameters: (this..moveNext())._expectRemoteInstanceList(),
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         definingType: RemoteInstance.deserialize(this),
-        hasStatic: (this..moveNext()).expectBool(),
       );
 
   ConstructorDeclarationImpl _expectConstructorDeclaration(int id) =>
-      new ConstructorDeclarationImpl(
+      new ConstructorDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasBody: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         namedParameters: (this..moveNext())._expectRemoteInstanceList(),
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         definingType: RemoteInstance.deserialize(this),
-        isFactory: (this..moveNext()).expectBool(),
       );
 
   VariableDeclarationImpl _expectVariableDeclaration(int id) =>
-      new VariableDeclarationImpl(
+      new VariableDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasConst: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
-        hasFinal: (this..moveNext()).expectBool(),
-        hasInitializer: (this..moveNext()).expectBool(),
-        hasLate: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         type: RemoteInstance.deserialize(this),
       );
 
   FieldDeclarationImpl _expectFieldDeclaration(int id) =>
-      new FieldDeclarationImpl(
+      new FieldDeclarationImpl.fromBitMask(
         id: id,
         // Declaration fields.
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        // VariableDeclaration fields
-        hasConst: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
-        hasFinal: (this..moveNext()).expectBool(),
-        hasInitializer: (this..moveNext()).expectBool(),
-        hasLate: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         type: RemoteInstance.deserialize(this),
         // FieldDeclaration fields
         definingType: RemoteInstance.deserialize(this),
-        hasAbstract: (this..moveNext()).expectBool(),
-        hasStatic: (this..moveNext()).expectBool(),
       );
 
   ClassDeclarationImpl _expectClassDeclaration(int id) =>
-      new ClassDeclarationImpl(
+      new ClassDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
-        hasAbstract: (this..moveNext()).expectBool(),
-        hasBase: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
-        hasFinal: (this..moveNext()).expectBool(),
-        hasInterface: (this..moveNext()).expectBool(),
-        hasMixin: (this..moveNext()).expectBool(),
-        hasSealed: (this..moveNext()).expectBool(),
         mixins: (this..moveNext())._expectRemoteInstanceList(),
         superclass:
             (this..moveNext()).checkNull() ? null : expectRemoteInstance(),

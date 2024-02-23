@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/util/relativize.dart'
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
+import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
@@ -229,7 +230,10 @@ class BatchCompiler {
 
   Future<bool> batchCompileArguments(List<String> arguments) {
     return runProtectedFromAbort<bool>(
-        () => withGlobalOptions<bool>("compile", arguments, true,
+        () => withGlobalOptions<bool>(
+            "compile",
+            [Flags.omitPlatform, ...arguments],
+            true,
             (CompilerContext c, _) => batchCompileImpl(c)),
         false);
   }
@@ -243,8 +247,6 @@ class BatchCompiler {
 
   Future<bool> batchCompileImpl(CompilerContext c) async {
     ProcessedOptions options = c.options;
-    bool verbose = options.verbose;
-    Ticker ticker = new Ticker(isVerbose: verbose);
     if (platformComponent == null ||
         platformUri != options.sdkSummary ||
         hadVerifyError) {
@@ -257,8 +259,12 @@ class BatchCompiler {
     } else {
       options.sdkSummaryComponent = platformComponent!;
     }
-    CompileTask task = new CompileTask(c, ticker);
-    await task.compile(omitPlatform: true, supportAdditionalDills: false);
+    assert(options.omitPlatform,
+        "Platform must be omitted for the batch compiler.");
+    assert(!options.hasAdditionalDills,
+        "Additional dills are not supported for the batch compiler.");
+    CompilerResult compilerResult = await generateKernelInternal();
+    await _emitComponent(c, compilerResult.component!);
     CanonicalName root = platformComponent!.root;
     for (Library library in platformComponent!.libraries) {
       library.parent = platformComponent;
@@ -317,7 +323,7 @@ Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
       CompilerResult compilerResult =
           await generateKernelInternal(benchmarker: benchmarker);
       Component component = compilerResult.component!;
-      Uri uri = await _emitComponent(c, component, benchmarker);
+      Uri uri = await _emitComponent(c, component, benchmarker: benchmarker);
       _benchmarkAstVisitor(component, benchmarker);
       return uri;
     });
@@ -494,15 +500,15 @@ class CompileTask {
           libraryFilter: kernelTarget.isSourceLibraryForDebugging,
           showOffsets: c.options.debugDumpShowOffsets);
     }
-    Uri uri = await _emitComponent(c, component, benchmarker);
+    Uri uri = await _emitComponent(c, component, benchmarker: benchmarker);
     _benchmarkAstVisitor(component, benchmarker);
     return uri;
   }
 }
 
 /// Writes the [component] to the URI specified in the compiler options.
-Future<Uri> _emitComponent(
-    CompilerContext c, Component component, Benchmarker? benchmarker) async {
+Future<Uri> _emitComponent(CompilerContext c, Component component,
+    {Benchmarker? benchmarker}) async {
   Uri uri = c.options.output!;
   if (c.options.omitPlatform) {
     benchmarker?.enterPhase(BenchmarkPhases.omitPlatform);
