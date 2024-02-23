@@ -67,6 +67,8 @@ class TypeDefToFunctionTypeField {
   VoidFunc x;
 //^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MACRO_ERROR
+// [analyzer] COMPILE_TIME_ERROR.MACRO_ERROR
+// [cfe] unspecified
 // [cfe] unspecified
 }
 
@@ -89,7 +91,6 @@ class DuplicateJsonKey {
   @JsonKey()
   @JsonKey()
 //^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MACRO_ERROR
 // [analyzer] COMPILE_TIME_ERROR.MACRO_ERROR
 // [cfe] unspecified
 // [cfe] unspecified

@@ -1112,6 +1112,9 @@ class DeclarationBuilderFromNode {
 
   final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
+  final Map<ast.GenericTypeAliasImpl, macro.TypeAliasDeclarationImpl>
+      _typeAliasDeclarationMap = Map.identity();
+
   DeclarationBuilderFromNode(this.builder);
 
   ClassDeclarationImpl classDeclaration(
@@ -1469,17 +1472,7 @@ class DeclarationBuilderFromNode {
   macro.TypeAliasDeclarationImpl typeAliasDeclaration(
     ast.GenericTypeAliasImpl node,
   ) {
-    final element = node.declaredElement as TypeAliasElementImpl;
-
-    return TypeAliasDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      element: element,
-      identifier: _declaredIdentifier(node.name, element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      aliasedType: _typeAnnotationAliasedType(node),
-      typeParameters: _typeParameterDeclarations(node.typeParameters),
-    );
+    return _typeAliasDeclarationMap[node] ??= _typeAliasDeclaration(node);
   }
 
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
@@ -1495,6 +1488,8 @@ class DeclarationBuilderFromNode {
         return extensionDeclaration(node);
       case ast.ExtensionTypeDeclarationImpl():
         return extensionTypeDeclaration(node);
+      case ast.GenericTypeAliasImpl():
+        return typeAliasDeclaration(node);
       case ast.MixinDeclarationImpl():
         return mixinDeclaration(node);
       default:
@@ -1817,6 +1812,22 @@ class DeclarationBuilderFromNode {
     } else {
       return const [];
     }
+  }
+
+  macro.TypeAliasDeclarationImpl _typeAliasDeclaration(
+    ast.GenericTypeAliasImpl node,
+  ) {
+    final element = node.declaredElement as TypeAliasElementImpl;
+
+    return TypeAliasDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      element: element,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      aliasedType: _typeAnnotationAliasedType(node),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
+    );
   }
 
   macro.TypeAnnotationImpl _typeAnnotation(

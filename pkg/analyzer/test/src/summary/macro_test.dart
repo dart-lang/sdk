@@ -11465,7 +11465,7 @@ class A
 ''');
   }
 
-  test_typedef_modern_namedType() async {
+  test_typeAlias_namedType() async {
     await _assertIntrospectText(r'''
 @Introspect()
 typedef X = List<int>;

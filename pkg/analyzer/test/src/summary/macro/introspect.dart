@@ -169,6 +169,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     TypeAliasDeclaration declaration,
     DeclarationBuilder builder,
   ) async {
+    await _typeDeclarationOfSelf(declaration, builder);
     await _write(builder, declaration, (printer) async {
       await printer.writeTypeAliasDeclaration(declaration);
     });
@@ -190,6 +191,17 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
         'const _introspect = r"""$text""";',
       ),
     );
+  }
+
+  Future<void> _typeDeclarationOfSelf(
+    Declaration declaration,
+    DeclarationBuilder builder,
+  ) async {
+    var identifier = declaration.identifier;
+    var self = await builder.typeDeclarationOf(identifier);
+    if (!identical(self, declaration)) {
+      throw StateError('Expected to be the same.');
+    }
   }
 
   Future<void> _write(
