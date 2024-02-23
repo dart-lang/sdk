@@ -110,7 +110,6 @@ const jsRuntimeBlobPart3 = r'''
     }
 
     if (WebAssembly.String === undefined) {
-        printToConsole("WebAssembly.String is undefined, adding polyfill");
         WebAssembly.String = {
             "charCodeAt": (s, i) => s.charCodeAt(i),
             "compare": (s1, s2) => {
