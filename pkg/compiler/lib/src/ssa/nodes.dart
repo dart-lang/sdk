@@ -2358,7 +2358,7 @@ class HInvokeExternal extends HInvoke {
       this.nativeBehavior,
       {SourceInformation? sourceInformation})
       : throwBehavior =
-            nativeBehavior?.throwBehavior ?? NativeThrowBehavior.MAY,
+            nativeBehavior?.throwBehavior ?? NativeThrowBehavior.may,
         super(inputs, type) {
     if (nativeBehavior == null) {
       sideEffects.setAllSideEffects();
@@ -2453,7 +2453,7 @@ class HForeignCode extends HForeign {
       effects = nativeBehavior.sideEffects;
     }
     throwBehavior ??= (nativeBehavior == null)
-        ? NativeThrowBehavior.MAY
+        ? NativeThrowBehavior.may
         : nativeBehavior.throwBehavior;
     this.throwBehavior = throwBehavior;
 

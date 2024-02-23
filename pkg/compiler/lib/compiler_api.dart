@@ -12,7 +12,7 @@ import 'src/compiler.dart';
 import 'src/options.dart';
 
 /// Kind of diagnostics that the compiler can report.
-class Diagnostic {
+enum Diagnostic {
   /// An error as identified by the "Dart Programming Language
   /// Specification" [https://dart.dev/guides/language/spec].
   ///
@@ -26,24 +26,24 @@ class Diagnostic {
   ///
   /// This means that the compiler can generate code that when executed
   /// terminates execution.
-  static const Diagnostic ERROR = const Diagnostic(1, 'error');
+  error('error'),
 
   /// A warning as identified by the "Dart Programming Language
   /// Specification" [https://dart.dev/guides/language/spec].
-  static const Diagnostic WARNING = const Diagnostic(2, 'warning');
+  warning('warning'),
 
-  /// Any other warning that is not covered by [WARNING].
-  static const Diagnostic HINT = const Diagnostic(4, 'hint');
+  /// Any other warning that is not covered by [warning].
+  hint('hint'),
 
   /// Informational message about the compiler.
-  static const Diagnostic INFO = const Diagnostic(8, 'info');
+  info('info'),
 
   /// Informational messages that shouldn't be printed unless
   /// explicitly requested by the user of a compiler.
-  static const Diagnostic VERBOSE_INFO = const Diagnostic(16, 'verbose info');
+  verboseInfo('verbose info'),
 
   /// An internal error in the compiler.
-  static const Diagnostic CRASH = const Diagnostic(32, 'crash');
+  crash('crash'),
 
   /// Additional information about the preceding non-info diagnostic from the
   /// compiler.
@@ -51,18 +51,17 @@ class Diagnostic {
   /// For example, consider a duplicated definition. The compiler first emits a
   /// message about the duplicated definition, then emits an info message about
   /// the location of the existing definition.
-  static const Diagnostic CONTEXT = const Diagnostic(64, 'context');
+  context('context'),
+  ;
 
   /// An [int] representation of this kind. The ordinals are designed
   /// to be used as bitsets.
-  final int ordinal;
+  int get ordinal => 2 << this.index;
 
   /// The name of this kind.
   final String name;
 
-  /// This constructor is not private to support user-defined
-  /// diagnostic kinds.
-  const Diagnostic(this.ordinal, this.name);
+  const Diagnostic(this.name);
 
   @override
   String toString() => name;

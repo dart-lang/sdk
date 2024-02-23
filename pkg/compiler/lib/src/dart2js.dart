@@ -619,7 +619,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   for (String hint in hints) {
-    diagnostic.info(hint, api.Diagnostic.HINT);
+    diagnostic.info(hint, api.Diagnostic.hint);
   }
 
   if (wantHelp || wantVersion) {
@@ -949,7 +949,7 @@ void writeString(Uri uri, String text) {
 Never _fail(String message) {
   if (diagnosticHandler != null) {
     diagnosticHandler!
-        .report(null, null, -1, -1, message, api.Diagnostic.ERROR);
+        .report(null, null, -1, -1, message, api.Diagnostic.error);
   } else {
     print('Error: $message');
   }
@@ -1213,7 +1213,7 @@ Never _helpAndFail(String message) {
 void warning(String message) {
   if (diagnosticHandler != null) {
     diagnosticHandler!
-        .report(null, null, -1, -1, message, api.Diagnostic.WARNING);
+        .report(null, null, -1, -1, message, api.Diagnostic.warning);
   } else {
     print('Warning: $message');
   }

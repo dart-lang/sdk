@@ -799,7 +799,7 @@ class Compiler {
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     _reportDiagnosticMessage(message, kind);
     for (DiagnosticMessage info in infos) {
-      _reportDiagnosticMessage(info, api.Diagnostic.CONTEXT);
+      _reportDiagnosticMessage(info, api.Diagnostic.context);
     }
   }
 
@@ -919,12 +919,12 @@ class Compiler {
   }
 
   void logInfo(String message) {
-    callUserHandler(null, null, null, null, message, api.Diagnostic.INFO);
+    callUserHandler(null, null, null, null, message, api.Diagnostic.info);
   }
 
   void logVerbose(String message) {
     callUserHandler(
-        null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
+        null, null, null, null, message, api.Diagnostic.verboseInfo);
   }
 
   String _formatMs(int ms) {

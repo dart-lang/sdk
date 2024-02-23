@@ -14,31 +14,25 @@ import '../universe/member_hierarchy.dart';
 import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 
-/// Enum-like values used for reporting known and unknown truth values.
-class AbstractBool {
-  final bool? _value;
+/// Abstract booleans used for reporting known and unknown truth values.
+enum AbstractBool {
+  /// Used when the property is known _never_ to be true.
+  False,
 
-  const AbstractBool._(this._value);
+  /// Used when the property is known _always_ to be true.
+  True,
 
-  bool get isDefinitelyTrue => _value == true;
+  /// Used when the property might or might not be true.
+  Maybe,
+  ;
 
-  bool get isPotentiallyTrue => _value != false;
+  bool get isDefinitelyTrue => this == True;
 
-  bool get isDefinitelyFalse => _value == false;
+  bool get isPotentiallyTrue => this != False;
 
-  bool get isPotentiallyFalse => _value != true;
+  bool get isDefinitelyFalse => this == False;
 
-  /// A value of `Abstract.True` is used when the property is known _always_ to
-  /// be true.
-  static const AbstractBool True = AbstractBool._(true);
-
-  /// A value of `Abstract.False` is used when the property is known _never_ to
-  /// be true.
-  static const AbstractBool False = AbstractBool._(false);
-
-  /// A value of `Abstract.Maybe` is used when the property might or might not
-  /// be true.
-  static const AbstractBool Maybe = AbstractBool._(null);
+  bool get isPotentiallyFalse => this != True;
 
   static AbstractBool trueOrMaybe(bool value) => value ? True : Maybe;
 
@@ -70,10 +64,6 @@ class AbstractBool {
     if (isDefinitelyFalse) return AbstractBool.True;
     return AbstractBool.Maybe;
   }
-
-  @override
-  String toString() =>
-      'AbstractBool.${_value == null ? 'Maybe' : (_value ? 'True' : 'False')}';
 }
 
 /// A value in an abstraction of runtime values.
