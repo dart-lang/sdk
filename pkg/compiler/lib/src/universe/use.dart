@@ -1047,19 +1047,43 @@ class ConstantUse {
 
 /// Conditional impact and Kernel nodes for replacement if it isn't applied.
 ///
-/// If one of source or replacement is provided, the other must also be
-/// provided.
+/// If one of [original], [replacement], or [replacementImpact] is provided, the
+/// others must also be provided.
 class ConditionalUse {
-  final ir.TreeNode? source;
-  final ir.TreeNode? replacement;
-  final WorldImpact impact;
-  final List<MemberEntity> conditions;
+  /// If any of the members in this list are reachable from the program then
+  /// these conditions are considered "satisfied", [original] is kept in the
+  /// Kernel tree and [impact] is applied to the world. Otherwise [original] is
+  /// replaced with [replacement] in the Kernel tree and [replacementImpact] is
+  /// instead applied to the world.
+  final List<MemberEntity> originalConditions;
 
-  ConditionalUse(
-      {this.source,
-      this.replacement,
+  /// The node to replace if [originalConditions] are not satisfied.
+  /// [impact] is the impact implied by this node.
+  final ir.TreeNode? original;
+
+  /// The node to replace [original] with is [originalConditions] are not
+  /// satisfied.
+  final ir.TreeNode? replacement;
+
+  /// The impact to apply for [original] if [originalConditions] are satisfied.
+  final WorldImpact impact;
+
+  /// The impact to apply for [replacement] if [originalConditions] are not
+  /// satisifed.
+  final WorldImpact? replacementImpact;
+
+  ConditionalUse.noReplacement(
+      {required this.impact, required this.originalConditions})
+      : original = null,
+        replacement = null,
+        replacementImpact = null,
+        assert(originalConditions.isNotEmpty);
+
+  ConditionalUse.withReplacement(
+      {required this.original,
+      required this.replacement,
+      required this.replacementImpact,
       required this.impact,
-      required this.conditions})
-      : assert((source == null) == (replacement == null)),
-        assert(conditions.isNotEmpty);
+      required this.originalConditions})
+      : assert(originalConditions.isNotEmpty);
 }

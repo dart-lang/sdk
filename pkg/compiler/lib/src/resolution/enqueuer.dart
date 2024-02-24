@@ -341,7 +341,7 @@ class ResolutionEnqueuer extends Enqueuer {
     // live. If any condition member is live then immediately apply the impact.
     // `worldBuilder.isMemberProcessed` checks whether the member is used
     // including all static and instance members.
-    if (conditionalUse.conditions.any(worldBuilder.isMemberProcessed)) {
+    if (conditionalUse.originalConditions.any(worldBuilder.isMemberProcessed)) {
       applyImpact(conditionalUse.impact);
     } else {
       listener.registerPendingConditionalUse(conditionalUse);

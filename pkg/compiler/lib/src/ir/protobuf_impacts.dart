@@ -7,7 +7,6 @@ import 'package:kernel/clone.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 
 import '../kernel/element_map.dart';
-import 'impact.dart';
 import 'impact_data.dart';
 
 /// Handles conditional impact creation for protobuf metadata.
@@ -172,10 +171,9 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
   }
 
   @override
-  void afterInstanceInvocation(
-      ir.InstanceInvocation node, ImpactRegistry registry) {
+  ConditionalImpactData? afterInstanceInvocation(ir.InstanceInvocation node) {
     // This instance invocation is not a metadata initializer.
-    if (_impactData == null) return;
+    if (_impactData == null) return null;
 
     // The tag number is always the first argument in a metadata initializer.
     final tagNumber = ((node.arguments.positional[0] as ir.ConstantExpression)
@@ -203,9 +201,8 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
         }
       }
     }
-    registry.registerConditionalImpact(ConditionalImpactData(
-        accessors, _impactData!,
-        source: node, replacement: _buildProtobufMetadataPlaceholder(node)));
+    return ConditionalImpactData(accessors, _impactData!,
+        original: node, replacement: _buildProtobufMetadataPlaceholder(node));
   }
 }
 
