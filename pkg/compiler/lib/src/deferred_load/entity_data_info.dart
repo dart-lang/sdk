@@ -236,8 +236,13 @@ class EntityDataInfoBuilder {
   }
 
   void _addFromConditionalUse(ConditionalUse conditionalUse) {
-    if (conditionalUse.conditions.any(closedWorld.isMemberUsed)) {
+    if (conditionalUse.originalConditions.any(closedWorld.isMemberUsed)) {
       _addDependenciesFromImpact(conditionalUse.impact);
+    } else {
+      final replacementImpact = conditionalUse.replacementImpact;
+      if (replacementImpact != null) {
+        _addDependenciesFromImpact(replacementImpact);
+      }
     }
   }
 

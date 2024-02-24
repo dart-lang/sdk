@@ -183,24 +183,26 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _backendUsage.isNoSuchMethodUsed = true;
     }
 
+    // Update the Kernel for any unused conditional impacts.
+    _pendingConditionalUses.forEach((_, uses) {
+      for (final use in uses) {
+        final source = use.original;
+        if (source?.parent != null) {
+          // Make sure the source node is still in the AST.
+          source?.replaceWith(use.replacement!);
+          enqueuer.applyImpact(use.replacementImpact!);
+        }
+      }
+    });
+    _pendingConditionalUses.clear();
+
     if (!enqueuer.queueIsEmpty) return false;
 
     return true;
   }
 
   @override
-  void onQueueClosed() {
-    // Update the Kernel for any unused conditional impacts.
-    _pendingConditionalUses.forEach((_, uses) {
-      for (final use in uses) {
-        final source = use.source;
-        if (source?.parent != null) {
-          // Make sure the source node is still in the AST.
-          source?.replaceWith(use.replacement!);
-        }
-      }
-    });
-  }
+  void onQueueClosed() {}
 
   /// Adds the impact of [constant] to [impactBuilder].
   void _computeImpactForCompileTimeConstant(
@@ -266,7 +268,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       // from the pending list of other members.
       for (final conditionalUse in conditionalUses) {
         worldImpact.addImpact(conditionalUse.impact);
-        for (final condition in conditionalUse.conditions) {
+        for (final condition in conditionalUse.originalConditions) {
           _pendingConditionalUses[condition]?.remove(conditionalUse);
         }
       }
@@ -500,7 +502,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   @override
   void registerPendingConditionalUse(ConditionalUse use) {
-    for (final condition in use.conditions) {
+    for (final condition in use.originalConditions) {
       (_pendingConditionalUses[condition] ??= {}).add(use);
     }
   }

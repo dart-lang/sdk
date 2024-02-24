@@ -797,10 +797,12 @@ class KernelImpactConverter implements ImpactRegistry {
 
   @override
   void registerConditionalImpact(ConditionalImpactData impact) {
-    final conditionalUse = ConditionalUse(
+    final conditionalUse = ConditionalUse.withReplacement(
         impact: convert(impact.impactData),
-        conditions: impact.conditions.map(elementMap.getMember).toList(),
-        source: impact.source,
+        replacementImpact: convert(impact.replacementImpactData),
+        originalConditions:
+            impact.originalConditions.map(elementMap.getMember).toList(),
+        original: impact.original,
         replacement: impact.replacement);
     impactBuilder.registerConditionalUse(conditionalUse);
   }

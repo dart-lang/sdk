@@ -37,11 +37,10 @@ abstract class ConditionalImpactHandler {
   /// otherwise.
   ImpactData? beforeInstanceInvocation(ir.InstanceInvocation node);
 
-  /// Invoked after children of [node] are analyzed. [registry] allows any extra
-  /// impacts to be registered. This is typically used to register conditional
-  /// impacts in the registry.
-  void afterInstanceInvocation(
-      ir.InstanceInvocation node, ImpactRegistry registry);
+  /// Invoked after children of [node] are analyzed. Returns a
+  /// [ConditionalImpactData] containing the conditional data to register for
+  /// [node]. Returns null if [node] is not relevant to this handler.
+  ConditionalImpactData? afterInstanceInvocation(ir.InstanceInvocation node);
 }
 
 class _ConditionalImpactBuilder extends ImpactBuilder {
@@ -58,8 +57,19 @@ class _ConditionalImpactBuilder extends ImpactBuilder {
 
     super.visitInstanceInvocation(node);
 
-    _data = oldData;
-    _conditionalHandler.afterInstanceInvocation(node, this);
+    final conditionalData = _conditionalHandler.afterInstanceInvocation(node);
+    if (conditionalData != null) {
+      final replacement = conditionalData.replacement;
+      if (replacement != null) {
+        final replacementImpact = _data = ImpactData();
+        replacement.accept(this);
+        conditionalData.replacementImpactData = replacementImpact;
+      }
+      _data = oldData;
+      registerConditionalImpact(conditionalData);
+    } else {
+      _data = oldData;
+    }
   }
 }
 
@@ -1149,13 +1159,14 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 }
 
 class ConditionalImpactData {
-  final ir.TreeNode? source;
+  final ir.TreeNode? original;
   final ir.TreeNode? replacement;
-  final List<ir.Member> conditions;
+  final List<ir.Member> originalConditions;
   final ImpactData impactData;
+  late ImpactData replacementImpactData;
 
-  ConditionalImpactData(this.conditions, this.impactData,
-      {this.source, this.replacement});
+  ConditionalImpactData(this.originalConditions, this.impactData,
+      {this.original, this.replacement});
 }
 
 /// Data object that contains the world impact data derived purely from kernel.

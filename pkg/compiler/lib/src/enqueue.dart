@@ -41,7 +41,7 @@ abstract class EnqueuerListener {
   WorldImpact registerUsedElement(MemberEntity member);
 
   /// Called to register that [use] is a pending condition.
-  /// [ConditionalUse.conditions] must only contain members that are not known
+  /// [ConditionalUse.originalConditions] must only contain members that are not known
   /// to be live yet.
   void registerPendingConditionalUse(ConditionalUse use);
 
