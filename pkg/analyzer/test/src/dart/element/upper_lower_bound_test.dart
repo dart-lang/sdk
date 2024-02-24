@@ -114,22 +114,18 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isBottom(promotedTypeParameterTypeNone(T, neverNone));
     isNotBottom(promotedTypeParameterTypeQuestion(T, neverNone));
-    isBottom(promotedTypeParameterTypeStar(T, neverNone));
 
     isNotBottom(promotedTypeParameterTypeNone(T, neverQuestion));
     isNotBottom(promotedTypeParameterTypeQuestion(T, neverQuestion));
-    isNotBottom(promotedTypeParameterTypeStar(T, neverQuestion));
 
     // BOTTOM(X extends T) is true iff BOTTOM(T)
     T = typeParameter('T', bound: neverNone);
     isBottom(typeParameterTypeNone(T));
     isNotBottom(typeParameterTypeQuestion(T));
-    isBottom(typeParameterTypeStar(T));
 
     T = typeParameter('T', bound: neverQuestion);
     isNotBottom(typeParameterTypeNone(T));
     isNotBottom(typeParameterTypeQuestion(T));
-    isNotBottom(typeParameterTypeStar(T));
 
     // BOTTOM(T) is false otherwise
     isNotBottom(dynamicType);
@@ -147,16 +143,13 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     T = typeParameter('T', bound: numNone);
     isNotBottom(typeParameterTypeNone(T));
     isNotBottom(typeParameterTypeQuestion(T));
-    isNotBottom(typeParameterTypeStar(T));
 
     T = typeParameter('T', bound: numStar);
     isNotBottom(typeParameterTypeNone(T));
     isNotBottom(typeParameterTypeQuestion(T));
-    isNotBottom(typeParameterTypeStar(T));
 
     isNotBottom(promotedTypeParameterTypeNone(T, intNone));
     isNotBottom(promotedTypeParameterTypeQuestion(T, intNone));
-    isNotBottom(promotedTypeParameterTypeStar(T, intNone));
   }
 
   test_isMoreBottom() {
@@ -395,14 +388,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     isNull(neverQuestion);
     isNull(
       typeParameterTypeQuestion(
-        typeParameter('T', bound: neverNone),
-      ),
-    );
-
-    // NULL(T*) is true iff NULL(T) or BOTTOM(T)
-    isNull(nullStar);
-    isNull(
-      typeParameterTypeStar(
         typeParameter('T', bound: neverNone),
       ),
     );
@@ -1197,7 +1182,6 @@ class LowerBoundTest extends _BoundsTestBase {
       var T = typeParameter('T', bound: objectNone);
       check(typeParameterTypeNone(T), typeParameterTypeNone(T));
       check(typeParameterTypeQuestion(T), typeParameterTypeNone(T));
-      check(typeParameterTypeStar(T), typeParameterTypeStar(T));
     }
 
     {
@@ -1210,17 +1194,12 @@ class LowerBoundTest extends _BoundsTestBase {
         typeParameterTypeQuestion(T),
         promotedTypeParameterTypeNone(T, objectNone),
       );
-      check(
-        typeParameterTypeStar(T),
-        promotedTypeParameterTypeNone(T, objectNone),
-      );
     }
 
     {
       var T = typeParameter('T', bound: futureOrNone(objectQuestion));
       checkNever(typeParameterTypeNone(T));
       checkNever(typeParameterTypeQuestion(T));
-      checkNever(typeParameterTypeStar(T));
     }
   }
 
@@ -1340,7 +1319,7 @@ class LowerBoundTest extends _BoundsTestBase {
       invalidType,
       voidNone,
       neverNone,
-      typeParameterTypeStar(T),
+      typeParameterTypeNone(T),
       intNone,
       functionTypeNone(returnType: voidNone),
     ];
@@ -2765,7 +2744,6 @@ class UpperBoundTest extends _BoundsTestBase {
       var T = typeParameter('T');
       check(neverNone, typeParameterTypeNone(T));
       check(neverNone, typeParameterTypeQuestion(T));
-      check(neverNone, typeParameterTypeStar(T));
     }
 
     {
@@ -3263,7 +3241,6 @@ class UpperBoundTest extends _BoundsTestBase {
         var T = typeParameter('T');
         check(T1, typeParameterTypeNone(T));
         check(T1, typeParameterTypeQuestion(T));
-        check(T1, typeParameterTypeStar(T));
       }
     }
 

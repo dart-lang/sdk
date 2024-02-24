@@ -141,13 +141,18 @@ class DeclarationBuilder {
   /// See [macro.DefinitionPhaseIntrospector.declarationOf].
   macro.DeclarationImpl declarationOf(macro.Identifier identifier) {
     if (identifier is! IdentifierImpl) {
-      throw macro.MacroImplementationExceptionImpl('Not analyzer identifier.');
+      throw macro.MacroImplementationExceptionImpl(
+        'Not analyzer identifier.',
+        stackTrace: StackTrace.current.toString(),
+      );
     }
 
     final element = identifier.element;
     if (element == null) {
       throw macro.MacroImplementationExceptionImpl(
-          'Identifier without element.');
+        'Identifier without element.',
+        stackTrace: StackTrace.current.toString(),
+      );
     }
 
     return declarationOfElement(element);
@@ -319,7 +324,10 @@ class DeclarationBuilder {
       case macro.OmittedTypeAnnotationCode():
         return _resolveTypeCodeOmitted(typeCode);
       case macro.RawTypeAnnotationCode():
-        throw macro.MacroImplementationExceptionImpl('Not supported');
+        throw macro.MacroImplementationExceptionImpl(
+          'Not supported',
+          stackTrace: StackTrace.current.toString(),
+        );
       case macro.RecordTypeAnnotationCode():
         return _resolveTypeCodeRecord(typeCode);
     }
@@ -328,13 +336,18 @@ class DeclarationBuilder {
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(macro.Identifier identifier) {
     if (identifier is! IdentifierImpl) {
-      throw macro.MacroImplementationExceptionImpl('Not analyzer identifier.');
+      throw macro.MacroImplementationExceptionImpl(
+        'Not analyzer identifier.',
+        stackTrace: StackTrace.current.toString(),
+      );
     }
 
     final element = identifier.element;
     if (element == null) {
       throw macro.MacroImplementationExceptionImpl(
-          'Identifier without element.');
+        'Identifier without element.',
+        stackTrace: StackTrace.current.toString(),
+      );
     }
 
     final node = nodeOfElement(element);
@@ -736,7 +749,9 @@ class DeclarationBuilderFromElement {
       default:
         // TODO(scheglov): other elements
         throw macro.MacroImplementationExceptionImpl(
-            'element: (${element.runtimeType}) $element');
+          'element: (${element.runtimeType}) $element',
+          stackTrace: StackTrace.current.toString(),
+        );
     }
   }
 
@@ -1112,9 +1127,6 @@ class DeclarationBuilderFromNode {
 
   final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
-  final Map<ast.GenericTypeAliasImpl, macro.TypeAliasDeclarationImpl>
-      _typeAliasDeclarationMap = Map.identity();
-
   DeclarationBuilderFromNode(this.builder);
 
   ClassDeclarationImpl classDeclaration(
@@ -1472,7 +1484,17 @@ class DeclarationBuilderFromNode {
   macro.TypeAliasDeclarationImpl typeAliasDeclaration(
     ast.GenericTypeAliasImpl node,
   ) {
-    return _typeAliasDeclarationMap[node] ??= _typeAliasDeclaration(node);
+    final element = node.declaredElement as TypeAliasElementImpl;
+
+    return TypeAliasDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      element: element,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      aliasedType: _typeAnnotationAliasedType(node),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
+    );
   }
 
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
@@ -1495,7 +1517,9 @@ class DeclarationBuilderFromNode {
       default:
         // TODO(scheglov): other nodes
         throw macro.MacroImplementationExceptionImpl(
-            'node: (${node.runtimeType}) $node');
+          'node: (${node.runtimeType}) $node',
+          stackTrace: StackTrace.current.toString(),
+        );
     }
   }
 
@@ -1812,22 +1836,6 @@ class DeclarationBuilderFromNode {
     } else {
       return const [];
     }
-  }
-
-  macro.TypeAliasDeclarationImpl _typeAliasDeclaration(
-    ast.GenericTypeAliasImpl node,
-  ) {
-    final element = node.declaredElement as TypeAliasElementImpl;
-
-    return TypeAliasDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      element: element,
-      identifier: _declaredIdentifier(node.name, element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      aliasedType: _typeAnnotationAliasedType(node),
-      typeParameters: _typeParameterDeclarations(node.typeParameters),
-    );
   }
 
   macro.TypeAnnotationImpl _typeAnnotation(

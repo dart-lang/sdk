@@ -61,7 +61,6 @@ class HasTypeParameterReferenceTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     _checkTrue(typeParameterTypeNone(T));
     _checkTrue(typeParameterTypeQuestion(T));
-    _checkTrue(typeParameterTypeStar(T));
   }
 
   test_void() {

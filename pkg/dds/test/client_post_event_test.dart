@@ -9,6 +9,7 @@ import 'package:dds/dds.dart';
 import 'package:dds/src/rpc_error_codes.dart';
 import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:test/test.dart';
+// ignore: implementation_imports
 import 'package:vm_service/src/vm_service.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 import 'package:vm_service/vm_service_io.dart';
