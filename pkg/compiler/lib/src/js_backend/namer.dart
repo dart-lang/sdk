@@ -1427,6 +1427,22 @@ class ConstantNamingVisitor implements ConstantValueVisitor<void, Null> {
   }
 }
 
+/// Hash seeds by kind of constant. These mostly ensure that similar collections
+/// of different kinds do not collide.
+enum _HashSeed {
+  function,
+  string,
+  constructed,
+  type,
+  interceptor,
+  infinity,
+  record,
+  list,
+  set,
+  map,
+  javaScriptObject,
+}
+
 /// Generates canonical hash values for [ConstantValue]s.
 ///
 /// Unfortunately, [Constant.hashCode] is not stable under minor perturbations,
@@ -1440,20 +1456,6 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   final Namer _namer;
   final JClosedWorld _closedWorld;
   final Map<ConstantValue, int> _hashes = {};
-
-  // Hash seeds by kind of constant. These mostly ensure that similar
-  // collections of different kinds do not collide.
-  static const int _seedFunction = 1;
-  static const int _seedString = 2;
-  static const int _seedConstructed = 3;
-  static const int _seedType = 4;
-  static const int _seedInterceptor = 5;
-  static const int _seedInfinity = 6;
-  static const int _seedRecord = 7;
-  static const int _seedList = 10;
-  static const int _seedSet = 11;
-  static const int _seedMap = 12;
-  static const int _seedJavaScriptObject = 13;
 
   ConstantCanonicalHasher(this._namer, this._closedWorld);
 
@@ -1477,7 +1479,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitFunction(FunctionConstantValue constant, [_]) {
-    return _hashString(_seedFunction, constant.element.name!);
+    return _hashString(_HashSeed.function.index, constant.element.name!);
   }
 
   @override
@@ -1501,28 +1503,29 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitString(StringConstantValue constant, [_]) {
-    return _hashString(_seedString, constant.stringValue);
+    return _hashString(_HashSeed.string.index, constant.stringValue);
   }
 
   @override
   int visitList(ListConstantValue constant, [_]) {
-    return _hashList(_seedList, constant.entries);
+    return _hashList(_HashSeed.list.index, constant.entries);
   }
 
   @override
   int visitSet(SetConstantValue constant, [_]) {
-    return _hashList(_seedSet, constant.values);
+    return _hashList(_HashSeed.set.index, constant.values);
   }
 
   @override
   int visitMap(MapConstantValue constant, [_]) {
-    int hash = _hashList(_seedMap, constant.keys);
+    int hash = _hashList(_HashSeed.map.index, constant.keys);
     return _hashList(hash, constant.values);
   }
 
   @override
   int visitConstructed(ConstructedConstantValue constant, [_]) {
-    int hash = _hashString(_seedConstructed, constant.type.element.name);
+    int hash =
+        _hashString(_HashSeed.constructed.index, constant.type.element.name);
     _elementEnvironment.forEachInstanceField(constant.type.element,
         (_, FieldEntity field) {
       if (_fieldAnalysis.getFieldData(field as JField).isElided) return;
@@ -1533,7 +1536,8 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitRecord(RecordConstantValue constant, [_]) {
-    int hash = _combine(_seedRecord, _hashInt(constant.shape.fieldCount));
+    int hash =
+        _combine(_HashSeed.record.index, _hashInt(constant.shape.fieldCount));
     for (String name in constant.shape.fieldNames) {
       hash = _hashString(hash, name);
     }
@@ -1545,18 +1549,18 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
     DartType type = constant.representedType;
     // This name includes the library name and type parameters.
     String name = _namer.getTypeRepresentationForTypeConstant(type);
-    return _hashString(_seedType, name);
+    return _hashString(_HashSeed.type.index, name);
   }
 
   @override
   int visitInterceptor(InterceptorConstantValue constant, [_]) {
     String typeName = constant.cls.name;
-    return _hashString(_seedInterceptor, typeName);
+    return _hashString(_HashSeed.interceptor.index, typeName);
   }
 
   @override
   int visitJavaScriptObject(JavaScriptObjectConstantValue constant, [_]) {
-    int hash = _seedJavaScriptObject;
+    int hash = _HashSeed.javaScriptObject.index;
     hash = _hashList(hash, constant.keys);
     hash = _hashList(hash, constant.values);
     return hash;
@@ -1636,7 +1640,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
       hash = _combine(hash, fraction);
       return hash;
     } else if (value.isInfinite) {
-      return _combine(_seedInfinity, sign);
+      return _combine(_HashSeed.infinity.index, sign);
     } else if (value.isNaN) {
       return 7;
     } else {

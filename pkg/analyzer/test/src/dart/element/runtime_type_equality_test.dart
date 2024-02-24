@@ -66,15 +66,9 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
       checkRequiredParameter(intNone, intNone, true);
       checkRequiredParameter(intNone, intQuestion, false);
-      checkRequiredParameter(intNone, intStar, true);
 
       checkRequiredParameter(intQuestion, intNone, false);
       checkRequiredParameter(intQuestion, intQuestion, true);
-      checkRequiredParameter(intQuestion, intStar, false);
-
-      checkRequiredParameter(intStar, intNone, true);
-      checkRequiredParameter(intStar, intQuestion, false);
-      checkRequiredParameter(intStar, intStar, true);
 
       check(
         requiredParameter(type: intNone, name: 'a'),
@@ -171,7 +165,6 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
     check(intNone, intNone, true);
     check(intNone, intQuestion, false);
-    check(intNone, intStar, true);
   }
 
   test_functionType_typeParameters() {
@@ -237,15 +230,9 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
     _equal(intNone, intNone);
     _notEqual(intNone, intQuestion);
-    _equal(intNone, intStar);
 
     _notEqual(intQuestion, intNone);
     _equal(intQuestion, intQuestion);
-    _notEqual(intQuestion, intStar);
-
-    _equal(intStar, intNone);
-    _notEqual(intStar, intQuestion);
-    _equal(intStar, intStar);
   }
 
   test_interfaceType_typeArguments() {
@@ -261,15 +248,9 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
     equal(intNone, intNone);
     notEqual(intNone, intQuestion);
-    equal(intNone, intStar);
 
     notEqual(intQuestion, intNone);
     equal(intQuestion, intQuestion);
-    notEqual(intQuestion, intStar);
-
-    equal(intStar, intNone);
-    notEqual(intStar, intQuestion);
-    equal(intStar, intStar);
   }
 
   test_never() {

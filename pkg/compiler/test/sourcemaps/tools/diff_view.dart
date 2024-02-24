@@ -522,8 +522,8 @@ as mapped through source-maps.">
           lineNoWidth: 4,
           includeAnnotation: (Annotation annotation) {
             CodeLineAnnotation data = annotation.data;
-            return data.annotationType == AnnotationType.WITH_SOURCE_INFO ||
-                data.annotationType == AnnotationType.ADDITIONAL_SOURCE_INFO;
+            return data.annotationType == AnnotationType.withSourceInfo ||
+                data.annotationType == AnnotationType.additionalSourceInfo;
           },
           getAnnotationData: getAnnotationData,
           getLineData: getLineData);
@@ -709,8 +709,8 @@ Future<CodeLinesResult> computeCodeLines(
       required int codeOffset,
       List<SourceLocation> locations = const <SourceLocation>[],
       String? stepInfo}) {
-    if (annotationType == AnnotationType.WITHOUT_SOURCE_INFO ||
-        annotationType == AnnotationType.UNUSED_SOURCE_INFO) {
+    if (annotationType == AnnotationType.withoutSourceInfo ||
+        annotationType == AnnotationType.unusedSourceInfo) {
       locations = [];
     }
     List<CodeLocation> codeLocations = locations
@@ -776,7 +776,7 @@ Future<CodeLinesResult> computeCodeLines(
   for (TraceStep step in graph.steps) {
     String stepInfo = '${step.id}:${step.kind}:${step.offset}';
     bool added = addSourceLocationsForNode(
-        annotationType: AnnotationType.WITH_SOURCE_INFO,
+        annotationType: AnnotationType.withSourceInfo,
         node: step.node,
         stepInfo: stepInfo);
     if (!added) {
@@ -788,7 +788,7 @@ Future<CodeLinesResult> computeCodeLines(
       }
       if (offset != null) {
         addCodeLineAnnotation(
-            annotationType: AnnotationType.WITHOUT_SOURCE_INFO,
+            annotationType: AnnotationType.withoutSourceInfo,
             codeOffset: offset,
             stepInfo: stepInfo);
       }
@@ -799,7 +799,7 @@ Future<CodeLinesResult> computeCodeLines(
   for (js.Node node in info.nodeMap.nodes) {
     if (!mappedNodes.contains(node)) {
       addSourceLocationsForNode(
-          annotationType: AnnotationType.ADDITIONAL_SOURCE_INFO, node: node);
+          annotationType: AnnotationType.additionalSourceInfo, node: node);
     }
   }
 
@@ -811,7 +811,7 @@ Future<CodeLinesResult> computeCodeLines(
     if (!mappedNodes.contains(node)) {
       int offset = info.jsCodePositions[node]!.startPosition;
       addSourceLocations(
-          annotationType: AnnotationType.UNUSED_SOURCE_INFO,
+          annotationType: AnnotationType.unusedSourceInfo,
           codeOffset: offset,
           locations: locations);
     }
@@ -926,7 +926,7 @@ AnnotationData? getAnnotationData(Iterable<Annotation> annotations,
   if (forSpan) return null;
   for (Annotation annotation in annotations) {
     CodeLineAnnotation data = annotation.data;
-    if (data.annotationType == AnnotationType.UNUSED_SOURCE_INFO) {
+    if (data.annotationType == AnnotationType.unusedSourceInfo) {
       return AnnotationData(tag: 'span', properties: {
         'title': annotation.title,
         'class': '${ClassNames.marker} '
@@ -936,7 +936,7 @@ AnnotationData? getAnnotationData(Iterable<Annotation> annotations,
   }
   for (Annotation annotation in annotations) {
     CodeLineAnnotation data = annotation.data;
-    if (data.annotationType == AnnotationType.WITHOUT_SOURCE_INFO) {
+    if (data.annotationType == AnnotationType.withoutSourceInfo) {
       return AnnotationData(tag: 'span', properties: {
         'title': annotation.title,
         'class': '${ClassNames.marker} '

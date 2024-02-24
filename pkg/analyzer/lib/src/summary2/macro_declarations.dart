@@ -129,6 +129,8 @@ class DeclarationBuilder {
         return fromNode.methodDeclaration(node);
       case ast.MixinDeclarationImpl():
         return fromNode.mixinDeclaration(node);
+      case ast.GenericTypeAliasImpl():
+        return fromNode.typeAliasDeclaration(node);
       case ast.VariableDeclaration():
         return fromNode.variableDeclaration(node);
     }
@@ -579,6 +581,9 @@ class DeclarationBuilderFromElement {
   final Map<ExecutableElement, MethodDeclarationImpl> _methodMap =
       Map.identity();
 
+  final Map<TypeAliasElementImpl, TypeAliasDeclarationImpl> _typeAliasMap =
+      Map.identity();
+
   final Map<TypeParameterElement, macro.TypeParameterDeclarationImpl>
       _typeParameterDeclarationMap = Map.identity();
 
@@ -707,6 +712,12 @@ class DeclarationBuilderFromElement {
     return _variableMap[element] ??= _topLevelVariableElement(element);
   }
 
+  macro.TypeAliasDeclarationImpl typeAliasElement(
+    TypeAliasElementImpl element,
+  ) {
+    return _typeAliasMap[element] ??= _typeAliasElement(element);
+  }
+
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(Element element) {
     switch (element) {
@@ -720,6 +731,8 @@ class DeclarationBuilderFromElement {
         return extensionTypeElement(element);
       case MixinElementImpl():
         return mixinElement(element);
+      case TypeAliasElementImpl():
+        return typeAliasElement(element);
       default:
         // TODO(scheglov): other elements
         throw macro.MacroImplementationExceptionImpl(
@@ -1042,6 +1055,20 @@ class DeclarationBuilderFromElement {
     );
   }
 
+  TypeAliasDeclarationImpl _typeAliasElement(
+    TypeAliasElementImpl element,
+  ) {
+    return TypeAliasDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      element: element,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      aliasedType: _dartType(element.aliasedType),
+      typeParameters: _typeParameterDeclarations(element.typeParameters),
+    );
+  }
+
   macro.TypeParameterImpl _typeParameter(
     TypeParameterElement element,
   ) {
@@ -1084,6 +1111,9 @@ class DeclarationBuilderFromNode {
   final Map<ast.NamedType, IdentifierImpl> _namedTypeMap = Map.identity();
 
   final Map<Element, LibraryImpl> _libraryMap = Map.identity();
+
+  final Map<ast.GenericTypeAliasImpl, macro.TypeAliasDeclarationImpl>
+      _typeAliasDeclarationMap = Map.identity();
 
   DeclarationBuilderFromNode(this.builder);
 
@@ -1439,6 +1469,12 @@ class DeclarationBuilderFromNode {
     );
   }
 
+  macro.TypeAliasDeclarationImpl typeAliasDeclaration(
+    ast.GenericTypeAliasImpl node,
+  ) {
+    return _typeAliasDeclarationMap[node] ??= _typeAliasDeclaration(node);
+  }
+
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(ast.AstNode node) {
     switch (node) {
@@ -1452,6 +1488,8 @@ class DeclarationBuilderFromNode {
         return extensionDeclaration(node);
       case ast.ExtensionTypeDeclarationImpl():
         return extensionTypeDeclaration(node);
+      case ast.GenericTypeAliasImpl():
+        return typeAliasDeclaration(node);
       case ast.MixinDeclarationImpl():
         return mixinDeclaration(node);
       default:
@@ -1776,6 +1814,22 @@ class DeclarationBuilderFromNode {
     }
   }
 
+  macro.TypeAliasDeclarationImpl _typeAliasDeclaration(
+    ast.GenericTypeAliasImpl node,
+  ) {
+    final element = node.declaredElement as TypeAliasElementImpl;
+
+    return TypeAliasDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      element: element,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      aliasedType: _typeAnnotationAliasedType(node),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
+    );
+  }
+
   macro.TypeAnnotationImpl _typeAnnotation(
     ast.TypeAnnotation node,
     TypeAnnotationLocation location,
@@ -1789,6 +1843,17 @@ class DeclarationBuilderFromNode {
       case ast.RecordTypeAnnotationImpl():
         return _typeAnnotationRecord(node, location);
     }
+  }
+
+  macro.TypeAnnotationImpl _typeAnnotationAliasedType(
+    ast.GenericTypeAliasImpl node,
+  ) {
+    final element = node.declaredElement as TypeAliasElementImpl;
+    var location = AliasedTypeLocation(
+      ElementTypeLocation(element),
+    );
+
+    return _typeAnnotation(node.type, location);
   }
 
   macro.TypeAnnotationImpl _typeAnnotationFunctionReturnType(
@@ -2202,6 +2267,22 @@ class MixinDeclarationImpl extends macro.MixinDeclarationImpl
     required super.hasBase,
     required super.interfaces,
     required super.superclassConstraints,
+    required this.element,
+  });
+}
+
+class TypeAliasDeclarationImpl extends macro.TypeAliasDeclarationImpl
+    implements HasElement {
+  @override
+  final TypeAliasElementImpl element;
+
+  TypeAliasDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.typeParameters,
+    required super.aliasedType,
     required this.element,
   });
 }

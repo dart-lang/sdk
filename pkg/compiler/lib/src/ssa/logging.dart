@@ -245,11 +245,10 @@ class OptimizationTestLog {
   void registerPrimitiveCheck(HInstruction original, HPrimitiveCheck check) {
     Features features = Features();
 
-    if (check.isReceiverTypeCheck) {
-      features['kind'] = 'receiver';
-    } else if (check.isArgumentTypeCheck) {
-      features['kind'] = 'argument';
-    }
+    features['kind'] = switch (check.kind) {
+      PrimitiveCheckKind.receiverType => 'receiver',
+      PrimitiveCheckKind.argumentType => 'argument',
+    };
     features['type'] = '${check.typeExpression}';
     entries.add(OptimizationLogEntry('PrimitiveCheck', features));
   }

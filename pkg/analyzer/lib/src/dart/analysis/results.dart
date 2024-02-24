@@ -125,6 +125,12 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
       if (node is VariableDeclaration && _hasOffset2(node.name)) {
         result = node;
       }
+    } else if (element is TypeAliasElement) {
+      if (node is GenericTypeAlias) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      }
     }
 
     if (result == null) {

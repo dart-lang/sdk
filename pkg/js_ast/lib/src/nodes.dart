@@ -1382,7 +1382,7 @@ class DartYield extends Statement {
 abstract class Expression extends Node {
   // [precedenceLevel] must not be used before printing, as deferred nodes can
   // have precedence depending on how the deferred node is resolved.
-  int get precedenceLevel;
+  Precedence get precedenceLevel;
 
   // Override for refined return type.
   @override
@@ -1501,7 +1501,7 @@ class LiteralExpression extends Expression {
   // Code that uses LiteralExpression must take care of operator precedences,
   // and put parenthesis if needed.
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 /// [VariableDeclarationList] is a subclass of [Expression] to simplify the AST.
@@ -1541,7 +1541,7 @@ class VariableDeclarationList extends Expression {
   VariableDeclarationList _clone() => VariableDeclarationList(declarations);
 
   @override
-  int get precedenceLevel => EXPRESSION;
+  Precedence get precedenceLevel => Precedence.expression;
 }
 
 /// Forced parenthesized expression. Pretty-printing will emit parentheses based
@@ -1572,7 +1572,7 @@ class Parentheses extends Expression {
   Parentheses _clone() => Parentheses(enclosed);
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 class Assignment extends Expression {
@@ -1586,7 +1586,7 @@ class Assignment extends Expression {
   Assignment.compound(this.leftHandSide, this.op, this.value);
 
   @override
-  int get precedenceLevel => ASSIGNMENT;
+  Precedence get precedenceLevel => Precedence.assignment;
 
   bool get isCompound => op != null;
 
@@ -1626,7 +1626,7 @@ class VariableInitialization extends Expression {
   }
 
   @override
-  int get precedenceLevel => ASSIGNMENT;
+  Precedence get precedenceLevel => Precedence.assignment;
 
   @override
   T accept<T>(NodeVisitor<T> visitor) =>
@@ -1684,7 +1684,7 @@ class Conditional extends Expression {
   Conditional _clone() => Conditional(condition, then, otherwise);
 
   @override
-  int get precedenceLevel => ASSIGNMENT;
+  Precedence get precedenceLevel => Precedence.assignment;
 }
 
 class Call extends Expression {
@@ -1723,7 +1723,7 @@ class Call extends Expression {
   Call _clone() => Call(target, arguments);
 
   @override
-  int get precedenceLevel => CALL;
+  Precedence get precedenceLevel => Precedence.call;
 }
 
 class New extends Call {
@@ -1740,7 +1740,7 @@ class New extends Call {
   New _clone() => New(target, arguments);
 
   @override
-  int get precedenceLevel => LEFT_HAND_SIDE;
+  Precedence get precedenceLevel => Precedence.leftHandSide;
 }
 
 class Binary extends Expression {
@@ -1776,46 +1776,46 @@ class Binary extends Expression {
   bool get isCommaOperator => op == ',';
 
   @override
-  int get precedenceLevel {
+  Precedence get precedenceLevel {
     // TODO(floitsch): switch to constant map.
     switch (op) {
       case '**':
-        return EXPONENTIATION;
+        return Precedence.exponentiation;
       case '*':
       case '/':
       case '%':
-        return MULTIPLICATIVE;
+        return Precedence.multiplicative;
       case '+':
       case '-':
-        return ADDITIVE;
+        return Precedence.additive;
       case '<<':
       case '>>':
       case '>>>':
-        return SHIFT;
+        return Precedence.shift;
       case '<':
       case '>':
       case '<=':
       case '>=':
       case 'instanceof':
       case 'in':
-        return RELATIONAL;
+        return Precedence.relational;
       case '==':
       case '===':
       case '!=':
       case '!==':
-        return EQUALITY;
+        return Precedence.equality;
       case '&':
-        return BIT_AND;
+        return Precedence.bitAnd;
       case '^':
-        return BIT_XOR;
+        return Precedence.bitXor;
       case '|':
-        return BIT_OR;
+        return Precedence.bitOr;
       case '&&':
-        return LOGICAL_AND;
+        return Precedence.logicalAnd;
       case '||':
-        return LOGICAL_OR;
+        return Precedence.logicalOr;
       case ',':
-        return EXPRESSION;
+        return Precedence.expression;
       default:
         throw 'Internal Error: Unhandled binary operator: $op';
     }
@@ -1849,7 +1849,7 @@ class Prefix extends Expression {
   }
 
   @override
-  int get precedenceLevel => UNARY;
+  Precedence get precedenceLevel => Precedence.unary;
 }
 
 class Postfix extends Expression {
@@ -1879,7 +1879,7 @@ class Postfix extends Expression {
   }
 
   @override
-  int get precedenceLevel => UNARY;
+  Precedence get precedenceLevel => Precedence.unary;
 }
 
 RegExp _identifierRE = RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
@@ -1895,7 +1895,7 @@ abstract class VariableReference extends Expression {
   T accept<T>(NodeVisitor<T> visitor);
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
@@ -1994,7 +1994,7 @@ class NamedFunction extends Expression {
   NamedFunction _clone() => NamedFunction(name, function);
 
   @override
-  int get precedenceLevel => LEFT_HAND_SIDE;
+  Precedence get precedenceLevel => Precedence.leftHandSide;
 }
 
 abstract class FunctionExpression extends Expression {
@@ -2040,7 +2040,7 @@ class Fun extends FunctionExpression {
   Fun _clone() => Fun(params, body, asyncModifier: asyncModifier);
 
   @override
-  int get precedenceLevel => LEFT_HAND_SIDE;
+  Precedence get precedenceLevel => Precedence.leftHandSide;
 }
 
 class ArrowFunction extends FunctionExpression {
@@ -2082,7 +2082,7 @@ class ArrowFunction extends FunctionExpression {
       ArrowFunction(params, body, asyncModifier: asyncModifier);
 
   @override
-  int get precedenceLevel => ASSIGNMENT;
+  Precedence get precedenceLevel => Precedence.assignment;
 }
 
 enum AsyncModifier {
@@ -2138,7 +2138,7 @@ class PropertyAccess extends Expression {
   PropertyAccess _clone() => PropertyAccess(receiver, selector);
 
   @override
-  int get precedenceLevel => LEFT_HAND_SIDE;
+  Precedence get precedenceLevel => Precedence.leftHandSide;
 }
 
 /// A [DeferredToken] is a placeholder for some [Expression] that is not known
@@ -2169,7 +2169,8 @@ abstract class DeferredNumber extends DeferredToken implements Literal {
   int get value;
 
   @override
-  int get precedenceLevel => value.isNegative ? UNARY : PRIMARY;
+  Precedence get precedenceLevel =>
+      value.isNegative ? Precedence.unary : Precedence.primary;
 }
 
 /// Interface for a deferred string value. An implementation has to provide
@@ -2185,7 +2186,7 @@ abstract class DeferredString extends DeferredToken implements Literal {
   String get value;
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 /// Interface for a deferred [Expression] value. An implementation has to provide
@@ -2211,7 +2212,7 @@ abstract class Literal extends Expression {
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 class LiteralBool extends Literal {
@@ -2330,7 +2331,8 @@ class LiteralNumber extends Literal {
   LiteralNumber(this.value);
 
   @override
-  int get precedenceLevel => value.startsWith('-') ? UNARY : PRIMARY;
+  Precedence get precedenceLevel =>
+      value.startsWith('-') ? Precedence.unary : Precedence.primary;
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLiteralNumber(this);
@@ -2373,7 +2375,7 @@ class ArrayInitializer extends Expression {
   ArrayInitializer _clone() => ArrayInitializer(elements);
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 /// An empty place in an [ArrayInitializer].
@@ -2396,7 +2398,7 @@ class ArrayHole extends Expression {
   ArrayHole _clone() => ArrayHole();
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 class ObjectInitializer extends Expression {
@@ -2436,7 +2438,7 @@ class ObjectInitializer extends Expression {
       ObjectInitializer(properties, isOneLiner: isOneLiner);
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 class Property extends Node {
@@ -2535,7 +2537,7 @@ class InterpolatedExpression extends Expression with InterpolatedNode {
   InterpolatedExpression _clone() => InterpolatedExpression(nameOrPosition);
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 class InterpolatedLiteral extends Literal with InterpolatedNode {
@@ -2595,7 +2597,7 @@ class InterpolatedParameter extends Expression
   InterpolatedParameter _clone() => InterpolatedParameter(nameOrPosition);
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 class InterpolatedSelector extends Expression with InterpolatedNode {
@@ -2622,7 +2624,7 @@ class InterpolatedSelector extends Expression with InterpolatedNode {
   InterpolatedSelector _clone() => InterpolatedSelector(nameOrPosition);
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 class InterpolatedStatement extends Statement with InterpolatedNode {
@@ -2680,7 +2682,7 @@ class InterpolatedDeclaration extends Expression
   String get name => throw 'No name for the interpolated node';
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 /// [RegExpLiteral]s, despite being called "Literal", do not inherit from
@@ -2711,7 +2713,7 @@ class RegExpLiteral extends Expression {
   RegExpLiteral _clone() => RegExpLiteral(pattern);
 
   @override
-  int get precedenceLevel => PRIMARY;
+  Precedence get precedenceLevel => Precedence.primary;
 }
 
 /// An asynchronous await.
@@ -2725,7 +2727,7 @@ class Await extends Expression {
   Await(this.expression);
 
   @override
-  int get precedenceLevel => UNARY;
+  Precedence get precedenceLevel => Precedence.unary;
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitAwait(this);

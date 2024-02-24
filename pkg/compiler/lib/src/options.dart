@@ -1285,9 +1285,13 @@ class CompilerOptions implements DiagnosticOptions {
 
 /// Policy for what to do with a type assertion check.
 ///
-/// This enum-like class is used to configure how the compiler treats type
-/// assertions during global type inference and codegen.
-class CheckPolicy {
+/// This enum is used to configure how the compiler treats type assertions
+/// during global type inference and codegen.
+enum CheckPolicy {
+  trusted(isTrusted: true),
+  checked(isEmitted: true),
+  ;
+
   /// Whether the type assertion should be trusted.
   final bool isTrusted;
 
@@ -1295,9 +1299,6 @@ class CheckPolicy {
   final bool isEmitted;
 
   const CheckPolicy({this.isTrusted = false, this.isEmitted = false});
-
-  static const trusted = CheckPolicy(isTrusted: true);
-  static const checked = CheckPolicy(isEmitted: true);
 
   @override
   String toString() => 'CheckPolicy(isTrusted=$isTrusted,'

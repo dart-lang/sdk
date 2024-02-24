@@ -14,7 +14,8 @@ void main() {
     test('shouldExecute', () {
       for (var kind in DeclarationKind.values) {
         for (var phase in Phase.values) {
-          var instance = instancesByKindAndPhase[kind]![phase]!;
+          var instance = instancesByKindAndPhase[kind]?[phase];
+          if (instance == null) continue;
           for (var otherKind in DeclarationKind.values) {
             for (var otherPhase in Phase.values) {
               var expected = false;
@@ -42,7 +43,8 @@ void main() {
     test('supportsDeclarationKind', () {
       for (var kind in DeclarationKind.values) {
         for (var phase in Phase.values) {
-          var instance = instancesByKindAndPhase[kind]![phase]!;
+          var instance = instancesByKindAndPhase[kind]?[phase];
+          if (instance == null) continue;
           for (var otherKind in DeclarationKind.values) {
             var expected = false;
             if (kind == otherKind) {
@@ -154,6 +156,12 @@ final Map<DeclarationKind, Map<Phase, MacroInstanceIdentifierImpl>>
     Phase.definitions: MacroInstanceIdentifierImpl(
         FakeMixinDefinitionMacro(), RemoteInstance.uniqueId),
   },
+  DeclarationKind.typeAlias: {
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeTypeAliasTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeTypeAliasDeclarationsMacro(), RemoteInstance.uniqueId),
+  },
   DeclarationKind.variable: {
     Phase.types: MacroInstanceIdentifierImpl(
         FakeVariableTypesMacro(), RemoteInstance.uniqueId),
@@ -254,3 +262,8 @@ class FakeLibraryDeclarationsMacro extends Fake
 
 class FakeLibraryDefinitionMacro extends Fake
     implements LibraryDefinitionMacro {}
+
+class FakeTypeAliasTypesMacro extends Fake implements TypeAliasTypesMacro {}
+
+class FakeTypeAliasDeclarationsMacro extends Fake
+    implements TypeAliasDeclarationsMacro {}

@@ -30,7 +30,6 @@ class ResolveToBoundTest extends AbstractTypeSystemTest {
   test_interfaceType() {
     _check(intNone, 'int');
     _check(intQuestion, 'int?');
-    _check(intStar, 'int*');
   }
 
   test_typeParameter_bound() {
@@ -46,13 +45,6 @@ class ResolveToBoundTest extends AbstractTypeSystemTest {
         typeParameter('T', bound: intQuestion),
       ),
       'int?',
-    );
-
-    _check(
-      typeParameterTypeStar(
-        typeParameter('T', bound: intStar),
-      ),
-      'int*',
     );
   }
 
@@ -157,14 +149,6 @@ class ResolveToBoundTest extends AbstractTypeSystemTest {
         promotedBound: intQuestion,
       ),
       'int?',
-    );
-
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: numStar),
-        promotedBound: intStar,
-      ),
-      'int*',
     );
   }
 

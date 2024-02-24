@@ -6736,7 +6736,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, MacroTargetElement
     implements TypeAliasElement {
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.

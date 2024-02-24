@@ -763,15 +763,18 @@ class HPhiList extends HInstructionList {
   HPhi? get lastPhi => last as HPhi?;
 }
 
+enum _BasicBlockStatus {
+  new_,
+  open,
+  closed,
+}
+
 class HBasicBlock extends HInstructionList {
   // The [id] must be such that any successor's id is greater than
   // this [id]. The exception are back-edges.
   int id = -1;
 
-  static const int STATUS_NEW = 0;
-  static const int STATUS_OPEN = 1;
-  static const int STATUS_CLOSED = 2;
-  int status = STATUS_NEW;
+  _BasicBlockStatus _status = _BasicBlockStatus.new_;
 
   var phis = HPhiList();
 
@@ -793,9 +796,9 @@ class HBasicBlock extends HInstructionList {
   @override
   int get hashCode => id;
 
-  bool isNew() => status == STATUS_NEW;
-  bool isOpen() => status == STATUS_OPEN;
-  bool isClosed() => status == STATUS_CLOSED;
+  bool get isNew => _status == _BasicBlockStatus.new_;
+  bool get isOpen => _status == _BasicBlockStatus.open;
+  bool get isClosed => _status == _BasicBlockStatus.closed;
 
   bool isLoopHeader() {
     return loopInformation != null;
@@ -814,14 +817,14 @@ class HBasicBlock extends HInstructionList {
   }
 
   void open() {
-    assert(isNew());
-    status = STATUS_OPEN;
+    assert(isNew);
+    _status = _BasicBlockStatus.open;
   }
 
   void close(HControlFlow end) {
-    assert(isOpen());
+    assert(isOpen);
     addAfter(last, end);
-    status = STATUS_CLOSED;
+    _status = _BasicBlockStatus.closed;
   }
 
   void addAtEntry(HInstruction instruction) {
@@ -831,7 +834,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   void addAtExit(HInstruction instruction) {
-    assert(isClosed());
+    assert(isClosed);
     assert(last is HControlFlow);
     assert(instruction is! HPhi);
     internalAddBefore(last, instruction);
@@ -841,7 +844,7 @@ class HBasicBlock extends HInstructionList {
   void moveAtExit(HInstruction instruction) {
     assert(instruction is! HPhi);
     assert(instruction.isInBasicBlock());
-    assert(isClosed());
+    assert(isClosed);
     assert(last is HControlFlow);
     internalAddBefore(last, instruction);
     instruction.block = this;
@@ -871,7 +874,7 @@ class HBasicBlock extends HInstructionList {
   void addAfter(HInstruction? cursor, HInstruction instruction) {
     assert(cursor is! HPhi);
     assert(instruction is! HPhi);
-    assert(isOpen() || isClosed());
+    assert(isOpen || isClosed);
     internalAddAfter(cursor, instruction);
     instruction.notifyAddedToBlock(this);
   }
@@ -879,14 +882,14 @@ class HBasicBlock extends HInstructionList {
   void addBefore(HInstruction? cursor, HInstruction instruction) {
     assert(cursor is! HPhi);
     assert(instruction is! HPhi);
-    assert(isOpen() || isClosed());
+    assert(isOpen || isClosed);
     internalAddBefore(cursor, instruction);
     instruction.notifyAddedToBlock(this);
   }
 
   @override
   void remove(HInstruction instruction) {
-    assert(isOpen() || isClosed());
+    assert(isOpen || isClosed);
     assert(instruction is! HPhi);
     super.remove(instruction);
     assert(instruction.block == this);
@@ -957,7 +960,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   void addDominatedBlock(HBasicBlock block) {
-    assert(isClosed());
+    assert(isClosed);
     assert(id >= 0 && block.id >= 0);
     assert(dominatedBlocks.indexOf(block) < 0);
     // Keep the list of dominated blocks sorted such that if there are two
@@ -977,7 +980,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   void removeDominatedBlock(HBasicBlock block) {
-    assert(isClosed());
+    assert(isClosed);
     assert(id >= 0 && block.id >= 0);
     int index = dominatedBlocks.indexOf(block);
     assert(index >= 0);
@@ -991,7 +994,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   void assignCommonDominator(HBasicBlock predecessor) {
-    assert(isClosed());
+    assert(isClosed);
     if (dominator == null) {
       // If this basic block doesn't have a dominator yet we use the
       // given predecessor as the dominator.
@@ -1036,7 +1039,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   bool isValid() {
-    assert(isClosed());
+    assert(isClosed);
     HValidator validator = HValidator();
     validator.visitBasicBlock(this);
     return validator.isValid;
@@ -1049,6 +1052,62 @@ class HBasicBlock extends HInstructionList {
 
   @override
   toString() => 'HBasicBlock($id)';
+}
+
+enum _GvnType {
+  undefined,
+  boundsCheck,
+  interceptor,
+  add,
+  divide,
+  multiply,
+  subtract,
+  shiftLeft,
+  bitOr,
+  bitAnd,
+  bitXor,
+  negate,
+  bitNot,
+  not,
+  identity,
+  greater,
+  greaterEqual,
+  less,
+  lessEqual,
+  static,
+  staticStore,
+  fieldGet,
+  functionReference,
+  typeKnown,
+  invokeStatic,
+  index_,
+  invokeDynamic,
+  shiftRight,
+  truncatingDivide,
+  invokeExternal,
+  foreignCode,
+  remainder,
+  getLength,
+  abs,
+  boolConversion,
+  nullCheck,
+  primitiveCheck,
+  isTest,
+  isTestSimple,
+  asCheck,
+  asCheckSimple,
+  subtypeCheck,
+  loadType,
+  instanceEnvironment,
+  typeEval,
+  typeBind,
+  isLateSentinel,
+  stringConcat,
+  stringify,
+  lateReadCheck,
+  lateWriteOnceCheck,
+  lateInitializeOnceCheck,
+  charCodeAt,
 }
 
 abstract class HInstruction implements SpannableWithEntity {
@@ -1070,69 +1129,6 @@ abstract class HInstruction implements SpannableWithEntity {
 
   SideEffects sideEffects = SideEffects.empty();
   bool _useGvn = false;
-
-  // Type codes.
-  static const int UNDEFINED_TYPECODE = -1;
-  static const int TYPE_GUARD_TYPECODE = 1;
-  static const int BOUNDS_CHECK_TYPECODE = 2;
-  static const int INTEGER_CHECK_TYPECODE = 3;
-  static const int INTERCEPTOR_TYPECODE = 4;
-  static const int ADD_TYPECODE = 5;
-  static const int DIVIDE_TYPECODE = 6;
-  static const int MULTIPLY_TYPECODE = 7;
-  static const int SUBTRACT_TYPECODE = 8;
-  static const int SHIFT_LEFT_TYPECODE = 9;
-  static const int BIT_OR_TYPECODE = 10;
-  static const int BIT_AND_TYPECODE = 11;
-  static const int BIT_XOR_TYPECODE = 12;
-  static const int NEGATE_TYPECODE = 13;
-  static const int BIT_NOT_TYPECODE = 14;
-  static const int NOT_TYPECODE = 15;
-  static const int IDENTITY_TYPECODE = 16;
-  static const int GREATER_TYPECODE = 17;
-  static const int GREATER_EQUAL_TYPECODE = 18;
-  static const int LESS_TYPECODE = 19;
-  static const int LESS_EQUAL_TYPECODE = 20;
-  static const int STATIC_TYPECODE = 21;
-  static const int STATIC_STORE_TYPECODE = 22;
-  static const int FIELD_GET_TYPECODE = 23;
-  static const int FUNCTION_REFERENCE_TYPECODE = 24;
-  static const int TYPE_KNOWN_TYPECODE = 26;
-  static const int INVOKE_STATIC_TYPECODE = 27;
-  static const int INDEX_TYPECODE = 28;
-  static const int INVOKE_DYNAMIC_TYPECODE = 29;
-  static const int SHIFT_RIGHT_TYPECODE = 30;
-
-  static const int TRUNCATING_DIVIDE_TYPECODE = 36;
-
-  static const int INVOKE_EXTERNAL_TYPECODE = 41;
-  static const int FOREIGN_CODE_TYPECODE = 42;
-  static const int REMAINDER_TYPECODE = 43;
-  static const int GET_LENGTH_TYPECODE = 44;
-  static const int ABS_TYPECODE = 45;
-  static const int BOOL_CONVERSION_TYPECODE = 46;
-  static const int NULL_CHECK_TYPECODE = 47;
-  static const int PRIMITIVE_CHECK_TYPECODE = 48;
-
-  static const int IS_TEST_TYPECODE = 49;
-  static const int IS_TEST_SIMPLE_TYPECODE = 50;
-  static const int AS_CHECK_TYPECODE = 51;
-  static const int AS_CHECK_SIMPLE_TYPECODE = 52;
-  static const int SUBTYPE_CHECK_TYPECODE = 53;
-  static const int LOAD_TYPE_TYPECODE = 54;
-  static const int INSTANCE_ENVIRONMENT_TYPECODE = 55;
-  static const int TYPE_EVAL_TYPECODE = 56;
-  static const int TYPE_BIND_TYPECODE = 57;
-
-  static const int IS_LATE_SENTINEL_TYPECODE = 58;
-  static const int STRING_CONCAT_TYPECODE = 59;
-  static const int STRINGIFY_TYPECODE = 60;
-
-  static const int LATE_READ_CHECK_TYPECODE = 61;
-  static const int LATE_WRITE_ONCE_CHECK_TYPECODE = 62;
-  static const int LATE_INITIALIZE_ONCE_CHECK_TYPECODE = 63;
-
-  static const int CHAR_CODE_AT_TYPECODE = 64;
 
   HInstruction(this.inputs, this.instructionType);
 
@@ -1268,7 +1264,7 @@ abstract class HInstruction implements SpannableWithEntity {
     assert(useGvn() && other.useGvn());
     // Check that the type and the sideEffects match.
     bool hasSameType = typeEquals(other);
-    assert(hasSameType == (typeCode() == other.typeCode()));
+    assert(hasSameType == (_gvnType == other._gvnType));
     if (!hasSameType) return false;
     if (sideEffects != other.sideEffects) return false;
     // Check that the inputs match.
@@ -1285,7 +1281,7 @@ abstract class HInstruction implements SpannableWithEntity {
   }
 
   int gvnHashCode() {
-    int result = typeCode();
+    int result = _gvnType.index;
     int length = inputs.length;
     for (int i = 0; i < length; i++) {
       result = (result * 19) + (inputs[i].nonCheck().id) + (result >> 7);
@@ -1295,7 +1291,7 @@ abstract class HInstruction implements SpannableWithEntity {
 
   // These methods should be overwritten by instructions that
   // participate in global value numbering.
-  int typeCode() => HInstruction.UNDEFINED_TYPECODE;
+  _GvnType get _gvnType => _GvnType.undefined;
   bool typeEquals(covariant HInstruction other) => false;
   bool dataEquals(covariant HInstruction other) => false;
 
@@ -1618,16 +1614,18 @@ abstract class HCheck extends HInstruction {
   HInstruction nonCheck() => checkedInput.nonCheck();
 }
 
-class HBoundsCheck extends HCheck {
-  static const int ALWAYS_FALSE = 0;
-  static const int FULL_CHECK = 1;
-  static const int ALWAYS_ABOVE_ZERO = 2;
-  static const int ALWAYS_BELOW_LENGTH = 3;
-  static const int ALWAYS_TRUE = 4;
+enum StaticBoundsChecks {
+  alwaysFalse,
+  fullCheck,
+  alwaysAboveZero,
+  alwaysBelowLength,
+  alwaysTrue,
+}
 
+class HBoundsCheck extends HCheck {
   /// Details which tests have been done statically during compilation.
   /// Default is that all checks must be performed dynamically.
-  int staticChecks = FULL_CHECK;
+  StaticBoundsChecks staticChecks = StaticBoundsChecks.fullCheck;
 
   HBoundsCheck(HInstruction index, HInstruction length, HInstruction array,
       AbstractValue type)
@@ -1645,7 +1643,7 @@ class HBoundsCheck extends HCheck {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitBoundsCheck(this);
   @override
-  int typeCode() => HInstruction.BOUNDS_CHECK_TYPECODE;
+  _GvnType get _gvnType => _GvnType.boundsCheck;
   @override
   bool typeEquals(other) => other is HBoundsCheck;
   @override
@@ -1825,7 +1823,7 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
   }
 
   @override
-  int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
+  _GvnType get _gvnType => _GvnType.invokeDynamic;
 
   @override
   bool typeEquals(other) => other is HInvokeDynamic;
@@ -1990,7 +1988,7 @@ class HInvokeStatic extends HInvoke {
   R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeStatic(this);
 
   @override
-  int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
+  _GvnType get _gvnType => _GvnType.invokeStatic;
 
   @override
   String toString() => 'invoke static: $element';
@@ -2133,7 +2131,7 @@ class HFieldGet extends HFieldAccess {
   R accept<R>(HVisitor<R> visitor) => visitor.visitFieldGet(this);
 
   @override
-  int typeCode() => HInstruction.FIELD_GET_TYPECODE;
+  _GvnType get _gvnType => _GvnType.fieldGet;
   @override
   bool typeEquals(other) => other is HFieldGet;
   @override
@@ -2184,7 +2182,7 @@ class HFunctionReference extends HInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitFunctionReference(this);
 
   @override
-  int typeCode() => HInstruction.FUNCTION_REFERENCE_TYPECODE;
+  _GvnType get _gvnType => _GvnType.functionReference;
   @override
   bool typeEquals(other) => other is HFunctionReference;
   @override
@@ -2221,7 +2219,7 @@ class HGetLength extends HInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitGetLength(this);
 
   @override
-  int typeCode() => HInstruction.GET_LENGTH_TYPECODE;
+  _GvnType get _gvnType => _GvnType.getLength;
   @override
   bool typeEquals(other) => other is HGetLength;
   @override
@@ -2230,15 +2228,18 @@ class HGetLength extends HInstruction {
   String toString() => "GetLength()";
 }
 
+enum ReadModifyWriteKind {
+  assign,
+  prefix,
+  postfix,
+}
+
 /// HReadModifyWrite is a late stage instruction for a field (property) update
 /// via an assignment operation or pre- or post-increment.
 class HReadModifyWrite extends HLateInstruction {
-  static const ASSIGN_OP = 0;
-  static const PRE_OP = 1;
-  static const POST_OP = 2;
   final FieldEntity element;
   final String jsOp;
-  final int opKind;
+  final ReadModifyWriteKind opKind;
 
   HReadModifyWrite._(this.element, this.jsOp, this.opKind,
       List<HInstruction> inputs, AbstractValue type)
@@ -2251,21 +2252,22 @@ class HReadModifyWrite extends HLateInstruction {
 
   HReadModifyWrite.assignOp(FieldEntity element, String jsOp,
       HInstruction receiver, HInstruction operand, AbstractValue type)
-      : this._(element, jsOp, ASSIGN_OP, [receiver, operand], type);
+      : this._(element, jsOp, ReadModifyWriteKind.assign, [receiver, operand],
+            type);
 
   HReadModifyWrite.preOp(FieldEntity element, String jsOp,
       HInstruction receiver, AbstractValue type)
-      : this._(element, jsOp, PRE_OP, [receiver], type);
+      : this._(element, jsOp, ReadModifyWriteKind.prefix, [receiver], type);
 
   HReadModifyWrite.postOp(FieldEntity element, String jsOp,
       HInstruction receiver, AbstractValue type)
-      : this._(element, jsOp, POST_OP, [receiver], type);
+      : this._(element, jsOp, ReadModifyWriteKind.postfix, [receiver], type);
 
   HInstruction get receiver => inputs[0];
 
-  bool get isPreOp => opKind == PRE_OP;
-  bool get isPostOp => opKind == POST_OP;
-  bool get isAssignOp => opKind == ASSIGN_OP;
+  bool get isPreOp => opKind == ReadModifyWriteKind.prefix;
+  bool get isPostOp => opKind == ReadModifyWriteKind.postfix;
+  bool get isAssignOp => opKind == ReadModifyWriteKind.assign;
 
   @override
   bool canThrow(AbstractValueDomain domain) =>
@@ -2358,7 +2360,7 @@ class HInvokeExternal extends HInvoke {
       this.nativeBehavior,
       {SourceInformation? sourceInformation})
       : throwBehavior =
-            nativeBehavior?.throwBehavior ?? NativeThrowBehavior.MAY,
+            nativeBehavior?.throwBehavior ?? NativeThrowBehavior.may,
         super(inputs, type) {
     if (nativeBehavior == null) {
       sideEffects.setAllSideEffects();
@@ -2409,7 +2411,7 @@ class HInvokeExternal extends HInvoke {
   }
 
   @override
-  int typeCode() => HInstruction.INVOKE_EXTERNAL_TYPECODE;
+  _GvnType get _gvnType => _GvnType.invokeExternal;
   @override
   bool typeEquals(other) => other is HInvokeExternal;
   @override
@@ -2453,7 +2455,7 @@ class HForeignCode extends HForeign {
       effects = nativeBehavior.sideEffects;
     }
     throwBehavior ??= (nativeBehavior == null)
-        ? NativeThrowBehavior.MAY
+        ? NativeThrowBehavior.may
         : nativeBehavior.throwBehavior;
     this.throwBehavior = throwBehavior;
 
@@ -2504,7 +2506,7 @@ class HForeignCode extends HForeign {
   }
 
   @override
-  int typeCode() => HInstruction.FOREIGN_CODE_TYPECODE;
+  _GvnType get _gvnType => _GvnType.foreignCode;
   @override
   bool typeEquals(other) => other is HForeignCode;
   @override
@@ -2547,7 +2549,7 @@ class HAdd extends HBinaryArithmetic {
   @override
   constant_system.BinaryOperation operation() => constant_system.add;
   @override
-  int typeCode() => HInstruction.ADD_TYPECODE;
+  _GvnType get _gvnType => _GvnType.add;
   @override
   bool typeEquals(other) => other is HAdd;
   @override
@@ -2563,7 +2565,7 @@ class HDivide extends HBinaryArithmetic {
   @override
   constant_system.BinaryOperation operation() => constant_system.divide;
   @override
-  int typeCode() => HInstruction.DIVIDE_TYPECODE;
+  _GvnType get _gvnType => _GvnType.divide;
   @override
   bool typeEquals(other) => other is HDivide;
   @override
@@ -2579,7 +2581,7 @@ class HMultiply extends HBinaryArithmetic {
   @override
   constant_system.BinaryOperation operation() => constant_system.multiply;
   @override
-  int typeCode() => HInstruction.MULTIPLY_TYPECODE;
+  _GvnType get _gvnType => _GvnType.multiply;
   @override
   bool typeEquals(other) => other is HMultiply;
   @override
@@ -2595,7 +2597,7 @@ class HSubtract extends HBinaryArithmetic {
   @override
   constant_system.BinaryOperation operation() => constant_system.subtract;
   @override
-  int typeCode() => HInstruction.SUBTRACT_TYPECODE;
+  _GvnType get _gvnType => _GvnType.subtract;
   @override
   bool typeEquals(other) => other is HSubtract;
   @override
@@ -2612,7 +2614,7 @@ class HTruncatingDivide extends HBinaryArithmetic {
   constant_system.BinaryOperation operation() =>
       constant_system.truncatingDivide;
   @override
-  int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
+  _GvnType get _gvnType => _GvnType.truncatingDivide;
   @override
   bool typeEquals(other) => other is HTruncatingDivide;
   @override
@@ -2628,7 +2630,7 @@ class HRemainder extends HBinaryArithmetic {
   @override
   constant_system.BinaryOperation operation() => constant_system.remainder;
   @override
-  int typeCode() => HInstruction.REMAINDER_TYPECODE;
+  _GvnType get _gvnType => _GvnType.remainder;
   @override
   bool typeEquals(other) => other is HRemainder;
   @override
@@ -2677,7 +2679,7 @@ class HShiftLeft extends HBinaryBitOp {
   @override
   constant_system.BinaryOperation operation() => constant_system.shiftLeft;
   @override
-  int typeCode() => HInstruction.SHIFT_LEFT_TYPECODE;
+  _GvnType get _gvnType => _GvnType.shiftLeft;
   @override
   bool typeEquals(other) => other is HShiftLeft;
   @override
@@ -2693,7 +2695,7 @@ class HShiftRight extends HBinaryBitOp {
   @override
   constant_system.BinaryOperation operation() => constant_system.shiftRight;
   @override
-  int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
+  _GvnType get _gvnType => _GvnType.shiftRight;
   @override
   bool typeEquals(other) => other is HShiftRight;
   @override
@@ -2709,7 +2711,7 @@ class HBitOr extends HBinaryBitOp {
   @override
   constant_system.BinaryOperation operation() => constant_system.bitOr;
   @override
-  int typeCode() => HInstruction.BIT_OR_TYPECODE;
+  _GvnType get _gvnType => _GvnType.bitOr;
   @override
   bool typeEquals(other) => other is HBitOr;
   @override
@@ -2725,7 +2727,7 @@ class HBitAnd extends HBinaryBitOp {
   @override
   constant_system.BinaryOperation operation() => constant_system.bitAnd;
   @override
-  int typeCode() => HInstruction.BIT_AND_TYPECODE;
+  _GvnType get _gvnType => _GvnType.bitAnd;
   @override
   bool typeEquals(other) => other is HBitAnd;
   @override
@@ -2741,7 +2743,7 @@ class HBitXor extends HBinaryBitOp {
   @override
   constant_system.BinaryOperation operation() => constant_system.bitXor;
   @override
-  int typeCode() => HInstruction.BIT_XOR_TYPECODE;
+  _GvnType get _gvnType => _GvnType.bitXor;
   @override
   bool typeEquals(other) => other is HBitXor;
   @override
@@ -2768,7 +2770,7 @@ class HNegate extends HInvokeUnary {
   @override
   constant_system.UnaryOperation operation() => constant_system.negate;
   @override
-  int typeCode() => HInstruction.NEGATE_TYPECODE;
+  _GvnType get _gvnType => _GvnType.negate;
   @override
   bool typeEquals(other) => other is HNegate;
   @override
@@ -2783,7 +2785,7 @@ class HAbs extends HInvokeUnary {
   @override
   constant_system.UnaryOperation operation() => constant_system.abs;
   @override
-  int typeCode() => HInstruction.ABS_TYPECODE;
+  _GvnType get _gvnType => _GvnType.abs;
   @override
   bool typeEquals(other) => other is HAbs;
   @override
@@ -2804,7 +2806,7 @@ class HBitNot extends HInvokeUnary {
   @override
   constant_system.UnaryOperation operation() => constant_system.bitNot;
   @override
-  int typeCode() => HInstruction.BIT_NOT_TYPECODE;
+  _GvnType get _gvnType => _GvnType.bitNot;
   @override
   bool typeEquals(other) => other is HBitNot;
   @override
@@ -2927,12 +2929,7 @@ class HIf extends HConditionalBranch {
 }
 
 class HLoopBranch extends HConditionalBranch {
-  static const int CONDITION_FIRST_LOOP = 0;
-  static const int DO_WHILE_LOOP = 1;
-
-  final int kind;
-  HLoopBranch(HInstruction condition, [this.kind = CONDITION_FIRST_LOOP])
-      : super([condition]);
+  HLoopBranch(HInstruction condition) : super([condition]);
   @override
   toString() => 'loop-branch';
   @override
@@ -2990,7 +2987,7 @@ class HNot extends HInstruction {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitNot(this);
   @override
-  int typeCode() => HInstruction.NOT_TYPECODE;
+  _GvnType get _gvnType => _GvnType.not;
   @override
   bool typeEquals(other) => other is HNot;
   @override
@@ -3073,12 +3070,6 @@ class HThis extends HParameterValue {
 }
 
 class HPhi extends HInstruction {
-  static const IS_NOT_LOGICAL_OPERATOR = 0;
-  static const IS_AND = 1;
-  static const IS_OR = 2;
-
-  int logicalOperatorType = IS_NOT_LOGICAL_OPERATOR;
-
   HPhi? get previousPhi => previous as HPhi?;
   HPhi? get nextPhi => next as HPhi?;
 
@@ -3127,7 +3118,7 @@ class HIdentity extends HRelational {
   @override
   constant_system.BinaryOperation operation() => constant_system.identity;
   @override
-  int typeCode() => HInstruction.IDENTITY_TYPECODE;
+  _GvnType get _gvnType => _GvnType.identity;
   @override
   bool typeEquals(other) => other is HIdentity;
   @override
@@ -3143,7 +3134,7 @@ class HGreater extends HRelational {
   @override
   constant_system.BinaryOperation operation() => constant_system.greater;
   @override
-  int typeCode() => HInstruction.GREATER_TYPECODE;
+  _GvnType get _gvnType => _GvnType.greater;
   @override
   bool typeEquals(other) => other is HGreater;
   @override
@@ -3159,7 +3150,7 @@ class HGreaterEqual extends HRelational {
   @override
   constant_system.BinaryOperation operation() => constant_system.greaterEqual;
   @override
-  int typeCode() => HInstruction.GREATER_EQUAL_TYPECODE;
+  _GvnType get _gvnType => _GvnType.greaterEqual;
   @override
   bool typeEquals(other) => other is HGreaterEqual;
   @override
@@ -3175,7 +3166,7 @@ class HLess extends HRelational {
   @override
   constant_system.BinaryOperation operation() => constant_system.less;
   @override
-  int typeCode() => HInstruction.LESS_TYPECODE;
+  _GvnType get _gvnType => _GvnType.less;
   @override
   bool typeEquals(other) => other is HLess;
   @override
@@ -3191,7 +3182,7 @@ class HLessEqual extends HRelational {
   @override
   constant_system.BinaryOperation operation() => constant_system.lessEqual;
   @override
-  int typeCode() => HInstruction.LESS_EQUAL_TYPECODE;
+  _GvnType get _gvnType => _GvnType.lessEqual;
   @override
   bool typeEquals(other) => other is HLessEqual;
   @override
@@ -3292,7 +3283,7 @@ class HStatic extends HInstruction {
   @override
   int gvnHashCode() => super.gvnHashCode() ^ element.hashCode;
   @override
-  int typeCode() => HInstruction.STATIC_TYPECODE;
+  _GvnType get _gvnType => _GvnType.static;
   @override
   bool typeEquals(other) => other is HStatic;
   @override
@@ -3340,7 +3331,7 @@ class HInterceptor extends HInstruction {
   bool isInterceptor(JClosedWorld closedWorld) => true;
 
   @override
-  int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
+  _GvnType get _gvnType => _GvnType.interceptor;
   @override
   bool typeEquals(other) => other is HInterceptor;
   @override
@@ -3427,7 +3418,7 @@ class HStaticStore extends HInstruction {
   HInstruction get value => inputs.single;
 
   @override
-  int typeCode() => HInstruction.STATIC_STORE_TYPECODE;
+  _GvnType get _gvnType => _GvnType.staticStore;
   @override
   bool typeEquals(other) => other is HStaticStore;
   @override
@@ -3482,7 +3473,7 @@ class HIndex extends HInstruction {
       receiver.isNull(domain).isPotentiallyTrue;
 
   @override
-  int typeCode() => HInstruction.INDEX_TYPECODE;
+  _GvnType get _gvnType => _GvnType.index_;
   @override
   bool typeEquals(HInstruction other) => other is HIndex;
   @override
@@ -3548,7 +3539,7 @@ class HCharCodeAt extends HInstruction {
       receiver.isNull(domain).isPotentiallyTrue;
 
   @override
-  int typeCode() => HInstruction.CHAR_CODE_AT_TYPECODE;
+  _GvnType get _gvnType => _GvnType.charCodeAt;
   @override
   bool typeEquals(other) => other is HCharCodeAt;
   @override
@@ -3573,6 +3564,11 @@ class HLateValue extends HLateInstruction {
   toString() => 'HLateValue($target)';
 }
 
+enum PrimitiveCheckKind {
+  argumentType,
+  receiverType,
+}
+
 /// Check for receiver or argument type when lowering operation to a primitive,
 /// e.g. lowering `+` to [HAdd].
 ///
@@ -3581,12 +3577,8 @@ class HLateValue extends HLateInstruction {
 /// that time, this check should be removed. If needed, the `!` check can be
 /// optimized to give the same signals to the JavaScript VM.
 class HPrimitiveCheck extends HCheck {
-  // Values for [kind].
-  static const int ARGUMENT_TYPE_CHECK = 1;
-  static const int RECEIVER_TYPE_CHECK = 3;
-
   final DartType typeExpression;
-  final int kind;
+  final PrimitiveCheckKind kind;
 
   // [receiverTypeCheckSelector] is the selector used for a receiver type check
   // on open-coded operators, e.g. the not-null check on `x` in `x + 1` would be
@@ -3608,8 +3600,8 @@ class HPrimitiveCheck extends HCheck {
     this.sourceInformation = sourceInformation;
   }
 
-  bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
-  bool get isReceiverTypeCheck => kind == RECEIVER_TYPE_CHECK;
+  bool get isArgumentTypeCheck => kind == PrimitiveCheckKind.argumentType;
+  bool get isReceiverTypeCheck => kind == PrimitiveCheckKind.receiverType;
 
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitPrimitiveCheck(this);
@@ -3620,7 +3612,7 @@ class HPrimitiveCheck extends HCheck {
   bool isControlFlow() => true;
 
   @override
-  int typeCode() => HInstruction.PRIMITIVE_CHECK_TYPECODE;
+  _GvnType get _gvnType => _GvnType.primitiveCheck;
   @override
   bool typeEquals(HInstruction other) => other is HPrimitiveCheck;
   @override
@@ -3669,7 +3661,7 @@ class HBoolConversion extends HCheck {
   R accept<R>(HVisitor<R> visitor) => visitor.visitBoolConversion(this);
 
   @override
-  int typeCode() => HInstruction.BOOL_CONVERSION_TYPECODE;
+  _GvnType get _gvnType => _GvnType.boolConversion;
   @override
   bool typeEquals(HInstruction other) => other is HBoolConversion;
   @override
@@ -3714,7 +3706,7 @@ class HNullCheck extends HCheck {
   R accept<R>(HVisitor<R> visitor) => visitor.visitNullCheck(this);
 
   @override
-  int typeCode() => HInstruction.NULL_CHECK_TYPECODE;
+  _GvnType get _gvnType => _GvnType.nullCheck;
   @override
   bool typeEquals(HInstruction other) => other is HNullCheck;
   @override
@@ -3770,7 +3762,7 @@ class HLateReadCheck extends HLateCheck {
   R accept<R>(HVisitor<R> visitor) => visitor.visitLateReadCheck(this);
 
   @override
-  int typeCode() => HInstruction.LATE_READ_CHECK_TYPECODE;
+  _GvnType get _gvnType => _GvnType.lateReadCheck;
 
   @override
   bool typeEquals(HInstruction other) => other is HLateReadCheck;
@@ -3805,7 +3797,7 @@ class HLateWriteOnceCheck extends HLateCheck {
   R accept<R>(HVisitor<R> visitor) => visitor.visitLateWriteOnceCheck(this);
 
   @override
-  int typeCode() => HInstruction.LATE_WRITE_ONCE_CHECK_TYPECODE;
+  _GvnType get _gvnType => _GvnType.lateWriteOnceCheck;
 
   @override
   bool typeEquals(HInstruction other) => other is HLateWriteOnceCheck;
@@ -3841,7 +3833,7 @@ class HLateInitializeOnceCheck extends HLateCheck {
       visitor.visitLateInitializeOnceCheck(this);
 
   @override
-  int typeCode() => HInstruction.LATE_INITIALIZE_ONCE_CHECK_TYPECODE;
+  _GvnType get _gvnType => _GvnType.lateInitializeOnceCheck;
 
   @override
   bool typeEquals(HInstruction other) => other is HLateInitializeOnceCheck;
@@ -3892,7 +3884,7 @@ class HTypeKnown extends HCheck {
   HInstruction? get witness => inputs.length == 2 ? inputs[1] : null;
 
   @override
-  int typeCode() => HInstruction.TYPE_KNOWN_TYPECODE;
+  _GvnType get _gvnType => _GvnType.typeKnown;
   @override
   bool typeEquals(HInstruction other) => other is HTypeKnown;
   @override
@@ -3943,7 +3935,7 @@ class HStringConcat extends HInstruction {
   toString() => "string concat";
 
   @override
-  int typeCode() => HInstruction.STRING_CONCAT_TYPECODE;
+  _GvnType get _gvnType => _GvnType.stringConcat;
   @override
   bool typeEquals(HInstruction other) => other is HStringConcat;
   @override
@@ -3976,7 +3968,7 @@ class HStringify extends HInstruction {
   toString() => "stringify";
 
   @override
-  int typeCode() => HInstruction.STRINGIFY_TYPECODE;
+  _GvnType get _gvnType => _GvnType.stringify;
   @override
   bool typeEquals(HInstruction other) => other is HStringify;
   @override
@@ -4146,15 +4138,17 @@ class HLabeledBlockInformation implements HStatementInformation {
       visitor.visitLabeledBlockInfo(this);
 }
 
-class HLoopBlockInformation implements HStatementInformation {
-  static const int WHILE_LOOP = 0;
-  static const int FOR_LOOP = 1;
-  static const int DO_WHILE_LOOP = 2;
-  static const int FOR_IN_LOOP = 3;
-  static const int SWITCH_CONTINUE_LOOP = 4;
-  static const int NOT_A_LOOP = -1;
+enum LoopBlockInformationKind {
+  notALoop,
+  whileLoop,
+  forLoop,
+  doWhileLoop,
+  forInLoop,
+  switchContinueLoop,
+}
 
-  final int kind;
+class HLoopBlockInformation implements HStatementInformation {
+  final LoopBlockInformationKind kind;
   final HExpressionInformation? initializer;
   final HExpressionInformation? condition;
   final HStatementInformation? body;
@@ -4165,27 +4159,31 @@ class HLoopBlockInformation implements HStatementInformation {
 
   HLoopBlockInformation(this.kind, this.initializer, this.condition, this.body,
       this.updates, this.target, this.labels, this.sourceInformation) {
-    assert((kind == DO_WHILE_LOOP ? body!.start : condition!.start)
+    assert((kind == LoopBlockInformationKind.doWhileLoop
+            ? body!.start
+            : condition!.start)
         .isLoopHeader());
   }
 
   @override
   HBasicBlock get start {
     if (initializer != null) return initializer!.start;
-    if (kind == DO_WHILE_LOOP) {
+    if (kind == LoopBlockInformationKind.doWhileLoop) {
       return body!.start;
     }
     return condition!.start;
   }
 
   HBasicBlock get loopHeader {
-    return kind == DO_WHILE_LOOP ? body!.start : condition!.start;
+    return kind == LoopBlockInformationKind.doWhileLoop
+        ? body!.start
+        : condition!.start;
   }
 
   @override
   HBasicBlock get end {
     if (updates != null) return updates!.end;
-    if (kind == DO_WHILE_LOOP && condition != null) {
+    if (kind == LoopBlockInformationKind.doWhileLoop && condition != null) {
       return condition!.end;
     }
     return body!.end;
@@ -4285,7 +4283,7 @@ class HIsTest extends HInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitIsTest(this);
 
   @override
-  int typeCode() => HInstruction.IS_TEST_TYPECODE;
+  _GvnType get _gvnType => _GvnType.isTest;
 
   @override
   bool typeEquals(HInstruction other) => other is HIsTest;
@@ -4321,7 +4319,7 @@ class HIsTestSimple extends HInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitIsTestSimple(this);
 
   @override
-  int typeCode() => HInstruction.IS_TEST_SIMPLE_TYPECODE;
+  _GvnType get _gvnType => _GvnType.isTestSimple;
 
   @override
   bool typeEquals(HInstruction other) => other is HIsTestSimple;
@@ -4476,7 +4474,7 @@ class HAsCheck extends HCheck {
   R accept<R>(HVisitor<R> visitor) => visitor.visitAsCheck(this);
 
   @override
-  int typeCode() => HInstruction.AS_CHECK_TYPECODE;
+  _GvnType get _gvnType => _GvnType.asCheck;
 
   @override
   bool typeEquals(HInstruction other) => other is HAsCheck;
@@ -4526,7 +4524,7 @@ class HAsCheckSimple extends HCheck {
           .isDefinitelyTrue;
 
   @override
-  int typeCode() => HInstruction.AS_CHECK_SIMPLE_TYPECODE;
+  _GvnType get _gvnType => _GvnType.asCheckSimple;
 
   @override
   bool typeEquals(HInstruction other) => other is HAsCheckSimple;
@@ -4557,7 +4555,7 @@ class HSubtypeCheck extends HCheck {
   R accept<R>(HVisitor<R> visitor) => visitor.visitSubtypeCheck(this);
 
   @override
-  int typeCode() => HInstruction.SUBTYPE_CHECK_TYPECODE;
+  _GvnType get _gvnType => _GvnType.subtypeCheck;
 
   @override
   bool typeEquals(HInstruction other) => other is HSubtypeCheck;
@@ -4591,7 +4589,7 @@ class HLoadType extends HRtiInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitLoadType(this);
 
   @override
-  int typeCode() => HInstruction.LOAD_TYPE_TYPECODE;
+  _GvnType get _gvnType => _GvnType.loadType;
 
   @override
   bool typeEquals(HInstruction other) => other is HLoadType;
@@ -4622,7 +4620,7 @@ class HInstanceEnvironment extends HRtiInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitInstanceEnvironment(this);
 
   @override
-  int typeCode() => HInstruction.INSTANCE_ENVIRONMENT_TYPECODE;
+  _GvnType get _gvnType => _GvnType.instanceEnvironment;
 
   @override
   bool typeEquals(HInstruction other) => other is HInstanceEnvironment;
@@ -4649,7 +4647,7 @@ class HTypeEval extends HRtiInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitTypeEval(this);
 
   @override
-  int typeCode() => HInstruction.TYPE_EVAL_TYPECODE;
+  _GvnType get _gvnType => _GvnType.typeEval;
 
   @override
   bool typeEquals(HInstruction other) => other is HTypeEval;
@@ -4676,7 +4674,7 @@ class HTypeBind extends HRtiInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitTypeBind(this);
 
   @override
-  int typeCode() => HInstruction.TYPE_BIND_TYPECODE;
+  _GvnType get _gvnType => _GvnType.typeBind;
 
   @override
   bool typeEquals(HInstruction other) => other is HTypeBind;
@@ -4698,7 +4696,7 @@ class HIsLateSentinel extends HInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitIsLateSentinel(this);
 
   @override
-  int typeCode() => HInstruction.IS_LATE_SENTINEL_TYPECODE;
+  _GvnType get _gvnType => _GvnType.isLateSentinel;
 
   @override
   bool typeEquals(HInstruction other) => other is HIsLateSentinel;

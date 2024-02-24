@@ -6690,6 +6690,44 @@ library
 ''');
   }
 
+  test_macroDiagnostics_report_atTypeAnnotation_typeAlias_aliasedType() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtTypeAnnotation([
+  'aliasedType',
+])
+typedef A = List<int>;
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    typeAliases
+      A @81
+        aliasedType: List<int>
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: TypeAnnotationMacroDiagnosticTarget
+                ElementTypeLocation
+                  element: self::@typeAlias::A
+                AliasedTypeLocation
+            severity: warning
+''');
+  }
+
   test_macroDiagnostics_report_contextMessages() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',
@@ -8999,6 +9037,17 @@ foo
       flags: isRequired
       type: int
   returnType: void
+''');
+  }
+
+  test_unit_typeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef A = List<int>;
+''');
+
+    await _assertIntrospectText('A', r'''
+typedef A
+  aliasedType: List<int>
 ''');
   }
 
@@ -11413,6 +11462,16 @@ class A extends prefix.B {}
 class A
   superclass: B
     noDeclaration
+''');
+  }
+
+  test_typeAlias_namedType() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+typedef X = List<int>;
+''', r'''
+typedef X
+  aliasedType: List<int>
 ''');
   }
 

@@ -647,6 +647,7 @@ class BundleWriter {
     TypeAliasElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink._writeAliasedElement(element.aliasedElement);
@@ -982,6 +983,9 @@ class ResolutionSink extends _SummaryDataWriter {
 
     void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
       switch (location) {
+        case AliasedTypeLocation():
+          writeEnum(TypeAnnotationLocationKind.aliasedType);
+          writeTypeAnnotationLocation(location.parent);
         case ElementTypeLocation():
           writeEnum(TypeAnnotationLocationKind.element);
           writeElement(location.element);

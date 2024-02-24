@@ -131,6 +131,54 @@ class B extends A {}
     assertHasImplementedClass('A {');
   }
 
+  Future<void> test_class_extended_augment() async {
+    newFile('$testPackageLibPath/b.dart', '''
+import augment 'test.dart';
+
+class A {}
+class B extends A {}
+''');
+    addTestFile('''
+library augment 'b.dart';
+
+augment class A {} // 1
+augment class A {} // 2
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('A {} // 1');
+    assertHasImplementedClass('A {} // 2');
+  }
+
+  Future<void> test_class_extended_inAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+library augment 'test.dart';
+
+class B extends A {}
+''');
+    addTestFile('''
+import augment 'a.dart';
+
+class A {}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('A {');
+  }
+
+  Future<void> test_class_extended_inAugmented() async {
+    newFile('$testPackageLibPath/b.dart', '''
+import augment 'test.dart';
+
+class B extends A {}
+''');
+    addTestFile('''
+library augment 'b.dart';
+
+class A {}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('A {');
+  }
+
   Future<void> test_class_implementedBy_class() async {
     addTestFile('''
 class A {}
@@ -366,6 +414,70 @@ class B extends A {
 ''');
     await prepareImplementedElements();
     assertHasImplementedMember('f => null; // A');
+  }
+
+  Future<void> test_ofClass_byClass_method_augment() async {
+    newFile('$testPackageLibPath/b.dart', '''
+import augment 'test.dart';
+
+class A {
+  m() {}
+}
+class B extends A {
+  m() {}
+}
+''');
+    addTestFile('''
+library augment 'b.dart';
+
+augment class A {
+  augment m() {} // 1
+  augment m() {} // 2
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('m() {} // 1');
+    assertHasImplementedMember('m() {} // 2');
+  }
+
+  Future<void> test_ofClass_byClass_method_inAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+library augment 'test.dart';
+
+augment class B extends A {
+  m() {}
+}
+''');
+    addTestFile('''
+import augment 'a.dart';
+
+class A {
+  m() {}
+}
+class B extends A {}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('m()');
+  }
+
+  Future<void> test_ofClass_byClass_method_inAugmented() async {
+    newFile('$testPackageLibPath/b.dart', '''
+import augment 'test.dart';
+
+class A {}
+class B extends A {
+  m() {}
+}
+''');
+    addTestFile('''
+library augment 'b.dart';
+
+augment class A {
+  m() {}
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('m()');
   }
 
   Future<void> test_ofClass_byClass_method_withMethod() async {

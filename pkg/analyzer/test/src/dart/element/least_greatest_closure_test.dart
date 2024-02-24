@@ -92,14 +92,12 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   test_unrelated() {
     _check1(intNone, 'int');
     _check1(intQuestion, 'int?');
-    _check1(intStar, 'int*');
 
     _check1(listNone(intNone), 'List<int>');
     _check1(listQuestion(intNone), 'List<int>?');
 
     _check1(objectNone, 'Object');
     _check1(objectQuestion, 'Object?');
-    _check1(objectStar, 'Object*');
 
     _check1(neverNone, 'Never');
     _check1(neverQuestion, 'Never?');

@@ -531,7 +531,7 @@ class C extends B {
     assertNoInterfaceMembers();
   }
 
-  Future<void> test_class_super_method_overriddenFromExtension() async {
+  Future<void> test_class_super_method_overriddenFromAugmentation() async {
     var augmentation = newFile('$testPackageLibPath/a.dart', '''
 library augment 'test.dart';
 
@@ -553,7 +553,7 @@ class B extends A {
     assertNoInterfaceMembers();
   }
 
-  Future<void> test_class_super_method_overrideFromExtension() async {
+  Future<void> test_class_super_method_overrideFromAugmentation() async {
     var augmented = newFile('$testPackageLibPath/b.dart', '''
 import augment 'test.dart';
 

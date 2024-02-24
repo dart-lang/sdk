@@ -72,7 +72,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var classA = class_(name: 'A');
     classA.fields = [
       ElementFactory.fieldElement(
-          "f", false, false, true, interfaceTypeStar(classA))
+          "f", false, false, true, interfaceTypeNone(classA))
     ];
     expect(classA.hasNonFinalField, isFalse);
   }
@@ -81,7 +81,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var classA = class_(name: 'A');
     classA.fields = [
       ElementFactory.fieldElement(
-          "f", false, true, false, interfaceTypeStar(classA))
+          "f", false, true, false, interfaceTypeNone(classA))
     ];
     expect(classA.hasNonFinalField, isFalse);
   }
@@ -90,9 +90,9 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var classA = class_(name: 'A');
     ClassElementImpl classB = class_(
       name: 'B',
-      superType: interfaceTypeStar(classA),
+      superType: interfaceTypeNone(classA),
     );
-    classA.supertype = interfaceTypeStar(classB);
+    classA.supertype = interfaceTypeNone(classB);
     expect(classA.hasNonFinalField, isFalse);
   }
 
@@ -100,7 +100,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var classA = class_(name: 'A');
     classA.fields = [
       ElementFactory.fieldElement(
-          "f", false, false, false, interfaceTypeStar(classA))
+          "f", false, false, false, interfaceTypeNone(classA))
     ];
     expect(classA.hasNonFinalField, isTrue);
   }
@@ -109,10 +109,10 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
   void test_hasNonFinalField_true_inherited() {
     var classA = class_(name: 'A');
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
     classA.fields = [
       ElementFactory.fieldElement(
-          "f", false, false, false, interfaceTypeStar(classA))
+          "f", false, false, false, interfaceTypeNone(classA))
     ];
     expect(classB.hasNonFinalField, isTrue);
   }
@@ -517,7 +517,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var inheritedMethod = ElementFactory.methodElement(methodName, intNone);
     classA.methods = [inheritedMethod];
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
     MethodElementImpl method =
         ElementFactory.methodElement(methodName, intNone);
     method.isAbstract = true;
@@ -540,7 +540,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var inheritedMethod = ElementFactory.methodElement(methodName, intNone);
     classA.methods = [inheritedMethod];
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
     var method = ElementFactory.methodElement(methodName, intNone);
     classB.methods = [method];
     library.definingCompilationUnit.classes = [classA, classB];
@@ -563,7 +563,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     inheritedMethod.isAbstract = true;
     classA.methods = [inheritedMethod];
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
     var method = ElementFactory.methodElement(methodName, intNone);
     classB.methods = [method];
     library.definingCompilationUnit.classes = [classA, classB];
@@ -582,7 +582,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var inheritedMethod = ElementFactory.methodElement(methodName, intNone);
     classA.methods = [inheritedMethod];
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
     library.definingCompilationUnit.classes = [classA, classB];
     expect(classB.lookUpConcreteMethod(methodName, library),
         same(inheritedMethod));
@@ -623,7 +623,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var getter = ElementFactory.getterElement(getterName, false, intNone);
     classA.accessors = [getter];
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
     library.definingCompilationUnit.classes = [classA, classB];
     // ignore: deprecated_member_use_from_same_package
     expect(classB.lookUpGetter(getterName, library), same(getter));
@@ -647,8 +647,8 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
-    classA.supertype = interfaceTypeStar(classB);
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
+    classA.supertype = interfaceTypeNone(classB);
     library.definingCompilationUnit.classes = [classA, classB];
     // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpGetter("g", library), isNull);
@@ -672,7 +672,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var method = ElementFactory.methodElement(methodName, intNone);
     classA.methods = [method];
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
     library.definingCompilationUnit.classes = [classA, classB];
     // ignore: deprecated_member_use_from_same_package
     expect(classB.lookUpMethod(methodName, library), same(method));
@@ -690,8 +690,8 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
-    classA.supertype = interfaceTypeStar(classB);
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
+    classA.supertype = interfaceTypeNone(classB);
     library.definingCompilationUnit.classes = [classA, classB];
     // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpMethod("m", library), isNull);
@@ -723,7 +723,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var setter = ElementFactory.setterElement(setterName, false, intNone);
     classA.accessors = [setter];
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
     library.definingCompilationUnit.classes = [classA, classB];
     // ignore: deprecated_member_use_from_same_package
     expect(classB.lookUpSetter(setterName, library), same(setter));
@@ -747,8 +747,8 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
-    classA.supertype = interfaceTypeStar(classB);
+        ElementFactory.classElement("B", interfaceTypeNone(classA));
+    classA.supertype = interfaceTypeNone(classB);
     library.definingCompilationUnit.classes = [classA, classB];
     // ignore: deprecated_member_use_from_same_package
     expect(classA.lookUpSetter("s", library), isNull);
@@ -797,7 +797,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
       false,
       classElement.instantiate(
         typeArguments: [],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       ),
     );
     classElement.fields = [field];
@@ -1109,7 +1109,6 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     check(numNone, ['Comparable<num>', 'Object']);
     check(intNone, ['Comparable<num>', 'Object', 'num']);
     check(intQuestion, ['Comparable<num>?', 'Object?', 'num?']);
-    check(intStar, ['Comparable<num>*', 'Object*', 'num*']);
     check(listNone(intQuestion), ['Iterable<int?>', 'Object']);
   }
 
@@ -1125,14 +1124,14 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
 
     var AofC = A.instantiate(
       typeArguments: [
-        interfaceTypeStar(C),
+        interfaceTypeNone(C),
       ],
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
 
     B.interfaces = <InterfaceType>[AofC];
 
-    var targetType = interfaceTypeStar(B);
+    var targetType = interfaceTypeNone(B);
     var result = targetType.asInstanceOf(A);
     expect(result, AofC);
   }
@@ -1150,8 +1149,8 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
       typeParameters: [BE],
       interfaces: [
         A.instantiate(
-          typeArguments: [typeParameterTypeStar(BE)],
-          nullabilitySuffix: NullabilitySuffix.star,
+          typeArguments: [typeParameterTypeNone(BE)],
+          nullabilitySuffix: NullabilitySuffix.none,
         ),
       ],
     );
@@ -1159,21 +1158,21 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     var C = class_(name: 'C');
 
     var targetType = B.instantiate(
-      typeArguments: [interfaceTypeStar(C)],
-      nullabilitySuffix: NullabilitySuffix.star,
+      typeArguments: [interfaceTypeNone(C)],
+      nullabilitySuffix: NullabilitySuffix.none,
     );
     var result = targetType.asInstanceOf(A);
     expect(
       result,
       A.instantiate(
-        typeArguments: [interfaceTypeStar(C)],
-        nullabilitySuffix: NullabilitySuffix.star,
+        typeArguments: [interfaceTypeNone(C)],
+        nullabilitySuffix: NullabilitySuffix.none,
       ),
     );
   }
 
   void test_creation() {
-    expect(interfaceTypeStar(class_(name: 'A')), isNotNull);
+    expect(interfaceTypeNone(class_(name: 'A')), isNotNull);
   }
 
   void test_getAccessors() {
@@ -1181,13 +1180,13 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     var getterG = ElementFactory.getterElement("g", false, intNone);
     var getterH = ElementFactory.getterElement("h", false, intNone);
     typeElement.accessors = [getterG, getterH];
-    InterfaceType type = interfaceTypeStar(typeElement);
+    InterfaceType type = interfaceTypeNone(typeElement);
     expect(type.accessors.length, 2);
   }
 
   void test_getAccessors_empty() {
     ClassElementImpl typeElement = class_(name: 'A');
-    InterfaceType type = interfaceTypeStar(typeElement);
+    InterfaceType type = interfaceTypeNone(typeElement);
     expect(type.accessors.length, 0);
   }
 
@@ -1198,20 +1197,20 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     ConstructorElementImpl constructorTwo =
         ElementFactory.constructorElement(typeElement, 'two', false);
     typeElement.constructors = [constructorOne, constructorTwo];
-    InterfaceType type = interfaceTypeStar(typeElement);
+    InterfaceType type = interfaceTypeNone(typeElement);
     expect(type.constructors, hasLength(2));
   }
 
   void test_getConstructors_empty() {
     ClassElementImpl typeElement = class_(name: 'A');
     typeElement.constructors = const <ConstructorElementImpl>[];
-    InterfaceType type = interfaceTypeStar(typeElement);
+    InterfaceType type = interfaceTypeNone(typeElement);
     expect(type.constructors, isEmpty);
   }
 
   void test_getElement() {
     ClassElementImpl typeElement = class_(name: 'A');
-    InterfaceType type = interfaceTypeStar(typeElement);
+    InterfaceType type = interfaceTypeNone(typeElement);
     expect(type.element, typeElement);
   }
 
@@ -1223,7 +1222,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     String getterName = "g";
     var getterG = ElementFactory.getterElement(getterName, false, intNone);
     classA.accessors = [getterG];
-    InterfaceType typeA = interfaceTypeStar(classA);
+    InterfaceType typeA = interfaceTypeNone(classA);
     expect(typeA.getGetter(getterName), same(getterG));
   }
 
@@ -1234,7 +1233,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     var AE = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [AE]);
 
-    DartType typeAE = typeParameterTypeStar(AE);
+    DartType typeAE = typeParameterTypeNone(AE);
     String getterName = "g";
     PropertyAccessorElementImpl getterG =
         ElementFactory.getterElement(getterName, false, typeAE);
@@ -1242,10 +1241,10 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     //
     // A<I>
     //
-    var I = interfaceTypeStar(class_(name: 'I'));
+    var I = interfaceTypeNone(class_(name: 'I'));
     var AofI = A.instantiate(
       typeArguments: [I],
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
 
     PropertyAccessorElement getter = AofI.getGetter(getterName)!;
@@ -1259,7 +1258,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     // class A {}
     //
     var classA = class_(name: 'A');
-    InterfaceType typeA = interfaceTypeStar(classA);
+    InterfaceType typeA = interfaceTypeNone(classA);
     expect(typeA.getGetter("g"), isNull);
   }
 
@@ -1343,7 +1342,7 @@ A<int>?
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, intNone);
     classA.methods = [methodM];
-    InterfaceType typeA = interfaceTypeStar(classA);
+    InterfaceType typeA = interfaceTypeNone(classA);
     expect(typeA.getMethod(methodName), same(methodM));
   }
 
@@ -1353,7 +1352,7 @@ A<int>?
     //
     var E = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [E]);
-    DartType typeE = typeParameterTypeStar(E);
+    DartType typeE = typeParameterTypeNone(E);
     String methodName = "m";
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
@@ -1361,8 +1360,8 @@ A<int>?
     //
     // A<I>
     //
-    var typeI = interfaceTypeStar(class_(name: 'I'));
-    var typeAI = interfaceTypeStar(A, typeArguments: <DartType>[typeI]);
+    var typeI = interfaceTypeNone(class_(name: 'I'));
+    var typeAI = interfaceTypeNone(A, typeArguments: <DartType>[typeI]);
     var method = typeAI.getMethod(methodName)!;
     expect(method, isNotNull);
     FunctionType methodType = method.type;
@@ -1377,7 +1376,7 @@ A<int>?
     // class A {}
     //
     var classA = class_(name: 'A');
-    InterfaceType typeA = interfaceTypeStar(classA);
+    InterfaceType typeA = interfaceTypeNone(classA);
     expect(typeA.getMethod("m"), isNull);
   }
 
@@ -1386,13 +1385,13 @@ A<int>?
     MethodElementImpl methodOne = ElementFactory.methodElement("one", intNone);
     MethodElementImpl methodTwo = ElementFactory.methodElement("two", intNone);
     typeElement.methods = [methodOne, methodTwo];
-    InterfaceType type = interfaceTypeStar(typeElement);
+    InterfaceType type = interfaceTypeNone(typeElement);
     expect(type.methods.length, 2);
   }
 
   void test_getMethods_empty() {
     ClassElementImpl typeElement = class_(name: 'A');
-    InterfaceType type = interfaceTypeStar(typeElement);
+    InterfaceType type = interfaceTypeNone(typeElement);
     expect(type.methods.length, 0);
   }
 
@@ -1439,7 +1438,7 @@ B?
       name: 'B',
       typeParameters: [F],
       mixins: [
-        interfaceTypeStar(A, typeArguments: [
+        interfaceTypeNone(A, typeArguments: [
           typeParameterTypeNone(F),
         ]),
       ],
@@ -1471,7 +1470,7 @@ A<int>?
     String setterName = "s";
     var setterS = ElementFactory.setterElement(setterName, false, intNone);
     classA.accessors = [setterS];
-    InterfaceType typeA = interfaceTypeStar(classA);
+    InterfaceType typeA = interfaceTypeNone(classA);
     expect(typeA.getSetter(setterName), same(setterS));
   }
 
@@ -1481,7 +1480,7 @@ A<int>?
     //
     var E = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [E]);
-    DartType typeE = typeParameterTypeStar(E);
+    DartType typeE = typeParameterTypeNone(E);
     String setterName = "s";
     PropertyAccessorElementImpl setterS =
         ElementFactory.setterElement(setterName, false, typeE);
@@ -1489,8 +1488,8 @@ A<int>?
     //
     // A<I>
     //
-    var typeI = interfaceTypeStar(class_(name: 'I'));
-    var typeAI = interfaceTypeStar(A, typeArguments: <DartType>[typeI]);
+    var typeI = interfaceTypeNone(class_(name: 'I'));
+    var typeAI = interfaceTypeNone(A, typeArguments: <DartType>[typeI]);
     PropertyAccessorElement setter = typeAI.getSetter(setterName)!;
     expect(setter, isNotNull);
     FunctionType setterType = setter.type;
@@ -1504,7 +1503,7 @@ A<int>?
     // class A {}
     //
     var classA = class_(name: 'A');
-    InterfaceType typeA = interfaceTypeStar(classA);
+    InterfaceType typeA = interfaceTypeNone(classA);
     expect(typeA.getSetter("s"), isNull);
   }
 
@@ -1550,19 +1549,19 @@ A<int>?
   }
 
   void test_getTypeArguments_empty() {
-    InterfaceType type = interfaceTypeStar(ElementFactory.classElement2('A'));
+    InterfaceType type = interfaceTypeNone(ElementFactory.classElement2('A'));
     expect(type.typeArguments, hasLength(0));
   }
 
   void test_hashCode() {
     ClassElement classA = class_(name: 'A');
-    InterfaceType typeA = interfaceTypeStar(classA);
+    InterfaceType typeA = interfaceTypeNone(classA);
     expect(0 == typeA.hashCode, isFalse);
   }
 
   @deprecated
   void test_resolveToBound() {
-    var type = interfaceTypeStar(ElementFactory.classElement2('A'));
+    var type = interfaceTypeNone(ElementFactory.classElement2('A'));
 
     // Returns this.
     expect(type.resolveToBound(objectNone), same(type));
@@ -2070,12 +2069,12 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   }
 
   void test_creation() {
-    expect(typeParameterTypeStar(TypeParameterElementImpl('E', -1)), isNotNull);
+    expect(typeParameterTypeNone(TypeParameterElementImpl('E', -1)), isNotNull);
   }
 
   void test_getElement() {
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    TypeParameterTypeImpl type = typeParameterTypeStar(element);
+    TypeParameterTypeImpl type = typeParameterTypeNone(element);
     expect(type.element, element);
   }
 
@@ -2083,9 +2082,9 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_resolveToBound_bound() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeStar(classS);
-    TypeParameterTypeImpl type = typeParameterTypeStar(element);
-    expect(type.resolveToBound(objectNone), interfaceTypeStar(classS));
+    element.bound = interfaceTypeNone(classS);
+    TypeParameterTypeImpl type = typeParameterTypeNone(element);
+    expect(type.resolveToBound(objectNone), interfaceTypeNone(classS));
   }
 
   @deprecated
@@ -2093,7 +2092,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
     element.bound = interfaceTypeQuestion(classS);
-    TypeParameterTypeImpl type = typeParameterTypeStar(element);
+    TypeParameterTypeImpl type = typeParameterTypeNone(element);
     expect(type.resolveToBound(objectNone), same(element.bound));
   }
 
@@ -2102,7 +2101,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
     element.bound = interfaceTypeQuestion(classS);
-    var type = typeParameterTypeStar(element)
+    var type = typeParameterTypeNone(element)
         .withNullability(NullabilitySuffix.question);
     expect(type.resolveToBound(objectNone), same(element.bound));
   }
@@ -2112,7 +2111,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
     element.bound = interfaceTypeQuestion(classS);
-    var type = typeParameterTypeStar(element)
+    var type = typeParameterTypeNone(element)
         .withNullability(NullabilitySuffix.question);
     expect(
         type.resolveToBound(objectNone), equals(interfaceTypeQuestion(classS)));
@@ -2122,8 +2121,8 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_resolveToBound_bound_nullableOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeStar(classS);
-    var type = typeParameterTypeStar(element)
+    element.bound = interfaceTypeNone(classS);
+    var type = typeParameterTypeNone(element)
         .withNullability(NullabilitySuffix.question);
     expect(
         type.resolveToBound(objectNone), equals(interfaceTypeQuestion(classS)));
@@ -2133,8 +2132,8 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_resolveToBound_bound_starInner() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeStar(classS);
-    var type = typeParameterTypeStar(element);
+    element.bound = interfaceTypeNone(classS);
+    var type = typeParameterTypeNone(element);
     expect(type.resolveToBound(objectNone), same(element.bound));
   }
 
@@ -2144,7 +2143,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
     element.bound = interfaceTypeQuestion(classS);
     var type =
-        typeParameterTypeStar(element).withNullability(NullabilitySuffix.star);
+        typeParameterTypeNone(element).withNullability(NullabilitySuffix.none);
     expect(type.resolveToBound(objectNone), same(element.bound));
   }
 
@@ -2152,22 +2151,22 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_resolveToBound_bound_starOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeStar(classS);
+    element.bound = interfaceTypeNone(classS);
     var type =
-        typeParameterTypeStar(element).withNullability(NullabilitySuffix.star);
-    expect(type.resolveToBound(objectNone), interfaceTypeStar(classS));
+        typeParameterTypeNone(element).withNullability(NullabilitySuffix.none);
+    expect(type.resolveToBound(objectNone), interfaceTypeNone(classS));
   }
 
   @deprecated
   void test_resolveToBound_nestedBound() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl elementE = TypeParameterElementImpl('E', -1);
-    elementE.bound = interfaceTypeStar(classS);
-    TypeParameterTypeImpl typeE = typeParameterTypeStar(elementE);
+    elementE.bound = interfaceTypeNone(classS);
+    TypeParameterTypeImpl typeE = typeParameterTypeNone(elementE);
     TypeParameterElementImpl elementF = TypeParameterElementImpl('F', -1);
     elementF.bound = typeE;
-    TypeParameterTypeImpl typeF = typeParameterTypeStar(elementE);
-    expect(typeF.resolveToBound(objectNone), interfaceTypeStar(classS));
+    TypeParameterTypeImpl typeF = typeParameterTypeNone(elementE);
+    expect(typeF.resolveToBound(objectNone), interfaceTypeNone(classS));
   }
 
   @deprecated
@@ -2196,7 +2195,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   @deprecated
   void test_resolveToBound_unbound() {
     TypeParameterTypeImpl type =
-        typeParameterTypeStar(TypeParameterElementImpl('E', -1));
+        typeParameterTypeNone(TypeParameterElementImpl('E', -1));
     // Returns whatever type is passed to resolveToBound().
     expect(type.resolveToBound(VoidTypeImpl.instance),
         same(VoidTypeImpl.instance));

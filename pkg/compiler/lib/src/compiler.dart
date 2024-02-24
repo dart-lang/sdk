@@ -69,6 +69,12 @@ import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 
+enum _ResolutionStatus {
+  resolving,
+  doneResolving,
+  compiling,
+}
+
 /// Implementation of the compiler using a [api.CompilerInput] for supplying
 /// the sources.
 class Compiler {
@@ -129,11 +135,7 @@ class Compiler {
 
   Progress progress = const Progress();
 
-  static const int RESOLUTION_STATUS_SCANNING = 0;
-  static const int RESOLUTION_STATUS_RESOLVING = 1;
-  static const int RESOLUTION_STATUS_DONE_RESOLVING = 2;
-  static const int RESOLUTION_STATUS_COMPILING = 3;
-  int? resolutionStatus;
+  _ResolutionStatus? _resolutionStatus;
 
   Dart2JSStage get stage => options.stage;
 
@@ -362,7 +364,7 @@ class Compiler {
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
 
-    resolutionStatus = RESOLUTION_STATUS_RESOLVING;
+    _resolutionStatus = _ResolutionStatus.resolving;
     resolutionEnqueuer.applyImpact(mainImpact);
     if (options.showInternalProgress) reporter.log('Computing closed world');
 
@@ -591,7 +593,7 @@ class Compiler {
       GlobalTypeInferenceResults globalTypeInferenceResults) {
     backendStrategy
         .registerJClosedWorld(globalTypeInferenceResults.closedWorld);
-    resolutionStatus = RESOLUTION_STATUS_COMPILING;
+    _resolutionStatus = _ResolutionStatus.compiling;
     return backendStrategy.onCodegenStart(globalTypeInferenceResults);
   }
 
@@ -727,7 +729,7 @@ class Compiler {
   /// Perform the steps needed to fully end the resolution phase.
   JClosedWorld? closeResolution(FunctionEntity mainFunction,
       ResolutionWorldBuilder resolutionWorldBuilder) {
-    resolutionStatus = RESOLUTION_STATUS_DONE_RESOLVING;
+    _resolutionStatus = _ResolutionStatus.doneResolving;
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
     OutputUnitData result = deferredLoadTask.run(mainFunction, kClosedWorld);
@@ -784,8 +786,8 @@ class Compiler {
   }
 
   void showResolutionProgress(Enqueuer enqueuer) {
-    assert(resolutionStatus == RESOLUTION_STATUS_RESOLVING,
-        'Unexpected phase: $resolutionStatus');
+    assert(_resolutionStatus == _ResolutionStatus.resolving,
+        'Unexpected phase: $_resolutionStatus');
     progress.showProgress(
         'Resolved ', enqueuer.processedEntities.length, ' elements.');
   }
@@ -799,7 +801,7 @@ class Compiler {
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     _reportDiagnosticMessage(message, kind);
     for (DiagnosticMessage info in infos) {
-      _reportDiagnosticMessage(info, api.Diagnostic.CONTEXT);
+      _reportDiagnosticMessage(info, api.Diagnostic.context);
     }
   }
 
@@ -876,7 +878,7 @@ class Compiler {
   /// context.
   SourceSpan spanFromSpannable(Spannable spannable, Entity? currentElement) {
     SourceSpan span;
-    if (resolutionStatus == Compiler.RESOLUTION_STATUS_COMPILING) {
+    if (_resolutionStatus == _ResolutionStatus.compiling) {
       span = backendStrategy.spanFromSpannable(spannable, currentElement);
     } else {
       span = frontendStrategy.spanFromSpannable(spannable, currentElement);
@@ -919,12 +921,12 @@ class Compiler {
   }
 
   void logInfo(String message) {
-    callUserHandler(null, null, null, null, message, api.Diagnostic.INFO);
+    callUserHandler(null, null, null, null, message, api.Diagnostic.info);
   }
 
   void logVerbose(String message) {
     callUserHandler(
-        null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
+        null, null, null, null, message, api.Diagnostic.verboseInfo);
   }
 
   String _formatMs(int ms) {

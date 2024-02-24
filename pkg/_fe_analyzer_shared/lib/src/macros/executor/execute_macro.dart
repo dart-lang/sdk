@@ -54,6 +54,8 @@ Future<MacroExecutionResult> executeTypesMacro(
                 target.identifier as IdentifierImpl, introspector));
       case (EnumValueDeclaration target, EnumValueTypesMacro macro):
         await macro.buildTypesForEnumValue(target, typeBuilder);
+      case (TypeAliasDeclaration target, TypeAliasTypesMacro macro):
+        await macro.buildTypesForTypeAlias(target, typeBuilder);
       default:
         throw new UnsupportedError('Unsupported macro type or invalid target:\n'
             'macro: $macro\ntarget: $target');
@@ -132,6 +134,8 @@ Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
         await macro.buildDeclarationsForFunction(target, topLevelBuilder);
       case (VariableDeclaration target, VariableDeclarationsMacro macro):
         await macro.buildDeclarationsForVariable(target, topLevelBuilder);
+      case (TypeAliasDeclaration target, TypeAliasDeclarationsMacro macro):
+        await macro.buildDeclarationsForTypeAlias(target, topLevelBuilder);
       default:
         throw new UnsupportedError('Unsupported macro type or invalid target:\n'
             'macro: $macro\ntarget: $target');

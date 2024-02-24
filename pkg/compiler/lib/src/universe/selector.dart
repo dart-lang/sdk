@@ -10,7 +10,7 @@ import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/operators.dart';
-import '../kernel/invocation_mirror_constants.dart';
+import '../kernel/invocation_mirror.dart';
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'call_structure.dart' show CallStructure;
@@ -209,12 +209,12 @@ class Selector {
   /// The member name for invocation mirrors created from this selector.
   String get invocationMirrorMemberName => isSetter ? '$name=' : name;
 
-  int get invocationMirrorKind {
-    int kind = invocationMirrorMethodKind;
+  InvocationMirrorKind get invocationMirrorKind {
+    var kind = InvocationMirrorKind.method;
     if (isGetter) {
-      kind = invocationMirrorGetterKind;
+      kind = InvocationMirrorKind.getter;
     } else if (isSetter) {
-      kind = invocationMirrorSetterKind;
+      kind = InvocationMirrorKind.setter;
     }
     return kind;
   }

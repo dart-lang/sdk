@@ -204,6 +204,7 @@ enum DeclarationKind {
   library,
   method,
   mixinType,
+  typeAlias,
   variable,
 }
 

@@ -5,6 +5,12 @@
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/dart/element/element.dart';
 
+final class AliasedTypeLocation extends TypeAnnotationLocation {
+  final TypeAnnotationLocation parent;
+
+  AliasedTypeLocation(this.parent);
+}
+
 final class ElementTypeLocation extends TypeAnnotationLocation {
   final Element element;
 

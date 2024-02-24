@@ -2148,5 +2148,6 @@ class DeferredPrimaryExpression extends js.DeferredExpression {
   }
 
   @override
-  int get precedenceLevel => js_precedence.PRIMARY;
+  js_precedence.Precedence get precedenceLevel =>
+      js_precedence.Precedence.primary;
 }

@@ -199,9 +199,9 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   api.Diagnostic? lastKind = null;
   int fatalCount = 0;
 
-  final int FATAL = api.Diagnostic.CRASH.ordinal | api.Diagnostic.ERROR.ordinal;
+  final int FATAL = api.Diagnostic.crash.ordinal | api.Diagnostic.error.ordinal;
   final int INFO =
-      api.Diagnostic.INFO.ordinal | api.Diagnostic.VERBOSE_INFO.ordinal;
+      api.Diagnostic.info.ordinal | api.Diagnostic.verboseInfo.ordinal;
 
   FormattingDiagnosticHandler();
 
@@ -209,8 +209,8 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     this.provider = provider;
   }
 
-  void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
-    if (!verbose && kind == api.Diagnostic.VERBOSE_INFO) return;
+  void info(var message, [api.Diagnostic kind = api.Diagnostic.verboseInfo]) {
+    if (!verbose && kind == api.Diagnostic.verboseInfo) return;
     if (enableColors) {
       print('${colors.green("Info:")} $message');
     } else {
@@ -221,31 +221,30 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   /// Adds [kind] specific prefix to [message].
   String prefixMessage(String message, api.Diagnostic kind) {
     switch (kind) {
-      case api.Diagnostic.ERROR:
+      case api.Diagnostic.error:
         return 'Error: $message';
-      case api.Diagnostic.WARNING:
+      case api.Diagnostic.warning:
         return 'Warning: $message';
-      case api.Diagnostic.HINT:
+      case api.Diagnostic.hint:
         return 'Hint: $message';
-      case api.Diagnostic.CRASH:
+      case api.Diagnostic.crash:
         return 'Internal Error: $message';
-      case api.Diagnostic.CONTEXT:
-      case api.Diagnostic.INFO:
-      case api.Diagnostic.VERBOSE_INFO:
+      case api.Diagnostic.context:
+      case api.Diagnostic.info:
+      case api.Diagnostic.verboseInfo:
         return 'Info: $message';
     }
-    throw 'Unexpected diagnostic kind: $kind (${kind.ordinal})';
   }
 
   @override
   void report(var code, Uri? uri, int? begin, int? end, String message,
       api.Diagnostic kind) {
     if (isAborting) return;
-    isAborting = (kind == api.Diagnostic.CRASH);
+    isAborting = (kind == api.Diagnostic.crash);
 
     bool fatal = (kind.ordinal & FATAL) != 0;
     bool isInfo = (kind.ordinal & INFO) != 0;
-    if (isInfo && uri == null && kind != api.Diagnostic.INFO) {
+    if (isInfo && uri == null && kind != api.Diagnostic.info) {
       info(message, kind);
       return;
     }
@@ -255,25 +254,25 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     // [lastKind] records the previous non-INFO kind we saw.
     // This is used to suppress info about a warning when warnings are
     // suppressed, and similar for hints.
-    if (kind != api.Diagnostic.INFO) {
+    if (kind != api.Diagnostic.info) {
       lastKind = kind;
     }
     String Function(String) color;
-    if (kind == api.Diagnostic.ERROR) {
+    if (kind == api.Diagnostic.error) {
       color = colors.red;
-    } else if (kind == api.Diagnostic.WARNING) {
+    } else if (kind == api.Diagnostic.warning) {
       if (!showWarnings) return;
       color = colors.magenta;
-    } else if (kind == api.Diagnostic.HINT) {
+    } else if (kind == api.Diagnostic.hint) {
       if (!showHints) return;
       color = colors.cyan;
-    } else if (kind == api.Diagnostic.CRASH) {
+    } else if (kind == api.Diagnostic.crash) {
       color = colors.red;
-    } else if (kind == api.Diagnostic.INFO) {
+    } else if (kind == api.Diagnostic.info) {
       color = colors.green;
-    } else if (kind == api.Diagnostic.CONTEXT) {
-      if (lastKind == api.Diagnostic.WARNING && !showWarnings) return;
-      if (lastKind == api.Diagnostic.HINT && !showHints) return;
+    } else if (kind == api.Diagnostic.context) {
+      if (lastKind == api.Diagnostic.warning && !showWarnings) return;
+      if (lastKind == api.Diagnostic.hint && !showHints) return;
       color = colors.green;
     } else {
       throw 'Unknown kind: $kind (${kind.ordinal})';

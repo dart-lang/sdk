@@ -743,6 +743,9 @@ class _ElementWriter {
   void _writeMacroDiagnostics(Element e) {
     void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
       switch (location) {
+        case AliasedTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('AliasedTypeLocation');
         case ElementTypeLocation():
           _sink.writelnWithIndent('ElementTypeLocation');
           _sink.withIndent(() {
@@ -1370,6 +1373,8 @@ class _ElementWriter {
           _writeReturnType(aliasedElement.returnType);
         });
       }
+
+      _writeMacroDiagnostics(e);
     });
 
     _assertNonSyntheticElementSelf(e);
