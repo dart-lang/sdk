@@ -58,7 +58,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   /// Build exports and imports, metadata into [_container].
-  void buildLibraryElementChildren(CompilationUnit unit) {
+  void buildLibraryElementChildren(CompilationUnitImpl unit) {
     unit.directives.accept(this);
 
     if (_isFirstLibraryDirective) {
@@ -1246,7 +1246,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.mixinTypes.accept(this);
   }
 
-  List<ElementAnnotation> _buildAnnotations(List<Annotation> nodeList) {
+  List<ElementAnnotationImpl> _buildAnnotations(List<Annotation> nodeList) {
     return _buildAnnotationsWithUnit(_unitElement, nodeList);
   }
 
@@ -1465,16 +1465,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
   }
 
-  static List<ElementAnnotation> _buildAnnotationsWithUnit(
+  static List<ElementAnnotationImpl> _buildAnnotationsWithUnit(
     CompilationUnitElementImpl unitElement,
     List<Annotation> nodeList,
   ) {
     var length = nodeList.length;
     if (length == 0) {
-      return const <ElementAnnotation>[];
+      return const <ElementAnnotationImpl>[];
     }
 
-    return List<ElementAnnotation>.generate(length, (index) {
+    return List<ElementAnnotationImpl>.generate(length, (index) {
       var ast = nodeList[index] as AnnotationImpl;
       var element = ElementAnnotationImpl(unitElement);
       element.annotationAst = ast;

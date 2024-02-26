@@ -173,7 +173,7 @@ abstract class AugmentedInstanceElementImpl
 
   @override
   // TODO(scheglov): implement metadata
-  List<ElementAnnotation> get metadata => throw UnimplementedError();
+  List<ElementAnnotationImpl> get metadata => throw UnimplementedError();
 }
 
 abstract class AugmentedInterfaceElementImpl
@@ -860,7 +860,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
   }
@@ -1913,7 +1913,7 @@ abstract class ElementImpl implements Element {
   int _modifiers = 0;
 
   /// A list containing all of the metadata associated with this element.
-  List<ElementAnnotation> _metadata = const [];
+  List<ElementAnnotationImpl> _metadata = const [];
 
   /// Cached flags denoting presence of specific annotations in [_metadata].
   int _metadataFlags = 0;
@@ -2162,8 +2162,7 @@ abstract class ElementImpl implements Element {
     final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
-      if (annotation is ElementAnnotationImpl &&
-          annotation.isPragmaVmEntryPoint) {
+      if (annotation.isPragmaVmEntryPoint) {
         return true;
       }
     }
@@ -2340,11 +2339,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     return _metadata;
   }
 
-  set metadata(List<ElementAnnotation> metadata) {
+  set metadata(List<ElementAnnotationImpl> metadata) {
     _metadata = metadata;
   }
 
@@ -2804,7 +2803,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
   }
@@ -2942,7 +2941,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   ElementKind get kind => ElementKind.EXTENSION;
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
   }
@@ -3122,7 +3121,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   ElementKind get kind => ElementKind.FIELD;
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
   }
@@ -3402,7 +3401,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   }
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
   }
@@ -4326,7 +4325,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     _readLinkedData();
     return super.metadata;
   }
@@ -5635,7 +5634,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   ElementLocation? get location => null;
 
   @override
-  List<ElementAnnotation> get metadata => const <ElementAnnotation>[];
+  List<ElementAnnotationImpl> get metadata {
+    return const <ElementAnnotationImpl>[];
+  }
 
   @override
   int get nameLength => 0;
@@ -5843,7 +5844,7 @@ abstract class NotAugmentedInstanceElementImpl
   }
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     return element.metadata;
   }
 
@@ -6319,7 +6320,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
   }
@@ -6727,7 +6728,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
   }
@@ -6834,7 +6835,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 
   @override
-  List<ElementAnnotation> get metadata {
+  List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
   }

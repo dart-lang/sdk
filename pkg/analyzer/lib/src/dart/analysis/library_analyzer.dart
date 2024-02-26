@@ -929,7 +929,7 @@ class LibraryAnalyzer {
 
   void _resolveLibraryExportDirective({
     required ExportDirectiveImpl directive,
-    required LibraryExportElement element,
+    required LibraryExportElementImpl element,
     required LibraryExportState state,
     required ErrorReporter errorReporter,
   }) {
@@ -983,7 +983,7 @@ class LibraryAnalyzer {
 
   void _resolveLibraryImportDirective({
     required ImportDirectiveImpl directive,
-    required LibraryImportElement element,
+    required LibraryImportElementImpl element,
     required LibraryImportState state,
     required ErrorReporter errorReporter,
   }) {
@@ -1013,7 +1013,7 @@ class LibraryAnalyzer {
   void _resolvePartDirective({
     required PartDirectiveImpl directive,
     required PartState partState,
-    required PartElement partElement,
+    required PartElementImpl partElement,
     required ErrorReporter errorReporter,
     required LibraryIdentifier? libraryNameNode,
     required Set<Source> seenPartSources,

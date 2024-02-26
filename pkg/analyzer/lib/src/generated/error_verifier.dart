@@ -6373,7 +6373,6 @@ class _MacroDiagnosticsReporter {
 
   static AnnotationImpl _annotationNode(ElementImpl element, int index) {
     var annotation = element.metadata[index];
-    annotation as ElementAnnotationImpl;
     return annotation.annotationAst;
   }
 

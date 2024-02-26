@@ -201,7 +201,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+  void visitAugmentationImportDirective(
+    covariant AugmentationImportDirectiveImpl node,
+  ) {
     final element = node.element;
     if (element is AugmentationImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -547,7 +549,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {
+  void visitExportDirective(covariant ExportDirectiveImpl node) {
     var element = node.element;
     if (element is LibraryExportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -938,7 +940,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {
+  void visitImportDirective(covariant ImportDirectiveImpl node) {
     var element = node.element;
     if (element is LibraryImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -1000,7 +1002,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+  void visitLibraryAugmentationDirective(
+    covariant LibraryAugmentationDirectiveImpl node,
+  ) {
     final element = node.element;
     if (element is LibraryOrAugmentationElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -1012,7 +1016,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     ++_libraryDirectiveIndex;
     var element = node.element;
     if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
@@ -1117,7 +1121,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPartDirective(PartDirective node) {
+  void visitPartDirective(covariant PartDirectiveImpl node) {
     var element = node.element;
     if (element is PartElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -1374,7 +1378,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitTypeParameter(TypeParameter node) {
+  void visitTypeParameter(covariant TypeParameterImpl node) {
     var element = node.declaredElement as TypeParameterElementImpl;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -1416,7 +1420,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(
+    covariant VariableDeclarationListImpl node,
+  ) {
     var parent = node.parent;
     if (parent is ForPartsWithDeclarations ||
         parent is VariableDeclarationStatement &&
@@ -1426,10 +1432,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.visitChildren(this);
 
-    NodeList<Annotation> annotations;
-    if (parent is FieldDeclaration) {
+    NodeList<AnnotationImpl> annotations;
+    if (parent is FieldDeclarationImpl) {
       annotations = parent.metadata;
-    } else if (parent is TopLevelVariableDeclaration) {
+    } else if (parent is TopLevelVariableDeclarationImpl) {
       annotations = parent.metadata;
     } else {
       // Local variable declaration
@@ -1764,7 +1770,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _setOrCreateMetadataElements(
     ElementImpl element,
-    NodeList<Annotation> annotations, {
+    NodeList<AnnotationImpl> annotations, {
     bool visitNodes = true,
   }) {
     if (visitNodes) {
@@ -1888,7 +1894,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// Associate each of the annotation [nodes] with the corresponding
   /// [ElementAnnotation] in [annotations].
   static void _setElementAnnotations(
-      List<Annotation> nodes, List<ElementAnnotation> annotations) {
+    List<AnnotationImpl> nodes,
+    List<ElementAnnotationImpl> annotations,
+  ) {
     int nodeCount = nodes.length;
     if (nodeCount != annotations.length) {
       throw StateError(
@@ -1897,7 +1905,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       );
     }
     for (int i = 0; i < nodeCount; i++) {
-      (nodes[i] as AnnotationImpl).elementAnnotation = annotations[i];
+      nodes[i].elementAnnotation = annotations[i];
     }
   }
 }
