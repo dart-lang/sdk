@@ -5,8 +5,9 @@
 // Patch file for dart:developer library.
 
 import 'dart:_internal' show patch;
-import 'dart:_foreign_helper' show JS;
+
 import 'dart:async' show Zone;
+import 'dart:js_interop';
 import 'dart:isolate';
 
 // These values must be kept in sync with developer/timeline.dart.
@@ -18,12 +19,55 @@ const int _flowBeginPatch = 9;
 const int _flowStepPatch = 10;
 const int _flowEndPatch = 11;
 
+@JS('debugger')
+external void _jsDebugger();
+
+@JS('performance')
+external JSAny? get _jsPerformance;
+
+@JS('JSON')
+external JSAny? get _jsJSON;
+
+extension type _JSPerformance(JSObject performance) {
+  @JS('measure')
+  external JSAny? get _measureMethod;
+
+  @JS('mark')
+  external JSAny? get _markMethod;
+
+  external void measure(
+      JSString measureName, JSString startMark, JSString endMark);
+
+  external void mark(JSString markName, JSObject markOptions);
+}
+
+extension type _JSJSON(JSObject performance) {
+  external JSObject parse(JSString string);
+}
+
+_JSPerformance? _performance = (() {
+  final value = _jsPerformance;
+  if (value.isA<JSObject>()) {
+    final performance = _JSPerformance(value as JSObject);
+    if (performance._measureMethod != null && performance._markMethod != null) {
+      return performance;
+    }
+  }
+  return null;
+})();
+
+_JSJSON _json = (() {
+  final value = _jsJSON;
+  if (value.isA<JSObject>()) {
+    return value as _JSJSON;
+  }
+  throw UnsupportedError('Missing JSON.parse() support');
+})();
+
 @patch
 @pragma('dart2js:tryInline')
 bool debugger({bool when = true, String? message}) {
-  if (when) {
-    JS('', 'debugger');
-  }
+  if (when) _jsDebugger();
   return when;
 }
 
@@ -69,9 +113,7 @@ void _postEvent(String eventKind, String eventData) {
 
 @patch
 bool _isDartStreamEnabled() {
-  // Timeline requires performance.measure API.
-  return JS('bool', r'typeof performance !== "undefined"') &&
-      JS('bool', r'typeof performance.measure !== "undefined"');
+  return _performance != null;
 }
 
 @patch
@@ -156,23 +198,17 @@ void _reportTaskEvent(
     _incrementEventCount(currentEventName);
     currentEventName = _postfixWithCount(currentEventName);
   }
-  final markOptions = JS('', '{detail: JSON.parse(#)}', argumentsAsJson);
 
   // Start by creating a mark event.
-  JS('', 'performance.mark(#, #)', currentEventName, markOptions);
+  _performance!.mark(currentEventName.toJS, _json.parse(argumentsAsJson.toJS));
 
   // If it's an end event, then create a measurement from the most recent begin
   // event with the same name.
   if (isEndEvent) {
     final beginEventName = _createEventName(
         taskId: taskId, name: name, isBeginEvent: true, isEndEvent: false);
-    JS(
-      '',
-      'performance.measure(#, #, #)',
-      name,
-      _postfixWithCount(beginEventName),
-      currentEventName,
-    );
+    _performance!.measure(name.toJS, _postfixWithCount(beginEventName).toJS,
+        currentEventName.toJS);
     _decrementEventCount(beginEventName);
   }
 }

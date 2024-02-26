@@ -307,7 +307,7 @@
       "developer": {
         "uri": "developer/developer.dart",
         "patches": [
-          "_internal/wasm/lib/developer.dart"
+          "_internal/js_runtime/lib/developer_patch.dart"
         ]
       },
       "ffi": {
