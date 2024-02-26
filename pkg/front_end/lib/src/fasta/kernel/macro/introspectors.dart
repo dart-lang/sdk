@@ -38,6 +38,8 @@ class MacroIntrospection {
 
   Map<ClassBuilder, macro.ParameterizedTypeDeclaration> _classDeclarations = {};
   Map<macro.ParameterizedTypeDeclaration, ClassBuilder> _classBuilders = {};
+  Map<NominalVariableBuilder, macro.TypeParameterDeclarationImpl>
+      _typeParameters = {};
   Map<TypeAliasBuilder, macro.TypeAliasDeclaration> _typeAliasDeclarations = {};
   Map<MemberBuilder, macro.Declaration?> _memberDeclarations = {};
   Map<LibraryBuilder, macro.LibraryImpl> _libraries = {};
@@ -178,8 +180,9 @@ class MacroIntrospection {
             libraryBuilder: builder.libraryBuilder,
             id: macro.RemoteInstance.uniqueId,
             name: builder.name);
-    // TODO(johnniwinther): Support typeParameters
-    final List<macro.TypeParameterDeclarationImpl> typeParameters = [];
+    final List<macro.TypeParameterDeclarationImpl> typeParameters =
+        _nominalVariableBuildersToDeclarations(
+            builder.libraryBuilder, builder.typeVariables);
     final List<macro.NamedTypeAnnotationImpl> interfaces =
         types.typeBuildersToAnnotations(
             builder.libraryBuilder, builder.interfaceBuilders);
@@ -229,6 +232,9 @@ class MacroIntrospection {
   macro.TypeAliasDeclaration _createTypeAliasDeclaration(
       TypeAliasBuilder builder) {
     final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
+    List<macro.TypeParameterDeclarationImpl> typeParameters =
+        _nominalVariableBuildersToDeclarations(
+            builder.libraryBuilder, builder.typeVariables);
     macro.TypeAliasDeclaration declaration = new macro.TypeAliasDeclarationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: new TypeDeclarationBuilderIdentifier(
@@ -239,8 +245,7 @@ class MacroIntrospection {
         library: library,
         // TODO: Provide metadata annotations.
         metadata: const [],
-        // TODO(johnniwinther): Support typeParameters
-        typeParameters: [],
+        typeParameters: typeParameters,
         aliasedType:
             types.computeTypeAnnotation(builder.libraryBuilder, builder.type));
     return declaration;
@@ -465,6 +470,42 @@ class MacroIntrospection {
           type: types.computeTypeAnnotation(
               builder.libraryBuilder, builder.type));
     }
+  }
+
+  macro.TypeParameterDeclarationImpl _createTypeParameterDeclaration(
+      LibraryBuilder libraryBuilder,
+      NominalVariableBuilder nominalVariableBuilder) {
+    final macro.LibraryImpl library = getLibrary(libraryBuilder);
+    return new macro.TypeParameterDeclarationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        identifier: new TypeDeclarationBuilderIdentifier(
+            typeDeclarationBuilder: nominalVariableBuilder,
+            libraryBuilder: libraryBuilder,
+            id: macro.RemoteInstance.uniqueId,
+            name: nominalVariableBuilder.name),
+        library: library,
+        // TODO: Provide metadata annotations.
+        metadata: const [],
+        bound: types.computeTypeAnnotation(
+            libraryBuilder, nominalVariableBuilder.bound));
+  }
+
+  macro.TypeParameterDeclarationImpl _getTypeParameterDeclaration(
+      LibraryBuilder libraryBuilder,
+      NominalVariableBuilder nominalVariableBuilder) {
+    return _typeParameters[nominalVariableBuilder] ??=
+        _createTypeParameterDeclaration(libraryBuilder, nominalVariableBuilder);
+  }
+
+  List<macro.TypeParameterDeclarationImpl>
+      _nominalVariableBuildersToDeclarations(LibraryBuilder libraryBuilder,
+          List<NominalVariableBuilder>? typeParameterBuilders) {
+    return typeParameterBuilders == null
+        ? []
+        : typeParameterBuilders
+            .map((NominalVariableBuilder typeBuilder) =>
+                _getTypeParameterDeclaration(libraryBuilder, typeBuilder))
+            .toList();
   }
 }
 

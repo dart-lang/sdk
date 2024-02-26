@@ -211,6 +211,7 @@ class _MacroListener implements Listener {
             constructorName,
             new macro.Arguments(argumentsNode.positionalArguments,
                 argumentsNode.namedArguments),
+            fileUri: uri,
             fileOffset: beginToken.next!.charOffset)));
         return;
       }
@@ -218,7 +219,7 @@ class _MacroListener implements Listener {
       if (_macroClassBuilder != null && _unhandledReason != null) {
         _erroneousMacroApplication = new MacroApplication.error(
             _unhandledReason!, _macroClassBuilder!,
-            fileOffset: beginToken.next!.charOffset);
+            fileUri: uri, fileOffset: beginToken.next!.charOffset);
       }
     }
     pushUnsupported();
