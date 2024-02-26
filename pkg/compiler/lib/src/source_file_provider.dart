@@ -307,7 +307,7 @@ class _CompilationErrorError {
   final String message;
   _CompilationErrorError(this.message);
   @override
-  toString() => 'Aborted due to --throw-on-error: $message';
+  String toString() => 'Aborted due to --throw-on-error: $message';
 }
 
 typedef OnInfo = void Function(String message);

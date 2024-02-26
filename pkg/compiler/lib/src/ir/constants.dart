@@ -62,12 +62,12 @@ class ConstantReference extends ir.TreeNode {
   }
 
   @override
-  transformChildren(ir.Transformer v) {
+  Never transformChildren(ir.Transformer v) {
     throw UnsupportedError("ConstantReference.transformChildren");
   }
 
   @override
-  transformOrRemoveChildren(ir.RemovingTransformer v) {
+  Never transformOrRemoveChildren(ir.RemovingTransformer v) {
     throw UnsupportedError("ConstantReference.transformOrRemoveChildren");
   }
 

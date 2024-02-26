@@ -3719,7 +3719,7 @@ class SsaLoadElimination extends HBaseVisitor<void>
   }
 
   @override
-  visitTry(HTry instruction) {
+  void visitTry(HTry instruction) {
     final impreciseBlocks = _blocksWithImprecisePredecessors ??= {};
     if (instruction.catchBlock != null) {
       impreciseBlocks[instruction.catchBlock!] = instruction;

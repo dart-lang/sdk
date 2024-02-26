@@ -265,7 +265,7 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  clear() {
+  void clear() {
     _contents = _MARKER;
     _extra = null;
   }
@@ -300,7 +300,7 @@ class Setlet<E> extends SetBase<E> {
 class _SetletMarker {
   const _SetletMarker();
   @override
-  toString() => "-";
+  String toString() => "-";
 }
 
 class _SetletSingleIterator<E> implements Iterator<E> {

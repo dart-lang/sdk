@@ -361,7 +361,7 @@ Output _createOutput(
   // that is reachable from `main`. Note that all internal libraries that
   // the compiler relies on are reachable from `dart:core`.
   var seen = Set<Library>();
-  search(ir.Library current) {
+  void search(ir.Library current) {
     if (!seen.add(current)) return;
     for (ir.LibraryDependency dep in current.dependencies) {
       search(dep.targetLibrary);

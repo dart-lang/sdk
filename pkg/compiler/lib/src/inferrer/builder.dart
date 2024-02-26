@@ -335,7 +335,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitFieldInitializer(ir.FieldInitializer node) {
+  Null visitFieldInitializer(ir.FieldInitializer node) {
     final rhsType = visit(node.value)!;
     FieldEntity field = _elementMap.getField(node.field);
     _state.updateField(field, rhsType);
@@ -344,7 +344,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitSuperInitializer(ir.SuperInitializer node) {
+  Null visitSuperInitializer(ir.SuperInitializer node) {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = Selector(SelectorKind.CALL, constructor.memberName,
@@ -360,7 +360,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitRedirectingInitializer(ir.RedirectingInitializer node) {
+  Null visitRedirectingInitializer(ir.RedirectingInitializer node) {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = Selector(SelectorKind.CALL, constructor.memberName,
@@ -376,7 +376,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitLocalInitializer(ir.LocalInitializer node) {
+  Null visitLocalInitializer(ir.LocalInitializer node) {
     visit(node.variable);
     return null;
   }
@@ -461,7 +461,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  defaultStatement(ir.Statement node) {
+  Never defaultStatement(ir.Statement node) {
     throw UnimplementedError(
         'Unhandled statement: ${node} (${node.runtimeType})');
   }
@@ -476,7 +476,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitBlock(ir.Block block) {
+  Null visitBlock(ir.Block block) {
     for (ir.Statement statement in block.statements) {
       visit(statement);
       if (_state.aborts) break;
@@ -485,13 +485,13 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitExpressionStatement(ir.ExpressionStatement node) {
+  Null visitExpressionStatement(ir.ExpressionStatement node) {
     visit(node.expression);
     return null;
   }
 
   @override
-  visitEmptyStatement(ir.EmptyStatement node) {
+  Null visitEmptyStatement(ir.EmptyStatement node) {
     // Nothing to do.
     return null;
   }
@@ -516,19 +516,19 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitAssertInitializer(ir.AssertInitializer node) {
+  Null visitAssertInitializer(ir.AssertInitializer node) {
     _handleAssertStatement(node.statement);
     return null;
   }
 
   @override
-  visitAssertStatement(ir.AssertStatement node) {
+  Null visitAssertStatement(ir.AssertStatement node) {
     _handleAssertStatement(node);
     return null;
   }
 
   @override
-  visitBreakStatement(ir.BreakStatement node) {
+  Null visitBreakStatement(ir.BreakStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForBreak(node);
     _state.seenBreakOrContinue = true;
     // Do a deep-copy of the locals, because the code following the
@@ -542,7 +542,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitLabeledStatement(ir.LabeledStatement node) {
+  Null visitLabeledStatement(ir.LabeledStatement node) {
     ir.Statement body = node.body;
     if (JumpVisitor.canBeBreakTarget(body)) {
       // Loops and switches handle their own labels.
@@ -561,7 +561,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitSwitchStatement(ir.SwitchStatement node) {
+  Null visitSwitchStatement(ir.SwitchStatement node) {
     visit(node.expression);
 
     final jumpTarget = _localsMap.getJumpTargetForSwitch(node);
@@ -628,13 +628,13 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitSwitchCase(ir.SwitchCase node) {
+  Null visitSwitchCase(ir.SwitchCase node) {
     visit(node.body);
     return null;
   }
 
   @override
-  visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+  Null visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForContinueSwitch(node);
     _state.seenBreakOrContinue = true;
     // Do a deep-copy of the locals, because the code following the
@@ -1251,7 +1251,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     return list..addAll(_continuesFor[target]!);
   }
 
-  TypeInformation? handleLoop(ir.Node node, JumpTarget? target, void logic()) {
+  Null handleLoop(ir.Node node, JumpTarget? target, void logic()) {
     _loopLevel++;
     bool changed = false;
     final stateBefore = _state;
@@ -1980,7 +1980,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitWhileStatement(ir.WhileStatement node) {
+  Null visitWhileStatement(ir.WhileStatement node) {
     return handleLoop(node, _localsMap.getJumpTargetForWhile(node), () {
       handleCondition(node.condition);
       _state = LocalState.childPath(_stateAfterWhenTrue);
@@ -1989,7 +1989,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitDoStatement(ir.DoStatement node) {
+  Null visitDoStatement(ir.DoStatement node) {
     return handleLoop(node, _localsMap.getJumpTargetForDo(node), () {
       visit(node.body);
       handleCondition(node.condition);
@@ -2002,7 +2002,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitForStatement(ir.ForStatement node) {
+  Null visitForStatement(ir.ForStatement node) {
     for (ir.VariableDeclaration variable in node.variables) {
       visit(variable);
     }
@@ -2017,7 +2017,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitTryCatch(ir.TryCatch node) {
+  Null visitTryCatch(ir.TryCatch node) {
     final stateBefore = _state;
     _state = LocalState.tryBlock(stateBefore, node);
     _state.markInitializationAsIndefinite();
@@ -2061,7 +2061,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitTryFinally(ir.TryFinally node) {
+  Null visitTryFinally(ir.TryFinally node) {
     final stateBefore = _state;
     _state = LocalState.tryBlock(stateBefore, node);
     _state.markInitializationAsIndefinite();
@@ -2096,7 +2096,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  visitCatch(ir.Catch node) {
+  Null visitCatch(ir.Catch node) {
     final exception = node.exception;
     if (exception != null) {
       TypeInformation mask;

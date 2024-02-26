@@ -329,7 +329,7 @@ class PlaceholderTypeInformation extends TypeInformation {
   }
 
   @override
-  toString() => "Placeholder [$hashCode]";
+  String toString() => "Placeholder [$hashCode]";
 }
 
 abstract class ParameterInputs implements Iterable<TypeInformation> {
@@ -1682,7 +1682,7 @@ class NarrowTypeInformation extends TypeInformation {
   }
 
   @override
-  addInput(TypeInformation info) {
+  void addInput(TypeInformation info) {
     super.addInput(info);
     assert(inputs.length == 1);
   }
@@ -1956,7 +1956,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
   }
 
   @override
-  addInput(TypeInformation other) {
+  Never addInput(TypeInformation other) {
     throw "not supported";
   }
 

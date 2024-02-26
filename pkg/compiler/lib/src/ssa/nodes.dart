@@ -418,7 +418,7 @@ class HGraph {
   }
 
   @override
-  toString() => 'HGraph($element)';
+  String toString() => 'HGraph($element)';
 }
 
 class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
@@ -1051,7 +1051,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   @override
-  toString() => 'HBasicBlock($id)';
+  String toString() => 'HBasicBlock($id)';
 }
 
 enum _GvnType {
@@ -2027,7 +2027,7 @@ class HInvokeSuper extends HInvokeStatic {
   }
 
   @override
-  toString() => 'invoke super: $element';
+  String toString() => 'invoke super: $element';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeSuper(this);
 
@@ -2816,7 +2816,7 @@ class HBitNot extends HInvokeUnary {
 class HExit extends HControlFlow {
   HExit() : super(const []);
   @override
-  toString() => 'exit';
+  String toString() => 'exit';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitExit(this);
 }
@@ -2824,7 +2824,7 @@ class HExit extends HControlFlow {
 class HGoto extends HControlFlow {
   HGoto() : super(const []);
   @override
-  toString() => 'goto';
+  String toString() => 'goto';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitGoto(this);
 }
@@ -2887,7 +2887,7 @@ class HTry extends HControlFlow {
   HBasicBlock? finallyBlock;
   HTry() : super(const []);
   @override
-  toString() => 'try';
+  String toString() => 'try';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitTry(this);
   HBasicBlock get joinBlock => this.block!.successors.last;
@@ -2901,7 +2901,7 @@ class HTry extends HControlFlow {
 class HExitTry extends HControlFlow {
   HExitTry() : super(const []);
   @override
-  toString() => 'exit try';
+  String toString() => 'exit try';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitExitTry(this);
   HBasicBlock get bodyTrySuccessor => block!.successors[0];
@@ -2911,7 +2911,7 @@ class HIf extends HConditionalBranch {
   HBlockFlow? blockInformation = null;
   HIf(HInstruction condition) : super([condition]);
   @override
-  toString() => 'if';
+  String toString() => 'if';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitIf(this);
 
@@ -2931,7 +2931,7 @@ class HIf extends HConditionalBranch {
 class HLoopBranch extends HConditionalBranch {
   HLoopBranch(HInstruction condition) : super([condition]);
   @override
-  toString() => 'loop-branch';
+  String toString() => 'loop-branch';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitLoopBranch(this);
 }
@@ -2942,7 +2942,7 @@ class HConstant extends HInstruction {
       : super([], constantType);
 
   @override
-  toString() => 'literal: ${constant.toStructuredText(null)}';
+  String toString() => 'literal: ${constant.toStructuredText(null)}';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitConstant(this);
 
@@ -3003,7 +3003,7 @@ class HLocalValue extends HInstruction {
   }
 
   @override
-  toString() => 'local ${sourceElement!.name}';
+  String toString() => 'local ${sourceElement!.name}';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitLocalValue(this);
 }
@@ -3036,7 +3036,7 @@ class HParameterValue extends HLocalValue {
   }
 
   @override
-  toString() => 'parameter ${sourceElement!.name}';
+  String toString() => 'parameter ${sourceElement!.name}';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitParameterValue(this);
 }
@@ -3095,7 +3095,7 @@ class HPhi extends HInstruction {
   }
 
   @override
-  toString() => 'phi $id';
+  String toString() => 'phi $id';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitPhi(this);
 }
@@ -3196,7 +3196,7 @@ class HReturn extends HControlFlow {
     this.sourceInformation = sourceInformation;
   }
   @override
-  toString() => 'return';
+  String toString() => 'return';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitReturn(this);
 }
@@ -3208,7 +3208,7 @@ class HThrowExpression extends HInstruction {
     this.sourceInformation = sourceInformation;
   }
   @override
-  toString() => 'throw expression';
+  String toString() => 'throw expression';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitThrowExpression(this);
   @override
@@ -3218,7 +3218,7 @@ class HThrowExpression extends HInstruction {
 class HAwait extends HInstruction {
   HAwait(HInstruction value, AbstractValue type) : super([value], type);
   @override
-  toString() => 'await';
+  String toString() => 'await';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitAwait(this);
   // An await will throw if its argument is not a real future.
@@ -3236,7 +3236,7 @@ class HYield extends HInstruction {
   }
   bool hasStar;
   @override
-  toString() => 'yield';
+  String toString() => 'yield';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitYield(this);
   @override
@@ -3253,7 +3253,7 @@ class HThrow extends HControlFlow {
     this.sourceInformation = sourceInformation;
   }
   @override
-  toString() => 'throw';
+  String toString() => 'throw';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitThrow(this);
 }
@@ -3276,7 +3276,7 @@ class HStatic extends HInstruction {
     this.sourceInformation = sourceInformation;
   }
   @override
-  toString() => 'static ${element.name}';
+  String toString() => 'static ${element.name}';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitStatic(this);
 
@@ -3390,7 +3390,7 @@ class HLazyStatic extends HInstruction {
   }
 
   @override
-  toString() => 'lazy static ${element.name}';
+  String toString() => 'lazy static ${element.name}';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitLazyStatic(this);
 
@@ -3411,7 +3411,7 @@ class HStaticStore extends HInstruction {
     sideEffects.setChangesStaticProperty();
   }
   @override
-  toString() => 'static store ${element.name}';
+  String toString() => 'static store ${element.name}';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitStaticStore(this);
 
@@ -3431,7 +3431,7 @@ class HLiteralList extends HInstruction {
   HLiteralList(List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type);
   @override
-  toString() => 'literal list';
+  String toString() => 'literal list';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitLiteralList(this);
 
@@ -3561,7 +3561,7 @@ class HLateValue extends HLateInstruction {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitLateValue(this);
   @override
-  toString() => 'HLateValue($target)';
+  String toString() => 'HLateValue($target)';
 }
 
 enum PrimitiveCheckKind {
@@ -3676,7 +3676,7 @@ class HBoolConversion extends HCheck {
   }
 
   @override
-  toString() => 'HBoolConversion($checkedInput)';
+  String toString() => 'HBoolConversion($checkedInput)';
 }
 
 /// A check that the input is not null. This corresponds to the postfix
@@ -3720,7 +3720,7 @@ class HNullCheck extends HCheck {
   }
 
   @override
-  toString() {
+  String toString() {
     String fieldString = field == null ? '' : ', $field';
     String selectorString = selector == null ? '' : ', $selector';
     return 'HNullCheck($checkedInput$fieldString$selectorString)';
@@ -3868,7 +3868,7 @@ class HTypeKnown extends HCheck {
         super([input, witness], knownType);
 
   @override
-  toString() => 'TypeKnown $knownType';
+  String toString() => 'TypeKnown $knownType';
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitTypeKnown(this);
 
@@ -3933,7 +3933,7 @@ class HStringConcat extends HInstruction {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitStringConcat(this);
   @override
-  toString() => "string concat";
+  String toString() => "string concat";
 
   @override
   _GvnType get _gvnType => _GvnType.stringConcat;
@@ -3966,7 +3966,7 @@ class HStringify extends HInstruction {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitStringify(this);
   @override
-  toString() => "stringify";
+  String toString() => "stringify";
 
   @override
   _GvnType get _gvnType => _GvnType.stringify;

@@ -27,7 +27,7 @@ class C extends B {
   C();
 
   @override
-  getValue() {
+  String getValue() {
     return "Value";
   }
 }

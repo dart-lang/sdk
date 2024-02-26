@@ -1202,32 +1202,32 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   }
 
   @override
-  visitInterpolatedExpression(js.InterpolatedExpression node) {
+  Never visitInterpolatedExpression(js.InterpolatedExpression node) {
     unsupported(node);
   }
 
   @override
-  visitInterpolatedDeclaration(js.InterpolatedDeclaration node) {
+  Never visitInterpolatedDeclaration(js.InterpolatedDeclaration node) {
     unsupported(node);
   }
 
   @override
-  visitInterpolatedLiteral(js.InterpolatedLiteral node) {
+  Never visitInterpolatedLiteral(js.InterpolatedLiteral node) {
     unsupported(node);
   }
 
   @override
-  visitInterpolatedParameter(js.InterpolatedParameter node) {
+  Never visitInterpolatedParameter(js.InterpolatedParameter node) {
     unsupported(node);
   }
 
   @override
-  visitInterpolatedSelector(js.InterpolatedSelector node) {
+  Never visitInterpolatedSelector(js.InterpolatedSelector node) {
     unsupported(node);
   }
 
   @override
-  visitInterpolatedStatement(js.InterpolatedStatement node) {
+  Never visitInterpolatedStatement(js.InterpolatedStatement node) {
     unsupported(node);
   }
 
@@ -1254,7 +1254,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   js.Expression visitLiteralBool(js.LiteralBool node) => node;
 
   @override
-  visitLiteralExpression(js.LiteralExpression node) => unsupported(node);
+  Never visitLiteralExpression(js.LiteralExpression node) => unsupported(node);
 
   @override
   js.Expression visitLiteralNull(js.LiteralNull node) => node;
@@ -1263,7 +1263,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   js.Expression visitLiteralNumber(js.LiteralNumber node) => node;
 
   @override
-  visitLiteralStatement(js.LiteralStatement node) => unsupported(node);
+  Never visitLiteralStatement(js.LiteralStatement node) => unsupported(node);
 
   @override
   js.Expression visitLiteralString(js.LiteralString node) => node;
@@ -1280,7 +1280,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   }
 
   @override
-  visitNamedFunction(js.NamedFunction node) {
+  Never visitNamedFunction(js.NamedFunction node) {
     unsupported(node);
   }
 
@@ -1288,7 +1288,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   js.Expression visitDeferredExpression(js.DeferredExpression node) => node;
 
   @override
-  visitDeferredStatement(js.DeferredStatement node) => unsupported(node);
+  Never visitDeferredStatement(js.DeferredStatement node) => unsupported(node);
 
   @override
   js.Expression visitDeferredNumber(js.DeferredNumber node) => node;
@@ -1323,7 +1323,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   }
 
   @override
-  visitParameter(js.Parameter node) => unreachable(node);
+  Never visitParameter(js.Parameter node) => unreachable(node);
 
   @override
   js.Expression visitPostfix(js.Postfix node) {
@@ -1368,7 +1368,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   }
 
   @override
-  visitProgram(js.Program node) => unsupported(node);
+  Never visitProgram(js.Program node) => unsupported(node);
 
   @override
   js.Property visitProperty(js.Property node) {
@@ -1667,7 +1667,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   }
 
   @override
-  visitVariableDeclaration(js.VariableDeclaration node) {
+  Never visitVariableDeclaration(js.VariableDeclaration node) {
     unreachable(node);
   }
 

@@ -236,7 +236,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     }
   }
 
-  setStrip(String argument) {
+  Never setStrip(String argument) {
     _helpAndFail("Option '--force-strip' is not in use now that"
         "--output-type=dart is no longer supported.");
   }

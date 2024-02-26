@@ -14,6 +14,7 @@ analyzer:
 
 linter:
   rules:
+    - always_declare_return_types
     - annotate_overrides
     - avoid_dynamic_calls
     - prefer_final_fields

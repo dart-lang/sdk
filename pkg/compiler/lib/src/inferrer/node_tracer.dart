@@ -281,7 +281,7 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
       ClosureCallSiteTypeInformation info) {}
 
   @override
-  visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
+  void visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     MemberEntity called = info.calledElement;
     TypeInformation inferred = inferrer.types.getInferredTypeOfMember(called);
     if (inferred == currentUser) {

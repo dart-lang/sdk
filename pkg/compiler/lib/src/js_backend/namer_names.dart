@@ -59,7 +59,7 @@ class StringBackedName extends _NamerName {
   String get key => name;
 
   @override
-  operator ==(Object other) {
+  bool operator ==(Object other) {
     if (other is _NameReference) return this == other._target;
     if (identical(this, other)) return true;
     return other is StringBackedName && name == other.name;

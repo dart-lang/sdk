@@ -406,7 +406,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration declaration) {
+  void visitFunctionDeclaration(FunctionDeclaration declaration) {
     VarCollector vars = VarCollector();
     vars.visitFunctionDeclaration(declaration);
     functionOut(declaration.function, declaration.name, vars);
@@ -440,7 +440,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitVariableDeclarationList(VariableDeclarationList list) {
+  void visitVariableDeclarationList(VariableDeclarationList list) {
     out('var '); // 'var '
     final nodes = list.declarations;
     if (inForInit) {
@@ -472,7 +472,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitAssignment(Assignment assignment) {
+  void visitAssignment(Assignment assignment) {
     /// To print assignments like `a = a + 1` and `a = a + b` compactly as
     /// `++a` and `a += b` in the face of [DeferredExpression]s we detect the
     /// pattern of the undeferred assignment.
@@ -529,7 +529,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitVariableInitialization(VariableInitialization initialization) {
+  void visitVariableInitialization(VariableInitialization initialization) {
     visitNestedExpression(initialization.declaration, Precedence.call,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     if (initialization.value != null) {
@@ -540,7 +540,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitConditional(Conditional cond) {
+  void visitConditional(Conditional cond) {
     visitNestedExpression(cond.condition, Precedence.logicalOr,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     out('?'); // '?'
@@ -553,7 +553,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitNew(New node) {
+  void visitNew(New node) {
     out('new'); // 'new'
     visitNestedExpression(node.target, Precedence.leftHandSide,
         newInForInit: inForInit, newAtStatementBegin: false);
@@ -564,7 +564,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitCall(Call call) {
+  void visitCall(Call call) {
     visitNestedExpression(call.target, Precedence.call,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     out('('); // '('
@@ -844,7 +844,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitDeferredExpression(DeferredExpression node) {
+  void visitDeferredExpression(DeferredExpression node) {
     if (node.isFinalized) {
       // Continue printing with the expression value.
       assert(node.precedenceLevel == node.value.precedenceLevel);
@@ -855,7 +855,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitDeferredStatement(DeferredStatement node) {
+  void visitDeferredStatement(DeferredStatement node) {
     if (node.isFinalized) {
       // Continue printing with the statement value.
       node.statement.accept(this);
@@ -875,7 +875,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitDeferredNumber(DeferredNumber node) {
+  void visitDeferredNumber(DeferredNumber node) {
     if (node.isFinalized) {
       outputNumberWithRequiredWhitespace("${node.value}");
     } else {
@@ -884,7 +884,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitDeferredString(DeferredString node) {
+  void visitDeferredString(DeferredString node) {
     if (node.isFinalized) {
       out(node.value);
     } else {
@@ -893,7 +893,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitLiteralBool(LiteralBool node) {
+  void visitLiteralBool(LiteralBool node) {
     out(node.value ? '!0' : '!1');
   }
 
@@ -905,18 +905,18 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitStringConcatenation(StringConcatenation node) {
+  void visitStringConcatenation(StringConcatenation node) {
     node.visitChildren(this);
   }
 
   @override
-  visitName(Name node) {
+  void visitName(Name node) {
     // For simplicity and stability we use a constant name size estimate.
     out(sizeEstimate(node));
   }
 
   @override
-  visitParentheses(Parentheses node) {
+  void visitParentheses(Parentheses node) {
     out('('); // '('
     visitNestedExpression(node.enclosed, Precedence.expression,
         newInForInit: false, newAtStatementBegin: false);
@@ -924,7 +924,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   @override
-  visitLiteralNumber(LiteralNumber node) {
+  void visitLiteralNumber(LiteralNumber node) {
     outputNumberWithRequiredWhitespace(node.value);
   }
 

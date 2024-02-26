@@ -1886,7 +1886,7 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
   }
 
   @override
-  visitAll(AllInfo info) {
+  void visitAll(AllInfo info) {
     info.libraries = filterDeadInfo<LibraryInfo>(info.libraries);
     info.constants = filterDeadInfo<ConstantInfo>(info.constants);
 
@@ -1895,10 +1895,10 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
   }
 
   @override
-  visitProgram(ProgramInfo info) {}
+  void visitProgram(ProgramInfo info) {}
 
   @override
-  visitLibrary(LibraryInfo info) {
+  void visitLibrary(LibraryInfo info) {
     info.topLevelFunctions =
         filterDeadInfo<FunctionInfo>(info.topLevelFunctions);
     info.topLevelVariables = filterDeadInfo<FieldInfo>(info.topLevelVariables);
@@ -1914,7 +1914,7 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
   }
 
   @override
-  visitClass(ClassInfo info) {
+  void visitClass(ClassInfo info) {
     info.functions = filterDeadInfo<FunctionInfo>(info.functions);
     info.fields = filterDeadInfo<FieldInfo>(info.fields);
     info.supers = filterDeadInfo<ClassInfo>(info.supers);
@@ -1925,31 +1925,31 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
   }
 
   @override
-  visitClassType(ClassTypeInfo info) {}
+  void visitClassType(ClassTypeInfo info) {}
 
   @override
-  visitField(FieldInfo info) {
+  void visitField(FieldInfo info) {
     info.closures = filterDeadInfo<ClosureInfo>(info.closures);
 
     info.closures.forEach(visitClosure);
   }
 
   @override
-  visitConstant(ConstantInfo info) {}
+  void visitConstant(ConstantInfo info) {}
 
   @override
-  visitFunction(FunctionInfo info) {
+  void visitFunction(FunctionInfo info) {
     info.closures = filterDeadInfo<ClosureInfo>(info.closures);
 
     info.closures.forEach(visitClosure);
   }
 
   @override
-  visitTypedef(TypedefInfo info) {}
+  void visitTypedef(TypedefInfo info) {}
   @override
-  visitOutput(OutputUnitInfo info) {}
+  void visitOutput(OutputUnitInfo info) {}
   @override
-  visitClosure(ClosureInfo info) {
+  void visitClosure(ClosureInfo info) {
     visitFunction(info.function);
   }
 }

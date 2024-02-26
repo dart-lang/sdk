@@ -929,7 +929,8 @@ class _TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
   }
 
   @override
-  visitFunctionTypeVariable(FunctionTypeVariable type, TypeVisitorState state) {
+  void visitFunctionTypeVariable(
+      FunctionTypeVariable type, TypeVisitorState state) {
     if (_visitedFunctionTypeVariables.add(type)) {
       visitType(type.bound, state);
     }
