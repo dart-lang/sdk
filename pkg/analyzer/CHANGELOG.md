@@ -4,6 +4,7 @@
 * Deprecated `LibraryElement.isNonNullableByDefault`.
 * Deprecated `InterfaceElement.lookUpGetter`, `InterfaceElement.lookUpMethod`,
   and `InterfaceElement.lookUpSetter`.
+* Fixed `GeneralizingAstVisitor.visitNamedType` to invoke `visitTypeAnnotation`.
 
 ## 6.4.1
 * Patch for crash in ffi_verifier.

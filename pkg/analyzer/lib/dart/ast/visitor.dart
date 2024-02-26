@@ -519,7 +519,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitNamedExpression(NamedExpression node) => visitExpression(node);
 
   @override
-  R? visitNamedType(NamedType node) => visitNode(node);
+  R? visitNamedType(NamedType node) => visitTypeAnnotation(node);
 
   R? visitNamespaceDirective(NamespaceDirective node) =>
       visitUriBasedDirective(node);
