@@ -3185,7 +3185,6 @@ class AstBuilder extends StackListener {
         members[index] = updateSwitchMember(
           member: member,
           labels: labels,
-          statements: null,
         );
       }
       assert(labelCount == 0);
@@ -3195,7 +3194,6 @@ class AstBuilder extends StackListener {
     if (members2.isNotEmpty) {
       members2.last = updateSwitchMember(
         member: members2.last,
-        labels: null,
         statements: statements,
       );
     }

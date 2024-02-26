@@ -1087,9 +1087,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         offset: offset,
         length: endEntity.end - offset,
         errorCode: errorCode,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
     }
 
@@ -1119,9 +1116,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         offset: offset,
         length: endEntity.end - offset,
         errorCode: errorCode,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
     }
 
@@ -1758,8 +1752,6 @@ class _InvalidAccessVerifier {
         length: errorEntity.length,
         errorCode: WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
         arguments: [element.displayName],
-        contextMessages: null,
-        data: null,
       );
     }
 
@@ -1807,8 +1799,6 @@ class _InvalidAccessVerifier {
         length: node.length,
         errorCode: WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
         arguments: [name],
-        contextMessages: null,
-        data: null,
       );
     }
   }
@@ -1879,8 +1869,6 @@ class _InvalidAccessVerifier {
         length: errorEntity.length,
         errorCode: WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
         arguments: [name, definingClass.source!.uri],
-        contextMessages: null,
-        data: null,
       );
     }
     if (isVisibleForTemplateApplied) {
@@ -1889,8 +1877,6 @@ class _InvalidAccessVerifier {
         length: errorEntity.length,
         errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
         arguments: [name, definingClass.source!.uri],
-        contextMessages: null,
-        data: null,
       );
     }
 
@@ -1900,8 +1886,6 @@ class _InvalidAccessVerifier {
         length: errorEntity.length,
         errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
         arguments: [name, definingClass.source!.uri],
-        contextMessages: null,
-        data: null,
       );
     }
 
@@ -1922,8 +1906,6 @@ class _InvalidAccessVerifier {
           length: errorEntity.length,
           errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
           arguments: [name],
-          contextMessages: null,
-          data: null,
         );
       }
     }

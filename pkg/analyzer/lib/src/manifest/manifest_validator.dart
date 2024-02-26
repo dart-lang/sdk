@@ -465,8 +465,6 @@ class ManifestValidator {
       length: span.length,
       errorCode: errorCode,
       arguments: arguments,
-      contextMessages: null,
-      data: null,
     );
   }
 

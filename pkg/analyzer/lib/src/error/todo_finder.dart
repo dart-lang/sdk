@@ -133,8 +133,6 @@ class TodoFinder {
         length: end - offset,
         errorCode: Todo.forKind(todoKind),
         arguments: [todoText],
-        contextMessages: null,
-        data: null,
       );
     }
 

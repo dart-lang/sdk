@@ -165,7 +165,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     );
 
     // class B extends A<B> {}
-    var B = class_(name: 'B', superType: null);
+    var B = class_(name: 'B');
     B.supertype = interfaceTypeNone(A, typeArguments: [interfaceTypeNone(B)]);
     var typeB = interfaceTypeNone(B);
 

@@ -137,8 +137,7 @@ class NamedTypeResolver with ScopeHelpers {
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
         arguments: [node.name2.lexeme, parameterCount, argumentCount],
       );
-      return List.filled(parameterCount, InvalidTypeImpl.instance,
-          growable: false);
+      return List.filled(parameterCount, InvalidTypeImpl.instance);
     }
 
     if (parameterCount == 0) {
@@ -361,8 +360,6 @@ class NamedTypeResolver with ScopeHelpers {
         length: nameToken.end - importPrefix.offset,
         errorCode: CompileTimeErrorCode.NOT_A_TYPE,
         arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
-        contextMessages: null,
-        data: null,
       );
     }
   }
@@ -420,9 +417,6 @@ class NamedTypeResolver with ScopeHelpers {
             length: errorRange.length,
             errorCode: CompileTimeErrorCode
                 .INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-            arguments: null,
-            contextMessages: null,
-            data: null,
           );
         } else if (constructorUsage is ConstructorDeclaration &&
             constructorUsage.redirectedConstructor == parent) {
@@ -431,9 +425,6 @@ class NamedTypeResolver with ScopeHelpers {
             length: errorRange.length,
             errorCode: CompileTimeErrorCode
                 .REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-            arguments: null,
-            contextMessages: null,
-            data: null,
           );
         } else {
           throw UnimplementedError('${constructorUsage.runtimeType}');
@@ -462,9 +453,6 @@ class NamedTypeResolver with ScopeHelpers {
           offset: errorRange.offset,
           length: errorRange.length,
           errorCode: errorCode,
-          arguments: null,
-          contextMessages: null,
-          data: null,
         );
         hasErrorReported = true;
         return InvalidTypeImpl.instance;
@@ -503,8 +491,6 @@ class _ErrorHelper {
               ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
               : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
           arguments: [node.name2.lexeme],
-          contextMessages: null,
-          data: null,
         );
         return true;
       }
@@ -524,8 +510,6 @@ class _ErrorHelper {
         length: errorRange.length,
         errorCode: CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
         arguments: [node.name2.lexeme],
-        contextMessages: null,
-        data: null,
       );
       return;
     }
@@ -537,8 +521,6 @@ class _ErrorHelper {
         length: errorRange.length,
         errorCode: CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
         arguments: [node.name2.lexeme],
-        contextMessages: null,
-        data: null,
       );
       return;
     }
@@ -550,8 +532,6 @@ class _ErrorHelper {
         length: errorRange.length,
         errorCode: CompileTimeErrorCode.CAST_TO_NON_TYPE,
         arguments: [node.name2.lexeme],
-        contextMessages: null,
-        data: null,
       );
       return;
     }
@@ -564,8 +544,6 @@ class _ErrorHelper {
           length: errorRange.length,
           errorCode: CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
           arguments: [node.name2.lexeme],
-          contextMessages: null,
-          data: null,
         );
       } else {
         errorReporter.atOffset(
@@ -573,8 +551,6 @@ class _ErrorHelper {
           length: errorRange.length,
           errorCode: CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
           arguments: [node.name2.lexeme],
-          contextMessages: null,
-          data: null,
         );
       }
       return;
@@ -587,8 +563,6 @@ class _ErrorHelper {
         length: errorRange.length,
         errorCode: CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
         arguments: [node.name2.lexeme],
-        contextMessages: null,
-        data: null,
       );
       return;
     }
@@ -600,8 +574,6 @@ class _ErrorHelper {
         length: errorRange.length,
         errorCode: CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
         arguments: [node.name2.lexeme],
-        contextMessages: null,
-        data: null,
       );
       return;
     }
@@ -639,8 +611,6 @@ class _ErrorHelper {
         length: errorRange.length,
         errorCode: CompileTimeErrorCode.NOT_A_TYPE,
         arguments: [node.name2.lexeme],
-        contextMessages: null,
-        data: null,
       );
       return;
     }
@@ -659,8 +629,6 @@ class _ErrorHelper {
       length: errorRange.length,
       errorCode: CompileTimeErrorCode.UNDEFINED_CLASS,
       arguments: [node.name2.lexeme],
-      contextMessages: null,
-      data: null,
     );
   }
 

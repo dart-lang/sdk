@@ -726,14 +726,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return false;
       }
       if (!_isValidFfiNativeType(nativeType.returnType,
-          allowVoid: true, allowEmptyStruct: false, allowHandle: true)) {
+          allowVoid: true, allowHandle: true)) {
         return false;
       }
 
       for (final DartType typeArg
           in nativeType.normalParameterTypes.flattenVarArgs()) {
-        if (!_isValidFfiNativeType(typeArg,
-            allowVoid: false, allowEmptyStruct: false, allowHandle: true)) {
+        if (!_isValidFfiNativeType(typeArg, allowHandle: true)) {
           return false;
         }
       }
@@ -802,8 +801,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (allowArray && nativeType.isArray) {
-        return _isValidFfiNativeType(nativeType.typeArguments.single,
-            allowVoid: false, allowEmptyStruct: false);
+        return _isValidFfiNativeType(nativeType.typeArguments.single);
       }
     } else if (nativeType is FunctionType) {
       return _isValidFfiNativeFunctionType(nativeType);
@@ -1726,7 +1724,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateRefIndexed(IndexExpression node) {
     var targetType = node.realTarget.staticType;
     if (!_isValidFfiNativeType(targetType,
-        allowVoid: false, allowEmptyStruct: true, allowArray: true)) {
+        allowEmptyStruct: true, allowArray: true)) {
       final AstNode errorNode = node;
       _errorReporter.atNode(
         errorNode,
@@ -1740,8 +1738,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// `Pointer<T extends Struct>.ref`.
   void _validateRefPrefixedIdentifier(PrefixedIdentifier node) {
     var targetType = node.prefix.staticType;
-    if (!_isValidFfiNativeType(targetType,
-        allowVoid: false, allowEmptyStruct: true)) {
+    if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       final AstNode errorNode = node;
       _errorReporter.atNode(
         errorNode,
@@ -1753,8 +1750,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   void _validateRefPropertyAccess(PropertyAccess node) {
     var targetType = node.realTarget.staticType;
-    if (!_isValidFfiNativeType(targetType,
-        allowVoid: false, allowEmptyStruct: true)) {
+    if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       final AstNode errorNode = node;
       _errorReporter.atNode(
         errorNode,

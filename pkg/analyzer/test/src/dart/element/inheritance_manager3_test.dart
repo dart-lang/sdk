@@ -2753,7 +2753,6 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       className: className,
       name: name,
       expected: expected,
-      concrete: false,
     );
 
     _assertGetMember(

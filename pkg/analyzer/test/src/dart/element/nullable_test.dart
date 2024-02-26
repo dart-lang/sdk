@@ -655,7 +655,7 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_null() {
-    var element = typeParameter('T', bound: null);
+    var element = typeParameter('T');
     _checkTypeParameter(
       typeParameterTypeNone(element),
       element: element,

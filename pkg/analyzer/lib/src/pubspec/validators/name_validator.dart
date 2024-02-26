@@ -14,9 +14,6 @@ void nameValidator(PubspecValidationContext ctx) {
       offset: 0,
       length: 0,
       errorCode: PubspecWarningCode.MISSING_NAME,
-      arguments: null,
-      contextMessages: null,
-      data: null,
     );
     return;
   }
@@ -26,9 +23,6 @@ void nameValidator(PubspecValidationContext ctx) {
       offset: 0,
       length: 0,
       errorCode: PubspecWarningCode.MISSING_NAME,
-      arguments: null,
-      contextMessages: null,
-      data: null,
     );
   } else if (nameField is! YamlScalar || nameField.value is! String) {
     ctx.reportErrorForNode(nameField, PubspecWarningCode.NAME_NOT_STRING);

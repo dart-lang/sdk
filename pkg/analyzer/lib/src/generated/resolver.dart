@@ -966,7 +966,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         return CaseHeadOrDefaultInfo(
           pattern: member.expression,
           variables: {},
-          guard: null,
         );
       } else if (member is SwitchPatternCaseImpl) {
         var guardedPattern = member.guardedPattern;
@@ -979,7 +978,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         return CaseHeadOrDefaultInfo(
           pattern: null,
           variables: {},
-          guard: null,
         );
       }
     }
@@ -2244,9 +2242,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             length: errorTarget.length,
             errorCode:
                 CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
-            arguments: null,
-            contextMessages: null,
-            data: null,
           );
         }
       } else {

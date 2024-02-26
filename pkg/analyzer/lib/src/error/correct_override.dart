@@ -136,8 +136,6 @@ class CovariantParametersVerifier {
               superMember.enclosingElement.name!,
               superMember.type,
             ],
-            contextMessages: null,
-            data: null,
           );
         }
       }

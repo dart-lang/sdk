@@ -185,8 +185,6 @@ class ErrorReporter {
         length: constructor.name!.end - offset,
         errorCode: code,
         arguments: arguments,
-        contextMessages: null,
-        data: null,
       );
     } else {
       atNode(
@@ -246,8 +244,6 @@ class ErrorReporter {
       length: span.length,
       errorCode: errorCode,
       arguments: arguments,
-      contextMessages: null,
-      data: null,
     );
   }
 
@@ -287,8 +283,6 @@ class ErrorReporter {
       length: node.length,
       errorCode: errorCode,
       arguments: arguments,
-      contextMessages: null,
-      data: null,
     );
   }
 

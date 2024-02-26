@@ -311,7 +311,7 @@ class _IRInterpreter {
         case Opcode.concat:
           var count = Opcode.concat.decodeCount(ir, address);
           var newStackLength = stack.length - count;
-          var result = stack.sublist(newStackLength).join('');
+          var result = stack.sublist(newStackLength).join();
           stack.length = newStackLength;
           stack.add(result);
         case Opcode.drop:

@@ -121,8 +121,6 @@ class ExtensionMemberResolver {
               return "unnamed extension on '$type'";
             }).commaSeparatedWithAnd,
           ],
-          contextMessages: null,
-          data: null,
         );
         return ResolutionResult.ambiguous;
       },

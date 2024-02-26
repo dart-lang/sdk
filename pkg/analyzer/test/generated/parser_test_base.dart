@@ -354,7 +354,7 @@ class FastaParserTestCase
       {List<ErrorCode>? codes,
       List<ExpectedError>? errors,
       FeatureSet? featureSet}) {
-    GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
+    GatheringErrorListener listener = GatheringErrorListener();
 
     var unit = parseCompilationUnit2(content, listener, featureSet: featureSet);
 
@@ -488,7 +488,7 @@ class FastaParserTestCase
       fail('$kind');
     }
     FormalParameterList list = parseFormalParameterList(parametersCode,
-        inFunctionType: false, errorCodes: errorCodes, featureSet: featureSet);
+        errorCodes: errorCodes, featureSet: featureSet);
     return list.parameters.single;
   }
 
@@ -610,7 +610,7 @@ class FastaParserTestCase
       {int? expectedEndOffset, List<ExpectedError>? errors}) {
     createParser(code, expectedEndOffset: expectedEndOffset);
     Expression result = parserProxy.parsePrimaryExpression();
-    assertErrors(codes: null, errors: errors);
+    assertErrors(errors: errors);
     return result;
   }
 
@@ -725,7 +725,7 @@ class ParserProxy extends analyzer.Parser {
       int? expectedEndOffset,
       required LineInfo lineInfo}) {
     TestSource source = TestSource();
-    var errorListener = GatheringErrorListener(checkRanges: true);
+    var errorListener = GatheringErrorListener();
     return ParserProxy._(firstToken, source, errorListener, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset,
@@ -1230,8 +1230,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     } else {
       fail('$kind');
     }
-    FormalParameterList list = parseFormalParameterList(parametersCode,
-        inFunctionType: false, errorCodes: errorCodes);
+    FormalParameterList list =
+        parseFormalParameterList(parametersCode, errorCodes: errorCodes);
     return list.parameters.single;
   }
 

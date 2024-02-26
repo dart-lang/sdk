@@ -102,18 +102,18 @@ class FuzzyMatcherTest {
   }
 
   void test_ranksActions() {
-    var matcher = FuzzyMatcher('jade', matchStyle: MatchStyle.TEXT);
+    var matcher = FuzzyMatcher('jade');
     // Full word matches score higher than subsequence matches.
     expect(
         matcher.score('jump to a directory in tree'),
         lessThan(matcher
             .score('fix imports and dependencies using jade (java only)')));
 
-    matcher = FuzzyMatcher('unedit', matchStyle: MatchStyle.TEXT);
+    matcher = FuzzyMatcher('unedit');
     expect(matcher.score('Undo an edit'),
         lessThan(matcher.score('Close unedited tabs')));
 
-    matcher = FuzzyMatcher('fix', matchStyle: MatchStyle.TEXT);
+    matcher = FuzzyMatcher('fix');
     expect(
         matcher.score('find next match'),
         lessThan(

@@ -172,7 +172,7 @@ class ElementPrinter {
         '[',
         element.variables.map(_elementToReferenceString).join(', '),
         ']',
-      ].join('');
+      ].join();
     } else {
       return '${element.name}@${element.nameOffset}';
     }

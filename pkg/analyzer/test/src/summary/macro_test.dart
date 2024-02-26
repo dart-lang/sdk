@@ -1235,7 +1235,7 @@ foo: String aaabbbccc
   }) async {
     final dumpCode = fields.keys.map((name) {
       return "$name: \${$name.runtimeType} \$$name\\\\n";
-    }).join('');
+    }).join();
 
     newFile('$testPackageLibPath/arguments_text.dart', '''
 import 'dart:async';

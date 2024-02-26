@@ -1718,9 +1718,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       offset: offset,
       length: length,
       errorCode: errorCode,
-      arguments: null,
-      contextMessages: null,
-      data: null,
     );
   }
 

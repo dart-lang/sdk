@@ -190,9 +190,6 @@ class LanguageVersionOverrideVerifier {
         offset: offset,
         length: length,
         errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
       return false;
     }
@@ -202,9 +199,6 @@ class LanguageVersionOverrideVerifier {
         offset: offset,
         length: length,
         errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
       return false;
     }
@@ -215,9 +209,6 @@ class LanguageVersionOverrideVerifier {
         offset: offset,
         length: length,
         errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
       return false;
     }
@@ -230,9 +221,6 @@ class LanguageVersionOverrideVerifier {
         offset: offset,
         length: length,
         errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
       return false;
     }
@@ -242,9 +230,6 @@ class LanguageVersionOverrideVerifier {
         offset: offset,
         length: length,
         errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
       return false;
     }
@@ -254,9 +239,6 @@ class LanguageVersionOverrideVerifier {
         offset: offset,
         length: length,
         errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
     }
 
@@ -294,9 +276,6 @@ class LanguageVersionOverrideVerifier {
       length: length,
       errorCode:
           WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
-      arguments: null,
-      contextMessages: null,
-      data: null,
     );
     return false;
   }
@@ -326,9 +305,6 @@ class LanguageVersionOverrideVerifier {
               offset: commentToken.offset + atDartStart,
               length: match.end - atDartStart,
               errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
-              arguments: null,
-              contextMessages: null,
-              data: null,
             );
           }
         }

@@ -36,8 +36,7 @@ class FormalParameterParserTest extends FastaParserTestCase {
       fail('$kind');
     }
     createParser(parametersCode);
-    FormalParameterList list =
-        parserProxy.parseFormalParameterList(inFunctionType: false);
+    FormalParameterList list = parserProxy.parseFormalParameterList();
     assertErrors(errors: errors);
     return list.parameters.single;
   }

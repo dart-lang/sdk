@@ -891,7 +891,7 @@ class _ArgumentEvaluation {
       return macro.StringArgument(node.strings
           .map((e) => evaluate(contextType, e))
           .map((arg) => arg.value)
-          .join(''));
+          .join());
     } else if (node is ast.BooleanLiteral) {
       return macro.BoolArgument(node.value);
     } else if (node is ast.DoubleLiteral) {

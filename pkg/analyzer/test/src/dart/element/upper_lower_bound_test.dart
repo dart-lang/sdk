@@ -1508,10 +1508,9 @@ class LowerBoundTest extends _BoundsTestBase {
     }
 
     check(
-      bound: null,
       T2: functionTypeNone(returnType: voidNone),
     );
-    check(bound: null, T2: intNone);
+    check(T2: intNone);
     check(bound: numNone, T2: intNone);
   }
 

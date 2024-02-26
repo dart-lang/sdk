@@ -3897,8 +3897,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             length: end - offset,
             errorCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
             arguments: [constantName],
-            contextMessages: null,
-            data: null,
           );
         }
 
@@ -3910,8 +3908,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             length: end - offset,
             errorCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
             arguments: ['null'],
-            contextMessages: null,
-            data: null,
           );
         }
       }
@@ -4770,9 +4766,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         offset: errorEntity.offset,
         length: errorEntity.end - errorEntity.offset,
         errorCode: CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
     }
   }
@@ -5148,8 +5141,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         length: length,
         errorCode: errorCode,
         arguments: arguments,
-        contextMessages: null,
-        data: null,
       );
     }
 
@@ -5254,8 +5245,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             length: endToken.end - operator.offset,
             errorCode: errorCode,
             arguments: arguments,
-            contextMessages: null,
-            data: null,
           );
         }
       }
@@ -5281,8 +5270,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         length: endToken.end - operator.offset,
         errorCode: errorCode,
         arguments: arguments,
-        contextMessages: null,
-        data: null,
       );
     }
   }
@@ -5634,8 +5621,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           typeParameterImpl.name,
           variance.toKeywordString()
         ],
-        contextMessages: null,
-        data: null,
       );
     }
   }
@@ -5797,9 +5782,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               length: errorTarget.length,
               errorCode:
                   CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
-              arguments: null,
-              contextMessages: null,
-              data: null,
             );
           }
         } else if (defaultValuesAreExpected) {
@@ -5827,8 +5809,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 length: errorTarget.length,
                 errorCode: errorCode,
                 arguments: arguments,
-                contextMessages: null,
-                data: null,
               );
             }
           }

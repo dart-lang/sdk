@@ -21,11 +21,11 @@ import 'package:collection/collection.dart';
 /// Returns a [List] of fixed length with given types.
 List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
   if (e2 != null) {
-    final result = List<DartType>.filled(2, e1, growable: false);
+    final result = List<DartType>.filled(2, e1);
     result[1] = e2;
     return result;
   } else {
-    return List<DartType>.filled(1, e1, growable: false);
+    return List<DartType>.filled(1, e1);
   }
 }
 

@@ -587,7 +587,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         errorCode: result.errorCode,
         arguments: result.arguments,
         contextMessages: result.contextMessages,
-        data: null,
       );
     }
     return result;
@@ -1953,7 +1952,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             errorCode: expressionValue.errorCode,
             arguments: expressionValue.arguments,
             contextMessages: expressionValue.contextMessages,
-            data: null,
           );
         }
         return ConstantEvaluationEngine._unresolvedObject(

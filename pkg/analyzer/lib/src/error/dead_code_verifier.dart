@@ -238,17 +238,11 @@ class NullSafetyDeadCodeVerifier {
             offset: doOffset,
             length: doEnd - doOffset,
             errorCode: WarningCode.DEAD_CODE,
-            arguments: null,
-            contextMessages: null,
-            data: null,
           );
           _errorReporter.atOffset(
             offset: whileOffset,
             length: whileEnd - whileOffset,
             errorCode: WarningCode.DEAD_CODE,
-            arguments: null,
-            contextMessages: null,
-            data: null,
           );
           offset = parent.semicolon.next!.offset;
           if (parent.hasBreakStatement) {
@@ -273,9 +267,6 @@ class NullSafetyDeadCodeVerifier {
             offset: offset,
             length: length,
             errorCode: WarningCode.DEAD_CODE,
-            arguments: null,
-            contextMessages: null,
-            data: null,
           );
         }
       }
@@ -295,8 +286,6 @@ class NullSafetyDeadCodeVerifier {
           length: length,
           errorCode: errorCode,
           arguments: arguments,
-          contextMessages: null,
-          data: null,
         );
         _deadCatchClauseRanges.add(SourceRange(offset, length));
       },
@@ -386,9 +375,6 @@ class NullSafetyDeadCodeVerifier {
           offset: beginToken.offset,
           length: endToken.end - beginToken.offset,
           errorCode: WarningCode.DEAD_CODE,
-          arguments: null,
-          contextMessages: null,
-          data: null,
         );
       }
     }

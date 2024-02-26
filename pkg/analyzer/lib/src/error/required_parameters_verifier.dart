@@ -128,8 +128,6 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
             length: errorNode.length,
             errorCode: CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
             arguments: [parameterName],
-            contextMessages: null,
-            data: null,
           );
         }
       }
@@ -146,8 +144,6 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
                 length: errorNode.length,
                 errorCode: WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
                 arguments: [parameterName, reason],
-                contextMessages: null,
-                data: null,
               );
             } else {
               _errorReporter.atOffset(
@@ -155,8 +151,6 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
                 length: errorNode.length,
                 errorCode: WarningCode.MISSING_REQUIRED_PARAM,
                 arguments: [parameterName],
-                contextMessages: null,
-                data: null,
               );
             }
           }
