@@ -1909,8 +1909,8 @@ abstract class ElementImpl implements Element {
   /// declaration of this element.
   int _nameOffset = 0;
 
-  /// A bit-encoded form of the modifiers associated with this element.
-  int _modifiers = 0;
+  /// The modifiers associated with this element.
+  EnumSet<Modifier> _modifiers = EnumSet.empty();
 
   /// A list containing all of the metadata associated with this element.
   List<ElementAnnotationImpl> _metadata = const [];
@@ -2444,8 +2444,7 @@ abstract class ElementImpl implements Element {
   }
 
   /// Return `true` if this element has the given [modifier] associated with it.
-  bool hasModifier(Modifier modifier) =>
-      BooleanArray.get(_modifiers, modifier.index);
+  bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
   @override
   bool isAccessibleIn(LibraryElement library) {
@@ -2468,7 +2467,7 @@ abstract class ElementImpl implements Element {
   /// Set whether the given [modifier] is associated with this element to
   /// correspond to the given [value].
   void setModifier(Modifier modifier, bool value) {
-    _modifiers = BooleanArray.set(_modifiers, modifier.index, value);
+    _modifiers = _modifiers.updated(modifier, value);
   }
 
   @override
