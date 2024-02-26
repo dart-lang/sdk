@@ -467,7 +467,7 @@
         "dart2wasm-options": [
           "-O0"
         ],
-        "timeout": 240
+        "timeout": 60
       }
     },
     "dart2wasm-(linux|mac|win)-optimized-(d8|jsshell|jsc|chrome|firefox)": {
@@ -476,7 +476,7 @@
           "-O1"
         ],
         "host-asserts": false,
-        "timeout": 240
+        "timeout": 60
       }
     },
     "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox)": {
@@ -486,7 +486,7 @@
           "--js-compatibility"
         ],
         "host-asserts": true,
-        "timeout": 240
+        "timeout": 60
       }
     },
     "vm-aot-android-(debug|product|release)-arm_x64": {
