@@ -1192,6 +1192,39 @@ void main(int argc, char** argv) {
   }
   vm_options.AddArgument("--new_gen_growth_factor=4");
 
+  auto parse_arguments = [&](int argc, char** argv,
+                             CommandLineOptions* vm_options,
+                             CommandLineOptions* dart_options) {
+    bool success = Options::ParseArguments(
+        argc, argv, vm_run_app_snapshot, vm_options, &script_name, dart_options,
+        &print_flags_seen, &verbose_debug_seen);
+    if (!success) {
+      if (Options::help_option()) {
+        Options::PrintUsage();
+        Platform::Exit(0);
+      } else if (Options::version_option()) {
+        Options::PrintVersion();
+        Platform::Exit(0);
+      } else if (print_flags_seen) {
+        // Will set the VM flags, print them out and then we exit as no
+        // script was specified on the command line.
+        char* error =
+            Dart_SetVMFlags(vm_options->count(), vm_options->arguments());
+        if (error != nullptr) {
+          Syslog::PrintErr("Setting VM flags failed: %s\n", error);
+          free(error);
+          Platform::Exit(kErrorExitCode);
+        }
+        Platform::Exit(0);
+      } else {
+        // This usage error case will only be invoked when
+        // Options::disable_dart_dev() is false.
+        Options::PrintUsage();
+        Platform::Exit(kErrorExitCode);
+      }
+    }
+  };
+
   AppSnapshot* app_snapshot = nullptr;
 #if defined(DART_PRECOMPILED_RUNTIME)
   // If the executable binary contains the runtime together with an appended
@@ -1213,40 +1246,23 @@ void main(int argc, char** argv) {
       for (int i = 1; i < argc; i++) {
         dart_options.AddArgument(argv[i]);
       }
+
+      // Parse DART_VM_OPTIONS options.
+      int env_argc = 0;
+      char** env_argv = Options::GetEnvArguments(&env_argc);
+      if (env_argv != nullptr) {
+        // Any Dart options that are generated based on parsing DART_VM_OPTIONS
+        // are useless, so we'll throw them away rather than passing them along.
+        CommandLineOptions tmp_options(env_argc + EXTRA_VM_ARGUMENTS);
+        parse_arguments(env_argc, env_argv, &vm_options, &tmp_options);
+      }
     }
   }
 #endif
 
   // Parse command line arguments.
   if (app_snapshot == nullptr) {
-    bool success = Options::ParseArguments(
-        argc, argv, vm_run_app_snapshot, &vm_options, &script_name,
-        &dart_options, &print_flags_seen, &verbose_debug_seen);
-    if (!success) {
-      if (Options::help_option()) {
-        Options::PrintUsage();
-        Platform::Exit(0);
-      } else if (Options::version_option()) {
-        Options::PrintVersion();
-        Platform::Exit(0);
-      } else if (print_flags_seen) {
-        // Will set the VM flags, print them out and then we exit as no
-        // script was specified on the command line.
-        char* error =
-            Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
-        if (error != nullptr) {
-          Syslog::PrintErr("Setting VM flags failed: %s\n", error);
-          free(error);
-          Platform::Exit(kErrorExitCode);
-        }
-        Platform::Exit(0);
-      } else {
-        // This usage error case will only be invoked when
-        // Options::disable_dart_dev() is false.
-        Options::PrintUsage();
-        Platform::Exit(kErrorExitCode);
-      }
-    }
+    parse_arguments(argc, argv, &vm_options, &dart_options);
   }
 
   DartUtils::SetEnvironment(Options::environment());
@@ -1452,7 +1468,7 @@ void main(int argc, char** argv) {
   }
 
   // Free environment if any.
-  Options::DestroyEnvironment();
+  Options::Cleanup();
 
   Platform::Exit(global_exit_code);
 }
