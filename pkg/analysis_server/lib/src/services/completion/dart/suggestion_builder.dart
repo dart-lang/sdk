@@ -586,10 +586,7 @@ class SuggestionBuilder {
   void suggestFunctionCall() {
     final element = protocol.Element(protocol.ElementKind.METHOD,
         FunctionElement.CALL_METHOD_NAME, protocol.Element.makeFlags(),
-        location: null,
-        typeParameters: null,
-        parameters: '()',
-        returnType: 'void');
+        parameters: '()', returnType: 'void');
     _addSuggestion(
       CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,

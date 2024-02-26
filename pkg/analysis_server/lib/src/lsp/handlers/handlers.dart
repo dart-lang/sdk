@@ -64,7 +64,7 @@ mixin Handler<T> {
   // TODO(dantup): Merge this into HandlerHelperMixin by converting to methods
   //  so T can be inferred.
   final fileModifiedError = error<T>(ErrorCodes.ContentModified,
-      'Document was modified before operation completed', null);
+      'Document was modified before operation completed');
 
   final serverNotInitializedError = error<T>(ErrorCodes.ServerNotInitialized,
       'Request not valid before server is initialized');

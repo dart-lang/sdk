@@ -44,11 +44,11 @@ class EditFormatHandler extends LegacyHandler {
       length = null;
     }
 
-    var code = SourceCode(unformattedCode,
-        uri: null,
-        isCompilationUnit: true,
-        selectionStart: start,
-        selectionLength: length);
+    var code = SourceCode(
+      unformattedCode,
+      selectionStart: start,
+      selectionLength: length,
+    );
     var formatter = DartFormatter(pageWidth: params.lineLength);
     SourceCode formattedResult;
     try {

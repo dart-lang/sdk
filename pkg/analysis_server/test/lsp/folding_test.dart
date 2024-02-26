@@ -57,8 +57,6 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
         startCharacter: lineFoldingOnly ? null : range.start.character,
         endLine: range.end.line,
         endCharacter: lineFoldingOnly ? null : range.end.character,
-        // We (and VS Code) don't currently support this.
-        collapsedText: null,
         kind: entry.value,
       );
     }).toSet();

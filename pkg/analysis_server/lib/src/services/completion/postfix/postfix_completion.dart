@@ -149,7 +149,7 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion?> expandTry(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
-    return processor.expandTry(kind, processor.findStatement, withOn: false);
+    return processor.expandTry(kind, processor.findStatement);
   }
 
   static Future<PostfixCompletion?> expandTryon(

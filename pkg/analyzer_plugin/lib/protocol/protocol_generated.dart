@@ -524,7 +524,7 @@ class AnalysisHandleWatchEventsResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return Response(id, requestTime, result: null);
+    return Response(id, requestTime);
   }
 
   @override
@@ -1038,7 +1038,7 @@ class AnalysisSetContextRootsResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return Response(id, requestTime, result: null);
+    return Response(id, requestTime);
   }
 
   @override
@@ -1120,7 +1120,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return Response(id, requestTime, result: null);
+    return Response(id, requestTime);
   }
 
   @override
@@ -1213,7 +1213,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return Response(id, requestTime, result: null);
+    return Response(id, requestTime);
   }
 
   @override
@@ -1306,7 +1306,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return Response(id, requestTime, result: null);
+    return Response(id, requestTime);
   }
 
   @override
@@ -3349,7 +3349,7 @@ class PluginShutdownParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'plugin.shutdown', null);
+    return Request(id, 'plugin.shutdown');
   }
 
   @override
@@ -3368,7 +3368,7 @@ class PluginShutdownResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return Response(id, requestTime, result: null);
+    return Response(id, requestTime);
   }
 
   @override

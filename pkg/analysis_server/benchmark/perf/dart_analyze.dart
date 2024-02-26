@@ -39,7 +39,6 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
       '$dartSdkPath/bin/dart',
       ['analyze', '--suppress-analytics', ...analyzeThis],
       cwd: workingDir,
-      failOnError: true,
       verbose: false,
     );
     stopwatchNoCache.stop();
@@ -49,7 +48,6 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
       '$dartSdkPath/bin/dart',
       ['analyze', '--suppress-analytics', ...analyzeThis],
       cwd: workingDir,
-      failOnError: true,
       verbose: false,
     );
     stopwatchWithCache.stop();
@@ -73,7 +71,6 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
           ...analyzeThis
         ],
         cwd: workingDir,
-        failOnError: true,
         verbose: false,
         stdout: stdout,
       );
@@ -91,7 +88,6 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
           ...analyzeThis
         ],
         cwd: workingDir,
-        failOnError: true,
         verbose: false,
         stdout: stdout,
       );

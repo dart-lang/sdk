@@ -273,12 +273,12 @@ extension on StringBuffer {
   }
 
   void writePadLeft(String text, int keyLength) {
-    write(text.padLeft(keyLength, ' '));
+    write(text.padLeft(keyLength));
     write(' ');
   }
 
   void writePadRight(String text, int keyLength) {
-    write(text.padRight(keyLength, ' '));
+    write(text.padRight(keyLength));
     write(' ');
   }
 }

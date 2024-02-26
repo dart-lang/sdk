@@ -912,7 +912,7 @@ class AnalysisGetLibraryDependenciesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'analysis.getLibraryDependencies', null);
+    return Request(id, 'analysis.getLibraryDependencies');
   }
 
   @override
@@ -2403,7 +2403,7 @@ class AnalysisReanalyzeParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'analysis.reanalyze', null);
+    return Request(id, 'analysis.reanalyze');
   }
 
   @override
@@ -2422,7 +2422,7 @@ class AnalysisReanalyzeResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -2649,7 +2649,7 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -2737,7 +2737,7 @@ class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -2819,7 +2819,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -2912,7 +2912,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -3191,7 +3191,7 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -3271,7 +3271,7 @@ class AnalyticsEnableResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -3290,7 +3290,7 @@ class AnalyticsIsEnabledParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'analytics.isEnabled', null);
+    return Request(id, 'analytics.isEnabled');
   }
 
   @override
@@ -3433,7 +3433,7 @@ class AnalyticsSendEventResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -3527,7 +3527,7 @@ class AnalyticsSendTimingResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -4523,7 +4523,7 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -4704,7 +4704,7 @@ class DiagnosticGetDiagnosticsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'diagnostic.getDiagnostics', null);
+    return Request(id, 'diagnostic.getDiagnostics');
   }
 
   @override
@@ -4793,7 +4793,7 @@ class DiagnosticGetServerPortParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'diagnostic.getServerPort', null);
+    return Request(id, 'diagnostic.getServerPort');
   }
 
   @override
@@ -6867,7 +6867,7 @@ class EditListPostfixCompletionTemplatesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'edit.listPostfixCompletionTemplates', null);
+    return Request(id, 'edit.listPostfixCompletionTemplates');
   }
 
   @override
@@ -7738,7 +7738,7 @@ class ExecutionDeleteContextResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -8418,7 +8418,7 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -10078,7 +10078,7 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -14773,7 +14773,7 @@ class ServerCancelRequestResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -14959,7 +14959,7 @@ class ServerGetVersionParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'server.getVersion', null);
+    return Request(id, 'server.getVersion');
   }
 
   @override
@@ -15332,7 +15332,7 @@ class ServerOpenUrlRequestResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -15504,7 +15504,7 @@ class ServerSetClientCapabilitiesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -15591,7 +15591,7 @@ class ServerSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -15775,7 +15775,7 @@ class ServerShutdownParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'server.shutdown', null);
+    return Request(id, 'server.shutdown');
   }
 
   @override
@@ -15794,7 +15794,7 @@ class ServerShutdownResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override

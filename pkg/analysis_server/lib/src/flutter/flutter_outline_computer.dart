@@ -22,7 +22,6 @@ class FlutterOutlineComputer {
   protocol.FlutterOutline compute() {
     var dartOutline = DartUnitOutlineComputer(
       resolvedUnit,
-      withBasicFlutter: false,
     ).compute();
 
     // Convert Dart outlines into Flutter outlines.

@@ -74,7 +74,7 @@ class SourceChangeMerger {
     for (final edit in edits) {
       debugBuffer.writeln('   $edit');
     }
-    debugBuffer.writeln('');
+    debugBuffer.writeln();
   }
 
   /// Merges (in-place) any sequential edits that are overlapping or touching.

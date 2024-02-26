@@ -30,7 +30,7 @@ Future<void> main(List<String> args) async {
     await computer.compute(rootPath);
     stopwatch.stop();
     var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
-    out.writeln('');
+    out.writeln();
     out.writeln('Analysis performed in $duration');
     computer.writeResults(out);
     await out.flush();
@@ -241,14 +241,14 @@ class FlutterMetricsComputer {
 
   /// Write the child data to the [sink].
   void _writeChildData(StringSink sink) {
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('The number of times a widget had a given child.');
     _writeStructureData(sink, data.childData);
   }
 
   /// Write the parent data to the [sink].
   void _writeParentData(StringSink sink) {
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('The number of times a widget had a given parent.');
     _writeStructureData(sink, data.parentData);
   }
@@ -275,7 +275,7 @@ class FlutterMetricsComputer {
 
   /// Write the widget count data to the [sink].
   void _writeWidgetCounts(StringSink sink) {
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('Widget classes by frequency of instantiation');
 
     var total = data.totalWidgetCount;
