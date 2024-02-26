@@ -112,7 +112,7 @@ infoTest(String program, bool useBinary, InfoCheck check) async {
       memorySourceFiles: {'main.dart': program},
       options: options,
       outputProvider: collector);
-  var compiler = result.compiler;
+  var compiler = result.compiler!;
   Expect.isFalse(compiler.compilationFailed);
   AllInfo info;
   if (useBinary) {

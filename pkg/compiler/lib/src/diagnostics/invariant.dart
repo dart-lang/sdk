@@ -15,7 +15,7 @@ bool DEBUG_MODE = false;
 
 /// Assert that [DEBUG_MODE] is `true` and provide [message] as part of the
 /// error message.
-assertDebugMode(String message) {
+void assertDebugMode(String message) {
   assert(DEBUG_MODE,
       failedAt(NO_LOCATION_SPANNABLE, 'Debug mode is not enabled: $message'));
 }

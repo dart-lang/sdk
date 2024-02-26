@@ -1407,7 +1407,7 @@ class SsaShareRegionConstants extends HBaseVisitor<void>
   }
 
   // Replace cacheable uses with a reference to a HLateValue node.
-  _cache(
+  void _cache(
       HInstruction node, bool Function(HInstruction) cacheable, String name) {
     var users = node.usedBy.toList();
     var reference = HLateValue(node);

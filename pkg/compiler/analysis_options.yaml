@@ -8,6 +8,9 @@ analyzer:
     # Allow deprecated calls from within the same package
     deprecated_member_use_from_same_package: ignore
     illegal_language_version_override: ignore
+  language:
+    strict-inference: true
+    strict-raw-types: true
 
 linter:
   rules:

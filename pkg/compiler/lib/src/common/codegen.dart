@@ -273,7 +273,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     sb.write('CodegenImpact:');
     WorldImpact.printOn(sb, this);
 
-    void add(String title, Iterable iterable) {
+    void add(String title, Iterable<Object?> iterable) {
       if (iterable.isNotEmpty) {
         sb.write('\n $title:');
         iterable.forEach((e) => sb.write('\n  $e'));

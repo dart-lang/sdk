@@ -27,13 +27,13 @@ main() {
       var result = await runCompiler(
           entryPoint: entryPoint, memorySourceFiles: {main: test});
       Expect.isTrue(result.isSuccess);
-      var compiler = result.compiler;
-      var closedWorld = compiler.backendClosedWorldForTesting;
+      var compiler = result.compiler!;
+      var closedWorld = compiler.backendClosedWorldForTesting!;
       var elementEnvironment = closedWorld.elementEnvironment;
 
-      MemberEntity element = elementEnvironment.mainFunction;
+      MemberEntity element = elementEnvironment.mainFunction!;
       String generated =
-          compiler.backendStrategy.getGeneratedCodeForTesting(element);
+          compiler.backendStrategy.getGeneratedCodeForTesting(element)!;
       checkerForAbsentPresent(test)(generated);
     }
 

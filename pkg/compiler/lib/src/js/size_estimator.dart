@@ -24,7 +24,7 @@ int estimateSize(Node node) {
 /// estimate for a given JavaScript AST. [SizeEstimator] trades accuracy for
 /// stability and performance. In addition, [SizeEstimator] assumes we will emit
 /// production quality minified JavaScript.
-class SizeEstimator implements NodeVisitor {
+class SizeEstimator implements NodeVisitor<void> {
   int charCount = 0;
   bool inForInit = false;
   bool atStatementBegin = false;
@@ -412,7 +412,7 @@ class SizeEstimator implements NodeVisitor {
     functionOut(declaration.function, declaration.name, vars);
   }
 
-  visitNestedExpression(Expression node, Precedence requiredPrecedence,
+  void visitNestedExpression(Expression node, Precedence requiredPrecedence,
       {required bool newInForInit, required bool newAtStatementBegin}) {
     bool needsParentheses = !node.isFinalized ||
         // a - (b + c).
@@ -864,7 +864,7 @@ class SizeEstimator implements NodeVisitor {
     }
   }
 
-  outputNumberWithRequiredWhitespace(String number) {
+  void outputNumberWithRequiredWhitespace(String number) {
     int charCode = number.codeUnitAt(0);
     if (charCode == charCodes.$MINUS) {
       // We can eliminate the space in some cases, but for simplicity we

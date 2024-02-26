@@ -178,7 +178,7 @@ method2() {
 '''
   });
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
 
   Map<String, List<String>> expectedLiveMembersMap = <String, List<String>>{
     'A': ['method1', 'getter', 'method4'],

@@ -24,7 +24,7 @@ import 'js.dart' as js;
 ///
 /// Look at [rewriteFunction], [visitDartYield] and [visitAwait] for more
 /// explanation.
-abstract class AsyncRewriterBase extends js.NodeVisitor {
+abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   // Local variables are hoisted to the top of the function, so they are
   // collected here.
   List<js.VariableDeclaration> localVariables = [];
@@ -356,11 +356,11 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
         "Node $node cannot be transformed by the await-sync transformer");
   }
 
-  void unreachable(js.Node node) {
+  Never unreachable(js.Node node) {
     reporter.internalError(spannable, "Internal error, trying to visit $node");
   }
 
-  visitStatement(js.Statement node) {
+  void visitStatement(js.Statement node) {
     node.accept(this);
   }
 
@@ -416,7 +416,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   // TODO(sra): Many calls to this method use `store: false`, and could be
   // replaced with calls to `visitExpression`.
-  withExpression(js.Expression node, fn(js.Expression result),
+  T withExpression<T>(js.Expression node, T fn(js.Expression result),
       {required bool store}) {
     int oldTempVarIndex = currentTempVarIndex;
     js.Expression visited = visitExpression(node);
@@ -441,7 +441,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// evaluation order we can write:
   ///     temp = <receiver>;
   ///     temp.m();
-  withCallTargetExpression(js.Expression node, fn(js.Expression result),
+  js.Expression withCallTargetExpression(
+      js.Expression node, js.Expression fn(js.Expression result),
       {required bool store}) {
     int oldTempVarIndex = currentTempVarIndex;
     js.Expression visited = visitExpression(node);
@@ -941,12 +942,12 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   void visitCase(js.Case node) {
-    return unreachable(node);
+    unreachable(node);
   }
 
   @override
   void visitCatch(js.Catch node) {
-    return unreachable(node);
+    unreachable(node);
   }
 
   @override
@@ -1520,7 +1521,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     }, store: false);
   }
 
-  setErrorHandler([int? errorHandler]) {
+  void setErrorHandler([int? errorHandler]) {
     hasHandlerLabels = true; // TODO(sra): Add short form error handler.
     js.Expression label =
         (errorHandler == null) ? currentErrorHandler : js.number(errorHandler);
@@ -1731,7 +1732,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     beginLabel(afterLabel);
   }
 
-  addYield(js.DartYield node, js.Expression expression,
+  void addYield(js.DartYield node, js.Expression expression,
       js.JavaScriptNodeSourceInformation? sourceInformation);
 
   @override
@@ -2001,7 +2002,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// Property of the iterator that is bound to the `_yieldStar` method.
   final js.Expression yieldStarSelector;
 
-  SyncStarRewriter(DiagnosticReporter diagnosticListener, spannable,
+  SyncStarRewriter(DiagnosticReporter diagnosticListener, Spannable? spannable,
       {required this.iteratorCurrentValueProperty,
       required this.iteratorDatumProperty,
       required this.yieldStarSelector,
@@ -2504,7 +2505,7 @@ class PreTranslationAnalysis extends js.BaseVisitor<bool> {
     return containsAwait;
   }
 
-  analyze(js.Fun node) {
+  void analyze(js.Fun node) {
     currentFunction = node;
     node.params.forEach(visit);
     visit(node.body);

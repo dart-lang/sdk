@@ -3553,7 +3553,7 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
     // 'null' and 'undefined'.
   }
 
-  collectTargets(HInstruction instruction, List<HBasicBlock>? trueTargets,
+  void collectTargets(HInstruction instruction, List<HBasicBlock>? trueTargets,
       List<HBasicBlock>? falseTargets) {
     for (HInstruction user in instruction.usedBy) {
       if (user is HIf) {

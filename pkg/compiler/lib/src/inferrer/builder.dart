@@ -620,7 +620,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     return null;
   }
 
-  _visitCasesForSwitch(ir.SwitchStatement node, LocalState stateBefore) {
+  void _visitCasesForSwitch(ir.SwitchStatement node, LocalState stateBefore) {
     for (ir.SwitchCase switchCase in node.cases) {
       _state = LocalState.childPath(stateBefore);
       visit(switchCase);
@@ -2466,9 +2466,9 @@ class LocalState {
       Local local,
       TypeInformation type,
       DartType staticType,
-      {isCast = true,
-      excludeNull = false,
-      excludeLateSentinel = false}) {
+      {bool isCast = true,
+      bool excludeNull = false,
+      bool excludeLateSentinel = false}) {
     setLocal(
         inferrer,
         capturedAndBoxed,

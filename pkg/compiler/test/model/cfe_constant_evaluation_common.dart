@@ -637,7 +637,7 @@ Future<void> runEnvTest(
       options: [Flags.enableAsserts, Flags.testMode],
       environment: {...env},
       diagnosticHandler: diagnosticCollector);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
   KernelToElementMap elementMap = frontEndStrategy.elementMap;
   DartTypes dartTypes = elementMap.types;

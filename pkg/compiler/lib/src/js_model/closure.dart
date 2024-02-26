@@ -522,7 +522,7 @@ class JsScopeInfo extends ScopeInfo {
 
   @override
   void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, f(Local local, FieldEntity field)) {
+      KernelToLocalsMap localsMap, void f(Local local, FieldEntity field)) {
     _ensureBoxedVariableCache(localsMap);
     _boxedVariablesCache!.forEach(f);
   }
@@ -866,7 +866,7 @@ class JsClosureClassInfo extends JsScopeInfo
 
   @override
   void forEachFreeVariable(
-      KernelToLocalsMap localsMap, f(Local variable, JField field)) {
+      KernelToLocalsMap localsMap, void f(Local variable, JField field)) {
     _ensureFieldToLocalsMap(localsMap);
     _ensureBoxedVariableCache(localsMap);
     _fieldToLocalsMap!.forEach((JField field, Local local) {

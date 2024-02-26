@@ -25,7 +25,8 @@ class DebugPrinter extends BaseVisitorVoid with Indentation, Tagging<Node> {
   @override
   StringBuffer sb = StringBuffer();
 
-  void visitNodeWithChildren(Node node, String type, [Map? params]) {
+  void visitNodeWithChildren(Node node, String type,
+      [Map<Object?, Object?>? params]) {
     openNode(node, type, params);
     node.visitChildren(this);
     closeNode();

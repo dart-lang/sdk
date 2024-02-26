@@ -166,7 +166,7 @@ class Namer extends ModularNamer {
   final Map<Entity, jsAst.Name> userGlobalsSecondName = {};
   final Map<String, jsAst.Name> internalGlobals = {};
 
-  _registerName(
+  void _registerName(
       Map<String, String> map, jsAst.Name jsName, String originalName) {
     // Non-finalized names are not present in the output program
     if (jsName is TokenName && !jsName.isFinalized) return;
@@ -2651,7 +2651,7 @@ class TokenScope {
     return overflow;
   }
 
-  _incrementName() {
+  void _incrementName() {
     if (_incrementPosition(_nextName.length - 1)) {
       _nextName.add($_);
     }

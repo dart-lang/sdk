@@ -1090,7 +1090,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
     node.addNotifyStep(StepKind.FUN_EXIT);
   }
 
-  _handleFunctionExpression(js.FunctionExpression node, int start) {
+  void _handleFunctionExpression(js.FunctionExpression node, int start) {
     final parentNode = _currentNode.parent;
     final parentAstNode = _currentNode.parent?.astNode;
     _PositionInfoNode functionNode = _currentNode;
@@ -1130,7 +1130,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
     _handleFunctionExpression(node, start);
   }
 
-  visitSubexpression(js.Node parent, js.Expression child, StepKind kind,
+  void visitSubexpression(js.Node parent, js.Expression child, StepKind kind,
       {required int statementOffset,
       required OffsetPositionMode offsetPositionMode,
       BranchKind? branchKind,

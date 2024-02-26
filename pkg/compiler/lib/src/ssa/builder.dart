@@ -240,7 +240,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   }
 
   /// Pushes a boolean checking [expression] against null.
-  pushCheckNull(HInstruction expression) {
+  void pushCheckNull(HInstruction expression) {
     push(HIdentity(expression, graph.addConstantNull(closedWorld),
         _abstractValueDomain.boolType));
   }
@@ -930,12 +930,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   /// Sets context for generating code that is the result of inlining
   /// [inlinedTarget].
   void _inlinedFrom(MemberEntity inlinedTarget,
-      SourceInformation? callSourceInformation, f()) {
+      SourceInformation? callSourceInformation, void f()) {
     reporter.withCurrentElement(inlinedTarget, () {
       _enterFrame(inlinedTarget, callSourceInformation);
-      var result = f();
+      f();
       _leaveFrame();
-      return result;
     });
   }
 
@@ -5139,7 +5138,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       case JsBuiltin.isJsInteropTypeArgument:
         reporter.internalError(
             NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
-        return null;
     }
   }
 
@@ -7591,7 +7589,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
     node.visitChildren(this);
   }
 
-  _handleLoop(ir.Node node) {
+  void _handleLoop(ir.Node node) {
     // It's actually not difficult to inline a method with a loop, but our
     // measurements show that it's currently better to not inline a method that
     // contains a loop.
@@ -7910,7 +7908,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
     visit(node.right);
   }
 
-  _processArguments(ir.Arguments arguments, ir.FunctionNode? target) {
+  void _processArguments(ir.Arguments arguments, ir.FunctionNode? target) {
     registerRegularNode();
     if (arguments.types.isNotEmpty) {
       data.hasTypeArguments = true;

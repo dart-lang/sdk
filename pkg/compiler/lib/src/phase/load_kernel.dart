@@ -185,7 +185,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(
   ir.Component component = ir.Component();
 
   Future<void> read(Uri uri) async {
-    api.Input input =
+    api.Input<List<int>> input =
         await compilerInput.readFromUri(uri, inputKind: api.InputKind.binary);
     BinaryBuilder(input.data).readComponent(component);
   }

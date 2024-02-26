@@ -181,7 +181,7 @@ main(List<String> args) {
       Flags.disableRtiOptimization,
       '--libraries-spec=$sdkLibrariesSpecificationUri',
     ], expectedOutput: OUTPUT, printJs: args.contains('-v'));
-    Compiler compiler = result.compilationResult.compiler;
+    Compiler compiler = result.compilationResult.compiler!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;

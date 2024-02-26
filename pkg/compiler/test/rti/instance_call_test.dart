@@ -101,7 +101,7 @@ main() {
         memorySourceFiles: {'main.dart': code},
         options: [Flags.omitImplicitChecks]);
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;

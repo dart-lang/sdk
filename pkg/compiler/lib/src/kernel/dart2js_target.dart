@@ -139,13 +139,12 @@ class Dart2jsTarget extends Target {
       ClassHierarchy hierarchy,
       List<ir.Library> libraries,
       Map<String, String>? environmentDefines,
-      DiagnosticReporter diagnosticReporter,
+      covariant DiagnosticReporter<Message, LocatedMessage> diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses = JsInteropChecks.getNativeClasses(component);
-    final jsInteropReporter = JsInteropDiagnosticReporter(
-        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
+    final jsInteropReporter = JsInteropDiagnosticReporter(diagnosticReporter);
     var jsInteropChecks = JsInteropChecks(
         coreTypes, hierarchy, jsInteropReporter, _nativeClasses!);
     // Process and validate first before doing anything with exports.

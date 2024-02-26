@@ -1460,14 +1460,15 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     inlineMap[inlinedFrom]!.add(element);
   }
 
-  void unregisterImpact(var impactSource) {
+  void unregisterImpact(MemberEntity impactSource) {
     _dumpInfoData.impacts.remove(impactSource);
   }
 
   /// Returns an iterable of [Selection]s that are used by [entity]. Each
   /// [Selection] contains an entity that is used and the selector that
   /// selected the entity.
-  Iterable<Selection> getRetaining(Entity entity, JClosedWorld closedWorld) {
+  Iterable<Selection> getRetaining(
+      MemberEntity entity, JClosedWorld closedWorld) {
     final impact = _dumpInfoData.impacts[entity];
     if (impact == null) return const <Selection>[];
 
@@ -1577,7 +1578,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
     // Recursively build links to function uses
     final functionEntities =
-        infoCollector.state.entityToInfo.keys.where((k) => k is FunctionEntity);
+        infoCollector.state.entityToInfo.keys.whereType<FunctionEntity>();
     for (final entity in functionEntities) {
       final info = infoCollector.state.entityToInfo[entity] as FunctionInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
@@ -1593,8 +1594,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
 
     // Recursively build links to field uses
-    Iterable<Entity> fieldEntity =
-        infoCollector.state.entityToInfo.keys.where((k) => k is FieldEntity);
+    final fieldEntity =
+        infoCollector.state.entityToInfo.keys.whereType<FieldEntity>();
     for (final entity in fieldEntity) {
       final info = infoCollector.state.entityToInfo[entity] as FieldInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
@@ -1650,8 +1651,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     DumpInfoStateData result = infoCollector.state;
 
     // Recursively build links to function uses
-    Iterable<Entity> functionEntities =
-        infoCollector.state.entityToInfo.keys.where((k) => k is FunctionEntity);
+    final functionEntities =
+        infoCollector.state.entityToInfo.keys.whereType<FunctionEntity>();
     for (final entity in functionEntities) {
       final info = infoCollector.state.entityToInfo[entity] as FunctionInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
@@ -1668,8 +1669,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
 
     // Recursively build links to field uses
-    Iterable<Entity> fieldEntity =
-        infoCollector.state.entityToInfo.keys.where((k) => k is FieldEntity);
+    final fieldEntity =
+        infoCollector.state.entityToInfo.keys.whereType<FieldEntity>();
     for (final entity in fieldEntity) {
       final info = infoCollector.state.entityToInfo[entity] as FieldInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
@@ -1771,7 +1772,7 @@ class LocalFunctionInfo {
 
   LocalFunctionInfo(this.localFunction, this.name, this.order);
 
-  get disambiguatedName => order == 0 ? name : '$name%${order - 1}';
+  String get disambiguatedName => order == 0 ? name : '$name%${order - 1}';
 }
 
 class LocalFunctionInfoCollector extends ir.RecursiveVisitor {

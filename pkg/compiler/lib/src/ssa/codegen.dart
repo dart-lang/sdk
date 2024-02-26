@@ -231,7 +231,7 @@ enum _ExpressionCodegenType {
   declaration,
 }
 
-class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
+class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   /// Whether we are currently generating expressions instead of statements.
   /// This includes declarations, which are generated as expressions.
   bool isGeneratingExpression = false;
@@ -332,7 +332,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   /// If the [instruction] is not `null` it will be used to attach the position
   /// to the [expression].
-  pushExpressionAsStatement(
+  void pushExpressionAsStatement(
       js.Expression expression, SourceInformation? sourceInformation) {
     pushStatement(js.ExpressionStatement(expression)
         .withSourceInformation(sourceInformation));
@@ -340,7 +340,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   /// If the [instruction] is not `null` it will be used to attach the position
   /// to the [expression].
-  push(js.Expression expression) {
+  void push(js.Expression expression) {
     expressionStack.add(expression);
   }
 
@@ -747,18 +747,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  visit(HInstruction node) {
+  void visit(HInstruction node) {
     node.accept(this);
   }
 
-  visitExpression(HInstruction node) {
+  void visitExpression(HInstruction node) {
     bool oldIsGeneratingExpression = isGeneratingExpression;
     isGeneratingExpression = true;
     visit(node);
     isGeneratingExpression = oldIsGeneratingExpression;
   }
 
-  visitStatement(HInstruction node) {
+  void visitStatement(HInstruction node) {
     assert(!isGeneratingExpression);
     visit(node);
     if (!expressionStack.isEmpty) {
@@ -1440,11 +1440,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.target);
   }
 
-  visitInvokeBinary(HInvokeBinary node, String op) {
+  void visitInvokeBinary(HInvokeBinary node, String op) {
     handleInvokeBinary(node, op, node.sourceInformation);
   }
 
-  visitRelational(HRelational node, String op) {
+  void visitRelational(HRelational node, String op) {
     handleInvokeBinary(node, op, node.sourceInformation);
   }
 
@@ -1455,12 +1455,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .withSourceInformation(node.sourceInformation));
   }
 
-  visitBitInvokeBinary(HBinaryBitOp node, String op) {
+  void visitBitInvokeBinary(HBinaryBitOp node, String op) {
     visitInvokeBinary(node, op);
     if (node.requiresUintConversion) convertBitOpResultToUnsigned(node);
   }
 
-  visitInvokeUnary(HInvokeUnary node, String op) {
+  void visitInvokeUnary(HInvokeUnary node, String op) {
     use(node.operand);
     push(js.Prefix(op, pop()).withSourceInformation(node.sourceInformation));
   }
@@ -2368,7 +2368,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // Native target names are simple identifiers, so re-parsing is not
       // necessary, but it is simpler to use the same code.
       String template;
-      List templateInputs;
+      List<Object> templateInputs;
       if (target.isGetter) {
         template = '#.$targetName';
         templateInputs = [receiverExpression];
@@ -3181,7 +3181,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     _emitIsTestSimple(node);
   }
 
-  _emitIsTestSimple(HIsTestSimple node, {bool negative = false}) {
+  void _emitIsTestSimple(HIsTestSimple node, {bool negative = false}) {
     use(node.checkedInput);
     js.Expression value = pop();
     String relation = negative ? '!=' : '==';
@@ -3425,8 +3425,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         StaticUse.directInvoke(method, selector.callStructure, null));
   }
 
-  _emitIsLateSentinel(HInstruction input, SourceInformation? sourceInformation,
-      {inverse = false}) {
+  void _emitIsLateSentinel(
+      HInstruction input, SourceInformation? sourceInformation,
+      {bool inverse = false}) {
     use(input);
     js.Expression value = pop();
     js.Expression sentinel =

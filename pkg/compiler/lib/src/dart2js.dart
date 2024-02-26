@@ -38,7 +38,7 @@ String? BUILD_ID;
 typedef HandleOption = void Function(String data);
 typedef HandleMultiOption = void Function(Iterator<String> data);
 
-abstract class OptionHandler<T> {
+abstract class OptionHandler<T extends Object> {
   String get pattern;
   void handle(T argument);
 }
@@ -928,13 +928,6 @@ String _formatDurationAsSeconds(Duration duration, [int width = 4]) {
   return text;
 }
 
-class AbortLeg {
-  final message;
-  AbortLeg(this.message);
-  @override
-  toString() => 'Aborted due to --throw-on-error: $message';
-}
-
 void writeString(Uri uri, String text) {
   if (!enableWriteString) return;
   if (!uri.isScheme('file')) {
@@ -1276,7 +1269,7 @@ bool enableWriteString = true;
 
 Future<api.CompilationResult> internalMain(List<String> arguments,
     {fe.InitializedCompilerState? kernelInitializedCompilerState}) {
-  Future<api.CompilationResult> onError(exception, trace) {
+  Future<api.CompilationResult> onError(Object exception, StackTrace? trace) {
     // If we are already trying to exit, just continue exiting.
     if (exception == _EXIT_SIGNAL) throw exception;
 
@@ -1322,13 +1315,12 @@ void batchMain(List<String> batchArguments) {
   };
 
   var stream = stdin.transform(utf8.decoder).transform(LineSplitter());
-  late StreamSubscription subscription;
+  late StreamSubscription<String> subscription;
   fe.InitializedCompilerState? kernelInitializedCompilerState;
-  subscription = stream.listen((String? line) {
+  subscription = stream.listen((String line) {
     Future.sync(() {
       subscription.pause();
       exitCode = 0;
-      if (line == null) exit(0);
       List<String> testArgs = splitLine(line, windows: Platform.isWindows);
 
       // Ignore experiment flags given to the batch runner.
@@ -1355,7 +1347,7 @@ void batchMain(List<String> batchArguments) {
       if (result != null) {
         kernelInitializedCompilerState = result.kernelInitializedCompilerState;
       }
-    }).catchError((exception, trace) {
+    }).catchError((Object exception, StackTrace trace) {
       if (!identical(exception, _EXIT_SIGNAL)) {
         exitCode = 253;
       }

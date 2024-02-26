@@ -143,8 +143,8 @@ class ClosureTracerVisitor extends TracerVisitor {
 }
 
 class StaticTearOffClosureTracerVisitor extends ClosureTracerVisitor {
-  StaticTearOffClosureTracerVisitor(
-      FunctionEntity tracedElement, tracedType, inferrer)
+  StaticTearOffClosureTracerVisitor(FunctionEntity tracedElement,
+      ApplyableTypeInformation tracedType, InferrerEngine inferrer)
       : super([tracedElement], tracedType, inferrer);
 
   @override

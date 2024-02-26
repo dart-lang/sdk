@@ -18,7 +18,7 @@ main() {
     CompilationResult result = await runCompiler(
         entryPoint: Platform.script.resolve('data/subtype_named_args.dart'));
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ProgramLookup programLookup = ProgramLookup(compiler.backendStrategy);
 

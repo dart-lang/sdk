@@ -114,7 +114,7 @@ class ScopeInfo {
   /// variables declared in the for loop expression (`for (...here...)`) that
   /// need to be boxed to snapshot their value.
   void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, f(Local local, FieldEntity field)) {}
+      KernelToLocalsMap localsMap, void f(Local local, FieldEntity field)) {}
 
   /// True if [variable] has been mutated and is also used in another scope.
   bool isBoxedVariable(KernelToLocalsMap localsMap, Local variable) => false;
@@ -299,13 +299,13 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// the superclass ScopeInfo.
   @override
   void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, f(Local local, FieldEntity field)) {}
+      KernelToLocalsMap localsMap, void f(Local local, FieldEntity field)) {}
 
   /// Loop through each free variable in this closure. Free variables are the
   /// variables that have been captured *just* in this closure, not in nested
   /// scopes.
   void forEachFreeVariable(
-      KernelToLocalsMap localsMap, f(Local variable, FieldEntity field)) {}
+      KernelToLocalsMap localsMap, void f(Local variable, FieldEntity field)) {}
 
   // TODO(efortuna): Remove this method. The old system was using
   // ClosureClassMaps for situations other than closure class maps, and that's

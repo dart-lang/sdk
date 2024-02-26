@@ -2751,7 +2751,7 @@ class HBitXor extends HBinaryBitOp {
 }
 
 abstract class HInvokeUnary extends HInstruction {
-  HInvokeUnary(HInstruction input, type) : super([input], type) {
+  HInvokeUnary(HInstruction input, AbstractValue type) : super([input], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -2970,7 +2970,7 @@ class HConstant extends HInstruction {
   bool isCodeMotionInvariant() => true;
 
   @override
-  set instructionType(type) {
+  set instructionType(AbstractValue type) {
     // Only lists can be specialized. The SSA builder uses the
     // inferrer for finding the type of a constant list. We should
     // have the constant know its type instead.
@@ -3909,7 +3909,8 @@ class HTypeKnown extends HCheck {
 }
 
 class HRangeConversion extends HCheck {
-  HRangeConversion(HInstruction input, type) : super([input], type) {
+  HRangeConversion(HInstruction input, AbstractValue type)
+      : super([input], type) {
     sourceElement = input.sourceElement;
   }
 

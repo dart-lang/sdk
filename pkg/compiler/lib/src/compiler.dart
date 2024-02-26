@@ -299,7 +299,7 @@ class Compiler {
     return trimmedComponent;
   }
 
-  Future runInternal() async {
+  Future<void> runInternal() async {
     clearState();
     var compilationTarget = options.compilationTarget;
     reporter.log('Compiling $compilationTarget (${options.buildId})');
@@ -781,7 +781,7 @@ class Compiler {
   /// Perform various checks of the queue. This includes checking that the
   /// queues are empty (nothing was added after we stopped processing the
   /// queues).
-  checkQueue(Enqueuer enqueuer) {
+  void checkQueue(Enqueuer enqueuer) {
     enqueuer.checkQueueIsEmpty();
   }
 
@@ -835,7 +835,8 @@ class Compiler {
     }
   }
 
-  Future<api.Input> callUserProvider(Uri uri, api.InputKind inputKind) {
+  Future<api.Input<List<int>>> callUserProvider(
+      Uri uri, api.InputKind inputKind) {
     try {
       return userProviderTask
           .measureIo(() => provider.readFromUri(uri, inputKind: inputKind));
@@ -845,7 +846,8 @@ class Compiler {
     }
   }
 
-  void reportCrashInUserCode(String message, exception, stackTrace) {
+  void reportCrashInUserCode(
+      String message, Object exception, StackTrace stackTrace) {
     reporter.onCrashInUserCode(message, exception, stackTrace);
   }
 

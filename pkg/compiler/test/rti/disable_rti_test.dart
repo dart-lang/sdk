@@ -78,7 +78,7 @@ main() {
         memorySourceFiles: {'main.dart': code},
         options: [Flags.disableRtiOptimization, Flags.disableInlining]);
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;

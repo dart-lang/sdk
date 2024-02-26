@@ -43,7 +43,7 @@ Future runTest1() async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': TEST1},
       options: [Flags.disableInlining]);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
   GlobalTypeInferenceResults results =
       compiler.globalInference.resultsForTesting!;
@@ -94,7 +94,7 @@ Future runTest2() async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': TEST2},
       options: [Flags.disableInlining]);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
   GlobalTypeInferenceResults results =
       compiler.globalInference.resultsForTesting!;

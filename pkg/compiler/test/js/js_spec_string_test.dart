@@ -20,7 +20,7 @@ class Listener implements DiagnosticReporter {
 
   @override
   internalError(spannable, message) {
-    errorMessage = message;
+    errorMessage = message as String;
     throw "error";
   }
 

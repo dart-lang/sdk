@@ -59,12 +59,12 @@ class Hashing {
   }
 
   /// Mix the bits of the element hash codes of [list] with [existing].
-  static int listHash(List? list, [int existing = 0]) {
+  static int listHash(List<Object?>? list, [int existing = 0]) {
     int h = existing;
     if (list != null) {
       int length = list.length;
       for (int i = 0; i < length; i++) {
-        h = mixHashCodeBits(h, (list[i] as Object?).hashCode);
+        h = mixHashCodeBits(h, list[i].hashCode);
       }
     }
     return h;
@@ -83,7 +83,7 @@ class Hashing {
 
   /// Mix the bits of the hash codes of the unordered key/value from [map] with
   /// [existing].
-  static int unorderedMapHash(Map map, [int existing = 0]) {
+  static int unorderedMapHash(Map<Object?, Object?> map, [int existing = 0]) {
     if (map.length == 0) return existing;
     List<int> hashCodes = List.filled(map.length, 0);
     int i = 0;
@@ -99,11 +99,11 @@ class Hashing {
   }
 
   /// Mix the bits of the key/value hash codes from [map] with [existing].
-  static int mapHash(Map map, [int existing = 0]) {
+  static int mapHash(Map<Object?, Object?> map, [int existing = 0]) {
     int h = existing;
     for (var key in map.keys) {
       h = mixHashCodeBits(h, key.hashCode);
-      h = mixHashCodeBits(h, (map[key] as Object?).hashCode);
+      h = mixHashCodeBits(h, map[key].hashCode);
     }
     return h;
   }
@@ -251,7 +251,7 @@ class Pair<A, B> {
   String toString() => '($a,$b)';
 }
 
-int longestCommonPrefixLength(List a, List b) {
+int longestCommonPrefixLength(List<Object?> a, List<Object?> b) {
   int index = 0;
   for (; index < a.length && index < b.length; index++) {
     if (a[index] != b[index]) {

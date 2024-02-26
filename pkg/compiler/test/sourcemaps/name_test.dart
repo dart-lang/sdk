@@ -80,7 +80,7 @@ main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': SOURCE},
         options: [Flags.disableInlining]);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JElementEnvironment env = closedWorld.elementEnvironment;
     LibraryEntity mainApp = env.mainLibrary!;

@@ -389,7 +389,7 @@ class TypeVariableTypeWithContext implements ir.Node {
   }
 
   @override
-  visitChildren(ir.Visitor v) {
+  visitChildren(ir.Visitor<Object?> v) {
     throw UnsupportedError('TypeVariableTypeWithContext.visitChildren');
   }
 

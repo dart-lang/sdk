@@ -61,10 +61,8 @@ class MessageTemplate {
   ///  Examples will be checked by
   ///  pkg/compiler/test/message_kind_test.dart.
   ///
-  ///  An example is either a String containing the example source code or a Map
-  ///  from filenames to source code. In the latter case, the filename for the
-  ///  main library code must be 'main.dart'.
-  final List? examples;
+  ///  An example is a String containing the example source code.
+  final List<String>? examples;
 
   /// Additional options needed for the examples to work.
   final List<String> options;

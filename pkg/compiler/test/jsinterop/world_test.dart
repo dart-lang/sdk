@@ -83,7 +83,7 @@ newF() => F(5);
 $mainSource
 """
     });
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     Map<String, ClassEntity> classEnvironment = <String, ClassEntity>{};
 
     ClassEntity registerClass(ClassEntity cls) {

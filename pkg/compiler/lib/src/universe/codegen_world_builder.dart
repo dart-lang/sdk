@@ -50,13 +50,13 @@ abstract class CodegenWorld extends BuiltWorld {
   Iterable<Selector>? setterInvocationsByName(String name);
 
   void forEachInvokedName(
-      f(String name, Map<Selector, SelectorConstraints> selectors));
+      void f(String name, Map<Selector, SelectorConstraints> selectors));
 
   void forEachInvokedGetter(
-      f(String name, Map<Selector, SelectorConstraints> selectors));
+      void f(String name, Map<Selector, SelectorConstraints> selectors));
 
   void forEachInvokedSetter(
-      f(String name, Map<Selector, SelectorConstraints> selectors));
+      void f(String name, Map<Selector, SelectorConstraints> selectors));
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
@@ -1011,19 +1011,19 @@ class CodegenWorldImpl implements CodegenWorld {
 
   @override
   void forEachInvokedName(
-      f(String name, Map<Selector, SelectorConstraints> selectors)) {
+      void f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedNames.forEach(f);
   }
 
   @override
   void forEachInvokedGetter(
-      f(String name, Map<Selector, SelectorConstraints> selectors)) {
+      void f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedGetters.forEach(f);
   }
 
   @override
   void forEachInvokedSetter(
-      f(String name, Map<Selector, SelectorConstraints> selectors)) {
+      void f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedSetters.forEach(f);
   }
 

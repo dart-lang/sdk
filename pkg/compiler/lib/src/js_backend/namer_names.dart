@@ -16,7 +16,7 @@ abstract class _NamerName extends jsAst.Name {
     return _NameReference(underlying, newSourceInformation);
   }
 
-  int _compareSameKind(covariant _NamerName);
+  int _compareSameKind(covariant _NamerName name);
 
   @override
   String toString() {

@@ -396,7 +396,7 @@ class SourceMapProcessor {
       throw "Compilation failed.";
     }
 
-    var compiler = result.compiler;
+    var compiler = result.compiler!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     final strategy = backendStrategy.sourceInformationStrategy
         as RecordingSourceInformationStrategy;

@@ -76,7 +76,7 @@ main() {
   CompilationResult result =
       await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   var options = compiler.options;
 
   KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;

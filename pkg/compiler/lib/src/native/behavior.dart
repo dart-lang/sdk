@@ -290,8 +290,8 @@ class NativeBehavior {
       required TypeLookup lookupType,
       required List<Object> typesReturned,
       required List<Object> typesInstantiated,
-      objectType,
-      nullType}) {
+      required Object objectType,
+      required Object nullType}) {
     bool seenError = false;
 
     void reportError(String message) {
